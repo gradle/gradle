@@ -233,6 +233,7 @@ import org.gradle.util.internal.SimpleMapInterner;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -875,6 +876,11 @@ class DependencyManagementBuildScopeServices {
                 @Override
                 public Try<ExecutionResult> getExecutionResult() {
                     return result.getExecutionResult();
+                }
+
+                @Override
+                public Duration getDuration() {
+                    return result.getDuration();
                 }
             };
         }

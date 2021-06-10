@@ -26,12 +26,11 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -56,7 +55,6 @@ class DefaultRootBuildStateTest extends Specification {
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def sessionServices = new DefaultServiceRegistry()
         sessionServices.add(new TestBuildOperationExecutor())
-        sessionServices.add(new TestWorkerLeaseService())
         sessionServices.add(includedBuildControllers)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
@@ -152,7 +150,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.fromBuildModel(false) {'<result>' }
+            controller.fromBuildModel(false) { '<result>' }
         }
 
         and:
@@ -171,7 +169,7 @@ class DefaultRootBuildStateTest extends Specification {
         given:
         action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
-            controller.fromBuildModel(false) {'<result>' }
+            controller.fromBuildModel(false) { '<result>' }
         }
 
         when:
@@ -244,7 +242,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.fromBuildModel(false) {'<result>' }
+            controller.fromBuildModel(false) { '<result>' }
         }
 
         and:
@@ -316,7 +314,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * launcher.configuredBuild >> { throw new RuntimeException() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             try {
-                controller.fromBuildModel(false) {'<result>' }
+                controller.fromBuildModel(false) { '<result>' }
             } catch (RuntimeException) {
                 // Ignore
             }

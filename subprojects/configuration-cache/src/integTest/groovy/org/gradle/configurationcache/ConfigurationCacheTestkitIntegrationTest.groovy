@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
-// Currently, combining embedded execution and embedded tooling API build execution in the same process can cause a deadlock, when those builds use worker processes
-@IgnoreIf({ GradleContextualExecuter.embedded })
 @Requires(TestPrecondition.NOT_WINDOWS)
 class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {

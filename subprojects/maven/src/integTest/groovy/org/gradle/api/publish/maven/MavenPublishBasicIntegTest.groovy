@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
@@ -307,6 +308,83 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         module.assertPublished()
         def module2 = mavenRepo2.module('org.gradle.test', 'root', '1.0')
         module2.assertPublished()
+    }
+
+    def "can publish custom PublishArtifact"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            def writeFileProvider = tasks.register("writeFile") {
+                doLast {
+                    try (FileOutputStream out = new FileOutputStream("customArtifact.jar")) {}
+                }
+            }
+
+            def customArtifact = new PublishArtifact() {
+                @Override
+                String getName() {
+                    return "customArtifact"
+                }
+
+                @Override
+                String getExtension() {
+                    return "jar"
+                }
+
+                @Override
+                String getType() {
+                    return "jar"
+                }
+
+                @Override
+                String getClassifier() {
+                    return null
+                }
+
+                @Override
+                File getFile() {
+                    return new File("customArtifact.jar")
+                }
+
+                @Override
+                Date getDate() {
+                    return new Date()
+                }
+
+                @Override
+                TaskDependency getBuildDependencies() {
+                    return new TaskDependency() {
+                        @Override
+                        Set<? extends Task> getDependencies(Task task) {
+                            return Collections.singleton(writeFileProvider.get())
+                        }
+                    }
+                }
+            }
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        artifact customArtifact
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('org.gradle.test', 'root', '1.0')
+        module.assertPublished()
     }
 
     def "warns when trying to publish a transitive = false variant"() {

@@ -22,13 +22,15 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -123,7 +125,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         this.eclipseRuntime = eclipseRuntime;
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
-        projectsInBuild.removeAll(gatherExternalProjects(project.getRootProject(), projects));
+        projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
         projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a | b));
 
         return buildAll(modelName, project);
@@ -146,7 +148,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
         currentProject = project;
         eclipseProjects = Lists.newArrayList();
-        Project root = project.getRootProject();
+        ProjectInternal root = (ProjectInternal) project.getRootProject();
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root, new ArrayList<>());
@@ -156,7 +158,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return result;
     }
 
-    private void deduplicateProjectNames(Project root) {
+    private void deduplicateProjectNames(ProjectInternal root) {
         uniqueProjectNameProvider.setReservedProjectNames(calculateReservedProjectNames(root, eclipseRuntime));
         for (Project project : root.getAllprojects()) {
             EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
@@ -166,14 +168,15 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    private void applyEclipsePlugin(Project root, List<GradleInternal> alreadyProcessed) {
+    private void applyEclipsePlugin(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
-        for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            if (includedBuild instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+        for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
+            BuildState target = reference.getTarget();
+            if (target instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
                     applyEclipsePlugin(build.getRootProject(), alreadyProcessed);
@@ -398,11 +401,12 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return new DefaultAccessRule(kindCode, accessRule.getPattern());
     }
 
-    private List<Project> collectAllProjects(List<Project> all, Gradle gradle, Set<Gradle> allBuilds) {
+    private List<Project> collectAllProjects(List<Project> all, GradleInternal gradle, Set<Gradle> allBuilds) {
         all.addAll(gradle.getRootProject().getAllprojects());
-        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            if (includedBuild instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+            BuildState target = reference.getTarget();
+            if (target instanceof IncludedBuildState) {
+                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
                 if (!allBuilds.contains(build)) {
                     allBuilds.add(build);
                     collectAllProjects(all, build, allBuilds);
@@ -412,14 +416,14 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return all;
     }
 
-    private Gradle getRootBuild(Gradle gradle) {
+    private GradleInternal getRootBuild(GradleInternal gradle) {
         if (gradle.getParent() == null) {
             return gradle;
         }
         return gradle.getParent();
     }
 
-    private List<String> calculateReservedProjectNames(Project rootProject, EclipseRuntime parameter) {
+    private List<String> calculateReservedProjectNames(ProjectInternal rootProject, EclipseRuntime parameter) {
         if (parameter == null) {
             return Collections.emptyList();
         }
@@ -443,7 +447,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return reservedProjectNames;
     }
 
-    private List<EclipseWorkspaceProject> gatherExternalProjects(Project rootProject, List<EclipseWorkspaceProject> projects) {
+    private List<EclipseWorkspaceProject> gatherExternalProjects(ProjectInternal rootProject, List<EclipseWorkspaceProject> projects) {
         // The eclipse workspace contains projects from root and included builds. Check projects from all builds
         // so that models built for included builds do not consider projects from parent builds as external.
         Set<File> gradleProjectLocations = collectAllProjects(new ArrayList<>(), getRootBuild(rootProject.getGradle()), new HashSet<>()).stream()

@@ -32,8 +32,8 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -116,6 +116,11 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
 
         @Override
         public ModuleIdentifier getModule() {
+            throw shouldNotBeCalled();
+        }
+
+        @Override
+        public DependencyConstraint copy() {
             throw shouldNotBeCalled();
         }
     };

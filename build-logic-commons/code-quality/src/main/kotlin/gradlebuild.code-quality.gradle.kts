@@ -72,7 +72,8 @@ fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filt
 checkstyle {
     toolVersion = "8.12"
     config = configFile("checkstyle.xml")
-    configDirectory.set(rules.elements.map { layout.projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle") })
+    val projectDirectory = layout.projectDirectory
+    configDirectory.set(rules.elements.map { projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle") })
 }
 
 plugins.withType<GroovyBasePlugin> {

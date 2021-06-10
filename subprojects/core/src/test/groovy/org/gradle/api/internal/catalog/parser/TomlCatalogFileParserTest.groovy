@@ -209,7 +209,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         hasDependency('groovy-templates') {
             withGAV("org.codehaus.groovy:groovy-templates:2.5.6")
         }
-        hasBundle('groovy', ['groovy-json', 'groovy', 'groovy-templates'])
+        hasBundle('groovy', ['groovy.json', 'groovy', 'groovy.templates'])
     }
 
     @VersionCatalogProblemTestFor([

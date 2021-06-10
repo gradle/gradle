@@ -61,6 +61,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
@@ -231,6 +232,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public String version(String name, Action<? super MutableVersionConstraint> versionSpec) {
         validateName("name", name);
+        name = intern(normalize(name));
         if (versionConstraints.containsKey(name)) {
             // For versions, in order to allow overriding whatever is declared by
             // a platform, we want to silence overrides
@@ -263,7 +265,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public AliasBuilder alias(String alias) {
         validateName("alias", alias);
-        return new DefaultAliasBuilder(alias);
+        return new DefaultAliasBuilder(normalize(alias));
     }
 
     private void validateName(String type, String value) {
@@ -312,8 +314,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public void bundle(String name, List<String> aliases) {
         validateName("bundle", name);
-        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList()));
-        BundleModel previous = bundles.put(intern(name), new BundleModel(components, currentContext));
+        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream()
+            .map(AliasNormalizer::normalize)
+            .map(this::intern)
+            .collect(Collectors.toList()));
+        BundleModel previous = bundles.put(normalize(intern(name)), new BundleModel(components, currentContext));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous.getComponents(), components);
         }
@@ -452,7 +457,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
-        Supplier<DependencyModel> previous = dependencies.put(intern(alias), new VersionReferencingDependencyModel(group, name, versionRef));
+        Supplier<DependencyModel> previous = dependencies.put(intern(normalize(alias)), new VersionReferencingDependencyModel(group, name, normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }

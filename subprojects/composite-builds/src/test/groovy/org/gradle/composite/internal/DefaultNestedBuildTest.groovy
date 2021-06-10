@@ -25,13 +25,11 @@ import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -59,7 +57,6 @@ class DefaultNestedBuildTest extends Specification {
         _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
-        _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
         _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
         _ * tree.services >> new DefaultServiceRegistry()

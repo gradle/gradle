@@ -27,6 +27,7 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import java.time.Duration;
 import java.util.Optional;
 
 public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implements Step<C, CachingResult> {
@@ -80,6 +81,11 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
                     @Override
                     public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
                         return Optional.empty();
+                    }
+
+                    @Override
+                    public Duration getDuration() {
+                        return Duration.ZERO;
                     }
                 };
             })

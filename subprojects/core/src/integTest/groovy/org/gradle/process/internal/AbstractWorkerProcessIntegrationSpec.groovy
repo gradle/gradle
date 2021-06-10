@@ -101,7 +101,6 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
 
     def cleanup() {
         CurrentBuildOperationRef.instance().clear()
-        workerProcessClassPathProvider.close()
     }
 
     def cleanupSpec() {

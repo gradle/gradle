@@ -74,11 +74,11 @@ We would generate the following type-safe accessors:
 - `libs.groovy.json`
 - `libs.androidx.awesome.lib`
 
-It is illegal to have an alias to a dependency which happens to also belong to a nested group.
-For example `commons` and `commons-core` is illegal.
-
 In case you want to avoid the generation of a subgroup accessor, we recommend to rely on case to differentiate.
 For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
+
+When declaring aliases, it's worth noting that any of the `-`, `_` and `.` characters can be used as separators, but the generated catalog will have all normalized to `.`:
+for example `foo-bar` as an alias is converted to `foo.bar` automatically.
 ====
 
 [[sec:common-version-numbers]]

@@ -20,5 +20,5 @@ import java.net.URI;
 import java.util.List;
 
 public interface SignatureVerificationServiceFactory {
-    SignatureVerificationService create(File keyringsFile, List<URI> keyServers);
+    SignatureVerificationService create(File keyringsFile, List<URI> keyServers, boolean useKeyServers);
 }

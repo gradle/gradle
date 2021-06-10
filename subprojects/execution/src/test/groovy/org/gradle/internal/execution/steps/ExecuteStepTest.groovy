@@ -51,12 +51,17 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
 
         then:
         result.executionResult.get().outcome == expectedOutcome
+        // Check
+        result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
         _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
             executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
-        }) >> Stub(UnitOfWork.WorkOutput) {
-            getDidWork() >> workResult
+        }) >> {
+            sleep 200
+            Stub(UnitOfWork.WorkOutput) {
+                getDidWork() >> workResult
+            }
         }
         0 * _
 
@@ -74,11 +79,15 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
         then:
         !result.executionResult.successful
         result.executionResult.failure.get() == failure
+        result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
         _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
             executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
-        }) >> { throw failure }
+        }) >> {
+            sleep 200
+            throw failure
+        }
         0 * _
 
         where:

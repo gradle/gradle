@@ -486,9 +486,16 @@ However, if the signature cannot be verified with at least one other key, Gradle
 Gradle automatically downloads the required keys but this operation can be quite slow and requires everyone to download the keys.
 To avoid this, Gradle offers the ability to use a local keyring file containing the required public keys.
 
-If the `gradle/verification-keyring.gpg` file is present, Gradle will search for keys there in priority.
+Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`).
 
-You can generate this file using GPG, for example issuing the following commands (syntax may depend on the tool you use):
+There are pros and cons for each of the formats: the binary format is more compact and can be updated directly via GPG commands, but is completely opaque (binary).
+On the opposite, the plain text format is human readable, can be easily updated by hand and makes it easier to do code reviews thanks to readable diffs.
+
+If the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` file is present, Gradle will search for keys there in priority.
+
+Note that the plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
+
+You can generate the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
 
 [source,bash]
 ----
@@ -506,8 +513,28 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 ----
 
-Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
+The plain text version, on the other hand, can be updated manually.
+The file must be formatted with the `US-ASCII` encoding and consists of a list of keys in ASCII armored format.
 
+In the example above, you could amend an existing KEYS file by issuing the following commands:
+
+[source,bash]
+----
+$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 379ce192d401ab61
+
+gpg: keybox '/tmp/keyring.gpg' created
+gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+# First let's add a header so that we can recognize the added key
+$ gpg --keyring /tmp/keyring.gpg --list-sigs 379CE192D401AB61 > gradle/verification-keyring.keys
+
+# Then write its ASCII armored version
+$ gpg --keyring /tmp/keyring.gpg --export --armor 379CE192D401AB61 > gradle/verification-keyring.keys
+----
+
+Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
 
 ----
 ./gradlew --write-verification-metadata pgp,sha256 --export-keys
@@ -515,8 +542,11 @@ Or, alternatively, you can _ask Gradle to export all keys it used for verificati
 
 [NOTE]
 ====
+This command will generate *both* the binary version and the ASCII armored file.
+You should only pick one for your project.
+
 It's a good idea to commit this file to VCS (as long as you trust your VCS).
-If you use git, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
+If you use git and use the binary version, make sure to make it treat this file as binary, by adding this to your `.gitattributes` file:
 
 ----
 *.gpg           binary
@@ -554,6 +584,31 @@ If, for some reason, verification fails during the generation, Gradle will autom
 This situation is common as explained for <<sec:trusting-several-checksums,this section>>: a typical case is when the POM file for a dependency differs from one repository to the other (often in a non-meaningful way).
 
 In addition, Gradle will try to group keys automatically and generate the `trusted-keys` block which reduced the configuration file size as much as possible.
+
+[[sec:local-keyring-only]]
+== Forcing use of local keyrings only
+
+The local keyring files (`.gpg` or `.keys`) can be used to avoid reaching out to key servers whenever a key is required to verify an artifact.
+However, it may be that the local keyring doesn't contain a key, in which case Gradle would use the key servers to fetch the missing key.
+If the local keyring file isn't regularly updated, using <<sec:local-keyring,key export>>, then it may be that your CI builds, for example, would reach out to key servers too often (especially if you use disposable containers for builds).
+
+To avoid this, Gradle offers the ability to disallow use of key servers altogether: only the local keyring file would be used, and if a key is missing from this file, the build will fail.
+
+To enable this mode, you need to disable key servers in the configuration file:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <key-servers enabled="false"/>
+      ...
+   </configuration>
+   ...
+</verification-metadata>
+----
+
+NOTE: If you are asking Gradle to <<sec:bootstrapping-verification,generate a verification metadata file>> and that an existing verification metadata file sets `enabled` to `false`, then this flag will be ignored, so that potentially missing keys are downloaded.
 
 [[sec:troubleshooting-verification]]
 == Troubleshooting dependency verification

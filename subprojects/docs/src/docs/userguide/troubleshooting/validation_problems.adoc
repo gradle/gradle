@@ -402,7 +402,18 @@ tasks.register("myTask",
 
 Using Groovy closures works out of the box since they don't compile to lambdas in the bytecode.
 Same is true for Kotlin up to Kotlin 1.4.
-Starting with Kotlin 1.5, the Kotlin compiler is also using invoke-dynamic in the byte code for SAM wrappers in Kotlin source code, making it impossible for Gradle to uniquely identify the class at runtime.
-You need to pass `-Xsam-conversions=class` to the Kotlin compiler to switch back to the previous, supported behavior.
+
+Starting with Kotlin 1.5, the Kotlin compiler is using invoke-dynamic in the byte code for SAM wrappers in Kotlin source code.
+This makes it impossible for Gradle to uniquely identify implementations of SAM wrappers, like for example lambdas for task actions, at runtime.
+You need to set the `languageVersion` and `apiVersion` to 1.4 for the Kotlin compiler to switch back to the previous, supported behavior.
+
+```kotlin
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        apiVersion = "1.4"
+        languageVersion = "1.4"
+    }
+}
+```
 
 For the case where Gradle cannot track the implementation because it was loaded by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.

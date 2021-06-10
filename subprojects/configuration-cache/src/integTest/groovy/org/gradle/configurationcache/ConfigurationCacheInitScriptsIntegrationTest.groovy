@@ -16,9 +16,56 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
+
 class ConfigurationCacheInitScriptsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def configurationCache = newConfigurationCacheFixture()
+
+    @Issue("https://github.com/gradle/gradle/issues/16849")
+    def "init script can declare build logic input"() {
+        given:
+        TestFile buildLogicInput = file('input.txt').tap {
+            text = 'foo!'
+        }
+        TestFile initScript = file('initscript.gradle').tap {
+            text = """
+                // TODO: replace by public API
+                def providers = gradle.services.get(ProviderFactory)
+                def fileFactory = gradle.services.get(org.gradle.api.internal.file.FileFactory)
+                def inputFile = fileFactory.file(file('${normaliseFileSeparators(buildLogicInput.absolutePath)}'))
+                def text = providers.fileContents(inputFile).asText.forUseAtConfigurationTime().get()
+                println text
+            """
+        }
+
+        when:
+        configurationCacheRun 'tasks', '-I', initScript.absolutePath
+
+        then:
+        outputContains 'foo!'
+        configurationCache.assertStateStored()
+
+        when:
+        buildLogicInput.text = 'bar!'
+
+        and:
+        configurationCacheRun 'tasks', '-I', initScript.absolutePath
+
+        then:
+        outputContains 'bar!'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'tasks', '-I', initScript.absolutePath
+
+        then:
+        outputDoesNotContain 'bar!'
+        configurationCache.assertStateLoaded()
+    }
 
     def "init script names do not matter, their contents do"() {
 

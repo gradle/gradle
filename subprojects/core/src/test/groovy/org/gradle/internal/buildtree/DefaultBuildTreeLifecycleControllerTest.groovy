@@ -17,9 +17,9 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -28,11 +28,11 @@ import java.util.function.Function
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
-    def workerLeaseService = new TestWorkerLeaseService()
+    def includedBuildControllers = Mock(IncludedBuildControllers)
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workerLeaseService, workExecutor, finishExecutor, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, includedBuildControllers, workExecutor, finishExecutor, exceptionAnalyzer)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -50,6 +50,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * buildController.scheduleRequestedTasks()
+        1 * includedBuildControllers.populateTaskGraphs()
         1 * workExecutor.execute(_)
 
         and:
@@ -72,6 +73,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * buildController.scheduleRequestedTasks()
+        1 * includedBuildControllers.populateTaskGraphs()
         1 * workExecutor.execute(_) >> { Consumer consumer -> consumer.accept(failure) }
         0 * action._
 

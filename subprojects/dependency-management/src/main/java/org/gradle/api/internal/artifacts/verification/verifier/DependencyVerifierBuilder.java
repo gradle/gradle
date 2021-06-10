@@ -52,6 +52,7 @@ public class DependencyVerifierBuilder {
     private final Set<IgnoredKey> ignoredKeys = Sets.newLinkedHashSet();
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
+    private boolean useKeyServers = true;
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
@@ -87,6 +88,14 @@ public class DependencyVerifierBuilder {
         isVerifySignatures = verifySignatures;
     }
 
+    public boolean isUseKeyServers() {
+        return useKeyServers;
+    }
+
+    public void setUseKeyServers(boolean useKeyServers) {
+        this.useKeyServers = useKeyServers;
+    }
+
     public List<URI> getKeyServers() {
         return keyServers;
     }
@@ -118,7 +127,7 @@ public class DependencyVerifierBuilder {
             .stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
             .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)));
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {

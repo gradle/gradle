@@ -19,10 +19,15 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.Pair;
+import org.gradle.internal.composite.IncludedBuildInternal;
 
 import java.util.Set;
 
 public interface CompositeBuildParticipantBuildState extends BuildState {
+    /**
+     * Returns the public view of a reference to this build.
+     */
+    IncludedBuildInternal getModel();
 
     /**
      * Identities of the modules represented by the projects of this build.

@@ -167,13 +167,16 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
             result = connection.receive();
         } catch (StaleDaemonAddressException e) {
             LOGGER.debug("Connected to a stale daemon address.", e);
-            //We might fail hard here on the assumption that something weird happened to the daemon.
-            //However, since we haven't yet started running the build, we can recover by just trying again...
+            // We might fail hard here on the assumption that something weird happened to the daemon.
+            // However, since we haven't yet started running the build, we can recover by just trying again.
             throw new DaemonInitialConnectException("Connected to a stale daemon address.", e);
         }
 
         if (result == null) {
-            throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
+            // If the response from the daemon is unintelligible, mark the daemon as unavailable so other
+            // clients won't try to communicate with it. We'll attempt to recovery by trying again.
+            connector.markDaemonAsUnavailable(connection.getDaemon());
+            throw new DaemonInitialConnectException("The first result from the daemon was empty. The daemon process may have died or a non-daemon process is reusing the same port.");
         }
 
         LOGGER.debug("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());

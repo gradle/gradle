@@ -1082,42 +1082,168 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "reasonable error message if an alias clashes with a group of dependencies"() {
+    def "supports aliases which also have children"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("top").to("org:test:1.0") // would generate libs.top as a Provider<Dependency>
-                        alias("top.bottom").to("org:bottom:1.0") // would generate libs.top as a factory of dependencies
+                        alias("top").to("org:top:1.0")
+                        alias("top.bottom").to("org:bottom:1.0")
                     }
                 }
             }
         """
+        def top = mavenHttpRepo.module("org", "top", "1.0").publish()
+        def bottom = mavenHttpRepo.module("org", "bottom", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.top
+                implementation libs.top.bottom
+            }
+        """
 
         when:
-        fails ":help"
+        top.pom.expectGet()
+        bottom.pom.expectGet()
+        top.artifact.expectGet()
+        bottom.artifact.expectGet()
 
         then:
-        failure.assertHasCause "Cannot generate top level accessors because it contains both aliases and groups of the same name: [top]"
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:top:1.0')
+                module('org:bottom:1.0')
+            }
+        }
     }
 
-    def "reasonable error message if an alias clashes with a sub-group of dependencies"() {
+    def "supports aliases which also have children using intermediate leaves"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("top.middle").to("org:test:1.0") // would generate libs.top.middle as a Provider<Dependency>
-                        alias("top.middle.bottom").to("org:bottom:1.0") // would generate libs.top.middle as a factory of dependencies
+                        alias("top.middle").to("org:top:1.0")
+                        alias("top.middle.bottom").to("org:bottom:1.0")
                     }
                 }
             }
         """
+        def top = mavenHttpRepo.module("org", "top", "1.0").publish()
+        def bottom = mavenHttpRepo.module("org", "bottom", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.top.middle
+                implementation libs.top.middle.bottom
+            }
+        """
 
         when:
-        fails ":help"
+        top.pom.expectGet()
+        bottom.pom.expectGet()
+        top.artifact.expectGet()
+        bottom.artifact.expectGet()
 
         then:
-        failure.assertHasCause "Cannot generate accessors for top because it contains both aliases and groups of the same name: [middle]"
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:top:1.0')
+                module('org:bottom:1.0')
+            }
+        }
+    }
+
+    def "supports aliases which also have children using empty intermediate level"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("top").to("org:top:1.0")
+                        alias("top.middle.bottom").to("org:bottom:1.0")
+                    }
+                }
+            }
+        """
+        def top = mavenHttpRepo.module("org", "top", "1.0").publish()
+        def bottom = mavenHttpRepo.module("org", "bottom", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.top
+                implementation libs.top.middle.bottom
+            }
+        """
+
+        when:
+        top.pom.expectGet()
+        bottom.pom.expectGet()
+        top.artifact.expectGet()
+        bottom.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:top:1.0')
+                module('org:bottom:1.0')
+            }
+        }
+    }
+
+    def "supports aliases which also have children using empty complex intermediate levels (separator = #separator)"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("foo${separator}bar${separator}baz${separator}a").to("org:a:1.0")
+                        alias("foo${separator}bar${separator}baz${separator}b").to("org:b:1.0")
+                        alias("foo${separator}bar").to("org:bar:1.0")
+                    }
+                }
+            }
+        """
+        def a = mavenHttpRepo.module("org", "a", "1.0").publish()
+        def bar = mavenHttpRepo.module("org", "bar", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.foo.bar.baz.a
+                implementation libs.foo.bar
+            }
+        """
+
+        when:
+        a.pom.expectGet()
+        bar.pom.expectGet()
+        a.artifact.expectGet()
+        bar.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:a:1.0')
+                module('org:bar:1.0')
+            }
+        }
+
+        where:
+        separator << ['.', '_', '-']
     }
 
     def "can access all version catalogs with optional API"() {
@@ -1264,26 +1390,94 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "reasonable error message if a version is both a leaf and a node"() {
+    def "supports versions which also have children"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
                         version("my", "1.0")
-                        version("my.nested", "1.1")
+                        version("my.bottom", "1.1")
                     }
                 }
             }
         """
 
+        buildFile """
+            tasks.register("dumpVersions") {
+                doLast {
+                    println "First: \${libs.versions.my.asProvider().get()}"
+                    println "Second: \${libs.versions.my.bottom.get()}"
+                }
+            }
+        """
+
         when:
-        fails 'help'
+        succeeds 'dumpVersions'
 
         then:
-        failureDescriptionContains "Cannot generate accessors for versions because it contains both aliases and groups of the same name: [my]"
+        outputContains """First: 1.0
+Second: 1.1"""
     }
 
-    def "reasonable error message if a bundle is both a leaf and a node"() {
+    def "supports versions which also have children using intermediate leaves"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my.middle", "1.0")
+                        version("my.middle.bottom", "1.1")
+                    }
+                }
+            }
+        """
+
+        buildFile """
+            tasks.register("dumpVersions") {
+                doLast {
+                    println "First: \${libs.versions.my.middle.asProvider().get()}"
+                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                }
+            }
+        """
+
+        when:
+        succeeds 'dumpVersions'
+
+        then:
+        outputContains """First: 1.0
+Second: 1.1"""
+    }
+
+    def "supports versions which also have children using empty intermediate level"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my", "1.0")
+                        version("my.middle.bottom", "1.1")
+                    }
+                }
+            }
+        """
+
+        buildFile """
+            tasks.register("dumpVersions") {
+                doLast {
+                    println "First: \${libs.versions.my.asProvider().get()}"
+                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                }
+            }
+        """
+
+        when:
+        succeeds 'dumpVersions'
+
+        then:
+        outputContains """First: 1.0
+Second: 1.1"""
+    }
+
+    def "supports bundles which also have children"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -1297,11 +1491,119 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             }
         """
 
+        def lib1 = mavenHttpRepo.module("org", "lib1", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.bundles.my
+                implementation libs.bundles.my.other
+            }
+        """
+
         when:
-        fails 'help'
+        lib1.pom.expectGet()
+        lib2.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.artifact.expectGet()
 
         then:
-        failureDescriptionContains "Cannot generate accessors for bundles because it contains both aliases and groups of the same name: [my]"
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:lib1:1.0')
+                module('org:lib2:1.0')
+            }
+        }
+    }
+
+    def "supports bundles which also have children using intermediate leaves"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib1").to("org:lib1:1.0")
+                        alias("lib2").to("org:lib2:1.0")
+                        bundle("my.middle", ["lib1", "lib2"])
+                        bundle("my.middle.other", ["lib1", "lib2"])
+                    }
+                }
+            }
+        """
+
+        def lib1 = mavenHttpRepo.module("org", "lib1", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.bundles.my.middle
+                implementation libs.bundles.my.middle.other
+            }
+        """
+
+        when:
+        lib1.pom.expectGet()
+        lib2.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:lib1:1.0')
+                module('org:lib2:1.0')
+            }
+        }
+    }
+
+    def "supports bundles which also have children using empty intermediate leaves"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("lib1").to("org:lib1:1.0")
+                        alias("lib2").to("org:lib2:1.0")
+                        bundle("my", ["lib1", "lib2"])
+                        bundle("my.middle.other", ["lib1", "lib2"])
+                    }
+                }
+            }
+        """
+
+        def lib1 = mavenHttpRepo.module("org", "lib1", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.bundles.my
+                implementation libs.bundles.my.middle.other
+            }
+        """
+
+        when:
+        lib1.pom.expectGet()
+        lib2.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:lib1:1.0')
+                module('org:lib2:1.0')
+            }
+        }
     }
 
     @VersionCatalogProblemTestFor(

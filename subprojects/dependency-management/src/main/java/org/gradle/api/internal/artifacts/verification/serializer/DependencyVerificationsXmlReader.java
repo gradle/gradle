@@ -48,6 +48,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CONFIG;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ENABLED;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.FILE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ID;
@@ -180,6 +181,10 @@ public class DependencyVerificationsXmlReader {
                 case KEY_SERVERS:
                     assertInConfiguration(KEY_SERVERS);
                     inKeyServers = true;
+                    String enabled = getNullableAttribute(attributes, ENABLED);
+                    if (enabled != null) {
+                        builder.setUseKeyServers(Boolean.parseBoolean(enabled));
+                    }
                     break;
                 case KEY_SERVER:
                     assertContext(inKeyServers, KEY_SERVER, KEY_SERVERS);
