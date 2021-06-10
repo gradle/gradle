@@ -54,6 +54,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -153,6 +154,7 @@ public class GUtil {
         }
         return true;
     }
+
     /**
      * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
      * would trigger early configuration.
@@ -571,4 +573,22 @@ public class GUtil {
         return !"http".equalsIgnoreCase(scheme);
     }
 
+    /**
+     * Checks the entry name for zip-slip vulnerable sequences.
+     *
+     * @throws IllegalArgumentException if the entry contains vulnerable sequences
+     */
+    public static String safeZipEntryName(String name) {
+        if (isUnsafeZipEntryName(name)) {
+            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
+        }
+        return name;
+    }
+
+    public static boolean isUnsafeZipEntryName(String name) {
+        return name.isEmpty()
+            || name.contains("..")
+            || name.startsWith("/")
+            || name.startsWith("\\");
+    }
 }

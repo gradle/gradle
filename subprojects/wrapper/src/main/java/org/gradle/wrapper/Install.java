@@ -253,7 +253,7 @@ public class Install {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
 
-                File destFile = new File(dest, entry.getName());
+                File destFile = new File(dest, safeZipEntryName(entry.getName()));
                 if (entry.isDirectory()) {
                     destFile.mkdirs();
                     continue;
@@ -269,6 +269,18 @@ public class Install {
         } finally {
             zipFile.close();
         }
+    }
+
+    /**
+     * Checks the entry name for zip-slip vulnerable sequences.
+     *
+     * @throws IllegalArgumentException if the entry contains vulnerable sequences
+     */
+    private String safeZipEntryName(String name) {
+        if (name.isEmpty() || name.contains("..") || name.startsWith("/") || name.startsWith("\\")) {
+            throw new IllegalArgumentException(format("'%s' is not a safe zip entry name.", name));
+        }
+        return name;
     }
 
     private void copyInputStream(InputStream in, OutputStream out) throws IOException {

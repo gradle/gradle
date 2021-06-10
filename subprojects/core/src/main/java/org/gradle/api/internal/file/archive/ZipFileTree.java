@@ -41,6 +41,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
+import static org.gradle.util.internal.GUtil.safeZipEntryName;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;
@@ -157,7 +158,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = new File(expandedDir, entry.getName());
+                file = new File(expandedDir, safeZipEntryName(entry.getName()));
                 if (!file.exists()) {
                     copyTo(file);
                 }
