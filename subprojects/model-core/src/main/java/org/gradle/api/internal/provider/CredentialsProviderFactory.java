@@ -169,8 +169,8 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
         @Override
         public synchronized HttpHeaderCredentials call() {
-            String name = getRequiredProperty("Name");
-            String value = getRequiredProperty("Value");
+            String name = getRequiredProperty("AuthHeaderName");
+            String value = getRequiredProperty("AuthHeaderValue");
             assertRequiredValuesPresent();
 
             HttpHeaderCredentials credentials = new DefaultHttpHeaderCredentials();

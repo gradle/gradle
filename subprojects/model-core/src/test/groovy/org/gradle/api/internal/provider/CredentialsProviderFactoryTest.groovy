@@ -175,8 +175,8 @@ class CredentialsProviderFactoryTest extends Specification {
 
     def "evaluates name and value of header credentials provider"() {
         given:
-        providerFactory.gradleProperty('myServiceName') >> new DefaultProvider<>({ 'Private-Token' })
-        providerFactory.gradleProperty('myServiceValue') >> new DefaultProvider<>({ 'secret' })
+        providerFactory.gradleProperty('myServiceAuthHeaderName') >> new DefaultProvider<>({ 'Private-Token' })
+        providerFactory.gradleProperty('myServiceAuthHeaderValue') >> new DefaultProvider<>({ 'secret' })
         def provider = factory.provide(HttpHeaderCredentials, 'myService')
 
         when:
