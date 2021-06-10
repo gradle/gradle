@@ -26,9 +26,15 @@ import java.util.stream.Stream;
  */
 public interface TransformationResult {
     /**
-     * The result of the artifact transform, using relative paths into the provided input artifact.
+     * The outputs of the transformation for a given input artifact.
+     *
+     * A transform can have two kinds of outputs:
+     * - Produced outputs in the workspace. Those are absolute paths which do not change depending on the input artifact.
+     * - Selected parts of the input artifact. These outputs are considered relative to the given input artifact.
+     *   If two input artifacts have the same normalization, and therefore we re-use the result, we still need
+     *   to resolve the relative paths of the outputs to the currently transformed input artifact.
      */
-    ImmutableList<File> resultRelativeTo(File inputArtifact);
+    ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
 
     /**
      * The result of the artifact transform in the transform workspace.
@@ -81,7 +87,7 @@ public interface TransformationResult {
             }
 
             @Override
-            public ImmutableList<File> resultRelativeTo(File inputArtifact) {
+            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
                 return result;
             }
 
@@ -101,7 +107,7 @@ public interface TransformationResult {
             }
 
             @Override
-            public ImmutableList<File> resultRelativeTo(File inputArtifact) {
+            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
                 ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(transformationResults.size());
                 transformationResults.forEach(resultFile -> builder.add(resultFile.resultRelativeTo(inputArtifact)));
                 return builder.build();

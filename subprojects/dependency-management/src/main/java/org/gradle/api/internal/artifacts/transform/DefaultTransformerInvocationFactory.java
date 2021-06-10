@@ -169,7 +169,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 @Nonnull
                 private Try<ImmutableList<File>> mapResult(Try<TransformationResult> cachedOutput) {
                     return cachedOutput
-                        .map(result -> result.resultRelativeTo(inputArtifact))
+                        .map(result -> result.resolveOutputsForInputArtifact(inputArtifact))
                         .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 }
             });
