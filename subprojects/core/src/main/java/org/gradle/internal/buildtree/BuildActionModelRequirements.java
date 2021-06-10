@@ -21,14 +21,23 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.Hasher;
 
 public interface BuildActionModelRequirements {
+    /**
+     * Will the action run tasks?
+     */
     boolean isRunsTasks();
 
+    /**
+     * Will the action create a tooling model? Note that actions can both run tasks and create a tooling model.
+     */
     boolean isCreatesModel();
 
     StartParameterInternal getStartParameter();
 
     DisplayName getActionDisplayName();
 
+    /**
+     * A description of the important components of the cache key for this action.
+     */
     DisplayName getConfigurationCacheKeyDisplayName();
 
     /**
