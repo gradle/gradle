@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.hash.Hasher;
 
 public interface BuildActionModelRequirements {
     boolean isRunsTasks();
@@ -29,4 +30,10 @@ public interface BuildActionModelRequirements {
     DisplayName getActionDisplayName();
 
     DisplayName getConfigurationCacheKeyDisplayName();
+
+    /**
+     * Appends any additional values that should contribute to the configuration cache entry key for this action.
+     * Should not append any details of the requested tasks, as these are always added when {@link #isRunsTasks()} returns true.
+     */
+    void appendKeyTo(Hasher hasher);
 }

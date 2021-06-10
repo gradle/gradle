@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.hash.Hasher;
 
 public class RunTasksRequirements implements BuildActionModelRequirements {
     private final StartParameterInternal startParameter;
@@ -51,5 +52,11 @@ public class RunTasksRequirements implements BuildActionModelRequirements {
     @Override
     public DisplayName getConfigurationCacheKeyDisplayName() {
         return Describables.of("tasks:", Joiner.on(" ").join(startParameter.getTaskNames()));
+    }
+
+    @Override
+    public void appendKeyTo(Hasher hasher) {
+        // Identify the type of action
+        hasher.putByte((byte) 1);
     }
 }
