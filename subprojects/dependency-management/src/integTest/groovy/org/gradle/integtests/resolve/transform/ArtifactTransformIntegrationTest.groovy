@@ -949,12 +949,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.contains("files: [lib.jar]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16962")
     def "transforms registering the input as an output can use normalization"() {
         file("input1.jar").text = "jar"
         file("input2.jar").text = "jar"
         buildFile("""
-            import org.gradle.api.artifacts.transform.TransformParameters
-
             configurations {
                 api1 {
                     attributes { attribute usage, 'api' }
