@@ -36,13 +36,6 @@ public interface TransformationResult {
      */
     ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
 
-    /**
-     * The result of the artifact transform in the transform workspace.
-     *
-     * May be empty, when the transform only selects elements of the input artifact.
-     */
-    ImmutableList<File> getResultsInWorkspace();
-
     static Builder builder() {
         return new Builder();
     }
@@ -71,7 +64,7 @@ public interface TransformationResult {
             ImmutableList<File> workspaceFiles = workspaceFileBuilder.build();
             return transformationResults.size() == workspaceFiles.size()
                 ? new WorkspaceOnlyTransformationResult(workspaceFiles)
-                : new DefaultTransformationResult(workspaceFiles, transformationResults);
+                : new DefaultTransformationResult(transformationResults);
         }
 
         private interface TransformationResultFile {
@@ -91,18 +84,12 @@ public interface TransformationResult {
                 return result;
             }
 
-            @Override
-            public ImmutableList<File> getResultsInWorkspace() {
-                return result;
-            }
         }
 
         private static class DefaultTransformationResult implements TransformationResult {
-            private final ImmutableList<File> workspaceFiles;
             private final ImmutableList<TransformationResultFile> transformationResults;
 
-            public DefaultTransformationResult(ImmutableList<File> workspaceFiles, ImmutableList<TransformationResultFile> transformationResults) {
-                this.workspaceFiles = workspaceFiles;
+            public DefaultTransformationResult(ImmutableList<TransformationResultFile> transformationResults) {
                 this.transformationResults = transformationResults;
             }
 
@@ -113,10 +100,6 @@ public interface TransformationResult {
                 return builder.build();
             }
 
-            @Override
-            public ImmutableList<File> getResultsInWorkspace() {
-                return workspaceFiles;
-            }
         }
 
         private static class InInputArtifact implements TransformationResultFile {
