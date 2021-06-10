@@ -55,8 +55,8 @@ public class AntlrPlugin implements Plugin<Project> {
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
         final Configuration antlrConfiguration = project.getConfigurations().create(ANTLR_CONFIGURATION_NAME)
-                .setVisible(false)
-                .setDescription("The Antlr libraries to be used for this project.");
+            .setVisible(false)
+            .setDescription("The Antlr libraries to be used for this project.");
         ((DeprecatableConfiguration) antlrConfiguration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
             .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
 
@@ -69,49 +69,47 @@ public class AntlrPlugin implements Plugin<Project> {
         project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
-                new Action<SourceSet>() {
-                    @Override
-                    public void execute(final SourceSet sourceSet) {
-                        // for each source set we will:
-                        // 1) Add a new 'antlr' virtual directory mapping
+            new Action<SourceSet>() {
+                @Override
+                public void execute(final SourceSet sourceSet) {
+                    // for each source set we will:
+                    // 1) Add a new 'antlr' virtual directory mapping
+                    org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
+                        = new org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+                    new DslObject(sourceSet).getConvention().getPlugins().put(
+                        AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
+                    sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate.getAntlr());
+                    final String srcDir = "src/" + sourceSet.getName() + "/antlr";
+                    antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
+                    sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
 
+                    // 2) create an AntlrTask for this sourceSet following the gradle
+                    //    naming conventions via call to sourceSet.getTaskName()
+                    final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 
-                        org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
-                                = new org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-                        new DslObject(sourceSet).getConvention().getPlugins().put(
-                                AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
-                        sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate.getAntlr());
-                        final String srcDir = "src/"+ sourceSet.getName() +"/antlr";
-                        antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
-                        sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
+                    // 3) Set up the Antlr output directory (adding to javac inputs!)
+                    final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
+                    final File outputDirectory = new File(outputDirectoryName);
+                    sourceSet.getJava().srcDir(outputDirectory);
 
-                        // 2) create an AntlrTask for this sourceSet following the gradle
-                        //    naming conventions via call to sourceSet.getTaskName()
-                        final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
+                    project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
+                        @Override
+                        public void execute(AntlrTask antlrTask) {
+                            antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
+                            // 4) set up convention mapping for default sources (allows user to not have to specify)
+                            antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
+                            antlrTask.setOutputDirectory(outputDirectory);
+                        }
+                    });
 
-                        // 3) Set up the Antlr output directory (adding to javac inputs!)
-                        final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
-                        final File outputDirectory = new File(outputDirectoryName);
-                        sourceSet.getJava().srcDir(outputDirectory);
-
-                        project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
-                            @Override
-                            public void execute(AntlrTask antlrTask) {
-                                antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                                // 4) set up convention mapping for default sources (allows user to not have to specify)
-                                antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
-                                antlrTask.setOutputDirectory(outputDirectory);
-                            }
-                        });
-
-                        // 5) register fact that antlr should be run before compiling
-                        project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
-                            @Override
-                            public void execute(Task task) {
-                                task.dependsOn(taskName);
-                            }
-                        });
-                    }
-                });
+                    // 5) register fact that antlr should be run before compiling
+                    project.getTasks().named(sourceSet.getCompileJavaTaskName(), new Action<Task>() {
+                        @Override
+                        public void execute(Task task) {
+                            task.dependsOn(taskName);
+                        }
+                    });
+                }
+            });
     }
 }
