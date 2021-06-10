@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
-import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -56,11 +55,12 @@ import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.initialization.SettingsLocation
 import org.gradle.internal.Actions
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
+import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -131,6 +131,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
+        require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
             writeString(gradle.rootProject.name)
@@ -322,7 +323,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal, buildTreeState: StoredBuildTreeState) {
-        writeCollection(gradle.includedBuilds) {
+        writeCollection(gradle.includedBuilds()) {
             writeIncludedBuildState(it, buildTreeState)
         }
         if (gradle.serviceOf<VcsMappingsStore>().asResolver().hasRules()) {
@@ -349,17 +350,18 @@ class ConfigurationCacheState(
                 documentationSection = NotYetImplementedSourceDependencies
             )
         }
-        parentBuild.gradle.includedBuilds = includedBuilds.map { it.first.model }
+        parentBuild.gradle.setIncludedBuilds(includedBuilds.map { it.first.model })
         return includedBuilds.mapNotNull { it.second }
     }
 
     private
     suspend fun DefaultWriteContext.writeIncludedBuildState(
-        includedBuild: IncludedBuild,
+        reference: IncludedBuildInternal,
         buildTreeState: StoredBuildTreeState
     ) {
-        if (includedBuild is IncludedBuildState) {
-            val includedGradle = includedBuild.configuredBuild
+        val target = reference.target
+        if (target is IncludedBuildState) {
+            val includedGradle = target.configuredBuild
             val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
             writeBuildDefinition(buildDefinition)
             when {
@@ -558,7 +560,7 @@ class ConfigurationCacheState(
 
     private
     fun buildIdentifierOf(gradle: GradleInternal) =
-        gradle.serviceOf<BuildState>().buildIdentifier
+        gradle.owner.buildIdentifier
 
     private
     fun buildEventListenersOf(gradle: GradleInternal) =

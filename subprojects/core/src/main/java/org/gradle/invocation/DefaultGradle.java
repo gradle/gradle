@@ -52,6 +52,7 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -67,6 +68,7 @@ import org.gradle.util.Path;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
 
@@ -79,7 +81,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
-    private Collection<IncludedBuild> includedBuilds;
+    private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
@@ -411,6 +413,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {
+        return Cast.uncheckedCast(includedBuilds());
+    }
+
+    @Override
+    public void setIncludedBuilds(Collection<? extends IncludedBuildInternal> includedBuilds) {
+        this.includedBuilds = ImmutableList.copyOf(includedBuilds);
+    }
+
+    @Override
+    public List<? extends IncludedBuildInternal> includedBuilds() {
         if (includedBuilds == null) {
             throw new IllegalStateException("Included builds are not yet available for this build.");
         }
@@ -418,18 +430,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds) {
-        this.includedBuilds = ImmutableList.copyOf(includedBuilds);
-    }
-
-    @Override
     public IncludedBuild includedBuild(final String name) {
-        for (IncludedBuild includedBuild : getIncludedBuilds()) {
+        for (IncludedBuild includedBuild : includedBuilds()) {
             if (includedBuild.getName().equals(name)) {
                 return includedBuild;
             }
         }
-        throw new UnknownDomainObjectException("Included build '" + name + "' not found in " + toString() + ".");
+        throw new UnknownDomainObjectException("Included build '" + name + "' not found in " + this + ".");
     }
 
     @Override

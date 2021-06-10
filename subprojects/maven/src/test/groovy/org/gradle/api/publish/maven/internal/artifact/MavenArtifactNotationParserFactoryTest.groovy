@@ -19,10 +19,10 @@ package org.gradle.api.publish.maven.internal.artifact
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
+import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.artifacts.PublishArtifactInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.DefaultTaskDependency
@@ -42,7 +42,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     def dependencies = ImmutableSet.of(task)
     def taskDependency = new DefaultTaskDependency(null, dependencies)
     def fileNotationParser = Mock(NotationParser)
-    def publishArtifact = Stub(PublishArtifactInternal) {
+    def publishArtifact = Stub(PublishArtifact) {
         getExtension() >> 'extension'
         getClassifier() >> 'classifier'
         getFile() >> new File('foo')

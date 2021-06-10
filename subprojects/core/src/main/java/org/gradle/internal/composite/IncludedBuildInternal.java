@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.PublishArtifact;
+package org.gradle.internal.composite;
 
-public interface PublishArtifactInternal extends PublishArtifact {
-    boolean shouldBePublished();
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.internal.build.BuildState;
 
-    static boolean shouldBePublished(PublishArtifact artifact) {
-        if (artifact instanceof PublishArtifactInternal) {
-            return ((PublishArtifactInternal) artifact).shouldBePublished();
-        }
-        // This can happen for custom publish artifacts
-        return true;
-    }
+public interface IncludedBuildInternal extends IncludedBuild {
+    /**
+     * Returns the build which this include refers to.
+     */
+    BuildState getTarget();
 }

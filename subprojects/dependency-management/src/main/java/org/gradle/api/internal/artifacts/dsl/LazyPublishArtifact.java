@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
@@ -89,7 +88,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return new Date();
     }
 
-    private PublishArtifact getDelegate() {
+    private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
             Object value = provider.get();
             if (value instanceof FileSystemLocation) {
@@ -127,6 +126,6 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public boolean shouldBePublished() {
-        return ((PublishArtifactInternal) getDelegate()).shouldBePublished();
+        return getDelegate().shouldBePublished();
     }
 }

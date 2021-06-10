@@ -17,9 +17,9 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,18 +30,18 @@ import java.util.function.Function;
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
-    private final WorkerLeaseService workerLeaseService;
+    private final IncludedBuildControllers includedBuildControllers;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeFinishExecutor finishExecutor;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
-                                               WorkerLeaseService workerLeaseService,
+                                               IncludedBuildControllers includedBuildControllers,
                                                BuildTreeWorkExecutor workExecutor,
                                                BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
-        this.workerLeaseService = workerLeaseService;
+        this.includedBuildControllers = includedBuildControllers;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -59,6 +59,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public void scheduleAndRunTasks() {
         doBuild((buildController, failures) -> {
             buildController.scheduleRequestedTasks();
+            includedBuildControllers.populateTaskGraphs();
             workExecutor.execute(failures);
             return null;
         });
@@ -69,6 +70,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return doBuild((buildController, failureCollector) -> {
             if (runTasks) {
                 buildController.scheduleRequestedTasks();
+                includedBuildControllers.populateTaskGraphs();
                 List<Throwable> failures = new ArrayList<>();
                 workExecutor.execute(throwable -> {
                     failures.add(throwable);
@@ -94,28 +96,25 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             throw new IllegalStateException("Cannot run more than one action for this build.");
         }
         completed = true;
-        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-        return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
-            List<Throwable> failures = new ArrayList<>();
-            Consumer<Throwable> collector = failures::add;
+        List<Throwable> failures = new ArrayList<>();
+        Consumer<Throwable> collector = failures::add;
 
-            T result;
-            try {
-                result = build.run(buildLifecycleController, collector);
-            } catch (Throwable t) {
-                result = null;
-                failures.add(t);
-            }
+        T result;
+        try {
+            result = build.run(buildLifecycleController, collector);
+        } catch (Throwable t) {
+            result = null;
+            failures.add(t);
+        }
 
-            finishExecutor.finishBuildTree(Collections.unmodifiableList(failures), collector);
+        finishExecutor.finishBuildTree(Collections.unmodifiableList(failures), collector);
 
-            RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
-            if (finalReportableFailure != null) {
-                throw finalReportableFailure;
-            }
+        RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+        if (finalReportableFailure != null) {
+            throw finalReportableFailure;
+        }
 
-            return result;
-        });
+        return result;
     }
 
     private interface BuildAction<T> {

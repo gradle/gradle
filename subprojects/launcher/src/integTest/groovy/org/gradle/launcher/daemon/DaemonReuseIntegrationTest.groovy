@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
+
+import java.util.concurrent.CyclicBarrier
 
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
@@ -44,6 +47,64 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemons.size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17345")
+    def "reused daemon port does not prevent new builds from starting"() {
+        given:
+        // Start a daemon
+        executer.run()
+        daemons.daemon.assertIdle()
+        // Kill the daemon without letting it shutdown cleanly
+        daemons.daemon.kill()
+
+        // Take over the daemon's port. The daemon may take some time to finally shutdown and release the port.
+        def nonDaemonProcess = new ServerSocket()
+        ConcurrentTestUtil.poll {
+            def listeningAddress = new InetSocketAddress(InetAddress.getLoopbackAddress(), daemons.daemon.port)
+            println("Listening with non-daemon process on ${listeningAddress}")
+            nonDaemonProcess.bind(listeningAddress)
+        }
+        def latch = new CyclicBarrier(2)
+        def thread = new Thread({
+            while (!nonDaemonProcess.closed) {
+                try {
+                    nonDaemonProcess.accept(false) {client ->
+                        // When a client connects, drain the input from the client and shutdown any IO
+                        // This causes the launcher to receive an empty result
+                        println("Client ${client.remoteSocketAddress} tried to connect")
+                        while (client.inputStream.available() > 0) {
+                            client.inputStream.skip(client.inputStream.available())
+                        }
+                        client.shutdownOutput()
+                        latch.await() // wait for the end of the test before closing the connection
+                        println("Closing client ${client.remoteSocketAddress}")
+                    }
+                } catch (SocketException e) {
+                    // don't care
+                }
+            }
+        })
+        thread.daemon = true
+        thread.start()
+
+
+        // Try to run another build that should try to reuse the previous daemon, fail and then start another daemon
+        when:
+        executer.run()
+        then:
+        daemons.daemons.size() == 2
+
+        // Check that gradle --status also shows the first daemon is unreachable
+        when:
+        executer.withArgument("--status")
+        succeeds()
+        then:
+        outputContains("(unable to communicate with daemon)")
+
+        cleanup:
+        latch.await()
+        nonDaemonProcess.close()
     }
 
     def "canceled daemon is reused when it becomes available"() {

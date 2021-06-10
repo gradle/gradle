@@ -62,8 +62,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     @Override
     public IncludedBuildState createBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner) {
         validateBuildDirectory(buildDefinition.getBuildRootDir());
-        return instantiator.newInstance(
-            DefaultIncludedBuild.class,
+        return new DefaultIncludedBuild(
             buildIdentifier,
             identityPath,
             buildDefinition,
@@ -72,7 +71,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildTree,
             workerLeaseService.getCurrentWorkerLease(),
             buildLifecycleControllerFactory,
-            projectStateRegistry
+            projectStateRegistry,
+            instantiator
         );
     }
 }
