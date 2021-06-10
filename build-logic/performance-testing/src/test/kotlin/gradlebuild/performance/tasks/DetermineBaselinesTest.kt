@@ -21,10 +21,8 @@ import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Assume
@@ -38,7 +36,6 @@ class DetermineBaselinesTest {
 
     @Before
     fun setUp() {
-        project.serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(project.projectDir) // https://github.com/gradle/gradle/issues/13122
         project.file("version.txt").writeText("1.0")
         project.apply(plugin = "gradlebuild.module-identity")
 
