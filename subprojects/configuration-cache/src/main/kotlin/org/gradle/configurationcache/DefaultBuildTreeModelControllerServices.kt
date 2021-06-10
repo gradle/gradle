@@ -19,13 +19,17 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
+import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.util.internal.IncubationLogger
 
 
 class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
-    override fun servicesForBuildTree(runsTasks: Boolean, createsModel: Boolean, startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
+    override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
+        val startParameter = requirements.startParameter
+
         // Isolated projects also implies configuration cache
         if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
             if (startParameter.configurationCache.isExplicit) {
@@ -34,7 +38,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val modelParameters = if (createsModel) {
+        val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - don't enable configure on demand and only enable configuration cache when isolated projects is enabled
             BuildModelParameters(false, isolatedProjects, isolatedProjects, true)
         } else {
@@ -51,9 +55,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         return BuildTreeModelControllerServices.Supplier { registration ->
-            val buildType = if (runsTasks) BuildType.TASKS else BuildType.MODEL
+            val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
             registration.add(BuildType::class.java, buildType)
             registration.add(BuildModelParameters::class.java, modelParameters)
+            registration.add(BuildActionModelRequirements::class.java, requirements)
         }
     }
 
@@ -62,6 +67,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
             registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true))
+            registration.add(RunTasksRequirements::class.java, RunTasksRequirements(startParameter))
         }
     }
 }

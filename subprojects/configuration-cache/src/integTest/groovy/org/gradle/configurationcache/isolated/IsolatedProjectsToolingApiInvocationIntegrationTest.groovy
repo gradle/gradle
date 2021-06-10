@@ -45,6 +45,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
 
         then:
         model.message == "It works!"
+
+        and:
+        outputContains("Creating tooling model as no configuration cache is available for the requested model")
         outputContains("creating model for root project 'root'")
 
         when:
@@ -53,6 +56,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
 
         then:
         model2.message == "It works!"
+
+        and:
+        outputContains("Creating tooling model as no configuration cache is available for the requested model")
         outputContains("creating model for root project 'root'")
     }
 
