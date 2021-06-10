@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -37,7 +36,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Groovy build scripts"() {
         when:
-        run ('init', '--type', 'java-application')
+        run('init', '--type', 'java-application')
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
@@ -72,7 +71,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -168,7 +166,6 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--package', 'my.app', '--dsl', scriptDsl.id)

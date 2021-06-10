@@ -265,3 +265,28 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
         }
     }
 }
+
+
+internal
+suspend fun WriteContext.encodeBean(value: Any) {
+    val beanType = value.javaClass
+    withBeanTrace(beanType) {
+        writeClass(beanType)
+        beanStateWriterFor(beanType).run {
+            writeStateOf(value)
+        }
+    }
+}
+
+
+internal
+suspend fun ReadContext.decodeBean(): Any {
+    val beanType = readClass()
+    return withBeanTrace(beanType) {
+        beanStateReaderFor(beanType).run {
+            newBean(false).also {
+                readStateOf(it)
+            }
+        }
+    }
+}

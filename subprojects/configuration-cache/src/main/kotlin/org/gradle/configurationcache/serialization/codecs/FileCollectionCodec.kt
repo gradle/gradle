@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
+import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
@@ -86,6 +87,7 @@ class FileCollectionCodec(
                             is ProviderBackedFileCollectionSpec -> element.provider
                             is FileTree -> element
                             is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                            is BeanSpec -> element.bean
                             else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                         }
                     }
@@ -140,6 +142,10 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             }
             is FileTreeInternal -> {
                 elements.add(fileCollection)
+                false
+            }
+            is FailingFileCollection -> {
+                elements.add(BeanSpec(fileCollection))
                 false
             }
             else -> {

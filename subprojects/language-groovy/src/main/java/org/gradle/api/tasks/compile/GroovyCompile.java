@@ -96,8 +96,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         compileOptions.setIncremental(false);
         this.compileOptions = compileOptions;
-        this.astTransformationClasspath = objectFactory.fileCollection();
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        this.astTransformationClasspath = objectFactory.fileCollection();
         if (!experimentalCompilationAvoidanceEnabled()) {
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
         }
@@ -341,7 +341,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             return javaLauncher.get().getMetadata().getLanguageVersion().toString();
         }
         final File customHome = getOptions().getForkOptions().getJavaHome();
-        if(customHome != null) {
+        if (customHome != null) {
             return getServices().get(JvmMetadataDetector.class).getMetadata(customHome).getLanguageVersion().getMajorVersion();
         }
         return JavaVersion.current().getMajorVersion();
