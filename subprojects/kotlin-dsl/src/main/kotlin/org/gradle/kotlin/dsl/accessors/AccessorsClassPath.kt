@@ -32,6 +32,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropert
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingNormalization
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
@@ -163,7 +164,8 @@ class GenerateProjectAccessors(
             FileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,
-                DirectorySensitivity.IGNORE_DIRECTORIES
+                DirectorySensitivity.IGNORE_DIRECTORIES,
+                LineEndingNormalization.DEFAULT,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }
         )
     }

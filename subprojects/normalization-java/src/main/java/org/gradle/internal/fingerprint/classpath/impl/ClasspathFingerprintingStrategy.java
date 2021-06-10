@@ -35,6 +35,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -83,7 +85,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                                            ZipHasher zipHasher,
                                            ResourceSnapshotterCacheService cacheService,
                                            Interner<String> stringInterner) {
-        super(identifier);
+        super(identifier, LineEndingNormalization.DEFAULT, NormalizedContentHasher.NONE);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;

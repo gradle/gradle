@@ -37,7 +37,7 @@ public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnn
 
     @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, IGNORE_EMPTY_DIRECTORIES);
+        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, IGNORE_EMPTY_DIRECTORIES, IGNORE_LINE_ENDINGS);
     }
 
     @Override

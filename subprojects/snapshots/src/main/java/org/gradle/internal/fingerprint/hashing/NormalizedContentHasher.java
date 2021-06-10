@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
-import javax.annotation.Nullable;
+public interface NormalizedContentHasher {
+    HashCode hashContent(RegularFileSnapshot snapshot);
 
-public interface InputFilePropertySpec extends FilePropertySpec {
-    boolean isSkipWhenEmpty();
-
-    boolean isIncremental();
-
-    DirectorySensitivity getDirectorySensitivity();
-
-    LineEndingNormalization getLineEndingNormalization();
-
-    @Nullable
-    Object getValue();
+    NormalizedContentHasher NONE = RegularFileSnapshot::getHash;
 }

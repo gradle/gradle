@@ -20,19 +20,16 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public AbsolutePathFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(fingerprintingStrategyFor(directorySensitivity), fileCollectionSnapshotter);
-    }
-
-    static FingerprintingStrategy fingerprintingStrategyFor(DirectorySensitivity directorySensitivity) {
-        return directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES ? AbsolutePathFingerprintingStrategy.IGNORE_DIRECTORIES : AbsolutePathFingerprintingStrategy.DEFAULT;
+    public AbsolutePathFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, FileCollectionSnapshotter fileCollectionSnapshotter, NormalizedContentHasher lineEndingNormalizationHasher) {
+        super(new AbsolutePathFingerprintingStrategy(directorySensitivity, lineEndingNormalization, lineEndingNormalizationHasher), fileCollectionSnapshotter);
     }
 
     @Override

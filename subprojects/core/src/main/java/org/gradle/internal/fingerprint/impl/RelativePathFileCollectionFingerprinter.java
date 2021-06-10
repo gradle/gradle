@@ -20,12 +20,14 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
+import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 
 public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity), fileCollectionSnapshotter);
+    public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, FileCollectionSnapshotter fileCollectionSnapshotter, NormalizedContentHasher lineEndingNormalizationHasher) {
+        super(new RelativePathFingerprintingStrategy(stringInterner, directorySensitivity, lineEndingNormalization, lineEndingNormalizationHasher), fileCollectionSnapshotter);
     }
 
     @Override

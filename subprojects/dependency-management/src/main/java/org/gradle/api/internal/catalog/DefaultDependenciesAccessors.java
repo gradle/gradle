@@ -53,6 +53,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -354,6 +355,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     classPath,
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
+                    LineEndingNormalization.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
         }
 

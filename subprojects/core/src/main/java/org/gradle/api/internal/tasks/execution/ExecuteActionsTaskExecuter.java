@@ -326,6 +326,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         value,
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty.getLineEndingNormalization(),
                         inputFileProperty::getPropertyFiles));
             }
         }

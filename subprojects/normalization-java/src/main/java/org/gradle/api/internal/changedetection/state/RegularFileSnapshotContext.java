@@ -21,7 +21,21 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import java.util.function.Supplier;
 
 public interface RegularFileSnapshotContext {
-    public Supplier<String[]> getRelativePathSegments();
+    Supplier<String[]> getRelativePathSegments();
 
-    public RegularFileSnapshot getSnapshot();
+    RegularFileSnapshot getSnapshot();
+
+    static RegularFileSnapshotContext from(RegularFileSnapshot snapshot) {
+        return new RegularFileSnapshotContext() {
+            @Override
+            public Supplier<String[]> getRelativePathSegments() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public RegularFileSnapshot getSnapshot() {
+                return snapshot;
+            }
+        };
+    }
 }

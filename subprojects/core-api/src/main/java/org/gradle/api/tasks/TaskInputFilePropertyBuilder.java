@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -86,4 +87,26 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * @since 6.8
      */
     TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
+
+    /**
+     * Ignore line endings in text files during up-to-date checks.  This setting will have no effect on binary files.
+     *
+     * Line ending normalization is only supported with ASCII encoding and its supersets (i.e.
+     * UTF-8, ISO-8859-1, etc).  Other encodings (e.g. UTF-16) will be treated as binary files
+     * and will not be subject to line ending normalization.
+     *
+     * @since 7.2
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder ignoreLineEndings();
+
+    /**
+     * Sets whether line endings should be considered during up-to-date checks.  Defaults to false.
+     *
+     * See {@link #ignoreLineEndings()}.
+     *
+     * @since 7.2
+     */
+    @Incubating
+    TaskInputFilePropertyBuilder ignoreLineEndings(boolean ignoreLineEndings);
 }

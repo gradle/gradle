@@ -213,7 +213,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
             visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () -> {
                 FileCollectionFingerprinter inputArtifactFingerprinter = inputFingerprinter.getFingerprinterRegistry().getFingerprinter(
-                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
+                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity(), transformer.getInputArtifactLineEndingNormalization()));
                 return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
             });
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
@@ -368,6 +368,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
+                    transformer.getInputArtifactDependenciesLineEndingNormalization(),
                     () -> dependencies.getFiles()
                         .orElse(fileCollectionFactory.empty())));
         }
@@ -380,6 +381,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),
+                    transformer.getInputArtifactLineEndingNormalization(),
                     () -> fileCollectionFactory.fixed(inputArtifact)));
         }
 

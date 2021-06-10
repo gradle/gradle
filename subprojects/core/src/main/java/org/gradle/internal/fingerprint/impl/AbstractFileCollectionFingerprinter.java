@@ -24,6 +24,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -65,5 +66,10 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     @Override
     public DirectorySensitivity getDirectorySensitivity() {
         return fingerprintingStrategy.getDirectorySensitivity();
+    }
+
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return fingerprintingStrategy.getLineEndingNormalization();
     }
 }

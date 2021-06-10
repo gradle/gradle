@@ -16,16 +16,28 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
+    private final NormalizedContentHasher lineEndingNormalizationHasher;
+    private final LineEndingNormalization lineEndingNormalization;
 
-    public AbstractFingerprintingStrategy(String identifier) {
+    public AbstractFingerprintingStrategy(String identifier, LineEndingNormalization lineEndingNormalization, NormalizedContentHasher lineEndingNormalizationHasher) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
+        this.lineEndingNormalization = lineEndingNormalization;
+        this.lineEndingNormalizationHasher = lineEndingNormalizationHasher;
     }
 
     @Override
@@ -36,5 +48,17 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public CurrentFileCollectionFingerprint getEmptyFingerprint() {
         return emptyFingerprint;
+    }
+
+    @Nullable
+    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot) {
+        return snapshot.getType() == FileType.RegularFile && lineEndingNormalization == LineEndingNormalization.IGNORE ?
+            lineEndingNormalizationHasher.hashContent((RegularFileSnapshot)snapshot) :
+            snapshot.getHash();
+    }
+
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return lineEndingNormalization;
     }
 }

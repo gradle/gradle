@@ -32,6 +32,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingNormalization
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
 
@@ -51,6 +52,8 @@ class DefaultTransformerCodec(
             writeBoolean(value.isCacheable)
             writeEnum(value.inputArtifactDirectorySensitivity)
             writeEnum(value.inputArtifactDependenciesDirectorySensitivity)
+            writeEnum(value.inputArtifactLineEndingNormalization)
+            writeEnum(value.inputArtifactDependenciesLineEndingNormalization)
             write(value.isolatedParameters)
             // TODO - isolate now and discard node, if isolation is scheduled but has no dependencies
         }
@@ -65,6 +68,8 @@ class DefaultTransformerCodec(
             val isCacheable = readBoolean()
             val inputArtifactDirectorySensitivity = readEnum<DirectorySensitivity>()
             val inputArtifactDependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
+            val inputArtifactLineEndingNormalization = readEnum<LineEndingNormalization>()
+            val inputArtifactDependenciesLineEndingNormalization = readEnum<LineEndingNormalization>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,
@@ -77,7 +82,9 @@ class DefaultTransformerCodec(
                 actionScheme.instantiationScheme,
                 isolate.owner.service(ServiceRegistry::class.java),
                 inputArtifactDirectorySensitivity,
-                inputArtifactDependenciesDirectorySensitivity
+                inputArtifactDependenciesDirectorySensitivity,
+                inputArtifactLineEndingNormalization,
+                inputArtifactDependenciesLineEndingNormalization
             )
         }
     }

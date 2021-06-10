@@ -29,6 +29,10 @@ import java.lang.annotation.Target;
  * when snapshotting inputs. Two files with the same contents but different line endings
  * will be considered equivalent.
  *
+ * Line ending normalization is only supported with ASCII encoding and its supersets (i.e.
+ * UTF-8, ISO-8859-1, etc).  Other encodings (e.g. UTF-16) will be treated as binary files
+ * and will not be subject to line ending normalization.
+ *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.
  * Annotations on setters or just the field in Java are ignored.</p>
  *
@@ -36,7 +40,7 @@ import java.lang.annotation.Target;
  *
  * <ul><li>{@link org.gradle.api.tasks.InputFile}</li>
  *
- * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
+ * <li>{@link org.gradle.api.tasks.InputFiles}</li>
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
  *
@@ -44,9 +48,8 @@ import java.lang.annotation.Target;
  *
  * <li>{@link org.gradle.api.artifacts.transform.InputArtifactDependencies}</li> </ul>
  *
- * @since 6.8
+ * @since 7.2
  */
-
 @Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
