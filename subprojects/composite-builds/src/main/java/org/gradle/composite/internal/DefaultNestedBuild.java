@@ -30,11 +30,16 @@ import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelCreator;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.BuildTreeWorkPreparer;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.Path;
 
@@ -99,10 +104,14 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
-        IncludedBuildControllers controllers = buildLifecycleController.getGradle().getServices().get(IncludedBuildControllers.class);
-        ExceptionAnalyser exceptionAnalyser = buildLifecycleController.getGradle().getServices().get(ExceptionAnalyser.class);
-        BuildModelParameters modelParameters = buildLifecycleController.getGradle().getServices().get(BuildModelParameters.class);
+        ServiceRegistry services = buildLifecycleController.getGradle().getServices();
+        IncludedBuildControllers controllers = services.get(IncludedBuildControllers.class);
+        ExceptionAnalyser exceptionAnalyser = services.get(ExceptionAnalyser.class);
+        BuildModelParameters modelParameters = services.get(BuildModelParameters.class);
+        BuildTreeWorkPreparer workPreparer = new DefaultBuildTreeWorkPreparer(buildLifecycleController, controllers);
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+        BuildTreeModelCreator modelCreator = new DefaultBuildTreeModelCreator(buildLifecycleController);
+
         // On completion of the action, finish only this build and do not finish any other builds
         // When the build model is required, then do not finish anything on completion of the action
         BuildTreeFinishExecutor finishExecutor;
@@ -111,7 +120,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         } else {
             finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
         }
-        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, controllers, workExecutor, finishExecutor, exceptionAnalyser);
+        DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyser);
         return buildAction.apply(buildController);
     }
 

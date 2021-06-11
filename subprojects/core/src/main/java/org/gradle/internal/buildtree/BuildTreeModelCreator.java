@@ -16,11 +16,13 @@
 
 package org.gradle.internal.buildtree;
 
-import java.util.function.Consumer;
+import org.gradle.api.internal.GradleInternal;
+
+import java.util.function.Function;
 
 /**
- * Responsible for running all scheduled work for the build tree.
+ * Responsible for creating a model from the build tree model.
  */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+public interface BuildTreeModelCreator {
+    <T> T fromBuildModel(Function<? super GradleInternal, T> action);
 }

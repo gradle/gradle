@@ -43,11 +43,15 @@ import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildTreeModelCreator;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.BuildTreeWorkPreparer;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
+import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -55,6 +59,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
@@ -167,13 +172,16 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         try {
             final GradleInternal gradle = buildLifecycleController.getGradle();
-            BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
-            IncludedBuildControllers controllers = gradle.getServices().get(IncludedBuildControllers.class);
-            ExceptionAnalyser exceptionAnalyser = gradle.getServices().get(ExceptionAnalyser.class);
-            BuildStateRegistry buildStateRegistry = gradle.getServices().get(BuildStateRegistry.class);
+            ServiceRegistry services = gradle.getServices();
+            BuildOperationExecutor executor = services.get(BuildOperationExecutor.class);
+            IncludedBuildControllers controllers = services.get(IncludedBuildControllers.class);
+            ExceptionAnalyser exceptionAnalyser = services.get(ExceptionAnalyser.class);
+            BuildStateRegistry buildStateRegistry = services.get(BuildStateRegistry.class);
+            BuildTreeWorkPreparer buildTreeWorkPreparer = new DefaultBuildTreeWorkPreparer(buildLifecycleController, controllers);
             BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+            BuildTreeModelCreator modelCreator = new DefaultBuildTreeModelCreator(buildLifecycleController);
             BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, controllers, buildTreeWorkExecutor, buildTreeFinishExecutor, exceptionAnalyser);
+            final DefaultBuildTreeLifecycleController buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, buildTreeWorkPreparer, buildTreeWorkExecutor, modelCreator, buildTreeFinishExecutor, exceptionAnalyser);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {

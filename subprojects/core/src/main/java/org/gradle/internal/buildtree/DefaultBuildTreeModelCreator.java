@@ -16,11 +16,21 @@
 
 package org.gradle.internal.buildtree;
 
-import java.util.function.Consumer;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.build.BuildLifecycleController;
 
-/**
- * Responsible for running all scheduled work for the build tree.
- */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+import java.util.function.Function;
+
+public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
+    private final BuildLifecycleController buildController;
+
+    public DefaultBuildTreeModelCreator(BuildLifecycleController buildLifecycleController) {
+        this.buildController = buildLifecycleController;
+    }
+
+    @Override
+    public <T> T fromBuildModel(Function<? super GradleInternal, T> action) {
+        buildController.getConfiguredBuild();
+        return action.apply(buildController.getGradle());
+    }
 }

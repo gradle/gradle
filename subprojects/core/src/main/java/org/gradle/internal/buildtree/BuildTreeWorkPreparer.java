@@ -16,11 +16,12 @@
 
 package org.gradle.internal.buildtree;
 
-import java.util.function.Consumer;
-
 /**
- * Responsible for running all scheduled work for the build tree.
+ * Responsible for preparing the work graph for the build tree.
  */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+public interface BuildTreeWorkPreparer {
+    /**
+     * Prepares the work graph for execution. May configure the build and calculate the task graph, or may load a cached task graph if available.
+     */
+    void scheduleRequestedTasks();
 }

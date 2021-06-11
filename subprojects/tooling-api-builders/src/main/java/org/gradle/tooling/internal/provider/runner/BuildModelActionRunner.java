@@ -49,9 +49,12 @@ public class BuildModelActionRunner implements BuildActionRunner {
         try {
             if (buildModelAction.isCreateModel()) {
                 gradle.addBuildListener(new ForceFullConfigurationListener());
+                Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
+                return Result.of(result);
+            } else {
+                buildController.scheduleAndRunTasks();
+                return Result.of(null);
             }
-            Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
-            return Result.of(result);
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
             if (createAction.modelLookupFailure != null) {
