@@ -16,7 +16,10 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
+import org.gradle.api.provider.Provider
 import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
 
 
@@ -35,6 +38,9 @@ class PluginDependenciesSpecScope internal constructor(
 
     override fun id(id: String): PluginDependencySpec =
         plugins.id(id)
+
+    override fun alias(notation: Provider<PluginDependency>) =
+        plugins.alias(notation)
 }
 
 
@@ -44,6 +50,17 @@ class PluginDependenciesSpecScope internal constructor(
  * Infix version of [PluginDependencySpec.version].
  */
 infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec = version(version)
+
+
+/**
+ * Specify the version of the plugin to depend on.
+ *
+ * Infix version of [PluginDependencySpec.version].
+ *
+ * @since 7.2
+ */
+@Incubating
+infix fun PluginDependencySpec.version(version: Provider<String>): PluginDependencySpec = version(version)
 
 
 /**

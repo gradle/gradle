@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.provider.Provider;
+import org.gradle.plugin.use.PluginDependency;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,6 +54,14 @@ public interface VersionCatalog extends Named {
     Optional<VersionConstraint> findVersion(String name);
 
     /**
+     * Returns the plugin dependency provider for the requested alias.
+     * @param alias the alias of the plugin
+     *
+     * @since 7.2
+     */
+    Optional<Provider<PluginDependency>> findPlugin(String alias);
+
+    /**
      * Returns the list of aliases defined in this version catalog.
      * @return the list of dependency aliases
      *
@@ -75,4 +84,12 @@ public interface VersionCatalog extends Named {
      * @since 7.1
      */
     List<String> getVersionAliases();
+
+    /**
+     * Returns the list of plugin aliases defined in this version catalog.
+     * @return the list of plugin aliases
+     *
+     * @since 7.2
+     */
+    List<String> getPluginAliases();
 }

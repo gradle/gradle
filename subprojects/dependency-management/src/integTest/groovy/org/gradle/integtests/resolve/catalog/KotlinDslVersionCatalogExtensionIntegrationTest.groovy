@@ -29,6 +29,7 @@ import spock.lang.Issue
  * Because it requires the generated Gradle API it runs significantly slower than the other
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
  */
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsKotlinFile << """

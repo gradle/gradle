@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.catalog.problems;
+package org.gradle.plugin.use;
 
-public enum VersionCatalogProblemId {
-    ACCESSOR_NAME_CLASH,
-    CATALOG_FILE_DOES_NOT_EXIST,
-    INVALID_ALIAS_NOTATION,
-    INVALID_DEPENDENCY_NOTATION,
-    INVALID_PLUGIN_NOTATION,
-    INVALID_MODULE_NOTATION,
-    MULTIPLE_IMPORTS,
-    RESERVED_ALIAS_NAME,
-    TOML_SYNTAX_ERROR,
-    TOO_MANY_ENTRIES,
-    UNDEFINED_ALIAS_REFERENCE,
-    UNDEFINED_VERSION_REFERENCE,
-    UNSUPPORTED_FILE_FORMAT,
-    UNSUPPORTED_FORMAT_VERSION
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.VersionConstraint;
+
+/**
+ * A plugin dependency.
+ *
+ * @since 7.2
+ */
+@Incubating
+public interface PluginDependency {
+    String getPluginId();
+
+    VersionConstraint getVersion();
 }

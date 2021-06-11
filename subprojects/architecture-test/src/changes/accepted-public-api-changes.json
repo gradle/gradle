@@ -1,3 +1,10 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [{
+        "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt",
+        "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt.version(org.gradle.plugin.use.PluginDependencySpec,org.gradle.api.provider.Provider)",
+        "acceptation": "Detector incorrectly detects that @since is missing",
+        "changes": [
+            "METHOD_ADDED_TO_PUBLIC_CLASS"
+        ]
+    }]
 }

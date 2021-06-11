@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.provider.Provider;
+import org.gradle.plugin.use.PluginDependency;
 
 public interface ExternalModuleDependencyFactory extends VersionCatalog {
     interface ProviderConvertible<T> {
@@ -32,5 +33,8 @@ public interface ExternalModuleDependencyFactory extends VersionCatalog {
     }
 
     interface BundleNotationSupplier extends ProviderConvertible<ExternalModuleDependencyBundle> {
+    }
+
+    interface PluginNotationSupplier extends ProviderConvertible<PluginDependency> {
     }
 }

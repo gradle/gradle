@@ -27,6 +27,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblem;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -81,14 +82,16 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         List<String> libraries = config.getDependencyAliases();
         List<String> bundles = config.getBundleAliases();
         List<String> versions = config.getVersionAliases();
-        performValidation(libraries, bundles, versions);
+        List<String> plugins = config.getPluginAliases();
+        performValidation(libraries, bundles, versions, plugins);
         ClassNode librariesEntryPoint = toClassNode(libraries, rootNode(AccessorKind.library));
         ClassNode versionsEntryPoint = toClassNode(versions, rootNode(AccessorKind.version, "versions")).parent;
         ClassNode bundlesEntryPoint = toClassNode(bundles, rootNode(AccessorKind.bundle, "bundles")).parent;
-        writeLibraryEntryPoint(className, librariesEntryPoint, versionsEntryPoint, bundlesEntryPoint);
+        ClassNode pluginsEntryPoint = toClassNode(plugins, rootNode(AccessorKind.plugin, "plugins")).parent;
+        writeLibraryEntryPoint(className, librariesEntryPoint, versionsEntryPoint, bundlesEntryPoint, pluginsEntryPoint);
     }
 
-    private void writeLibraryEntryPoint(String className, ClassNode librariesEntryPoint, ClassNode versionsEntryPoint, ClassNode bundlesEntryPoint) throws IOException {
+    private void writeLibraryEntryPoint(String className, ClassNode librariesEntryPoint, ClassNode versionsEntryPoint, ClassNode bundlesEntryPoint, ClassNode pluginsEntryPoint) throws IOException {
         writeLn("*/");
         writeLn("@NonNullApi");
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
@@ -98,6 +101,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(librariesEntryPoint, AccessorKind.library);
             writeSubAccessorFieldsOf(versionsEntryPoint, AccessorKind.version);
             writeSubAccessorFieldsOf(bundlesEntryPoint, AccessorKind.bundle);
+            writeSubAccessorFieldsOf(pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
             writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
@@ -107,9 +111,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLibraryAccessors(librariesEntryPoint);
             writeVersionAccessors(versionsEntryPoint);
             writeBundleAccessors(bundlesEntryPoint);
+            writePluginAccessors(pluginsEntryPoint);
             writeLibrarySubClasses(librariesEntryPoint);
             writeVersionSubClasses(versionsEntryPoint);
             writeBundleSubClasses(bundlesEntryPoint);
+            writePluginSubClasses(pluginsEntryPoint);
         });
         writeLn("}");
     }
@@ -117,6 +123,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private void addImports() throws IOException {
         addImport(NonNullApi.class);
         addImport(MinimalExternalModuleDependency.class);
+        addImport(PluginDependency.class);
         addImport(ExternalModuleDependencyBundle.class);
         addImport(MutableVersionConstraint.class);
         addImport(Provider.class);
@@ -145,6 +152,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         for (ClassNode child : classNode.getChildren()) {
             writeBundleAccessorClass(child);
             writeBundleSubClasses(child);
+        }
+    }
+
+    private void writePluginSubClasses(ClassNode classNode) throws IOException {
+        for (ClassNode child : classNode.getChildren()) {
+            writePluginAccessorClass(child);
+            writePluginSubClasses(child);
         }
     }
 
@@ -180,6 +194,40 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                         .map(this::coordinatesDescriptorFor)
                         .collect(Collectors.toList());
                     writeBundle(alias, coordinates, bundle.getContext(), false);
+                }
+            }
+            for (ClassNode child : classNode.getChildren()) {
+                writeSubAccessor(child, AccessorKind.bundle);
+            }
+        });
+        writeLn("}");
+        writeLn();
+    }
+
+    private void writePluginAccessorClass(ClassNode classNode) throws IOException {
+        boolean isProvider = classNode.isAlsoProvider();
+        String interfaces = isProvider ? " implements PluginNotationSupplier":"";
+        String pluginClassName = classNode.getClassName();
+        List<String> aliases = classNode.aliases
+            .stream()
+            .sorted()
+            .collect(Collectors.toList());
+        writeLn("public static class " + pluginClassName + " extends PluginFactory " + interfaces + "{");
+        indent(() -> {
+            writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
+            writeLn();
+            writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn();
+            if (isProvider) {
+                String path = classNode.getFullAlias();
+                PluginModel plugin = config.getPlugin(path);
+                writePlugin(path, plugin.getId(), plugin.getContext(), true);
+            }
+            for (String alias : aliases) {
+                String childName = leafNodeForAlias(alias);
+                if (!classNode.hasChild(childName)) {
+                    PluginModel plugin = config.getPlugin(alias);
+                    writePlugin(alias, plugin.getId(), plugin.getContext(), false);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
@@ -234,6 +282,20 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessor(child, AccessorKind.bundle);
+        }
+    }
+
+    private void writePluginAccessors(ClassNode classNode) throws IOException {
+        Set<String> versionsAliases = classNode.aliases;
+        for (String alias : versionsAliases) {
+            String childName = leafNodeForAlias(alias);
+            if (!classNode.hasChild(childName)) {
+                PluginModel model = config.getPlugin(alias);
+                writePlugin(alias, model.getId(), model.getContext(), false);
+            }
+        }
+        for (ClassNode child : classNode.getChildren()) {
+            writeSubAccessor(child, AccessorKind.plugin);
         }
     }
 
@@ -329,11 +391,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return "Version catalog " + config.getName();
     }
 
-    private void performValidation(List<String> dependencies, List<String> bundles, List<String> versions) {
+    private void performValidation(List<String> dependencies, List<String> bundles, List<String> versions, List<String> plugins) {
         assertUnique(dependencies, "dependency aliases", "");
         assertUnique(bundles, "dependency bundles", "Bundle");
         assertUnique(versions, "dependency versions", "Version");
-        int size = dependencies.size() + bundles.size() + versions.size();
+        assertUnique(plugins, "plugins", "Plugin");
+        int size = dependencies.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             maybeThrowError(ERROR_HEADER, of(buildProblem(VersionCatalogProblemId.TOO_MANY_ENTRIES, spec ->
                 spec.inContext(this::standardErrorLocation)
@@ -410,6 +473,20 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn(" */");
             String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
             writeLn("public Provider<ExternalModuleDependencyBundle> " + methodName + "() { return createBundle(\"" + alias + "\"); }");
+        });
+        writeLn();
+    }
+
+    private void writePlugin(String alias, String id, @Nullable String context, boolean asProvider) throws IOException {
+        indent(() -> {
+            writeLn("/**");
+            writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + id + "'");
+            if (context != null) {
+                writeLn(" * This plugin was declared in " + context);
+            }
+            writeLn(" */");
+            String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
+            writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
         });
         writeLn();
     }
@@ -521,7 +598,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private enum AccessorKind {
         library("libraries", "owner"),
         version("versions", "providers, config"),
-        bundle("bundles", "providers, config");
+        bundle("bundles", "providers, config"),
+        plugin("plugins", "providers, config");
 
         private final String description;
         private final String constructorParams;
