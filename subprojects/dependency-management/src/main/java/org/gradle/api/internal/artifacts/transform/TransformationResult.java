@@ -43,16 +43,16 @@ public interface TransformationResult {
 
     class Builder {
         private final ImmutableList.Builder<TransformationOutput> builder = ImmutableList.builder();
-        boolean onlyProducedOutputs = true;
+        private boolean onlyProducedOutputs = true;
 
         public void addInputArtifact(String relativePath) {
             onlyProducedOutputs = false;
-            builder.add(new InInputArtifact(relativePath));
+            builder.add(new PartOfInputArtifact(relativePath));
         }
 
         public void addInputArtifact() {
             onlyProducedOutputs = false;
-            builder.add(new InputArtifact());
+            builder.add(EntireInputArtifact.INSTANCE);
         }
 
         public void addOutput(File outputLocation) {
@@ -62,10 +62,20 @@ public interface TransformationResult {
         public TransformationResult build() {
             ImmutableList<TransformationOutput> transformationOutputs = builder.build();
             return onlyProducedOutputs
-                ? new OnlyProducedOutputTransformationResult(convertToProducedOutputLocations(transformationOutputs))
-                : new DefaultTransformationResult(transformationOutputs);
+                ? new AlreadyResolvedTransformationResult(convertToProducedOutputLocations(transformationOutputs))
+                : new ResolvingTransformationResult(transformationOutputs);
         }
 
+        /**
+         * A single output in a transformation result.
+         *
+         * Can be either
+         * - the entire input artifact {@link EntireInputArtifact}
+         * - a part of the input artifact {@link PartOfInputArtifact}
+         * - a produced output in the workspace {@link ProducedOutput}
+         *
+         * Only outputs related to the input artifact need resolving.
+         */
         private interface TransformationOutput {
             File resolveForInputArtifact(File inputArtifact);
         }
@@ -76,10 +86,10 @@ public interface TransformationResult {
             return builder.build();
         }
 
-        private static class OnlyProducedOutputTransformationResult implements TransformationResult {
+        private static class AlreadyResolvedTransformationResult implements TransformationResult {
             private final ImmutableList<File> producedOutputLocations;
 
-            public OnlyProducedOutputTransformationResult(ImmutableList<File> producedOutputLocations) {
+            public AlreadyResolvedTransformationResult(ImmutableList<File> producedOutputLocations) {
                 this.producedOutputLocations = producedOutputLocations;
             }
 
@@ -89,10 +99,10 @@ public interface TransformationResult {
             }
         }
 
-        private static class DefaultTransformationResult implements TransformationResult {
+        private static class ResolvingTransformationResult implements TransformationResult {
             private final ImmutableList<TransformationOutput> transformationOutputs;
 
-            public DefaultTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
+            public ResolvingTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
                 this.transformationOutputs = transformationOutputs;
             }
 
@@ -104,10 +114,10 @@ public interface TransformationResult {
             }
         }
 
-        private static class InInputArtifact implements TransformationOutput {
+        private static class PartOfInputArtifact implements TransformationOutput {
             private final String relativePath;
 
-            public InInputArtifact(String relativePath) {
+            public PartOfInputArtifact(String relativePath) {
                 this.relativePath = relativePath;
             }
 
@@ -117,7 +127,9 @@ public interface TransformationResult {
             }
         }
 
-        private static class InputArtifact implements TransformationOutput {
+        private static class EntireInputArtifact implements TransformationOutput {
+            public static final EntireInputArtifact INSTANCE = new EntireInputArtifact();
+
             @Override
             public File resolveForInputArtifact(File inputArtifact) {
                 return inputArtifact;
