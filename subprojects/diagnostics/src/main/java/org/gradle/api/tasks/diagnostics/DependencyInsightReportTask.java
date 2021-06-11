@@ -36,7 +36,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
@@ -151,7 +150,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(String configurationName) {
-        this.configuration = ConfigurationFinder.find(getProject().getConfigurations(), configurationName);
+        this.configuration = getProject().getConfigurations().getByName(configurationName);
     }
 
     /**
