@@ -36,6 +36,7 @@ import org.gradle.util.GradleVersion;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -128,7 +129,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         final Jvm current = Jvm.current();
         if (getJavaHome().equals(current.getJavaHome()) && JavaVersion.current().isJava9Compatible() && !isUseDaemon()) {
-            buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
+            buildJvmOptions.addAll(JpmsConfiguration.gradleDaemonJpmsArgs(Collections.emptyList()));
         }
         return buildJvmOptions;
     }
