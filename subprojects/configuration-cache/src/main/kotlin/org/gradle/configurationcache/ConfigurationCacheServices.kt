@@ -34,8 +34,6 @@ import org.gradle.configurationcache.initialization.DefaultInjectedClasspathInst
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.initialization.ConfigurationCache
-import org.gradle.initialization.ConfigurationCacheAwareBuildModelController
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController

@@ -31,9 +31,9 @@ import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.withIsolate
-import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
+import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
@@ -54,6 +54,7 @@ class DefaultConfigurationCache internal constructor(
     private val cacheIO: ConfigurationCacheIO,
     private val gradlePropertiesController: GradlePropertiesController,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val buildActionModelRequirements: BuildActionModelRequirements,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -82,21 +83,24 @@ class DefaultConfigurationCache internal constructor(
         }
         startParameter.isRefreshDependencies -> {
             logBootstrapSummary(
-                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "{} as configuration cache cannot be reused due to {}",
+                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--refresh-dependencies"
             )
             false
         }
         startParameter.isWriteDependencyLocks -> {
             logBootstrapSummary(
-                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "{} as configuration cache cannot be reused due to {}",
+                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--write-locks"
             )
             false
         }
         startParameter.isUpdateDependencyLocks -> {
             logBootstrapSummary(
-                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "{} as configuration cache cannot be reused due to {}",
+                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                 "--update-locks"
             )
             false
@@ -105,14 +109,16 @@ class DefaultConfigurationCache internal constructor(
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
                     logBootstrapSummary(
-                        "Calculating task graph as no configuration cache is available for tasks: {}",
-                        startParameter.requestedTaskNames.joinToString(" ")
+                        "{} as no configuration cache is available for {}",
+                        buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
+                        buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
                     false
                 }
                 is CheckedFingerprint.Invalid -> {
                     logBootstrapSummary(
-                        "Calculating task graph as configuration cache cannot be reused because {}.",
+                        "{} as configuration cache cannot be reused because {}.",
+                        buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
                         checkedFingerprint.reason
                     )
                     false
