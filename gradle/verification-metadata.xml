@@ -1,8 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd">
+<!--
+
+     Licensed to the Apache Software Foundation (ASF) under one
+     or more contributor license agreements.  See the NOTICE file
+     distributed with this work for additional information
+     regarding copyright ownership.  The ASF licenses this file
+     to you under the Apache License, Version 2.0 (the
+     "License"); you may not use this file except in compliance
+     with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing,
+     software distributed under the License is distributed on an
+     "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+     specific language governing permissions and limitations
+     under the License.
+
+-->
+<!--
+   This file declares the dependency verification metadata for dependencies used by Gradle.
+   When you upgrade a dependency, verification is likely to fail so you will need to update
+   it.
+
+   If, for whatever reason, verification fails for you, DO NOT DISABLE IT but follow the
+   troubleshooting guide at https://docs.gradle.org/current/userguide/dependency_verification.html
+
+   This build uses PGP verification and SHA256 checksum verification for unsigned artifacts:
+
+   ./gradlew -write-verification-metadata sha256,pgp -export-keys <tasks>
+
+   Then check the diff, remove the unnecessary entries (for old dependencies) and make sure
+   the new ones are correct.
+
+   If you rely on automatic generation of checksums by Gradle, it's your responsibility to
+   verify that those checksums are correct.
+
+   Gradle *cannot* automatically determine that an entry in this file is outdated and no longer
+   required. As such, try to remove older entries when you upgrade dependencies.
+
+   Do not remove this header. If this header is removed it means the pull request hasn't
+   been reviewed properly.
+
+-->
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd">
    <configuration>
       <verify-metadata>false</verify-metadata>
       <verify-signatures>true</verify-signatures>
+      <key-servers enabled="false"/>
       <trusted-artifacts>
          <trust group="gradle" name="gradle"/>
          <trust group="net[.]rubygrapefruit" name="(native-platform|file-events).*" version=".*snapshot.*" regex="true"/>
