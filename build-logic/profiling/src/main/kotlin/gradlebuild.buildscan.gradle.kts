@@ -22,6 +22,8 @@ import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
+import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
@@ -36,8 +38,6 @@ import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperati
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import org.jsoup.Jsoup
-import org.jsoup.parser.Parser
 import java.net.InetAddress
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -140,36 +140,28 @@ fun isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID")?.let
 } ?: false
 
 fun extractCheckstyleAndCodenarcData() {
-    gradle.taskGraph.afterTask {
-        if (state.failure != null) {
-            if (this is Checkstyle && reports.xml.outputLocation.get().asFile.exists()) {
-                val checkstyle = Jsoup.parse(reports.xml.outputLocation.get().asFile.readText(), "", Parser.xmlParser())
-                val errors = checkstyle.getElementsByTag("file").flatMap { file ->
-                    file.getElementsByTag("error").map { error ->
-                        val filePath = project.relativePath(file.attr("name"))
-                        "$filePath:${error.attr("line")}:${error.attr("column")} \u2192 ${error.attr("message")}"
-                    }
-                }
 
-                errors.forEach { buildScan?.value("Checkstyle Issue", it) }
+    val extractCheckstyleBuildScanData by tasks.registering(ExtractCheckstyleBuildScanData::class) {
+        rootDir.set(layout.projectDirectory)
+        buildScanExt = buildScan
+    }
+
+    val extractCodeNarcBuildScanData by tasks.registering(ExtractCodeNarcBuildScanData::class) {
+        rootDir.set(layout.projectDirectory)
+        buildScanExt = buildScan
+    }
+
+    allprojects {
+        tasks.withType<Checkstyle>().configureEach {
+            finalizedBy(extractCheckstyleBuildScanData)
+            extractCheckstyleBuildScanData {
+                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
             }
-
-            if (this is CodeNarc && reports.xml.outputLocation.get().asFile.exists()) {
-                val codenarc = Jsoup.parse(reports.xml.outputLocation.get().asFile.readText(), "", Parser.xmlParser())
-                val errors = codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
-                    codenarcPackage.getElementsByTag("File").flatMap { file ->
-                        file.getElementsByTag("Violation").map { violation ->
-                            val filePath = project.relativePath(file.attr("name"))
-                            val message = violation.run {
-                                getElementsByTag("Message").first()
-                                    ?: getElementsByTag("SourceLine").first()
-                            }
-                            "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
-                        }
-                    }
-                }
-
-                errors.forEach { buildScan?.value("CodeNarc Issue", it) }
+        }
+        tasks.withType<CodeNarc>().configureEach {
+            finalizedBy(extractCodeNarcBuildScanData)
+            extractCodeNarcBuildScanData {
+                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
             }
         }
     }
