@@ -19,8 +19,8 @@ package org.gradle.api.provider;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.internal.HasInternalProtocol;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -104,7 +104,7 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
      */
-    <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
+    <S> Provider<S> map(Transformer<? extends @Nullable S, ? super T> transformer);
 
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.
