@@ -66,6 +66,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.EnumSet;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
@@ -80,22 +81,70 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static final NativeServices INSTANCE = new NativeServices();
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
     private static boolean initialized;
+    private static final EnumSet<NativeFeatures> INITIALIZED_FEATURES = EnumSet.noneOf(NativeFeatures.class);
 
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
-    /**
-     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
-     */
-    public static void initialize(File userHomeDir) {
-        initialize(userHomeDir, true);
+    public enum NativeFeatures {
+        FILE_SYSTEM_WATCHING {
+            @Override
+            public void initialize(File nativeBaseDir) {
+                if (useNativeIntegrations) {
+                    useFileSystemWatching = true;
+                    try {
+                        FileEvents.init(nativeBaseDir);
+                        LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+                    } catch (NativeIntegrationUnavailableException ex) {
+                        LOGGER.debug("Native file system watching is not available for this operating system.", ex);
+                        useFileSystemWatching = false;
+                    }
+                }
+            }
+        },
+        JANSI {
+            @Override
+            public void initialize(File nativeBaseDir) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+            }
+        };
+
+        public abstract void initialize(File nativeBaseDir);
     }
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
      *
-     * @param initializeAdditionalNativeLibraries Whether to initialize additional native libraries like jansi and file-events.
+     * Initializes all the services needed for the Gradle daemon.
      */
-    public static synchronized void initialize(File userHomeDir, boolean initializeAdditionalNativeLibraries) {
+    public static void initializeOnDaemon(File userHomeDir) {
+        initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * Initializes all the services needed for the CLI or the Tooling API.
+     */
+    public static void initializeOnClient(File userHomeDir) {
+        initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * Initializes all the services needed for the CLI or the Tooling API.
+     */
+    public static void initializeOnWorker(File userHomeDir) {
+        initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class));
+    }
+
+    /**
+     * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
+     */
+    private static synchronized void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
         try {
             if (!initialized) {
                 NativeServices.userHomeDir = userHomeDir;
@@ -120,21 +169,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                             throw ex;
                         }
                     }
-                    if (initializeAdditionalNativeLibraries) {
-                        if (useNativeIntegrations) {
-                            useFileSystemWatching = true;
-                            try {
-                                FileEvents.init(nativeBaseDir);
-                            } catch (NativeIntegrationUnavailableException ex) {
-                                LOGGER.debug("Native file system watching is not available for this operating system.", ex);
-                                useFileSystemWatching = false;
-                            }
-                        }
-                        JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                    }
                     LOGGER.info("Initialized native services in: {}", nativeBaseDir);
                 }
                 initialized = true;
+            }
+            for (NativeFeatures requestedFeature : requestedFeatures) {
+                if (!INITIALIZED_FEATURES.contains(requestedFeature)) {
+                    INITIALIZED_FEATURES.add(requestedFeature);
+                    File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
+                    requestedFeature.initialize(nativeBaseDir);
+                }
             }
         } catch (RuntimeException e) {
             throw new ServiceCreationException("Could not initialize native services.", e);
