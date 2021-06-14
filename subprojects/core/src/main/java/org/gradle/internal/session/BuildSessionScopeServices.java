@@ -57,6 +57,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.hash.ChecksumCacheLayout;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -196,8 +197,8 @@ public class BuildSessionScopeServices {
     }
 
     CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "checksums", VersionStrategy.SharedCache);
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+        ChecksumCacheLayout layout = new ChecksumCacheLayout(cacheScopeMapping);
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(layout.getCacheDir(projectCacheDir.getDir()), cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 
