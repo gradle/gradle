@@ -55,10 +55,6 @@ public class JpmsConfiguration {
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 
-        // Workaround until external kotlin-dsl plugins support JDK16 properly
-        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
-        gradleDaemonJvmArgs.add("-Dkotlin.daemon.jvm.options=--illegal-access=permit");
-
         GRADLE_DAEMON_JPMS_ARGS = Collections.unmodifiableList(gradleDaemonJvmArgs);
     }
 }
