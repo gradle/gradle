@@ -114,4 +114,22 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         then:
         thrown InvalidUserDataException
     }
+
+    def "rule-defined configuration should be found"() {
+        given:
+        project.afterEvaluate { p ->
+            p.configurations.addRule("configuration defined by a rule", { s ->
+                if (s == "confBravo") {
+                    p.configurations.create("confBravo")
+                }
+            })
+        }
+
+        when:
+        project.evaluate()
+        task.configuration = "confBravo"
+
+        then:
+        task.configuration == project.configurations.confBravo
+    }
 }
