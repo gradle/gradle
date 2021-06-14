@@ -39,7 +39,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
+class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
     public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger(0)
     public static final String SELECTED_PATH = "selected.txt"
 
@@ -50,7 +50,7 @@ class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     def "input artifact selection is restored when using the in-memory cache"() {
-        def transformer = registerTransform(IdentityTransform)
+        def transform = registerTransform(IdentityTransform)
 
         def inputArtifact1 = file("input1.txt")
         inputArtifact1.text = "Hello"
@@ -59,13 +59,13 @@ class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
         inputArtifact2.text = "Hello"
 
         expect:
-        invoke(transformer, inputArtifact1).get() == [inputArtifact1]
-        invoke(transformer, inputArtifact2).get() == [inputArtifact2]
+        invokeTransform(transform, inputArtifact1).get() == [inputArtifact1]
+        invokeTransform(transform, inputArtifact2).get() == [inputArtifact2]
         INVOCATION_COUNT.get() == 1
     }
 
     def "input artifact paths are restored when using the in-memory cache"() {
-        def transformer = registerTransform(SelectFileTransform)
+        def transform = registerTransform(SelectFileTransform)
 
         def inputArtifact1 = file("input1")
 
@@ -78,12 +78,12 @@ class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
         selectedFile2.text = "Hello"
 
         expect:
-        invoke(transformer, inputArtifact1).get() == [selectedFile1]
-        invoke(transformer, inputArtifact2).get() == [selectedFile2]
+        invokeTransform(transform, inputArtifact1).get() == [selectedFile1]
+        invokeTransform(transform, inputArtifact2).get() == [selectedFile2]
     }
 
     def "the order is retained when mixing input artifacts and produced artifacts"() {
-        def transformer = registerTransform(MixedTransform)
+        def transform = registerTransform(MixedTransform)
 
         def inputArtifact1 = file("input1")
 
@@ -96,8 +96,8 @@ class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
         selectedFile2.text = "Hello"
 
         when:
-        def transformationResult1 = invoke(transformer, inputArtifact1).get()
-        def transformationResult2 = invoke(transformer, inputArtifact2).get()
+        def transformationResult1 = invokeTransform(transform, inputArtifact1).get()
+        def transformationResult2 = invokeTransform(transform, inputArtifact2).get()
         then:
         transformationResult1.size() == 4
         transformationResult2.size() == 4
@@ -119,18 +119,17 @@ class ArtifactTransformProjectBuilderTest extends AbstractProjectBuilderSpec {
             it.to.attribute(artifactType, 'transformed')
         }
         return variantTransformRegistry.transforms[currentRegisteredTransforms].transformationStep
-
     }
 
-    private Try<ImmutableList<File>> invoke(TransformationStep transformer, File inputArtifact) {
-        transformer.isolateParametersIfNotAlready()
+    private Try<ImmutableList<File>> invokeTransform(TransformationStep transform, File inputArtifact) {
+        transform.isolateParametersIfNotAlready()
         def invocationFactory = project.services.get(TransformerInvocationFactory)
         def inputFingerprinter = project.services.get(InputFingerprinter)
         def artifact = Stub(ResolvableArtifact) {
             getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)
         }
         def invocation = invocationFactory.createInvocation(
-            transformer.getTransformer(),
+            transform.getTransformer(),
             inputArtifact,
             DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
             TransformationSubject.initial(artifact),
