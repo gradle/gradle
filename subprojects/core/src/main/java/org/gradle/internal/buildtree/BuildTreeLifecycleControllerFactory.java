@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.internal.buildtree;
 
-/**
- * A stand alone nested build, which is a nested build that runs as part of some containing build as a single atomic step, without participating in task execution of the containing build.
- */
-public interface StandAloneNestedBuild extends NestedBuildState, BuildActionTarget {
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildTreeLifecycleControllerFactory {
+    BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor);
 }

@@ -37,15 +37,11 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.buildtree.BuildTreeModelCreator;
+import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.BuildTreeWorkPreparer;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
-import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController;
-import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
 import org.gradle.internal.concurrent.Stoppable;
@@ -61,7 +57,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final ListenerManager listenerManager;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController buildLifecycleController;
-    private final DefaultBuildTreeLifecycleController buildController;
+    private final BuildTreeLifecycleController buildTreeLifecycleController;
     private boolean completed;
 
     DefaultRootBuildState(BuildDefinition buildDefinition,
@@ -74,15 +70,15 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
+
         IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
-        BuildTreeWorkPreparer workPreparer = new DefaultBuildTreeWorkPreparer(buildLifecycleController, controllers);
+        BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController), buildOperationExecutor);
-        BuildTreeModelCreator modelCreator = new DefaultBuildTreeModelCreator(buildLifecycleController);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-        this.buildController = new DefaultBuildTreeLifecycleController(buildLifecycleController, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyser);
+        this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
     }
 
     @Override
@@ -141,7 +137,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
                         deploymentRegistry.buildFinished(result);
                     }
                 });
-                return action.apply(buildController);
+                return action.apply(buildTreeLifecycleController);
             } finally {
                 buildLifecycleListener.beforeComplete();
             }
