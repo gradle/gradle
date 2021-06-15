@@ -298,8 +298,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformationResultWriter resultWriter = new TransformationResultWriter(inputArtifact, getOutputDir(workspace));
-                    return resultWriter.writeToFile(getResultsFile(workspace), result);
+                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
+                    return resultSerializer.writeToFile(getResultsFile(workspace), result);
                 }
 
                 @Override
@@ -325,8 +325,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Object loadRestoredOutput(File workspace) {
-            TransformationResultWriter resultWriter = new TransformationResultWriter(inputArtifact, getOutputDir(workspace));
-            return resultWriter.readResultsFile(getResultsFile(workspace));
+            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
+            return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
 
         @Override

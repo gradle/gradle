@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class TransformationResultWriterTest extends Specification {
+class TransformationResultSerializerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
@@ -62,7 +62,7 @@ class TransformationResultWriterTest extends Specification {
     }
 
     def "resolves files in input artifact relative to input artifact"() {
-        def writer = new TransformationResultWriter(inputArtifact, outputDir)
+        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         def newInputArtifact = file("newInputArtifact").createDir()
 
         ImmutableList<File> result = ImmutableList.of(
@@ -79,21 +79,21 @@ class TransformationResultWriterTest extends Specification {
         )
 
         when:
-        def initialResults = writer.writeToFile(resultFile, result)
+        def initialResults = serializer.writeToFile(resultFile, result)
         then:
         resultFile.exists()
         initialResults.resolveOutputsForInputArtifact(inputArtifact) == result
         initialResults.resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
 
         when:
-        def loadedResults = writer.readResultsFile(resultFile)
+        def loadedResults = serializer.readResultsFile(resultFile)
         then:
         loadedResults.resolveOutputsForInputArtifact(inputArtifact) == result
         loadedResults.resolveOutputsForInputArtifact(newInputArtifact) == resultResolvedForNewInputArtifact
     }
 
     def "loads files in output directory relative to output directory"() {
-        def writer = new TransformationResultWriter(inputArtifact, outputDir)
+        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         def newOutputDir = file("newOutputDir").createDir()
 
         ImmutableList<File> result = ImmutableList.of(
@@ -108,27 +108,27 @@ class TransformationResultWriterTest extends Specification {
         )
 
         when:
-        def initialResults = writer.writeToFile(resultFile, result)
+        def initialResults = serializer.writeToFile(resultFile, result)
         then:
         resultFile.exists()
         initialResults.resolveOutputsForInputArtifact(inputArtifact) == result
 
         when:
-        def writerWithNewOutputDir = new TransformationResultWriter(inputArtifact, newOutputDir)
-        def loadedResults = writerWithNewOutputDir.readResultsFile(resultFile)
+        def serializerWithNewOutputDir = new TransformationResultSerializer(inputArtifact, newOutputDir)
+        def loadedResults = serializerWithNewOutputDir.readResultsFile(resultFile)
         then:
         loadedResults.resolveOutputsForInputArtifact(inputArtifact) == resultInNewOutputDir
     }
 
     private void assertCanWriteAndReadResult(File... files) {
-        def writer = new TransformationResultWriter(inputArtifact, outputDir)
+        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         ImmutableList<File> result = ImmutableList.<File>builder().add(files).build()
-        def initialResults = writer.writeToFile(resultFile, result)
+        def initialResults = serializer.writeToFile(resultFile, result)
 
         assert resultFile.exists()
         assert initialResults.resolveOutputsForInputArtifact(inputArtifact) == result
 
-        assert writer.readResultsFile(resultFile).resolveOutputsForInputArtifact(inputArtifact) == result
+        assert serializer.readResultsFile(resultFile).resolveOutputsForInputArtifact(inputArtifact) == result
     }
 
     TestFile file(String path) {

@@ -30,14 +30,14 @@ import java.util.List;
 
 import static org.gradle.internal.UncheckedException.unchecked;
 
-public class TransformationResultWriter {
+public class TransformationResultSerializer {
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final File inputArtifact;
     private final File outputDir;
 
-    public TransformationResultWriter(File inputArtifact, File outputDir) {
+    public TransformationResultSerializer(File inputArtifact, File outputDir) {
         this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
     }
