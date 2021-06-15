@@ -20,7 +20,6 @@ import org.junit.Test
 class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         assumeNonEmbeddedGradleExecuter() // ktlint plugin issue in embedded mode
