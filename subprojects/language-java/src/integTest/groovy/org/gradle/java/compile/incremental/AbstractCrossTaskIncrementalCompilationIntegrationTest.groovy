@@ -17,73 +17,10 @@
 
 package org.gradle.java.compile.incremental
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
-import spock.lang.Unroll
 
-abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
-    CompilationOutputsFixture impl
-
-    def setup() {
-        impl = new CompilationOutputsFixture(file("impl/build/classes"))
-        buildFile << """
-            subprojects {
-                apply plugin: '${language.name}'
-                apply plugin: 'java-library'
-                ${mavenCentralRepository()}
-                configurations.compileClasspath.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${useJar ? 'JAR' : 'CLASSES'}))
-            }
-            $projectDependencyBlock
-        """
-        settingsFile << "include 'api', 'impl'\n"
-
-        if (language == CompiledLanguage.GROOVY) {
-            configureGroovyIncrementalCompilation('subprojects')
-        }
-    }
-
-    protected String getProjectDependencyBlock() {
-        '''
-            project(':impl') {
-                dependencies { api project(':api') }
-            }
-        '''
-    }
-
-    protected void addDependency(String from, String to) {
-        buildFile << """
-            project(':$from') {
-                dependencies { api project(':$to') }
-            }
-        """
-    }
-
-    protected abstract boolean isUseJar()
-
-    private void clearImplProjectDependencies() {
-        buildFile << """
-            project(':impl') {
-                configurations.api.dependencies.clear() //so that api jar is no longer on classpath
-            }
-        """
-        configureGroovyIncrementalCompilation('subprojects')
-    }
-
-    File source(Map projectToClassBodies) {
-        File out
-        projectToClassBodies.each { project, bodies ->
-            bodies.each { body ->
-                def className = (body =~ /(?s).*?(?:class|interface) (\w+) .*/)[0][1]
-                assert className: "unable to find class name"
-                def f = file("$project/src/main/${language.name}/${className}.${language.name}")
-                f.createFile()
-                f.text = body
-                out = f
-            }
-        }
-        out
-    }
+abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
 
     def "detects changed class in an upstream project"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
@@ -243,45 +180,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         when:
         source api: ["class B { String change; }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.noneRecompiled()
-    }
-
-    @NotYetImplemented
-    // Currently not implemented, since it's expensive to track constants and their values
-    def "ignores irrelevant changes to constant values"() {
-        source api: ["class A {}", "class B { final static int x = 3; final static int y = -2; }"],
-            impl: ["class X { int foo() { return B.x; }}", "class Y {int foo() { return B.y; }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { final static int x = 3 ; final static int y = -3;  void blah() { /*  change irrelevant to constant value x */ } }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('Y')
-    }
-
-    def "change in an upstream transitive class with non-private constant does not cause full rebuild"() {
-        source api: ["class A { final static int x = 1; }", "class B extends A {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.recompiledClasses('ImplB')
-    }
-
-    def "private constant in upstream project does not trigger full rebuild"() {
-        source api: ["class A {}", "class B { private final static int x = 1; }"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class B { /* change */ }"]
         run "impl:${language.compileTaskName}"
 
         then:
@@ -574,7 +472,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
-    @Unroll
     def "change to class referenced by an annotation recompiles annotated types"() {
         source api: [
             """
@@ -607,7 +504,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @Unroll
     def "change to class referenced by an array value in an annotation recompiles annotated types"() {
         source api: [
             """
@@ -640,19 +536,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-
-    def "detects that changed class still has the same constants so no recompile is necessary"() {
-        source api: ["class A { public static final int FOO = 123;}"],
-            impl: ["class B { void foo() { int x = 123; }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class A { public static final int FOO = 123; void addSomeRandomMethod() {} }"]
-        run "impl:${language.compileTaskName}"
-
-        then:
-        impl.noneRecompiled()
-    }
 
     def "does not recompile on non-abi change across projects"() {
         source api: ["class A { }"],
@@ -744,5 +627,4 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         then:
         impl.recompiledClasses("C")
     }
-
 }

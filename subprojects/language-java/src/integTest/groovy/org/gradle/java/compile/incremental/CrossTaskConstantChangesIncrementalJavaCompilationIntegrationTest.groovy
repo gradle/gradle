@@ -18,14 +18,11 @@ package org.gradle.java.compile.incremental
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Unroll
     def "change in an upstream class with non-private constant causes rebuild if constant is used (#constantType)"() {
         source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class X { $constantType foo() { return B.x; }}", "class Y {int foo() { return -2; }}"]
         impl.snapshot { run language.compileTaskName }
@@ -50,7 +47,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'String'     | '"foo" + "bar"' | '"bar"'
     }
 
-    @Unroll
     def "change in an upstream class with non-private constant causes rebuild correctly incrementally"() {
         source api: ["class A { final static int x = 1; }", "class B { final static int y = 1; }"],
             impl: ["class X { int foo() { return A.x; }}", "class Y {int foo() { return B.y; }}"]
@@ -92,7 +88,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.noneRecompiled()
     }
 
-    @Unroll
     def "change in an upstream class with non-private constant causes rebuild if constant is referenced in method body (#constantType)"() {
         source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"],
             impl: ["class ImplA { $constantType foo() { return B.x; }}", "class ImplB {int foo() { return 2; }}"]
@@ -118,7 +113,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         'String'     | '"foo" + "bar"' | '"bar"'
     }
 
-    @Unroll
     def "change in an upstream class with non-private constant causes rebuild if constant is referenced in field (#constantType)"() {
         source api: ["class A {}", "class B { final static $constantType x = $constantValue; }"], impl: ["class ImplA extends A { final $constantType foo = B.x; }", "class ImplB {int foo() { return 2; }}"]
         impl.snapshot { run language.compileTaskName }
@@ -393,19 +387,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses 'B'
     }
 
-    def "compilation fails for private dependents on incompatible change"() {
-        source api: ["class A { int method() { return 1; } }"],
-            impl: ["class X { private int foo() { return new A().method(); }}", "class Y { private int foo() { return new A().method(); }}"]
-        impl.snapshot { run language.compileTaskName }
-
-        when:
-        source api: ["class A { int method1() { return 1; } }"]
-        fails "impl:${language.compileTaskName}"
-
-        then:
-        impl.noneRecompiled()
-    }
-
     // We don't know if constant changed or some method signature changed,
     // so we have to check also private first level dependents
     def "recompile first-level private dependents on constant change"() {
@@ -446,85 +427,12 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         then:
         impl.recompiledClasses 'B'
     }
+}
 
-    // This behavior is kept for backward compatibility - may be removed in the future
-    @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "recompiles when upstream module-info changes with manual module path"() {
-        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
-        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
-        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
-        moduleInfo.text = """
-            module api {
-                exports a;
-            }
-        """
-        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
-            module impl {
-                requires api;
-            }
-        """
-        file("impl/build.gradle") << """
-            def layout = project.layout
-            compileJava.doFirst {
-                options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
-                classpath = layout.files()
-            }
-        """
-        succeeds "impl:${language.compileTaskName}"
+class CrossTaskConstantChangesIncrementalJavaCompilationUsingClassDirectoryIntegrationTest extends CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest {
+    boolean useJar = false
+}
 
-        when:
-        moduleInfo.text = """
-            module api {
-            }
-        """
-
-        then:
-        fails "impl:${language.compileTaskName}"
-        result.hasErrorOutput("package a is not visible")
-    }
-
-    @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "recompiles when upstream module-info changes"() {
-        given:
-        settingsFile << "include 'otherApi'"
-        file("impl/build.gradle") << "dependencies { implementation(project(':otherApi')) }"
-
-        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
-        file("api/src/main/${language.name}/module-info.${language.name}") << """
-            module api {
-                exports a;
-            }
-        """
-        file("otherApi/src/main/${language.name}/a2/A.${language.name}").text = "package a2; public class A {}"
-        file("otherApi/src/main/${language.name}/module-info.${language.name}") << """
-            module otherApi {
-                exports a2;
-            }
-        """
-        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; class B extends a.A{}"
-        file("impl/src/main/${language.name}/b/B2.${language.name}").text = "package b; class B2 extends a2.A{}"
-        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
-            module impl {
-                requires api;
-                requires otherApi;
-            }
-        """
-        succeeds "impl:${language.compileTaskName}"
-
-        when:
-        file("$module/src/main/${language.name}/module-info.${language.name}").text = """
-            module $module {
-            }
-        """
-
-        then:
-        fails "impl:${language.compileTaskName}"
-        result.hasErrorOutput("package $pkg is not visible")
-
-        where:
-        module | pkg
-        "api"  | "a"
-        "otherApi" | "a2"
-    }
-
+class CrossTaskConstantChangesIncrementalJavaCompilationUsingJarIntegrationTest extends CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest {
+    boolean useJar = true
 }

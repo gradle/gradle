@@ -17,12 +17,10 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import spock.lang.Unroll
 
-abstract class AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+abstract class CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
 
-    @Unroll
     // This is a constant test that is not incremental for Groovy
     def "recompiles outermost class when #visibility inner class contains constant reference"() {
         source api: [
@@ -90,5 +88,12 @@ abstract class AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest exte
         then:
         impl.recompiledClasses 'B', 'C'
     }
+}
 
+class CrossTaskConstantChangesIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest {
+    boolean useJar = false
+}
+
+class CrossTaskConstantChangesIncrementalGroovyCompilationUsingJarIntegrationTest extends CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest {
+    boolean useJar = true
 }
