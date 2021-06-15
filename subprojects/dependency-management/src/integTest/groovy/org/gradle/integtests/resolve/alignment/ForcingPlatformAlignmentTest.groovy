@@ -23,13 +23,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@IgnoreIf({
-    // This test is very expensive due to the permutation testing.
-    // Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
-    // Se we run the tests only in embedded mode
-    !GradleContextualExecuter.embedded
-})
-class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
+abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     def "can force a virtual platform version by forcing one of its leaves"() {
         repository {
