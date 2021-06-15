@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.internal.TextUtil
 
-class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
+class JavaClassChangeCliIncrementalCompilationIntegrationTest extends BaseJavaClassChangeIncrementalCompilationIntegrationTest {
 
     def setup() {
         buildFile << """
@@ -29,5 +29,17 @@ class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceI
                 options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'
             }
         """
+    }
+
+    def "changing an unused non-private constant incurs full rebuild"() {
+        source "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source "class B { /* change */ }"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'B', 'A'
     }
 }

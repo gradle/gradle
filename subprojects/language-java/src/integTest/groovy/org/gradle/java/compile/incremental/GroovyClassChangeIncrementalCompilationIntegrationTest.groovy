@@ -19,10 +19,15 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
+class GroovyClassChangeIncrementalCompilationIntegrationTest extends AbstractClassChangeIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
 
     def setup() {
         configureGroovyIncrementalCompilation()
+    }
+
+    void recompiledWithFailure(String expectedFailure, String... recompiledClasses) {
+        succeeds language.compileTaskName
+        outputs.recompiledClasses(recompiledClasses)
     }
 }
