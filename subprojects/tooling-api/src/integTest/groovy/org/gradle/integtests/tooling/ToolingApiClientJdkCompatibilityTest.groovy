@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
@@ -234,7 +233,6 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
     }
 
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3394")
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
