@@ -216,14 +216,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
 
-        JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
-        JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
         JavaVersion.VERSION_1_8 | "4.10.3"
@@ -254,14 +251,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
 
-        JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
-        JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
         JavaVersion.VERSION_1_8 | "4.10.3"
