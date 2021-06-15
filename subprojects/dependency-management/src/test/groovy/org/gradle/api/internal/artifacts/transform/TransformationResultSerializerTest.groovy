@@ -31,6 +31,7 @@ class TransformationResultSerializerTest extends Specification {
     def inputArtifact = file("inputArtifact").createDir()
     def outputDir = file("outputDir")
     def resultFile = file("results.txt")
+    def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
 
     def "reads and writes transformation results"() {
         expect:
@@ -62,7 +63,6 @@ class TransformationResultSerializerTest extends Specification {
     }
 
     def "resolves files in input artifact relative to input artifact"() {
-        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         def newInputArtifact = file("newInputArtifact").createDir()
 
         ImmutableList<File> result = ImmutableList.of(
@@ -93,7 +93,6 @@ class TransformationResultSerializerTest extends Specification {
     }
 
     def "loads files in output directory relative to output directory"() {
-        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         def newOutputDir = file("newOutputDir").createDir()
 
         ImmutableList<File> result = ImmutableList.of(
@@ -121,7 +120,6 @@ class TransformationResultSerializerTest extends Specification {
     }
 
     private void assertCanWriteAndReadResult(File... files) {
-        def serializer = new TransformationResultSerializer(inputArtifact, outputDir)
         ImmutableList<File> result = ImmutableList.<File>builder().add(files).build()
         def initialResults = serializer.writeToFile(resultFile, result)
 
