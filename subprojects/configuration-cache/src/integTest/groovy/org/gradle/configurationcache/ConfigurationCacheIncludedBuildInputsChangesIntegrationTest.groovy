@@ -23,7 +23,7 @@ import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
-class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheIncludedBuildInputsChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Unroll
     def "invalidates cache upon change to #inputName used by included build"() {
