@@ -64,6 +64,107 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         ]
     }
 
+    Map<String, String> getMutationMethods() {
+        [
+            "${containerType}#create(String)": "testContainer.create('mutate')",
+            "${containerType}#register(String)": "testContainer.register('mutate')",
+            "${containerType}#getByName(String, Action)": "testContainer.getByName('realized') {}",
+            "${containerType}#configureEach(Action)": "testContainer.configureEach {}",
+            "${containerType}#NamedDomainObjectProvider.configure(Action)": "toBeRealized.configure {}",
+            "${containerType}#named(String, Action)": "testContainer.named('realized') {}",
+            "${containerType}#whenObjectAdded(Action)": "testContainer.whenObjectAdded {}",
+            "${containerType}#withType(Class, Action)": "testContainer.withType(testContainer.type) {}",
+            "${containerType}#all(Action)": "testContainer.all {}",
+            "Project#afterEvaluate(Closure)": "afterEvaluate {}",
+            "Project#beforeEvaluate(Closure)": "beforeEvaluate {}",
+            "Gradle#beforeProject(Closure)": "gradle.beforeProject {}",
+            "Gradle#afterProject(Closure)": "gradle.afterProject {}",
+            "Gradle#projectsLoaded(Closure)": "gradle.projectsLoaded {}",
+            "Gradle#projectsEvaluated(Closure)": "gradle.projectsEvaluated {}",
+        ]
+    }
+}
+
+abstract class AbstractQueryAndMutationDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    @Unroll
+    def "can execute query and mutating methods #method.key from all"() {
+        buildFile << """
+            testContainer.all {
+                if (it.name == "realized") {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from withType.all"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).all {
+                if (it.name == "realized") {
+                    ${method.value}
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from getByName"() {
+        buildFile << """
+            testContainer.getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutation methods #method.key from withType.getByName"() {
+        buildFile << """
+            testContainer.withType(testContainer.type).getByName("realized") {
+                ${method.value}
+            }
+        """
+
+        expect:
+        succeeds "help"
+
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+
+    @Unroll
+    def "can execute query and mutating methods #method.key from create(String)"() {
+        buildFile << """
+            testContainer.create("a") {
+                ${method.value}
+            }
+        """
+        expect:
+        succeeds "help"
+        where:
+        method << getQueryMethods() + getMutationMethods()
+    }
+}
+
+abstract class AbstractQueryDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Unroll
     def "can execute query method #queryMethod.key from configureEach"() {
         buildFile << """
@@ -157,27 +258,9 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         where:
         queryMethod << getQueryMethods()
     }
+}
 
-    Map<String, String> getMutationMethods() {
-        [
-            "${containerType}#create(String)": "testContainer.create('mutate')",
-            "${containerType}#register(String)": "testContainer.register('mutate')",
-            "${containerType}#getByName(String, Action)": "testContainer.getByName('realized') {}",
-            "${containerType}#configureEach(Action)": "testContainer.configureEach {}",
-            "${containerType}#NamedDomainObjectProvider.configure(Action)": "toBeRealized.configure {}",
-            "${containerType}#named(String, Action)": "testContainer.named('realized') {}",
-            "${containerType}#whenObjectAdded(Action)": "testContainer.whenObjectAdded {}",
-            "${containerType}#withType(Class, Action)": "testContainer.withType(testContainer.type) {}",
-            "${containerType}#all(Action)": "testContainer.all {}",
-            "Project#afterEvaluate(Closure)": "afterEvaluate {}",
-            "Project#beforeEvaluate(Closure)": "beforeEvaluate {}",
-            "Gradle#beforeProject(Closure)": "gradle.beforeProject {}",
-            "Gradle#afterProject(Closure)": "gradle.afterProject {}",
-            "Gradle#projectsLoaded(Closure)": "gradle.projectsLoaded {}",
-            "Gradle#projectsEvaluated(Closure)": "gradle.projectsEvaluated {}",
-        ]
-    }
-
+abstract class AbstractMutationFailureDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     @Unroll
     def "cannot execute mutation method #mutationMethod.key from configureEach"() {
         buildFile << """
@@ -278,84 +361,9 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         where:
         mutationMethod << getMutationMethods()
     }
+}
 
-    @Unroll
-    def "can execute query and mutating methods #method.key from all"() {
-        buildFile << """
-            testContainer.all {
-                if (it.name == "realized") {
-                    ${method.value}
-                }
-            }
-        """
-
-        expect:
-        succeeds "help"
-
-        where:
-        method << getQueryMethods() + getMutationMethods()
-    }
-
-    @Unroll
-    def "can execute query and mutating methods #method.key from withType.all"() {
-        buildFile << """
-            testContainer.withType(testContainer.type).all {
-                if (it.name == "realized") {
-                    ${method.value}
-                }
-            }
-        """
-
-        expect:
-        succeeds "help"
-
-        where:
-        method << getQueryMethods() + getMutationMethods()
-    }
-
-    @Unroll
-    def "can execute query and mutation methods #method.key from getByName"() {
-        buildFile << """
-            testContainer.getByName("realized") {
-                ${method.value}
-            }
-        """
-
-        expect:
-        succeeds "help"
-
-        where:
-        method << getQueryMethods() + getMutationMethods()
-    }
-
-    @Unroll
-    def "can execute query and mutation methods #method.key from withType.getByName"() {
-        buildFile << """
-            testContainer.withType(testContainer.type).getByName("realized") {
-                ${method.value}
-            }
-        """
-
-        expect:
-        succeeds "help"
-
-        where:
-        method << getQueryMethods() + getMutationMethods()
-    }
-
-    @Unroll
-    def "can execute query and mutating methods #method.key from create(String)"() {
-        buildFile << """
-            testContainer.create("a") {
-                ${method.value}
-            }
-        """
-        expect:
-        succeeds "help"
-        where:
-        method << getQueryMethods() + getMutationMethods()
-    }
-
+abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
     def "can mutate containers inside Project hooks"() {
         settingsFile << """
             include 'nested'

@@ -16,15 +16,15 @@
 
 package org.gradle.api
 
+import groovy.transform.SelfType
 import spock.lang.Issue
 
-class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Override
+@SelfType(AbstractDomainObjectContainerIntegrationTest)
+trait AbstractNamedDomainObjectContainerIntegrationTest {
     String getContainerStringRepresentation() {
         return "SomeType container"
     }
 
-    @Override
     String makeContainer() {
         return "project.container(SomeType)"
     }
@@ -44,7 +44,21 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
             }
         """
     }
+}
 
+class QueryAndMutationNamedDomainObjectContainerIntegrationTest extends AbstractQueryAndMutationDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}
+
+class QueryNamedDomainObjectContainerIntegrationTest extends AbstractQueryDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}
+
+class MutationFailureNamedDomainObjectContainerIntegrationTest extends AbstractMutationFailureDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}
+
+class MutatingNamedDomainObjectContainerInHookIntegrationTest extends AbstractMutatingDomainObjectContainerInHookIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}
+
+class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
     def "can mutate the task container from named container"() {
         buildFile """
             testContainer.configureEach {
@@ -63,7 +77,6 @@ class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectCont
         expect:
         succeeds "verify"
     }
-
 
     def "chained lookup of testContainer.withType.matching"() {
         buildFile << """
