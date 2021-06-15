@@ -76,7 +76,7 @@ class FileContentTypeDetectingInputStreamTest extends Specification {
         inputStream.read(buffer)
 
         then:
-        1 * delegate.read(buffer)
+        1 * delegate.read(buffer, 0, 0)
 
         when:
         inputStream.reset()

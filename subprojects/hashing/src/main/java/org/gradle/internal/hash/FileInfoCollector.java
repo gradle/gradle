@@ -37,7 +37,7 @@ public interface FileInfoCollector extends FileHasher {
 
         @Override
         public HashCode hash(File file) {
-            throw new UnsupportedOperationException();
+            return delegate.hash(file);
         }
 
         @Override

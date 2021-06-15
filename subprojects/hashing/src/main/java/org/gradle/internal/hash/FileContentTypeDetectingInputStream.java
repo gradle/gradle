@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,56 +25,53 @@ import java.io.InputStream;
  * control characters in the file.  If so, then it is likely a binary file.
  *
  * Note that all operations should delegate to the underlying input stream, except
- * for mark() and markSupported() which are unsupported.  The methods newly
- * introduced in Java 9 (such as readAllBytes(), transferTo(), etc) are left
- * unimplemented as this class currently must be Java 8 compatible.
+ * for mark() and markSupported() which are unsupported.
  */
-public class FileContentTypeDetectingInputStream extends InputStream {
+public class FileContentTypeDetectingInputStream extends FilterInputStream {
     private final static int CHAR_SCANNING_LIMIT = 80000;
-    private final InputStream delegate;
     private boolean controlCharactersFound;
     private int count;
 
     public FileContentTypeDetectingInputStream(InputStream delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     @Override
     public int read() throws IOException {
-        int next = delegate.read();
+        int next = super.read();
         checkForControlCharacters(next);
         return next;
     }
 
     @Override
     public int read(byte[] buffer) throws IOException {
-        int read = delegate.read(buffer);
+        int read = super.read(buffer);
         checkForControlCharacters(buffer, read);
         return read;
     }
 
     @Override
     public int read(byte[] buffer, int off, int len) throws IOException {
-        int read = delegate.read(buffer, off, len);
+        int read = super.read(buffer, off, len);
         checkForControlCharacters(buffer, read);
         return read;
-    }
-
-    @Override
-    public long skip(long n) throws IOException {
-        return delegate.skip(n);
-    }
-
-    @Override
-    public int available() throws IOException {
-        return delegate.available();
     }
 
     @Override
     public synchronized void reset() throws IOException {
         count = 0;
         controlCharactersFound = false;
-        delegate.reset();
+        super.reset();
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean markSupported() {
+        return false;
     }
 
     void checkForControlCharacters(byte[] buffer, int length) {
@@ -99,10 +97,7 @@ public class FileContentTypeDetectingInputStream extends InputStream {
     }
 
     private static boolean isNotCommonTextChar(int c) {
-        return c != 0x09  // tab
-            && c != 0x0a  // line feed
-            && c != 0x0c  // form feed
-            && c != 0x0d; // carriage return
+        return !Character.isWhitespace(c);
     }
 
     public FileContentType getContentType() {
@@ -112,6 +107,5 @@ public class FileContentTypeDetectingInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         super.close();
-        delegate.close();
     }
 }
