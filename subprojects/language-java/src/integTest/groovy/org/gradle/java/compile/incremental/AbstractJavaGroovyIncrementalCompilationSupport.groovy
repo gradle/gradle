@@ -39,6 +39,10 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
         out
     }
 
+    protected String getLanguageName() {
+        language.name
+    }
+
     def setup() {
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
