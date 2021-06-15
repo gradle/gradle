@@ -29,6 +29,7 @@ import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestBuildSpec
+import model.PerformanceTestType
 import model.Stage
 
 class PerformanceTest(
@@ -68,20 +69,22 @@ class PerformanceTest(
                 killGradleProcessesStep(os)
                 substDirOnWindows(os)
 
-                gradleWrapper {
-                    name = "GRADLE_RUNNER"
-                    tasks = ""
-                    workingDir = os.perfTestWorkingDir
-                    gradleParams = (
-                        performanceTestCommandLine(
-                            "clean ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
-                            "%performance.baselines%",
-                            extraParameters,
-                            os
-                        ) +
-                            buildToolGradleParameters() +
-                            buildScanTag("PerformanceTest")
-                        ).joinToString(separator = " ")
+                repeat(if (performanceTestBuildSpec.type == PerformanceTestType.flakinessDetection) 2 else 1) { repeatIndex: Int ->
+                    gradleWrapper {
+                        name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
+                        tasks = ""
+                        workingDir = os.perfTestWorkingDir
+                        gradleParams = (
+                            performanceTestCommandLine(
+                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
+                                "%performance.baselines%",
+                                extraParameters,
+                                os
+                            ) +
+                                buildToolGradleParameters() +
+                                buildScanTag("PerformanceTest")
+                            ).joinToString(separator = " ")
+                    }
                 }
                 removeSubstDirOnWindows(os)
                 checkCleanM2AndAndroidUserHome(os)
