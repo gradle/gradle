@@ -14,7 +14,7 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         // Gradle Plugins
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.6.2")
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.6.3")
         api("com.gradle.enterprise:test-distribution-gradle-plugin:2.1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.18.1-hotfix")
         api("com.gradle.publish:plugin-publish-plugin:0.14.0")
