@@ -19,58 +19,11 @@ package org.gradle.configurationcache
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
-import org.gradle.configurationcache.fixtures.ScriptChangeFixture
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-
-    @Unroll
-    def "invalidates cache upon change to #scriptChangeSpec of included build"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        def fixture = scriptChangeSpec.fixtureForProjectDir(file('build-logic'), testDirectory)
-        fixture.setup()
-        def build = { configurationCacheRunLenient(*fixture.buildArguments) }
-        settingsFile << """
-            includeBuild 'build-logic'
-        """
-
-        when:
-        build()
-
-        then:
-        outputContains fixture.expectedOutputBeforeChange
-        configurationCache.assertStateStored()
-
-        when:
-        build()
-
-        then: 'scripts are not executed when loading from cache'
-        outputDoesNotContain fixture.expectedOutputBeforeChange
-        configurationCache.assertStateLoaded()
-
-        when:
-        fixture.applyChange()
-        build()
-
-        then:
-        outputContains fixture.expectedCacheInvalidationMessage
-        outputContains fixture.expectedOutputAfterChange
-        configurationCache.assertStateStored()
-
-        when:
-        build()
-
-        then:
-        outputDoesNotContain fixture.expectedOutputBeforeChange
-        outputDoesNotContain fixture.expectedOutputAfterChange
-        configurationCache.assertStateLoaded()
-
-        where:
-        scriptChangeSpec << ScriptChangeFixture.specs()
-    }
 
     @Unroll
     def "invalidates cache upon change to included #fixtureSpec"() {
