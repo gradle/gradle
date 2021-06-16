@@ -18,14 +18,7 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
-@IgnoreIf({
-    // This tests the internal state of the resolution engine, the Gradle execution model does not matter.
-    // Se we run the tests only in embedded mode
-    !GradleContextualExecuter.embedded
-})
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
 class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
