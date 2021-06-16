@@ -181,20 +181,26 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         0 * consumer._
     }
 
-    void testExecuteTasksDoesNotImplicitlyConfigureBuildOrScheduleTasks() {
-        when:
+    void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
+        given:
         isRootBuild()
-        expectTasksRun()
 
-        then:
+        when:
         def controller = controller()
         controller.executeTasks()
+
+        then:
+        def t = thrown RuntimeException
+        t == transformedException
+
+        and:
+        1 * exceptionAnalyser.transform({ it instanceof IllegalStateException }) >> transformedException
 
         when:
         controller.finishBuild(null, consumer)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null })
+        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
         0 * consumer._
     }
 

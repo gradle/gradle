@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.configurationcache
 
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 
 
-@ServiceScope(Scopes.Gradle::class)
-interface ConfigurationCache {
-    fun canLoad(): Boolean
-    fun load()
-    fun prepareForConfiguration()
-    fun save()
+class ConfigurationCacheAwareBuildTreeWorkPreparer(
+    private val delegate: BuildTreeWorkPreparer,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeWorkPreparer {
+    override fun scheduleRequestedTasks() {
+        cache.loadOrScheduledRequestedTasks {
+            delegate.scheduleRequestedTasks()
+        }
+    }
 }

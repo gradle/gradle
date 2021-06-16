@@ -71,6 +71,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(DefaultConfigurationCacheProblemsListener::class.java)
             add(DefaultBuildTreeLifecycleControllerFactory::class.java)
+            add(ConfigurationCacheRepository::class.java)
+            add(DefaultConfigurationCache::class.java)
         }
     }
 
@@ -87,22 +89,24 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
-            add(ConfigurationCacheRepository::class.java)
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
-            add(DefaultConfigurationCache::class.java)
         }
     }
 
     class BuildScopeServicesProvider {
-        fun createBuildModelController(build: BuildState, gradle: GradleInternal, startParameter: ConfigurationCacheStartParameter): BuildModelController {
+        fun createBuildModelController(
+            build: BuildState,
+            gradle: GradleInternal,
+            startParameter: ConfigurationCacheStartParameter,
+            configurationCache: BuildTreeConfigurationCache
+        ): BuildModelController {
             if (build is ConfigurationCacheIncludedBuildState) {
                 return NoOpBuildModelController(gradle)
             }
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            val configurationCache: ConfigurationCache = gradle.services.get()
             val vintageController = VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer)
             return if (startParameter.isEnabled) {
                 ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
