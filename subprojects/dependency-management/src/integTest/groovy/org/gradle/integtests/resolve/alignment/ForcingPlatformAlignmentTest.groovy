@@ -23,6 +23,26 @@ import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class ForcingPlatformAlignmentIvyWithGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class ForcingPlatformAlignmentIvyWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+class ForcingPlatformAlignmentMavenWithGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlatformAlignmentTest {
+}
+
 abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     def "can force a virtual platform version by forcing one of its leaves"() {
