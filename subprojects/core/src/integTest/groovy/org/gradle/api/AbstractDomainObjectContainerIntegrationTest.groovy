@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractIntegrationSpec {
     abstract String makeContainer()
