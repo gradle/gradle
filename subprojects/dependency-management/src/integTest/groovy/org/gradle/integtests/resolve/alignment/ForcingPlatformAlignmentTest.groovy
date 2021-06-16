@@ -770,8 +770,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-
-
     @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
