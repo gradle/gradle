@@ -39,7 +39,6 @@ class FunctionalTest(
         model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
             listOf(functionalTestExtraParameters("FunctionalTest", testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
-                enableCheckLinksParameter(testCoverage, subprojects) +
                 enableTestDistributionParameter(testCoverage, subprojects) +
                 extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
@@ -66,8 +65,6 @@ class FunctionalTest(
         }
     }
 })
-
-fun enableCheckLinksParameter(testCoverage: TestCoverage, subprojects: List<String>) = if (testCoverage.isPlatform && subprojects.contains("docs")) "-PenableCheckLinks=false" else ""
 
 fun enableTestDistributionParameter(testCoverage: TestCoverage, subprojects: List<String>) =
     if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else ""

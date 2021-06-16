@@ -559,10 +559,8 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
     }
 }
 
-tasks.withType(CheckLinks) {
-    enabled = Boolean.parseBoolean(providers.gradleProperty("enableCheckLinks")
-        .forUseAtConfigurationTime()
-        .getOrElse("true"))
+tasks.withType(CheckLinks).configureEach {
+    enabled = !gradle.startParameter.taskNames.contains("docs:platformTest")
 }
 
 tasks.register("checkLinks") {
