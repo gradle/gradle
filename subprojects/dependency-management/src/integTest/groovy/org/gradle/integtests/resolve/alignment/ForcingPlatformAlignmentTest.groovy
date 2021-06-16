@@ -17,9 +17,7 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
