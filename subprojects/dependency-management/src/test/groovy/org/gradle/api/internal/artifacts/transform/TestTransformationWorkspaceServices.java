@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.Try;
@@ -47,7 +46,7 @@ public class TestTransformationWorkspaceServices implements TransformationWorksp
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<TransformationResult>> getIdentityCache() {
         return new ManualEvictionInMemoryCache<>();
     }
 }
