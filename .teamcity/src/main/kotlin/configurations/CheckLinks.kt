@@ -3,7 +3,7 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class CheckLinks(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, failStage = true, init = {
+class CheckLinks(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, failStage = false, init = {
     id("${model.projectId}_CheckLinks")
     name = "CheckLinks"
     description = "Check links in documentations"
