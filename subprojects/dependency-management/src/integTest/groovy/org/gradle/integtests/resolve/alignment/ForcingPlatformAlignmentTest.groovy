@@ -45,6 +45,11 @@ class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlat
 
 abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
+    def setup() {
+        Assume.assumeTrue(GradleContextualExecuter.embedded)
+        repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
+    }
+
     def "can force a virtual platform version by forcing one of its leaves"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -765,6 +770,8 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
+
+
     @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
@@ -817,8 +824,6 @@ include 'other'
             'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
         ].permutations()*.join("\n")
     }
-
-
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
@@ -1093,11 +1098,6 @@ include 'other'
                 "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
                 "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
         ]
-    }
-
-    def setup() {
-        Assume.assumeTrue(GradleContextualExecuter.embedded)
-        repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
     }
 
     /**
