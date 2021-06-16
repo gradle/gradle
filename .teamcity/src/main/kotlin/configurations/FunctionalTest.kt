@@ -35,15 +35,18 @@ class FunctionalTest(
 
     val enableTestDistribution = testCoverage.testDistribution
 
-    applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
+    applyTestDefaults(
+        model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
             listOf(functionalTestExtraParameters("FunctionalTest", testCoverage.os, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)) +
-                if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else "" +
-                    extraParameters
+                enableCheckLinksParameter(testCoverage, subprojects) +
+                enableTestDistributionParameter(testCoverage, subprojects) +
+                extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
         extraSteps = extraBuildSteps,
-        preSteps = preBuildSteps)
+        preSteps = preBuildSteps
+    )
 
     params {
         if (enableTestDistribution) {
@@ -64,7 +67,13 @@ class FunctionalTest(
     }
 })
 
-fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: List<String>) = testCoverage.os == Os.LINUX && (subprojects == listOf("core") || subprojects == listOf("dependency-management"))
+fun enableCheckLinksParameter(testCoverage: TestCoverage, subprojects: List<String>) = if (testCoverage.isPlatform && subprojects.contains("docs")) "-PenableCheckLinks=false" else ""
+
+fun enableTestDistributionParameter(testCoverage: TestCoverage, subprojects: List<String>) =
+    if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else ""
+
+fun enableExperimentalTestDistribution(testCoverage: TestCoverage, subprojects: List<String>) =
+    testCoverage.os == Os.LINUX && (subprojects == listOf("core") || subprojects == listOf("dependency-management"))
 
 fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
     val testTaskName = "${testCoverage.testType.name}Test"

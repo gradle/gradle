@@ -1,7 +1,6 @@
 package configurations
 
 import common.applyDefaultSettings
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
@@ -67,12 +66,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         }
 
         snapshotDependencies(stageProject.specificBuildTypes)
-        snapshotDependencies(stageProject.performanceTests) { performanceTestPass ->
-            if (!performanceTestPass.performanceSpec.failsStage) {
-                onDependencyFailure = FailureAction.IGNORE
-                onDependencyCancel = FailureAction.IGNORE
-            }
-        }
+        snapshotDependencies(stageProject.performanceTests)
         snapshotDependencies(stageProject.functionalTests)
     }
 })
@@ -81,10 +75,14 @@ fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, st
 
 fun stageTriggerId(model: CIBuildModel, stageName: StageName) = "${model.projectId}_Stage_${stageName.id}_Trigger"
 
-fun <T : BuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
+fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
     buildTypes.forEach { buildType ->
         dependency(buildType.id!!) {
             snapshot {
+                if (!buildType.failStage) {
+                    onDependencyFailure = FailureAction.IGNORE
+                    onDependencyCancel = FailureAction.IGNORE
+                }
                 snapshotConfig(buildType)
             }
         }
