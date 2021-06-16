@@ -19,8 +19,10 @@ package org.gradle.configurationcache.fixtures
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
@@ -40,6 +42,8 @@ trait ToolingApiSpec {
     }
 
     abstract void setResult(ExecutionResult executionResult)
+
+    abstract void setFailure(ExecutionFailure executionFailure)
 
     abstract TestFile file(Object... path)
 
@@ -108,6 +112,28 @@ trait ToolingApiSpec {
         }
         result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return model
+    }
+
+    void fetchModelFails() {
+        def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
+        def args = executer.allArgs
+        args.remove("--no-daemon")
+
+        try {
+            toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
+                connection.model(SomeToolingModel)
+                    .addJvmArguments(executer.jvmArgs)
+                    .withArguments(args)
+                    .setStandardOutput(new TeeOutputStream(output, System.out))
+                    .setStandardError(new TeeOutputStream(error, System.err))
+                    .get()
+            }
+        } catch(Throwable t) {
+            failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
+            return
+        }
+        throw new IllegalStateException("Expected build to fail but it did not.")
     }
 
     SomeToolingModel runBuildAction(BuildAction<SomeToolingModel> buildAction) {

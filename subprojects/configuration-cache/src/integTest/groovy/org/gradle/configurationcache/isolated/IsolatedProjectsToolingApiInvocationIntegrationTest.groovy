@@ -32,7 +32,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         """
     }
 
-    def "does not (yet) cache tooling models"() {
+    def "caches tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
@@ -49,20 +49,22 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         and:
         outputContains("Creating tooling model as no configuration cache is available for the requested model")
         outputContains("creating model for root project 'root'")
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
+        executer.withArguments(ENABLE_CLI)
         def model2 = fetchModel()
 
         then:
         model2.message == "It works!"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
-        outputContains("creating model for root project 'root'")
+        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("creating model for root project 'root'")
+        outputContains("Configuration cache entry reused.")
     }
 
-    def "reports cross project access from build script when fetching tooling model"() {
+    def "can ignore problems and cache model"() {
         given:
         settingsFile << """
             include('a')
@@ -83,12 +85,10 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'",
-            )
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+        result.assertHasPostBuildOutput("Configuration cache entry stored with 2 problems.")
 
         when:
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
@@ -96,13 +96,45 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
 
         then:
         model2.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'",
-            )
+        outputContains("Reusing configuration cache.")
+        outputContains("Configuration cache entry reused.")
+    }
+
+    def "reports cross project access from build script when fetching tooling model"() {
+        given:
+        settingsFile << """
+            include('a')
+            include('b')
+        """
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            allprojects {
+                plugins.apply('java-library')
+            }
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+        outputContains("Configuration cache entry discarded with 2 problems.")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+        }
+        outputContains("Configuration cache entry discarded with 2 problems.")
     }
 
     def "reports cross project access from model builder while fetching tooling model"() {
@@ -119,32 +151,26 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'",
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+        outputContains("Configuration cache entry discarded with 2 problems.")
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model2 = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model2.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'",
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
+        outputContains("Configuration cache entry discarded with 2 problems.")
     }
 
     def "reports configuration cache problems in build script when fetching tooling model"() {
@@ -158,30 +184,24 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+        outputContains("Configuration cache entry discarded with 1 problem.")
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model2 = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model2.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+        outputContains("Configuration cache entry discarded with 1 problem.")
     }
 
     def "reports configuration cache problems in model builder while fetching tooling model"() {
@@ -196,30 +216,23 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         """
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported"
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+        outputContains("Configuration cache entry discarded with 1 problem.")
 
         when:
-        executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
-        def model2 = fetchModel()
+        executer.withArguments(ENABLE_CLI)
+        fetchModelFails()
 
         then:
-        model2.message == "It works!"
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported"
-            )
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
-        result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
+        outputContains("Configuration cache entry discarded with 1 problem.")
     }
-
 }
