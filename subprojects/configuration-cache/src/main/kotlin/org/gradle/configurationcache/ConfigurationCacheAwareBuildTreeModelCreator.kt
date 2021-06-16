@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.configurationcache
 
-import java.util.function.Consumer;
+import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.buildtree.BuildTreeModelCreator
+import java.util.function.Function
 
-/**
- * Responsible for running all scheduled work for the build tree.
- */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+
+class ConfigurationCacheAwareBuildTreeModelCreator(
+    private val delegate: BuildTreeModelCreator,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeModelCreator {
+    override fun <T : Any> fromBuildModel(action: Function<in GradleInternal, T>): T {
+        return cache.loadOrCreateModel {
+            delegate.fromBuildModel(action)
+        }
+    }
 }

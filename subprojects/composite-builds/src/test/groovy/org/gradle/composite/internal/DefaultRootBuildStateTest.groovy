@@ -33,7 +33,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
-import java.util.function.Consumer
 import java.util.function.Function
 
 class DefaultRootBuildStateTest extends Specification {
@@ -59,6 +58,8 @@ class DefaultRootBuildStateTest extends Specification {
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
         sessionServices.add(Stub(BuildStateRegistry))
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
+
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
         _ * buildTree.services >> sessionServices
@@ -165,21 +166,6 @@ class DefaultRootBuildStateTest extends Specification {
         0 * lifecycleListener._
     }
 
-    def "cannot request configuration after build has been run"() {
-        given:
-        action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.scheduleAndRunTasks()
-            controller.fromBuildModel(false) { '<result>' }
-        }
-
-        when:
-        build.run(action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot run more than one action for this build.'
-    }
-
     def "forwards action failure and cleans up"() {
         def failure = new RuntimeException()
 
@@ -218,11 +204,11 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * launcher.executeTasks() >> { throw failure }
-        2 * exceptionAnalyzer.transform(_) >> { ex ->
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
             assert ex[0] == [failure]
             return transformedFailure
         }
-        1 * launcher.finishBuild(transformedFailure, _)
+        1 * launcher.finishBuild(transformedFailure, _) >> { throw transformedFailure }
 
         and:
         1 * lifecycleListener.beforeComplete()
@@ -250,76 +236,13 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * launcher.getConfiguredBuild() >> { throw failure }
-        2 * exceptionAnalyzer.transform(_) >> { ex ->
+        1 * exceptionAnalyzer.transform(_) >> { ex ->
             assert ex[0] == [failure]
             return transformedFailure
         }
-        1 * launcher.finishBuild(transformedFailure, _)
+        1 * launcher.finishBuild(transformedFailure, _) >> { throw transformedFailure }
 
         and:
-        1 * lifecycleListener.beforeComplete()
-        0 * lifecycleListener._
-    }
-
-    def "collects and transforms build execution and finish failures"() {
-        def failure1 = new RuntimeException()
-        def failure2 = new RuntimeException()
-        def failure3 = new RuntimeException()
-        def transformedFailure = new RuntimeException()
-        def finalFailure = new RuntimeException()
-
-        when:
-        build.run(action)
-
-        then:
-        RuntimeException e = thrown()
-        e == finalFailure
-
-        and:
-        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.scheduleAndRunTasks()
-        }
-
-        and:
-        1 * lifecycleListener.afterStart()
-
-        and:
-        1 * launcher.executeTasks() >> { throw failure1 }
-        1 * includedBuildControllers.awaitTaskCompletion(_) >> { Consumer consumer -> consumer.accept(failure2) }
-        1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure1, failure2]
-            return transformedFailure
-        }
-        1 * launcher.finishBuild(transformedFailure, _) >> { Throwable throwable, Consumer consumer -> consumer.accept(failure3) }
-        1 * exceptionAnalyzer.transform(_) >> { ex ->
-            assert ex[0] == [failure1, failure2, failure3]
-            return finalFailure
-        }
-
-        and:
-        1 * lifecycleListener.beforeComplete()
-        0 * lifecycleListener._
-    }
-
-    def "cannot run after configuration failure"() {
-        when:
-        build.run(action)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot run more than one action for this build.'
-
-        and:
-        1 * lifecycleListener.afterStart()
-        1 * launcher.configuredBuild >> { throw new RuntimeException() }
-        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            try {
-                controller.fromBuildModel(false) { '<result>' }
-            } catch (RuntimeException) {
-                // Ignore
-            }
-            controller.scheduleAndRunTasks()
-        }
         1 * lifecycleListener.beforeComplete()
         0 * lifecycleListener._
     }

@@ -17,7 +17,6 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import spock.lang.Specification
@@ -28,11 +27,12 @@ import java.util.function.Function
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
+    def workPreparer = Mock(BuildTreeWorkPreparer)
     def workExecutor = Mock(BuildTreeWorkExecutor)
+    def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, includedBuildControllers, workExecutor, finishExecutor, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyzer)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -49,12 +49,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * buildController.scheduleRequestedTasks()
-        1 * includedBuildControllers.populateTaskGraphs()
+        1 * workPreparer.scheduleRequestedTasks()
         1 * workExecutor.execute(_)
 
         and:
-        1 * action.apply(gradle) >> "result"
+        1 * modelCreator.fromBuildModel(action) >> "result"
 
         and:
         1 * finishExecutor.finishBuildTree([], _)
@@ -72,8 +71,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * buildController.scheduleRequestedTasks()
-        1 * includedBuildControllers.populateTaskGraphs()
+        1 * workPreparer.scheduleRequestedTasks()
         1 * workExecutor.execute(_) >> { Consumer consumer -> consumer.accept(failure) }
         0 * action._
 
@@ -82,7 +80,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         _ * exceptionAnalyzer.transform([failure]) >> reportableFailure
     }
 
-    def "runs action after configuring build model"() {
+    def "runs action when tasks are not requested"() {
         def action = Mock(Function)
 
         when:
@@ -92,33 +90,10 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * buildController.configuredBuild >> gradle
-
-        and:
-        1 * action.apply(gradle) >> "result"
+        1 * modelCreator.fromBuildModel(action) >> "result"
 
         and:
         1 * finishExecutor.finishBuildTree([], _)
-    }
-
-    def "does not run action if configuration fails"() {
-        def action = Mock(Function)
-        def failure = new RuntimeException()
-
-        when:
-        controller.fromBuildModel(false, action)
-
-        then:
-        def e = thrown(RuntimeException)
-        e == reportableFailure
-
-        and:
-        1 * buildController.configuredBuild >> { throw failure }
-        0 * action._
-
-        and:
-        1 * finishExecutor.finishBuildTree([failure], _)
-        _ * exceptionAnalyzer.transform([failure]) >> reportableFailure
     }
 
     def "collects configuration and build finish failures"() {
@@ -133,7 +108,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * buildController.configuredBuild >> { throw failure }
+        1 * modelCreator.fromBuildModel(_) >> { throw failure }
 
         and:
         1 * finishExecutor.finishBuildTree([failure], _) >> { List l, Consumer c -> c.accept(failure2) }

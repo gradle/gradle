@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.internal.build;
 
-import java.util.function.Consumer;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+
+import java.util.function.Function;
 
 /**
- * Responsible for running all scheduled work for the build tree.
+ * A build which can be the target of a build action.
  */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+public interface BuildActionTarget extends BuildState {
+    /**
+     * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
+     */
+    <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction);
 }

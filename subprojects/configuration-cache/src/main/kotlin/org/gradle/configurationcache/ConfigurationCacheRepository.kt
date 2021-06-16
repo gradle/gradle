@@ -32,11 +32,14 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
 
+@ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
     cacheRepository: CacheRepository,

@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.configurationcache
 
-import java.util.function.Consumer;
+import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 
-/**
- * Responsible for running all scheduled work for the build tree.
- */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+
+class ConfigurationCacheAwareBuildTreeWorkPreparer(
+    private val delegate: BuildTreeWorkPreparer,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeWorkPreparer {
+    override fun scheduleRequestedTasks() {
+        cache.loadOrScheduledRequestedTasks {
+            delegate.scheduleRequestedTasks()
+        }
+    }
 }

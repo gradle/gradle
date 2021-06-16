@@ -16,11 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
-import java.util.function.Consumer;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * Responsible for running all scheduled work for the build tree.
- */
-public interface BuildTreeWorkExecutor {
-    void execute(Consumer<? super Throwable> consumer);
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildTreeLifecycleControllerFactory {
+    BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor);
 }

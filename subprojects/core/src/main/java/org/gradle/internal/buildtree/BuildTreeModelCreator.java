@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configurationcache
 
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.service.scopes.ServiceScope
+package org.gradle.internal.buildtree;
 
+import org.gradle.api.internal.GradleInternal;
 
-@ServiceScope(Scopes.Gradle::class)
-interface ConfigurationCache {
-    fun canLoad(): Boolean
-    fun load()
-    fun prepareForConfiguration()
-    fun save()
+import java.util.function.Function;
+
+/**
+ * Responsible for creating a model from the build tree model.
+ */
+public interface BuildTreeModelCreator {
+    <T> T fromBuildModel(Function<? super GradleInternal, T> action);
 }

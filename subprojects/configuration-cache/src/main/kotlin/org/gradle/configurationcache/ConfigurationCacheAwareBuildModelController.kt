@@ -23,15 +23,8 @@ import org.gradle.internal.build.BuildModelController
 class ConfigurationCacheAwareBuildModelController(
     private val model: GradleInternal,
     private val delegate: BuildModelController,
-    private val configurationCache: ConfigurationCache
+    private val configurationCache: BuildTreeConfigurationCache
 ) : BuildModelController {
-    private
-    enum class State {
-        Created, Loaded, DoNotReuse
-    }
-
-    private
-    var state = State.Created
 
     override fun getLoadedSettings(): SettingsInternal {
         return if (maybeLoadFromCache()) {
@@ -57,27 +50,11 @@ class ConfigurationCacheAwareBuildModelController(
     override fun scheduleRequestedTasks() {
         if (!maybeLoadFromCache()) {
             delegate.scheduleRequestedTasks()
-            configurationCache.save()
         } // Else, already scheduled
     }
 
     private
     fun maybeLoadFromCache(): Boolean {
-        synchronized(this) {
-            return when (state) {
-                State.Created ->
-                    if (configurationCache.canLoad()) {
-                        configurationCache.load()
-                        state = State.Loaded
-                        true
-                    } else {
-                        configurationCache.prepareForConfiguration()
-                        state = State.DoNotReuse
-                        false
-                    }
-                State.Loaded -> true
-                State.DoNotReuse -> false
-            }
-        }
+        return configurationCache.isLoaded
     }
 }
