@@ -41,23 +41,19 @@ public class JpmsConfiguration {
         "--add-opens", "java.base/java.lang=ALL-UNNAMED" // required by ClassLoaderUtils
     ));
 
-    private static final List<String> GRADLE_DAEMON_JPMS_ARGS;
+    public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     public static final List<String> gradleDaemonJpmsArgs(List<String> existingJvmArgs) {
         List<String> result = new ArrayList<String>(GRADLE_DAEMON_JPMS_ARGS);
 
-        // Workaround until external kotlin-dsl plugins support JDK16 properly
-        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
         String kotlinCompilerOptions = null;
         for (String jvmArg : existingJvmArgs) {
             if (jvmArg.startsWith("-Dkotlin.daemon.jvm.options=")) {
                 kotlinCompilerOptions = jvmArg.substring(28);
             }
         }
-        if (kotlinCompilerOptions == null) {
-            result.add("-Dkotlin.daemon.jvm.options=--illegal-access=permit");
-        } else {
-            result.add("-Dkotlin.daemon.jvm.options=--illegal-access=permit " + kotlinCompilerOptions);
+        if (kotlinCompilerOptions != null) {
+            result.add(result.size() - 1, "-Dkotlin.daemon.jvm.options=--illegal-access=permit " + kotlinCompilerOptions);
         }
         return result;
     }
@@ -73,6 +69,10 @@ public class JpmsConfiguration {
             "--add-opens", "java.base/java.util.concurrent.atomic=ALL-UNNAMED" // serialized from org.gradle.internal.file.StatStatistics$Collector
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
+
+        // Workaround until external kotlin-dsl plugins support JDK16 properly
+        // https://youtrack.jetbrains.com/issue/KT-43704 - should be in 1.5.x line
+        gradleDaemonJvmArgs.add("-Dkotlin.daemon.jvm.options=--illegal-access=permit");
 
         GRADLE_DAEMON_JPMS_ARGS = Collections.unmodifiableList(gradleDaemonJvmArgs);
     }
