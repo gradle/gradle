@@ -1,6 +1,7 @@
 package projects
 
 import common.failedTestArtifactDestination
+import configurations.BaseGradleBuildType
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.PartialTrigger
@@ -9,7 +10,6 @@ import configurations.PerformanceTestsPass
 import configurations.SanityCheck
 import configurations.SmokeTests
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
@@ -31,11 +31,11 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
     this.name = stage.stageName.stageName
     this.description = stage.stageName.description
 }) {
-    val specificBuildTypes: List<BuildType>
+    val specificBuildTypes: List<BaseGradleBuildType>
 
     val performanceTests: List<PerformanceTestsPass>
 
-    val functionalTests: List<BuildType>
+    val functionalTests: List<BaseGradleBuildType>
 
     init {
         features {
