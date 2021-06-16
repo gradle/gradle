@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 
-class CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest extends AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest {
+class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+    CompiledLanguage language = CompiledLanguage.GROOVY
+    boolean useJar = false
+}
+
+class CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
     boolean useJar = true
 }
