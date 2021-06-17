@@ -709,6 +709,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The path to convert to a relative path.
      * @return The relative path. Never returns null.
+     * @throws IllegalArgumentException If the given path cannot be relativized against the project directory.
      */
     String relativePath(Object path);
 

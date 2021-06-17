@@ -68,6 +68,7 @@ import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
@@ -1139,7 +1140,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         DomainObjectSet<DependencyConstraint> copiedDependencyConstraints = copiedConfiguration.getDependencyConstraints();
         for (DependencyConstraint dependencyConstraint : dependencyConstraints) {
-            copiedDependencyConstraints.add(((DefaultDependencyConstraint) dependencyConstraint).copy());
+            copiedDependencyConstraints.add(((DependencyConstraintInternal) dependencyConstraint).copy());
         }
         return copiedConfiguration;
     }

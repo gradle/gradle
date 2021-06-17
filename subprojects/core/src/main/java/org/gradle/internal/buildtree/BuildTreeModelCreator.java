@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.buildtree;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.internal.GradleInternal;
 
+import java.util.function.Function;
 
-@ServiceScope(Scopes.Gradle.class)
-public interface ConfigurationCache {
-
-    boolean canLoad();
-
-    void load();
-
-    void prepareForConfiguration();
-
-    void save();
+/**
+ * Responsible for creating a model from the build tree model.
+ */
+public interface BuildTreeModelCreator {
+    <T> T fromBuildModel(Function<? super GradleInternal, T> action);
 }

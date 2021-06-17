@@ -30,14 +30,22 @@ public class DependencyVerificationConfiguration {
     private final boolean verifyMetadata;
     private final boolean verifySignatures;
     private final List<TrustedArtifact> trustedArtifacts;
+    private final boolean useKeyServers;
     private final List<URI> keyServers;
     private final Set<IgnoredKey> ignoredKeys;
     private final List<TrustedKey> trustedKeys;
 
-    public DependencyVerificationConfiguration(boolean verifyMetadata, boolean verifySignatures, List<TrustedArtifact> trustedArtifacts, List<URI> keyServers, Set<IgnoredKey> ignoredKeys, List<TrustedKey> trustedKeys) {
+    public DependencyVerificationConfiguration(boolean verifyMetadata,
+                                               boolean verifySignatures,
+                                               List<TrustedArtifact> trustedArtifacts,
+                                               boolean useKeyServers,
+                                               List<URI> keyServers,
+                                               Set<IgnoredKey> ignoredKeys,
+                                               List<TrustedKey> trustedKeys) {
         this.verifyMetadata = verifyMetadata;
         this.verifySignatures = verifySignatures;
         this.trustedArtifacts = ImmutableList.copyOf(trustedArtifacts);
+        this.useKeyServers = useKeyServers;
         this.keyServers = keyServers;
         this.ignoredKeys = ignoredKeys;
         this.trustedKeys = trustedKeys;
@@ -65,6 +73,10 @@ public class DependencyVerificationConfiguration {
 
     public List<TrustedKey> getTrustedKeys() {
         return trustedKeys;
+    }
+
+    public boolean isUseKeyServers() {
+        return useKeyServers;
     }
 
     public abstract static class TrustCoordinates {

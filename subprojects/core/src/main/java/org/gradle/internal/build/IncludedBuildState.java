@@ -19,7 +19,6 @@ package org.gradle.internal.build;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 
@@ -31,7 +30,6 @@ import java.io.File;
 public interface IncludedBuildState extends NestedBuildState, CompositeBuildParticipantBuildState {
     String getName();
     File getRootDirectory();
-    IncludedBuild getModel();
     boolean isPluginBuild();
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
     boolean hasInjectedSettingsPlugins();
@@ -40,7 +38,7 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
 
     GradleInternal getConfiguredBuild();
     void addTasks(Iterable<String> tasks);
-    void execute(Iterable<String> tasks, Object listener);
+    void execute(Object listener);
 
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

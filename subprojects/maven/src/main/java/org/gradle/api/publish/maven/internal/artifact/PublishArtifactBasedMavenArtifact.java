@@ -18,15 +18,15 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
 public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
-    private final PublishArtifactInternal publishArtifact;
+    private final PublishArtifact publishArtifact;
 
     public PublishArtifactBasedMavenArtifact(PublishArtifact publishArtifact) {
-        this.publishArtifact = (PublishArtifactInternal) publishArtifact;
+        this.publishArtifact = publishArtifact;
     }
 
     @Override
@@ -45,12 +45,12 @@ public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return (TaskDependencyInternal) publishArtifact.getBuildDependencies();
+    protected TaskDependency getDefaultBuildDependencies() {
+        return publishArtifact.getBuildDependencies();
     }
 
     @Override
     public boolean shouldBePublished() {
-        return publishArtifact.shouldBePublished();
+        return PublishArtifactInternal.shouldBePublished(publishArtifact);
     }
 }

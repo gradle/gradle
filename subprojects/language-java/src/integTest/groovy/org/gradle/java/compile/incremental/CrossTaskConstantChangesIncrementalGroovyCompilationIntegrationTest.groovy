@@ -17,13 +17,10 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
 
-abstract class AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
+abstract class CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
 
-    @Unroll
     // This is a constant test that is not incremental for Groovy
     def "recompiles outermost class when #visibility inner class contains constant reference"() {
         source api: [
@@ -79,13 +76,6 @@ abstract class AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest exte
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField", "InMethodBody", "X")
     }
 
-    @ToBeFixedForConfigurationCache(
-        bottomSpecs = [
-            "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
-            "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
-        ],
-        because = "gradle/configuration-cache#270"
-    )
     // This is a constant test that is not incremental for Groovy
     def "does full recompilation in case a constant is computed from another constant"() {
         source api: ["class A { public static final int FOO = 10; }"], impl: ['class B { public static final int BAR = 2 + A.FOO; }', 'class C { }']
@@ -98,5 +88,12 @@ abstract class AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest exte
         then:
         impl.recompiledClasses 'B', 'C'
     }
+}
 
+class CrossTaskConstantChangesIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest {
+    boolean useJar = false
+}
+
+class CrossTaskConstantChangesIncrementalGroovyCompilationUsingJarIntegrationTest extends CrossTaskConstantChangesIncrementalGroovyCompilationIntegrationTest {
+    boolean useJar = true
 }

@@ -53,7 +53,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = injectHandlers;
         this.roleHandler = roleAnnotationHandler;
-        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        DefaultServiceRegistry services = new DefaultServiceRegistry("default services");
         services.add(InstantiatorFactory.class, this);
         this.defaultServices = services;
         ClassGenerator injectOnlyGenerator = AsmBackedClassGenerator.injectOnly(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);

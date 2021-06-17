@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
+import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -172,6 +173,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                 .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
                 .nagUser();
             return doAddConfiguration(configuration, (Configuration) dependencyNotation);
+        }
+        if (dependencyNotation instanceof ExternalModuleDependencyFactory.ProviderConvertible<?>) {
+            return doAddProvider(configuration, ((ExternalModuleDependencyFactory.ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);

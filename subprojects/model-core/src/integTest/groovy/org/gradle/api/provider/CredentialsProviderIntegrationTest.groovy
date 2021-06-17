@@ -237,9 +237,10 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        credentialsType       | errorMessage
-        'AwsCredentials'      | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
-        'PasswordCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
+        credentialsType         | errorMessage
+        'AwsCredentials'        | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
+        'PasswordCredentials'   | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
+        'HttpHeaderCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testAuthHeaderName\n  - testAuthHeaderValue"
     }
 
     @UnsupportedWithConfigurationCache(because = "test checks behavior with and without configuration cache")

@@ -43,7 +43,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
         "BuildDashboardPluginIntegrationTest",
-        "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
@@ -75,7 +74,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
         "BuildDashboardPluginIntegrationTest",
-        "GroovyPluginGoodBehaviourTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",

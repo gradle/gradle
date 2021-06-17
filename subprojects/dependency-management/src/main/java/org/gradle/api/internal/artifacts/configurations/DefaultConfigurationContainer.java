@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
@@ -134,9 +135,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = instantiator.newInstance(DefaultConfiguration.class, context, name, this, resolver, listenerManager, dependencyMetaDataProvider,
-            resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
+        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
     }
@@ -163,18 +162,30 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
-        String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter.getAndIncrement();
+        String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = instantiator.newInstance(DefaultConfiguration.class, context, name, detachedConfigurationsProvider, resolver, listenerManager,
-            dependencyMetaDataProvider, resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
-            capabilityNotationParser, attributesFactory, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), documentationRegistry, userCodeApplicationContext,
-            context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+        copyAllTo(detachedConfiguration, dependencies);
+        detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
+        return detachedConfiguration;
+    }
+
+    private String nextDetachedConfigurationName() {
+        return DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter.getAndIncrement();
+    }
+
+    private void copyAllTo(DefaultConfiguration detachedConfiguration, Dependency[] dependencies) {
         DomainObjectSet<Dependency> detachedDependencies = detachedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             detachedDependencies.add(dependency.copy());
         }
-        detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
-        return detachedConfiguration;
+    }
+
+    private DefaultConfiguration newConfiguration(String name, ConfigurationsProvider detachedConfigurationsProvider, RootComponentMetadataBuilder componentMetadataBuilder) {
+        return instantiator.newInstance(DefaultConfiguration.class, context, name, detachedConfigurationsProvider, resolver, listenerManager,
+            dependencyMetaDataProvider, resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
+            capabilityNotationParser, attributesFactory, componentMetadataBuilder, documentationRegistry, userCodeApplicationContext,
+            context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
     }
 
     /**

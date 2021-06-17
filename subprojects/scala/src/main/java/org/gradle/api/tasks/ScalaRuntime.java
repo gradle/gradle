@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -89,6 +90,14 @@ public class ScalaRuntime {
 
             @Override
             public FileCollection createDelegate() {
+                try {
+                    return inferScalaClasspath();
+                } catch (RuntimeException e) {
+                    return new FailingFileCollection(getDisplayName(), e);
+                }
+            }
+
+            private Configuration inferScalaClasspath() {
                 File scalaLibraryJar = findScalaJar(classpath, "library");
                 if (scalaLibraryJar == null) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "

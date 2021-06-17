@@ -19,12 +19,14 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
+import org.gradle.internal.credentials.DefaultHttpHeaderCredentials;
 import org.gradle.internal.credentials.DefaultPasswordCredentials;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -42,6 +44,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
 
     private final Map<String, Provider<PasswordCredentials>> passwordProviders = new ConcurrentHashMap<>();
     private final Map<String, Provider<AwsCredentials>> awsProviders = new ConcurrentHashMap<>();
+    private final Map<String, Provider<HttpHeaderCredentials>> httpHeaderProviders = new ConcurrentHashMap<>();
 
     private final Set<String> missingProviderErrors = ConcurrentHashMap.newKeySet();
 
@@ -58,6 +61,9 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         }
         if (AwsCredentials.class.isAssignableFrom(credentialsType)) {
             return (Provider<T>) awsProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new AwsCredentialsProvider(id)));
+        }
+        if (HttpHeaderCredentials.class.isAssignableFrom(credentialsType)) {
+            return (Provider<T>) httpHeaderProviders.computeIfAbsent(identity, id -> evaluateAtConfigurationTime(new HttpHeaderCredentialsProvider(id)));
         }
 
         throw new IllegalArgumentException(String.format("Unsupported credentials type: %s", credentialsType));
@@ -151,6 +157,25 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
             credentials.setAccessKey(accessKey);
             credentials.setSecretKey(secretKey);
             credentials.setSessionToken(getOptionalProperty("SessionToken"));
+            return credentials;
+        }
+    }
+
+    private class HttpHeaderCredentialsProvider extends CredentialsProvider<HttpHeaderCredentials> {
+
+        HttpHeaderCredentialsProvider(String identity) {
+            super(identity);
+        }
+
+        @Override
+        public synchronized HttpHeaderCredentials call() {
+            String name = getRequiredProperty("AuthHeaderName");
+            String value = getRequiredProperty("AuthHeaderValue");
+            assertRequiredValuesPresent();
+
+            HttpHeaderCredentials credentials = new DefaultHttpHeaderCredentials();
+            credentials.setName(name);
+            credentials.setValue(value);
             return credentials;
         }
     }

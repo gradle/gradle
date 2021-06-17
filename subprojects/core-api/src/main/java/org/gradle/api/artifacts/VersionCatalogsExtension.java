@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Gives access to all version catalogs available.
@@ -42,4 +43,10 @@ public interface VersionCatalogsExtension extends Iterable<VersionCatalog> {
         return find(name).orElseThrow(() -> new InvalidUserDataException("Catalog named " + name + " doesn't exist"));
     }
 
+    /**
+     * Returns the list of catalog names
+     *
+     * @since 7.2
+     */
+    Set<String> getCatalogNames();
 }

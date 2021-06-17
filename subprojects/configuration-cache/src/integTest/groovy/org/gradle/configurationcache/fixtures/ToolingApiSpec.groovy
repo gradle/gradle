@@ -65,6 +65,7 @@ trait ToolingApiSpec {
                     return modelName == "${SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
+                    println("creating model for \$project")
                     $content
                     return new MyModel("It works!")
                 }

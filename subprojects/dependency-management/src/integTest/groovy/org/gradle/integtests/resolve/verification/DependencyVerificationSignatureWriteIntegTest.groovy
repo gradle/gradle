@@ -322,6 +322,14 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyrings.size() == 2
         keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
         keyrings.find { it.publicKey.keyID == keyring.publicKey.keyID }
+
+        and: "also generates an ascii armored keyring file"
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 2
+        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        keyringsAscii.find { it.publicKey.keyID == keyring.publicKey.keyID }
     }
 
     @UnsupportedWithConfigurationCache

@@ -63,7 +63,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public Long getOriginExecutionTime() {
-        return originMetadata == null ? null : originMetadata.getExecutionTime();
+        return originMetadata == null ? null : originMetadata.getExecutionTime().toMillis();
     }
 
     @Nullable

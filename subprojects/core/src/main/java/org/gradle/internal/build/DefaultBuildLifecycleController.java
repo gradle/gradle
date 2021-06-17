@@ -117,6 +117,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public void executeTasks() {
         withModel(buildModelController -> {
+            if (state != State.TaskGraph) {
+                throw new IllegalStateException("Cannot execute tasks as none have been scheduled for this build yet.");
+            }
             runWork();
             return null;
         });

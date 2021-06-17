@@ -172,7 +172,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
 ${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
-${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName('getTadaOne') }}
+${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne') }}
 """)
     }
 
@@ -211,7 +211,7 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne', 'tada_one').getterName
         then:
         ex = thrown()
         verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool', 'other_cool').getterName('getOtherCoolBundle') }}
+${nameClash { noIntro().kind('bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
 ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
 """)
     }
@@ -222,6 +222,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
             alias('foo') to 'g:a:v'
             alias('bar') to 'g2:a2:v2'
             bundle('myBundle', ['foo', 'bar'])
+            alias('pl') toPluginId('org.plugin') version('1.2')
         }
 
         then:
@@ -238,12 +239,16 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
 
         def bundle = libs.bundles.myBundle.get()
         assert bundle == [foo, bar]
+
+        def plugin = libs.plugins.pl.get()
+        plugin.pluginId == 'org.plugin'
+        plugin.version.requiredVersion == '1.2'
     }
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    def "puts limit on the number of methods"() {
+    def "reasonable error message in case a reserved alias name is used"() {
         when:
         generate {
             alias(reservedName).to("org:test:1.0")
@@ -253,17 +258,20 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         InvalidUserDataException ex = thrown()
         verify ex.message, reservedAlias {
             alias(reservedName).shouldNotEndWith(suffix)
-            reservedAliasSuffix("bundle", "bundles", "version", "versions")
+            reservedAliasSuffix("bundle", "bundles", "version", "versions", "plugin", "plugins")
         }
 
         where:
         reservedName   | suffix
         'versions'     | 'versions'
         'bundles'      | 'bundles'
+        'plugins'      | 'plugins'
         'someVersions' | 'versions'
         'someBundles'  | 'bundles'
+        'somePlugins'  | 'plugins'
         'some.version' | 'version'
         'some.bundle'  | 'bundle'
+        'some.plugin'  | 'plugin'
     }
 
     @VersionCatalogProblemTestFor(
@@ -344,6 +352,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -353,6 +362,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
@@ -362,6 +372,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
+            name = AliasNormalizer.normalize(name)
             def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match

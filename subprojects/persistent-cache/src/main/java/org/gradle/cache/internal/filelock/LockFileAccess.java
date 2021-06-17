@@ -15,12 +15,10 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileLock;
 
 public class LockFileAccess {
 
@@ -75,13 +73,11 @@ public class LockFileAccess {
         lockInfoAccess.clearLockInfo(lockFileAccess);
     }
 
-    @Nullable
-    public FileLock tryLockInfo(boolean shared) throws IOException {
+    public FileLockOutcome tryLockInfo(boolean shared) throws IOException {
         return lockInfoAccess.tryLock(lockFileAccess, shared);
     }
 
-    @Nullable
-    public FileLock tryLockState(boolean shared) throws IOException {
+    public FileLockOutcome tryLockState(boolean shared) throws IOException {
         return lockStateAccess.tryLock(lockFileAccess, shared);
     }
 

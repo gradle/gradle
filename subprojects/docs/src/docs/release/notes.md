@@ -4,6 +4,7 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
  [Peter Runge](https://github.com/causalnet)
+ [Konstantin Gribov](https://github.com/grossws)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -22,6 +23,13 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
 <!-- 
+
+<a name="VERSION-CATALOG-IMPROVEMENTS"></a>
+### Version catalog improvements
+
+In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
+For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+This limitation is now lifted.
 
 ================== TEMPLATE ==============================
 
@@ -84,6 +92,10 @@ When an error is encountered that is not considered temporary, either due to the
 no further requests to the build cache will be attempted for the remainder of the build.
 This avoids critically slowing down the build in cases where the build cache is entirely unavailable.
 Retrying requests for failures that are likely to be temporary reduces the risk of unnecessarily preventing use of the build cache for the remainder of a build when it would have succeeded.
+
+=======
+## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
+When selecting configuration name using `--configuration` parameter from command line you can use camelCase notation like in subproject and task selection. This way `gradle dependencies --configuration tRC` could be used instead of `gradle dependencies --configuration testRuntimeClasspath` if `tRC` resolves to unique configuration within project where task is running.
 
 <!--
 

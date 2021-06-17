@@ -16,14 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
@@ -48,9 +49,12 @@ public class BuildModelActionRunner implements BuildActionRunner {
         try {
             if (buildModelAction.isCreateModel()) {
                 gradle.addBuildListener(new ForceFullConfigurationListener());
+                Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
+                return Result.of(result);
+            } else {
+                buildController.scheduleAndRunTasks();
+                return Result.of(null);
             }
-            Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
-            return Result.of(result);
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
             if (createAction.modelLookupFailure != null) {
@@ -95,9 +99,10 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         private void forceFullConfiguration(GradleInternal gradle, Set<GradleInternal> alreadyConfigured) {
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
-            for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                if (includedBuild instanceof IncludedBuildState) {
-                    GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
+            for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+                BuildState target = reference.getTarget();
+                if (target instanceof IncludedBuildState) {
+                    GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
                     if (!alreadyConfigured.contains(build)) {
                         alreadyConfigured.add(build);
                         forceFullConfiguration(build, alreadyConfigured);

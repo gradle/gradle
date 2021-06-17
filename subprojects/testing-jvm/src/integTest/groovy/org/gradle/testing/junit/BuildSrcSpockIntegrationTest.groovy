@@ -18,7 +18,6 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import spock.lang.Issue
 
@@ -94,7 +93,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def 'can run spock with @Unroll'() {
         given:
         writeSpockDependencies()
@@ -123,7 +121,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def 'can run spock test with same method name in super class and base class'() {
         given:
         writeSpockDependencies()

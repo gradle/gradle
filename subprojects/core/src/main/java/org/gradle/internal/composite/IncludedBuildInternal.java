@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.composite;
 
-package org.gradle.java.compile.incremental
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.internal.build.BuildState;
 
-import org.gradle.integtests.fixtures.CompiledLanguage
-
-class CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest extends AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest {
-    CompiledLanguage language = CompiledLanguage.GROOVY
-    boolean useJar = true
+public interface IncludedBuildInternal extends IncludedBuild {
+    /**
+     * Returns the build which this include refers to.
+     */
+    BuildState getTarget();
 }

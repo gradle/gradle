@@ -25,12 +25,15 @@ import java.util.function.Consumer;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildTaskGraph {
+    /**
+     * Queues a task for execution, but does not schedule it.
+     */
     void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
 
     /**
-     * Awaits completion of task execution, collecting any task failures into the given collection.
+     * Schedules and executes queued tasks, collecting any task failures into the given collection.
      */
-    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    void runScheduledTasks(Consumer<? super Throwable> taskFailures);
 
     IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath);
 

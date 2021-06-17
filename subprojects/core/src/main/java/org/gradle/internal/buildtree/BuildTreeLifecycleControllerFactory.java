@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.buildtree;
 
-package org.gradle.java.compile.incremental
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import org.gradle.integtests.fixtures.CompiledLanguage
-
-class CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalGroovyCompilationIntegrationTest {
-    CompiledLanguage language = CompiledLanguage.GROOVY
-    boolean useJar = false
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildTreeLifecycleControllerFactory {
+    BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor);
 }

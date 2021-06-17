@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
+package org.gradle.internal.build;
 
-package org.gradle.java.compile.incremental
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
-class CrossTaskIncrementalJavaCompilationUsingClassDirectoryIntegrationTest extends AbstractCrossTaskIncrementalJavaCompilationIntegrationTest {
-    boolean useJar = false
+import java.util.function.Function;
+
+/**
+ * A build which can be the target of a build action.
+ */
+public interface BuildActionTarget extends BuildState {
+    /**
+     * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
+     */
+    <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction);
 }

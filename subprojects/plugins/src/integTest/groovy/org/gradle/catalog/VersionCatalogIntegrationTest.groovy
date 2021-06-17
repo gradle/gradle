@@ -272,6 +272,8 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
                     version("lib", "1.1")
                     alias("other").to("org", "bar").versionRef("lib")
                     bundle("test", ["my-lib", "junit4"])
+                    alias("greeter").toPluginId("org.greeter").version("1.5")
+                    alias("bye").toPluginId("org.bye").versionRef("lib")
                 }
             }
         """

@@ -61,13 +61,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle");
+    private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle", "plugin", "plugins");
     private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
@@ -77,6 +78,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> dependencies = Maps.newLinkedHashMap();
+    private final Map<String, Supplier<PluginModel>> plugins = Maps.newLinkedHashMap();
     private final Map<String, BundleModel> bundles = Maps.newLinkedHashMap();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
@@ -149,7 +151,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         for (Map.Entry<String, Supplier<DependencyModel>> entry : dependencies.entrySet()) {
             realizedDeps.put(entry.getKey(), entry.getValue().get());
         }
-        return new DefaultVersionCatalog(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints));
+        ImmutableMap.Builder<String, PluginModel> realizedPlugins = ImmutableMap.builderWithExpectedSize(plugins.size());
+        for (Map.Entry<String, Supplier<PluginModel>> entry : plugins.entrySet()) {
+            realizedPlugins.put(entry.getKey(), entry.getValue().get());
+        }
+        return new DefaultVersionCatalog(name, description.getOrElse(""), realizedDeps.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
     private void maybeImportCatalogs() {
@@ -231,6 +237,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public String version(String name, Action<? super MutableVersionConstraint> versionSpec) {
         validateName("name", name);
+        name = intern(normalize(name));
         if (versionConstraints.containsKey(name)) {
             // For versions, in order to allow overriding whatever is declared by
             // a platform, we want to silence overrides
@@ -263,7 +270,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public AliasBuilder alias(String alias) {
         validateName("alias", alias);
-        return new DefaultAliasBuilder(alias);
+        return new DefaultAliasBuilder(normalize(alias));
     }
 
     private void validateName(String type, String value) {
@@ -312,8 +319,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public void bundle(String name, List<String> aliases) {
         validateName("bundle", name);
-        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream().map(this::intern).collect(Collectors.toList()));
-        BundleModel previous = bundles.put(intern(name), new BundleModel(components, currentContext));
+        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream()
+            .map(AliasNormalizer::normalize)
+            .map(this::intern)
+            .collect(Collectors.toList()));
+        BundleModel previous = bundles.put(normalize(intern(name)), new BundleModel(components, currentContext));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", name, previous.getComponents(), components);
         }
@@ -369,6 +379,37 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
     }
 
+    private class VersionReferencingPluginModel implements Supplier<PluginModel> {
+        private final String id;
+        private final String versionRef;
+        private final String context;
+
+        private VersionReferencingPluginModel(String id, String versionRef) {
+            this.id = id;
+            this.versionRef = versionRef;
+            this.context = currentContext;
+        }
+
+        @Override
+        public PluginModel get() {
+            VersionModel model = versionConstraints.get(versionRef);
+            if (model == null) {
+                return throwVersionCatalogProblem(VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec -> {
+                        VersionCatalogProblemBuilder.DescribedProblemWithCause solutions = spec.withShortDescription(() -> "Version reference '" + versionRef + "' doesn't exist")
+                            .happensBecause("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
+                            .addSolution(() -> "Declare '" + versionRef + "' in the catalog")
+                            .documented();
+                        if (!versionConstraints.keySet().isEmpty()) {
+                            solutions.addSolution(() -> "Use one of the following existing versions: " + oxfordListOf(versionConstraints.keySet(), "or"));
+                        }
+                    }
+                );
+            } else {
+                return new PluginModel(id, versionRef, model.getVersion(), context);
+            }
+        }
+    }
+
     private class DefaultAliasBuilder implements AliasBuilder {
         private final String alias;
 
@@ -394,6 +435,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         @Override
         public LibraryAliasBuilder to(String group, String name) {
             return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, group, name);
+        }
+
+        @Override
+        public PluginAliasBuilder toPluginId(String id) {
+            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, id);
         }
     }
 
@@ -451,10 +497,64 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
     }
 
+    // static public for injection!
+    public static class DefaultPluginAliasBuilder implements PluginAliasBuilder {
+        private final DefaultVersionCatalogBuilder owner;
+        private final String alias;
+        private final String id;
+
+        @Inject
+        public DefaultPluginAliasBuilder(DefaultVersionCatalogBuilder owner, String alias, String id) {
+            this.owner = owner;
+            this.alias = alias;
+            this.id = id;
+        }
+
+        @Override
+        public void version(Action<? super MutableVersionConstraint> versionSpec) {
+            MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
+            versionSpec.execute(versionBuilder);
+            ImmutableVersionConstraint version = owner.versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
+            PluginModel model = new PluginModel(owner.intern(id), null, version, owner.currentContext);
+            Supplier<PluginModel> previous = owner.plugins.put(owner.intern(alias), () -> model);
+            if (previous != null) {
+                LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
+            }
+        }
+
+        @Override
+        public void version(String version) {
+            StrictVersionParser.RichVersion richVersion = owner.strictVersionParser.parse(version);
+            version(vc -> {
+                if (richVersion.require != null) {
+                    vc.require(richVersion.require);
+                }
+                if (richVersion.prefer != null) {
+                    vc.prefer(richVersion.prefer);
+                }
+                if (richVersion.strictly != null) {
+                    vc.strictly(richVersion.strictly);
+                }
+            });
+        }
+
+        @Override
+        public void versionRef(String versionRef) {
+            owner.createPluginAliasWithVersionRef(alias, id, versionRef);
+        }
+    }
+
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
-        Supplier<DependencyModel> previous = dependencies.put(intern(alias), new VersionReferencingDependencyModel(group, name, versionRef));
+        Supplier<DependencyModel> previous = dependencies.put(intern(normalize(alias)), new VersionReferencingDependencyModel(group, name, normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
+        }
+    }
+
+   private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
+        Supplier<PluginModel> previous = plugins.put(intern(normalize(alias)), new VersionReferencingPluginModel(id, normalize(versionRef)));
+        if (previous != null) {
+            LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
         }
     }
 

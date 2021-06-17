@@ -21,6 +21,8 @@ import javax.annotation.Nullable;
 /**
  * Credentials that can be used to login to a protected server, e.g. a remote repository by using HTTP header.
  *
+ * The properties used for creating credentials from a property are <pre>repoAuthHeaderName</pre> and <pre>repoAuthHeaderValue</pre>, where <pre>repo</pre> is the name of the repository.
+ *
  * @since 4.10
  */
 public interface HttpHeaderCredentials extends Credentials {
