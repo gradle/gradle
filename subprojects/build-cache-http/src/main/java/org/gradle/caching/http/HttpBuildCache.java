@@ -40,7 +40,7 @@ import java.net.URL;
  * <p>
  * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
  * <p>
- * Any other type of response will be treated as a fatal error, with no further requests being made for the remainder of the build.
+ * Any other type of response will be treated as an error, causing the remote cache to be disabled for the remainder of the build.
  *
  * @since 3.5
  */
