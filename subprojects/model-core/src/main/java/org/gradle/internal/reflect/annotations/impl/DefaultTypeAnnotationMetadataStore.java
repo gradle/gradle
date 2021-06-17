@@ -18,12 +18,12 @@ package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
@@ -514,8 +514,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         private final String propertyName;
         private Method method;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = HashMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = HashMultimap.create();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = LinkedHashMultimap.create();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = LinkedHashMultimap.create();
         private final TypeValidationContext validationContext;
 
         public PropertyAnnotationMetadataBuilder(String propertyName, Method method, TypeValidationContext validationContext) {
