@@ -165,6 +165,28 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         result.remote == null
     }
 
+    def "remote build cache configuration details is not exposed when not defined"() {
+        given:
+        settingsFile << """
+            buildCache {
+                local {
+                    enabled = false
+                    directory = 'directory'
+                    push = false
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        def result = result()
+        !result.remoteEnabled
+        result.remote == null
+    }
+
     def "captures useExpectContinue"() {
         given:
         httpBuildCacheServer.start()
