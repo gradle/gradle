@@ -33,6 +33,7 @@ import java.net.URL;
  * A successful {@literal GET} request must return a response with status {@literal 200} (cache hit) or {@literal 404} (cache miss),
  * with cache hit responses including the cache entry as the response body.
  * A successful {@literal PUT} request must return any 2xx response.
+ * Both {@literal GET} and {@literal PUT} requests may be retried on network errors that are likely to be temporary.
  * <p>
  * Redirecting responses may be issued with {@literal 301}, {@literal 302}, {@literal 303}, {@literal 307} or {@literal 308} responses.
  * Redirecting responses to {@literal PUT} requests must use {@literal 307} or {@literal 308} to have the {@literal PUT} replayed.
@@ -41,6 +42,7 @@ import java.net.URL;
  * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
  * <p>
  * Any other type of response will be treated as an error, causing the remote cache to be disabled for the remainder of the build.
+ * <p>
  *
  * @since 3.5
  */

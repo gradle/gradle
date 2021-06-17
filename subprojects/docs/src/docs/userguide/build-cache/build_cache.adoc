@@ -328,6 +328,7 @@ include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="setting
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
 ====
 
+[[sec:build_cache_expect_continue]]
 The HTTP build cache client allows opt-in use of https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3[HTTP Expect-Continue].
 This causes PUT requests to happen in two parts: first a check whether a body would be accepted, then transmission of the body if the server indicates it will accept it.
 This is particularly suitable for cache servers that routinely redirect or reject PUT requests,
@@ -337,7 +338,7 @@ This additional check incurs extra latency when the server accepts the request, 
 Not all HTTP servers and proxies reliably implement Expect-Continue.
 Be sure to check that your cache server does support it before enabling.
 
-To opt-in, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isUseExpectContinue()] to `true`.
+To opt-in, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:useExpectContinue[HttpBuildCache.isUseExpectContinue()] to `true`.
 
 .Use Expect-Continue
 ====

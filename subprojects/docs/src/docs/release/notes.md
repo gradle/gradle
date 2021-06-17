@@ -47,7 +47,45 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
+--> 
+<a name="http-build-cache-improvements"></a>
+## HTTP build cache usage improvements
 
+### Following redirects
+
+The built-in HTTP build cache connector now follows redirect responses, supporting a wider range of cache implementations and network management strategies.
+This can be leveraged to gracefully migrate to new cache locations, or support HTTP caches that redirect as a matter of course such as those that
+utilize some form of request signing to access storage systems.
+Following of redirects happens by default with no additional configuration needed.
+
+For more information on the effect of different types of redirects, see the documentation for [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html).
+
+### Using Expect-Continue to avoid redundant uploads
+
+It is now possible to opt-in to use of [HTTP Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+
+When enabled, whether or not a store request would succeed is checked with the server before attempting.
+This is particularly useful when potentially dealing with large artifacts that may be rejected by the server,
+as it avoids the overhead of transmitting the large file just to have it rejected.
+This fail-fast behavior comes at the expense of extra marginal overhead for successful requests,
+due to the extra network communication required by the initial check.
+
+Not all HTTP servers support expect-continue.
+This should only be used with servers that do support it, and when PUT requests are frequently or routinely rejected or redirected.
+
+Consult the [userguide](userguide/build_cache.html#sec:build_cache_configure_use_cases) for how to enable use of expect-continue.
+
+### Automatic retry of uploads on temporary network error
+
+PUT requests to the cache are automatically retried up to 4 times, for errors that are likely to be temporary.
+With modern network environments involving proxies and load balancers, it is common for HTTP requests to routinely fail due to dead connections between components or momentary unavailability of a service in the request chain.
+
+When an error is encountered that is not considered temporary, either due to the type of error or because the error persisted after retrying,
+no further requests to the build cache will be attempted for the remainder of the build.
+This avoids critically slowing down the build in cases where the build cache is entirely unavailable.
+Retrying requests for failures that are likely to be temporary reduces the risk of unnecessarily preventing use of the build cache for the remainder of a build when it would have succeeded.
+
+<!--
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
