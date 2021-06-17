@@ -71,17 +71,10 @@ For more information on the effect of different types of redirects, see the docu
 ### Using Expect-Continue to avoid redundant uploads
 
 It is now possible to opt-in to use of [HTTP Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+This is useful when cache upload requests are regularly rejected or redirected by the server,
+as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
 
-When enabled, whether or not a store request would succeed is checked with the server before attempting.
-This is particularly useful when potentially dealing with large artifacts that may be rejected by the server,
-as it avoids the overhead of transmitting the large file just to have it rejected.
-This fail-fast behavior comes at the expense of extra marginal overhead for successful requests,
-due to the extra network communication required by the initial check.
-
-Not all HTTP servers support expect-continue.
-This should only be used with servers that do support it, and when PUT requests are frequently or routinely rejected or redirected.
-
-Consult the [userguide](userguide/build_cache.html#sec:build_cache_configure_use_cases) for how to enable use of expect-continue.
+Consult the [userguide](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue with a HTTP build cache.
 
 ### Automatic retry of uploads on temporary network error
 
