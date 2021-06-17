@@ -93,7 +93,6 @@ no further requests to the build cache will be attempted for the remainder of th
 This avoids critically slowing down the build in cases where the build cache is entirely unavailable.
 Retrying requests for failures that are likely to be temporary reduces the risk of unnecessarily preventing use of the build cache for the remainder of a build when it would have succeeded.
 
-=======
 ## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
 When selecting configuration name using `--configuration` parameter from command line you can use camelCase notation like in subproject and task selection. This way `gradle dependencies --configuration tRC` could be used instead of `gradle dependencies --configuration testRuntimeClasspath` if `tRC` resolves to unique configuration within project where task is running.
 
