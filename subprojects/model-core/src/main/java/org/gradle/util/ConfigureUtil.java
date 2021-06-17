@@ -33,10 +33,9 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
  * @deprecated Will be removed in Gradle 8.0.
+ * @see org.gradle.util.internal.ConfigureUtil
  */
 @Deprecated
 public class ConfigureUtil {

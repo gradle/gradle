@@ -32,6 +32,10 @@ import java.util.Map;
 
 import static org.gradle.util.internal.CollectionUtils.toStringList;
 
+/**
+ * 
+ * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ */
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
