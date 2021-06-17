@@ -75,7 +75,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         // We see connection refused because the first partial request is retried,
         // then the subsequent is flat refused because we stopped the server.
-        String errorPattern = /Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused/
+        String errorPattern = /(Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused|127\.0\.0\.1:\d+ failed to respond)/
 
         when:
         executer.withStackTraceChecksDisabled()
