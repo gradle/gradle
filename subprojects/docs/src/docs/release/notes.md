@@ -32,6 +32,16 @@ In previous Gradle releases, it wasn't possible to declare a [version catalog](u
 For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
 This limitation is now lifted.
 
+-->
+<a name="new-features-and-usability-improvements"></a>
+## New features and usability improvements
+
+### Improved credentials handling for HTTP Header-based authentication
+
+It is now possible to provide credentials for HTTP header-based authentication [via properties](userguide/declaring_repositories.html#sec:handling_credentials) without additional configuration in the
+build script.
+
+<!--
 ================== TEMPLATE ==============================
 
 <a name="FILL-IN-KEY-AREA"></a>
