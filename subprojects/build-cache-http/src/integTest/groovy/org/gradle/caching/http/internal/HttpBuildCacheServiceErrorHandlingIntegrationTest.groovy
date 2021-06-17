@@ -132,6 +132,31 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         httpBuildCacheServer.cacheDir.listFiles().size() == 1
     }
 
+    def "transient error on read is retried"() {
+        given:
+        settingsFile << withHttpBuildCacheServer()
+        withBuildCache().run "customTask"
+        withBuildCache().run "clean"
+
+        when:
+        def requests = 0
+        httpBuildCacheServer.addResponder { req, res ->
+            if (requests++ == 0) {
+                (res as Response).httpChannel.connection.close()
+                false
+            } else {
+                true
+            }
+        }
+        withBuildCache().run "customTask"
+
+        then:
+        skipped ":customTask"
+
+        and:
+        requests == 2
+    }
+
     def "build cache is deactivated for the build if the connection times out"() {
         httpBuildCacheServer.blockIncomingConnectionsForSeconds = 10
         settingsFile << withHttpBuildCacheServer()
