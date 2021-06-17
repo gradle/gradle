@@ -126,6 +126,36 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         aggregatedReport.numberOfClasses() == 3
     }
 
+    def "aggregates test results using a dedicated aggregation subproject"() {
+        given:
+        settingsFile << """
+            include("aggregation")
+        """
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+        """
+        file("aggregation/build.gradle") << """
+            plugins {
+                id("jacoco")
+            }
+            ${configureAggregation()}
+            dependencies {
+                jacocoAggregation(project(":app"))
+            }
+        """
+
+        when:
+        succeeds(AGGREGATION_TASK_NAME)
+
+        then:
+        def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
+        aggregatedReport.exists()
+        aggregatedReport.numberOfClasses() == 3
+    }
+
     def "assemble does not execute tests"() {
         given:
         file("app/build.gradle") << """
@@ -149,11 +179,20 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     private static String configureAggregation() {
         return """
+            def implementation = configurations.findByName("implementation")
+            def jacocoAggregationConfiguration = configurations.create("jacocoAggregation") {
+                visible = false
+                canBeResolved = false
+                canBeConsumed = false
+                if (implementation != null) {
+                    extendsFrom(implementation)
+                }
+            }
             def sourcesPath = configurations.create("sourcesPath") {
                 visible = false
                 canBeResolved = true
                 canBeConsumed = false
-                extendsFrom(configurations.implementation)
+                extendsFrom(jacocoAggregationConfiguration)
                 attributes {
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
@@ -164,23 +203,39 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 visible = false
                 canBeResolved = true
                 canBeConsumed = false
-                extendsFrom(configurations.implementation)
+                extendsFrom(jacocoAggregationConfiguration)
                 attributes {
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                     attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "jacoco-coverage-data"))
                 }
             }
-
-            def currentProjectCoverageProvider = tasks.named("test").map { task ->
-                task.extensions.getByType(JacocoTaskExtension).destinationFile
+            def coverageClassesDirs = configurations.create("coverageClassesDirs") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(jacocoAggregationConfiguration)
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY));
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME));
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR));
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL));
+                    attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM));
+                }
             }
+
             tasks.register("${AGGREGATION_TASK_NAME}", JacocoReport) {
-                sourceSets(sourceSets.main)
-                additionalClassDirs(configurations.runtimeClasspath.filter { it.path.contains("/build/libs/") })
+                if (project.extensions.findByType(JavaPluginExtension) != null) {
+                    sourceSets(sourceSets.main)
+                }
+                additionalClassDirs(coverageClassesDirs.filter { it.path.contains("/build/libs/") })
                 additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
                 executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
-                executionData(currentProjectCoverageProvider)
+                if (tasks.findByName("test") != null) {
+                    executionData(tasks.named("test").map { task ->
+                        task.extensions.getByType(JacocoTaskExtension).destinationFile
+                    })
+                }
                 reports {
                     xml.required = true
                     html.required = true
