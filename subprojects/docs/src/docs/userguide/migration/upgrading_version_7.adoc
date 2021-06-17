@@ -69,12 +69,12 @@ But, because this package name doesn't contain the word `internal`, many Gradle 
 Gradle 7.1 addresses the situation and marks the package as public.
 The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
 
-The following classes are now officially recognized as public API:
+===== The following classes are now officially recognized as public API:
 - `GradleVersion`
 - `Path`
 - `Configurable`
 
-The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
+===== The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
 
 - `VersionNumber`
 - `TextUtil`
@@ -82,8 +82,23 @@ The following classes have known usages in external plugins and are now deprecat
 - `RelativePathUtil`
 - `DistributionLocator`
 - `SingleMessageLogger`
+- `ConfigureUtil`
 
-The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+`ConfigureUtil` is used in plugins for applying configuration defined in a Groovy closure to DSL objects. This implementation should be avoided it will be bound to the Groovy. Instead, the object
+configuration should be  modeled with link:{javadocPath}/org/gradle/api/Action.html[Actions], which is language-agnostic.
+
+```java
+class MyExtension {
+    public void configureProperties(Action<? extends MyPropertyContainer> action) {
+        action.execute(this.myPropertyContainer);
+    }
+}
+```
+
+If the DSL object is created via link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] then Gradle will generate a closure-taking method at runtime for each method with an `Action`
+ as a single argument.
+
+===== The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
 - `Resources`
 - `RedirectStdOutAndErr`
@@ -101,7 +116,7 @@ The following classes have only internal usages and were moved from `org.gradle.
 - `AntUtil`
 - `JarUtil`
 
-The last set of classes have no external or internal usages and therefore were deleted:
+===== The last set of classes have no external or internal usages and therefore were deleted:
 
 - `DiffUtil`
 - `NoopChangeListener`
