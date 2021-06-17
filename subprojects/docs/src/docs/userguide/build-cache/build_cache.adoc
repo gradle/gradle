@@ -333,7 +333,7 @@ The HTTP build cache client allows opt-in use of https://www.w3.org/Protocols/rf
 This causes PUT requests to happen in two parts: first a check whether a body would be accepted, then transmission of the body if the server indicates it will accept it.
 This is particularly suitable for cache servers that routinely redirect or reject PUT requests,
 as it avoids transmitting the cache entry just to have it rejected (e.g. the cache entry is larger than the cache will allow).
-This additional check incurs extra latency when the server accepts the request, but reduces latency when the request is rejected.
+This additional check incurs extra latency when the server accepts the request, but reduces latency when the request is rejected or redirected.
 
 Not all HTTP servers and proxies reliably implement Expect-Continue.
 Be sure to check that your cache server does support it before enabling.
