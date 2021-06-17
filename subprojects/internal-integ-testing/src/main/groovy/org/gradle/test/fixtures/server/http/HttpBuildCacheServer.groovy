@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
 
 import javax.servlet.DispatcherType
-
 import javax.servlet.Filter
 import javax.servlet.FilterChain
 import javax.servlet.FilterConfig
@@ -38,7 +37,6 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
     private TestFile cacheDir
-    private long dropConnectionForPutBytes = -1
     private int blockIncomingConnectionsForSeconds = 0
     private final List<Responder> responders = []
 
@@ -47,7 +45,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
         this.webapp = new WebAppContext()
         // The following code is because of a problem under Windows: the file descriptors are kept open under JDK 11
         // even after server shutdown, which prevents from deleting the test directory
-        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false")
     }
 
     TestFile getCacheDir() {
@@ -60,9 +58,6 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     private void addFilters() {
-        if (dropConnectionForPutBytes > -1) {
-            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)), "/*", EnumSet.of(DispatcherType.REQUEST))
-        }
         if (blockIncomingConnectionsForSeconds > 0) {
             this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
@@ -93,11 +88,10 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
         this.webapp.addFilter(RestFilter, "/*", EnumSet.of(DispatcherType.REQUEST))
     }
 
-    void dropConnectionForPutAfterBytes(long numBytes) {
-        this.dropConnectionForPutBytes = numBytes
-    }
-
     interface Responder {
+        /**
+         * Return false to prevent further processing.
+         */
         boolean respond(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     }
 
