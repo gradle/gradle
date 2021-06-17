@@ -33,8 +33,21 @@ import java.util.Map;
 import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 /**
- * 
- * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ * Contains utility methods to configure Groovy objects.
+ * <p>
+ * Plugins should avoid using this class, as the implementation will be bound to the Groovy. Instead, the object configuration should be  modeled with {@link Action}s, which is language-agnostic.
+ * Here's an example pseudocode:
+ * <pre>
+ *     class MyExtension {
+ *         public void configureProperties(Action<? extends MyPropertyContainer> action) {
+ *              action.execute(this.myPropertyContainer);
+ *         }
+ *     }
+ * </pre>
+ * <p>
+ * If an object is created via {@link org.gradle.api.model.ObjectFactory} then Gradle will generate a closure-taking method at runtime for each method with an {@link Action} as a single argument.
+ * <p>
+ * To apply a configuration (represented by a Groovy closure) on an object, one can also use {@link org.gradle.api.Project#configure(Object, Closure)}.
  */
 public class ConfigureUtil {
 
