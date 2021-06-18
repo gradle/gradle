@@ -35,23 +35,23 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 /**
  * Contains utility methods to configure objects with Groovy Closures.
  * <p>
- * Plugins should avoid using this class and methods that use {@link groovy.lang.Closure} as this makes the plugin harder to use in other languages. Instead, plugins should create methods that use {@link Action}. 
+ * Plugins should avoid using this class and methods that use {@link groovy.lang.Closure} as this makes the plugin harder to use in other languages. Instead, plugins should create methods that use {@link Action}.
  * Here's an example pseudocode:
  * <pre class='autoTested'>
  *     interface MyOptions {
  *         RegularFileProperty getOptionsFile()
  *     }
  *     abstract class MyExtension {
- *         private final MyOptions options;
+ *         private final MyOptions options
  *
- *         @Inject public abstract ObjectFactory getObjectFactory();
+ *         @Inject abstract ObjectFactory getObjectFactory()
  *
  *         public MyExtension() {
- *             this.options = getObjectFactory().newInstance(MyOptions.class);
+ *             this.options = getObjectFactory().newInstance(MyOptions)
  *         }
  *
  *         public void options(Action<? extends MyOptions> action) {
- *              action.execute(options);
+ *              action.execute(options)
  *         }
  *     }
  *     extensions.create("myExtension", MyExtension)
