@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation project(':application')
+    jacocoAggregation project(':application')
 }

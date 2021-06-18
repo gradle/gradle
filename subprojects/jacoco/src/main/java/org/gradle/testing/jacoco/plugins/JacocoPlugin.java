@@ -16,32 +16,42 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.testing.jacoco.tasks.AggregatedJacocoReport;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -61,6 +71,9 @@ public class JacocoPlugin implements Plugin<Project> {
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
+
+    static final String DESTINATION_MUST_BE_NOT_NULL_MESSAGE = "JaCoCo destination file must not be null if output type is FILE";
+
     private final Instantiator instantiator;
     private Project project;
 
@@ -93,16 +106,67 @@ public class JacocoPlugin implements Plugin<Project> {
      * Creates the configurations used by plugin.
      */
     private void addJacocoConfigurations() {
-        Configuration agentConf = project.getConfigurations().create(AGENT_CONFIGURATION_NAME);
+        ConfigurationContainer configurations = project.getConfigurations();
+
+        Configuration agentConf = configurations.create(AGENT_CONFIGURATION_NAME);
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
         deprecateForConsumption(agentConf);
-        Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
+        Configuration antConf = configurations.create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
         deprecateForConsumption(antConf);
+
+        Configuration aggregatedJacocoReport = configurations.create(AggregatedJacocoReport.AGGREGATION_CONFIGURATION_NAME, c -> {
+            c.setVisible(false);
+            c.setCanBeResolved(false);
+            c.setCanBeConsumed(false);
+        });
+
+        project.getPluginManager().withPlugin("java", plugin -> {
+            Configuration implementation = configurations.getByName("implementation"); // Should implementation configuration name be derived from source set?
+            aggregatedJacocoReport.extendsFrom(implementation);
+
+            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            // TODO: this probably belongs in java plugin
+            Configuration transitiveSourcesElements = createVariant("transitiveSourcesElements",
+                AggregatedJacocoReport.sourceDirectoriesAttributes(project));
+            transitiveSourcesElements.extendsFrom(implementation);
+            // TODO: what about other "production" source sets that the users might add?
+            javaPluginExtension.getSourceSets().getByName("main").getJava().getSrcDirs()
+                .forEach(f -> transitiveSourcesElements.getOutgoing().artifact(f));
+
+            Set<String> testTasks = new HashSet<>();
+            // TODO: test task is known for java ecosystem. Can we figure what other Test tasks are there in order to wire coverage variants for them?
+            testTasks.add("test");
+            for (String testTaskName : testTasks) {
+                Configuration coverageElements = createVariant(testTaskName + "CoverageElements",
+                    AggregatedJacocoReport.coverageDataAttributes(project));
+                coverageElements.getAttributes().attribute(Attribute.of("testTask", String.class), testTaskName);
+                coverageElements.extendsFrom(implementation);
+                TaskContainer tasks = project.getTasks();
+                coverageElements.getOutgoing().artifact(
+                    tasks.named(testTaskName).map(task -> {
+                        File destinationFile = task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile();
+                        if (destinationFile == null) {
+                            throw new GradleException(DESTINATION_MUST_BE_NOT_NULL_MESSAGE);
+                        }
+                        return destinationFile;
+                    }));
+            }
+        });
+
+    }
+
+    private Configuration createVariant(String name, Action<? super AttributeContainer> attributesSpec) {
+        return project.getConfigurations().create(name, c -> {
+            c.setVisible(false);
+            c.setCanBeResolved(false);
+            c.setCanBeConsumed(true);
+            c.attributes(attributesSpec);
+        });
     }
 
     private static void deprecateForConsumption(Configuration configuration) {

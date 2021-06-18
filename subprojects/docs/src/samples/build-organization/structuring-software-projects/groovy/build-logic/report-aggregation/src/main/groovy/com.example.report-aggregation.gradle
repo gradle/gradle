@@ -3,59 +3,8 @@ plugins {
     id('jacoco')
 }
 
-// Configurations to declare dependencies
-def aggregate = configurations.create('aggregate') {
-    visible = false
-    canBeResolved = false
-    canBeConsumed = false
-}
-
-// Resolvable configuration to resolve the classes of all dependencies
-def classPath = configurations.create('classPath') {
-    visible = false
-    canBeResolved = true
-    canBeConsumed = false
-    extendsFrom(aggregate)
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
-    }
-}
-
-// A resolvable configuration to collect source code
-def sourcesPath = configurations.create('sourcesPath') {
-    visible = false
-    canBeResolved = true
-    canBeConsumed = false
-    extendsFrom(aggregate)
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'source-folders'))
-    }
-}
-
-// A resolvable configuration to collect JaCoCo coverage data
-def coverageDataPath = configurations.create('coverageDataPath') {
-    visible = false
-    canBeResolved = true
-    canBeConsumed = false
-    extendsFrom(aggregate)
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'jacoco-coverage-data'))
-    }
-}
-
 // Register a code coverage report task to generate the aggregated report
-def codeCoverageReport = tasks.register('codeCoverageReport', JacocoReport) {
-    additionalClassDirs(classPath.filter { it.isDirectory() })
-    additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
-    executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
-
+def codeCoverageReport = tasks.register('codeCoverageReport', AggregatedJacocoReport) {
     reports {
         html.required = true
         xml.required = true

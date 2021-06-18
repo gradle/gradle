@@ -24,9 +24,9 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
     private static final AGGREGATION_TASK_NAME = "jacocoAggregatedTestReport"
 
     def setup() {
-        writeClassWithTest("lib1", "Lib1")
-        writeClassWithTest("lib2", "Lib2")
-        writeClassWithTest("app", "App")
+        writeClass("lib1", "Lib1")
+        writeClass("lib2", "Lib2")
+        writeClass("app", "App")
         settingsFile << """
             include("lib1", "lib2", "app")
             dependencyResolutionManagement {
@@ -39,7 +39,6 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 id("jacoco")
             }
             ${configureJUnitPlatform()}
-            ${registerOutgoingCoverageVariants()}
         """
         file("lib2/build.gradle") << """
             plugins {
@@ -47,7 +46,6 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 id("jacoco")
             }
             ${configureJUnitPlatform()}
-            ${registerOutgoingCoverageVariants()}
         """
         file("app/build.gradle") << """
             plugins {
@@ -55,7 +53,6 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 id("jacoco")
             }
             ${configureJUnitPlatform()}
-            ${registerOutgoingCoverageVariants()}
         """
     }
 
@@ -66,7 +63,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 implementation(project(":lib1"))
                 implementation(project(":lib2"))
             }
-            ${configureAggregation()}
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
         """
 
         when:
@@ -76,6 +73,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == 62
     }
 
     def "aggregates unit test results for the app and its library dependencies transitively"() {
@@ -89,7 +87,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation(project(":lib1"))
             }
-            ${configureAggregation()}
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
         """
 
         when:
@@ -99,6 +97,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == 62
     }
 
     def "excludes external dependency classes from aggregated unit test results"() {
@@ -114,7 +113,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 implementation(project(":lib2"))
                 implementation("junit:junit:4.13")
             }
-            ${configureAggregation()}
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
         """
 
         when:
@@ -124,6 +123,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == 62
     }
 
     def "aggregates test results using a dedicated aggregation subproject"() {
@@ -141,10 +141,10 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("jacoco")
             }
-            ${configureAggregation()}
             dependencies {
                 jacocoAggregation(project(":app"))
             }
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
         """
 
         when:
@@ -154,6 +154,107 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == 62
+    }
+
+    def "handles no source directories when dedicated aggregation project applies java-base plugin"() {
+        given:
+        settingsFile << """
+            include("aggregation")
+        """
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+        """
+        file("aggregation/build.gradle") << """
+            plugins {
+                id("jacoco")
+                id("java-base")
+            }
+            dependencies {
+                jacocoAggregation(project(":app"))
+            }
+            def aggregationTask = tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
+            tasks.named("check") {
+                dependsOn(aggregationTask)
+            }
+        """
+
+        when:
+        succeeds("check")
+
+        then:
+        executed(":aggregation:${AGGREGATION_TASK_NAME}")
+        def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
+        aggregatedReport.exists()
+        aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == 62
+    }
+
+    def "produces aggregated report given some project does not produce coverage data"() {
+        given:
+        settingsFile << """
+            include("lib3")
+        """
+        file("lib3/build.gradle") << """
+            plugins {
+                id("jacoco")
+                id("java")
+            }
+        """
+        writeClass("lib3", "Lib3", false)
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+                implementation(project(":lib3"))
+            }
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
+        """
+
+        when:
+        succeeds(AGGREGATION_TASK_NAME)
+
+        then:
+        def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
+        aggregatedReport.exists()
+        aggregatedReport.numberOfClasses() == 4
+        aggregatedReport.totalCoverage() == 46
+    }
+
+    def "produces aggregated report given dedicated aggregation project is a Java project and does not produce coverage data"() {
+        given:
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+        """
+        settingsFile << """
+            include("aggregation")
+        """
+        file("aggregation/build.gradle") << """
+            plugins {
+                id("jacoco")
+                id("java")
+            }
+            dependencies {
+                implementation(project(":app"))
+            }
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
+        """
+        writeClass("aggregation", "Aggregation", false)
+
+        when:
+        succeeds(AGGREGATION_TASK_NAME)
+
+        then:
+        def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
+        aggregatedReport.exists()
+        aggregatedReport.numberOfClasses() == 4
+        aggregatedReport.totalCoverage() == 46
     }
 
     def "assemble does not execute tests"() {
@@ -163,7 +264,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 implementation(project(":lib1"))
                 implementation(project(":lib2"))
             }
-            ${configureAggregation()}
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport)
         """
 
         when:
@@ -177,106 +278,6 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         return new JacocoReportFixture(file(project + "/build/reports/jacoco/${reportName}/html"))
     }
 
-    private static String configureAggregation() {
-        return """
-            def implementation = configurations.findByName("implementation")
-            def jacocoAggregationConfiguration = configurations.create("jacocoAggregation") {
-                visible = false
-                canBeResolved = false
-                canBeConsumed = false
-                if (implementation != null) {
-                    extendsFrom(implementation)
-                }
-            }
-            def sourcesPath = configurations.create("sourcesPath") {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                extendsFrom(jacocoAggregationConfiguration)
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "source-directories"))
-                }
-            }
-            def coverageDataPath = configurations.create("coverageDataPath") {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                extendsFrom(jacocoAggregationConfiguration)
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "jacoco-coverage-data"))
-                }
-            }
-            def coverageClassesDirs = configurations.create("coverageClassesDirs") {
-                visible = false
-                canBeResolved = true
-                canBeConsumed = false
-                extendsFrom(jacocoAggregationConfiguration)
-                attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY));
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME));
-                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR));
-                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL));
-                    attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.STANDARD_JVM));
-                }
-            }
-
-            tasks.register("${AGGREGATION_TASK_NAME}", JacocoReport) {
-                if (project.extensions.findByType(JavaPluginExtension) != null) {
-                    sourceSets(sourceSets.main)
-                }
-                additionalClassDirs(coverageClassesDirs.filter { it.path.contains("/build/libs/") })
-                additionalSourceDirs(sourcesPath.incoming.artifactView { lenient(true) }.files)
-                executionData(coverageDataPath.incoming.artifactView { lenient(true) }.files.filter { it.exists() })
-                if (tasks.findByName("test") != null) {
-                    executionData(tasks.named("test").map { task ->
-                        task.extensions.getByType(JacocoTaskExtension).destinationFile
-                    })
-                }
-                reports {
-                    xml.required = true
-                    html.required = true
-                }
-            }
-        """
-    }
-
-    private static String registerOutgoingCoverageVariants() {
-        return """
-            configurations.create("transitiveSourcesElements") {
-                visible = false
-                canBeResolved = false
-                canBeConsumed = true
-                extendsFrom(configurations.implementation)
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "source-directories"))
-                }
-                sourceSets.main.java.srcDirs.forEach {
-                    outgoing.artifact(it)
-                }
-            }
-            configurations.create("coverageDataElements") {
-                visible = false
-                canBeResolved = false
-                canBeConsumed = true
-                extendsFrom(configurations.implementation)
-                attributes {
-                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "jacoco-coverage-data"))
-                }
-                outgoing.artifact(tasks.named("test").map { task ->
-                    task.extensions.getByType(JacocoTaskExtension).destinationFile
-                })
-            }
-        """
-    }
-
     private static String configureJUnitPlatform() {
         return """
             dependencies {
@@ -288,7 +289,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private void writeClassWithTest(String subproject, String className) {
+    private void writeClass(String subproject, String className, boolean withTest = true) {
         file("${subproject}/src/main/java/com/example/${className}.java") << """
             package com.example;
             public class ${className} {
@@ -300,16 +301,18 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("${subproject}/src/test/java/com/example/${className}Test.java") << """
-            package com.example;
-            import org.junit.jupiter.api.Test;
-            class ${className}Test {
-                @Test
-                void returns${className}() {
-                    new ${className}().get${className}();
+        if (withTest) {
+            file("${subproject}/src/test/java/com/example/${className}Test.java") << """
+                package com.example;
+                import org.junit.jupiter.api.Test;
+                class ${className}Test {
+                    @Test
+                    void returns${className}() {
+                        new ${className}().get${className}();
+                    }
                 }
-            }
-        """
+            """
+        }
     }
 }
 
