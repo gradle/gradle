@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;

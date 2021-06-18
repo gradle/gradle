@@ -49,8 +49,8 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
 
         try {
             gradle.addBuildListener(listener);
-            buildController.fromBuildModel(action.isRunTasks(), listener);
-            return Result.of(action.getResult());
+            Object result = buildController.fromBuildModel(action.isRunTasks(), listener);
+            return Result.of(result);
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
             if (listener.actionFailure != null) {
@@ -81,11 +81,9 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         @Nullable
         Object getBuildFinishedAction();
 
-        void collectActionResult(Object result, PhasedActionResult.Phase phase);
+        Object collectActionResult(Object result, PhasedActionResult.Phase phase);
 
         boolean isRunTasks();
-
-        Object getResult();
     }
 
     private class ActionRunningListener extends InternalBuildAdapter implements Function<GradleInternal, Object> {
@@ -105,14 +103,13 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
 
         @Override
         public Object apply(GradleInternal gradle) {
-            runAction(gradle, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
-            return null;
+            return runAction(gradle, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
         }
 
         @SuppressWarnings("deprecation")
-        private void runAction(GradleInternal gradle, @Nullable Object action, PhasedActionResult.Phase phase) {
+        private Object runAction(GradleInternal gradle, @Nullable Object action, PhasedActionResult.Phase phase) {
             if (action == null || actionFailure != null) {
-                return;
+                return null;
             }
             DefaultBuildController internalBuildController = buildControllerFactory.controllerFor(gradle);
             try {
@@ -122,7 +119,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
                 } else {
                     result = ((org.gradle.tooling.internal.protocol.InternalBuildAction) action).execute(internalBuildController);
                 }
-                clientAction.collectActionResult(result, phase);
+                return clientAction.collectActionResult(result, phase);
             } catch (RuntimeException e) {
                 actionFailure = e;
                 throw e;

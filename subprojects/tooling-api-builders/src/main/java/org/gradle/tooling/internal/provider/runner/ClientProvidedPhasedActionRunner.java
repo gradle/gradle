@@ -71,20 +71,16 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         }
 
         @Override
-        public void collectActionResult(Object result, PhasedActionResult.Phase phase) {
+        public Object collectActionResult(Object result, PhasedActionResult.Phase phase) {
             SerializedPayload serializedResult = payloadSerializer.serialize(result);
             PhasedBuildActionResult res = new PhasedBuildActionResult(serializedResult, phase);
             buildEventConsumer.dispatch(res);
+            return null;
         }
 
         @Override
         public boolean isRunTasks() {
             return action.isRunTasks();
-        }
-
-        @Override
-        public Object getResult() {
-            return null;
         }
     }
 }

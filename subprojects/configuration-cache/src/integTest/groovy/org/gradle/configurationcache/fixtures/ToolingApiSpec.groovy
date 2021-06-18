@@ -136,14 +136,17 @@ trait ToolingApiSpec {
         throw new IllegalStateException("Expected build to fail but it did not.")
     }
 
-    SomeToolingModel runBuildAction(BuildAction<SomeToolingModel> buildAction) {
+    def <T> T runBuildAction(BuildAction<T> buildAction) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
+        def args = executer.allArgs
+        args.remove("--no-daemon")
 
         def model = null
         toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
             model = connection.action(buildAction)
                 .addJvmArguments(executer.jvmArgs)
+                .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
@@ -155,6 +158,8 @@ trait ToolingApiSpec {
     Pair<SomeToolingModel, SomeToolingModel> runPhasedBuildAction(BuildAction<SomeToolingModel> projectsLoadedAction, BuildAction<SomeToolingModel> modelAction) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
+        def args = executer.allArgs
+        args.remove("--no-daemon")
 
         def projectsLoadedModel = null
         def buildModel = null
@@ -168,6 +173,7 @@ trait ToolingApiSpec {
                 })
                 .build()
                 .addJvmArguments(executer.jvmArgs)
+                .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
@@ -179,11 +185,14 @@ trait ToolingApiSpec {
     def runTestClasses(String... testClasses) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
+        def args = executer.allArgs
+        args.remove("--no-daemon")
 
         toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
             connection.newTestLauncher()
                 .withJvmTestClasses(testClasses)
                 .addJvmArguments(executer.jvmArgs)
+                .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()

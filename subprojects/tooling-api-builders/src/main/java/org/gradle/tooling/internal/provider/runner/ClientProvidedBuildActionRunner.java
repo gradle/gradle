@@ -42,17 +42,18 @@ public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuild
 
         Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
-        return runClientAction(new ClientActionImpl(clientAction, action), buildController);
+        return runClientAction(new ClientActionImpl(clientAction, action, payloadSerializer), buildController);
     }
 
     private static class ClientActionImpl implements ClientAction {
         private final Object clientAction;
         private final BuildAction action;
-        Object result;
+        private final PayloadSerializer payloadSerializer;
 
-        public ClientActionImpl(Object clientAction, BuildAction action) {
+        public ClientActionImpl(Object clientAction, BuildAction action, PayloadSerializer payloadSerializer) {
             this.clientAction = clientAction;
             this.action = action;
+            this.payloadSerializer = payloadSerializer;
         }
 
         @Override
@@ -66,18 +67,13 @@ public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuild
         }
 
         @Override
-        public void collectActionResult(Object result, PhasedActionResult.Phase phase) {
-            this.result = result;
+        public Object collectActionResult(Object result, PhasedActionResult.Phase phase) {
+            return payloadSerializer.serialize(result);
         }
 
         @Override
         public boolean isRunTasks() {
             return action.isRunTasks();
-        }
-
-        @Override
-        public Object getResult() {
-            return result;
         }
     }
 }
