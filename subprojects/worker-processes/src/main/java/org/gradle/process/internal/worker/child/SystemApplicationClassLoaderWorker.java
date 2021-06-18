@@ -99,7 +99,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
-        NativeServices.initialize(gradleUserHomeDir, false);
+        NativeServices.initializeOnWorker(gradleUserHomeDir);
         DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
         basicWorkerServices.addProvider(new MessagingServices());

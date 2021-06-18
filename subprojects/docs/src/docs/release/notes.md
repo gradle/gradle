@@ -5,6 +5,8 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community members for their contributions to this release of Gradle:
  [Peter Runge](https://github.com/causalnet)
  [Konstantin Gribov](https://github.com/grossws)
+ [Zoroark](https://github.com/utybo)
+ [KotlinIsland](https://github.com/KotlinIsland)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -31,6 +33,16 @@ In previous Gradle releases, it wasn't possible to declare a [version catalog](u
 For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
 This limitation is now lifted.
 
+-->
+<a name="new-features-and-usability-improvements"></a>
+## New features and usability improvements
+
+### Improved credentials handling for HTTP Header-based authentication
+
+It is now possible to provide credentials for HTTP header-based authentication [via properties](userguide/declaring_repositories.html#sec:handling_credentials) without additional configuration in the
+build script.
+
+<!--
 ================== TEMPLATE ==============================
 
 <a name="FILL-IN-KEY-AREA"></a>
