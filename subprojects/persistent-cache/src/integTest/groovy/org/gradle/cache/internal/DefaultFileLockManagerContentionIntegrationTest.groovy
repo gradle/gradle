@@ -50,14 +50,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         buildFile << """
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
-            
+
             abstract class FileLocker extends DefaultTask {
                 @Inject
                 abstract FileLockManager getFileLockManager()
-                
+
                 @Inject
                 abstract ProjectLayout getProjectLayout()
-                
+
                 @TaskAction
                 void lockIt() {
                     def lock
@@ -68,7 +68,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     }
                 }
             }
-            
+
             tasks.register("lock", FileLocker)
         """
     }
@@ -275,7 +275,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
                 public static ZincCompilerServices getInstance(File gradleUserHome) {
                     if (instance == null) {
-                        NativeServices.initialize(gradleUserHome);
+                        NativeServices.initializeOnWorker(gradleUserHome);
                         instance = new ZincCompilerServices(gradleUserHome);
                     }
                     return instance;

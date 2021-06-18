@@ -57,7 +57,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     @Override
     public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         if (watchMode == WatchMode.ENABLED) {
-            LOGGER.warn("Watching the file system is not supported on this operating system.");
+            LOGGER.warn("Watching the file system is not supported.");
         }
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
