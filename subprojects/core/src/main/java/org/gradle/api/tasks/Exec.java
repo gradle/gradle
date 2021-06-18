@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.work.DisableCachingByDefault;
+
 /**
  * Executes a command line process. Example:
  * <pre class='autoTested'>
@@ -37,6 +39,7 @@ package org.gradle.api.tasks;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Has no cacheable output")
 public class Exec extends AbstractExecTask<Exec> {
     public Exec() {
         super(Exec.class);

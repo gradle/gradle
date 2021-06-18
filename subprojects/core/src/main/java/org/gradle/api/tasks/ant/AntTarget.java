@@ -19,12 +19,14 @@ import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
 /**
  * A task which executes an Ant target.
  */
+@DisableCachingByDefault(because = "It is completely unknown what the underlying Ant task will be doing")
 public class AntTarget extends ConventionTask {
 
     private Target target;

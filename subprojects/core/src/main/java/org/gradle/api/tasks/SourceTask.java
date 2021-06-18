@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -34,6 +35,7 @@ import java.util.Set;
  * A {@code SourceTask} performs some operation on source files.
  */
 @NonNullApi
+@DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 public class SourceTask extends ConventionTask implements PatternFilterable {
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
