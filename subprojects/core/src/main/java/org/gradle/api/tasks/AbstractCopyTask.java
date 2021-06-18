@@ -42,6 +42,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -57,6 +58,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
 @NonNullApi
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
     private final CopySpecInternal rootSpec;

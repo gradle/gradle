@@ -50,6 +50,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -61,6 +62,7 @@ import java.util.Map;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;

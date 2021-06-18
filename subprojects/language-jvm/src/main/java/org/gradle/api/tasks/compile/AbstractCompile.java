@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -34,6 +35,7 @@ import java.util.concurrent.Callable;
 /**
  * The base class for all JVM-based language compilation tasks.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
