@@ -33,16 +33,21 @@ import java.net.URL;
  * A successful {@literal GET} request must return a response with status {@literal 200} (cache hit) or {@literal 404} (cache miss),
  * with cache hit responses including the cache entry as the response body.
  * A successful {@literal PUT} request must return any 2xx response.
- * Both {@literal GET} and {@literal PUT} requests may be retried on network errors that are likely to be temporary.
+ * <p>
+ * {@literal PUT} requests may also return a {@literal 413 Payload Too Large} response to indicate that the payload is larger than can be accepted.
+ * This is useful when {@link #isUseExpectContinue()} is enabled.
  * <p>
  * Redirecting responses may be issued with {@literal 301}, {@literal 302}, {@literal 303}, {@literal 307} or {@literal 308} responses.
  * Redirecting responses to {@literal PUT} requests must use {@literal 307} or {@literal 308} to have the {@literal PUT} replayed.
  * Otherwise, the redirect will be followed with a {@literal GET} request.
  * <p>
- * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
- * <p>
  * Any other type of response will be treated as an error, causing the remote cache to be disabled for the remainder of the build.
  * <p>
+ * When credentials are configured (see {@link #getCredentials()}), they are sent using HTTP Basic Auth.
+ * <p>
+ * Requests that fail during request transmission, after having established a TCP connection, will automatically be retried.
+ * This includes dropped connections, read or write timeouts, and low level network failures such as a connection resets.
+ * Requests will be retried 3 times, before giving up and disabling use of the cache for the remainder of the build.
  *
  * @since 3.5
  */
@@ -176,7 +181,7 @@ public class HttpBuildCache extends AbstractBuildCache {
      * This value defaults to {@code false}.
      *
      * When enabled, whether or not a store request would succeed is checked with the server before attempting.
-     * This is particularly useful when potentially dealing with large artifacts that may be rejected by the server,
+     * This is particularly useful when potentially dealing with large artifacts that may be rejected by the server with a {@literal 413 Payload Too Large} response,
      * as it avoids the overhead of transmitting the large file just to have it rejected.
      * This fail-fast behavior comes at the expense of extra marginal overhead for successful requests,
      * due to the extra network communication required by the initial check.
