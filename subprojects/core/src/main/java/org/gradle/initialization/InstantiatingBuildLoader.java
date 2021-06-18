@@ -31,7 +31,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void attachDefaultProject(GradleInternal gradle, DefaultProjectDescriptor defaultProjectDescriptor) {
-        ProjectState defaultProject = gradle.getOwner().getProject(defaultProjectDescriptor.path());
+        ProjectState defaultProject = gradle.getOwner().getProjects().getProject(defaultProjectDescriptor.path());
         gradle.setDefaultProject(defaultProject.getMutableModel());
     }
 
@@ -39,7 +39,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
         ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]");
 
-        ProjectState projectState = gradle.getOwner().getProject(rootProjectDescriptor.path());
+        ProjectState projectState = gradle.getOwner().getProjects().getProject(rootProjectDescriptor.path());
         projectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope);
         ProjectInternal rootProject = projectState.getMutableModel();
         gradle.setRootProject(rootProject);
@@ -50,7 +50,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
     private void createChildProjectsRecursively(BuildState owner, DefaultProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
         for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.children()) {
             ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
-            ProjectState projectState = owner.getProject(childProjectDescriptor.path());
+            ProjectState projectState = owner.getProjects().getProject(childProjectDescriptor.path());
             projectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope);
             createChildProjectsRecursively(owner, childProjectDescriptor, childProjectClassLoaderScope, baseProjectClassLoaderScope);
         }

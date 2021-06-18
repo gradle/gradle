@@ -42,7 +42,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDownloadEnabled()
             .runWithFailure()
-        result = failure
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
@@ -75,7 +74,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
             .runWithFailure()
-        result = failure
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
@@ -107,7 +105,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDownloadEnabled()
             .runWithFailure()
-        result = failure
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")

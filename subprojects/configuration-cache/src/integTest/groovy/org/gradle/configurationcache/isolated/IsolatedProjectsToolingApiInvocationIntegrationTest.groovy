@@ -16,23 +16,16 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
-import org.gradle.configurationcache.fixtures.ToolingApiSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.tooling.model.gradle.GradleBuild
 
-class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
-    @Override
-    GradleExecuter createExecuter() {
-        return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
-    }
-
+class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
         """
     }
 
-    def "caches tooling model"() {
+    def "caches custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
@@ -62,9 +55,25 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("creating model for root project 'root'")
         outputContains("Configuration cache entry reused.")
+
+        when:
+        buildFile << """
+            // some change
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        def model3 = fetchModel()
+
+        then:
+        model3.message == "It works!"
+
+        and:
+        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
+        outputContains("creating model for root project 'root'")
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
     }
 
-    def "can ignore problems and cache model"() {
+    def "can ignore problems and cache custom model"() {
         given:
         settingsFile << """
             include('a')
@@ -100,139 +109,41 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         outputContains("Configuration cache entry reused.")
     }
 
-    def "reports cross project access from build script when fetching tooling model"() {
+    def "caches GradleBuild model"() {
         given:
         settingsFile << """
-            include('a')
-            include('b')
-        """
-        withSomeToolingModelBuilderPluginInBuildSrc()
-        buildFile << """
-            allprojects {
-                plugins.apply('java-library')
-            }
-            plugins.apply(my.MyPlugin)
+            include("a")
+            include("b")
         """
 
         when:
         executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
+        def model = fetchModel(GradleBuild)
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
-        }
-        outputContains("Configuration cache entry discarded with 2 problems.")
+        model.rootProject.name == "root"
+        model.projects.size() == 3
+        model.projects[0].name == "root"
+        model.projects[1].name == "a"
+        model.projects[2].name == "b"
+
+        and:
+        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
+        def model2 = fetchModel(GradleBuild)
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
-        }
-        outputContains("Configuration cache entry discarded with 2 problems.")
-    }
+        model2.rootProject.name == "root"
+        model2.projects.size() == 3
+        model2.projects[0].name == "root"
+        model2.projects[1].name == "a"
+        model2.projects[2].name == "b"
 
-    def "reports cross project access from model builder while fetching tooling model"() {
-        given:
-        settingsFile << """
-            include('a')
-            include('b')
-        """
-        withSomeToolingModelBuilderPluginInBuildSrc("""
-            project.subprojects.each { it.extensions }
-        """)
-        buildFile << """
-            plugins.apply(my.MyPlugin)
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
-        }
-        outputContains("Configuration cache entry discarded with 2 problems.")
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
-        }
-        outputContains("Configuration cache entry discarded with 2 problems.")
-    }
-
-    def "reports configuration cache problems in build script when fetching tooling model"() {
-        given:
-        withSomeToolingModelBuilderPluginInBuildSrc()
-        buildFile << """
-            plugins.apply(my.MyPlugin)
-            gradle.buildFinished {
-                println("build finished")
-            }
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-        }
-        outputContains("Configuration cache entry discarded with 1 problem.")
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-        }
-        outputContains("Configuration cache entry discarded with 1 problem.")
-    }
-
-    def "reports configuration cache problems in model builder while fetching tooling model"() {
-        given:
-        withSomeToolingModelBuilderPluginInBuildSrc("""
-            project.gradle.buildFinished {
-                println("build finished")
-            }
-        """)
-        buildFile << """
-            plugins.apply(my.MyPlugin)
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
-        }
-        outputContains("Configuration cache entry discarded with 1 problem.")
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        fetchModelFails()
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
-        }
-        outputContains("Configuration cache entry discarded with 1 problem.")
+        and:
+        outputContains("Reusing configuration cache.")
+        outputContains("Configuration cache entry reused.")
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Pair;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
@@ -36,8 +36,10 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,8 +50,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final WorkerLeaseService workerLeaseService;
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
-    private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
-    private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
+    private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newHashMap();
+    private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = Maps.newHashMap();
     private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
@@ -60,20 +62,34 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     public void registerProjects(BuildState owner) {
         Set<DefaultProjectDescriptor> allProjects = owner.getLoadedSettings().getProjectRegistry().getAllProjects();
         synchronized (lock) {
+            DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
+            if (!buildProjectRegistry.projectsByPath.isEmpty()) {
+                throw new IllegalStateException("Projects for build " + owner.getBuildIdentifier() + " have already been registered.");
+            }
             for (DefaultProjectDescriptor descriptor : allProjects) {
-                addProject(owner, descriptor);
+                addProject(owner, buildProjectRegistry, descriptor);
             }
         }
+    }
+
+    private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
+        DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentifier());
+        if (buildProjectRegistry == null) {
+            buildProjectRegistry = new DefaultBuildProjectRegistry(owner.getBuildIdentifier());
+            projectsByBuild.put(owner.getBuildIdentifier(), buildProjectRegistry);
+        }
+        return buildProjectRegistry;
     }
 
     @Override
     public ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
         synchronized (lock) {
-            return addProject(owner, projectDescriptor);
+            DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
+            return addProject(owner, buildProjectRegistry, projectDescriptor);
         }
     }
 
-    private ProjectState addProject(BuildState owner, DefaultProjectDescriptor descriptor) {
+    private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
         Path projectPath = descriptor.path();
         Path identityPath = owner.getIdentityPathForProject(projectPath);
         ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(projectPath);
@@ -81,7 +97,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), projectIdentifier, descriptor, projectFactory);
         projectsByPath.put(identityPath, projectState);
         projectsById.put(projectIdentifier, projectState);
-        projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), projectPath), projectState);
+        projectRegistry.add(projectPath, projectState);
         return projectState;
     }
 
@@ -116,13 +132,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath) {
+    public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
         synchronized (lock) {
-            ProjectStateImpl projectState = projectsByCompId.get(Pair.of(buildIdentifier, projectPath));
-            if (projectState == null) {
-                throw new IllegalArgumentException(buildIdentifier + " project " + projectPath + " not found.");
+            BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
+            if (registry == null) {
+                throw new IllegalArgumentException("Projects for " + buildIdentifier + " have not been registered yet.");
             }
-            return projectState;
+            return registry;
         }
     }
 
@@ -165,6 +181,35 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
+    }
+
+    private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
+        private final BuildIdentifier buildIdentifier;
+        private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
+
+        public DefaultBuildProjectRegistry(BuildIdentifier buildIdentifier) {
+            this.buildIdentifier = buildIdentifier;
+        }
+
+        public void add(Path projectPath, ProjectStateImpl projectState) {
+            projectsByPath.put(projectPath, projectState);
+        }
+
+        @Override
+        public ProjectState getProject(Path projectPath) {
+            ProjectStateImpl projectState = projectsByPath.get(projectPath);
+            if (projectState == null) {
+                throw new IllegalArgumentException("Project " + projectPath + " not found in build " + buildIdentifier);
+            }
+            return projectState;
+        }
+
+        @Override
+        public Set<? extends ProjectState> getAllProjects() {
+            TreeSet<ProjectState> projects = new TreeSet<>(Comparator.comparing(ProjectState::getMutableModel));
+            projects.addAll(projectsByPath.values());
+            return projects;
+        }
     }
 
     private class ProjectStateImpl implements ProjectState {

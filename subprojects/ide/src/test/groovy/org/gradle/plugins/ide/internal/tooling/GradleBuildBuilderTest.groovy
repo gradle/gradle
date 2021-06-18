@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
@@ -82,6 +83,10 @@ class GradleBuildBuilderTest extends Specification {
         def build1 = Mock(GradleInternal)
         def build2 = Mock(GradleInternal)
 
+        def rootProjects = Mock(BuildProjectRegistry)
+        def projects1 = Mock(BuildProjectRegistry)
+        def projects2 = Mock(BuildProjectRegistry)
+
         def rootBuildState = Mock(BuildState)
         def includedBuildState1 = Mock(IncludedBuildState)
         def includedBuildState2 = Mock(IncludedBuildState)
@@ -107,12 +112,18 @@ class GradleBuildBuilderTest extends Specification {
         rootBuild.includedBuilds() >> [includedBuild1]
 
         rootBuildState.mutableModel >> rootBuild
+        rootBuildState.projects >> rootProjects
 
         includedBuild1.target >> includedBuildState1
         includedBuild2.target >> includedBuildState2
 
+        includedBuildState1.projects >> projects1
         includedBuildState1.configuredBuild >> build1
         includedBuildState1.importableBuild >> true
+
+        rootProjects.allProjects >> [].toSet()
+        projects1.allProjects >> [].toSet()
+        projects2.allProjects >> [].toSet()
 
         build1.owner >> includedBuildState1
         build1.includedBuilds() >> [includedBuild2]
@@ -121,6 +132,7 @@ class GradleBuildBuilderTest extends Specification {
 
         includedBuildState1.mutableModel >> build1
 
+        includedBuildState2.projects >> projects2
         includedBuildState2.configuredBuild >> build2
         includedBuildState2.importableBuild >> true
 

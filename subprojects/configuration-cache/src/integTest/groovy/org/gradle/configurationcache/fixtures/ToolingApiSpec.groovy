@@ -95,7 +95,7 @@ trait ToolingApiSpec {
         """.stripIndent()
     }
 
-    SomeToolingModel fetchModel() {
+    def <T> T fetchModel(Class<T> type = SomeToolingModel.class) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
         def args = executer.allArgs
@@ -103,7 +103,7 @@ trait ToolingApiSpec {
 
         def model = null
         toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
-            model = connection.model(SomeToolingModel)
+            model = connection.model(type)
                 .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
@@ -129,7 +129,7 @@ trait ToolingApiSpec {
                     .setStandardError(new TeeOutputStream(error, System.err))
                     .get()
             }
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             failure = OutputScrapingExecutionFailure.from(output.toString(), error.toString())
             return
         }

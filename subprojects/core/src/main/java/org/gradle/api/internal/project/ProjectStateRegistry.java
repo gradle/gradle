@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -30,7 +31,7 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
- * A registry of all of the projects present in a build tree.
+ * A registry of all projects present in a build tree.
  */
 @ThreadSafe
 @ServiceScope(Scopes.BuildTree.class)
@@ -51,9 +52,9 @@ public interface ProjectStateRegistry {
     ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException;
 
     /**
-     * Locates the state object for the given project.
+     * Locates the state objects for all projects of the given build.
      */
-    ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath) throws IllegalArgumentException;
+    BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Registers the projects of a build.
