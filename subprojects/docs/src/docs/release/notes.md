@@ -6,6 +6,7 @@ We would like to thank the following community members for their contributions t
  [Peter Runge](https://github.com/causalnet)
  [Konstantin Gribov](https://github.com/grossws)
  [Zoroark](https://github.com/utybo)
+ [KotlinIsland](https://github.com/KotlinIsland)
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
