@@ -84,19 +84,7 @@ The classes that were unintentionally exposed are either deprecated or removed, 
 - `SingleMessageLogger`
 - `ConfigureUtil`
 
-`ConfigureUtil` is used in plugins for applying configuration defined in a Groovy closure to DSL objects. This implementation should be avoided it will be bound to the Groovy. Instead, the object
-configuration should be  modeled with link:{javadocPath}/org/gradle/api/Action.html[Actions], which is language-agnostic.
-
-```java
-class MyExtension {
-    public void configureProperties(Action<? extends MyPropertyContainer> action) {
-        action.execute(this.myPropertyContainer);
-    }
-}
-```
-
-If the DSL object is created via link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] then Gradle will generate a closure-taking method at runtime for each method with an `Action`
- as a single argument.
+`ConfigureUtil` is being removed without a replacement. Plugins can avoid the need for using `ConfigureUtil` by following link:{javadocPath}/org/gradle/util/ConfigureUtil.html[our example].
 
 ===== The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
