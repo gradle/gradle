@@ -33,7 +33,7 @@ import java.util.Map;
 import static org.gradle.util.internal.CollectionUtils.toStringList;
 
 /**
- * Contains utility methods to configure Groovy objects.
+ * Contains utility methods to configure objects with Groovy Closures.
  * <p>
  * Plugins should avoid using this class, as the implementation will be bound to the Groovy. Instead, the object configuration should be  modeled with {@link Action}s, which is language-agnostic.
  * Here's an example pseudocode:
