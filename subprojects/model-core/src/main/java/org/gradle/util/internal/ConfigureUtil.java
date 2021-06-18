@@ -37,10 +37,27 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  * <p>
  * Plugins should avoid using this class and methods that use {@link groovy.lang.Closure} as this makes the plugin harder to use in other languages. Instead, plugins should create methods that use {@link Action}. 
  * Here's an example pseudocode:
- * <pre>
- *     class MyExtension {
- *         public void configureProperties(Action<? extends MyPropertyContainer> action) {
- *              action.execute(this.myPropertyContainer);
+ * <pre class='autoTested'>
+ *     interface MyOptions {
+ *         RegularFileProperty getOptionsFile()
+ *     }
+ *     abstract class MyExtension {
+ *         private final MyOptions options;
+ *
+ *         @Inject public abstract ObjectFactory getObjectFactory();
+ *
+ *         public MyExtension() {
+ *             this.options = getObjectFactory().newInstance(MyOptions.class);
+ *         }
+ *
+ *         public void options(Action<? extends MyOptions> action) {
+ *              action.execute(options);
+ *         }
+ *     }
+ *     extensions.create("myExtension", MyExtension)
+ *     myExtension {
+ *         options {
+ *             optionsFile = layout.projectDirectory.file("options.properties")
  *         }
  *     }
  * </pre>
