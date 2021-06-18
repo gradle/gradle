@@ -795,4 +795,43 @@ if it knows that the build will fail at a later point because of missing credent
 
 Here is a link:../samples/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
 
-The same rules apply for supplying link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials].
+Lookup is only supported for credentials listed in the xref:#credentials_lookup_properties[xrefstyle=short].
+[%header%autowidth,compact]
+.Credentials that support value lookup and their corresponding properties
+[[credentials_lookup_properties]]
+|===
+| Type | Argument | Base property name | Required?
+
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]`
+| `username`
+| `Username`
+| required
+
+| `password`
+| `Password`
+| required
+
+.3+| `link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials]`
+| `accessKey`
+| `AccessKey`
+| required
+
+| `secretKey`
+| `SecretKey`
+| required
+
+| `sessionToken`
+| `SessionToken`
+| optional
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials]`
+| `name`
+| `AuthHeaderName`
+| required
+
+| `value`
+| `AuthHeaderValue`
+| required
+
+|===
