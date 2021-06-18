@@ -66,7 +66,6 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  * As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
  * @deprecated Will be removed in Gradle 8.0.
- * @see org.gradle.util.internal.ConfigureUtil
  */
 @Deprecated
 public class ConfigureUtil {
