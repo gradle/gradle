@@ -59,32 +59,34 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 <a name="http-build-cache-improvements"></a>
 ## HTTP build cache usage improvements
 
+### Automatic retry of uploads on temporary network error
+
+Previously, only load (i.e. GET) requests that failed during request transmission, after having established a TCP connection, would be automatically retried.
+Now, store (i.e. PUT) requests are also retried.
+
+This prevents temporary problems, such as connection drops, read or write timeouts, and low level network failures such as a connection resets, causing cache operations to fail and disabling the remote cache for the remainder of the build.
+
+Requests will be retried up to 3 times.
+If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+
 ### Following redirects
 
-The built-in HTTP build cache connector now follows redirect responses, supporting a wider range of cache implementations and network management strategies.
-This can be leveraged to gracefully migrate to new cache locations, or support HTTP caches that redirect as a matter of course such as those that
-utilize some form of request signing to access storage systems.
-Following of redirects happens by default with no additional configuration needed.
+Redirect responses are now followed.
+This could be leveraged to gracefully migrate to new cache locations, utilize some form of request signing to read to and write from other systems, or reroute requests from certain users or geographies to other locations.
 
-For more information on the effect of different types of redirects, see the documentation for [HttpBuildCache](dsl/org.gradle.caching.http.HttpBuildCache.html).
+Following of redirects happens by default, with no additional configuration needed.
+
+For more information on the effect of different types of redirects, consult the [User Guide](userguide/build_cache.html#sec:build_cache_redirects).
 
 ### Using Expect-Continue to avoid redundant uploads
 
-It is now possible to opt-in to use of [HTTP Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+It is now possible to opt-in to use of [Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+
 This is useful when cache upload requests are regularly rejected or redirected by the server,
 as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
 
-Consult the [userguide](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue with a HTTP build cache.
+Consult the [User Guide](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue.
 
-### Automatic retry of uploads on temporary network error
-
-PUT requests to the cache are automatically retried up to 4 times, for errors that are likely to be temporary.
-With modern network environments involving proxies and load balancers, it is common for HTTP requests to routinely fail due to dead connections between components or momentary unavailability of a service in the request chain.
-
-When an error is encountered that is not considered temporary, either due to the type of error or because the error persisted after retrying,
-no further requests to the build cache will be attempted for the remainder of the build.
-This avoids critically slowing down the build in cases where the build cache is entirely unavailable.
-Retrying requests for failures that are likely to be temporary reduces the risk of unnecessarily preventing use of the build cache for the remainder of a build when it would have succeeded.
 
 ## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
 When selecting configuration name using `--configuration` parameter from command line you can use camelCase notation like in subproject and task selection. This way `gradle dependencies --configuration tRC` could be used instead of `gradle dependencies --configuration testRuntimeClasspath` if `tRC` resolves to unique configuration within project where task is running.
