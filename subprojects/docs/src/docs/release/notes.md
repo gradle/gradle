@@ -72,7 +72,7 @@ If the problem persists, the cache operation will fail and the remote cache will
 ### Following redirects
 
 Redirect responses are now followed.
-This could be leveraged to gracefully migrate to new cache locations, utilize some form of request signing to read to and write from other systems, or reroute requests from certain users or geographies to other locations.
+This can be leveraged to gracefully migrate to new cache locations, utilize some form of request signing to read to and write from other systems, or reroute requests from certain users or geographies to other locations.
 
 Following of redirects happens by default, with no additional configuration needed.
 

@@ -327,8 +327,9 @@ include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files
 
 `3xx` redirecting responses will be followed automatically.
 
-Servers must take care when redirecting `PUT` requests, to achieve the desired result as only `307` and `308` redirect responses will be followed with a `PUT` request.
-All other redirect responses will be followed with a `GET` request, as per https://datatracker.ietf.org/doc/html/rfc7231#page-54[RFC 7231].
+Servers must take care when redirecting `PUT` requests as only `307` and `308` redirect responses will be followed with a `PUT` request.
+All other redirect responses will be followed with a `GET` request, as per https://datatracker.ietf.org/doc/html/rfc7231#page-54[RFC 7231],
+without the entry payload as the body.
 
 [[sec:build_cache_error_handling]]
 ==== Network error handling
@@ -362,10 +363,11 @@ include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="setting
 [[sec:build_cache_expect_continue]]
 ==== HTTP expect-continue
 
-The HTTP build cache client allows opt-in use of https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3[HTTP Expect-Continue].
+Use of https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3[HTTP Expect-Continue] can be enabled.
 This causes upload requests to happen in two parts: first a check whether a body would be accepted, then transmission of the body if the server indicates it will accept it.
-This is particularly suitable for cache servers that routinely redirect or reject upload requests,
-as it avoids transmitting the cache entry just to have it rejected (e.g. the cache entry is larger than the cache will allow) or redirected.
+
+This is useful when uploading to cache servers that routinely redirect or reject upload requests,
+as it avoids uploading the cache entry just to have it rejected (e.g. the cache entry is larger than the cache will allow) or redirected.
 This additional check incurs extra latency when the server accepts the request, but reduces latency when the request is rejected or redirected.
 
 Not all HTTP servers and proxies reliably implement Expect-Continue.
