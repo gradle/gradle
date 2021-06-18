@@ -347,7 +347,7 @@ By default, use of HTTPS requires the server to present a certificate that is tr
 If your server's certificate is not trusted, you can:
 
 1. Update the trust store of your Java runtime to allow it to be trusted
-2. Change the <<build_environment,build environment>> to use an alternative trust store for the build runtime
+2. Change the <<build_environment.adoc#build_environment,build environment>> to use an alternative trust store for the build runtime
 3. Disable the requirement for a trusted certificate
 
 The trust requirement can be disabled by setting link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`.
