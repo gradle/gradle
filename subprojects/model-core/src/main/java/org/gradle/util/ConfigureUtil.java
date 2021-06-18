@@ -43,13 +43,13 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  *     abstract class MyExtension {
  *         private final MyOptions options
  *
- *         @Inject abstract ObjectFactory getObjectFactory()
+ *         {@literal @}Inject abstract ObjectFactory getObjectFactory()
  *
  *         public MyExtension() {
  *             this.options = getObjectFactory().newInstance(MyOptions)
  *         }
  *
- *         public void options(Action<? extends MyOptions> action) {
+ *         public void options(Action{@literal <?} extends MyOptions{@literal >}  action) {
  *              action.execute(options)
  *         }
  *     }
