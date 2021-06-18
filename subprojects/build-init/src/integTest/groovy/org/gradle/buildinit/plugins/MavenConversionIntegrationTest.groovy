@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
@@ -32,7 +31,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -46,6 +45,8 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { null }
 
+    abstract BuildInitDsl getScriptDsl()
+
     def setup() {
         /**
          * We need to configure the local maven repository explicitly as
@@ -56,9 +57,9 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
         using m2
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = "KotlinDslMavenConversionIntegrationTest")
     def "multiModule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
         def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
@@ -106,14 +107,11 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin") // Kotlin compilation is used for the pre-compiled script plugin
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", bottomSpecs = "KotlinDslMavenConversionIntegrationTest") // Kotlin compilation is used for the pre-compiled script plugin
     def "multiModuleWithNestedParent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -131,14 +129,11 @@ Root project 'webinar-parent'
         targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = "KotlinDslMavenConversionIntegrationTest")
     def "flatmultimodule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
         executer.beforeExecute {
             executer.inDirectory(targetDir.file("webinar-parent")).withWarningMode(WarningMode.None) // FIXME we cannot assert warnings in this test as withWarningMode is ignored for the Kotlin DSL
         }
@@ -174,13 +169,10 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "singleModule"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -197,9 +189,6 @@ Root project 'webinar-parent'
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     private static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
@@ -246,7 +235,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        dslFixtureFor(scriptDsl as BuildInitDsl).assertGradleFilesGenerated()
+        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         fails 'clean', 'build'
@@ -255,13 +244,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'sourcesJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -280,13 +266,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the sources jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-sources.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'testsJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -311,13 +294,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the tests jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-tests.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'javadocJar'() {
-        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+        def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
         run 'init', '--dsl', scriptDsl.id as String
@@ -336,13 +316,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then: 'the javadoc jar is generated'
         targetDir.file('build/libs/util-2.5.jar').exists()
         targetDir.file('build/libs/util-2.5-javadoc.jar').exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "enforcerplugin"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -368,13 +345,10 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/enforcerExample-1.0.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "providedNotWar"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -388,9 +362,6 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         then:
         dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.10'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.10")')
         targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "provides decent error message when POM is invalid"() {
@@ -406,7 +377,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     }
 
     def "mavenExtensions"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -419,14 +390,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/testApp-1.0.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         setup:
         withSharedResources()
@@ -448,14 +416,11 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2872")
     def "expandProperties"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         setup:
         withSharedResources()
@@ -472,15 +437,12 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-3.2.2.jar").exists()
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2819")
-    @ToBeFixedForConfigurationCache(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = "KotlinDslMavenConversionIntegrationTest")
     def "multiModuleWithRemoteParent"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         given:
         withSharedResources()
@@ -524,14 +486,11 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15827")
     def "compilePluginWithoutConfiguration"() {
-        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def dsl = dslFixtureFor(scriptDsl)
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -539,9 +498,6 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
         succeeds 'build'
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
@@ -569,4 +525,12 @@ Root project 'webinar-parent'
         server.start()
         new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
     }
+}
+
+class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
+}
+
+class GroovyDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
+    BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
 }
