@@ -47,7 +47,7 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  * <p>
  * If an object is created via {@link org.gradle.api.model.ObjectFactory} then Gradle will generate a closure-taking method at runtime for each method with an {@link Action} as a single argument.
  * <p>
- * To apply a configuration (represented by a Groovy closure) on an object, one can also use {@link org.gradle.api.Project#configure(Object, Closure)}.
+ * As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use {@link org.gradle.api.Project#configure(Object, Closure)}.
  */
 public class ConfigureUtil {
 
