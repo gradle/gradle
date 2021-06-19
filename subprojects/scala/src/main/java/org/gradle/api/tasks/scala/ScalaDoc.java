@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -32,6 +33,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -54,9 +57,11 @@ public class ScalaDoc extends SourceTask {
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
     private final Property<String> maxMemory;
+    private final Property<JavaLauncher> javaLauncher;
 
     public ScalaDoc() {
         this.maxMemory = getObjectFactory().property(String.class);
+        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
     }
 
     @Inject
@@ -158,6 +163,16 @@ public class ScalaDoc extends SourceTask {
         return maxMemory;
     }
 
+    /**
+     * Optional JavaLauncher for toolchain support
+     * @since 7.2
+     */
+    @Incubating
+    @Internal
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
@@ -167,8 +182,13 @@ public class ScalaDoc extends SourceTask {
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
+            JavaForkOptions forkOptions = worker.getForkOptions();
             if (getMaxMemory().isPresent()) {
-                worker.forkOptions(forkOptions -> forkOptions.setMaxHeapSize(getMaxMemory().get()));
+                forkOptions.setMaxHeapSize(getMaxMemory().get());
+            }
+
+            if(javaLauncher.isPresent()) {
+                forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             }
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
@@ -221,4 +241,5 @@ public class ScalaDoc extends SourceTask {
     private File createOptionsFile() {
         return new File(getTemporaryDir(), "scaladoc.options");
     }
+
 }
