@@ -4,7 +4,7 @@ apply<EnterpriseRepositoryPlugin>()
 
 class EnterpriseRepositoryPlugin : Plugin<Gradle> {
     companion object {
-        const val ENTERPRISE_REPOSITORY_URL = "https://repo.gradle.org/gradle/repo"
+        const val ENTERPRISE_REPOSITORY_URL = "https://repo.gradle.org/artifactory/repo"
     }
 
     override fun apply(gradle: Gradle) {

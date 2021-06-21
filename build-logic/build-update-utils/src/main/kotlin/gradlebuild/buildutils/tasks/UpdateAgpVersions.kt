@@ -70,7 +70,7 @@ abstract class UpdateAgpVersions : DefaultTask() {
 
     private
     fun DocumentBuilderFactory.fetchNightly(): String =
-        fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
+        fetchVersionsFromMavenMetadata("https://repo.gradle.org/artifactory/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
             .first()
 
     private

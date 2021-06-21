@@ -179,7 +179,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                     buildscript {
                         repositories {
                             maven {
-                                url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+                                url 'https://repo.gradle.org/artifactory/enterprise-libs-snapshots-local/'
                                 credentials {
                                     username = System.getenv("ARTIFACTORY_USERNAME")
                                     password = System.getenv("ARTIFACTORY_PASSWORD")

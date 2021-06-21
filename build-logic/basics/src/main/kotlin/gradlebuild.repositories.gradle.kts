@@ -17,7 +17,7 @@
 repositories {
     maven {
         name = "Gradle libs"
-        url = uri("https://repo.gradle.org/gradle/libs")
+        url = uri("https://repo.gradle.org/artifactory/libs")
     }
     maven {
         name = "kotlinx"

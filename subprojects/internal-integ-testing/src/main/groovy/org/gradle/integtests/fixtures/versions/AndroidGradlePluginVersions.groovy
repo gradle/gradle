@@ -38,7 +38,7 @@ class AndroidGradlePluginVersions {
     private static final String AGP_NIGHTLY_REPOSITORY_DECLARATION = '''
         maven {
             name = 'agp-nightlies'
-            url = 'https://repo.gradle.org/gradle/ext-snapshots-local/'
+            url = 'https://repo.gradle.org/artifactory/ext-snapshots-local/'
         }
     '''
 

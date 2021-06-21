@@ -31,7 +31,7 @@ publishing {
         maven {
             name = "remote"
             val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
-            url = uri("https://repo.gradle.org/gradle/libs-${libsType.get()}-local")
+            url = uri("https://repo.gradle.org/artifactory/libs-${libsType.get()}-local")
             credentials {
                 username = artifactoryUserName
                 password = artifactoryUserPassword

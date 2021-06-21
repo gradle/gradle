@@ -24,7 +24,7 @@ buildscript {
 <% } %>
 <% if (binding.hasVariable("buildScanPluginVersion")) { %>
         maven {
-            setUrl("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local")
+            setUrl("https://repo.gradle.org/artifactory/gradlecom-libs-snapshots-local")
         }
 <% } %>
     }
