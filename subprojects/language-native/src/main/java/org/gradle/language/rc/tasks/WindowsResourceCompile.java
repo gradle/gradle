@@ -47,6 +47,7 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
@@ -60,6 +61,7 @@ import java.util.concurrent.Callable;
  * Compiles Windows Resource scripts into .res files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class WindowsResourceCompile extends DefaultTask {
 
     private final Property<NativePlatform> targetPlatform;

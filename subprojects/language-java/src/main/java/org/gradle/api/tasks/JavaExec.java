@@ -42,6 +42,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaExecSpec;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -109,6 +110,7 @@ import java.util.Map;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Has no cacheable output")
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
