@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -64,6 +65,7 @@ import java.util.Set;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "The expensive part is determining the dependencies, not writing the html report, so this shouldn't be made cacheable")
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DirectoryProperty reportDir;
