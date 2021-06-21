@@ -24,6 +24,7 @@ import org.gradle.ide.xcode.internal.DefaultXcodeProject;
 import org.gradle.ide.xcode.internal.XcodeTarget;
 import org.gradle.ide.xcode.tasks.internal.XcodeSchemeFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
@@ -41,6 +42,7 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
  * @since 4.2
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateSchemeFileTask extends XmlGeneratorTask<XcodeSchemeFile> {
     public DefaultXcodeProject xcodeProject;
 

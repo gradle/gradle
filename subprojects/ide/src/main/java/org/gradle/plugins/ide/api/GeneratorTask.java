@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.generator.generator.Generator;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -52,6 +53,7 @@ import java.io.File;
  *
  * @param <T> The domain object for the configuration file.
  */
+@DisableCachingByDefault(because = "Base-class, not to be instantiated directly")
 public class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
