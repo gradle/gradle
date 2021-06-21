@@ -25,18 +25,17 @@ import org.apache.http.protocol.HttpContext
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AlwaysRedirectRedirectStrategyTest extends Specification {
+class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
 
     static final String[] HTTP_METHODS = ['GET', 'POST', 'PUT', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
 
     def "should consider all requests redirectable"() {
         expect:
-        new AlwaysRedirectRedirectStrategy().isRedirectable(method)
+        new AllowFollowForMutatingMethodRedirectStrategy().isRedirectable(method)
 
         where:
         method << HTTP_METHODS
     }
-
 
     @Unroll
     def "should get redirect for http method [#httpMethod]"() {
@@ -51,12 +50,12 @@ class AlwaysRedirectRedirectStrategyTest extends Specification {
         request.getParams() >> Mock(HttpParams)
 
         when:
-        def redirect = new AlwaysRedirectRedirectStrategy().getRedirect(request, response, context)
+        def redirect = new AlwaysFollowAndPreserveMethodRedirectStrategy().getRedirect(request, response, context)
 
         then:
         redirect.getClass() == Class.forName("org.apache.http.client.methods.Http${httpMethod.toLowerCase().capitalize()}")
 
         where:
-        httpMethod << HTTP_METHODS + HTTP_METHODS.collect{it.toLowerCase()}
+        httpMethod << HTTP_METHODS + HTTP_METHODS.collect { it.toLowerCase() }
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpSettings;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
@@ -42,6 +43,8 @@ import java.util.Collections;
  * Build cache factory for HTTP backend.
  */
 public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+
+    private static final int MAX_REDIRECTS = Integer.getInteger("org.gradle.cache.http.max-redirects", 10);
 
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
@@ -78,13 +81,15 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         boolean authenticated = !authentications.isEmpty();
         boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
         boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
+        boolean useExpectContinue = configuration.isUseExpectContinue();
 
         HttpRedirectVerifier redirectVerifier =
             createRedirectVerifier(noUserInfoUrl, allowInsecureProtocol);
 
         DefaultHttpSettings.Builder builder = DefaultHttpSettings.builder()
             .withAuthenticationSettings(authentications)
-            .followRedirects(false)
+            .maxRedirects(MAX_REDIRECTS)
+            .withRedirectMethodHandlingStrategy(HttpSettings.RedirectMethodHandlingStrategy.ALLOW_FOLLOW_FOR_MUTATIONS)
             .withRedirectVerifier(redirectVerifier);
         if (allowUntrustedServer) {
             builder.allowUntrustedConnections();
@@ -97,9 +102,10 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("url", noUserInfoUrl.toASCIIString())
             .config("authenticated", Boolean.toString(authenticated))
             .config("allowUntrustedServer", Boolean.toString(allowUntrustedServer))
-            .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol));
+            .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol))
+            .config("useExpectContinue", Boolean.toString(useExpectContinue));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer);
+        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
     }
 
     private HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {
