@@ -501,21 +501,16 @@ Root project 'webinar-parent'
         succeeds 'build'
     }
 
-    def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
+    static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
-    }
-
-    def expectModule(MavenHttpRepository repo, String group, String name, String version) {
-        MavenHttpModule module1 = repo.module(group, name, version).publish()
-        module1.allowAll()
     }
 
     def withSharedResources() {
         resources.maybeCopy('MavenConversionIntegrationTest/sharedResources')
     }
 
-    PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
+    static PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
         MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
         module.pom.expectGet()
         module.pom.sha1.expectGet()
