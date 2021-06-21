@@ -38,15 +38,10 @@ public class NormalizedContentInfoCollector {
         this.streamHasher = streamHasher;
     }
 
-    public NormalizedContentInfo collect(File file) {
-        FileContentTypeDetectingInputStream contentTypeDetectingInputStream;
-        InputStream normalizedInputStream;
-        try {
-            contentTypeDetectingInputStream = new FileContentTypeDetectingInputStream(new FileInputStream(file));
-            normalizedInputStream = streamDecorator.apply(contentTypeDetectingInputStream);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
-        }
+    public NormalizedContentInfo collect(InputStream inputStream) {
+        FileContentTypeDetectingInputStream contentTypeDetectingInputStream = new FileContentTypeDetectingInputStream(inputStream);
+        InputStream normalizedInputStream = streamDecorator.apply(contentTypeDetectingInputStream);
+
         try {
             HashCode hashCode = streamHasher.hash(normalizedInputStream);
             return new NormalizedContentInfo(hashCode, contentTypeDetectingInputStream.getContentType());
@@ -62,6 +57,14 @@ public class NormalizedContentInfoCollector {
             } catch (IOException ignored) {
                 // Ignored
             }
+        }
+    }
+
+    public NormalizedContentInfo collect(File file) {
+        try {
+            return collect(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
         }
     }
 

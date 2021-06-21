@@ -24,6 +24,8 @@ import spock.lang.Unroll
 abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIntegrationSpec {
     private static final byte[] JPG_CONTENT_WITH_LF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0a] as byte[]
     private static final byte[] JPG_CONTENT_WITH_CRLF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0d, 0x0a] as byte[]
+    private static final byte[] CLASS_FILE_WITH_LF = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00, 0x0a] as byte[]
+    private static final byte[] CLASS_FILE_WITH_CRLF = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00, 0x0a, 0x0d, 0x0a] as byte[]
     public static final String TRANSFORM_EXECUTED = 'Transform producer.zip (project :producer) with AugmentTransform'
 
     abstract String getStatusForReusedOutput()
@@ -33,8 +35,8 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
     abstract void cleanWorkspace()
 
     @Unroll
-    def "tasks are sensitive to line endings by default (#api, #pathsensitivity)"() {
-        createTaskWithNormalization(LineEndingNormalization.DEFAULT, pathsensitivity, api)
+    def "input files properties are sensitive to line endings by default (#api, #pathsensitivity)"() {
+        createTaskWithNormalization(InputFiles, LineEndingNormalization.DEFAULT, pathsensitivity, api)
 
         buildFile << """
             taskWithInputs {
@@ -72,8 +74,8 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
     }
 
     @Unroll
-    def "can ignore line endings in source files (#api, #pathsensitivity)"() {
-        createTaskWithNormalization(LineEndingNormalization.IGNORE, pathsensitivity, api)
+    def "input files properties can ignore line endings when specified (#api, #pathsensitivity)"() {
+        createTaskWithNormalization(InputFiles, LineEndingNormalization.IGNORE, pathsensitivity, api)
 
         buildFile << """
             taskWithInputs {
@@ -82,7 +84,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
             }
         """
         file('foo/Changing.java') << "\nhere's a line\nhere's another line\n\n"
-        file('foo/Changing.jpg') << JPG_CONTENT_WITH_LF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
         execute("taskWithInputs")
@@ -99,7 +101,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         reused(":taskWithInputs")
 
         when:
-        file('foo/Changing.jpg').text = JPG_CONTENT_WITH_CRLF
+        file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_CRLF
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -108,6 +110,115 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
         where:
         [api, pathsensitivity] << [API.values(), PathSensitivity.values()].combinations()
+    }
+
+    @Unroll
+    def "runtime classpath properties are sensitive to line endings by default (#api)"() {
+        createTaskWithNormalization(Classpath, LineEndingNormalization.DEFAULT, null, api)
+
+        buildFile << """
+            taskWithInputs {
+                sources.from(project.files("foo"))
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo/Changing.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.txt').text = file('foo/Changing.txt').text.replaceAll('\\n', '\r\n')
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        api << API.values()
+    }
+
+    @Unroll
+    def "runtime classpath properties can ignore line endings when specified (#api)"() {
+        createTaskWithNormalization(Classpath, LineEndingNormalization.IGNORE, null, api)
+
+        buildFile << """
+            taskWithInputs {
+                sources.from(project.files("foo"))
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo/Changing.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.txt').text = file('foo/Changing.txt').text.replaceAll('\\n', '\r\n')
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        reused(":taskWithInputs")
+
+        when:
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        api << API.values()
+    }
+
+    @Unroll
+    def "compile classpath properties are always sensitive to line endings (#api, #lineEndingNormalization)"() {
+        createTaskWithNormalization(CompileClasspath, LineEndingNormalization.DEFAULT, null, api)
+
+        buildFile << """
+            taskWithInputs {
+                sources.from(project.files("foo"))
+                outputFile = project.file("\${buildDir}/output.txt")
+            }
+        """
+        file('foo').mkdirs()
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
+
+        when:
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        when:
+        file('foo/Changing.class').bytes = CLASS_FILE_WITH_CRLF
+        cleanWorkspace()
+        execute("taskWithInputs")
+
+        then:
+        executedAndNotSkipped(":taskWithInputs")
+
+        where:
+        [api, lineEndingNormalization] << [API.values(), LineEndingNormalization.values()].combinations()
     }
 
     def "artifact transforms are sensitive to line endings by default"() {
@@ -204,26 +315,34 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         return true
     }
 
-    def createTaskWithNormalization(LineEndingNormalization normalization, PathSensitivity pathSensitivity, API api) {
+    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingNormalization normalization, PathSensitivity pathSensitivity, API api) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
 
         if (api == API.ANNOTATION_API) {
-            createAnnotatedTaskWithNormalization(normalization, pathSensitivity)
+            createAnnotatedTaskWithNormalization(inputAnnotation, normalization, pathSensitivity)
         } else if (api == API.RUNTIME_API) {
-            createRuntimeApiTaskWithNormalization(normalization, pathSensitivity)
+            Class<?> normalizer;
+            if (inputAnnotation == Classpath) {
+                normalizer = ClasspathNormalizer
+            } else if (inputAnnotation == CompileClasspath) {
+                normalizer = CompileClasspathNormalizer
+            } else {
+                normalizer = null
+            }
+            createRuntimeApiTaskWithNormalization(normalization, pathSensitivity, normalizer)
         } else {
             throw new IllegalArgumentException()
         }
     }
 
-    def createAnnotatedTaskWithNormalization(LineEndingNormalization normalization, PathSensitivity pathSensitivity) {
+    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingNormalization normalization, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
-                @InputFiles
-                @PathSensitive(PathSensitivity.${pathSensitivity.name()})
+                @${inputAnnotation.simpleName}
+                ${pathSensitivityAnnotation(pathSensitivity)}
                 ${normalization == LineEndingNormalization.IGNORE ? "@${IgnoreLineEndings.class.simpleName}" : ''}
                 FileCollection sources
 
@@ -244,7 +363,11 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         """
     }
 
-    def createRuntimeApiTaskWithNormalization(LineEndingNormalization normalization, PathSensitivity pathSensitivity) {
+    static def pathSensitivityAnnotation(PathSensitivity pathSensitivity) {
+        return pathSensitivity != null ? "@PathSensitive(PathSensitivity.${pathSensitivity.name()})" : ""
+    }
+
+    def createRuntimeApiTaskWithNormalization(LineEndingNormalization normalization, PathSensitivity pathSensitivity, Class<?> normalizer) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
@@ -255,7 +378,8 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
                     sources = project.files()
 
                     inputs.files(sources)
-                        .withPathSensitivity(PathSensitivity.${pathSensitivity.name()})
+                        ${withNormalizer(normalizer)}
+                        ${withPathSensitivity(pathSensitivity)}
                         ${normalization == LineEndingNormalization.IGNORE ? '.ignoreLineEndings()' : ''}
                         .withPropertyName('sources')
                 }
@@ -268,6 +392,14 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
                 }
             }
         """
+    }
+
+    static def withNormalizer(Class<?> normalizer) {
+        return normalizer != null ? ".withNormalizer(${normalizer.simpleName})" : ""
+    }
+
+    static def withPathSensitivity(PathSensitivity pathSensitivity) {
+        return pathSensitivity != null ? ".withPathSensitivity(PathSensitivity.${pathSensitivity.name()})" : ""
     }
 
     void createParameterizedTransformWithLineEndingNormalization(LineEndingNormalization lineEndingNormalization) {

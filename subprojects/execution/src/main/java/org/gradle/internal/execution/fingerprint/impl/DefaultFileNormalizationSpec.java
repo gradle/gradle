@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.fingerprint.impl;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.DirectorySensitiveNormalizer;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
@@ -45,11 +44,13 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
         return directorySensitivity;
     }
 
+    @Override
+    public LineEndingNormalization getLineEndingNormalization() {
+        return lineEndingNormalization;
+    }
+
     public static FileNormalizationSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
-        return new DefaultFileNormalizationSpec(
-            normalizer,
-            DirectorySensitiveNormalizer.class.isAssignableFrom(normalizer) ? directorySensitivity : DirectorySensitivity.DEFAULT,
-            lineEndingNormalization);
+        return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingNormalization);
     }
 
     @Override

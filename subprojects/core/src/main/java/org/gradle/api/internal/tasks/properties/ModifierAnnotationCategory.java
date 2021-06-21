@@ -47,10 +47,10 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     ),
     IGNORE_EMPTY_DIRECTORIES("ignore empty directories",
         IgnoreEmptyDirectories.class
-    )),
-    IGNORE_LINE_ENDINGS(ImmutableSet.of(
+    ),
+    IGNORE_LINE_ENDINGS("ignore line endings",
         IgnoreLineEndings.class
-    ));
+    );
 
     private final String displayName;
     private final ImmutableSet<Class<? extends Annotation>> annotations;

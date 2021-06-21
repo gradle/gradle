@@ -17,10 +17,37 @@
 package org.gradle.internal.fingerprint.hashing;
 
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
-public interface NormalizedContentHasher {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+
+public interface NormalizedContentHasher extends ConfigurableNormalizer {
     HashCode hashContent(RegularFileSnapshot snapshot);
 
-    NormalizedContentHasher NONE = RegularFileSnapshot::getHash;
+    HashCode hashContent(InputStream inputStream);
+
+    NormalizedContentHasher NONE = new NormalizedContentHasher() {
+        @Override
+        public HashCode hashContent(RegularFileSnapshot snapshot) {
+            return snapshot.getHash();
+        }
+
+        @Override
+        public HashCode hashContent(InputStream inputStream) {
+            try {
+                return Hashing.hashStream(inputStream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        @Override
+        public void appendConfigurationToHasher(Hasher hasher) {
+            hasher.putString(getClass().getName());
+        }
+    };
 }

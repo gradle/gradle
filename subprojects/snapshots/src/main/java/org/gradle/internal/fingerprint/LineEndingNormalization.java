@@ -16,7 +16,22 @@
 
 package org.gradle.internal.fingerprint;
 
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+
+import java.util.function.Predicate;
+
 public enum LineEndingNormalization {
-    DEFAULT,
-    IGNORE
+    DEFAULT(snapshot -> false),
+    IGNORE(snapshot -> snapshot.getType() == FileType.RegularFile);
+
+    private final Predicate<FileSystemLocationSnapshot> shouldNormalize;
+
+    LineEndingNormalization(Predicate<FileSystemLocationSnapshot> shouldNormalize) {
+        this.shouldNormalize = shouldNormalize;
+    }
+
+    public boolean shouldNormalize(FileSystemLocationSnapshot snapshot) {
+        return shouldNormalize.test(snapshot);
+    }
 }

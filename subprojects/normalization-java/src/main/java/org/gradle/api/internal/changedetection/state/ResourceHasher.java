@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
+
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */

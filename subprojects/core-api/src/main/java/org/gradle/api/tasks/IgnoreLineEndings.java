@@ -44,6 +44,8 @@ import java.lang.annotation.Target;
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
  *
+ * <li>{@link org.gradle.api.tasks.Classpath}</li>
+ *
  * <li>{@link org.gradle.api.artifacts.transform.InputArtifact}</li>
  *
  * <li>{@link org.gradle.api.artifacts.transform.InputArtifactDependencies}</li> </ul>

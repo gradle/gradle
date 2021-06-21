@@ -31,7 +31,6 @@ import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareNormalizedContentHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileFilter;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
@@ -64,6 +63,7 @@ import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFinge
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
+import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -321,7 +321,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner);
+            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingNormalization.DEFAULT, NormalizedContentHasher.NONE);
         }
 
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
@@ -394,8 +394,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileCollectionSnapshotter fileCollectionSnapshotter,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
-            NormalizedContentHasher lineEndingAwareNormalizedContentHasher = new LineEndingAwareNormalizedContentHasher(streamHasher, resourceSnapshotterCacheService);
-            return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, lineEndingAwareNormalizedContentHasher);
+            return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, resourceSnapshotterCacheService, streamHasher);
         }
 
         FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters, FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {

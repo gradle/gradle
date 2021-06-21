@@ -23,6 +23,8 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter
 import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
@@ -53,7 +55,10 @@ class DefaultClasspathFingerprinterTest extends Specification {
         ResourceFilter.FILTER_NOTHING,
         ResourceEntryFilter.FILTER_NOTHING,
         PropertiesFileFilter.FILTER_NOTHING,
-        stringInterner)
+        stringInterner,
+        LineEndingNormalization.DEFAULT,
+        NormalizedContentHasher.NONE
+    )
 
     def "directories and missing files are ignored"() {
         def emptyDir = file('root/emptyDir').createDir()

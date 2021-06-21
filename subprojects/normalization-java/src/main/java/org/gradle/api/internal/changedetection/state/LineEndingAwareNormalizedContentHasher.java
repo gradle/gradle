@@ -20,15 +20,13 @@ import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 import org.gradle.internal.hash.FileContentType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.LineEndingNormalizingInputStream;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
-
-import static org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext.*;
+import java.io.InputStream;
 
 /**
  * A {@link NormalizedContentHasher} that detects text files and normalizes the line endings
@@ -36,35 +34,34 @@ import static org.gradle.api.internal.changedetection.state.RegularFileSnapshotC
  * calculated snapshot hash.
  */
 public class LineEndingAwareNormalizedContentHasher implements NormalizedContentHasher {
-    private final NormalizedContentInfoCollector hasher;
-    private final ResourceSnapshotterCacheService cacheService;
-    private final HashCode configurationHashCode;
+    private final StreamHasher streamHasher;
+    private final NormalizedContentInfoCollector collector;
 
-    public LineEndingAwareNormalizedContentHasher(StreamHasher streamHasher, ResourceSnapshotterCacheService cacheService) {
-        this.hasher = new NormalizedContentInfoCollector(LineEndingNormalizingInputStream::new, streamHasher);
-        this.cacheService = cacheService;
-        this.configurationHashCode = getConfigurationHashCode();
+    public LineEndingAwareNormalizedContentHasher(StreamHasher streamHasher) {
+        this.streamHasher = streamHasher;
+        this.collector = new NormalizedContentInfoCollector(LineEndingNormalizingInputStream::new, streamHasher);
     }
 
-    private static HashCode getConfigurationHashCode() {
-        Hasher hasher = Hashing.newHasher();
+    @Override
+    public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(LineEndingAwareNormalizedContentHasher.class.getName());
         hasher.putString(LineEndingNormalizingInputStream.class.getName());
-        return hasher.hash();
     }
 
     @Nullable
     @Override
     public HashCode hashContent(RegularFileSnapshot snapshot) {
-        NormalizedContentInfoCollector.NormalizedContentInfo normalizedContentInfo = hasher.collect(new File(snapshot.getAbsolutePath()));
-        return cacheService.hashFile(
-            from(snapshot),
-            s -> normalizedContentInfo.getContentType() == FileContentType.TEXT ?
-                    normalizedContentInfo.getHash() :
-                    snapshot.getHash(),
-            configurationHashCode
-        );
+        NormalizedContentInfoCollector.NormalizedContentInfo normalizedContentInfo = collector.collect(new File(snapshot.getAbsolutePath()));
+        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
+            normalizedContentInfo.getHash() :
+            snapshot.getHash();
     }
 
-
+    @Override
+    public HashCode hashContent(InputStream inputStream) {
+        NormalizedContentInfoCollector.NormalizedContentInfo normalizedContentInfo = collector.collect(inputStream);
+        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
+            normalizedContentInfo.getHash() :
+            streamHasher.hash(inputStream);
+    }
 }

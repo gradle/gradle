@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
@@ -52,7 +51,7 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
 
     @Nullable
     protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot) {
-        return snapshot.getType() == FileType.RegularFile && lineEndingNormalization == LineEndingNormalization.IGNORE ?
+        return lineEndingNormalization.shouldNormalize(snapshot) ?
             lineEndingNormalizationHasher.hashContent((RegularFileSnapshot)snapshot) :
             snapshot.getHash();
     }
