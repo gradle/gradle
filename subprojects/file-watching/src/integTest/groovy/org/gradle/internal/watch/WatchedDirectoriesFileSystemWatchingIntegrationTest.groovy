@@ -372,7 +372,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         file("input.txt").text = "input"
 
         when:
-        run "myTask", "--info"
+        run "myTask", "--debug"
         then:
         assertWatchedHierarchies([testDirectory])
         result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
