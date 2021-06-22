@@ -18,7 +18,6 @@ import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistribu
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.tasks.ClasspathManifest
-import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -241,7 +240,7 @@ fun configureTests() {
             }
         }
 
-        if (project.testDistributionEnabled() && !isUnitTest()) {
+        if (!isUnitTest()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {

@@ -21,7 +21,6 @@ import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
-import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
 import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
 import gradlebuild.identity.extension.ModuleIdentityExtension
@@ -67,10 +66,6 @@ if (isCiServer) {
         extractAllReportsFromCI()
         monitorUnexpectedCacheMisses()
     }
-}
-
-if (project.testDistributionEnabled()) {
-    buildScan?.tag("TEST_DISTRIBUTION")
 }
 
 extractCheckstyleAndCodenarcData()

@@ -24,9 +24,6 @@ import org.gradle.internal.os.OperatingSystem
 import java.io.ByteArrayOutputStream
 
 
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
-
-
 fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
 
 
