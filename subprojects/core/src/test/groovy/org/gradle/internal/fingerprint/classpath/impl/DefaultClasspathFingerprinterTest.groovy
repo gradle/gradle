@@ -24,7 +24,6 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.LineEndingNormalization
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
@@ -49,6 +48,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     TestInMemoryPersistentIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryPersistentIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
+    def streamHasher = TestFiles.streamHasher()
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         fileCollectionSnapshotter,
@@ -57,7 +57,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         PropertiesFileFilter.FILTER_NOTHING,
         stringInterner,
         LineEndingNormalization.DEFAULT,
-        NormalizedContentHasher.NONE
+        streamHasher
     )
 
     def "directories and missing files are ignored"() {

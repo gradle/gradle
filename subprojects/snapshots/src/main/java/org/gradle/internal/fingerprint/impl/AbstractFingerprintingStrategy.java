@@ -19,24 +19,24 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext.from;
+
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
-    private final NormalizedContentHasher lineEndingNormalizationHasher;
     private final LineEndingNormalization lineEndingNormalization;
 
-    public AbstractFingerprintingStrategy(String identifier, LineEndingNormalization lineEndingNormalization, NormalizedContentHasher lineEndingNormalizationHasher) {
+    public AbstractFingerprintingStrategy(String identifier, LineEndingNormalization lineEndingNormalization) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
         this.lineEndingNormalization = lineEndingNormalization;
-        this.lineEndingNormalizationHasher = lineEndingNormalizationHasher;
     }
 
     @Override
@@ -50,9 +50,9 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     }
 
     @Nullable
-    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot) {
-        return lineEndingNormalization.shouldNormalize(snapshot) ?
-            lineEndingNormalizationHasher.hashContent((RegularFileSnapshot)snapshot) :
+    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, ResourceHasher normalizedContentHasher) {
+        return lineEndingNormalization.isCandidate(snapshot) ?
+            normalizedContentHasher.hash(from((RegularFileSnapshot)snapshot)) :
             snapshot.getHash();
     }
 

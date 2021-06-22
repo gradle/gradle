@@ -17,14 +17,15 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CachingNormalizedContentHasher;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareNormalizedContentHasher;
+import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.StreamHasher;
 
 import java.util.List;
@@ -37,26 +38,35 @@ public class FileCollectionFingerprinterRegistrations {
     private final List<FileCollectionFingerprinter> registrants;
 
     public FileCollectionFingerprinterRegistrations(StringInterner stringInterner, FileCollectionSnapshotter fileCollectionSnapshotter, ResourceSnapshotterCacheService resourceSnapshotterCacheService, StreamHasher streamHasher) {
-        NormalizedContentHasher lineEndingAwareNormalizedContentHasher = new LineEndingAwareNormalizedContentHasher(streamHasher);
-        NormalizedContentHasher cachingNormalizedContentHasher = new CachingNormalizedContentHasher(resourceSnapshotterCacheService, lineEndingAwareNormalizedContentHasher);
         this.registrants = stream(DirectorySensitivity.values())
             .flatMap(directorySensitivity ->
-                stream(LineEndingNormalization.values()).flatMap(lineEndingNormalization ->
-                    Stream.of(
-                        new AbsolutePathFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, cachingNormalizedContentHasher),
-                        new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, cachingNormalizedContentHasher),
-                        new NameOnlyFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, cachingNormalizedContentHasher)
-                    )
+                stream(LineEndingNormalization.values()).flatMap(lineEndingNormalization -> {
+                        ResourceHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, streamHasher, resourceSnapshotterCacheService);
+                        return Stream.of(
+                            new AbsolutePathFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, normalizedContentHasher),
+                            new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, normalizedContentHasher),
+                            new NameOnlyFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, normalizedContentHasher)
+                        );
+                    }
                 )
             ).collect(Collectors.toList());
         this.registrants.addAll(
             stream(LineEndingNormalization.values())
-                .map(lineEndingNormalization -> new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, lineEndingNormalization, cachingNormalizedContentHasher))
+                .map(lineEndingNormalization -> {
+                        ResourceHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, streamHasher, resourceSnapshotterCacheService);
+                        return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, lineEndingNormalization, normalizedContentHasher);
+                    }
+                )
                 .collect(Collectors.toList())
         );
     }
 
     public List<? extends FileCollectionFingerprinter> getRegistrants() {
         return registrants;
+    }
+
+    private static ResourceHasher normalizedContentHasher(LineEndingNormalization lineEndingNormalization, StreamHasher streamHasher, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+        ResourceHasher lineEndingAwareResourceHasher = new LineEndingAwareClasspathResourceHasher(new RuntimeClasspathResourceHasher(), lineEndingNormalization, streamHasher);
+        return new CachingResourceHasher(lineEndingAwareResourceHasher, resourceSnapshotterCacheService);
     }
 }

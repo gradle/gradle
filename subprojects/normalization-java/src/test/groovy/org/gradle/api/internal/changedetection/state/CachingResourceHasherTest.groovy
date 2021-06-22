@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
@@ -44,7 +45,7 @@ class CachingResourceHasherTest extends Specification {
     def "does not cache zip entries"() {
         def expectedHash = HashCode.fromInt(123)
         def zipEntry = Mock(ZipEntry)
-        def zipEntryContext = new ZipEntryContext(zipEntry, "foo", "foo.zip")
+        def zipEntryContext = new DefaultZipEntryContext(zipEntry, "foo", "foo.zip")
 
         when:
         def actualHash = cachingHasher.hash(zipEntryContext)

@@ -27,6 +27,10 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
+import org.gradle.internal.fingerprint.hashing.RegularFileHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -109,7 +113,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 continue;
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
-            ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
+            ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));

@@ -17,21 +17,28 @@
 package org.gradle.internal.fingerprint;
 
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.util.function.Predicate;
 
 public enum LineEndingNormalization {
-    DEFAULT(snapshot -> false),
-    IGNORE(snapshot -> snapshot.getType() == FileType.RegularFile);
+    DEFAULT(snapshot -> false, zipEntryContext -> false),
+    IGNORE(snapshot -> snapshot.getType() == FileType.RegularFile, zipEntryContext -> !zipEntryContext.getEntry().isDirectory());
 
-    private final Predicate<FileSystemLocationSnapshot> shouldNormalize;
+    private final Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot;
+    private final Predicate<ZipEntryContext> shouldNormalizeZipEntry;
 
-    LineEndingNormalization(Predicate<FileSystemLocationSnapshot> shouldNormalize) {
-        this.shouldNormalize = shouldNormalize;
+    LineEndingNormalization(Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot, Predicate<ZipEntryContext> shouldNormalizeZipEntry) {
+        this.shouldNormalizeSnapshot = shouldNormalizeSnapshot;
+        this.shouldNormalizeZipEntry = shouldNormalizeZipEntry;
     }
 
-    public boolean shouldNormalize(FileSystemLocationSnapshot snapshot) {
-        return shouldNormalize.test(snapshot);
+    public boolean isCandidate(FileSystemLocationSnapshot snapshot) {
+        return shouldNormalizeSnapshot.test(snapshot);
+    }
+
+    public boolean isCandidate(ZipEntryContext zipEntryContext) {
+        return shouldNormalizeZipEntry.test(zipEntryContext);
     }
 }

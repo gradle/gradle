@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -44,15 +44,17 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final DirectorySensitivity directorySensitivity;
 
     private final Interner<String> stringInterner;
+    private final ResourceHasher normalizedContentHasher;
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, NormalizedContentHasher lineEndingNormalizationHasher) {
-        super(IDENTIFIER, lineEndingNormalization, lineEndingNormalizationHasher);
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
+        super(IDENTIFIER, lineEndingNormalization);
         this.stringInterner = stringInterner;
         this.directorySensitivity = directorySensitivity;
+        this.normalizedContentHasher = normalizedContentHasher;
     }
 
     public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
-        this(stringInterner, directorySensitivity, LineEndingNormalization.DEFAULT, NormalizedContentHasher.NONE);
+        this(stringInterner, directorySensitivity, LineEndingNormalization.DEFAULT, ResourceHasher.NONE);
     }
 
     @Override
@@ -93,7 +95,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     @Nullable
     FileSystemLocationFingerprint fingerprint(String name, FileType type, FileSystemLocationSnapshot snapshot) {
-        HashCode normalizedContentHash = getNormalizedContentHash(snapshot);
+        HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
         return normalizedContentHash == null ? null : new DefaultFileSystemLocationFingerprint(name, type, normalizedContentHash);
     }
 

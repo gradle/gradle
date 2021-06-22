@@ -26,8 +26,8 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
+import org.gradle.internal.hash.StreamHasher;
 
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
         Map<String, ResourceEntryFilter> propertiesFileFilters,
         StringInterner stringInterner,
         LineEndingNormalization lineEndingNormalization,
-        NormalizedContentHasher normalizedContentHasher
+        StreamHasher streamHasher
     ) {
         super(
             ClasspathFingerprintingStrategy.runtimeClasspath(
@@ -51,7 +51,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
                 cacheService,
                 stringInterner,
                 lineEndingNormalization,
-                normalizedContentHasher
+                streamHasher
             ),
             fileCollectionSnapshotter
         );

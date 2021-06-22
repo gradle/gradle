@@ -17,40 +17,68 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.fingerprint.LineEndingNormalization;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
+import org.gradle.internal.hash.FileContentType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.LineEndingNormalizingInputStream;
+import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 
 public class LineEndingAwareClasspathResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final LineEndingNormalization lineEndingNormalization;
-    private final NormalizedContentHasher normalizedContentHasher;
+    private final NormalizedContentInfoCollector collector;
 
-    public LineEndingAwareClasspathResourceHasher(ResourceHasher delegate, LineEndingNormalization lineEndingNormalization, NormalizedContentHasher normalizedContentHasher) {
+    public LineEndingAwareClasspathResourceHasher(ResourceHasher delegate, LineEndingNormalization lineEndingNormalization, StreamHasher streamHasher) {
         this.delegate = delegate;
         this.lineEndingNormalization = lineEndingNormalization;
-        this.normalizedContentHasher = normalizedContentHasher;
+        this.collector = new NormalizedContentInfoCollector(LineEndingNormalizingInputStream::new, streamHasher);
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
+        hasher.putString(LineEndingNormalizingInputStream.class.getName());
         hasher.putString(lineEndingNormalization.name());
     }
 
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) {
-        return lineEndingNormalization.shouldNormalize(snapshotContext.getSnapshot()) ? normalizedContentHasher.hashContent(snapshotContext.getSnapshot()) : delegate.hash(snapshotContext);
+        return lineEndingNormalization.isCandidate(snapshotContext.getSnapshot()) ?
+            hashContent(snapshotContext.getSnapshot()) :
+            delegate.hash(snapshotContext);
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().withInputStream(normalizedContentHasher::hashContent);
+        return lineEndingNormalization.isCandidate(zipEntryContext) ?
+            hashContent(zipEntryContext) :
+            delegate.hash(zipEntryContext);
+    }
+
+    @Nullable
+    private HashCode hashContent(RegularFileSnapshot snapshot) {
+        NormalizedContentInfoCollector.NormalizedContentInfo normalizedContentInfo = collector.collect(new File(snapshot.getAbsolutePath()));
+        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
+            normalizedContentInfo.getHash() :
+            snapshot.getHash();
+    }
+
+    @Nullable
+    private HashCode hashContent(ZipEntryContext zipEntryContext) throws IOException {
+        NormalizedContentInfoCollector.NormalizedContentInfo normalizedContentInfo = zipEntryContext.getEntry().withInputStream(collector::collect);
+        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
+            normalizedContentInfo.getHash() :
+            delegate.hash(zipEntryContext);
     }
 }

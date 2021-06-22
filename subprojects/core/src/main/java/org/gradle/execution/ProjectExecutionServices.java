@@ -23,7 +23,6 @@ import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareNormalizedContentHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
@@ -66,7 +65,6 @@ import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -181,7 +179,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
-    ClasspathFingerprinter createClasspathFingerprinterWithoutLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
+    ClasspathFingerprinter createClasspathFingerprinterWithoutLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler, StreamHasher streamHasher) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
             fileCollectionSnapshotter,
@@ -190,7 +188,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
             LineEndingNormalization.DEFAULT,
-            NormalizedContentHasher.NONE
+            streamHasher
         );
     }
 
@@ -204,7 +202,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
             LineEndingNormalization.IGNORE,
-            new LineEndingAwareNormalizedContentHasher(streamHasher)
+            streamHasher
         );
     }
 

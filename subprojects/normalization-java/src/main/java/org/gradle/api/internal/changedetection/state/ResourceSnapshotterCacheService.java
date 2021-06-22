@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.hashing.RegularFileHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;

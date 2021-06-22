@@ -21,12 +21,12 @@ import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public NameOnlyFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, FileCollectionSnapshotter fileCollectionSnapshotter, NormalizedContentHasher lineEndingNormalizationHasher) {
-        super(new NameOnlyFingerprintingStrategy(directorySensitivity, lineEndingNormalization, lineEndingNormalizationHasher), fileCollectionSnapshotter);
+    public NameOnlyFileCollectionFingerprinter(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, FileCollectionSnapshotter fileCollectionSnapshotter, ResourceHasher normalizedContentHasher) {
+        super(new NameOnlyFingerprintingStrategy(directorySensitivity, lineEndingNormalization, normalizedContentHasher), fileCollectionSnapshotter);
     }
 
     @Override

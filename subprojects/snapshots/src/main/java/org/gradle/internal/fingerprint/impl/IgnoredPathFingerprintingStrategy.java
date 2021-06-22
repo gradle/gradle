@@ -21,7 +21,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
-import org.gradle.internal.fingerprint.hashing.NormalizedContentHasher;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
@@ -43,12 +43,15 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     public static final String IDENTIFIER = "IGNORED_PATH";
     public static final String IGNORED_PATH = "";
 
-    public IgnoredPathFingerprintingStrategy(LineEndingNormalization lineEndingNormalization, NormalizedContentHasher lineEndingNormalizationHasher) {
-        super(IDENTIFIER, lineEndingNormalization, lineEndingNormalizationHasher);
+    private final ResourceHasher normalizedContentHasher;
+
+    public IgnoredPathFingerprintingStrategy(LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
+        super(IDENTIFIER, lineEndingNormalization);
+        this.normalizedContentHasher = normalizedContentHasher;
     }
 
     private IgnoredPathFingerprintingStrategy() {
-        this(LineEndingNormalization.DEFAULT, NormalizedContentHasher.NONE);
+        this(LineEndingNormalization.DEFAULT, ResourceHasher.NONE);
     }
 
     @Override
@@ -75,7 +78,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                 private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot) {
                     String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        HashCode normalizedContentHash = getNormalizedContentHash(snapshot);
+                        HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                         if (normalizedContentHash != null) {
                             builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash));
                         }

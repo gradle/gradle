@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,37 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.file.FilePathUtil;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 
 import java.util.function.Supplier;
 
-public class ZipEntryContext {
+public class DefaultZipEntryContext implements ZipEntryContext {
     private final ZipEntry entry;
     private final String fullName;
     private final String rootParentName;
 
-    public ZipEntryContext(ZipEntry entry, String fullName, String rootParentName) {
+    public DefaultZipEntryContext(ZipEntry entry, String fullName, String rootParentName) {
         this.entry = entry;
         this.fullName = fullName;
         this.rootParentName = rootParentName;
     }
 
+    @Override
     public ZipEntry getEntry() {
         return entry;
     }
 
+    @Override
     public String getFullName() {
         return fullName;
     }
 
+    @Override
     public String getRootParentName() {
         return rootParentName;
     }
 
+    @Override
     public Supplier<String[]> getRelativePathSegments() {
         return new ZipEntryRelativePath(entry);
     }
