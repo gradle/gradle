@@ -46,7 +46,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     private final ResourceHasher normalizedContentHasher;
 
     public IgnoredPathFingerprintingStrategy(LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, lineEndingNormalization);
+        super(IDENTIFIER, DirectorySensitivity.DEFAULT, lineEndingNormalization);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
@@ -93,10 +93,5 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.DEFAULT;
     }
 }

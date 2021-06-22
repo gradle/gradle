@@ -42,12 +42,10 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     public static final String IDENTIFIER = "ABSOLUTE_PATH";
 
-    private final DirectorySensitivity directorySensitivity;
     private final ResourceHasher normalizedContentHasher;
 
     public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, lineEndingNormalization);
-        this.directorySensitivity = directorySensitivity;
+        super(IDENTIFIER, directorySensitivity, lineEndingNormalization);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
@@ -68,7 +66,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
+                if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                     if (normalizedContentHash != null) {
                         builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getAbsolutePath(), snapshot.getType(), normalizedContentHash));
@@ -83,10 +81,5 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
     }
 }

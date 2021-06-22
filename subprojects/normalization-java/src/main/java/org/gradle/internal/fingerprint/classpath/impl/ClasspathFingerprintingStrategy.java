@@ -79,7 +79,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     private final ZipHasher zipHasher;
     private final Interner<String> stringInterner;
     private final HashCode zipHasherConfigurationHash;
-    private final LineEndingNormalization lineEndingNormalization;
 
     private ClasspathFingerprintingStrategy(String identifier,
                                             NonJarFingerprintingStrategy nonZipFingerprintingStrategy,
@@ -88,13 +87,12 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                                             ResourceSnapshotterCacheService cacheService,
                                             Interner<String> stringInterner,
                                             LineEndingNormalization lineEndingNormalization) {
-        super(identifier, lineEndingNormalization);
+        super(identifier, DirectorySensitivity.DEFAULT, lineEndingNormalization);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
         this.stringInterner = stringInterner;
         this.zipHasher = zipHasher;
-        this.lineEndingNormalization = lineEndingNormalization;
 
         Hasher hasher = Hashing.newHasher();
         zipHasher.appendConfigurationToHasher(hasher);
@@ -238,15 +236,5 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.KEEP_ORDER;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.DEFAULT;
-    }
-
-    @Override
-    public LineEndingNormalization getLineEndingNormalization() {
-        return lineEndingNormalization;
     }
 }

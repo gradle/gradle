@@ -41,12 +41,10 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
     public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
-    private final DirectorySensitivity directorySensitivity;
     private final ResourceHasher normalizedContentHasher;
 
     public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, lineEndingNormalization);
-        this.directorySensitivity = directorySensitivity;
+        super(IDENTIFIER, directorySensitivity, lineEndingNormalization);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
@@ -67,7 +65,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
-                if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
+                if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     if (isRoot && snapshot.getType() == FileType.Directory) {
                         builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.DIRECTORY);
                     } else {
@@ -86,10 +84,5 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
     }
 }

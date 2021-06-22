@@ -41,15 +41,13 @@ import java.util.Map;
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
-    private final DirectorySensitivity directorySensitivity;
 
     private final Interner<String> stringInterner;
     private final ResourceHasher normalizedContentHasher;
 
     public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, lineEndingNormalization);
+        super(IDENTIFIER, directorySensitivity, lineEndingNormalization);
         this.stringInterner = stringInterner;
-        this.directorySensitivity = directorySensitivity;
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
@@ -72,7 +70,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
+            if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
@@ -102,10 +100,5 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
     }
 }

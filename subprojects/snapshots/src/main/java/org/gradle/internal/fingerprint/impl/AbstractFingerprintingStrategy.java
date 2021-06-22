@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.LineEndingNormalization;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
@@ -31,11 +32,13 @@ import static org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
+    private final DirectorySensitivity directorySensitivity;
     private final LineEndingNormalization lineEndingNormalization;
 
-    public AbstractFingerprintingStrategy(String identifier, LineEndingNormalization lineEndingNormalization) {
+    public AbstractFingerprintingStrategy(String identifier, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
+        this.directorySensitivity = directorySensitivity;
         this.lineEndingNormalization = lineEndingNormalization;
     }
 
@@ -59,5 +62,10 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public LineEndingNormalization getLineEndingNormalization() {
         return lineEndingNormalization;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 }
