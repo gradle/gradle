@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
+import javax.annotation.Nullable;
+
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer buildEventConsumer;
@@ -34,7 +36,7 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
     public ClientProvidedPhasedActionRunner(BuildControllerFactory buildControllerFactory,
                                             PayloadSerializer payloadSerializer,
                                             BuildEventConsumer buildEventConsumer) {
-        super(buildControllerFactory);
+        super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
         this.buildEventConsumer = buildEventConsumer;
     }
@@ -71,10 +73,14 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         }
 
         @Override
-        public Object collectActionResult(Object result, PhasedActionResult.Phase phase) {
-            SerializedPayload serializedResult = payloadSerializer.serialize(result);
+        public void collectActionResult(SerializedPayload serializedResult, PhasedActionResult.Phase phase) {
             PhasedBuildActionResult res = new PhasedBuildActionResult(serializedResult, phase);
             buildEventConsumer.dispatch(res);
+        }
+
+        @Nullable
+        @Override
+        public SerializedPayload getResult() {
             return null;
         }
 

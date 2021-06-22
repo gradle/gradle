@@ -46,6 +46,8 @@ import org.intellij.lang.annotations.Language
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.normalizedLineSeparators
@@ -319,6 +321,7 @@ class AbstractIntegrationSpec extends Specification {
         return currentResult
     }
 
+    @Nullable
     ExecutionResult getResultOrNull() {
         return currentResult
     }
@@ -332,6 +335,11 @@ class AbstractIntegrationSpec extends Specification {
         if (currentFailure == null) {
             throw new IllegalStateException("No build failure result is available yet.")
         }
+        return currentFailure
+    }
+
+    @Nullable
+    ExecutionFailure getFailureOrNull() {
         return currentFailure
     }
 

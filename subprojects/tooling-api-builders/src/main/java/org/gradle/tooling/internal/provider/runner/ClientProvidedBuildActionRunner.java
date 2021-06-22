@@ -22,13 +22,16 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+
+import javax.annotation.Nullable;
 
 public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
 
     public ClientProvidedBuildActionRunner(BuildControllerFactory buildControllerFactory,
                                            PayloadSerializer payloadSerializer) {
-        super(buildControllerFactory);
+        super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
     }
 
@@ -42,18 +45,17 @@ public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuild
 
         Object clientAction = payloadSerializer.deserialize(clientProvidedBuildAction.getAction());
 
-        return runClientAction(new ClientActionImpl(clientAction, action, payloadSerializer), buildController);
+        return runClientAction(new ClientActionImpl(clientAction, action), buildController);
     }
 
     private static class ClientActionImpl implements ClientAction {
         private final Object clientAction;
         private final BuildAction action;
-        private final PayloadSerializer payloadSerializer;
+        private SerializedPayload result;
 
-        public ClientActionImpl(Object clientAction, BuildAction action, PayloadSerializer payloadSerializer) {
+        public ClientActionImpl(Object clientAction, BuildAction action) {
             this.clientAction = clientAction;
             this.action = action;
-            this.payloadSerializer = payloadSerializer;
         }
 
         @Override
@@ -67,8 +69,14 @@ public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuild
         }
 
         @Override
-        public Object collectActionResult(Object result, PhasedActionResult.Phase phase) {
-            return payloadSerializer.serialize(result);
+        public void collectActionResult(SerializedPayload serializedResult, PhasedActionResult.Phase phase) {
+            this.result = serializedResult;
+        }
+
+        @Nullable
+        @Override
+        public SerializedPayload getResult() {
+            return result;
         }
 
         @Override

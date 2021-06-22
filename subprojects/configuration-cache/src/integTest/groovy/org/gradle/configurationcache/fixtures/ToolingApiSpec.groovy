@@ -155,20 +155,20 @@ trait ToolingApiSpec {
         return model
     }
 
-    Pair<SomeToolingModel, SomeToolingModel> runPhasedBuildAction(BuildAction<SomeToolingModel> projectsLoadedAction, BuildAction<SomeToolingModel> modelAction) {
+    def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
         def args = executer.allArgs
         args.remove("--no-daemon")
 
-        def projectsLoadedModel = null
-        def buildModel = null
+        T projectsLoadedModel = null
+        S buildModel = null
         toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
             connection.action()
-                .projectsLoaded(projectsLoadedAction, { SomeToolingModel model ->
+                .projectsLoaded(projectsLoadedAction, { Object model ->
                     projectsLoadedModel = model
                 })
-                .buildFinished(modelAction, { SomeToolingModel model ->
+                .buildFinished(modelAction, { Object model ->
                     buildModel = model
                 })
                 .build()

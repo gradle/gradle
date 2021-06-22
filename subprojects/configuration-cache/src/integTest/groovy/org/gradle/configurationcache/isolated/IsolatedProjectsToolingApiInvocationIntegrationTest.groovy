@@ -212,4 +212,73 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         outputContains("creating model for project ':a'")
         result.assertHasPostBuildOutput("Configuration cache entry stored.")
     }
+
+    def "caches execution of phased BuildAction that queries custom tooling model"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models = runPhasedBuildAction(new FetchCustomModelForEachProject(), new FetchCustomModelForEachProject())
+
+        then:
+        def model = models.left
+        model.size() == 2
+        model.keySet().toList() == [":", ":a"] // not project b
+        model[":"].message == "It works!"
+        model[":a"].message == "It works!"
+
+        and:
+        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        outputContains("creating model for root project 'root'")
+        outputContains("creating model for project ':a'")
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def models2 = runPhasedBuildAction(new FetchCustomModelForEachProject(), new FetchCustomModelForEachProject())
+
+        then:
+        def model2 = models2.left
+        model2.size() == 2
+        model2.keySet().toList() == [":", ":a"] // not project b
+        model2[":"].message == "It works!"
+        model2[":a"].message == "It works!"
+
+        and:
+        outputContains("Reusing configuration cache.")
+        outputDoesNotContain("creating model")
+        outputContains("Configuration cache entry reused.")
+
+        when:
+        buildFile << """
+            // some change
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        def models3 = runPhasedBuildAction(new FetchCustomModelForEachProject(), new FetchCustomModelForEachProject())
+
+        then:
+        def model3 = models3.left
+        model3.size() == 2
+        model3.keySet().toList() == [":", ":a"] // not project b
+        model3[":"].message == "It works!"
+        model3[":a"].message == "It works!"
+
+        and:
+        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
+        outputContains("creating model for root project 'root'")
+        outputContains("creating model for project ':a'")
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+    }
 }
