@@ -11,6 +11,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
 import java.util.LinkedList
 
+const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
 
 val CROSS_VERSION_BUCKETS = listOf(
@@ -153,7 +154,7 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
     }
 
     private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {
-        val testCoverageId = testCoverage.asId("Gradle_Master_Check")
+        val testCoverageId = testCoverage.asId(MASTER_CHECK_CONFIGURATION)
         return buildProjectClassTimes[testCoverageId] ?: if (testCoverage.testType == TestType.soak) {
             null
         } else {
@@ -164,7 +165,7 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
                     it.buildJvmVersion == testCoverage.buildJvmVersion
             }
             foundTestCoverage?.let {
-                buildProjectClassTimes[it.asId("Gradle_Master_Check")]
+                buildProjectClassTimes[it.asId(MASTER_CHECK_CONFIGURATION)]
             }?.also {
                 println("No test statistics found for ${testCoverage.asName()} (${testCoverage.uuid}), re-using the data from ${foundTestCoverage.asName()} (${foundTestCoverage.uuid})")
             }
