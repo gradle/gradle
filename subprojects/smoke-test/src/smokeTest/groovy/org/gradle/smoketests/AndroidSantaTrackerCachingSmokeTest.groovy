@@ -62,9 +62,9 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         and:
         def expectedResults = agpVersion.startsWith('4.1')
-            ? AndroidPluginExpectations.EXPECTED_RESULTS_4_1
+            ? AndroidPluginExpectations4.EXPECTED_RESULTS_4_1
             : agpVersion.startsWith('4.2')
-            ? AndroidPluginExpectations.EXPECTED_RESULTS_4_2
+            ? AndroidPluginExpectations4.EXPECTED_RESULTS_4_2
             : agpVersion.startsWith('7.0')
             ? AndroidPluginExpectations.EXPECTED_RESULTS_7_0
             : AndroidPluginExpectations.EXPECTED_RESULTS_7_1
@@ -1337,6 +1337,9 @@ class AndroidPluginExpectations {
         ':wearable:writeDebugAppMetadata': FROM_CACHE,
         ':wearable:writeDebugSigningConfigVersions': FROM_CACHE,
     ]
+}
+
+class AndroidPluginExpectations4 {
 
     static final EXPECTED_RESULTS_4_2 = [
         ':cityquiz:assembleDebug': SUCCESS,
