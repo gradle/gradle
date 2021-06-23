@@ -298,6 +298,8 @@ Without a settings file, a Gradle build is undefined and Gradle produces an erro
 
 To fix this error, <<build_lifecycle.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
 
+Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
+
 ==== Calling Project.afterEvaluate() after project evaluation is now an error
 
 Gradle 6.x warns users about the wrong behavior and ignores the target action in this scenario.
@@ -309,8 +311,6 @@ If `afterEvaluate` is declared in a plugin then report the issue to the plugin m
 
 Calling any mutator methods (i.e. `clear()`, `add()`, `remove()`, etc.) on `ConfigurableFileCollection` after the stored value calculated throws an exception.
 Users and plugin authors should adjust their code such that all configuration on `ConfigurableFileCollection` happens during configuration time, before the values are read.
-
-Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
 ==== Removal of `ProjectLayout#configurableFiles`
 
