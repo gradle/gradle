@@ -211,12 +211,16 @@ sealed class PropertyTrace {
 
 fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
     val currentApplication = current()
-    return if (currentApplication != null) {
-        PropertyTrace.BuildLogic(currentApplication.displayName)
-    } else if (consumer != null) {
-        PropertyTrace.BuildLogicClass(consumer)
-    } else {
-        PropertyTrace.Unknown
+    return when {
+        currentApplication != null -> {
+            PropertyTrace.BuildLogic(currentApplication.displayName)
+        }
+        consumer != null -> {
+            PropertyTrace.BuildLogicClass(consumer)
+        }
+        else -> {
+            PropertyTrace.Unknown
+        }
     }
 }
 
