@@ -112,7 +112,6 @@ class RunEclipseAutoBuildTasksCrossVersionSpec extends ToolingApiSpecification {
         taskExecuted(out, ":sub:bar")
     }
 
-
     def "execute placeholder task when no task is configured for auto-build"() {
         setup:
         def projectsLoadedHandler = new IntermediateResultHandlerCollector<Void>()

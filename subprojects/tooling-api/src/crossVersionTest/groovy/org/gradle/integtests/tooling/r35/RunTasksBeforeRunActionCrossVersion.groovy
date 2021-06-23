@@ -16,16 +16,20 @@
 
 package org.gradle.integtests.tooling.r35
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.UnsupportedVersionException
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 @ToolingApiVersion('>=3.5')
+@TargetGradleVersion('>=3.5')
 class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -43,7 +47,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         """
     }
 
-    @TargetGradleVersion('>=3.5')
     def "can run tasks"() {
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -56,7 +59,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         assert stdOut.toString().contains("bye")
     }
 
-    @TargetGradleVersion('>=3.5')
     def "tasks are run before action is executed"() {
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -68,6 +70,115 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
         Pattern regex = Pattern.compile(".*hello.*bye.*starting action.*", Pattern.DOTALL)
         assert stdOut.toString().matches(regex)
         assert result == "Action result"
+    }
+
+    @Unroll
+    def "does not run any tasks when none specified and #description"() {
+        file('build.gradle') << """
+            $configuration
+
+            gradle.taskGraph.whenReady {
+                throw new RuntimeException()
+            }
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action(new SimpleAction())
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        noExceptionThrown()
+        assertHasConfigureSuccessfulLogging()
+
+        where:
+        description                                        | configuration
+        "build logic does not define any additional tasks" | ""
+        "build logic defines default tasks"                | "defaultTasks = ['broken']"
+        "build logic injects tasks into start param"       | "gradle.startParameter.taskNames = ['broken']"
+    }
+
+    @Unroll
+    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    @TargetGradleVersion('>=4.7')
+    def "#description means run help task"() {
+        file('build.gradle') << """
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action(new SimpleAction())
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":help")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
+    }
+
+    @Unroll
+    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    @TargetGradleVersion('>=4.7')
+    def "#description means run default tasks when they are defined"() {
+        file('build.gradle') << """
+            defaultTasks = ["thing"]
+
+            task thing { }
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action(new SimpleAction())
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
+    }
+
+    @Unroll
+    @ToolingApiVersion('>4.7') // older versions do not run any tasks
+    @TargetGradleVersion('>=4.7')
+    def "#description means run tasks injected by build logic"() {
+        file('build.gradle') << """
+            gradle.startParameter.taskNames = ["thing"]
+
+            task thing { }
+        """
+
+        when:
+        withConnection { connection ->
+            def builder = connection.action(new SimpleAction())
+            action(builder)
+            collectOutputs(builder)
+            builder.run()
+        }
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+
+        where:
+        description                 | action
+        "empty array of task names" | { BuildActionExecuter b -> b.forTasks() }
+        "empty list of task names"  | { BuildActionExecuter b -> b.forTasks([]) }
     }
 
     @TargetGradleVersion(">=2.6 <3.5")
