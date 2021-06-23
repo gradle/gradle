@@ -23,11 +23,14 @@ import org.gradle.configurationcache.ConfigurationCacheAction.STORE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.ConfigurationCacheReport
+import org.gradle.configurationcache.ConfigurationCacheReport.Companion.reportHtmlFileName
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.util.SynchronizedListBuilder
+import org.gradle.configurationcache.util.compactHashString
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.hash.Hasher
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
@@ -118,8 +121,7 @@ class ConfigurationCacheProblems(
             requireNotNull(invalidateStoredState).invoke()
         }
         val cacheActionText = cacheAction.summaryText()
-        val outputDirectory = outputDirectoryFor(reportDir)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
+        val htmlReportFile = writeReportTo(reportDir, cacheActionText, problems)
         when {
             isFailOnProblems -> {
                 // TODO - always include this as a build failure;
@@ -133,6 +135,54 @@ class ConfigurationCacheProblems(
                 logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
             }
         }
+    }
+
+    private
+    fun writeReportTo(reportDir: File, cacheActionText: String, problems: List<PropertyProblem>): File {
+        val contentHash = hashOf(cacheActionText, problems)
+        val outputDirectory = reportDir.resolve("reports/configuration-cache/$cacheKey/$contentHash")
+        val htmlReportFile = outputDirectory.resolve(reportHtmlFileName)
+        if (!htmlReportFile.exists()) {
+            require(outputDirectory.mkdirs()) {
+                "Could not create configuration cache report directory '$outputDirectory'"
+            }
+            report.writeReportTo(htmlReportFile, cacheActionText, problems)
+        }
+        return htmlReportFile
+    }
+
+    private
+    fun hashOf(cacheActionText: String, problems: List<PropertyProblem>): String =
+        compactHashString {
+            val appendable = appendableHasher()
+            putString(cacheActionText)
+            for (problem in problems) {
+                for (fragment in problem.message.fragments) {
+                    when (fragment) {
+                        is StructuredMessage.Fragment.Reference -> putString(fragment.name)
+                        is StructuredMessage.Fragment.Text -> putString(fragment.text)
+                    }
+                }
+                for (trace in problem.trace.sequence) {
+                    trace.appendStringTo(appendable)
+                }
+            }
+        }
+
+    private
+    fun Hasher.appendableHasher() = object : Appendable {
+        override fun append(csq: CharSequence): Appendable {
+            putString(csq)
+            return this
+        }
+
+        override fun append(c: Char): Appendable {
+            putInt(c.toInt())
+            return this
+        }
+
+        override fun append(csq: CharSequence, start: Int, end: Int): Appendable =
+            throw NotImplementedError()
     }
 
     private
@@ -164,15 +214,6 @@ class ConfigurationCacheProblems(
     private
     fun List<PropertyProblem>.causes() =
         mapNotNull { it.exception }.take(maxCauses)
-
-    private
-    fun outputDirectoryFor(buildDir: File): File =
-        buildDir.resolve("reports/configuration-cache/$cacheKey").let { base ->
-            if (!base.exists()) base
-            else generateSequence(1) { it + 1 }
-                .map { base.resolveSibling("${base.name}-$it") }
-                .first { !it.exists() }
-        }
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

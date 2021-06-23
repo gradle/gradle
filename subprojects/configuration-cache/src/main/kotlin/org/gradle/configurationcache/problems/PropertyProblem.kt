@@ -132,28 +132,30 @@ sealed class PropertyTrace {
     }
 
     override fun toString(): String =
-        StringBuilder().apply {
-            sequence.forEach {
-                appendStringOf(it)
+        StringBuilder().run {
+            for (trace in sequence) {
+                appendStringOf(trace)
             }
-        }.toString()
+            toString()
+        }
 
     /**
      * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
      */
     open val containingUserCode: String
-        get() = StringBuilder().apply {
-            appendStringOf(this@PropertyTrace)
-        }.toString()
+        get() = StringBuilder().apply(::appendStringTo).toString()
+
+    fun appendStringTo(output: Appendable) =
+        output.appendStringOf(this)
 
     private
-    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
+    fun Appendable.appendStringOf(trace: PropertyTrace) {
         when (trace) {
             is Gradle -> {
                 append("Gradle runtime")
             }
             is Property -> {
-                append(trace.kind)
+                append(trace.kind.toString())
                 append(" ")
                 quoted(trace.name)
                 append(" of ")
@@ -182,7 +184,7 @@ sealed class PropertyTrace {
     }
 
     private
-    fun StringBuilder.quoted(s: String) {
+    fun Appendable.quoted(s: String) {
         append('`')
         append(s)
         append('`')

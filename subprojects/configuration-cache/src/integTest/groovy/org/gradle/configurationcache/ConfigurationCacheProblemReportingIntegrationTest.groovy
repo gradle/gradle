@@ -45,6 +45,48 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
     }
 
+    def "report file is content addressable"() {
+        given:
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('broken') {
+                doFirst { println(project.name) }
+            }
+            tasks.register('alsoBroken') {
+                doFirst { println(project.name) }
+            }
+        """
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir1 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        reportDir1?.isDirectory()
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir2 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        reportDir2?.isDirectory()
+        reportDir2 != reportDir1
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir3 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        reportDir3 == reportDir1
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir4 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        reportDir4 == reportDir2
+    }
+
     def "state serialization errors always halt the build and invalidate the cache"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

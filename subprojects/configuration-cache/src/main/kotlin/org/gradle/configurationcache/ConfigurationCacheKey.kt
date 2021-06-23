@@ -18,9 +18,9 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.util.compactHashString
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.hash.Hasher
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.GradleVersion
@@ -35,9 +35,9 @@ class ConfigurationCacheKey(
 ) {
 
     val string: String by unsafeLazy {
-        Hashing.md5().newHasher().apply {
+        compactHashString {
             putCacheKeyComponents()
-        }.hash().toCompactString()
+        }
     }
 
     override fun toString() = string

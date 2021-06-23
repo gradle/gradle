@@ -37,8 +37,6 @@ import java.net.URL
 class ConfigurationCacheReport {
 
     companion object {
-
-        private
         const val reportHtmlFileName = "configuration-cache-report.html"
     }
 
@@ -47,24 +45,19 @@ class ConfigurationCacheReport {
         buildConsoleSummary(cacheAction, problems, htmlReportFile)
 
     /**
-     * Writes the report file to [outputDirectory].
+     * Writes the report to [htmlReportFile].
      *
      * The file is laid out in such a way as to allow extracting the pure JSON model,
      * see [writeJsReportData].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, problems: List<PropertyProblem>): File {
-        require(outputDirectory.mkdirs()) {
-            "Could not create configuration cache report directory '$outputDirectory'"
-        }
+    fun writeReportTo(htmlReportFile: File, cacheAction: String, problems: List<PropertyProblem>) {
         // Groovy JSON uses the context classloader to locate various components, so use this class's classloader as the context classloader
-        return withContextClassLoader {
-            outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
-                val html = javaClass.requireResource(reportHtmlFileName)
-                htmlReportFile.bufferedWriter().use { writer ->
-                    html.openStream().bufferedReader().use { reader ->
-                        writer.writeReportFileText(reader, cacheAction, problems)
-                    }
+        withContextClassLoader {
+            val html = javaClass.requireResource(reportHtmlFileName)
+            htmlReportFile.bufferedWriter().use { writer ->
+                html.openStream().bufferedReader().use { reader ->
+                    writer.writeReportFileText(reader, cacheAction, problems)
                 }
             }
         }
