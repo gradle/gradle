@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -31,7 +32,6 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import java.io.File
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
 
@@ -55,11 +55,12 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
+
     private
     val postBuildHandler = PostBuildProblemsHandler()
 
     private
-    val problems = CopyOnWriteArrayList<PropertyProblem>()
+    val problemListBuilder = ImmutableList.builder<PropertyProblem>()
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -99,7 +100,18 @@ class ConfigurationCacheProblems(
     fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
 
     override fun onProblem(problem: PropertyProblem) {
-        problems.add(problem)
+        problemListBuilder.let {
+            synchronized(it) {
+                it.add(problem)
+            }
+        }
+    }
+
+    private
+    fun buildProblemList() = problemListBuilder.let {
+        synchronized(it) {
+            it.build()
+        }
     }
 
     override fun getId(): String {
@@ -107,6 +119,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
+        val problems = buildProblemList()
         if (problems.isEmpty()) {
             return
         }
@@ -120,11 +133,12 @@ class ConfigurationCacheProblems(
         val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
         when {
             isFailOnProblems -> {
-                // TODO - always include this as a build failure; currently it is disabled when a serialization problem happens
-                validationFailures.accept(newProblemsException(cacheActionText, htmlReportFile))
+                // TODO - always include this as a build failure;
+                //  currently it is disabled when a serialization problem happens
+                validationFailures.accept(problems.newProblemsException(cacheActionText, htmlReportFile))
             }
             tooManyProblems -> {
-                validationFailures.accept(newTooManyProblemsException(cacheActionText, htmlReportFile))
+                validationFailures.accept(problems.newTooManyProblemsException(cacheActionText, htmlReportFile))
             }
             else -> {
                 logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
@@ -141,20 +155,20 @@ class ConfigurationCacheProblems(
         }
 
     private
-    fun newProblemsException(cacheActionText: String, htmlReportFile: File) =
+    fun List<PropertyProblem>.newProblemsException(cacheActionText: String, htmlReportFile: File) =
         ConfigurationCacheProblemsException(
-            problems.causes(),
+            causes(),
             cacheActionText,
-            problems,
+            this,
             htmlReportFile
         )
 
     private
-    fun newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
+    fun List<PropertyProblem>.newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
         TooManyConfigurationCacheProblemsException(
-            problems.causes(),
+            causes(),
             cacheActionText,
-            problems,
+            this,
             htmlReportFile
         )
 
@@ -173,8 +187,10 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
+            val problems = buildProblemList()
             val hasProblems = problems.isNotEmpty()
             val hasTooManyProblems = problems.size > startParameter.maxProblems
+            val problemCount = if (problems.size == 1) "1 problem" else "${problems.size} problems"
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
@@ -189,11 +205,6 @@ class ConfigurationCacheProblems(
                 // else not storing or loading and no problems to report
             }
         }
-
-        private
-        val problemCount: String
-            get() = if (problems.size == 1) "1 problem"
-            else "${problems.size} problems"
     }
 
     private
