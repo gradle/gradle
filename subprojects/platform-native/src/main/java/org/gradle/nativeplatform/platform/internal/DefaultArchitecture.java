@@ -56,7 +56,7 @@ public class DefaultArchitecture implements ArchitectureInternal {
     public boolean isArm() {
         return Architectures.ARM_V7.isAlias(name);
     }
-	
+
     @Override
     public boolean isArm64() {
         return Architectures.ARM_V8.isAlias(name);

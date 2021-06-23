@@ -97,7 +97,7 @@ public enum ArchitectureDescriptorBuilder {
             return definitions;
         }
     },
-	
+
     // Host: x64
     // Target: arm64
     ARM64_ON_AMD64("arm64", "bin/Hostx64/arm64", "lib/arm64", "armasm64.exe") {
