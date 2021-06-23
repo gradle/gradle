@@ -527,4 +527,62 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         "otherApi" | "a2"
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "recompiles all if constant used by annotation on module-info is changed"() {
+        given:
+        file("api/src/main/${language.name}/constant/Const.${language.name}").text = "package constant; public class Const { public static final String CONST = \"unchecked\"; }"
+        def apiModuleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
+        apiModuleInfo.text = """
+            module api {
+                exports constant;
+            }
+        """
+        def moduleInfo = file("impl/src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            import constant.Const;
+
+            @SuppressWarnings(Const.CONST)
+            module impl {
+                requires api;
+            }
+        """
+        file("impl/src/main/${language.name}/foo/A.${language.name}").text = "package foo; class A { }"
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        file("api/src/main/${language.name}/constant/Const.${language.name}").text = "package constant; public class Const { public static final String CONST = \"raw-types\"; }"
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses 'module-info', 'A'
+    }
+
+    def "recompiles all classes in a package if constant used by annotation on package-info is changed"() {
+        file("api/src/main/${language.name}/constant/Const.${language.name}").text = "package constant; public class Const { public static final int X = 1; }"
+        file("api/src/main/${language.name}/annotations/Anno.${language.name}").text = """
+            package annotations;
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.PACKAGE)
+            public @interface Anno {
+                   int value();
+            }
+        """
+        def packageFile = file("impl/src/main/${language.name}/foo/package-info.${language.name}")
+        packageFile.text = """@Deprecated @annotations.Anno(constant.Const.X + 1) package foo;"""
+        file("impl/src/main/${language.name}/foo/A.${language.name}").text = "package foo; class A {}"
+        file("impl/src/main/${language.name}/foo/B.${language.name}").text = "package foo; public class B {}"
+        file("impl/src/main/${language.name}/foo/bar/C.${language.name}").text = "package foo.bar; class C {}"
+        file("impl/src/main/${language.name}/baz/D.${language.name}").text = "package baz; class D {}"
+        file("impl/src/main/${language.name}/baz/E.${language.name}").text = "package baz; import foo.B; class E extends B {}"
+        impl.snapshot { run language.compileTaskName }
+
+        when:
+        file("api/src/main/${language.name}/constant/Const.${language.name}").text = "package constant; public class Const { public static final int X = 2; }"
+        run "impl:${language.compileTaskName}"
+
+        then:
+        impl.recompiledClasses "A", "B", "E", "package-info"
+    }
+
 }
