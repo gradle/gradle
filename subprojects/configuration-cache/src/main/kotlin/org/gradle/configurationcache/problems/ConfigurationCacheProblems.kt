@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.problems
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -26,6 +25,7 @@ import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.ConfigurationCacheReport
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.util.SynchronizedListBuilder
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
@@ -60,7 +60,7 @@ class ConfigurationCacheProblems(
     val postBuildHandler = PostBuildProblemsHandler()
 
     private
-    val problemListBuilder = ImmutableList.builder<PropertyProblem>()
+    val problemListBuilder = SynchronizedListBuilder<PropertyProblem>()
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -96,23 +96,12 @@ class ConfigurationCacheProblems(
         isFailOnProblems = false
     }
 
-    private
-    fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
-
-    override fun onProblem(problem: PropertyProblem) {
-        problemListBuilder.let {
-            synchronized(it) {
-                it.add(problem)
-            }
-        }
-    }
+    override fun onProblem(problem: PropertyProblem) =
+        problemListBuilder.add(problem)
 
     private
-    fun buildProblemList() = problemListBuilder.let {
-        synchronized(it) {
-            it.build()
-        }
-    }
+    fun buildProblemList() =
+        problemListBuilder.build()
 
     override fun getId(): String {
         return "configuration-cache"
@@ -171,6 +160,10 @@ class ConfigurationCacheProblems(
             this,
             htmlReportFile
         )
+
+    private
+    fun List<PropertyProblem>.causes() =
+        mapNotNull { it.exception }.take(maxCauses)
 
     private
     fun outputDirectoryFor(buildDir: File): File =
