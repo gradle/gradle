@@ -21,6 +21,7 @@ import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 
 class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final JUNIT_DEPENDENCY = "org.junit.jupiter:junit-jupiter-engine:5.7.2"
     private static final AGGREGATION_TASK_NAME = "jacocoAggregatedTestReport"
 
     def setup() {
@@ -73,7 +74,86 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
-        aggregatedReport.totalCoverage() == 62
+        aggregatedReport.totalCoverage() == 63
+    }
+
+    def "aggregates test results for specified test categories for the app and its library dependencies into a single report"() {
+        given:
+        projectHasIntegrationTests("lib1", "Lib1")
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+            tasks.register("${AGGREGATION_TASK_NAME}", AggregatedJacocoReport) {
+                testCategories = ['${testsToAggregate.join("', '")}']
+            }
+        """
+
+        when:
+        succeeds(AGGREGATION_TASK_NAME)
+
+        then:
+        for (String testName : testsToAggregate) {
+            executed(":lib1:${testName}")
+        }
+        def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
+        aggregatedReport.exists()
+        aggregatedReport.numberOfClasses() == 3
+        aggregatedReport.totalCoverage() == totalCoverage
+
+        where:
+        testsToAggregate            | totalCoverage
+        ["test"]                    | 63
+        ["integrationTest"]         | 21
+        ["test", "integrationTest"] | 75
+    }
+
+    def "can create multiple different test report aggregations for the app and its library dependencies into a single report"() {
+        given:
+        projectHasIntegrationTests("lib1", "Lib1")
+        file("app/build.gradle") << """
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+            tasks.register("aggregatedTestReport", AggregatedJacocoReport) {
+                testCategories = ["test"]
+            }
+            tasks.register("aggregatedIntegrationTestReport", AggregatedJacocoReport) {
+                testCategories = ["integrationTest"]
+            }
+            tasks.register("aggregatedMergedReport", AggregatedJacocoReport) {
+                testCategories = ["test", "integrationTest"]
+            }
+        """
+
+        when:
+        succeeds("aggregatedTestReport")
+
+        then:
+        def testReport = htmlReport("app", "aggregatedTestReport")
+        testReport.exists()
+        testReport.numberOfClasses() == 3
+        testReport.totalCoverage() == 63
+
+        when:
+        succeeds("aggregatedIntegrationTestReport")
+
+        then:
+        def integrationTestReport = htmlReport("app", "aggregatedIntegrationTestReport")
+        integrationTestReport.exists()
+        integrationTestReport.numberOfClasses() == 3
+        integrationTestReport.totalCoverage() == 21
+
+        when:
+        succeeds("aggregatedMergedReport")
+
+        then:
+        def mergedReport = htmlReport("app", "aggregatedMergedReport")
+        mergedReport.exists()
+        mergedReport.numberOfClasses() == 3
+        mergedReport.totalCoverage() == 75
     }
 
     def "aggregates unit test results for the app and its library dependencies transitively"() {
@@ -97,7 +177,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
-        aggregatedReport.totalCoverage() == 62
+        aggregatedReport.totalCoverage() == 63
     }
 
     def "excludes external dependency classes from aggregated unit test results"() {
@@ -123,7 +203,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
-        aggregatedReport.totalCoverage() == 62
+        aggregatedReport.totalCoverage() == 63
     }
 
     def "aggregates test results using a dedicated aggregation subproject"() {
@@ -154,7 +234,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
-        aggregatedReport.totalCoverage() == 62
+        aggregatedReport.totalCoverage() == 63
     }
 
     def "handles no source directories when dedicated aggregation project applies java-base plugin"() {
@@ -190,7 +270,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 3
-        aggregatedReport.totalCoverage() == 62
+        aggregatedReport.totalCoverage() == 63
     }
 
     def "produces aggregated report given some project does not produce coverage data"() {
@@ -221,7 +301,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 4
-        aggregatedReport.totalCoverage() == 46
+        aggregatedReport.totalCoverage() == 47
     }
 
     def "produces aggregated report given dedicated aggregation project is a Java project and does not produce coverage data"() {
@@ -254,7 +334,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         def aggregatedReport = htmlReport("aggregation", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
         aggregatedReport.numberOfClasses() == 4
-        aggregatedReport.totalCoverage() == 46
+        aggregatedReport.totalCoverage() == 47
     }
 
     def "assemble does not execute tests"() {
@@ -281,7 +361,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
     private static String configureJUnitPlatform() {
         return """
             dependencies {
-                testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.2")
+                testImplementation("${JUNIT_DEPENDENCY}")
             }
             tasks.named("test") {
                 useJUnitPlatform()
@@ -289,15 +369,50 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    private void projectHasIntegrationTests(String subproject, String className) {
+        file("${subproject}/build.gradle") << """
+            sourceSets {
+                integrationTest {
+                    compileClasspath += sourceSets.main.output
+                    runtimeClasspath += sourceSets.main.output
+                }
+            }
+            configurations {
+                integrationTestImplementation {
+                    extendsFrom(configurations.testImplementation)
+                }
+            }
+            tasks.register("integrationTest", Test) {
+                useJUnitPlatform()
+                classpath = sourceSets.integrationTest.runtimeClasspath
+                testClassesDirs = sourceSets.integrationTest.output.classesDirs
+            }
+        """
+        writeIntegrationTest(subproject, className)
+    }
+
+    private void writeIntegrationTest(String subproject, String className) {
+        file("${subproject}/src/integrationTest/java/com/example/${className}IntegrationTest.java") << """
+                package com.example;
+                import org.junit.jupiter.api.Test;
+                class ${className}IntegrationTest {
+                    @Test
+                    void integrationTest${className}() {
+                        new ${className}().integration();
+                    }
+                }
+            """
+    }
+
     private void writeClass(String subproject, String className, boolean withTest = true) {
         file("${subproject}/src/main/java/com/example/${className}.java") << """
             package com.example;
             public class ${className} {
-                public String get${className}() {
-                    return "${className}";
+                void unit() {
+                    System.out.println("unit");
                 }
-                void untested() {
-                    System.out.println();
+                void integration() {
+                    System.out.println("integration");
                 }
             }
         """
@@ -307,8 +422,8 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 import org.junit.jupiter.api.Test;
                 class ${className}Test {
                     @Test
-                    void returns${className}() {
-                        new ${className}().get${className}();
+                    void unitTest${className}() {
+                        new ${className}().unit();
                     }
                 }
             """

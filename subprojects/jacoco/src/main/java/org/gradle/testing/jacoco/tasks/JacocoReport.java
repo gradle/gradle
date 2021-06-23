@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -40,7 +39,6 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
     private final JacocoReportsContainer reports;
 
     public JacocoReport() {
-        super();
         projectName.value(getProject().getName()).disallowChanges();
         reports = getInstantiator().newInstance(JacocoReportsContainerImpl.class, this, getCallbackActionDecorator());
     }
@@ -70,7 +68,7 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
      */
     @Override
     public JacocoReportsContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<JacocoReportsContainer>(closure));
+        return reports(new ClosureBackedAction<>(closure));
     }
 
     @Override
@@ -81,18 +79,11 @@ public class JacocoReport extends JacocoReportBase implements Reporting<JacocoRe
 
     @TaskAction
     public void generate() {
-        final Spec<File> fileExistsSpec = new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                return file.exists();
-            }
-        };
-
         new AntJacocoReport(getAntBuilder()).execute(
             getJacocoClasspath(),
             projectName.get(),
-            getAllClassDirs().filter(fileExistsSpec),
-            getAllSourceDirs().filter(fileExistsSpec),
+            getAllClassDirs().filter(File::exists),
+            getAllSourceDirs().filter(File::exists),
             getExecutionData(),
             getReports()
         );

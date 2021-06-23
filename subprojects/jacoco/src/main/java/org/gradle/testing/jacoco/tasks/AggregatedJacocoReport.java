@@ -17,21 +17,28 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Task to aggregate HTML, Xml and CSV reports of Jacoco coverage data.
@@ -40,40 +47,73 @@ import java.io.File;
  */
 @Incubating
 @CacheableTask
-public class AggregatedJacocoReport extends JacocoReport {
+public abstract class AggregatedJacocoReport extends JacocoReport {
 
     public static final String AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
+    @Input
+    public abstract ListProperty<String> getTestCategories();
+
     @Inject
     public AggregatedJacocoReport(JvmEcosystemUtilities jvmEcosystemUtilities) {
+        getTestCategories().convention(Collections.singletonList("test"));
+
         Project project = getProject();
         project.getPluginManager().withPlugin("java", plugin -> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             // TODO: what about other "production" source sets that the users might add?
             sourceSets(javaPluginExtension.getSourceSets().getByName("main"));
-            executionData(project.getTasks().named("test").map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
+
+            executionData(getTestCategories().map(categories -> {
+                ConfigurableFileCollection coverageFiles = project.files();
+                for (String testCategory : categories)  {
+                    TaskContainer tasks = project.getTasks();
+                    if (tasks.findByName(testCategory) != null) {
+                        coverageFiles.from(project.getTasks().named(testCategory).map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
+                    }
+                }
+                return coverageFiles;
+            }));
         });
 
-        ConfigurationContainer configurations = project.getConfigurations();
-        Configuration jacocoAggregation = configurations.getByName(AGGREGATION_CONFIGURATION_NAME);
+        Configuration aggregationConfiguration = project.getConfigurations().findByName(AGGREGATION_CONFIGURATION_NAME);
+        resolveClassesVariantsFrom(aggregationConfiguration, jvmEcosystemUtilities);
+        resolveSourcesVariantsFrom(aggregationConfiguration);
+        resolveTestCoverageDataVariantsFrom(aggregationConfiguration);
+    }
 
+    private void resolveClassesVariantsFrom(Configuration aggregationConfiguration, JvmEcosystemUtilities jvmEcosystemUtilities) {
         Configuration coverageClassesDirs = createResolver("coverageClassesDirs");
-        coverageClassesDirs.extendsFrom(jacocoAggregation);
+        coverageClassesDirs.extendsFrom(aggregationConfiguration);
         jvmEcosystemUtilities.configureAsRuntimeClasspath(coverageClassesDirs);
         // TODO: is there a better way to not include external dependency classes?
         additionalClassDirs(coverageClassesDirs.filter(it -> it.getPath().contains(File.separator + "build" + File.separator + "libs" + File.separator)));
+    }
 
+    private void resolveSourcesVariantsFrom(Configuration aggregationConfiguration) {
         Configuration sourcesPath = createResolver("sourcesPath");
-        sourcesPath.extendsFrom(jacocoAggregation);
-        sourcesPath.attributes(sourceDirectoriesAttributes(project));
+        sourcesPath.extendsFrom(aggregationConfiguration);
+        sourcesPath.attributes(sourceDirectoriesAttributes(getProject()));
         additionalSourceDirs(sourcesPath.getIncoming().artifactView(it -> it.lenient(true)).getFiles());
+    }
 
-        Configuration coverageDataPath = createResolver("coverageDataPath");
-        coverageDataPath.extendsFrom(jacocoAggregation);
-        // TODO: can we add configuration options so that users can choose which test tasks to aggregate coverage for?
-        // Given that there will be multiple variants exposing coverage data per test task
-        coverageDataPath.attributes(coverageDataAttributes(project));
-        executionData(coverageDataPath.getIncoming().artifactView(it -> it.lenient(true)).getFiles().filter(File::exists));
+    private void resolveTestCoverageDataVariantsFrom(Configuration aggregationConfiguration) {
+        Project project = getProject();
+        executionData(getTestCategories().map(categories -> {
+            ConfigurableFileCollection coverageFiles = project.files();
+            for (String testCategory : categories) {
+                String resolverName = testCategory + "CoverageDataPath";
+                // For some reason, the map function gets executed twice, thus the conditional below
+                Configuration coverageDataPath = project.getConfigurations().findByName(resolverName);
+                if (coverageDataPath == null) {
+                    coverageDataPath = createResolver(resolverName);
+                    coverageDataPath.extendsFrom(aggregationConfiguration);
+                    coverageDataPath.attributes(coverageDataAttributes(project, testCategory));
+                }
+                coverageFiles.from(coverageDataPath.getIncoming().artifactView(it -> it.lenient(true)).getFiles()).filter(File::exists);
+            }
+            return coverageFiles;
+        }));
     }
 
     @Override
@@ -105,11 +145,16 @@ public class AggregatedJacocoReport extends JacocoReport {
         };
     }
 
-    public static Action<? super AttributeContainer> coverageDataAttributes(Project project) {
+    public static Action<? super AttributeContainer> coverageDataAttributes(Project project, String testCategory) {
         return a -> {
             a.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
             a.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.DOCUMENTATION));
             a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.getObjects().named(DocsType.class, "jacoco-coverage-data"));
+            a.attribute(TestCategory.ATTRIBUTE, project.getObjects().named(TestCategory.class, testCategory));
         };
+    }
+
+    private interface TestCategory extends Named {
+        Attribute<TestCategory> ATTRIBUTE = Attribute.of("org.gradle.test-category", TestCategory.class);
     }
 }

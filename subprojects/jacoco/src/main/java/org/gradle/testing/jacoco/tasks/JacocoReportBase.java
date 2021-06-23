@@ -205,7 +205,7 @@ public abstract class JacocoReportBase extends JacocoBase {
         for (final SourceSet sourceSet : sourceSets) {
             sourceDirectories.from(new Callable<Set<File>>() {
                 @Override
-                public Set<File> call() throws Exception {
+                public Set<File> call() {
                     return sourceSet.getAllJava().getSrcDirs();
                 }
             });
