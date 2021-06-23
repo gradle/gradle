@@ -97,6 +97,22 @@ public enum ArchitectureDescriptorBuilder {
             return definitions;
         }
     },
+	
+    // Host: x64
+    // Target: arm64
+    ARM64_ON_AMD64("arm64", "bin/Hostx64/arm64", "lib/arm64", "armasm64.exe") {
+        @Override
+        File getCrossCompilePath(File basePath) {
+            return AMD64_ON_AMD64.getBinPath(basePath);
+        }
+
+        @Override
+        Map<String, String> getDefinitions() {
+            Map<String, String> definitions = super.getDefinitions();
+            definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+            return definitions;
+        }
+    },
 
     // Host: x86
     // Target: arm
@@ -114,6 +130,22 @@ public enum ArchitectureDescriptorBuilder {
         }
     },
     ARM_ON_X86("arm", "bin/HostX86/arm", "lib/arm", "armasm.exe") {
+        @Override
+        File getCrossCompilePath(File basePath) {
+            return X86_ON_X86.getBinPath(basePath);
+        }
+
+        @Override
+        Map<String, String> getDefinitions() {
+            Map<String, String> definitions = super.getDefinitions();
+            definitions.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
+            return definitions;
+        }
+    },
+	
+    // Host: x86
+    // Target: arm64
+    ARM64_ON_X86("arm64", "bin/Hostx86/arm64", "lib/arm64", "armasm64.exe") {
         @Override
         File getCrossCompilePath(File basePath) {
             return X86_ON_X86.getBinPath(basePath);

@@ -41,6 +41,9 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
         if (platform.getArchitecture().isArm()) {
             return new WindowsKitBackedSdk("arm");
         }
+        if (platform.getArchitecture().isArm64()) {
+            return new WindowsKitBackedSdk("arm64");
+        }
         if (platform.getArchitecture().isI386()) {
             return new WindowsKitBackedSdk("x86");
         }
