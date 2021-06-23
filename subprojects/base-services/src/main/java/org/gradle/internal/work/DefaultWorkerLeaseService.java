@@ -16,7 +16,6 @@
 
 package org.gradle.internal.work;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
@@ -38,12 +37,11 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.Path;
+import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -234,12 +232,12 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     private boolean containsProjectLocks(Iterable<? extends ResourceLock> locks) {
-        return Iterables.any(locks, new Predicate<ResourceLock>() {
-            @Override
-            public boolean apply(@Nullable ResourceLock lock) {
-                return lock instanceof ProjectLock;
+        for (ResourceLock lock : locks) {
+            if (lock instanceof ProjectLock) {
+                return true;
             }
-        });
+        }
+        return false;
     }
 
     private Iterable<? extends ResourceLock> locksNotHeld(final Iterable<? extends ResourceLock> locks) {

@@ -1547,7 +1547,7 @@ task b(dependsOn: a)
             ignoredAnnotatedPropertyMessage {
                 type('CustomTask').property('classpath')
                 ignoring('Internal')
-                alsoAnnotatedWith('InputFiles', 'Classpath')
+                alsoAnnotatedWith('Classpath', 'InputFiles')
             }
         )
     }
