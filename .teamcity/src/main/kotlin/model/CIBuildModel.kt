@@ -260,8 +260,7 @@ data class TestCoverage(
     val vendor: JvmVendor = JvmVendor.oracle,
     val buildJvmVersion: JvmVersion = JvmVersion.java11,
     val expectedBucketNumber: Int = 50,
-    val withoutDependencies: Boolean = false,
-    val testDistribution: Boolean = false
+    val withoutDependencies: Boolean = false
 ) {
 
     constructor(
@@ -271,10 +270,8 @@ data class TestCoverage(
         testJvm: JvmCategory,
         buildJvmVersion: JvmVersion = JvmVersion.java11,
         expectedBucketNumber: Int = 50,
-        withoutDependencies: Boolean = false,
-        testDistribution: Boolean = false
-    ) :
-        this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies, testDistribution)
+        withoutDependencies: Boolean = false
+    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies)
 
     fun asId(projectId: String): String {
         return "${projectId}_$testCoveragePrefix"

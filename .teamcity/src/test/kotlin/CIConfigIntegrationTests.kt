@@ -10,12 +10,12 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.CIBuildModel
 import model.CROSS_VERSION_BUCKETS
+import model.DefaultFunctionalTestBucketProvider
 import model.FunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
 import model.Stage
 import model.StageNames
-import model.StatisticBasedFunctionalTestBucketProvider
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -42,7 +42,7 @@ class CIConfigIntegrationTests {
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
     )
-    private val gradleBuildBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, File("./test-class-data.json").absoluteFile)
+    private val gradleBuildBucketProvider = DefaultFunctionalTestBucketProvider(model, File("./test-buckets.json").absoluteFile)
     private val rootProject = CheckProject(model, gradleBuildBucketProvider)
 
     private
