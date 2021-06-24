@@ -36,6 +36,9 @@ publishing {
                 username = artifactoryUserName
                 password = artifactoryUserPassword
             }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
         }
     }
     configurePublishingTasks()
