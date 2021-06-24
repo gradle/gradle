@@ -26,6 +26,10 @@ import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.buildConsoleSummary
 import org.gradle.configurationcache.problems.firstTypeFrom
 import org.gradle.configurationcache.problems.taskPathFrom
+import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
+
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -34,7 +38,10 @@ import java.io.StringWriter
 import java.net.URL
 
 
-class ConfigurationCacheReport {
+@ServiceScope(Scopes.BuildTree::class)
+class ConfigurationCacheReport internal constructor(
+    private val classLoaderScopeRegistry: ClassLoaderScopeRegistry
+) {
 
     companion object {
 
@@ -57,7 +64,7 @@ class ConfigurationCacheReport {
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
-        // Groovy JSON uses the context classloader to locate various components, so use this class's classloader as the context classloader
+        // Groovy JSON uses the context classloader to locate various components, so use the core and plugins loader as the context classloader
         return withContextClassLoader {
             outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
                 val html = javaClass.requireResource(reportHtmlFileName)
@@ -74,7 +81,7 @@ class ConfigurationCacheReport {
     fun <T> withContextClassLoader(action: () -> T): T {
         val currentThread = Thread.currentThread()
         val previous = currentThread.contextClassLoader
-        currentThread.contextClassLoader = javaClass.classLoader
+        currentThread.contextClassLoader = classLoaderScopeRegistry.coreAndPluginsScope.exportClassLoader
         try {
             return action()
         } finally {
