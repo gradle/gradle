@@ -107,24 +107,20 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             ":compilePluginsBlocks",
             ":generateScriptPluginAdapters"
         )
-        val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
         val downstreamKotlinCompileTask = ":compileKotlin"
 
         build(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertTaskExecuted(it) }
-            assertTaskExecuted(configurationTask)
             assertTaskExecuted(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it UP-TO-DATE") }
-            assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask UP-TO-DATE")
         }
 
         build(secondDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it FROM-CACHE") }
-            assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask FROM-CACHE")
         }
     }
