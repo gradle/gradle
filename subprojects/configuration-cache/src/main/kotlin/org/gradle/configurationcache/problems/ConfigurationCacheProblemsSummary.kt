@@ -59,10 +59,10 @@ class ConfigurationCacheProblemsSummary {
         }
         problemCountSummary.incrementAndGet()
         problem.exception?.let { cause ->
-            synchronized(causes) {
-                causesSummary.addFirst(cause)
+            synchronized(causesSummary) {
+                causesSummary.addLast(cause)
                 if (causesSummary.size > maxCauses) {
-                    causesSummary.removeLast()
+                    causesSummary.removeFirst()
                 }
             }
         }
