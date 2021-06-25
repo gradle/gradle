@@ -108,6 +108,10 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun getProblemCount(): Int =
+        buildProblemList().size
+
+    private
     fun buildProblemList() = problemListBuilder.let {
         synchronized(it) {
             it.build()
@@ -119,29 +123,38 @@ class ConfigurationCacheProblems(
     }
 
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
-        val problems = buildProblemList()
-        if (problems.isEmpty()) {
+        val problemCount = getProblemCount()
+        if (problemCount == 0) {
             return
         }
-        val tooManyProblems = problems.size > startParameter.maxProblems
-        if (cacheAction == STORE && (isFailOnProblems || tooManyProblems)) {
+        val hasTooManyProblems = problemCount > startParameter.maxProblems
+        if (cacheAction == STORE && (isFailOnProblems || hasTooManyProblems)) {
             // Invalidate stored state if problems fail the build
             requireNotNull(invalidateStoredState).invoke()
         }
         val cacheActionText = cacheAction.summaryText()
         val outputDirectory = outputDirectoryFor(reportDir)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problems)
+        val problemList = buildProblemList()
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemList)
         when {
             isFailOnProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
-                validationFailures.accept(problems.newProblemsException(cacheActionText, htmlReportFile))
+                validationFailures.accept(
+                    ConfigurationCacheProblemsException(problemList.causes()) {
+                        buildConsoleSummary(cacheActionText, problemList, htmlReportFile)
+                    }
+                )
             }
-            tooManyProblems -> {
-                validationFailures.accept(problems.newTooManyProblemsException(cacheActionText, htmlReportFile))
+            hasTooManyProblems -> {
+                validationFailures.accept(
+                    TooManyConfigurationCacheProblemsException(problemList.causes()) {
+                        buildConsoleSummary(cacheActionText, problemList, htmlReportFile)
+                    }
+                )
             }
             else -> {
-                logger.warn(report.consoleSummaryFor(cacheActionText, problems, htmlReportFile))
+                logger.warn(buildConsoleSummary(cacheActionText, problemList, htmlReportFile))
             }
         }
     }
@@ -153,24 +166,6 @@ class ConfigurationCacheProblems(
             LOAD -> "reusing"
             STORE -> "storing"
         }
-
-    private
-    fun List<PropertyProblem>.newProblemsException(cacheActionText: String, htmlReportFile: File) =
-        ConfigurationCacheProblemsException(
-            causes(),
-            cacheActionText,
-            this,
-            htmlReportFile
-        )
-
-    private
-    fun List<PropertyProblem>.newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
-        TooManyConfigurationCacheProblemsException(
-            causes(),
-            cacheActionText,
-            this,
-            htmlReportFile
-        )
 
     private
     fun outputDirectoryFor(buildDir: File): File =
@@ -187,21 +182,21 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problems = buildProblemList()
-            val hasProblems = problems.isNotEmpty()
-            val hasTooManyProblems = problems.size > startParameter.maxProblems
-            val problemCount = if (problems.size == 1) "1 problem" else "${problems.size} problems"
+            val problemCount = getProblemCount()
+            val hasProblems = problemCount > 0
+            val hasTooManyProblems = problemCount > startParameter.maxProblems
+            val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
-                isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCount)
-                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCount)
-                cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCount)
+                isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
-                cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCount)
+                cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
-                cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCount)
-                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCount)
-                hasProblems -> log("Configuration cache problems found ({}).", problemCount)
+                cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
+                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
+                hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
             }
         }

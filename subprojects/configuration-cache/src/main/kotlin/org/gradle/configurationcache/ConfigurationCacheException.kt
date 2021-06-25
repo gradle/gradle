@@ -17,14 +17,8 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.DocumentationRegistry
-
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.buildConsoleSummary
-
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-
-import java.io.File
 
 
 /**
@@ -67,40 +61,30 @@ open class ConfigurationCacheProblemsException : ConfigurationCacheException {
     constructor(
         message: String,
         causes: List<Throwable>,
-        cacheAction: String,
-        problems: List<PropertyProblem>,
-        htmlReportFile: File
+        summary: () -> String
     ) : super(
-        { "$message\n${buildConsoleSummary(cacheAction, problems, htmlReportFile)}" },
+        { "$message\n${summary()}" },
         causes
     )
 
     internal
     constructor(
         causes: List<Throwable>,
-        cacheAction: String,
-        problems: List<PropertyProblem>,
-        htmlReportFile: File
+        summary: () -> String
     ) : this(
         "Configuration cache problems found in this build.",
         causes,
-        cacheAction,
-        problems,
-        htmlReportFile
+        summary
     )
 }
 
 
 class TooManyConfigurationCacheProblemsException internal constructor(
     causes: List<Throwable>,
-    cacheAction: String,
-    problems: List<PropertyProblem>,
-    htmlReportFile: File
+    summary: () -> String
 ) : ConfigurationCacheProblemsException(
     "Maximum number of configuration cache problems has been reached.\n" +
         "This behavior can be adjusted, see ${Documentation.maxProblems}.",
     causes,
-    cacheAction,
-    problems,
-    htmlReportFile
+    summary
 )

@@ -23,7 +23,6 @@ import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.buildConsoleSummary
 import org.gradle.configurationcache.problems.firstTypeFrom
 import org.gradle.configurationcache.problems.taskPathFrom
 import java.io.BufferedReader
@@ -41,10 +40,6 @@ class ConfigurationCacheReport {
         private
         const val reportHtmlFileName = "configuration-cache-report.html"
     }
-
-    internal
-    fun consoleSummaryFor(cacheAction: String, problems: List<PropertyProblem>, htmlReportFile: File) =
-        buildConsoleSummary(cacheAction, problems, htmlReportFile)
 
     /**
      * Writes the report file to [outputDirectory].

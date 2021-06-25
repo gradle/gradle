@@ -22,7 +22,11 @@ import java.io.File
 
 
 private
-data class UniquePropertyProblem(val userCodeLocation: String, val message: StructuredMessage, val documentationSection: String?)
+data class UniquePropertyProblem(
+    val userCodeLocation: String,
+    val message: StructuredMessage,
+    val documentationSection: String?
+)
 
 
 private
@@ -30,23 +34,34 @@ const val maxConsoleProblems = 15
 
 
 internal
-fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, reportFile: File): String {
+fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, reportFile: File): String =
+    buildConsoleSummary(cacheAction, problems.size, uniquePropertyProblems(problems), reportFile)
+
+
+private
+fun buildConsoleSummary(
+    cacheAction: String,
+    totalProblemCount: Int,
+    uniqueProblems: Set<UniquePropertyProblem>,
+    reportFile: File
+): String {
+
     val documentationRegistry = DocumentationRegistry()
-    val uniquePropertyProblems = uniquePropertyProblems(problems)
     return StringBuilder().apply {
         appendLine()
-        appendLine(buildSummaryHeader(cacheAction, problems.size, uniquePropertyProblems))
-        uniquePropertyProblems.take(maxConsoleProblems).forEach { problem ->
+        appendSummaryHeader(cacheAction, totalProblemCount, uniqueProblems)
+        appendLine()
+        uniqueProblems.take(maxConsoleProblems).forEach { problem ->
             append("- ")
             append(problem.userCodeLocation.capitalize())
             append(": ")
             appendLine(problem.message)
-            if (problem.documentationSection != null) {
-                appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
+            problem.documentationSection?.let {
+                appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
             }
         }
-        if (uniquePropertyProblems.size > maxConsoleProblems) {
-            appendLine("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
+        if (uniqueProblems.size > maxConsoleProblems) {
+            appendLine("plus ${uniqueProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
         }
         appendLine()
         append(buildSummaryReportLink(reportFile))
@@ -56,29 +71,30 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
 
 private
 fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
-    problems.map { UniquePropertyProblem(it.trace.containingUserCode, it.message, it.documentationSection?.anchor) }.sortedBy { it.userCodeLocation }.toSet()
+    problems
+        .map { UniquePropertyProblem(it.trace.containingUserCode, it.message, it.documentationSection?.anchor) }
+        .sortedBy { it.userCodeLocation }
+        .toSet()
 
 
 private
-fun buildSummaryHeader(
+fun StringBuilder.appendSummaryHeader(
     cacheAction: String,
     totalProblemCount: Int,
     uniquePropertyProblems: Set<UniquePropertyProblem>
-): String {
-    val result = StringBuilder()
-    result.append(totalProblemCount)
-    result.append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
-    result.append(cacheAction)
-    result.append(" the configuration cache")
+) {
+    append(totalProblemCount)
+    append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
+    append(cacheAction)
+    append(" the configuration cache")
     val uniqueProblemCount = uniquePropertyProblems.size
     if (totalProblemCount != uniquePropertyProblems.size) {
-        result.append(", ")
-        result.append(uniqueProblemCount)
-        result.append(" of which ")
-        result.append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+        append(", ")
+        append(uniqueProblemCount)
+        append(" of which ")
+        append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
     }
-    result.append(".")
-    return result.toString()
+    append(".")
 }
 
 
@@ -90,5 +106,3 @@ fun buildSummaryReportLink(reportFile: File) =
 private
 fun clickableUrlFor(file: File) =
     ConsoleRenderer().asClickableFileUrl(file)
-
-
