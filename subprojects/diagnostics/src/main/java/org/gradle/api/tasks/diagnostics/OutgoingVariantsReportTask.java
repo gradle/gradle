@@ -57,7 +57,7 @@ import java.util.stream.Stream;
  *
  * @since 6.0
  */
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class OutgoingVariantsReportTask extends DefaultTask {
     private final Property<String> variantSpec = getProject().getObjects().property(String.class);
     private final Property<Boolean> showAll = getProject().getObjects().property(Boolean.class).convention(false);

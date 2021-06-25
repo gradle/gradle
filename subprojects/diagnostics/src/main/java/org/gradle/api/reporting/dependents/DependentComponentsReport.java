@@ -46,7 +46,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  * Displays dependent components.
  */
 @Deprecated
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;

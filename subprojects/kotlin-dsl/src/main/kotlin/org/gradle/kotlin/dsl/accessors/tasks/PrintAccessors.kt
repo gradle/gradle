@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.work.DisableCachingByDefault
 
 
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 open class PrintAccessors : DefaultTask() {
 
     init {

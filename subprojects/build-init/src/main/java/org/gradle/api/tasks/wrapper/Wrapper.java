@@ -65,7 +65,7 @@ import java.util.Properties;
  * generates a small {@code gradle-wrapper.jar} bootstrap JAR file and properties file which should also be committed to
  * your VCS. The scripts delegates to this JAR.
  */
-@DisableCachingByDefault(because = "Updating the wrapper is no worth caching")
+@DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 

@@ -110,7 +110,7 @@ import java.util.Map;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Has no cacheable output")
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;

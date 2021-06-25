@@ -46,7 +46,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
  */
 @Deprecated
-@DisableCachingByDefault(because = "Has no cacheable output")
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class Upload extends ConventionTask {
 
     private Configuration configuration;

@@ -40,7 +40,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Descriptio
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator

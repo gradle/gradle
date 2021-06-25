@@ -43,7 +43,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 1.4
  */
-@DisableCachingByDefault(because = "Gradle doesn't understand the data structures")
+@DisableCachingByDefault(because = "Gradle doesn't understand the data structures used to configure this task")
 public class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();

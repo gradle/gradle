@@ -31,7 +31,7 @@ import javax.inject.Inject;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class Help extends DefaultTask {
     private String taskPath;
 

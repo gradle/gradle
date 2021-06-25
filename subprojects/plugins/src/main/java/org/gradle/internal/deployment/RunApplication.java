@@ -31,7 +31,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.inject.Inject;
 import java.util.Collection;
 
-@DisableCachingByDefault(because = "Has no cacheable output")
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class RunApplication extends DefaultTask {
     private String mainClassName;
     private Collection<String> arguments;

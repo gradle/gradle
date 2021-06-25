@@ -44,7 +44,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap;
  * Displays some details about the software components produced by the project.
  */
 @Deprecated
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class ComponentReport extends DefaultTask {
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {

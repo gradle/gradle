@@ -38,7 +38,7 @@ import javax.inject.Inject;
  * An instance of this type is used when you execute the {@code model} task from the command-line.
  */
 @Deprecated
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class ModelReport extends DefaultTask {
 
     /**

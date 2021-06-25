@@ -29,7 +29,7 @@ import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
-@DisableCachingByDefault(because = "Has no cacheable output")
+@DisableCachingByDefault(because = "Produces no cacheable output")
 abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructor(
 
     private

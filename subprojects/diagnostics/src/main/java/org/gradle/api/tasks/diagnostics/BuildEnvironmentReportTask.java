@@ -42,7 +42,7 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
-@DisableCachingByDefault(because = "Produces non-cacheable console output")
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
