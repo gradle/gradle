@@ -61,7 +61,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
-        if (!isAutoDownloadEnabled()) {
+        if (!isAutoDownloadEnabled() || !openJdkBinary.canProvideMatchingJdk(spec)) {
             return Optional.empty();
         }
         return provisionInstallation(spec);
