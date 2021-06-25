@@ -53,8 +53,8 @@ import java.io.File;
  *
  * @param <T> The domain object for the configuration file.
  */
-@DisableCachingByDefault(because = "Base-class, not to be instantiated directly")
-public class GeneratorTask<T> extends ConventionTask {
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
+public abstract class GeneratorTask<T> extends ConventionTask {
     private File inputFile;
     private File outputFile;
     protected final MutableActionSet<T> beforeConfigured = new MutableActionSet<T>();
