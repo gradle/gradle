@@ -16,16 +16,16 @@
 
 package org.gradle.configurationcache
 
-import groovy.json.JsonOutput
+import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
-
+import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.buildConsoleSummary
 import org.gradle.configurationcache.problems.firstTypeFrom
 import org.gradle.configurationcache.problems.taskPathFrom
-
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -109,38 +109,183 @@ class ConfigurationCacheReport {
         appendLine("function configurationCacheProblems() { return (")
         appendLine("// begin-report-data")
         writeJsonModelFor(cacheAction, problems)
+        appendLine()
         appendLine("// end-report-data")
         appendLine(");}")
     }
 
     private
     fun BufferedWriter.writeJsonModelFor(cacheAction: String, problems: List<PropertyProblem>) {
-        val documentationRegistry = DocumentationRegistry()
-        appendLine("{") // begin JSON
-        appendLine("\"cacheAction\": \"$cacheAction\",")
-        appendLine("\"documentationLink\": \"${documentationRegistry.getDocumentationFor("configuration_cache")}\",")
-        appendLine("\"problems\": [") // begin problems
-        problems.forEachIndexed { index, problem ->
-            if (index > 0) append(',')
-            append(
-                JsonOutput.toJson(
-                    mapOf(
-                        "trace" to traceListOf(problem),
-                        "message" to problem.message.fragments,
-                        "documentationLink" to problem.documentationSection?.let { documentationRegistry.getDocumentationFor("configuration_cache", it.anchor) },
-                        "error" to stackTraceStringOf(problem)
-                    )
-                )
-            )
-        }
-        appendLine("]") // end problems
-        appendLine("}") // end JSON
+        JsonModelWriter(this, DocumentationRegistry()).write(cacheAction, problems)
     }
 
     private
     fun Class<*>.requireResource(path: String): URL = getResource(path).also {
         require(it != null) { "Resource `$path` could not be found!" }
     }
+}
+
+
+private
+class JsonModelWriter(
+    val writer: BufferedWriter,
+    val documentationRegistry: DocumentationRegistry
+) {
+    fun write(cacheAction: String, problems: List<PropertyProblem>) {
+        jsonObject {
+            property("cacheAction", cacheAction)
+            comma()
+            property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
+            comma()
+            property("problems") {
+                jsonObjectList(problems) { problem ->
+                    property("trace") {
+                        jsonObjectList(problem.trace.sequence.asIterable()) { trace ->
+                            writePropertyTrace(trace)
+                        }
+                    }
+                    comma()
+                    property("message") {
+                        jsonObjectList(problem.message.fragments) { fragment ->
+                            writeFragment(fragment)
+                        }
+                    }
+                    problem.documentationSection?.let {
+                        comma()
+                        property("documentationLink", documentationLinkFor(it))
+                    }
+                    stackTraceStringOf(problem)?.let {
+                        comma()
+                        property("error", it)
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun writeFragment(fragment: StructuredMessage.Fragment) {
+        when (fragment) {
+            is StructuredMessage.Fragment.Reference -> property("name", fragment.name)
+            is StructuredMessage.Fragment.Text -> property("text", fragment.text)
+        }
+    }
+
+    private
+    fun writePropertyTrace(trace: PropertyTrace) {
+        when (trace) {
+            is PropertyTrace.Property -> {
+                when (trace.kind) {
+                    PropertyKind.Field -> {
+                        property("kind", trace.kind.name)
+                        comma()
+                        property("name", trace.name)
+                        comma()
+                        property("declaringType", firstTypeFrom(trace.trace).name)
+                    }
+                    else -> {
+                        property("kind", trace.kind.name)
+                        comma()
+                        property("name", trace.name)
+                        comma()
+                        property("task", taskPathFrom(trace.trace))
+                    }
+                }
+            }
+            is PropertyTrace.Task -> {
+                property("kind", "Task")
+                comma()
+                property("path", trace.path)
+                comma()
+                property("type", trace.type.name)
+            }
+            is PropertyTrace.Bean -> {
+                property("kind", "Bean")
+                comma()
+                property("type", trace.type.name)
+            }
+            is PropertyTrace.BuildLogic -> {
+                property("kind", "BuildLogic")
+                comma()
+                property("location", trace.displayName.displayName)
+            }
+            is PropertyTrace.BuildLogicClass -> {
+                property("kind", "BuildLogicClass")
+                comma()
+                property("type", trace.name)
+            }
+            PropertyTrace.Gradle -> {
+                property("kind", "Gradle")
+            }
+            PropertyTrace.Unknown -> {
+                property("kind", "Unknown")
+            }
+        }
+    }
+
+    private
+    inline fun <T> jsonObjectList(list: Iterable<T>, body: (T) -> Unit) {
+        jsonList(list) {
+            jsonObject {
+                body(it)
+            }
+        }
+    }
+
+    private
+    inline fun jsonObject(body: () -> Unit) {
+        write('{')
+        body()
+        write('}')
+    }
+
+    private
+    inline fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
+        write('[')
+        var first = true
+        list.forEach {
+            if (first) first = false else comma()
+            body(it)
+        }
+        write(']')
+    }
+
+    private
+    fun property(name: String, value: String) {
+        property(name) { jsonString(value) }
+    }
+
+    private
+    inline fun property(name: String, value: () -> Unit) {
+        simpleString(name)
+        write(':')
+        value()
+    }
+
+    private
+    fun simpleString(name: String) {
+        write('"')
+        write(name)
+        write('"')
+    }
+
+    private
+    val buffer = CharBuf.create(255)
+
+    private
+    fun jsonString(value: String) {
+        buffer.addJsonEscapedString(value)
+        write(buffer.toStringAndRecycle())
+    }
+
+    private
+    fun comma() {
+        write(',')
+    }
+
+    private
+    fun documentationLinkFor(it: DocumentationSection) =
+        documentationRegistry.getDocumentationFor("configuration_cache", it.anchor)
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
@@ -153,47 +298,8 @@ class ConfigurationCacheReport {
         StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
 
     private
-    fun traceListOf(problem: PropertyProblem): List<Map<String, Any>> =
-        problem.trace.sequence.map(::traceToMap).toList()
+    fun write(s: String) = writer.append(s)
 
     private
-    fun traceToMap(trace: PropertyTrace): Map<String, Any> = when (trace) {
-        is PropertyTrace.Property -> {
-            when (trace.kind) {
-                PropertyKind.Field -> mapOf(
-                    "kind" to trace.kind.name,
-                    "name" to trace.name,
-                    "declaringType" to firstTypeFrom(trace.trace).name
-                )
-                else -> mapOf(
-                    "kind" to trace.kind.name,
-                    "name" to trace.name,
-                    "task" to taskPathFrom(trace.trace)
-                )
-            }
-        }
-        is PropertyTrace.Task -> mapOf(
-            "kind" to "Task",
-            "path" to trace.path,
-            "type" to trace.type.name
-        )
-        is PropertyTrace.Bean -> mapOf(
-            "kind" to "Bean",
-            "type" to trace.type.name
-        )
-        is PropertyTrace.BuildLogic -> mapOf(
-            "kind" to "BuildLogic",
-            "location" to trace.displayName.displayName
-        )
-        is PropertyTrace.BuildLogicClass -> mapOf(
-            "kind" to "BuildLogicClass",
-            "type" to trace.name
-        )
-        PropertyTrace.Gradle -> mapOf(
-            "kind" to "Gradle"
-        )
-        PropertyTrace.Unknown -> mapOf(
-            "kind" to "Unknown"
-        )
-    }
+    fun write(s: Char) = writer.append(s)
 }
