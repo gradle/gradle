@@ -122,4 +122,62 @@ class SourceTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains("visit a/two.txt")
         outputContains("visit a/emptyDir")
     }
+
+    def "can override getSource() method in SourceTask and still ignore empty directories"() {
+        given:
+        file("src/one.txt").createFile()
+        file("src/a/two.txt").createFile()
+
+        buildFile << """
+            class TestTask extends SourceTask {
+                @OutputFile
+                File outputFile
+
+                @TaskAction
+                def list() {
+                    source.visit { fte -> println("visit " + fte.relativePath) }
+                    outputFile.text = 'executed'
+                }
+
+                @InputFiles
+                @SkipWhenEmpty
+                @PathSensitive(PathSensitivity.ABSOLUTE)
+                @Override
+                public FileTree getSource() {
+                    return super.getSource()
+                }
+            }
+
+            task source(type: TestTask) {
+                source file('src')
+                outputFile = file("\${buildDir}/output")
+            }
+        """
+
+        when:
+        run "source"
+
+        then:
+        output.count("visit ") == 3
+        outputContains("visit one.txt")
+        outputContains("visit a")
+        outputContains("visit a/two.txt")
+
+        when:
+        run "source"
+
+        then:
+        skipped(":source")
+
+        and:
+        output.count("visit ") == 0
+
+        when:
+        file("src/a/emptyDir").mkdirs()
+        run "source"
+
+        then:
+        skipped(":source")
+        output.count("visit ") == 0
+    }
 }
