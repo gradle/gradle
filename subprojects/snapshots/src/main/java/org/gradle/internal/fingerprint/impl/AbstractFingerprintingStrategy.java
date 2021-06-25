@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -33,13 +33,13 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
     private final DirectorySensitivity directorySensitivity;
-    private final LineEndingNormalization lineEndingNormalization;
+    private final LineEndingSensitivity lineEndingSensitivity;
 
-    public AbstractFingerprintingStrategy(String identifier, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
+    public AbstractFingerprintingStrategy(String identifier, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
         this.directorySensitivity = directorySensitivity;
-        this.lineEndingNormalization = lineEndingNormalization;
+        this.lineEndingSensitivity = lineEndingSensitivity;
     }
 
     @Override
@@ -54,14 +54,14 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
 
     @Nullable
     protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, ResourceHasher normalizedContentHasher) {
-        return lineEndingNormalization.isCandidate(snapshot) ?
+        return lineEndingSensitivity.isCandidate(snapshot) ?
             normalizedContentHasher.hash(from((RegularFileSnapshot)snapshot)) :
             snapshot.getHash();
     }
 
     @Override
-    public LineEndingNormalization getLineEndingNormalization() {
-        return lineEndingNormalization;
+    public LineEndingSensitivity getLineEndingNormalization() {
+        return lineEndingSensitivity;
     }
 
     @Override

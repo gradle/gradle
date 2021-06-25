@@ -19,19 +19,19 @@ package org.gradle.internal.execution.fingerprint.impl;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import java.util.Objects;
 
 public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
     private final Class<? extends FileNormalizer> normalizer;
     private final DirectorySensitivity directorySensitivity;
-    private final LineEndingNormalization lineEndingNormalization;
+    private final LineEndingSensitivity lineEndingSensitivity;
 
-    private DefaultFileNormalizationSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
+    private DefaultFileNormalizationSpec(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
         this.normalizer = normalizer;
         this.directorySensitivity = directorySensitivity;
-        this.lineEndingNormalization = lineEndingNormalization;
+        this.lineEndingSensitivity = lineEndingSensitivity;
     }
 
     @Override
@@ -45,12 +45,12 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
     }
 
     @Override
-    public LineEndingNormalization getLineEndingNormalization() {
-        return lineEndingNormalization;
+    public LineEndingSensitivity getLineEndingNormalization() {
+        return lineEndingSensitivity;
     }
 
-    public static FileNormalizationSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
-        return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingNormalization);
+    public static FileNormalizationSpec from(Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+        return new DefaultFileNormalizationSpec(normalizer, directorySensitivity, lineEndingSensitivity);
     }
 
     @Override
@@ -64,11 +64,11 @@ public class DefaultFileNormalizationSpec implements FileNormalizationSpec {
         DefaultFileNormalizationSpec that = (DefaultFileNormalizationSpec) o;
         return normalizer.equals(that.normalizer) &&
             directorySensitivity == that.directorySensitivity &&
-            lineEndingNormalization == that.lineEndingNormalization;
+            lineEndingSensitivity == that.lineEndingSensitivity;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(normalizer, directorySensitivity, lineEndingNormalization);
+        return Objects.hash(normalizer, directorySensitivity, lineEndingSensitivity);
     }
 }

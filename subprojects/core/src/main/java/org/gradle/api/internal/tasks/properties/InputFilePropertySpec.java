@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +28,7 @@ public interface InputFilePropertySpec extends FilePropertySpec {
 
     DirectorySensitivity getDirectorySensitivity();
 
-    LineEndingNormalization getLineEndingNormalization();
+    LineEndingSensitivity getLineEndingNormalization();
 
     @Nullable
     Object getValue();

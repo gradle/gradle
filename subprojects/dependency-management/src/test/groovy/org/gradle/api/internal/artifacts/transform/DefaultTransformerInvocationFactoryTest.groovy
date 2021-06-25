@@ -52,7 +52,7 @@ import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetect
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
@@ -93,7 +93,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
 
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT, fileCollectionSnapshotter, ResourceHasher.NONE)
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fileCollectionSnapshotter, ResourceHasher.NONE)
     def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionFingerprinterRegistry, valueSnapshotter)
 
@@ -250,13 +250,13 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        LineEndingNormalization getInputArtifactLineEndingNormalization() {
-            return LineEndingNormalization.DEFAULT
+        LineEndingSensitivity getInputArtifactLineEndingNormalization() {
+            return LineEndingSensitivity.DEFAULT
         }
 
         @Override
-        LineEndingNormalization getInputArtifactDependenciesLineEndingNormalization() {
-            return LineEndingNormalization.DEFAULT
+        LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
+            return LineEndingSensitivity.DEFAULT
         }
     }
 

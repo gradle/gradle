@@ -19,13 +19,13 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 
 public class IgnoredPathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public IgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(new IgnoredPathFingerprintingStrategy(lineEndingNormalization, normalizedContentHasher), fileCollectionSnapshotter);
+    public IgnoredPathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter, LineEndingSensitivity lineEndingSensitivity, ResourceHasher normalizedContentHasher) {
+        super(new IgnoredPathFingerprintingStrategy(lineEndingSensitivity, normalizedContentHasher), fileCollectionSnapshotter);
     }
 
     @Override

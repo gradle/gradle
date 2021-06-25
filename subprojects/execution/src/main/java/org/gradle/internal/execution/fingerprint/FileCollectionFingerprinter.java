@@ -19,7 +19,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
@@ -57,5 +57,5 @@ public interface FileCollectionFingerprinter {
     /**
      * Returns the line ending normalization associated with this fingerprinter.
      */
-    LineEndingNormalization getLineEndingNormalization();
+    LineEndingSensitivity getLineEndingNormalization();
 }

@@ -62,7 +62,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
@@ -187,7 +187,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
-            LineEndingNormalization.DEFAULT,
+            LineEndingSensitivity.DEFAULT,
             streamHasher
         );
     }
@@ -201,7 +201,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
-            LineEndingNormalization.IGNORE,
+            LineEndingSensitivity.IGNORE_LINE_ENDINGS,
             streamHasher
         );
     }

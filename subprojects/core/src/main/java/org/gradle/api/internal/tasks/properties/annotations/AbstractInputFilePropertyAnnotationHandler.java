@@ -33,7 +33,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
@@ -76,7 +76,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
             propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT,
-            propertyMetadata.isAnnotationPresent(IgnoreLineEndings.class) ? LineEndingNormalization.IGNORE : LineEndingNormalization.DEFAULT,
+            propertyMetadata.isAnnotationPresent(IgnoreLineEndings.class) ? LineEndingSensitivity.IGNORE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT,
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,

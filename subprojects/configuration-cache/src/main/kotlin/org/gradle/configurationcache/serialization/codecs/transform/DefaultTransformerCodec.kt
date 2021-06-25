@@ -32,7 +32,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
 
@@ -68,8 +68,8 @@ class DefaultTransformerCodec(
             val isCacheable = readBoolean()
             val inputArtifactDirectorySensitivity = readEnum<DirectorySensitivity>()
             val inputArtifactDependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
-            val inputArtifactLineEndingNormalization = readEnum<LineEndingNormalization>()
-            val inputArtifactDependenciesLineEndingNormalization = readEnum<LineEndingNormalization>()
+            val inputArtifactLineEndingNormalization = readEnum<LineEndingSensitivity>()
+            val inputArtifactDependenciesLineEndingNormalization = readEnum<LineEndingSensitivity>()
             val isolatedParameters = readNonNull<CalculatedValueContainer<DefaultTransformer.IsolatedParameters, DefaultTransformer.IsolateTransformerParameters>>()
             DefaultTransformer(
                 implementationClass,

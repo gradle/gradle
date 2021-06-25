@@ -59,7 +59,7 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
@@ -99,7 +99,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT, snapshotter, ResourceHasher.NONE)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, snapshotter, ResourceHasher.NONE)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
 
@@ -900,7 +900,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                                 entry.value,
                                 AbsolutePathInputNormalizer,
                                 DirectorySensitivity.DEFAULT,
-                                LineEndingNormalization.DEFAULT,
+                                LineEndingSensitivity.DEFAULT,
                                 { -> TestFiles.fixed(entry.value) }
                             )
                         )

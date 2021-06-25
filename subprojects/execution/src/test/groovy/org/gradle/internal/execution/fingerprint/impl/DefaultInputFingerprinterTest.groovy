@@ -28,7 +28,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import spock.lang.Specification
@@ -58,7 +58,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT, { fileInput }))
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:
@@ -82,7 +82,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
         }
 
         then:

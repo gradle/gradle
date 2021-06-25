@@ -33,7 +33,7 @@ import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegi
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -64,7 +64,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 ) : Stoppable {
 
     private
-    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT))
+    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
 
     private
     abstract class WritingState {

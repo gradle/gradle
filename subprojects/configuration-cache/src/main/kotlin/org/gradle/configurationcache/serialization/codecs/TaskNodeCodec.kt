@@ -57,7 +57,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -233,7 +233,7 @@ sealed class RegisteredProperty {
         val incremental: Boolean,
         val fileNormalizer: Class<out FileNormalizer>?,
         val directorySensitivity: DirectorySensitivity,
-        val lineEndingNormalization: LineEndingNormalization
+        val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
 
     data class OutputFile(
@@ -275,7 +275,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(skipWhenEmpty)
                     writeClass(fileNormalizer!!)
                     writeEnum(directorySensitivity)
-                    writeEnum(lineEndingNormalization)
+                    writeEnum(lineEndingSensitivity)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
@@ -338,7 +338,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             optional: Boolean,
             skipWhenEmpty: Boolean,
             directorySensitivity: DirectorySensitivity,
-            lineEndingNormalization: LineEndingNormalization,
+            lineEndingSensitivity: LineEndingSensitivity,
             incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
             propertyValue: PropertyValue,
@@ -354,7 +354,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     incremental,
                     fileNormalizer,
                     directorySensitivity,
-                    lineEndingNormalization
+                    lineEndingSensitivity
                 )
             )
         }
@@ -397,7 +397,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val skipWhenEmpty = readBoolean()
                     val normalizer = readClass()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
-                    val lineEndingNormalization = readEnum<LineEndingNormalization>()
+                    val lineEndingNormalization = readEnum<LineEndingSensitivity>()
                     task.inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
@@ -410,7 +410,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         skipWhenEmpty(skipWhenEmpty)
                         withNormalizer(normalizer.uncheckedCast())
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
-                        ignoreLineEndings(lineEndingNormalization == LineEndingNormalization.IGNORE)
+                        ignoreLineEndings(lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS)
                     }
                 }
                 else -> {

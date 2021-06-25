@@ -22,14 +22,14 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.util.function.Predicate;
 
-public enum LineEndingNormalization {
+public enum LineEndingSensitivity {
     DEFAULT(snapshot -> false, zipEntryContext -> false),
-    IGNORE(snapshot -> snapshot.getType() == FileType.RegularFile, zipEntryContext -> !zipEntryContext.getEntry().isDirectory());
+    IGNORE_LINE_ENDINGS(snapshot -> snapshot.getType() == FileType.RegularFile, zipEntryContext -> !zipEntryContext.getEntry().isDirectory());
 
     private final Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot;
     private final Predicate<ZipEntryContext> shouldNormalizeZipEntry;
 
-    LineEndingNormalization(Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot, Predicate<ZipEntryContext> shouldNormalizeZipEntry) {
+    LineEndingSensitivity(Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot, Predicate<ZipEntryContext> shouldNormalizeZipEntry) {
         this.shouldNormalizeSnapshot = shouldNormalizeSnapshot;
         this.shouldNormalizeZipEntry = shouldNormalizeZipEntry;
     }

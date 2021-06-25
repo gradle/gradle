@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 
-class UpToDateLineEndingNormalizationIntegrationSpec extends AbstractLineEndingNormalizationIntegrationSpec {
+class UpToDateLineEndingSensitivityIntegrationSpec extends AbstractLineEndingSensitivityIntegrationSpec {
     String statusForReusedOutput = "UP-TO-DATE"
 
     @Override

@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.util.TextUtil
 
 
-class CachedLineEndingNormalizationIntegrationSpec extends AbstractLineEndingNormalizationIntegrationSpec {
+class CachedLineEndingSensitivityIntegrationSpec extends AbstractLineEndingSensitivityIntegrationSpec {
     def buildCachePath = TextUtil.normaliseFileSeparators(testDirectory.file("build-cache").absolutePath)
 
     def setup() {

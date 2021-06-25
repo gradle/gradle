@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.work.InputChanges;
 
@@ -77,7 +77,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity();
 
-    LineEndingNormalization getInputArtifactLineEndingNormalization();
+    LineEndingSensitivity getInputArtifactLineEndingNormalization();
 
-    LineEndingNormalization getInputArtifactDependenciesLineEndingNormalization();
+    LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization();
 }

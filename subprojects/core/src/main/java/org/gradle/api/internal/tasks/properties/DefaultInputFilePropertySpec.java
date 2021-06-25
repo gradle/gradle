@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
@@ -27,15 +27,15 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     private final boolean skipWhenEmpty;
     private final boolean incremental;
     private final DirectorySensitivity directorySensitivity;
-    private final LineEndingNormalization lineEndingNormalization;
+    private final LineEndingSensitivity lineEndingSensitivity;
     private final PropertyValue value;
 
-    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files, PropertyValue value, boolean skipWhenEmpty, boolean incremental, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization) {
+    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files, PropertyValue value, boolean skipWhenEmpty, boolean incremental, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
         super(propertyName, normalizer, files);
         this.skipWhenEmpty = skipWhenEmpty;
         this.incremental = incremental;
         this.directorySensitivity = directorySensitivity;
-        this.lineEndingNormalization = lineEndingNormalization;
+        this.lineEndingSensitivity = lineEndingSensitivity;
         this.value = value;
     }
 
@@ -55,8 +55,8 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     }
 
     @Override
-    public LineEndingNormalization getLineEndingNormalization() {
-        return lineEndingNormalization;
+    public LineEndingSensitivity getLineEndingNormalization() {
+        return lineEndingSensitivity;
     }
 
     @Override

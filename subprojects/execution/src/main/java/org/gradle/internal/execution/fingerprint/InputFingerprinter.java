@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
@@ -98,14 +98,14 @@ public interface InputFingerprinter {
         private final Object value;
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
-        private final LineEndingNormalization lineEndingNormalization;
+        private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
-        public FileValueSupplier(@Nullable Object value, Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, Supplier<FileCollection> files) {
+        public FileValueSupplier(@Nullable Object value, Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, Supplier<FileCollection> files) {
             this.value = value;
             this.normalizer = normalizer;
             this.directorySensitivity = directorySensitivity;
-            this.lineEndingNormalization = lineEndingNormalization;
+            this.lineEndingSensitivity = lineEndingSensitivity;
             this.files = files;
         }
 
@@ -123,8 +123,8 @@ public interface InputFingerprinter {
             return directorySensitivity;
         }
 
-        public LineEndingNormalization getLineEndingNormalization() {
-            return lineEndingNormalization;
+        public LineEndingSensitivity getLineEndingNormalization() {
+            return lineEndingSensitivity;
         }
 
         public FileCollection getFiles() {

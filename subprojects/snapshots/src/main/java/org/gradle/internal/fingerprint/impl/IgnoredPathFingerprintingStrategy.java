@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -45,13 +45,13 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
 
     private final ResourceHasher normalizedContentHasher;
 
-    public IgnoredPathFingerprintingStrategy(LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, DirectorySensitivity.DEFAULT, lineEndingNormalization);
+    public IgnoredPathFingerprintingStrategy(LineEndingSensitivity lineEndingSensitivity, ResourceHasher normalizedContentHasher) {
+        super(IDENTIFIER, DirectorySensitivity.DEFAULT, lineEndingSensitivity);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
     private IgnoredPathFingerprintingStrategy() {
-        this(LineEndingNormalization.DEFAULT, ResourceHasher.NONE);
+        this(LineEndingSensitivity.DEFAULT, ResourceHasher.NONE);
     }
 
     @Override

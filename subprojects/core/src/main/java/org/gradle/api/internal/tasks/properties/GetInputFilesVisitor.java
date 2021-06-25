@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -47,7 +47,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         boolean optional,
         boolean skipWhenEmpty,
         DirectorySensitivity directorySensitivity,
-        LineEndingNormalization lineEndingNormalization,
+        LineEndingSensitivity lineEndingSensitivity,
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
         PropertyValue value,
@@ -62,7 +62,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             skipWhenEmpty,
             incremental,
             directorySensitivity,
-            lineEndingNormalization
+                lineEndingSensitivity
         ));
         if (skipWhenEmpty) {
             hasSourceFiles = true;

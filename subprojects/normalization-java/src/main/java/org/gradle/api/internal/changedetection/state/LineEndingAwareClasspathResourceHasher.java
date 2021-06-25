@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
@@ -33,12 +33,12 @@ import java.io.IOException;
 
 public class LineEndingAwareClasspathResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
-    private final LineEndingNormalization lineEndingNormalization;
+    private final LineEndingSensitivity lineEndingSensitivity;
     private final NormalizedContentInfoCollector collector;
 
-    public LineEndingAwareClasspathResourceHasher(ResourceHasher delegate, LineEndingNormalization lineEndingNormalization, StreamHasher streamHasher) {
+    public LineEndingAwareClasspathResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity, StreamHasher streamHasher) {
         this.delegate = delegate;
-        this.lineEndingNormalization = lineEndingNormalization;
+        this.lineEndingSensitivity = lineEndingSensitivity;
         this.collector = new NormalizedContentInfoCollector(LineEndingNormalizingInputStream::new, streamHasher);
     }
 
@@ -47,13 +47,13 @@ public class LineEndingAwareClasspathResourceHasher implements ResourceHasher {
         delegate.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
         hasher.putString(LineEndingNormalizingInputStream.class.getName());
-        hasher.putString(lineEndingNormalization.name());
+        hasher.putString(lineEndingSensitivity.name());
     }
 
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) {
-        return lineEndingNormalization.isCandidate(snapshotContext.getSnapshot()) ?
+        return lineEndingSensitivity.isCandidate(snapshotContext.getSnapshot()) ?
             hashContent(snapshotContext.getSnapshot()) :
             delegate.hash(snapshotContext);
     }
@@ -61,7 +61,7 @@ public class LineEndingAwareClasspathResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return lineEndingNormalization.isCandidate(zipEntryContext) ?
+        return lineEndingSensitivity.isCandidate(zipEntryContext) ?
             hashContent(zipEntryContext) :
             delegate.hash(zipEntryContext);
     }

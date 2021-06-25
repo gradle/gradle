@@ -41,7 +41,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -119,8 +119,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         Class<? extends FileNormalizer> dependenciesNormalizer = null;
         DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.DEFAULT;
         DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.DEFAULT;
-        LineEndingNormalization artifactLineEndingNormalization = LineEndingNormalization.DEFAULT;
-        LineEndingNormalization dependenciesLineEndingNormalization = LineEndingNormalization.DEFAULT;
+        LineEndingSensitivity artifactLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
+        LineEndingSensitivity dependenciesLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             if (propertyType.equals(InputArtifact.class)) {
@@ -129,14 +129,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
-                artifactLineEndingNormalization = visitor.lineEndingNormalization;
+                artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
-                dependenciesLineEndingNormalization = visitor.lineEndingNormalization;
+                dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
@@ -162,8 +162,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             cacheable,
             artifactDirectorySensitivity,
             dependenciesDirectorySensitivity,
-            artifactLineEndingNormalization,
-            dependenciesLineEndingNormalization,
+                artifactLineEndingSensitivity,
+                dependenciesLineEndingSensitivity,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
             isolatableFactory,
@@ -216,7 +216,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
         private Class<? extends FileNormalizer> normalizer;
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
-        private LineEndingNormalization lineEndingNormalization = LineEndingNormalization.DEFAULT;
+        private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
         @Override
         public void visitInputFileProperty(
@@ -224,7 +224,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             boolean optional,
             boolean skipWhenEmpty,
             DirectorySensitivity directorySensitivity,
-            LineEndingNormalization lineEndingNormalization,
+            LineEndingSensitivity lineEndingSensitivity,
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,
@@ -232,7 +232,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
-            this.lineEndingNormalization = lineEndingNormalization;
+            this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }
 }

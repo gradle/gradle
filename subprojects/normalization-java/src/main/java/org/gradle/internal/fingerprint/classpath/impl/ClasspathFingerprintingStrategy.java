@@ -36,7 +36,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -86,8 +86,8 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                                             ZipHasher zipHasher,
                                             ResourceSnapshotterCacheService cacheService,
                                             Interner<String> stringInterner,
-                                            LineEndingNormalization lineEndingNormalization) {
-        super(identifier, DirectorySensitivity.DEFAULT, lineEndingNormalization);
+                                            LineEndingSensitivity lineEndingSensitivity) {
+        super(identifier, DirectorySensitivity.DEFAULT, lineEndingSensitivity);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
@@ -106,25 +106,25 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
         ResourceSnapshotterCacheService cacheService,
         Interner<String> stringInterner,
-        LineEndingNormalization lineEndingNormalization,
+        LineEndingSensitivity lineEndingSensitivity,
         StreamHasher streamHasher
     ) {
-        ResourceHasher resourceHasher = new LineEndingAwareClasspathResourceHasher(runtimeClasspathResourceHasher, lineEndingNormalization, streamHasher);
+        ResourceHasher resourceHasher = new LineEndingAwareClasspathResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity, streamHasher);
         resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
         resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);
         ZipHasher zipHasher = new ZipHasher(resourceHasher);
-        return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, resourceHasher, zipHasher, cacheService, stringInterner, lineEndingNormalization);
+        return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, resourceHasher, zipHasher, cacheService, stringInterner, lineEndingSensitivity);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
         ZipHasher zipHasher = new ZipHasher(classpathResourceHasher);
-        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner, LineEndingNormalization.DEFAULT);
+        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner, LineEndingSensitivity.DEFAULT);
     }
 
     public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner, ZipHasher.HashingExceptionReporter hashingExceptionReporter) {
         ZipHasher zipHasher = new ZipHasher(classpathResourceHasher, hashingExceptionReporter);
-        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner, LineEndingNormalization.DEFAULT);
+        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner, LineEndingSensitivity.DEFAULT);
     }
 
     private static ResourceHasher ignoringResourceHasher(ResourceHasher delegate, ResourceFilter resourceFilter) {

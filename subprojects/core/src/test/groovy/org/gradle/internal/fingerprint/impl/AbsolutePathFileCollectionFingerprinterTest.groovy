@@ -22,7 +22,7 @@ import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +33,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingNormalization.DEFAULT, fileCollectionSnapshotter, ResourceHasher.NONE)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fileCollectionSnapshotter, ResourceHasher.NONE)
     def listener = Mock(ChangeListener)
 
     @Rule

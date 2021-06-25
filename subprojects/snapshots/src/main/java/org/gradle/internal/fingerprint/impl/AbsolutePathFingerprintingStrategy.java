@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -44,13 +44,13 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
 
     private final ResourceHasher normalizedContentHasher;
 
-    public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingNormalization lineEndingNormalization, ResourceHasher normalizedContentHasher) {
-        super(IDENTIFIER, directorySensitivity, lineEndingNormalization);
+    public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, ResourceHasher normalizedContentHasher) {
+        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
     private AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
-        this(directorySensitivity, LineEndingNormalization.DEFAULT, ResourceHasher.NONE);
+        this(directorySensitivity, LineEndingSensitivity.DEFAULT, ResourceHasher.NONE);
     }
 
     @Override

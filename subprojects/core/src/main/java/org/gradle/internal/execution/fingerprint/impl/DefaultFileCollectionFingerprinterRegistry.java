@@ -27,7 +27,7 @@ import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegi
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import java.util.Collection;
 import java.util.Map;
@@ -71,7 +71,7 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
 
     private static FileNormalizationSpec normalizeCriteria(FileNormalizationSpec spec) {
         DirectorySensitivity effectiveDirectorySensitivity = DIRECTORY_INSENSITIVE_NORMALIZERS.contains(spec.getNormalizer()) ? DirectorySensitivity.DEFAULT : spec.getDirectorySensitivity();
-        LineEndingNormalization effectiveLineEndingNormalization = LINE_ENDING_INSENSITIVE_NORMALIZERS.contains(spec.getNormalizer()) ?  LineEndingNormalization.DEFAULT : spec.getLineEndingNormalization();
-        return from(spec.getNormalizer(), effectiveDirectorySensitivity, effectiveLineEndingNormalization);
+        LineEndingSensitivity effectiveLineEndingSensitivity = LINE_ENDING_INSENSITIVE_NORMALIZERS.contains(spec.getNormalizer()) ?  LineEndingSensitivity.DEFAULT : spec.getLineEndingNormalization();
+        return from(spec.getNormalizer(), effectiveDirectorySensitivity, effectiveLineEndingSensitivity);
     }
 }

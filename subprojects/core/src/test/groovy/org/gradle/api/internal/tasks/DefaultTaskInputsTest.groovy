@@ -34,7 +34,7 @@ import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -317,7 +317,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingNormalization lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -350,7 +350,7 @@ class DefaultTaskInputsTest extends Specification {
                                         boolean optional,
                                         boolean skipWhenEmpty,
                                         DirectorySensitivity emptyDirectorySensitivity,
-                                        LineEndingNormalization lineEndingNormalization,
+                                        LineEndingSensitivity lineEndingNormalization,
                                         boolean incremental,
                                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                                         PropertyValue value,

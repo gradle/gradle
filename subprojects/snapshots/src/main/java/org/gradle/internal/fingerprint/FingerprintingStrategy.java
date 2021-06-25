@@ -52,5 +52,5 @@ public interface FingerprintingStrategy {
 
     DirectorySensitivity getDirectorySensitivity();
 
-    LineEndingNormalization getLineEndingNormalization();
+    LineEndingSensitivity getLineEndingNormalization();
 }

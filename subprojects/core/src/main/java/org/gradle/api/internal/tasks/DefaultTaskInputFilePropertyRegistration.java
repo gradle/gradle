@@ -24,7 +24,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
@@ -32,7 +32,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
     private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
-    private LineEndingNormalization lineEndingNormalization = LineEndingNormalization.DEFAULT;
+    private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
@@ -112,19 +112,19 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public LineEndingNormalization getLineEndingNormalization() {
-        return lineEndingNormalization;
+    public LineEndingSensitivity getLineEndingNormalization() {
+        return lineEndingSensitivity;
     }
 
     @Override
     public TaskInputFilePropertyBuilder ignoreLineEndings() {
-        this.lineEndingNormalization = LineEndingNormalization.IGNORE;
+        this.lineEndingSensitivity = LineEndingSensitivity.IGNORE_LINE_ENDINGS;
         return this;
     }
 
     @Override
     public TaskInputFilePropertyBuilder ignoreLineEndings(boolean ignoreLineEndings) {
-        this.lineEndingNormalization = ignoreLineEndings ? LineEndingNormalization.IGNORE : LineEndingNormalization.DEFAULT;
+        this.lineEndingSensitivity = ignoreLineEndings ? LineEndingSensitivity.IGNORE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
         return this;
     }
 

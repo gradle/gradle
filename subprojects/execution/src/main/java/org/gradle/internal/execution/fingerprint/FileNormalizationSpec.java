@@ -18,7 +18,7 @@ package org.gradle.internal.execution.fingerprint;
 
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingNormalization;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 /**
  * Specifies criteria for selecting a {@link FileCollectionFingerprinter}.
@@ -28,5 +28,5 @@ public interface FileNormalizationSpec {
 
     DirectorySensitivity getDirectorySensitivity();
 
-    LineEndingNormalization getLineEndingNormalization();
+    LineEndingSensitivity getLineEndingNormalization();
 }

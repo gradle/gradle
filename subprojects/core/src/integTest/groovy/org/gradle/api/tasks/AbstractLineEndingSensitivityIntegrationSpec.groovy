@@ -17,12 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.work.IgnoreLineEndings
 import spock.lang.Unroll
 
 
-abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractIntegrationSpec {
     private static final byte[] JPG_CONTENT_WITH_LF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0a] as byte[]
     private static final byte[] JPG_CONTENT_WITH_CRLF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0d, 0x0a] as byte[]
     private static final byte[] CLASS_FILE_WITH_LF = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00, 0x0a] as byte[]
@@ -37,7 +37,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
     @Unroll
     def "input files properties are sensitive to line endings by default (#api, #pathsensitivity)"() {
-        createTaskWithNormalization(InputFiles, LineEndingNormalization.DEFAULT, pathsensitivity, api)
+        createTaskWithNormalization(InputFiles, LineEndingSensitivity.DEFAULT, pathsensitivity, api)
 
         buildFile << """
             taskWithInputs {
@@ -76,7 +76,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
     @Unroll
     def "input files properties can ignore line endings when specified (#api, #pathsensitivity)"() {
-        createTaskWithNormalization(InputFiles, LineEndingNormalization.IGNORE, pathsensitivity, api)
+        createTaskWithNormalization(InputFiles, LineEndingSensitivity.IGNORE_LINE_ENDINGS, pathsensitivity, api)
 
         buildFile << """
             taskWithInputs {
@@ -115,7 +115,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
     @Unroll
     def "runtime classpath properties are sensitive to line endings by default (#api)"() {
-        createTaskWithNormalization(Classpath, LineEndingNormalization.DEFAULT, null, api)
+        createTaskWithNormalization(Classpath, LineEndingSensitivity.DEFAULT, null, api)
 
         buildFile << """
             taskWithInputs {
@@ -154,7 +154,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
     @Unroll
     def "runtime classpath properties can ignore line endings when specified (#api)"() {
-        createTaskWithNormalization(Classpath, LineEndingNormalization.IGNORE, null, api)
+        createTaskWithNormalization(Classpath, LineEndingSensitivity.IGNORE_LINE_ENDINGS, null, api)
 
         buildFile << """
             taskWithInputs {
@@ -193,7 +193,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
 
     @Unroll
     def "compile classpath properties are always sensitive to line endings (#api, #lineEndingNormalization)"() {
-        createTaskWithNormalization(CompileClasspath, LineEndingNormalization.DEFAULT, null, api)
+        createTaskWithNormalization(CompileClasspath, LineEndingSensitivity.DEFAULT, null, api)
 
         buildFile << """
             taskWithInputs {
@@ -219,11 +219,11 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, lineEndingNormalization] << [API.values(), LineEndingNormalization.values()].combinations()
+        [api, lineEndingNormalization] << [API.values(), LineEndingSensitivity.values()].combinations()
     }
 
     def "artifact transforms are sensitive to line endings by default"() {
-        createParameterizedTransformWithLineEndingNormalization(LineEndingNormalization.DEFAULT)
+        createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.DEFAULT)
         file('producer/foo/bar.txt') << "\nhere's a line\nhere's another line\n\n"
         file('inputs/baz.txt') << "\nhere's a line\nhere's another line\n\n"
 
@@ -258,7 +258,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
     }
 
     def "artifact transforms can ignore line endings when specified"() {
-        createParameterizedTransformWithLineEndingNormalization(LineEndingNormalization.IGNORE)
+        createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.IGNORE_LINE_ENDINGS)
         file('producer/foo/bar.txt') << "\nhere's a line\nhere's another line\n\n"
         file('inputs/baz.txt') << "\nhere's a line\nhere's another line\n\n"
         file('inputs/baz.jpg').bytes = JPG_CONTENT_WITH_LF
@@ -316,7 +316,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         return true
     }
 
-    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingNormalization normalization, PathSensitivity pathSensitivity, API api) {
+    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity normalization, PathSensitivity pathSensitivity, API api) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
@@ -338,13 +338,13 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         }
     }
 
-    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingNormalization normalization, PathSensitivity pathSensitivity) {
+    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity normalization, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
                 @${inputAnnotation.simpleName}
                 ${pathSensitivityAnnotation(pathSensitivity)}
-                ${normalization == LineEndingNormalization.IGNORE ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                ${normalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
                 FileCollection sources
 
                 @OutputFile
@@ -368,7 +368,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         return pathSensitivity != null ? "@PathSensitive(PathSensitivity.${pathSensitivity.name()})" : ""
     }
 
-    def createRuntimeApiTaskWithNormalization(LineEndingNormalization normalization, PathSensitivity pathSensitivity, Class<?> normalizer) {
+    def createRuntimeApiTaskWithNormalization(LineEndingSensitivity normalization, PathSensitivity pathSensitivity, Class<?> normalizer) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
@@ -381,7 +381,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
                     inputs.files(sources)
                         ${withNormalizer(normalizer)}
                         ${withPathSensitivity(pathSensitivity)}
-                        ${normalization == LineEndingNormalization.IGNORE ? '.ignoreLineEndings()' : ''}
+                        ${normalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? '.ignoreLineEndings()' : ''}
                         .withPropertyName('sources')
                 }
 
@@ -403,7 +403,7 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
         return pathSensitivity != null ? ".withPathSensitivity(PathSensitivity.${pathSensitivity.name()})" : ""
     }
 
-    void createParameterizedTransformWithLineEndingNormalization(LineEndingNormalization lineEndingNormalization) {
+    void createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity lineEndingNormalization) {
         settingsFile << """
             include(':producer')
         """
@@ -416,12 +416,12 @@ abstract class AbstractLineEndingNormalizationIntegrationSpec extends AbstractIn
                 interface Parameters extends TransformParameters {
                     @InputFiles
                     @PathSensitive(PathSensitivity.RELATIVE)
-                    ${lineEndingNormalization == LineEndingNormalization.IGNORE ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                    ${lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
                     ConfigurableFileCollection getFiles()
                 }
 
                 @InputArtifact
-                ${lineEndingNormalization == LineEndingNormalization.IGNORE ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                ${lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInput()
 
