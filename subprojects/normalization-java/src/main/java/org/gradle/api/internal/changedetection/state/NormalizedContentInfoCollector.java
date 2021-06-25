@@ -29,6 +29,11 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.function.Function;
 
+/**
+ * Collects content normalization information about a file including whether the file is text or binary and the normalized hash
+ * produced by hashing the file using the provided input stream decorator.  New content normalizations can be produced by providing
+ * a decorator that creates a new input stream that filters the provided input stream in some meaningful way.
+ */
 public class NormalizedContentInfoCollector {
     private final Function<InputStream, InputStream> streamDecorator;
     private final StreamHasher streamHasher;
@@ -61,10 +66,20 @@ public class NormalizedContentInfoCollector {
     }
 
     public NormalizedContentInfo collect(File file) {
+        FileInputStream inputStream;
         try {
-            return collect(new FileInputStream(file));
+          inputStream = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
+        }
+        try {
+            return collect(inputStream);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                // Ignored
+            }
         }
     }
 
