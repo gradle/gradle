@@ -28,6 +28,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
     private static final byte[] CLASS_FILE_WITH_LF = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00, 0x0a] as byte[]
     private static final byte[] CLASS_FILE_WITH_CRLF = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00, 0x0a, 0x0d, 0x0a] as byte[]
     public static final String TRANSFORM_EXECUTED = 'Transform producer.zip (project :producer) with AugmentTransform'
+    public static final String TEXT_WITH_LINE_ENDINGS = "\nhere's a line\nhere's another line\n\n"
 
     abstract String getStatusForReusedOutput()
 
@@ -45,7 +46,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                 outputFile = project.file("\${buildDir}/output.txt")
             }
         """
-        file('foo/Changing.java') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.java') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
@@ -55,7 +56,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         when:
-        file('foo/Changing.java').text = file('foo/Changing.java').text.replaceAll('\\n', '\r\n')
+        file('foo/Changing.java').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -84,7 +85,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                 outputFile = project.file("\${buildDir}/output.txt")
             }
         """
-        file('foo/Changing.java') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.java') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('foo/Changing.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
@@ -94,7 +95,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         when:
-        file('foo/Changing.java').text = file('foo/Changing.java').text.replaceAll('\\n', '\r\n')
+        file('foo/Changing.java').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -123,7 +124,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                 outputFile = project.file("\${buildDir}/output.txt")
             }
         """
-        file('foo/Changing.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
 
         when:
@@ -133,7 +134,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         when:
-        file('foo/Changing.txt').text = file('foo/Changing.txt').text.replaceAll('\\n', '\r\n')
+        file('foo/Changing.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -162,7 +163,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                 outputFile = project.file("\${buildDir}/output.txt")
             }
         """
-        file('foo/Changing.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('foo/Changing.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('foo/Changing.class').bytes = CLASS_FILE_WITH_LF
 
         when:
@@ -172,7 +173,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         when:
-        file('foo/Changing.txt').text = file('foo/Changing.txt').text.replaceAll('\\n', '\r\n')
+        file('foo/Changing.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         cleanWorkspace()
         execute("taskWithInputs")
 
@@ -224,8 +225,8 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
     def "artifact transforms are sensitive to line endings by default"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.DEFAULT)
-        file('producer/foo/bar.txt') << "\nhere's a line\nhere's another line\n\n"
-        file('inputs/baz.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
+        file('inputs/baz.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
 
         when:
         execute('showTransformedFiles')
@@ -242,7 +243,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
         when:
         cleanWorkspace()
-        file('producer/foo/bar.txt').text = file('producer/foo/bar.txt').text.replaceAll('\\n', '\r\n')
+        file('producer/foo/bar.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         execute('showTransformedFiles')
 
         then:
@@ -259,8 +260,8 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
     def "artifact transforms can ignore line endings when specified"() {
         createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.IGNORE_LINE_ENDINGS)
-        file('producer/foo/bar.txt') << "\nhere's a line\nhere's another line\n\n"
-        file('inputs/baz.txt') << "\nhere's a line\nhere's another line\n\n"
+        file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
+        file('inputs/baz.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('inputs/baz.jpg').bytes = JPG_CONTENT_WITH_LF
 
         when:
@@ -278,7 +279,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
         when:
         cleanWorkspace()
-        file('producer/foo/bar.txt').text = file('producer/foo/bar.txt').text.replaceAll('\\n', '\r\n')
+        file('producer/foo/bar.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         execute('showTransformedFiles')
 
         then:
@@ -286,7 +287,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
         when:
         cleanWorkspace()
-        file('inputs/baz.txt').text = file('inputs/baz.txt').text.replaceAll('\\n', '\r\n')
+        file('inputs/baz.txt').text = toWindows(TEXT_WITH_LINE_ENDINGS)
         execute('showTransformedFiles')
 
         then:
@@ -316,13 +317,21 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         return true
     }
 
-    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity normalization, PathSensitivity pathSensitivity, API api) {
+    static def toUnix(String text) {
+        return text
+    }
+
+    static def toWindows(String text) {
+        return text.replaceAll('\\n', '\r\n')
+    }
+
+    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity, API api) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
 
         if (api == API.ANNOTATION_API) {
-            createAnnotatedTaskWithNormalization(inputAnnotation, normalization, pathSensitivity)
+            createAnnotatedTaskWithNormalization(inputAnnotation, lineEndingSensitivity, pathSensitivity)
         } else if (api == API.RUNTIME_API) {
             Class<?> normalizer;
             if (inputAnnotation == Classpath) {
@@ -332,19 +341,19 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             } else {
                 normalizer = null
             }
-            createRuntimeApiTaskWithNormalization(normalization, pathSensitivity, normalizer)
+            createRuntimeApiTaskWithNormalization(lineEndingSensitivity, pathSensitivity, normalizer)
         } else {
             throw new IllegalArgumentException()
         }
     }
 
-    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity normalization, PathSensitivity pathSensitivity) {
+    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
                 @${inputAnnotation.simpleName}
                 ${pathSensitivityAnnotation(pathSensitivity)}
-                ${normalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                ${lineEndingSensitivity == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
                 FileCollection sources
 
                 @OutputFile
@@ -368,7 +377,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         return pathSensitivity != null ? "@PathSensitive(PathSensitivity.${pathSensitivity.name()})" : ""
     }
 
-    def createRuntimeApiTaskWithNormalization(LineEndingSensitivity normalization, PathSensitivity pathSensitivity, Class<?> normalizer) {
+    def createRuntimeApiTaskWithNormalization(LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity, Class<?> normalizer) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
@@ -381,7 +390,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                     inputs.files(sources)
                         ${withNormalizer(normalizer)}
                         ${withPathSensitivity(pathSensitivity)}
-                        ${normalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? '.ignoreLineEndings()' : ''}
+                        ${lineEndingSensitivity == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? '.ignoreLineEndings()' : ''}
                         .withPropertyName('sources')
                 }
 
