@@ -21,6 +21,8 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.work.IgnoreLineEndings
 import spock.lang.Unroll
 
+import java.lang.annotation.Annotation
+
 
 abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractIntegrationSpec {
     private static final byte[] JPG_CONTENT_WITH_LF = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda, 0x0a] as byte[]
@@ -72,7 +74,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathsensitivity] << [API.values(), PathSensitivity.values()].combinations()
+        [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
     }
 
     @Unroll
@@ -111,7 +113,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathsensitivity] << [API.values(), PathSensitivity.values()].combinations()
+        [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
     }
 
     @Unroll
@@ -150,7 +152,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        api << API.values()
+        api << Api.values()
     }
 
     @Unroll
@@ -189,7 +191,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        api << API.values()
+        api << Api.values()
     }
 
     @Unroll
@@ -220,7 +222,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, lineEndingNormalization] << [API.values(), LineEndingSensitivity.values()].combinations()
+        [api, lineEndingNormalization] << [Api.values(), LineEndingSensitivity.values()].combinations()
     }
 
     def "artifact transforms are sensitive to line endings by default"() {
@@ -325,14 +327,14 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         return text.replaceAll('\\n', '\r\n')
     }
 
-    def createTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity, API api) {
+    def createTaskWithNormalization(Class<? extends Annotation> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity, Api api) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
 
-        if (api == API.ANNOTATION_API) {
+        if (api == Api.ANNOTATION_API) {
             createAnnotatedTaskWithNormalization(inputAnnotation, lineEndingSensitivity, pathSensitivity)
-        } else if (api == API.RUNTIME_API) {
+        } else if (api == Api.RUNTIME_API) {
             Class<?> normalizer;
             if (inputAnnotation == Classpath) {
                 normalizer = ClasspathNormalizer
@@ -347,7 +349,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         }
     }
 
-    def createAnnotatedTaskWithNormalization(Class<?> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity) {
+    def createAnnotatedTaskWithNormalization(Class<? extends Annotation> inputAnnotation, LineEndingSensitivity lineEndingSensitivity, PathSensitivity pathSensitivity) {
         buildFile << """
             @CacheableTask
             class TaskWithInputs extends DefaultTask {
@@ -586,7 +588,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         """
     }
 
-    enum API {
+    enum Api {
         RUNTIME_API, ANNOTATION_API
     }
 }

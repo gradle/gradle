@@ -69,7 +69,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     @Unroll
@@ -111,7 +111,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         reused(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     @Unroll
@@ -167,7 +167,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [API.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
     def "artifact transforms are sensitive to empty directories by default"() {
@@ -286,17 +286,17 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         return true
     }
 
-    enum API {
+    enum Api {
         RUNTIME_API, ANNOTATION_API
     }
 
-    void createTaskWithSensitivity(DirectorySensitivity emptyDirectorySensitivity, API api, PathSensitivity pathSensitivity = PathSensitivity.RELATIVE) {
+    void createTaskWithSensitivity(DirectorySensitivity emptyDirectorySensitivity, Api api, PathSensitivity pathSensitivity = PathSensitivity.RELATIVE) {
         buildFile << """
             task taskWithInputs(type: TaskWithInputs)
         """
-        if (api == API.RUNTIME_API) {
+        if (api == Api.RUNTIME_API) {
             createRuntimeApiTaskWithSensitivity(emptyDirectorySensitivity, pathSensitivity)
-        } else if (api == API.ANNOTATION_API) {
+        } else if (api == Api.ANNOTATION_API) {
             createAnnotatedTaskWithSensitivity(emptyDirectorySensitivity, pathSensitivity)
         } else {
             throw new IllegalArgumentException()
