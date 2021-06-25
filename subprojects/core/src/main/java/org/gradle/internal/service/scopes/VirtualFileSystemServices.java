@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileSystems;
 import org.apache.tools.ant.DirectoryScanner;
@@ -108,7 +109,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -401,7 +401,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 concat(
                     fileCollectionFingerprinterRegistrations.getRegistrants().stream(),
                     fingerprinters.stream()
-                ).collect(toList())
+                ).collect(ImmutableList.toImmutableList())
             );
         }
 
