@@ -36,6 +36,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":file-watching"))
     implementation(project(":launcher"))
     implementation(project(":logging"))

@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.problems
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -33,10 +32,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.problems.buildtree.ProblemReporter
 import java.io.File
 import java.util.function.Consumer
-
-
-private
-const val maxCauses = 5
 
 
 @ServiceScope(Scopes.BuildTree::class)
@@ -57,10 +52,10 @@ class ConfigurationCacheProblems(
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
 
     private
-    val postBuildHandler = PostBuildProblemsHandler()
+    val summary = ConfigurationCacheProblemsSummary()
 
     private
-    val problemListBuilder = ImmutableList.builder<PropertyProblem>()
+    val postBuildHandler = PostBuildProblemsHandler()
 
     private
     var isFailOnProblems = startParameter.failOnProblems
@@ -96,26 +91,9 @@ class ConfigurationCacheProblems(
         isFailOnProblems = false
     }
 
-    private
-    fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
-
     override fun onProblem(problem: PropertyProblem) {
-        problemListBuilder.let {
-            synchronized(it) {
-                it.add(problem)
-            }
-        }
-    }
-
-    private
-    fun getProblemCount(): Int =
-        buildProblemList().size
-
-    private
-    fun buildProblemList() = problemListBuilder.let {
-        synchronized(it) {
-            it.build()
-        }
+        report.onProblem(problem)
+        summary.onProblem(problem)
     }
 
     override fun getId(): String {
@@ -123,7 +101,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
-        val problemCount = getProblemCount()
+        val problemCount = summary.problemCount
         if (problemCount == 0) {
             return
         }
@@ -134,27 +112,26 @@ class ConfigurationCacheProblems(
         }
         val cacheActionText = cacheAction.summaryText()
         val outputDirectory = outputDirectoryFor(reportDir)
-        val problemList = buildProblemList()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemList)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText)
         when {
             isFailOnProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
                 validationFailures.accept(
-                    ConfigurationCacheProblemsException(problemList.causes()) {
-                        buildConsoleSummary(cacheActionText, problemList, htmlReportFile)
+                    ConfigurationCacheProblemsException(summary.causes) {
+                        summary.textForConsole(cacheActionText, htmlReportFile)
                     }
                 )
             }
             hasTooManyProblems -> {
                 validationFailures.accept(
-                    TooManyConfigurationCacheProblemsException(problemList.causes()) {
-                        buildConsoleSummary(cacheActionText, problemList, htmlReportFile)
+                    TooManyConfigurationCacheProblemsException(summary.causes) {
+                        summary.textForConsole(cacheActionText, htmlReportFile)
                     }
                 )
             }
             else -> {
-                logger.warn(buildConsoleSummary(cacheActionText, problemList, htmlReportFile))
+                logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
             }
         }
     }
@@ -182,7 +159,7 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problemCount = getProblemCount()
+            val problemCount = summary.problemCount
             val hasProblems = problemCount > 0
             val hasTooManyProblems = problemCount > startParameter.maxProblems
             val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"

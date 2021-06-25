@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -25,20 +26,127 @@ import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.firstTypeFrom
 import org.gradle.configurationcache.problems.taskPathFrom
-import java.io.BufferedReader
+import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.BufferedWriter
+import java.io.Closeable
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URL
+import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 
 
-class ConfigurationCacheReport {
+@ServiceScope(Scopes.BuildTree::class)
+class ConfigurationCacheReport(
+    executorFactory: ExecutorFactory,
+    temporaryFileProvider: TemporaryFileProvider
+) : Closeable {
 
-    companion object {
+
+    sealed class State {
+
+        open fun onProblem(problem: PropertyProblem): State = illegalState()
+
+        open fun commitReportTo(htmlReportFile: File, cacheAction: String): State = illegalState()
+
+        open fun close(): State = illegalState()
 
         private
-        const val reportHtmlFileName = "configuration-cache-report.html"
+        fun illegalState(): Nothing =
+            throw IllegalStateException("Operation is not valid in ${javaClass.simpleName} state.")
+
+        class Idle(
+            val executorFactory: ExecutorFactory,
+            val temporaryFileProvider: TemporaryFileProvider
+        ) : State() {
+
+            override fun onProblem(problem: PropertyProblem): State =
+                Spooling(
+                    executorFactory.create("Configuration cache report writer", 1),
+                    temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html")
+                ).onProblem(problem)
+
+            override fun close(): State =
+                this
+        }
+
+        class Spooling(
+            val executor: ManagedExecutor,
+            val spoolFile: File
+        ) : State() {
+
+            private
+            val writer = HtmlReportWriter(spoolFile.bufferedWriter())
+
+            init {
+                executor.submit {
+                    writer.beginHtmlReport()
+                }
+            }
+
+            override fun onProblem(problem: PropertyProblem): State {
+                executor.submit {
+                    writer.writeProblem(problem)
+                }
+                return this
+            }
+
+            override fun commitReportTo(htmlReportFile: File, cacheAction: String): State {
+                executor.run {
+                    submit {
+                        writer.endHtmlReport(cacheAction)
+                        writer.close()
+                        Files.move(spoolFile.toPath(), htmlReportFile.toPath())
+                    }
+                    shutdown()
+                    awaitTermination(3, TimeUnit.SECONDS)
+                }
+                return Closed
+            }
+
+            override fun close(): State {
+                executor.run {
+                    submit {
+                        writer.close()
+                    }
+                    shutdown()
+                }
+                return Closed
+            }
+        }
+
+        object Closed : State() {
+            override fun close(): State = this
+        }
+    }
+
+    private
+    var state: State = State.Idle(executorFactory, temporaryFileProvider)
+
+    private
+    val stateLock = Object()
+
+    override fun close() {
+        withState {
+            close()
+        }
+    }
+
+    fun onProblem(problem: PropertyProblem) {
+        withState {
+            onProblem(problem)
+        }
+    }
+
+    private
+    inline fun withState(f: State.() -> State) {
+        synchronized(stateLock) {
+            state = state.f()
+        }
     }
 
     /**
@@ -48,112 +156,121 @@ class ConfigurationCacheReport {
      * see [writeJsReportData].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, problems: List<PropertyProblem>): File {
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String): File {
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
-        // Groovy JSON uses the context classloader to locate various components, so use this class's classloader as the context classloader
-        return withContextClassLoader {
-            outputDirectory.resolve(reportHtmlFileName).also { htmlReportFile ->
-                val html = javaClass.requireResource(reportHtmlFileName)
-                htmlReportFile.bufferedWriter().use { writer ->
-                    html.openStream().bufferedReader().use { reader ->
-                        writer.writeReportFileText(reader, cacheAction, problems)
-                    }
-                }
+        return outputDirectory.resolve(HtmlReportTemplate.reportHtmlFileName).also { htmlReportFile ->
+            withState {
+                commitReportTo(htmlReportFile, cacheAction)
             }
         }
     }
+}
+
+
+/**
+ * Writes the configuration cache html.
+ *
+ * The report is laid out in such a way as to allow extracting the pure JSON model
+ * by looking for `// begin-report-data` and `// end-report-data`.
+ */
+internal
+class HtmlReportWriter(val writer: BufferedWriter) {
 
     private
-    fun <T> withContextClassLoader(action: () -> T): T {
-        val currentThread = Thread.currentThread()
-        val previous = currentThread.contextClassLoader
-        currentThread.contextClassLoader = javaClass.classLoader
-        try {
-            return action()
-        } finally {
-            currentThread.contextClassLoader = previous
+    val jsonModelWriter = JsonModelWriter(writer)
+
+    private
+    val htmlTemplate = HtmlReportTemplate.load()
+
+    fun beginHtmlReport() {
+        writer.run {
+            append(htmlTemplate.first)
+            appendLine("""<script type="text/javascript">""")
+            appendLine("function configurationCacheProblems() { return (")
+            appendLine("// begin-report-data")
+        }
+        jsonModelWriter.beginModel()
+    }
+
+    fun endHtmlReport(cacheAction: String) {
+        jsonModelWriter.endModel(cacheAction)
+        writer.run {
+            appendLine()
+            appendLine("// end-report-data")
+            appendLine(");}")
+            appendLine("</script>")
+            append(htmlTemplate.second)
         }
     }
 
-    private
-    fun BufferedWriter.writeReportFileText(htmlReader: BufferedReader, cacheAction: String, problems: List<PropertyProblem>) {
-        var dataWritten = false
-        htmlReader.forEachLine { line ->
-            if (!dataWritten && line.contains("configuration-cache-report-data.js")) {
-                appendLine("""<script type="text/javascript">""")
-                writeJsReportData(cacheAction, problems)
-                appendLine("</script>")
-                dataWritten = true
-            } else {
-                appendLine(line)
-            }
-        }
-        require(dataWritten) { "Didn't write report data, placeholder not found!" }
+    fun writeProblem(problem: PropertyProblem) {
+        jsonModelWriter.writeProblem(problem)
     }
 
-    /**
-     * Writes the report data function.
-     *
-     * The text is laid out in such a way as to allow extracting the pure JSON model
-     * by looking for `// begin-report-data` and `// end-report-data`.
-     */
-    private
-    fun BufferedWriter.writeJsReportData(cacheAction: String, problems: List<PropertyProblem>) {
-        appendLine("function configurationCacheProblems() { return (")
-        appendLine("// begin-report-data")
-        writeJsonModelFor(cacheAction, problems)
-        appendLine()
-        appendLine("// end-report-data")
-        appendLine(");}")
-    }
-
-    private
-    fun BufferedWriter.writeJsonModelFor(cacheAction: String, problems: List<PropertyProblem>) {
-        JsonModelWriter(this, DocumentationRegistry()).write(cacheAction, problems)
-    }
-
-    private
-    fun Class<*>.requireResource(path: String): URL = getResource(path).also {
-        require(it != null) { "Resource `$path` could not be found!" }
+    fun close() {
+        writer.close()
     }
 }
 
 
 private
-class JsonModelWriter(
-    val writer: BufferedWriter,
-    val documentationRegistry: DocumentationRegistry
-) {
+class JsonModelWriter(val writer: BufferedWriter) {
+
+    private
+    val documentationRegistry = DocumentationRegistry()
+
+    private
+    var first = true
+
     fun write(cacheAction: String, problems: List<PropertyProblem>) {
+        beginModel()
+        problems.forEach {
+            writeProblem(it)
+        }
+        endModel(cacheAction)
+    }
+
+    fun beginModel() {
+        beginObject()
+
+        propertyName("problems")
+        beginArray()
+    }
+
+    fun endModel(cacheAction: String) {
+        endArray()
+
+        comma()
+        property("cacheAction", cacheAction)
+        comma()
+        property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
+
+        endObject()
+    }
+
+    fun writeProblem(problem: PropertyProblem) {
+        if (first) first = false else comma()
         jsonObject {
-            property("cacheAction", cacheAction)
-            comma()
-            property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
-            comma()
-            property("problems") {
-                jsonObjectList(problems) { problem ->
-                    property("trace") {
-                        jsonObjectList(problem.trace.sequence.asIterable()) { trace ->
-                            writePropertyTrace(trace)
-                        }
-                    }
-                    comma()
-                    property("message") {
-                        jsonObjectList(problem.message.fragments) { fragment ->
-                            writeFragment(fragment)
-                        }
-                    }
-                    problem.documentationSection?.let {
-                        comma()
-                        property("documentationLink", documentationLinkFor(it))
-                    }
-                    stackTraceStringOf(problem)?.let {
-                        comma()
-                        property("error", it)
-                    }
+            property("trace") {
+                jsonObjectList(problem.trace.sequence.asIterable()) { trace ->
+                    writePropertyTrace(trace)
                 }
+            }
+            comma()
+            property("message") {
+                jsonObjectList(problem.message.fragments) { fragment ->
+                    writeFragment(fragment)
+                }
+            }
+            problem.documentationSection?.let {
+                comma()
+                property("documentationLink", documentationLinkFor(it))
+            }
+            stackTraceStringOf(problem)?.let {
+                comma()
+                property("error", it)
             }
         }
     }
@@ -229,19 +346,39 @@ class JsonModelWriter(
 
     private
     inline fun jsonObject(body: () -> Unit) {
-        write('{')
+        beginObject()
         body()
+        endObject()
+    }
+
+    private
+    fun beginObject() {
+        write('{')
+    }
+
+    private
+    fun endObject() {
         write('}')
     }
 
     private
     inline fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
-        write('[')
+        beginArray()
         var first = true
         list.forEach {
             if (first) first = false else comma()
             body(it)
         }
+        endArray()
+    }
+
+    private
+    fun beginArray() {
+        write('[')
+    }
+
+    private
+    fun endArray() {
         write(']')
     }
 
@@ -252,9 +389,14 @@ class JsonModelWriter(
 
     private
     inline fun property(name: String, value: () -> Unit) {
+        propertyName(name)
+        value()
+    }
+
+    private
+    fun propertyName(name: String) {
         simpleString(name)
         write(':')
-        value()
     }
 
     private
@@ -289,12 +431,69 @@ class JsonModelWriter(
         }
 
     private
+    val stackTraceExtractor = StackTraceExtractor()
+
+    private
     fun stackTraceStringFor(error: Throwable): String =
-        StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
+        stackTraceExtractor.stackTraceStringFor(error)
 
     private
     fun write(s: String) = writer.append(s)
 
     private
     fun write(s: Char) = writer.append(s)
+}
+
+
+private
+class StackTraceExtractor {
+
+    private
+    val stringWriter = StringWriter()
+
+    private
+    val printWriter = PrintWriter(stringWriter)
+
+    fun stackTraceStringFor(error: Throwable): String {
+        error.printStackTrace(printWriter)
+        return stringWriter.toString().also {
+            stringWriter.buffer.setLength(0)
+        }
+    }
+}
+
+
+internal
+object HtmlReportTemplate {
+
+    const val reportHtmlFileName = "configuration-cache-report.html"
+
+    private
+    const val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
+
+    fun load(): Pair<String, String> {
+        val template = readHtmlTemplate()
+        val headerEnd = template.indexOf(modelLine)
+        require(headerEnd > 0) {
+            "Invalid configuration cache report template!"
+        }
+        val header = template.substring(0, headerEnd)
+        val footer = template.substring(headerEnd + modelLine.length + 1)
+        return header to footer
+    }
+
+    private
+    fun readHtmlTemplate() =
+        ConfigurationCacheReport::class.java
+            .requireResource(reportHtmlFileName)
+            .openStream()
+            .bufferedReader().use {
+                it.readText()
+            }
+}
+
+
+private
+fun Class<*>.requireResource(path: String): URL = getResource(path).also {
+    require(it != null) { "Resource `$path` could not be found!" }
 }
