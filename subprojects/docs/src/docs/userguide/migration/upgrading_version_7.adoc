@@ -69,12 +69,12 @@ But, because this package name doesn't contain the word `internal`, many Gradle 
 Gradle 7.1 addresses the situation and marks the package as public.
 The classes that were unintentionally exposed are either deprecated or removed, depending on their external usage.
 
-The following classes are now officially recognized as public API:
+===== The following classes are now officially recognized as public API:
 - `GradleVersion`
 - `Path`
 - `Configurable`
 
-The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
+===== The following classes have known usages in external plugins and are now deprecated and set for removal in Gradle 8.0:
 
 - `VersionNumber`
 - `TextUtil`
@@ -82,8 +82,11 @@ The following classes have known usages in external plugins and are now deprecat
 - `RelativePathUtil`
 - `DistributionLocator`
 - `SingleMessageLogger`
+- `ConfigureUtil`
 
-The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
+`ConfigureUtil` is being removed without a replacement. Plugins can avoid the need for using `ConfigureUtil` by following link:{javadocPath}/org/gradle/util/ConfigureUtil.html[our example].
+
+===== The following classes have only internal usages and were moved from `org.gradle.util` to the `org.gradle.util.internal` package:
 
 - `Resources`
 - `RedirectStdOutAndErr`
@@ -101,7 +104,7 @@ The following classes have only internal usages and were moved from `org.gradle.
 - `AntUtil`
 - `JarUtil`
 
-The last set of classes have no external or internal usages and therefore were deleted:
+===== The last set of classes have no external or internal usages and therefore were deleted:
 
 - `DiffUtil`
 - `NoopChangeListener`
