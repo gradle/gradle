@@ -46,7 +46,6 @@ class ConfigurationCacheReport(
     temporaryFileProvider: TemporaryFileProvider
 ) : Closeable {
 
-
     sealed class State {
 
         open fun onProblem(problem: PropertyProblem): State = illegalState()
