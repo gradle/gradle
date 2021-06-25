@@ -27,7 +27,7 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
-import org.gradle.api.tasks.IgnoreLineEndings;
+import org.gradle.work.IgnoreLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;

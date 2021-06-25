@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.fingerprint.LineEndingNormalization
+import org.gradle.work.IgnoreLineEndings
 import spock.lang.Unroll
 
 
