@@ -28,9 +28,7 @@ import java.io.InputStream;
  * for mark() and markSupported() which are unsupported.
  */
 public class FileContentTypeDetectingInputStream extends FilterInputStream {
-    private final static int CHAR_SCANNING_LIMIT = 80000;
     private boolean controlCharactersFound;
-    private int count;
 
     public FileContentTypeDetectingInputStream(InputStream delegate) {
         super(delegate);
@@ -59,7 +57,6 @@ public class FileContentTypeDetectingInputStream extends FilterInputStream {
 
     @Override
     public synchronized void reset() throws IOException {
-        count = 0;
         controlCharactersFound = false;
         super.reset();
     }
@@ -75,7 +72,7 @@ public class FileContentTypeDetectingInputStream extends FilterInputStream {
     }
 
     private void checkForControlCharacters(byte[] buffer, int length) {
-        if (count < CHAR_SCANNING_LIMIT && !controlCharactersFound) {
+        if (!controlCharactersFound) {
             for (int i = 0; i < length; i++) {
                 checkForControlCharacters(buffer[i]);
             }
@@ -83,7 +80,7 @@ public class FileContentTypeDetectingInputStream extends FilterInputStream {
     }
 
     private void checkForControlCharacters(int b) {
-        if (count++ < CHAR_SCANNING_LIMIT && !controlCharactersFound && isControlCharacter(b)) {
+        if (!controlCharactersFound && isControlCharacter(b)) {
             controlCharactersFound = true;
         }
     }
