@@ -12,7 +12,7 @@ plugins {
 }
 
 val antVersion = "1.10.9"
-val archunitVersion = "0.16.0"
+val archunitVersion = "0.20.0"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"

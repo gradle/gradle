@@ -21,4 +21,27 @@ tasks.test {
 
     systemProperty("org.gradle.public.api.includes", gradlebuild.basics.PublicApi.includes.joinToString(":"))
     systemProperty("org.gradle.public.api.excludes", gradlebuild.basics.PublicApi.excludes.joinToString(":"))
+    jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
+        project.file("src/changes/archunit_store"),
+        providers.gradleProperty("archunitRefreeze").map { true })
+    )
+}
+
+class ArchUnitFreezeConfiguration(
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val location: File,
+    @get:Optional
+    @get:Input
+    val refreeze: Provider<Boolean>
+) : CommandLineArgumentProvider {
+
+    override fun asArguments(): Iterable<String> {
+        val refreezeBoolean = refreeze.getOrElse(false)
+        return listOf(
+            "-Darchunit.freeze.store.default.path=${location.absolutePath}",
+            "-Darchunit.freeze.refreeze=${refreezeBoolean}",
+            "-Darchunit.freeze.store.default.allowStoreUpdate=${refreezeBoolean}"
+        )
+    }
 }
