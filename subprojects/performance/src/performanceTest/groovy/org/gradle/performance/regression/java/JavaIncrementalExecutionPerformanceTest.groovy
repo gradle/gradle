@@ -28,7 +28,6 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -42,7 +41,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
     boolean isGroovyProject
 
     def setup() {
-        runner.targetVersions = ["7.1-20210427170827+0000"]
+        runner.targetVersions = ["7.2-20210624165551+0000"]
         testProject = JavaTestProject.findProjectFor(runner.testProject)
         isGroovyProject = testProject?.name()?.contains("GROOVY")
         if (isGroovyProject) {
@@ -124,7 +123,6 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS], testProjects = "largeJavaMultiProject", iterationMatcher = '.*parallel true.*'),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
-    @Ignore("Needs rebaselining")
     def "up-to-date assemble (parallel #parallel)"() {
         given:
         runner.tasksToRun = ['assemble']
@@ -144,7 +142,6 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeJavaMultiProject", iterationMatcher = '.*parallel true.*'),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"], iterationMatcher = '.*parallel false.*'),
     ])
-    @Ignore("Needs rebaselining")
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
         given:
         runner.tasksToRun = ['assemble']
