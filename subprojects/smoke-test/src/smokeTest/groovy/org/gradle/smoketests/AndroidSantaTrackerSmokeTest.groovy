@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -101,7 +100,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
-    @Ignore("https://github.com/gradle/gradle-private/issues/3409")
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
