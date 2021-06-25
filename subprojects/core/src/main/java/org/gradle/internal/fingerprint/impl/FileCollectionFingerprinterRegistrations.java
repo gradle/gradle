@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareClasspathResourceHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingAwareResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
@@ -66,7 +66,7 @@ public class FileCollectionFingerprinterRegistrations {
     }
 
     private static ResourceHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, StreamHasher streamHasher, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
-        ResourceHasher lineEndingAwareResourceHasher = new LineEndingAwareClasspathResourceHasher(new RuntimeClasspathResourceHasher(), lineEndingSensitivity, streamHasher);
+        ResourceHasher lineEndingAwareResourceHasher = new LineEndingAwareResourceHasher(new RuntimeClasspathResourceHasher(), lineEndingSensitivity, streamHasher);
         return new CachingResourceHasher(lineEndingAwareResourceHasher, resourceSnapshotterCacheService);
     }
 }

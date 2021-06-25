@@ -29,12 +29,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
-public class LineEndingAwareClasspathResourceHasher implements ResourceHasher {
+public class LineEndingAwareResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final LineEndingSensitivity lineEndingSensitivity;
     private final NormalizedContentInfoCollector collector;
 
-    public LineEndingAwareClasspathResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity, StreamHasher streamHasher) {
+    public LineEndingAwareResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity, StreamHasher streamHasher) {
         this.delegate = delegate;
         this.lineEndingSensitivity = lineEndingSensitivity;
         this.collector = new NormalizedContentInfoCollector(LineEndingNormalizingInputStream::new, streamHasher);
