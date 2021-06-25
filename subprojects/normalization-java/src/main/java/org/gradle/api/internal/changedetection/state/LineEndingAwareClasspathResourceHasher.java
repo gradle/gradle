@@ -20,10 +20,8 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
-import org.gradle.internal.hash.FileContentType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.LineEndingNormalizingInputStream;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 

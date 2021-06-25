@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash;
+package org.gradle.api.internal.changedetection.state;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

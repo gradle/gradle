@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.hash
+package org.gradle.api.internal.changedetection.state
 
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -52,13 +52,13 @@ class FileContentTypeDetectingInputStreamTest extends Specification {
 
         where:
         expectedType           | description                   | content
-        FileContentType.TEXT   | "new lines"                   | "this is\na text file\n".bytes
-        FileContentType.TEXT   | "new lines with CR-LF"        | "this is\r\na text file\r\n".bytes
-        FileContentType.TEXT   | "no new lines"                | "No new lines\tin this file".bytes
-        FileContentType.TEXT   | "utf8 content"                | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
-        FileContentType.BINARY | "png content"                 | [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as byte[]
-        FileContentType.BINARY | "jpg content"                 | [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda] as byte[]
-        FileContentType.BINARY | "java class file content"     | [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00] as byte[]
+        FileContentType.TEXT   | "new lines"               | "this is\na text file\n".bytes
+        FileContentType.TEXT   | "new lines with CR-LF"    | "this is\r\na text file\r\n".bytes
+        FileContentType.TEXT   | "no new lines"            | "No new lines\tin this file".bytes
+        FileContentType.TEXT   | "utf8 content"            | "here's some UTF8 content: €ЇΩ".getBytes(Charset.forName("UTF-8"))
+        FileContentType.BINARY | "png content"             | [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as byte[]
+        FileContentType.BINARY | "jpg content"             | [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda] as byte[]
+        FileContentType.BINARY | "java class file content" | [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00] as byte[]
     }
 
     def "delegate is called when operating on input stream"() {

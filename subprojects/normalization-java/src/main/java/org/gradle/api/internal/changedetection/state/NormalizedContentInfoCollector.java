@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.hash.FileContentType;
-import org.gradle.internal.hash.FileContentTypeDetectingInputStream;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 
