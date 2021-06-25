@@ -74,7 +74,7 @@ public class FileContentTypeDetectingInputStream extends FilterInputStream {
         return false;
     }
 
-    void checkForControlCharacters(byte[] buffer, int length) {
+    private void checkForControlCharacters(byte[] buffer, int length) {
         if (count < CHAR_SCANNING_LIMIT && !controlCharactersFound) {
             for (int i = 0; i < length; i++) {
                 checkForControlCharacters(buffer[i]);
@@ -82,13 +82,13 @@ public class FileContentTypeDetectingInputStream extends FilterInputStream {
         }
     }
 
-    void checkForControlCharacters(int b) {
+    private void checkForControlCharacters(int b) {
         if (count++ < CHAR_SCANNING_LIMIT && !controlCharactersFound && isControlCharacter(b)) {
             controlCharactersFound = true;
         }
     }
 
-    private boolean isControlCharacter(int c) {
+    private static boolean isControlCharacter(int c) {
         return isInControlRange(c) && isNotCommonTextChar(c);
     }
 
