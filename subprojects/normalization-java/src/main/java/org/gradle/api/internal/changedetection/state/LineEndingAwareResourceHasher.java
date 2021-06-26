@@ -23,7 +23,6 @@ import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -62,7 +61,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) {
         return lineEndingSensitivity.isCandidate(snapshotContext.getSnapshot()) ?
-            hashContent(snapshotContext.getSnapshot()) :
+            hashContent(snapshotContext) :
             delegate.hash(snapshotContext);
     }
 
@@ -75,11 +74,11 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
     }
 
     @Nullable
-    private HashCode hashContent(RegularFileSnapshot snapshot) {
-        NormalizedContentInfo normalizedContentInfo = collectContentInfo(new File(snapshot.getAbsolutePath()));
+    private HashCode hashContent(RegularFileSnapshotContext snapshotContext) {
+        NormalizedContentInfo normalizedContentInfo = collectContentInfo(new File(snapshotContext.getSnapshot().getAbsolutePath()));
         return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
             normalizedContentInfo.getHash() :
-            snapshot.getHash();
+            delegate.hash(snapshotContext);
     }
 
     @Nullable
@@ -158,7 +157,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
 
         public HashCode getHash() {
             // If reading of the input stream was short circuited because we detected a binary file,
-            // we should never use the hash as it is incomplete.
+            // we should never use the hash as it's incomplete.
             if (incompleteHash) {
                 throw new IllegalStateException();
             } else {
@@ -168,7 +167,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
     }
 
     /**
-     * This InputStream stops the hashing once a binary file is detected.
+     * An InputStream that stops the reading from its delegate if the supplied condition is ever met.
      */
     private static class ShortCircuitingInputStream<T extends InputStream> extends FilterInputStream {
         private static final int EOF = -1;
