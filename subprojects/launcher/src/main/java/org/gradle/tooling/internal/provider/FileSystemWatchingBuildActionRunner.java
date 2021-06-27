@@ -69,7 +69,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             ? WatchLogging.DEBUG
             : WatchLogging.NORMAL;
 
-        LOGGER.info("Watching the file system is {}", watchFileSystemMode.getDescription());
+        LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
         if (watchFileSystemMode.isEnabled()) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
@@ -78,6 +78,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
 
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
+        LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
         //noinspection Convert2Lambda
         eventEmitter.emitNowForCurrent(new FileSystemWatchingSettingsFinalizedProgressDetails() {
             @Override

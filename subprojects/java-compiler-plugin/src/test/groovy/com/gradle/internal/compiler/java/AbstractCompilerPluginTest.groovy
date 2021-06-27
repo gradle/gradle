@@ -62,4 +62,13 @@ class AbstractCompilerPluginTest extends Specification {
         return [f]
     }
 
+    List<File> toModuleSourceFile(String body) {
+        def className = "module-info"
+        File parent = Paths.get(sourceFolder.absolutePath, "src", "main", "java").toFile()
+        File f = Paths.get(parent.absolutePath, "${className}.java").toFile()
+        parent.mkdirs()
+        f.text = body
+        return [f]
+    }
+
 }
