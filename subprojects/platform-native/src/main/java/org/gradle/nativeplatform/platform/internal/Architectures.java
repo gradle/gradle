@@ -27,6 +27,11 @@ public class Architectures {
     public static final KnownArchitecture IA_64 = new KnownArchitecture("ia-64", "ia64");
     public static final KnownArchitecture ARM_V7 = new KnownArchitecture("arm-v7", "armv7", "arm", "arm32");
     public static final KnownArchitecture ARM_V8 = new KnownArchitecture("arm-v8", "arm64", "aarch64");
+    public static final KnownArchitecture PPC = new KnownArchitecture("ppc");
+    public static final KnownArchitecture PPC64 = new KnownArchitecture("ppc64");
+    public static final KnownArchitecture SPARC_V8 = new KnownArchitecture("sparc-v8", "sparc", "sparc32");
+    public static final KnownArchitecture SPARC_V9 = new KnownArchitecture("sparc-v9", "sparc64", "ultrasparc");
+    public static final KnownArchitecture RISKV_64 = new KnownArchitecture("riskv-64", "riscv64");
 
     private static final List<KnownArchitecture> KNOWN_ARCHITECTURES = asList(
             X86,
@@ -34,10 +39,11 @@ public class Architectures {
             IA_64,
             ARM_V7,
             ARM_V8,
-            new KnownArchitecture("ppc"),
-            new KnownArchitecture("ppc64"),
-            new KnownArchitecture("sparc-v8", "sparc", "sparc32"),
-            new KnownArchitecture("sparc-v9", "sparc64", "ultrasparc")
+            PPC,
+            PPC64,
+            SPARC_V8,
+            SPARC_V9,
+            RISKV_64
     );
 
     public static ArchitectureInternal forInput(String input) {

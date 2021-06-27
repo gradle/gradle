@@ -36,4 +36,19 @@ public interface ArchitectureInternal extends Architecture {
     @Internal
     boolean isArm64();
 
+    @Internal
+    boolean isPpc();
+
+    @Internal
+    boolean isPpc64();
+
+    @Internal
+    boolean isSparkV8();
+
+    @Internal
+    boolean isSparkV9();
+
+    @Internal
+    boolean isRiskV64();
+
 }

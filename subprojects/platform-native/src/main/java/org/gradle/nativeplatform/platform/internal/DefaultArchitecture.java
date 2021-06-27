@@ -63,6 +63,31 @@ public class DefaultArchitecture implements ArchitectureInternal {
     }
 
     @Override
+    public boolean isPpc() {
+        return Architectures.PPC.isAlias(name);
+    }
+
+    @Override
+    public boolean isPpc64() {
+        return Architectures.PPC64.isAlias(name);
+    }
+
+    @Override
+    public boolean isSparkV8() {
+        return Architectures.SPARC_V8.isAlias(name);
+    }
+
+    @Override
+    public boolean isSparkV9() {
+        return Architectures.SPARC_V9.isAlias(name);
+    }
+
+    @Override
+    public boolean isRiskV64() {
+        return Architectures.RISKV_64.isAlias(name);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
