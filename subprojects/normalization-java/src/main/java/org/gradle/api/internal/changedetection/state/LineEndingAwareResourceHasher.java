@@ -102,38 +102,28 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
             HashCode hashCode = streamHasher.hash(normalizedInputStream);
             return new NormalizedContentInfo(hashCode, contentTypeDetectingInputStream.getContentType(), shortCircuitingInputStream.isShortCircuited());
         } finally {
-            try {
-                contentTypeDetectingInputStream.close();
-            } catch (IOException ignored) {
-                // Ignored
-            }
-
-            try {
-                shortCircuitingInputStream.close();
-            } catch (IOException ignored) {
-                // Ignored
-            }
-
-            try {
-                normalizedInputStream.close();
-            } catch (IOException ignored) {
-                // Ignored
-            }
+            closeAndIgnore(contentTypeDetectingInputStream, shortCircuitingInputStream, normalizedInputStream);
         }
     }
 
     public NormalizedContentInfo collectContentInfo(File file) {
-        FileInputStream inputStream;
+        FileInputStream inputStream = null;
         try {
             inputStream = new FileInputStream(file);
+            return collectContentInfo(inputStream);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
-        }
-        try {
-            return collectContentInfo(inputStream);
         } finally {
+            closeAndIgnore(inputStream);
+        }
+    }
+
+    private static void closeAndIgnore(InputStream... inputStreams) {
+        for (InputStream inputStream : inputStreams) {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (IOException e) {
                 // Ignored
             }
