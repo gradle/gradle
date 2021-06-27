@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.Maps;
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileResolver;
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -74,15 +76,16 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     private final Map<NativePlatform, PlatformToolProvider> toolProviders = Maps.newHashMap();
     private final CompilerMetaDataProvider<GccMetadata> metaDataProvider;
     private final SystemLibraryDiscovery standardLibraryDiscovery;
-    private final Instantiator instantiator;
+    protected final Instantiator instantiator;
     private final WorkerLeaseService workerLeaseService;
+    protected final SystemInfo systemInfo;
     private int configInsertLocation;
 
-    public AbstractGccCompatibleToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<GccMetadata> metaDataProvider, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
-        this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), metaDataProvider, standardLibraryDiscovery, instantiator, workerLeaseService);
+    public AbstractGccCompatibleToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProvider<GccMetadata> metaDataProvider, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService, SystemInfo systemInfo) {
+        this(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, new ToolSearchPath(operatingSystem), metaDataProvider, standardLibraryDiscovery, instantiator, workerLeaseService, systemInfo);
     }
 
-    AbstractGccCompatibleToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider<GccMetadata> metaDataProvider, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+    AbstractGccCompatibleToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider<GccMetadata> metaDataProvider, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService, SystemInfo systemInfo) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.toolSearchPath = tools;
@@ -91,9 +94,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         this.compilerOutputFileNamingSchemeFactory = compilerOutputFileNamingSchemeFactory;
         this.workerLeaseService = workerLeaseService;
         this.standardLibraryDiscovery = standardLibraryDiscovery;
+        this.systemInfo = systemInfo;
 
-        target(new Intel32Architecture());
-        target(new Intel64Architecture());
         configInsertLocation = 0;
     }
 
@@ -131,7 +133,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         target(new DefaultTargetPlatformConfiguration(platformNames, action));
     }
 
-    private void target(TargetPlatformConfiguration targetPlatformConfiguration) {
+    protected void target(TargetPlatformConfiguration targetPlatformConfiguration) {
         platformConfigs.add(configInsertLocation, targetPlatformConfiguration);
         configInsertLocation++;
     }
@@ -207,7 +209,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);
-        addDefaultTools(configurableToolChain);
+        addDefaultTools(targetPlatform, configurableToolChain);
         configureDefaultTools(configurableToolChain);
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
@@ -243,17 +245,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
     protected void initForImplementation(DefaultGccPlatformToolChain platformToolChain, GccMetadata versionResult) {
     }
 
-    private void addDefaultTools(DefaultGccPlatformToolChain toolChain) {
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.C_COMPILER, "gcc"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.CPP_COMPILER, "g++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.LINKER, "g++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER, "ar"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVECPP_COMPILER, "g++"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.OBJECTIVEC_COMPILER, "gcc"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.ASSEMBLER, "gcc"));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.SYMBOL_EXTRACTOR, SymbolExtractorOsConfig.current().getExecutableName()));
-        toolChain.add(instantiator.newInstance(DefaultGccCommandLineToolConfiguration.class, ToolType.STRIPPER, "strip"));
-    }
+    protected abstract void addDefaultTools(NativePlatformInternal targetPlatform, DefaultGccPlatformToolChain toolChain);
 
     protected void configureDefaultTools(DefaultGccPlatformToolChain toolChain) {
     }
@@ -266,57 +258,6 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
             }
         }
         return null;
-    }
-
-    private static class Intel32Architecture implements TargetPlatformConfiguration {
-
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent() && targetPlatform.getArchitecture().isI386();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m32");
-            Action<List<String>> m32args = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.add("-m32");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m32args);
-            gccToolChain.getcCompiler().withArguments(m32args);
-            gccToolChain.getObjcCompiler().withArguments(m32args);
-            gccToolChain.getObjcppCompiler().withArguments(m32args);
-            gccToolChain.getLinker().withArguments(m32args);
-            gccToolChain.getAssembler().withArguments(m32args);
-
-        }
-    }
-
-    private static class Intel64Architecture implements TargetPlatformConfiguration {
-        @Override
-        public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
-            return targetPlatform.getOperatingSystem().isCurrent()
-                && targetPlatform.getArchitecture().isAmd64();
-        }
-
-        @Override
-        public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m64");
-            Action<List<String>> m64args = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.add("-m64");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m64args);
-            gccToolChain.getcCompiler().withArguments(m64args);
-            gccToolChain.getObjcCompiler().withArguments(m64args);
-            gccToolChain.getObjcppCompiler().withArguments(m64args);
-            gccToolChain.getLinker().withArguments(m64args);
-            gccToolChain.getAssembler().withArguments(m64args);
-        }
     }
 
     private static class DefaultTargetPlatformConfiguration implements TargetPlatformConfiguration {

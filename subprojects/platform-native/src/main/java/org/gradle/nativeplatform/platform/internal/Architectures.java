@@ -26,7 +26,7 @@ public class Architectures {
     public static final KnownArchitecture X86_64 = new KnownArchitecture("x86-64", "x86_64", "amd64", "x64");
     public static final KnownArchitecture IA_64 = new KnownArchitecture("ia-64", "ia64");
     public static final KnownArchitecture ARM_V7 = new KnownArchitecture("arm-v7", "armv7", "arm", "arm32");
-    public static final KnownArchitecture ARM_V8 = new KnownArchitecture("arm-v8", "arm64");
+    public static final KnownArchitecture ARM_V8 = new KnownArchitecture("arm-v8", "arm64", "aarch64");
 
     private static final List<KnownArchitecture> KNOWN_ARCHITECTURES = asList(
             X86,

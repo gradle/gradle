@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NonNullApi;
@@ -65,11 +66,12 @@ public class GccCompilerPlugin implements Plugin<Project> {
 
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
             final SystemLibraryDiscovery standardLibraryDiscovery = serviceRegistry.get(SystemLibraryDiscovery.class);
+            final SystemInfo systemInfo = serviceRegistry.get(SystemInfo.class);
 
             toolChainRegistry.registerFactory(Gcc.class, new NamedDomainObjectFactory<Gcc>() {
                 @Override
                 public Gcc create(String name) {
-                    return instantiator.newInstance(GccToolChain.class, instantiator, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, workerLeaseService);
+                    return instantiator.newInstance(GccToolChain.class, instantiator, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, workerLeaseService, systemInfo);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc.class);

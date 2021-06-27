@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.plugins;
 
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NonNullApi;
@@ -61,11 +62,12 @@ public class ClangCompilerPlugin implements Plugin<Project> {
             final CompilerMetaDataProviderFactory metaDataProviderFactory = serviceRegistry.get(CompilerMetaDataProviderFactory.class);
             final SystemLibraryDiscovery standardLibraryDiscovery = serviceRegistry.get(SystemLibraryDiscovery.class);
             final WorkerLeaseService workerLeaseService = serviceRegistry.get(WorkerLeaseService.class);
+            final SystemInfo systemInfo = serviceRegistry.get(SystemInfo.class);
 
             toolChainRegistry.registerFactory(Clang.class, new NamedDomainObjectFactory<Clang>() {
                 @Override
                 public Clang create(String name) {
-                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, instantiator, workerLeaseService);
+                    return instantiator.newInstance(ClangToolChain.class, name, buildOperationExecutor, OperatingSystem.current(), fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory, standardLibraryDiscovery, instantiator, workerLeaseService, systemInfo);
                 }
             });
             toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang.class);
