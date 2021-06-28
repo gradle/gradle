@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.collect.Ordering
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.logging.ConsoleRenderer
@@ -77,7 +78,7 @@ class ConfigurationCacheProblemsSummary {
             appendLine()
             appendSummaryHeader(cacheActionText, totalProblemCount, uniqueProblemCount)
             appendLine()
-            uniqueProblems.sortedWith(consoleComparator()).take(maxConsoleProblems).forEach { problem ->
+            Ordering.from(consoleComparator()).leastOf(uniqueProblems, maxConsoleProblems).forEach { problem ->
                 append("- ")
                 append(problem.userCodeLocation.capitalize())
                 append(": ")
