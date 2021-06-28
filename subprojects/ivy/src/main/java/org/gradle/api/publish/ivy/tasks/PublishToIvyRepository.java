@@ -44,7 +44,7 @@ import java.util.concurrent.Callable;
  *
  * @since 1.3
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class PublishToIvyRepository extends DefaultTask {
 
     private IvyPublicationInternal publication;

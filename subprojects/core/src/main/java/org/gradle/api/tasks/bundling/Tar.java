@@ -28,7 +28,7 @@ import org.gradle.work.DisableCachingByDefault;
 /**
  * Assembles a TAR archive.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;
 

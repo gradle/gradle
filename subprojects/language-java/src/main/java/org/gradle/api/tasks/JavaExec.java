@@ -110,7 +110,7 @@ import java.util.Map;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Produces no cacheable output")
+@DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;

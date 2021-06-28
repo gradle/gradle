@@ -26,7 +26,7 @@ import javax.inject.Inject;
  * Copies resources from their source to their target directory, potentially processing them.
  * Makes sure no stale resources remain in the target directory.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class ProcessResources extends Copy {
 
     @Override

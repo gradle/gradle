@@ -41,7 +41,7 @@ import java.util.Set;
  * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
  * this will have no effect.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Deletion cannot be cached")
 public class Delete extends ConventionTask implements DeleteSpec {
     private ConfigurableFileCollection paths = getProject().getObjects().fileCollection();
 

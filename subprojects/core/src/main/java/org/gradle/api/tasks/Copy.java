@@ -66,7 +66,7 @@ import java.io.File;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class Copy extends AbstractCopyTask {
 
     @Override

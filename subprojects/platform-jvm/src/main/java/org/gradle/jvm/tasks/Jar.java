@@ -45,7 +45,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 /**
  * Assembles a JAR archive.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";

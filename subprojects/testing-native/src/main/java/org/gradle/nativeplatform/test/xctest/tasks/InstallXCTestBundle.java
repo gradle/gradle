@@ -53,7 +53,7 @@ import java.util.concurrent.Callable;
  *
  * @since 4.4
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;

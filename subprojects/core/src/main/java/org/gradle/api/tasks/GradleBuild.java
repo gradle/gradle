@@ -31,7 +31,7 @@ import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild
 /**
  * Executes a Gradle build.
  */
-@DisableCachingByDefault(because = "Has no cacheable output")
+@DisableCachingByDefault(because = "Child Gradle build will do its own caching")
 public class GradleBuild extends ConventionTask {
     private StartParameter startParameter;
     private String buildName;

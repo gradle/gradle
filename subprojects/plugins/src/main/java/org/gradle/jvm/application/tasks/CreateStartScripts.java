@@ -112,7 +112,7 @@ import java.util.stream.Collectors;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class CreateStartScripts extends ConventionTask {
 
     private File outputDir;

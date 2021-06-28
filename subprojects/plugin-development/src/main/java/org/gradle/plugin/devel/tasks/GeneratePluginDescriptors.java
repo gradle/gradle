@@ -37,7 +37,7 @@ import java.util.Properties;
 /**
  * Generates plugin descriptors from plugin declarations.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class GeneratePluginDescriptors extends DefaultTask {
 
     private final ListProperty<PluginDeclaration> declarations;

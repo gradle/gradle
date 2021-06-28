@@ -48,7 +48,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 /**
  * Generates a Gradle project structure.
  */
-@DisableCachingByDefault(because = "You run this task only once")
+@DisableCachingByDefault(because = "Not worth caching")
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;

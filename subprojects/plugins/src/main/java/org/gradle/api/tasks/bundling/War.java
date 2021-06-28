@@ -47,7 +47,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * Assembles a WAR archive.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class War extends Jar {
     public static final String WAR_EXTENSION = "war";
 

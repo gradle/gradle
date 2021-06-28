@@ -22,7 +22,7 @@ import org.gradle.work.DisableCachingByDefault;
 /**
  * Assembles a JAR archive.
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class Jar extends org.gradle.jvm.tasks.Jar {
     @Override
     public Jar manifest(Closure<?> configureClosure) {

@@ -81,6 +81,6 @@ import org.gradle.work.DisableCachingByDefault;
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Is not CPU intensive")
+@DisableCachingByDefault(because = "Not worth caching")
 public class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {
 }
