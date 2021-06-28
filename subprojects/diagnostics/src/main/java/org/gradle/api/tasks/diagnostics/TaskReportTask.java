@@ -52,7 +52,7 @@ import static java.util.Collections.emptyList;
  * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
  * by enabling the command line option {@code --all}.
  */
-@DisableCachingByDefault(because = "Not made cacheable, yet")
+@DisableCachingByDefault(because = "Not worth caching")
 public class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;

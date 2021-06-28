@@ -22,7 +22,7 @@ import org.gradle.work.DisableCachingByDefault;
  * Displays the dependency tree for a project. An instance of this type is used when you
  * execute the {@code dependencies} task from the command-line.
  */
-@DisableCachingByDefault(because = "Not made cacheable, yet")
+@DisableCachingByDefault(because = "Not worth caching")
 public class DependencyReportTask extends AbstractDependencyReportTask {
 
     @Override
