@@ -23,6 +23,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 
+import java.io.IOException;
+
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
     private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
@@ -32,7 +34,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     @Override
-    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
+    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) throws IOException {
         HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshotContext.getSnapshot().getHash(), configurationHash);
 
         HashCode resourceHash = persistentCache.getIfPresent(resourceHashCacheKey);

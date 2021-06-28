@@ -30,7 +30,6 @@ import org.gradle.internal.hash.PrimitiveHasher;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -58,7 +57,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return lineEndingSensitivity.isCandidate(snapshotContext.getSnapshot()) ?
             hashContent(snapshotContext) :
             delegate.hash(snapshotContext);
@@ -73,7 +72,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
     }
 
     @Nullable
-    private HashCode hashContent(RegularFileSnapshotContext snapshotContext) {
+    private HashCode hashContent(RegularFileSnapshotContext snapshotContext) throws IOException {
         try {
             return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()));
         } catch (BinaryContentDetectedException e) {
@@ -96,27 +95,9 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
         return new LineEndingAwareInputStreamHasher().hash(inputStream);
     }
 
-    private HashCode hashContent(File file) throws BinaryContentDetectedException {
-        FileInputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(file);
+    private HashCode hashContent(File file) throws BinaryContentDetectedException, IOException {
+        try (FileInputStream inputStream = new FileInputStream(file)) {
             return hashContent(inputStream);
-        } catch (FileNotFoundException e) {
-            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
-        } finally {
-            closeAndIgnore(inputStream);
-        }
-    }
-
-    private static void closeAndIgnore(InputStream... inputStreams) {
-        for (InputStream inputStream : inputStreams) {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-                // Ignored
-            }
         }
     }
 

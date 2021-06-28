@@ -69,7 +69,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(snapshotContext.getRelativePathSegments());
         if (resourceEntryFilter == null) {
             return delegate.hash(snapshotContext);

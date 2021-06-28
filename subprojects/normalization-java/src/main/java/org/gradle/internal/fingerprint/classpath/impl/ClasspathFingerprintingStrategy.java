@@ -51,8 +51,11 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -72,6 +75,8 @@ import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprin
  * </p>
  */
 public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrategy {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathFingerprintingStrategy.class);
+
     private final NonJarFingerprintingStrategy nonZipFingerprintingStrategy;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
@@ -221,12 +226,17 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         @Nullable
         private HashCode hashContent(RegularFileSnapshot fileSnapshot, RelativePathSupplier relativePath) {
             RegularFileSnapshotContext fileSnapshotContext = new DefaultRegularFileSnapshotContext(() -> Iterables.toArray(relativePath.getSegments(), String.class), fileSnapshot);
-            if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
-                return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
-            } else if (relativePath.isRoot()) {
-                return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
-            } else {
-                return classpathResourceHasher.hash(fileSnapshotContext);
+            try {
+                if (ZipHasher.isZipFile(fileSnapshotContext.getSnapshot().getName())) {
+                    return cacheService.hashFile(fileSnapshotContext, zipHasher, zipHasherConfigurationHash);
+                } else if (relativePath.isRoot()) {
+                    return nonZipFingerprintingStrategy.determineNonJarFingerprint(fileSnapshot.getHash());
+                } else {
+                    return classpathResourceHasher.hash(fileSnapshotContext);
+                }
+            } catch (IOException e) {
+                LOGGER.debug("Failed to normalize content from {}.  Falling back to non-normalized hash.", fileSnapshot.getAbsolutePath(), e);
+                return fileSnapshot.getHash();
             }
         }
     }

@@ -61,7 +61,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         String relativePath = join("/", snapshotContext.getRelativePathSegments().get());
         if (isManifestFile(relativePath)) {
             return tryHashWithFallback(snapshotContext);
@@ -82,7 +82,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     }
 
     @Nullable
-    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) throws IOException {
         try (FileInputStream manifestFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
             return hashManifest(manifestFileInputStream);
         } catch (IOException e) {

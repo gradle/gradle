@@ -21,8 +21,9 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 
 public interface ResourceSnapshotterCacheService {
     @Nullable
-    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash);
+    HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) throws IOException;
 }

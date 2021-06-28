@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.hashing;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 
 public interface RegularFileHasher {
 
@@ -26,5 +27,5 @@ public interface RegularFileHasher {
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(RegularFileSnapshotContext snapshotContext);
+    HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException;
 }

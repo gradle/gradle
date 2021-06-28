@@ -43,7 +43,7 @@ public class IgnoringResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         return resourceFilter.shouldBeIgnored(snapshotContext.getRelativePathSegments()) ? null : delegate.hash(snapshotContext);
     }
 

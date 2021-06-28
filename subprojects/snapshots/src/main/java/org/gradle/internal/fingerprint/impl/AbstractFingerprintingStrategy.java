@@ -24,12 +24,18 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+
+import java.io.IOException;
 
 import static org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext.from;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFingerprintingStrategy.class);
+
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
     private final DirectorySensitivity directorySensitivity;
@@ -54,9 +60,14 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
 
     @Nullable
     protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, ResourceHasher normalizedContentHasher) {
-        return lineEndingSensitivity.isCandidate(snapshot) ?
-            normalizedContentHasher.hash(from((RegularFileSnapshot)snapshot)) :
-            snapshot.getHash();
+        try {
+            return lineEndingSensitivity.isCandidate(snapshot) ?
+                normalizedContentHasher.hash(from((RegularFileSnapshot) snapshot)) :
+                snapshot.getHash();
+        } catch (IOException e) {
+            LOGGER.debug("Failed to normalize content from {}.  Falling back to non-normalized hash.", snapshot.getAbsolutePath(), e);
+            return snapshot.getHash();
+        }
     }
 
     @Override

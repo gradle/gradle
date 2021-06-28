@@ -47,7 +47,7 @@ public class CachingResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext fileSnapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext fileSnapshotContext) throws IOException {
         return resourceSnapshotterCacheService.hashFile(fileSnapshotContext, delegate, delegateConfigurationHash);
     }
 

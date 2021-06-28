@@ -21,6 +21,8 @@ import org.gradle.internal.fingerprint.hashing.RegularFileHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.hash.HashCode;
 
+import java.io.IOException;
+
 /**
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
  * and uses the local service for all other files. This ensures optimal cache utilization.
@@ -37,7 +39,7 @@ public class SplitResourceSnapshotterCacheService implements ResourceSnapshotter
     }
 
     @Override
-    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) {
+    public HashCode hashFile(RegularFileSnapshotContext fileSnapshotContext, RegularFileHasher hasher, HashCode configurationHash) throws IOException {
         if (globalCacheLocations.isInsideGlobalCache(fileSnapshotContext.getSnapshot().getAbsolutePath())) {
             return globalCache.hashFile(fileSnapshotContext, hasher, configurationHash);
         } else {
