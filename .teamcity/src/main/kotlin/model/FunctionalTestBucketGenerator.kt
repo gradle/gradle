@@ -9,10 +9,13 @@ import common.VersionedSettingsBranch
 import java.io.File
 import java.util.LinkedList
 
+const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
+const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
+
 /**
  * Process test-class-data.json and generates test-buckets.json
  *
- * Usage: put your `test-class-data.json` in the `.teamcity` directory, then run `mvn exec:java@update-test-buckets`.
+ * Usage: `mvn compile exec:java@update-test-buckets -DinputTestClassDataJson=/path/to/test-class-data.json`.
  */
 fun main(args: Array<String>) {
     val model = CIBuildModel(
@@ -21,8 +24,8 @@ fun main(args: Array<String>) {
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("./subprojects.json"))
     )
-    val testClassDataJson = File(args[0])
-    val generatedBucketsJson = File(args[1])
+    val testClassDataJson = File(System.getProperty("inputTestClassDataJson") ?: throw IllegalArgumentException("Input file not found!"))
+    val generatedBucketsJson = File(System.getProperty("outputBucketSplitJson", "./test-buckets.json"))
 
     FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
 }

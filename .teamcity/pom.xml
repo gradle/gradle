@@ -125,7 +125,6 @@
                 <executions>
                     <execution>
                         <id>update-test-buckets</id>
-                        <phase>install</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
@@ -133,10 +132,7 @@
                 </executions>
                 <configuration>
                     <mainClass>model.FunctionalTestBucketGeneratorKt</mainClass>
-                    <arguments>
-                        <argument>./test-class-data.json</argument>
-                        <argument>./test-buckets.json</argument>
-                    </arguments>
+                    <classpathScope>test</classpathScope>
                 </configuration>
             </plugin>
         </plugins>

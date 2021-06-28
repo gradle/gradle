@@ -10,9 +10,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
 
-const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
-const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
-
 val CROSS_VERSION_BUCKETS = listOf(
     listOf("0.0", "2.8"), // 0.0 <= version < 2.8
     listOf("2.8", "3.3"), // 2.8 <= version < 3.3
