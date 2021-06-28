@@ -37,6 +37,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -47,6 +48,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 /**
  * Generates a Gradle project structure.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;

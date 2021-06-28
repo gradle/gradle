@@ -21,6 +21,7 @@ import org.gradle.api.internal.PropertyListTransformer;
 import org.gradle.api.tasks.Internal;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * A convenience superclass for those tasks which generate Property List configuration files from a domain object of type T.
@@ -29,6 +30,7 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
  * @since 4.2
  */
 @Incubating
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class PropertyListGeneratorTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
     @SuppressWarnings("rawtypes")
     private final PropertyListTransformer propertyListTransformer = new PropertyListTransformer();

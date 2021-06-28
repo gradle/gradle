@@ -23,10 +23,12 @@ import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.tasks.Input;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Assembles a TAR archive.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Tar extends AbstractArchiveTask {
     private Compression compression = Compression.NONE;
 

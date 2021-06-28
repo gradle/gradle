@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -43,6 +44,7 @@ import java.util.concurrent.Callable;
  *
  * @since 1.3
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class PublishToIvyRepository extends DefaultTask {
 
     private IvyPublicationInternal publication;

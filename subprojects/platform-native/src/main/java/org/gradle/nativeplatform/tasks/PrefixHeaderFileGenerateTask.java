@@ -26,10 +26,11 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
-import org.gradle.workers.WorkQueue;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
-import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkParameters;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -39,6 +40,7 @@ import java.io.File;
  * Generates a prefix header file from a list of headers to be precompiled.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
     private String header;
     private File prefixHeaderFile;

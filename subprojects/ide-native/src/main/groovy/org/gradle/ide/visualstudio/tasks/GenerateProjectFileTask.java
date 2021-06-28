@@ -32,6 +32,7 @@ import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -41,6 +42,7 @@ import java.util.concurrent.Callable;
  * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
     private DefaultVisualStudioProject visualStudioProject;
     private String gradleExe;

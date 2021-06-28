@@ -29,6 +29,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -47,6 +48,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 6.9
  */
 @Incubating
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));

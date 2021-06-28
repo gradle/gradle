@@ -34,6 +34,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -41,6 +42,7 @@ import java.io.File;
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
