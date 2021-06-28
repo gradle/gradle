@@ -20,6 +20,7 @@ import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
+import java.util.Comparator.comparing
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -41,7 +42,7 @@ class ConfigurationCacheProblemsSummary {
     val problemCountSummary = AtomicInteger()
 
     private
-    val causesSummary = ArrayDeque<Throwable>(maxCauses + 1)
+    val causesSummary = ArrayList<Throwable>(maxCauses)
 
     val problemCount: Int
         get() = problemCountSummary.get()
@@ -52,113 +53,95 @@ class ConfigurationCacheProblemsSummary {
         }
 
     fun onProblem(problem: PropertyProblem) {
-        val uniquePropertyProblem = problem.toUniquePropertyProblem()
-        @Suppress("ControlFlowWithEmptyBody")
-        if (uniqueProblems.add(uniquePropertyProblem)) {
+
+        problemCountSummary.getAndIncrement()
+
+        val uniqueProblem = UniquePropertyProblem.of(problem)
+        if (uniqueProblems.add(uniqueProblem)) {
             // TODO: summarize console problems here instead of keeping all problems until the end
-        }
-        problemCountSummary.incrementAndGet()
-        problem.exception?.let { cause ->
-            synchronized(causesSummary) {
-                causesSummary.addLast(cause)
-                if (causesSummary.size > maxCauses) {
-                    causesSummary.removeFirst()
+            problem.exception?.let { cause ->
+                synchronized(causesSummary) {
+                    if (causesSummary.size < maxCauses) {
+                        causesSummary.add(cause)
+                    }
                 }
             }
         }
     }
 
-    fun textForConsole(cacheActionText: String, htmlReportFile: File): String =
-        buildConsoleSummary(
-            cacheActionText,
-            htmlReportFile,
-            problemCount,
-            uniqueProblems.size,
-            uniqueProblems.sortedWith(consoleComparator()).take(maxConsoleProblems)
-        )
+    fun textForConsole(cacheActionText: String, htmlReportFile: File): String {
+        val documentationRegistry = DocumentationRegistry()
+        val totalProblemCount = problemCount
+        val uniqueProblemCount = uniqueProblems.size
+        return StringBuilder().apply {
+            appendLine()
+            appendSummaryHeader(cacheActionText, totalProblemCount, uniqueProblemCount)
+            appendLine()
+            uniqueProblems.sortedWith(consoleComparator()).take(maxConsoleProblems).forEach { problem ->
+                append("- ")
+                append(problem.userCodeLocation.capitalize())
+                append(": ")
+                appendLine(problem.message)
+                problem.documentationSection?.let<String, Unit> {
+                    appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
+                }
+            }
+            if (uniqueProblemCount > maxConsoleProblems) {
+                appendLine("plus ${uniqueProblemCount - maxConsoleProblems} more problems. Please see the report for details.")
+            }
+            appendLine()
+            append(buildSummaryReportLink(htmlReportFile))
+        }.toString()
+    }
+
+    private
+    fun StringBuilder.appendSummaryHeader(
+        cacheAction: String,
+        totalProblemCount: Int,
+        uniqueProblemCount: Int
+    ) {
+        append(totalProblemCount)
+        append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
+        append(cacheAction)
+        append(" the configuration cache")
+        if (totalProblemCount != uniqueProblemCount) {
+            append(", ")
+            append(uniqueProblemCount)
+            append(" of which ")
+            append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+        }
+        append(".")
+    }
+
+    private
+    fun buildSummaryReportLink(reportFile: File) =
+        "See the complete report at ${clickableUrlFor(reportFile)}"
+
+    private
+    fun clickableUrlFor(file: File) =
+        ConsoleRenderer().asClickableFileUrl(file)
 }
 
 
 private
-fun consoleComparator() = Comparator<UniquePropertyProblem> { x, y ->
-    x.userCodeLocation.compareTo(y.userCodeLocation)
-}.thenComparing { x, y ->
-    x.message.toString().compareTo(y.message.toString())
-}
+fun consoleComparator() =
+    comparing { p: UniquePropertyProblem -> p.userCodeLocation }
+        .thenComparing { p: UniquePropertyProblem -> p.message }
 
 
 private
 data class UniquePropertyProblem(
     val userCodeLocation: String,
-    val message: StructuredMessage,
+    val message: String,
     val documentationSection: String?
-)
-
-
-private
-fun buildConsoleSummary(
-    cacheAction: String,
-    reportFile: File,
-    totalProblemCount: Int,
-    uniqueProblemCount: Int,
-    problems: List<UniquePropertyProblem>
-): String {
-    val documentationRegistry = DocumentationRegistry()
-    return StringBuilder().apply {
-        appendLine()
-        appendSummaryHeader(cacheAction, totalProblemCount, uniqueProblemCount)
-        appendLine()
-        problems.forEach { problem ->
-            append("- ")
-            append(problem.userCodeLocation.capitalize())
-            append(": ")
-            appendLine(problem.message)
-            problem.documentationSection?.let {
-                appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", it)}")
-            }
-        }
-        if (uniqueProblemCount > maxConsoleProblems) {
-            appendLine("plus ${uniqueProblemCount - maxConsoleProblems} more problems. Please see the report for details.")
-        }
-        appendLine()
-        append(buildSummaryReportLink(reportFile))
-    }.toString()
-}
-
-
-private
-fun PropertyProblem.toUniquePropertyProblem() = UniquePropertyProblem(
-    trace.containingUserCode,
-    message,
-    documentationSection?.anchor
-)
-
-
-private
-fun StringBuilder.appendSummaryHeader(
-    cacheAction: String,
-    totalProblemCount: Int,
-    uniqueProblemCount: Int
 ) {
-    append(totalProblemCount)
-    append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
-    append(cacheAction)
-    append(" the configuration cache")
-    if (totalProblemCount != uniqueProblemCount) {
-        append(", ")
-        append(uniqueProblemCount)
-        append(" of which ")
-        append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+    companion object {
+        fun of(problem: PropertyProblem) = problem.run {
+            UniquePropertyProblem(
+                trace.containingUserCode,
+                message.toString(),
+                documentationSection?.anchor
+            )
+        }
     }
-    append(".")
 }
-
-
-private
-fun buildSummaryReportLink(reportFile: File) =
-    "See the complete report at ${clickableUrlFor(reportFile)}"
-
-
-private
-fun clickableUrlFor(file: File) =
-    ConsoleRenderer().asClickableFileUrl(file)
