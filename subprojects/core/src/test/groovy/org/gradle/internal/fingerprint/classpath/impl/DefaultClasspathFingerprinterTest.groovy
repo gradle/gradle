@@ -48,7 +48,6 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     TestInMemoryPersistentIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryPersistentIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
-    def streamHasher = TestFiles.streamHasher()
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
         fileCollectionSnapshotter,
@@ -56,8 +55,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         ResourceEntryFilter.FILTER_NOTHING,
         PropertiesFileFilter.FILTER_NOTHING,
         stringInterner,
-        LineEndingSensitivity.DEFAULT,
-        streamHasher
+        LineEndingSensitivity.DEFAULT
     )
 
     def "directories and missing files are ignored"() {

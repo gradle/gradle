@@ -16,23 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.primitives.Bytes;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.hash.PrimitiveHasher;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.function.Predicate;
+import java.util.Iterator;
 
 /**
  * A {@link ResourceHasher} that ignores line endings while hashing the file.  It detects whether a file is text or binary and only
@@ -41,19 +43,16 @@ import java.util.function.Predicate;
 public class LineEndingAwareResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final LineEndingSensitivity lineEndingSensitivity;
-    private final StreamHasher streamHasher;
 
-    public LineEndingAwareResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity, StreamHasher streamHasher) {
+    public LineEndingAwareResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
         this.delegate = delegate;
         this.lineEndingSensitivity = lineEndingSensitivity;
-        this.streamHasher = streamHasher;
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
-        hasher.putString(LineEndingNormalizingInputStream.class.getName());
         hasher.putString(lineEndingSensitivity.name());
     }
 
@@ -75,42 +74,33 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
 
     @Nullable
     private HashCode hashContent(RegularFileSnapshotContext snapshotContext) {
-        NormalizedContentInfo normalizedContentInfo = collectContentInfo(new File(snapshotContext.getSnapshot().getAbsolutePath()));
-        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
-            normalizedContentInfo.getHash() :
-            delegate.hash(snapshotContext);
+        try {
+            return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()));
+        } catch (BinaryContentDetectedException e) {
+            return delegate.hash(snapshotContext);
+        }
     }
 
     @Nullable
     private HashCode hashContent(ZipEntryContext zipEntryContext) throws IOException {
-        NormalizedContentInfo normalizedContentInfo = zipEntryContext.getEntry().withInputStream(this::collectContentInfo);
-        return normalizedContentInfo.getContentType() == FileContentType.TEXT ?
-            normalizedContentInfo.getHash() :
-            delegate.hash(zipEntryContext);
+        return zipEntryContext.getEntry().withInputStream(inputStream -> {
+            try {
+                return hashContent(inputStream);
+            } catch (BinaryContentDetectedException e) {
+                return delegate.hash(zipEntryContext);
+            }
+        });
     }
 
-
-    public NormalizedContentInfo collectContentInfo(InputStream inputStream) {
-        FileContentTypeDetectingInputStream contentTypeDetectingInputStream = new FileContentTypeDetectingInputStream(inputStream);
-        ShortCircuitingInputStream<FileContentTypeDetectingInputStream> shortCircuitingInputStream = new ShortCircuitingInputStream<>(
-            contentTypeDetectingInputStream,
-            stream -> stream.getContentType() == FileContentType.BINARY
-        );
-        InputStream normalizedInputStream = new LineEndingNormalizingInputStream(shortCircuitingInputStream);
-
-        try {
-            HashCode hashCode = streamHasher.hash(normalizedInputStream);
-            return new NormalizedContentInfo(hashCode, contentTypeDetectingInputStream.getContentType(), shortCircuitingInputStream.isShortCircuited());
-        } finally {
-            closeAndIgnore(contentTypeDetectingInputStream, shortCircuitingInputStream, normalizedInputStream);
-        }
+    private HashCode hashContent(InputStream inputStream) throws BinaryContentDetectedException {
+        return new LineEndingAwareInputStreamHasher().hash(inputStream);
     }
 
-    public NormalizedContentInfo collectContentInfo(File file) {
+    private HashCode hashContent(File file) throws BinaryContentDetectedException {
         FileInputStream inputStream = null;
         try {
             inputStream = new FileInputStream(file);
-            return collectContentInfo(inputStream);
+            return hashContent(inputStream);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s' as it does not exist.", file), e);
         } finally {
@@ -130,80 +120,104 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
         }
     }
 
-    private static class NormalizedContentInfo {
-        private final HashCode hash;
-        private final FileContentType contentType;
-        private final boolean incompleteHash;
-
-        public NormalizedContentInfo(HashCode hash, FileContentType contentType, boolean incompleteHash) {
-            this.hash = hash;
-            this.contentType = contentType;
-            this.incompleteHash = incompleteHash;
-        }
-
-        public FileContentType getContentType() {
-            return contentType;
-        }
-
-        public HashCode getHash() {
-            // If reading of the input stream was short circuited because we detected a binary file,
-            // we should never use the hash as it's incomplete.
-            if (incompleteHash) {
-                throw new IllegalStateException();
-            } else {
-                return hash;
-            }
-        }
+    private static class BinaryContentDetectedException extends Exception {
     }
 
-    /**
-     * An InputStream that stops the reading from its delegate if the supplied condition is ever met.
-     */
-    private static class ShortCircuitingInputStream<T extends InputStream> extends FilterInputStream {
-        private static final int EOF = -1;
+    @VisibleForTesting
+    static class LineEndingAwareInputStreamHasher {
+        private static final HashCode SIGNATURE = Hashing.signature(LineEndingAwareInputStreamHasher.class);
+        int peekAhead = -1;
 
-        private final T inputStream;
-        private final Predicate<T> shortCircuitCondition;
-        private boolean shortCircuited;
+        public HashCode hash(InputStream inputStream) throws BinaryContentDetectedException {
+            byte[] buffer = new byte[8192];
+            PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
 
-        public ShortCircuitingInputStream(T inputStream, Predicate<T> shortCircuitCondition) {
-            super(inputStream);
-            this.inputStream = inputStream;
-            this.shortCircuitCondition = shortCircuitCondition;
-        }
+            try {
+                hasher.putHash(SIGNATURE);
+                while (true) {
+                    int nread = read(inputStream, buffer);
+                    if (nread < 0) {
+                        break;
+                    }
 
-        @Override
-        public int read() throws IOException {
-            if (shortCircuitCondition.test(inputStream)) {
-                shortCircuited = true;
-                return EOF;
-            } else {
-                return super.read();
+                    if (checkForControlCharacters(buffer, nread)) {
+                        throw new BinaryContentDetectedException();
+                    }
+
+                    hasher.putBytes(buffer, 0, nread);
+                }
+                return hasher.hash();
+            } catch (IOException e) {
+                throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
             }
         }
 
-        @Override
-        public int read(byte[] b) throws IOException {
-            if (shortCircuitCondition.test(inputStream)) {
-                shortCircuited = true;
-                return EOF;
-            } else {
-                return super.read(b);
+        int read(InputStream inputStream, byte[] b) throws IOException {
+            byte[] original = new byte[b.length];
+
+            // If there is something left over in the peekAhead buffer, use that as the first byte
+            int readLimit = b.length;
+            if (peekAhead != -1) {
+                readLimit--;
             }
+
+            int index = 0;
+            int read = inputStream.read(original, 0, readLimit);
+            if (read != -1) {
+                Iterator<Byte> itr = Bytes.asList(original).subList(0, read).iterator();
+                while (itr.hasNext()) {
+                    // Get our next byte from the peek ahead buffer if it contains anything
+                    int next = peekAhead;
+
+                    // If there was something in the peek ahead buffer, use it, otherwise get the next byte
+                    if (next != -1) {
+                        peekAhead = -1;
+                    } else {
+                        next = itr.next();
+                    }
+
+                    // If the next bytes are '\r' or '\r\n', replace it with '\n'
+                    if (next == '\r') {
+                        peekAhead = itr.hasNext() ? itr.next() : inputStream.read();
+                        if (peekAhead == '\n') {
+                            peekAhead = -1;
+                        }
+                        next = '\n';
+                    }
+
+                    b[index++] = (byte) next;
+                }
+            } else if (peekAhead != -1) {
+                // If there is a character still left in the peekAhead buffer but not in the input stream, then normalize it and return
+                int next = peekAhead;
+                peekAhead = -1;
+                if (next == '\r') {
+                    next = '\n';
+                }
+                b[index++] = (byte) next;
+            }
+            return index == 0 ? -1 : index;
         }
 
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
-            if (shortCircuitCondition.test(inputStream)) {
-                shortCircuited = true;
-                return EOF;
-            } else {
-                return super.read(b, off, len);
+        private boolean checkForControlCharacters(byte[] buffer, int length) {
+            for (int i = 0; i < length; i++) {
+                if (isControlCharacter(buffer[i])) {
+                    return true;
+                }
             }
+            return false;
         }
 
-        private boolean isShortCircuited() {
-            return shortCircuited;
+        private static boolean isControlCharacter(int c) {
+            return isInControlRange(c) && isNotCommonTextChar(c);
+        }
+
+        private static boolean isInControlRange(int c) {
+            return c >= 0x00 && c < 0x20;
+        }
+
+        private static boolean isNotCommonTextChar(int c) {
+            return !Character.isWhitespace(c);
         }
     }
 }

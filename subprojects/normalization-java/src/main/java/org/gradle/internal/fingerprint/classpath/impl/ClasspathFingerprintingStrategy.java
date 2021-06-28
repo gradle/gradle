@@ -43,7 +43,6 @@ import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerp
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -106,10 +105,9 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
         ResourceSnapshotterCacheService cacheService,
         Interner<String> stringInterner,
-        LineEndingSensitivity lineEndingSensitivity,
-        StreamHasher streamHasher
+        LineEndingSensitivity lineEndingSensitivity
     ) {
-        ResourceHasher resourceHasher = new LineEndingAwareResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity, streamHasher);
+        ResourceHasher resourceHasher = new LineEndingAwareResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity);
         resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
         resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);

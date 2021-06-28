@@ -319,8 +319,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
         }
 
-        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, StreamHasher streamHasher) {
-            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT, streamHasher);
+        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
+            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
         }
 
         ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
@@ -388,12 +388,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
-            StreamHasher streamHasher,
             StringInterner stringInterner,
             FileCollectionSnapshotter fileCollectionSnapshotter,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
-            return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, resourceSnapshotterCacheService, streamHasher);
+            return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, resourceSnapshotterCacheService);
         }
 
         FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters, FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {

@@ -27,7 +27,6 @@ import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
-import org.gradle.internal.hash.StreamHasher;
 
 import java.util.Map;
 
@@ -39,8 +38,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
         ResourceEntryFilter manifestAttributeResourceEntryFilter,
         Map<String, ResourceEntryFilter> propertiesFileFilters,
         StringInterner stringInterner,
-        LineEndingSensitivity lineEndingSensitivity,
-        StreamHasher streamHasher
+        LineEndingSensitivity lineEndingSensitivity
     ) {
         super(
             ClasspathFingerprintingStrategy.runtimeClasspath(
@@ -50,8 +48,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
                 new RuntimeClasspathResourceHasher(),
                 cacheService,
                 stringInterner,
-                    lineEndingSensitivity,
-                streamHasher
+                lineEndingSensitivity
             ),
             fileCollectionSnapshotter
         );

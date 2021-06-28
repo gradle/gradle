@@ -67,7 +67,6 @@ import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -179,7 +178,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
-    ClasspathFingerprinter createClasspathFingerprinterWithoutLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler, StreamHasher streamHasher) {
+    ClasspathFingerprinter createClasspathFingerprinterWithoutLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
             fileCollectionSnapshotter,
@@ -187,13 +186,12 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
-            LineEndingSensitivity.DEFAULT,
-            streamHasher
+            LineEndingSensitivity.DEFAULT
         );
     }
 
     // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
-    ClasspathFingerprinter createClasspathFingerprinterWithLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler, StreamHasher streamHasher) {
+    ClasspathFingerprinter createClasspathFingerprinterWithLineEndingNormalization(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
             fileCollectionSnapshotter,
@@ -201,8 +199,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
-            LineEndingSensitivity.IGNORE_LINE_ENDINGS,
-            streamHasher
+            LineEndingSensitivity.IGNORE_LINE_ENDINGS
         );
     }
 
