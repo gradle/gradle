@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext.from;
 
@@ -65,8 +66,7 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
                 normalizedContentHasher.hash(from((RegularFileSnapshot) snapshot)) :
                 snapshot.getHash();
         } catch (IOException e) {
-            LOGGER.debug("Failed to normalize content from {}.  Falling back to non-normalized hash.", snapshot.getAbsolutePath(), e);
-            return snapshot.getHash();
+            throw new UncheckedIOException(String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath()), e);
         }
     }
 

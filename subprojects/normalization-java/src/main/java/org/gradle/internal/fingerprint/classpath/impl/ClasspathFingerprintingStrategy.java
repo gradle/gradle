@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -235,8 +236,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                     return classpathResourceHasher.hash(fileSnapshotContext);
                 }
             } catch (IOException e) {
-                LOGGER.debug("Failed to normalize content from {}.  Falling back to non-normalized hash.", fileSnapshot.getAbsolutePath(), e);
-                return fileSnapshot.getHash();
+                throw new UncheckedIOException(String.format("Failed to normalize content of '%s'.", fileSnapshot.getAbsolutePath()), e);
             }
         }
     }

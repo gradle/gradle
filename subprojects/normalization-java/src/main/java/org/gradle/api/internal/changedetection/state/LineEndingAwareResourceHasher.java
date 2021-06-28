@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Iterator;
 
 /**
@@ -91,7 +90,7 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
         });
     }
 
-    private HashCode hashContent(InputStream inputStream) throws BinaryContentDetectedException {
+    private HashCode hashContent(InputStream inputStream) throws BinaryContentDetectedException, IOException {
         return new LineEndingAwareInputStreamHasher().hash(inputStream);
     }
 
@@ -109,28 +108,24 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
         private static final HashCode SIGNATURE = Hashing.signature(LineEndingAwareInputStreamHasher.class);
         int peekAhead = -1;
 
-        public HashCode hash(InputStream inputStream) throws BinaryContentDetectedException {
+        public HashCode hash(InputStream inputStream) throws IOException, BinaryContentDetectedException {
             byte[] buffer = new byte[8192];
             PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
 
-            try {
-                hasher.putHash(SIGNATURE);
-                while (true) {
-                    int nread = read(inputStream, buffer);
-                    if (nread < 0) {
-                        break;
-                    }
-
-                    if (checkForControlCharacters(buffer, nread)) {
-                        throw new BinaryContentDetectedException();
-                    }
-
-                    hasher.putBytes(buffer, 0, nread);
+            hasher.putHash(SIGNATURE);
+            while (true) {
+                int nread = read(inputStream, buffer);
+                if (nread < 0) {
+                    break;
                 }
-                return hasher.hash();
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to create MD5 hash for file content.", e);
+
+                if (checkForControlCharacters(buffer, nread)) {
+                    throw new BinaryContentDetectedException();
+                }
+
+                hasher.putBytes(buffer, 0, nread);
             }
+            return hasher.hash();
         }
 
         int read(InputStream inputStream, byte[] b) throws IOException {
