@@ -407,17 +407,14 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":produceInBuild", ":showSources")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/16980")
+    @Issue("https://github.com/gradle/gradle/issues/17561")
     def "missing dependency detection takes ** excludes for non-existing files into account"() {
-        file("src/main/java/my/JavaClass.java").text = """
-            package my;
-
-            public class JavaClass {}
-        """
+        file("build/my/some.foo") << "foo!"
+        file("build/other/some.bar") << "bar!"
 
         buildFile """
             task fooReport {
-                inputs.files(fileTree(projectDir) { include("**/*.foo")})
+                inputs.files(fileTree(buildDir) { include("**/*.foo")})
                 def reportPath = file("\${buildDir}/fooReport.txt")
                 outputs.file(reportPath)
                 doLast {
@@ -425,21 +422,17 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
             task barReport {
-                inputs.files(fileTree(projectDir) { include("**/*.bar")})
+                inputs.files(fileTree(buildDir) { include("**/*.bar")})
                 def reportPath = file("\${buildDir}/barReport.txt")
                 outputs.file(reportPath)
                 doLast {
                     reportPath.text = "bar"
                 }
             }
-
-            task allReports {
-                dependsOn(fooReport, barReport)
-            }
         """
 
         when:
-        run("allReports")
+        run("fooReport", "barReport")
         then:
         executedAndNotSkipped(":fooReport", ":barReport")
     }
