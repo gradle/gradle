@@ -30,6 +30,7 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.Closeable
 import java.io.File
@@ -130,7 +131,10 @@ class ConfigurationCacheReport(
     }
 
     private
-    var state: State = State.Idle(executorFactory, temporaryFileProvider)
+    var state: State = State.Idle(
+        executorFactory,
+        temporaryFileProvider
+    )
 
     private
     val stateLock = Object()
@@ -158,7 +162,7 @@ class ConfigurationCacheReport(
      * Writes the report file to [outputDirectory].
      *
      * The file is laid out in such a way as to allow extracting the pure JSON model,
-     * see [writeJsReportData].
+     * see [HtmlReportWriter].
      */
     internal
     fun writeReportFileTo(outputDirectory: File, cacheAction: String): File {
@@ -228,14 +232,6 @@ class JsonModelWriter(val writer: BufferedWriter) {
 
     private
     var first = true
-
-    fun write(cacheAction: String, problems: List<PropertyProblem>) {
-        beginModel()
-        problems.forEach {
-            writeProblem(it)
-        }
-        endModel(cacheAction)
-    }
 
     fun beginModel() {
         beginObject()
@@ -468,7 +464,7 @@ class StackTraceExtractor {
 }
 
 
-internal
+private
 object HtmlReportTemplate {
 
     const val reportHtmlFileName = "configuration-cache-report.html"
@@ -476,6 +472,9 @@ object HtmlReportTemplate {
     private
     const val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
 
+    /**
+     * Returns the header and the footer of the html template as a pair.
+     */
     fun load(): Pair<String, String> {
         val template = readHtmlTemplate()
         val headerEnd = template.indexOf(modelLine)
@@ -492,13 +491,13 @@ object HtmlReportTemplate {
         ConfigurationCacheReport::class.java
             .requireResource(reportHtmlFileName)
             .openStream()
-            .bufferedReader().use {
-                it.readText()
-            }
+            .bufferedReader()
+            .use(BufferedReader::readText)
 }
 
 
 private
-fun Class<*>.requireResource(path: String): URL = getResource(path).also {
-    require(it != null) { "Resource `$path` could not be found!" }
+fun Class<*>.requireResource(path: String): URL = getResource(path).let { url ->
+    require(url != null) { "Resource `$path` could not be found!" }
+    url
 }
