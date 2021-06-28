@@ -66,7 +66,8 @@ class ConfigurationCacheReport(
             override fun onProblem(problem: PropertyProblem): State =
                 Spooling(
                     executorFactory.create("Configuration cache report writer", 1),
-                    temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html")
+                    temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
+                    CharBuf::class.java.classLoader
                 ).onProblem(problem)
 
             override fun close(): State =
@@ -75,7 +76,11 @@ class ConfigurationCacheReport(
 
         class Spooling(
             val executor: ManagedExecutor,
-            val spoolFile: File
+            val spoolFile: File,
+            /**
+             * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
+             */
+            val groovyJsonClassLoader: ClassLoader
         ) : State() {
 
             private
@@ -83,6 +88,7 @@ class ConfigurationCacheReport(
 
             init {
                 executor.submit {
+                    Thread.currentThread().contextClassLoader = groovyJsonClassLoader
                     writer.beginHtmlReport()
                 }
             }
