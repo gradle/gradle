@@ -9,7 +9,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
-import java.util.LinkedList
 
 const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
@@ -61,19 +60,14 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
     private val buckets: Map<TestCoverage, List<BuildTypeBucket>> by lazy {
         val uuidToTestCoverage = model.stages.flatMap { it.functionalTests }.associateBy { it.uuid }
         val testCoverageAndBuckets = JSON.parseArray(testBucketsJson.readText()) as JSONArray
-        testCoverageAndBuckets.map { testCoverageAndBucket ->
+        testCoverageAndBuckets.associate { testCoverageAndBucket ->
             testCoverageAndBucket as JSONObject
             val testCoverage: TestCoverage = uuidToTestCoverage.getValue(testCoverageAndBucket.getIntValue("testCoverageUuid"))
             val buckets: List<BuildTypeBucket> = testCoverageAndBucket.getJSONArray("buckets").map {
-                it as JSONObject
-                if (it.containsKey("classes")) {
-                    FunctionalTestBucketWithSplitClasses(it).toBuildTypeBucket(model.subprojects)
-                } else {
-                    MultipleSubprojectsFunctionalTestBucket(it).toBuildTypeBucket(model.subprojects)
-                }
+                fromJsonObject(it as JSONObject).toBuildTypeBucket(model.subprojects)
             }
             testCoverage to buckets
-        }.toMap()
+        }
     }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
@@ -97,11 +91,23 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
         )
 }
 
+class TestClassAndSourceSet(
+    val testClass: String,
+    val sourceSet: String
+) {
+    constructor(classAndSourceSet: String) : this(
+        classAndSourceSet.substringBefore("="),
+        classAndSourceSet.substringAfter("=")
+    )
+
+    fun toPropertiesLine() = "$testClass=$sourceSet"
+}
+
 class LargeSubprojectSplitBucket(
     val subproject: GradleSubproject,
     val number: Int,
     val include: Boolean,
-    val classes: List<TestClassTime>
+    val classes: List<TestClassAndSourceSet>
 ) : BuildTypeBucket by subproject {
     val name = "${subproject.name}_$number"
 
@@ -159,10 +165,9 @@ type test-splits\$action-test-classes.properties
 }
 
 class SmallSubprojectBucket(
-    val subprojectsBuildTime: List<SubprojectTestClassTime>,
+    val subprojects: List<GradleSubproject>,
     val enableTestDistribution: Boolean = false
 ) : BuildTypeBucket {
-    val subprojects = subprojectsBuildTime.map { it.subProject }
     val name = truncateName(subprojects.joinToString(","))
 
     private fun truncateName(str: String) =
@@ -188,62 +193,4 @@ class SmallSubprojectBucket(
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")
 
     override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}"
-}
-
-class TestClassTime(
-    var testClass: String,
-    val sourceSet: String,
-    var buildTimeMs: Int
-) {
-    constructor(classAndSourceSet: String) : this(
-        classAndSourceSet.substringBefore("="),
-        classAndSourceSet.substringAfter("="),
-        -1
-    )
-
-    constructor(jsonObject: JSONObject) : this(
-        jsonObject.getString("testClass"),
-        jsonObject.getString("sourceSet"),
-        jsonObject.getIntValue("buildTimeMs")
-    )
-
-    fun toPropertiesLine() = "$testClass=$sourceSet"
-}
-
-class SubprojectTestClassTime(
-    val subProject: GradleSubproject,
-    private val testClassTimes: List<TestClassTime> = emptyList()
-) {
-    val totalTime: Int = testClassTimes.sumBy { it.buildTimeMs }
-
-    fun split(expectedBucketNumber: Int, enableTestDistribution: Boolean = false): List<BuildTypeBucket> {
-        return if (expectedBucketNumber == 1) {
-            listOf(
-                SmallSubprojectBucket(
-                    listOf(SubprojectTestClassTime(subProject)),
-                    enableTestDistribution
-                )
-            )
-        } else {
-            // fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int): List<R> {
-            // T TestClassTime
-            // R List<TestClassTime>
-            val list = LinkedList(testClassTimes.sortedBy { -it.buildTimeMs })
-            val toIntFunction = TestClassTime::buildTimeMs
-            val largeElementSplitFunction: (TestClassTime, Int) -> List<List<TestClassTime>> = { testClassTime: TestClassTime, _: Int -> listOf(listOf(testClassTime)) }
-            val smallElementAggregateFunction: (List<TestClassTime>) -> List<TestClassTime> = { it }
-
-            val buckets: List<List<TestClassTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE)
-
-            buckets.mapIndexed { index: Int, classesInBucket: List<TestClassTime> ->
-                val include = index != buckets.size - 1
-                val classes = if (include) classesInBucket else buckets.subList(0, buckets.size - 1).flatten()
-                LargeSubprojectSplitBucket(subProject, index + 1, include, classes)
-            }
-        }
-    }
-
-    override fun toString(): String {
-        return "SubprojectTestClassTime(subProject=${subProject.name}, totalTime=$totalTime)"
-    }
 }

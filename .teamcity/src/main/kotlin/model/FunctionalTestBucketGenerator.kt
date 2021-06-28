@@ -12,8 +12,7 @@ import java.util.LinkedList
 /**
  * Process test-class-data.json and generates test-buckets.json
  *
- * Usage: mvn exec:java -Dexec.mainClass=model.FunctionalTestBucketGeneratorKt -Dexec.args='[input-test-class-data.json path] ./test-buckets.json'
- *
+ * Usage: put your `test-class-data.json` in the `.teamcity` directory, then run `mvn exec:java@update-test-buckets`.
  */
 fun main(args: Array<String>) {
     val model = CIBuildModel(
@@ -28,12 +27,33 @@ fun main(args: Array<String>) {
     FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
 }
 
+class TestClassTime(
+    val testClassAndSourceSet: TestClassAndSourceSet,
+    val buildTimeMs: Int
+) {
+    constructor(jsonObject: JSONObject) : this(
+        TestClassAndSourceSet(
+            jsonObject.getString("testClass"),
+            jsonObject.getString("sourceSet")
+        ),
+        jsonObject.getIntValue("buildTimeMs")
+    )
+}
+
 data class TestCoverageAndBucketSplits(
     val testCoverageUuid: Int,
     val buckets: List<FunctionalTestBucket>
 )
 
-interface FunctionalTestBucket
+interface FunctionalTestBucket {
+    fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket
+}
+
+fun fromJsonObject(jsonObject: JSONObject): FunctionalTestBucket = if (jsonObject.containsKey("classes")) {
+    FunctionalTestBucketWithSplitClasses(jsonObject)
+} else {
+    MultipleSubprojectsFunctionalTestBucket(jsonObject)
+}
 
 data class FunctionalTestBucketWithSplitClasses(
     val subproject: String,
@@ -48,11 +68,11 @@ data class FunctionalTestBucketWithSplitClasses(
         jsonObject.getBoolean("include")
     )
 
-    fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket = LargeSubprojectSplitBucket(
+    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket = LargeSubprojectSplitBucket(
         gradleSubprojectProvider.getSubprojectByName(subproject)!!,
         number,
         include,
-        classes.map { TestClassTime(it) }
+        classes.map { TestClassAndSourceSet(it) }
     )
 }
 
@@ -65,9 +85,9 @@ data class MultipleSubprojectsFunctionalTestBucket(
         jsonObject.getBoolean("enableTD")
     )
 
-    fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket {
+    override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket {
         return SmallSubprojectBucket(
-            subprojects.map { SubprojectTestClassTime(gradleSubprojectProvider.getSubprojectByName(it)!!) },
+            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
             enableTD
         )
     }
@@ -76,9 +96,47 @@ data class MultipleSubprojectsFunctionalTestBucket(
 fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
     return when (this) {
         is GradleSubproject -> MultipleSubprojectsFunctionalTestBucket(listOf(name))
-        is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojectsBuildTime.map { it.subProject.name }, enableTestDistribution)
+        is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, enableTestDistribution)
         is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
         else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
+    }
+}
+
+class SubprojectTestClassTime(
+    val subProject: GradleSubproject,
+    val testClassTimes: List<TestClassTime> = emptyList()
+) {
+    val totalTime: Int = testClassTimes.sumBy { it.buildTimeMs }
+
+    fun split(expectedBucketNumber: Int, enableTestDistribution: Boolean = false): List<BuildTypeBucket> {
+        return if (expectedBucketNumber == 1) {
+            listOf(
+                SmallSubprojectBucket(
+                    listOf(subProject),
+                    enableTestDistribution
+                )
+            )
+        } else {
+            // fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int): List<R> {
+            // T TestClassTime
+            // R List<TestClassTime>
+            val list = LinkedList(testClassTimes.sortedBy { -it.buildTimeMs })
+            val toIntFunction = TestClassTime::buildTimeMs
+            val largeElementSplitFunction: (TestClassTime, Int) -> List<List<TestClassTime>> = { testClassTime: TestClassTime, _: Int -> listOf(listOf(testClassTime)) }
+            val smallElementAggregateFunction: (List<TestClassTime>) -> List<TestClassTime> = { it }
+
+            val buckets: List<List<TestClassTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE)
+
+            buckets.mapIndexed { index: Int, classesInBucket: List<TestClassTime> ->
+                val include = index != buckets.size - 1
+                val classes = if (include) classesInBucket else buckets.subList(0, buckets.size - 1).flatten()
+                LargeSubprojectSplitBucket(subProject, index + 1, include, classes.map { it.testClassAndSourceSet })
+            }
+        }
+    }
+
+    override fun toString(): String {
+        return "SubprojectTestClassTime(subProject=${subProject.name}, totalTime=$totalTime)"
     }
 }
 
@@ -128,53 +186,33 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .entries
             .filter { "UNKNOWN" != it.key }
             .filter { model.subprojects.getSubprojectByName(it.key) != null }
-            .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.sourceSet != "test" }) }
+            .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        return when {
-            testCoverage.testType == TestType.platform && testCoverage.os == Os.WINDOWS -> {
-                splitDocsSubproject(validSubprojects) + splitIntoBucketsExcludingSpecialBuckets(listOf("docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
-            }
-            testCoverage.os == Os.LINUX -> {
-                splitIntoBuckets(
-                    LinkedList(subProjectTestClassTimes),
-                    SubprojectTestClassTime::totalTime,
-                    { largeElement: SubprojectTestClassTime, _: Int -> largeElement.split(1, true) },
-                    { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-                    testCoverage.expectedBucketNumber,
-                    MAX_PROJECT_NUMBER_IN_BUCKET
-                )
-            }
-            else -> {
-                splitIntoBuckets(
-                    LinkedList(subProjectTestClassTimes),
-                    SubprojectTestClassTime::totalTime,
-                    { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
-                    { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
-                    testCoverage.expectedBucketNumber,
-                    MAX_PROJECT_NUMBER_IN_BUCKET
-                )
-            }
+        return if (testCoverage.testType == TestType.platform) {
+            splitDocsSubproject(validSubprojects) + splitIntoBuckets(listOf("docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
+        } else {
+            splitIntoBuckets(emptyList(), validSubprojects, subProjectTestClassTimes, testCoverage)
         }
     }
 
     // docs subproject is special
     private fun splitDocsSubproject(allSubprojects: List<GradleSubproject>): List<BuildTypeBucket> {
         val docs = allSubprojects.find { it.name == "docs" }!!
-        val docs1 = LargeSubprojectSplitBucket(docs, 1, true, listOf(TestClassTime("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest", -1)))
-        val docs2 = LargeSubprojectSplitBucket(docs, 2, true, listOf(TestClassTime("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest", -1)))
-        val docs3 = LargeSubprojectSplitBucket(docs, 3, true, listOf(TestClassTime("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest", -1)))
+        val docs1 = LargeSubprojectSplitBucket(docs, 1, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest")))
+        val docs2 = LargeSubprojectSplitBucket(docs, 2, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest")))
+        val docs3 = LargeSubprojectSplitBucket(docs, 3, true, listOf(TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")))
         val docs4 = LargeSubprojectSplitBucket(
             docs, 4, false, listOf(
-                TestClassTime("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest", -1),
-                TestClassTime("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest", -1),
-                TestClassTime("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest", -1)
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket1SnippetsTest", "docsTest"),
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket2SnippetsTest", "docsTest"),
+                TestClassAndSourceSet("org.gradle.docs.samples.Bucket3SnippetsTest", "docsTest")
             )
         )
         return listOf(docs1, docs2, docs3, docs4)
     }
 
-    private fun splitIntoBucketsExcludingSpecialBuckets(
+    private fun splitIntoBuckets(
         specialSubprojectNames: List<String>,
         validSubprojects: List<GradleSubproject>,
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
@@ -185,15 +223,20 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
-            { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
-            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list) },
+            { largeElement: SubprojectTestClassTime, size: Int ->
+                if (testCoverage.os == Os.LINUX)
+                    largeElement.split(1, true)
+                else
+                    largeElement.split(size)
+            },
+            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }) },
             testCoverage.expectedBucketNumber - specialSubprojects.size,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
     }
 
     private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {
-        val testCoverageId = testCoverage.asId("Gradle_Master_Check")
+        val testCoverageId = testCoverage.asId(MASTER_CHECK_CONFIGURATION)
         return buildProjectClassTimes[testCoverageId] ?: if (testCoverage.testType == TestType.soak) {
             null
         } else {
@@ -204,7 +247,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
                     it.buildJvmVersion == testCoverage.buildJvmVersion
             }
             foundTestCoverage?.let {
-                buildProjectClassTimes[it.asId("Gradle_Check")]
+                buildProjectClassTimes[it.asId(MASTER_CHECK_CONFIGURATION)]
             }?.also {
                 println("No test statistics found for ${testCoverage.asName()} (${testCoverage.uuid}), re-using the data from ${foundTestCoverage.asName()} (${foundTestCoverage.uuid})")
             }

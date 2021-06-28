@@ -118,6 +118,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>update-test-buckets</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>model.FunctionalTestBucketGeneratorKt</mainClass>
+                    <arguments>
+                        <argument>./test-class-data.json</argument>
+                        <argument>./test-buckets.json</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
