@@ -100,24 +100,24 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     private static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         boolean cacheable;
-        boolean mapErrorsToWarnings;
+        boolean treatWarningsAsErrors;
         DocumentationRegistry documentationRegistry = new DocumentationRegistry();
         if (Task.class.isAssignableFrom(topLevelBean)) {
             cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
             // Treat all errors as warnings, for backwards compatibility
-            mapErrorsToWarnings = true;
+            treatWarningsAsErrors = false;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
             cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
-            mapErrorsToWarnings = false;
+            treatWarningsAsErrors = true;
         } else {
             cacheable = false;
-            mapErrorsToWarnings = false;
+            treatWarningsAsErrors = true;
         }
 
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(documentationRegistry, topLevelBean, cacheable);
         PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
         validationContext.getProblems()
-            .forEach((message, severity) -> problems.put(message, severity == ERROR || !mapErrorsToWarnings));
+            .forEach((message, severity) -> problems.put(message, severity == ERROR || treatWarningsAsErrors));
     }
 
     private static void storeResults(List<String> problemMessages, RegularFileProperty outputFile) {
