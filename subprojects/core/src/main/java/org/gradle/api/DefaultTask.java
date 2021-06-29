@@ -44,7 +44,7 @@ import java.util.Set;
  */
 @NoConventionMapping
 @SuppressWarnings("deprecation")
-@DisableCachingByDefault(because = "Super-class without any behavior")
+@DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public class DefaultTask extends org.gradle.api.internal.AbstractTask implements Task {
     // NOTE: These methods are duplicated here because Eclipse treats methods implemented in the deprecated
     // AbstractTask as also deprecated in DefaultTask.
