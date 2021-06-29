@@ -270,6 +270,7 @@ The last remaining artifact of the old way of publishing is the `Upload` task th
 Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,`maven-publish` plugin>>.
 
 [[all_convention_deprecation]]
+==== Deprecated conventions
 The concept of conventions is outdated and superseded by extensions. To reflect this in the Gradle API, the following elements are now deprecated:
 
 - link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
