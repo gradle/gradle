@@ -37,6 +37,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
+import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.objectweb.asm.ClassReader;
@@ -100,24 +103,50 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     private static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         boolean cacheable;
+        boolean canBeMadeCacheable;
         boolean treatWarningsAsErrors;
         DocumentationRegistry documentationRegistry = new DocumentationRegistry();
         if (Task.class.isAssignableFrom(topLevelBean)) {
+            canBeMadeCacheable = true;
             cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
             // Treat all errors as warnings, for backwards compatibility
             treatWarningsAsErrors = false;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
+            canBeMadeCacheable = true;
             cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
             treatWarningsAsErrors = true;
         } else {
+            canBeMadeCacheable = false;
             cacheable = false;
             treatWarningsAsErrors = true;
         }
 
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(documentationRegistry, topLevelBean, cacheable);
+        if (canBeMadeCacheable) {
+            validateCacheableOrDisableCachingByDefaultReason(topLevelBean, cacheable, validationContext);
+        }
         PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
+
         validationContext.getProblems()
             .forEach((message, severity) -> problems.put(message, severity == ERROR || treatWarningsAsErrors));
+    }
+
+    private static void validateCacheableOrDisableCachingByDefaultReason(Class<?> topLevelBean, boolean cacheable, DefaultTypeValidationContext validationContext) {
+        if (!cacheable && topLevelBean.getAnnotation(DisableCachingByDefault.class) == null) {
+            boolean isTask = Task.class.isAssignableFrom(topLevelBean);
+            String cacheableAnnotation = "@" + (isTask ? CacheableTask.class : CacheableTransform.class).getSimpleName();
+            String disableCachingAnnotation = "@" + DisableCachingByDefault.class.getSimpleName();
+            String workType = isTask ? "task" : "transform action";
+            validationContext.visitTypeProblem(problem ->
+                problem.reportAs(Severity.WARNING)
+                    .withId(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+                    .forType(topLevelBean)
+                    .withDescription("A " + workType + " must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                    .happensBecause("The " + workType + " author should make clear why a task is not cacheable")
+                    .documentedAt("validation_problems", "sec:disable_caching_by_default")
+                    .addPossibleSolution("Add " + disableCachingAnnotation + "(because = ...) or " + cacheableAnnotation)
+            );
+        }
     }
 
     private static void storeResults(List<String> problemMessages, RegularFileProperty outputFile) {
