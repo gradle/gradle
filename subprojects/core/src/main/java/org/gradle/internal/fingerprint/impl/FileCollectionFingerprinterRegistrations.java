@@ -65,7 +65,18 @@ public class FileCollectionFingerprinterRegistrations {
     }
 
     private static ResourceHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
-        ResourceHasher lineEndingAwareResourceHasher = new LineEndingAwareResourceHasher(new RuntimeClasspathResourceHasher(), lineEndingSensitivity);
-        return new CachingResourceHasher(lineEndingAwareResourceHasher, resourceSnapshotterCacheService);
+        ResourceHasher resourceHasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), lineEndingSensitivity);
+        return cacheIfNormalized(resourceHasher, lineEndingSensitivity, resourceSnapshotterCacheService);
+    }
+
+    private static ResourceHasher cacheIfNormalized(ResourceHasher resourceHasher, LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+        switch (lineEndingSensitivity) {
+            case DEFAULT:
+                return resourceHasher;
+            case IGNORE_LINE_ENDINGS:
+                return new CachingResourceHasher(resourceHasher, resourceSnapshotterCacheService);
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 }

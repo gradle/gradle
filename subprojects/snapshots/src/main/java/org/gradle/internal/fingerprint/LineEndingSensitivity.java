@@ -16,29 +16,7 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-
-import java.util.function.Predicate;
-
 public enum LineEndingSensitivity {
-    DEFAULT(snapshot -> false, zipEntryContext -> false),
-    IGNORE_LINE_ENDINGS(snapshot -> snapshot.getType() == FileType.RegularFile, zipEntryContext -> !zipEntryContext.getEntry().isDirectory());
-
-    private final Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot;
-    private final Predicate<ZipEntryContext> shouldNormalizeZipEntry;
-
-    LineEndingSensitivity(Predicate<FileSystemLocationSnapshot> shouldNormalizeSnapshot, Predicate<ZipEntryContext> shouldNormalizeZipEntry) {
-        this.shouldNormalizeSnapshot = shouldNormalizeSnapshot;
-        this.shouldNormalizeZipEntry = shouldNormalizeZipEntry;
-    }
-
-    public boolean isCandidate(FileSystemLocationSnapshot snapshot) {
-        return shouldNormalizeSnapshot.test(snapshot);
-    }
-
-    public boolean isCandidate(ZipEntryContext zipEntryContext) {
-        return shouldNormalizeZipEntry.test(zipEntryContext);
-    }
+    DEFAULT,
+    IGNORE_LINE_ENDINGS;
 }

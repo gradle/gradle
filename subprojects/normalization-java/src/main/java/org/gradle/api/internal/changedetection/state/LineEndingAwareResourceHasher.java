@@ -40,34 +40,40 @@ import java.util.Iterator;
  */
 public class LineEndingAwareResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
-    private final LineEndingSensitivity lineEndingSensitivity;
 
-    public LineEndingAwareResourceHasher(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
+    private LineEndingAwareResourceHasher(ResourceHasher delegate) {
         this.delegate = delegate;
-        this.lineEndingSensitivity = lineEndingSensitivity;
+    }
+
+    public static ResourceHasher wrap(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
+        switch (lineEndingSensitivity) {
+            case DEFAULT:
+                return delegate;
+            case IGNORE_LINE_ENDINGS:
+                return new LineEndingAwareResourceHasher(delegate);
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
-        hasher.putString(lineEndingSensitivity.name());
     }
 
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        return lineEndingSensitivity.isCandidate(snapshotContext.getSnapshot()) ?
-            hashContent(snapshotContext) :
-            delegate.hash(snapshotContext);
+        return hashContent(snapshotContext);
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return lineEndingSensitivity.isCandidate(zipEntryContext) ?
-            hashContent(zipEntryContext) :
-            delegate.hash(zipEntryContext);
+        return zipEntryContext.getEntry().isDirectory() ?
+            delegate.hash(zipEntryContext) :
+            hashContent(zipEntryContext);
     }
 
     @Nullable

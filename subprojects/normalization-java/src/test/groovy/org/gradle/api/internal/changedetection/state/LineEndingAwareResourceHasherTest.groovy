@@ -44,7 +44,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
     def "can normalize line endings in files (eol = '#description')"() {
         def unnormalized = file('unnormalized.txt') << textWithLineEndings(eol)
         def normalized = file('normalized.txt') << textWithLineEndings('\n')
-        def hasher = new LineEndingAwareResourceHasher(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
         expect:
         hasher.hash(snapshotContext(unnormalized)) == hasher.hash(snapshotContext(normalized))
@@ -60,7 +60,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
     def "can normalize line endings in zip entries (eol = '#description')"() {
         def unnormalized = file('unnormalized.txt') << textWithLineEndings(eol)
         def normalized = file('normalized.txt') << textWithLineEndings('\n')
-        def hasher = new LineEndingAwareResourceHasher(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
         expect:
         hasher.hash(zipContext(unnormalized)) == hasher.hash(zipContext(normalized))
@@ -94,7 +94,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
     def "calculates hash for text file with #description"() {
         def file = file('foo') << content
         def delegate = Mock(ResourceHasher)
-        def hasher = new LineEndingAwareResourceHasher(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
         when:
         hasher.hash(snapshotContext(file))
@@ -120,7 +120,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
     def "calls delegate for binary files with #description"() {
         def file = file('foo') << content
         def delegate = Mock(ResourceHasher)
-        def hasher = new LineEndingAwareResourceHasher(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
         def snapshotContext = snapshotContext(file)
         def zipContext = zipContext(file)
 
@@ -146,7 +146,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
     def "always calls delegate when line ending sensitivity is set to DEFAULT"() {
         def file = file('foo') << textWithLineEndings('\r\n')
         def delegate = Mock(ResourceHasher)
-        def hasher = new LineEndingAwareResourceHasher(delegate, LineEndingSensitivity.DEFAULT)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.DEFAULT)
         def snapshotContext = snapshotContext(file)
         def zipContext = zipContext(file)
 
@@ -165,7 +165,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
     def "always calls delegate for directories"() {
         def delegate = Mock(ResourceHasher)
-        def hasher = new LineEndingAwareResourceHasher(delegate, lineEndingSensitivity)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, lineEndingSensitivity)
         def dir = file('dir')
         def snapshotContext = snapshotContext(dir, FileType.Directory)
         def zipContext = zipContext(dir, true)

@@ -76,8 +76,6 @@ import static org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprin
  * </p>
  */
 public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathFingerprintingStrategy.class);
-
     private final NonJarFingerprintingStrategy nonZipFingerprintingStrategy;
     private final ResourceSnapshotterCacheService cacheService;
     private final ResourceHasher classpathResourceHasher;
@@ -113,7 +111,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         Interner<String> stringInterner,
         LineEndingSensitivity lineEndingSensitivity
     ) {
-        ResourceHasher resourceHasher = new LineEndingAwareResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity);
+        ResourceHasher resourceHasher = LineEndingAwareResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
         resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
         resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);

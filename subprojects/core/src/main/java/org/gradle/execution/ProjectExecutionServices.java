@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -75,7 +76,6 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
 public class ProjectExecutionServices extends DefaultServiceRegistry {
@@ -208,7 +208,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             concat(
                 fileCollectionFingerprinterRegistrations.getRegistrants().stream(),
                 fingerprinters.stream()
-            ).collect(toList())
+            ).collect(ImmutableList.toImmutableList())
         );
     }
 
