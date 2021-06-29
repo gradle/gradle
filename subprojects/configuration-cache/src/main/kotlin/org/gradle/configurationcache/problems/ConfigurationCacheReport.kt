@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.firstTypeFrom
-import org.gradle.configurationcache.problems.taskPathFrom
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.service.scopes.Scopes
@@ -66,18 +59,26 @@ class ConfigurationCacheReport(
 
             override fun onProblem(problem: PropertyProblem): State =
                 Spooling(
-                    executorFactory.create("Configuration cache report writer", 1),
-                    temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html"),
+                    htmlReportSpoolFile(),
+                    singleThreadExecutor(),
                     CharBuf::class.java.classLoader
                 ).onProblem(problem)
+
+            private
+            fun htmlReportSpoolFile() =
+                temporaryFileProvider.createTemporaryFile("configuration-cache-report", "html")
+
+            private
+            fun singleThreadExecutor() =
+                executorFactory.create("Configuration cache report writer", 1)
 
             override fun close(): State =
                 this
         }
 
         class Spooling(
-            val executor: ManagedExecutor,
             val spoolFile: File,
+            val executor: ManagedExecutor,
             /**
              * [JsonModelWriter] uses Groovy's [CharBuf] for fast json encoding.
              */
@@ -102,26 +103,32 @@ class ConfigurationCacheReport(
             }
 
             override fun commitReportTo(htmlReportFile: File, cacheAction: String): State {
-                executor.run {
-                    submit {
-                        writer.endHtmlReport(cacheAction)
-                        writer.close()
-                        Files.move(spoolFile.toPath(), htmlReportFile.toPath())
-                    }
-                    shutdown()
-                    awaitTermination(3, TimeUnit.SECONDS)
+                executor.submit {
+                    writer.endHtmlReport(cacheAction)
+                    writer.close()
+                    moveSpoolFileTo(htmlReportFile)
                 }
+                executor.shutdownAndAwaitTermination()
                 return Closed
             }
 
             override fun close(): State {
-                executor.run {
-                    submit {
-                        writer.close()
-                    }
-                    shutdown()
+                executor.submit {
+                    writer.close()
                 }
+                executor.shutdown()
                 return Closed
+            }
+
+            private
+            fun ManagedExecutor.shutdownAndAwaitTermination() {
+                shutdown()
+                awaitTermination(3, TimeUnit.SECONDS)
+            }
+
+            private
+            fun moveSpoolFileTo(htmlReportFile: File) {
+                Files.move(spoolFile.toPath(), htmlReportFile.toPath())
             }
         }
 
@@ -179,10 +186,10 @@ class ConfigurationCacheReport(
 
 
 /**
- * Writes the configuration cache html.
+ * Writes the configuration cache html report.
  *
  * The report is laid out in such a way as to allow extracting the pure JSON model
- * by looking for `// begin-report-data` and `// end-report-data`.
+ * by looking for the `// begin-report-data` and `// end-report-data` markers.
  */
 internal
 class HtmlReportWriter(val writer: BufferedWriter) {
@@ -194,23 +201,33 @@ class HtmlReportWriter(val writer: BufferedWriter) {
     val htmlTemplate = HtmlReportTemplate.load()
 
     fun beginHtmlReport() {
-        writer.run {
-            append(htmlTemplate.first)
-            appendLine("""<script type="text/javascript">""")
-            appendLine("function configurationCacheProblems() { return (")
-            appendLine("// begin-report-data")
-        }
+        writer.append(htmlTemplate.first)
+        beginReportData()
         jsonModelWriter.beginModel()
     }
 
     fun endHtmlReport(cacheAction: String) {
         jsonModelWriter.endModel(cacheAction)
+        endReportData()
+        writer.append(htmlTemplate.second)
+    }
+
+    private
+    fun beginReportData() {
+        writer.run {
+            appendLine("""<script type="text/javascript">""")
+            appendLine("function configurationCacheProblems() { return (")
+            appendLine("// begin-report-data")
+        }
+    }
+
+    private
+    fun endReportData() {
         writer.run {
             appendLine()
             appendLine("// end-report-data")
             appendLine(");}")
             appendLine("</script>")
-            append(htmlTemplate.second)
         }
     }
 
@@ -422,8 +439,8 @@ class JsonModelWriter(val writer: BufferedWriter) {
     }
 
     private
-    fun documentationLinkFor(it: DocumentationSection) =
-        documentationRegistry.getDocumentationFor("configuration_cache", it.anchor)
+    fun documentationLinkFor(section: DocumentationSection) =
+        documentationRegistry.getDocumentationFor("configuration_cache", section.anchor)
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
@@ -439,10 +456,10 @@ class JsonModelWriter(val writer: BufferedWriter) {
         stackTraceExtractor.stackTraceStringFor(error)
 
     private
-    fun write(s: String) = writer.append(s)
+    fun write(csq: CharSequence) = writer.append(csq)
 
     private
-    fun write(s: Char) = writer.append(s)
+    fun write(c: Char) = writer.append(c)
 }
 
 
@@ -473,7 +490,7 @@ object HtmlReportTemplate {
     const val modelLine = """<script type="text/javascript" src="configuration-cache-report-data.js"></script>"""
 
     /**
-     * Returns the header and the footer of the html template as a pair.
+     * Returns the header and footer of the html template as a pair.
      */
     fun load(): Pair<String, String> {
         val template = readHtmlTemplate()

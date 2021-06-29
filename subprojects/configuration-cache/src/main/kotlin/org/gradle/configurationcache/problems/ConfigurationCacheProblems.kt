@@ -22,7 +22,6 @@ import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
-import org.gradle.configurationcache.ConfigurationCacheReport
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -92,8 +91,8 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        report.onProblem(problem)
         summary.onProblem(problem)
+        report.onProblem(problem)
     }
 
     override fun getId(): String {

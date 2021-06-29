@@ -14,7 +14,7 @@ dependencies {
 }
 
 tasks.processResources {
-    from(configurationCacheReportPath) { into("org/gradle/configurationcache") }
+    from(configurationCacheReportPath) { into("org/gradle/configurationcache/problems") }
 }
 
 // The integration tests in this project do not need to run in 'config cache' mode.
