@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.firstTypeFrom
-import org.gradle.configurationcache.problems.taskPathFrom
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.service.scopes.Scopes
