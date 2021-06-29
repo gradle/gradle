@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -60,7 +61,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         all.put(targetBuild, model);
 
         GradleInternal gradle = targetBuild.getMutableModel();
-        addProjects(gradle, model);
+        addProjects(targetBuild, model);
         addIncludedBuilds(gradle, model, all);
 
         if (gradle.getParent() == null) {
@@ -94,15 +95,15 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         }
     }
 
-    private void addProjects(GradleInternal gradle, DefaultGradleBuild model) {
+    private void addProjects(BuildState target, DefaultGradleBuild model) {
         Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
-        Project rootProject = gradle.getRootProject();
+        Project rootProject = target.getMutableModel().getRootProject();
         BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);
         model.setRootProject(convertedRootProject);
 
-        for (Project project : rootProject.getAllprojects()) {
-            model.addProject(convertedProjects.get(project));
+        for (ProjectState project : target.getProjects().getAllProjects()) {
+            model.addProject(convertedProjects.get(project.getMutableModel()));
         }
     }
 
