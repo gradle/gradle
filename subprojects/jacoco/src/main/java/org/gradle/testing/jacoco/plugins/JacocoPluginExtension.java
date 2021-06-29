@@ -17,7 +17,6 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -194,11 +193,7 @@ public class JacocoPluginExtension {
                 // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
                 // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
                 // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
-                File coverageFile = destinationFile.getOrNull();
-                if (coverageFile == null) {
-                    throw new GradleException(JacocoPlugin.DESTINATION_MUST_BE_NOT_NULL_MESSAGE);
-                }
-                fs.delete(spec -> spec.delete(coverageFile));
+                fs.delete(spec -> spec.delete(destinationFile.get()));
             }
         }
     }

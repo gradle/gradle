@@ -69,8 +69,6 @@ public class JacocoPlugin implements Plugin<Project> {
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
 
-    static final String DESTINATION_MUST_BE_NOT_NULL_MESSAGE = "JaCoCo destination file must not be null if output type is FILE";
-
     private final Instantiator instantiator;
     private Project project;
 
@@ -144,7 +142,7 @@ public class JacocoPlugin implements Plugin<Project> {
                     coverageElements.getOutgoing().artifact(tasks.named(taskName).map(task -> {
                         File destinationFile = task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile();
                         if (destinationFile == null) {
-                            throw new GradleException(DESTINATION_MUST_BE_NOT_NULL_MESSAGE);
+                            throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
                         }
                         return destinationFile;
                     }));
