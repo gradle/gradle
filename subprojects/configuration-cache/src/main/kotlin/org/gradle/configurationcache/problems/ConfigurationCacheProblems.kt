@@ -92,8 +92,8 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        report.onProblem(problem)
         summary.onProblem(problem)
+        report.onProblem(problem)
     }
 
     override fun getId(): String {
