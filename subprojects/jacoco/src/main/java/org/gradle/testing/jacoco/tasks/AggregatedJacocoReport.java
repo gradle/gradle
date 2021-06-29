@@ -67,7 +67,7 @@ public abstract class AggregatedJacocoReport extends JacocoReport {
 
             executionData(getTestCategories().map(categories -> {
                 ConfigurableFileCollection coverageFiles = project.files();
-                for (String testCategory : categories)  {
+                for (String testCategory : categories) {
                     TaskContainer tasks = project.getTasks();
                     if (tasks.findByName(testCategory) != null) {
                         coverageFiles.from(project.getTasks().named(testCategory).map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
@@ -100,18 +100,18 @@ public abstract class AggregatedJacocoReport extends JacocoReport {
 
     private void resolveTestCoverageDataVariantsFrom(Configuration aggregationConfiguration) {
         Project project = getProject();
+        getTestCategories().finalizeValueOnRead();
         executionData(getTestCategories().map(categories -> {
             ConfigurableFileCollection coverageFiles = project.files();
             for (String testCategory : categories) {
                 String resolverName = testCategory + "CoverageDataPath";
-                // For some reason, the map function gets executed twice, thus the conditional below
                 Configuration coverageDataPath = project.getConfigurations().findByName(resolverName);
                 if (coverageDataPath == null) {
                     coverageDataPath = createResolver(resolverName);
                     coverageDataPath.extendsFrom(aggregationConfiguration);
                     coverageDataPath.attributes(coverageDataAttributes(project, testCategory));
                 }
-                coverageFiles.from(coverageDataPath.getIncoming().artifactView(it -> it.lenient(true)).getFiles()).filter(File::exists);
+                coverageFiles.from(coverageDataPath.getIncoming().artifactView(it -> it.lenient(true)).getFiles());
             }
             return coverageFiles;
         }));
