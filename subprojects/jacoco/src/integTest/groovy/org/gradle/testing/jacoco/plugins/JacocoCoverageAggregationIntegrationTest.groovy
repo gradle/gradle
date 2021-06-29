@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 
 class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
@@ -57,6 +58,25 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
+    def "registers code coverage data variants"() {
+        given:
+        projectHasIntegrationTests("app", "App")
+
+        when:
+        succeeds("app:outgoingVariants", "--variant", variant)
+
+        then:
+        outputContains("Description = ${description}")
+        outputContains("- ${artifact}")
+
+        where:
+        variant                           | description                                                              | artifact
+        "testCoverageElements"            | "Jacoco test coverage data variant for tests from test task."            | "build${File.separator}jacoco${File.separator}test.exec (artifactType = exec)"
+        "integrationTestCoverageElements" | "Jacoco test coverage data variant for tests from integrationTest task." | "build${File.separator}jacoco${File.separator}integrationTest.exec (artifactType = exec)"
+        "sourceDirectoriesElements"       | "Java source directories variant."                                       | "src${File.separator}main${File.separator}java"
+    }
+
     def "aggregates unit test results for the app and its library dependencies"() {
         given:
         file("app/build.gradle") << """
@@ -79,7 +99,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "aggregates test results for specified test categories for the app and its library dependencies into a single report"() {
         given:
-        projectHasIntegrationTests("lib1", "Lib1")
+        projectHasIntegrationTests(projectWithIntegrationTests, "Lib1")
         file("app/build.gradle") << """
             dependencies {
                 implementation(project(":lib1"))
@@ -95,7 +115,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         for (String testName : testsToAggregate) {
-            executed(":lib1:${testName}")
+            executed(":${projectWithIntegrationTests}:${testName}")
         }
         def aggregatedReport = htmlReport("app", AGGREGATION_TASK_NAME)
         aggregatedReport.exists()
@@ -103,10 +123,13 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         aggregatedReport.totalCoverage() == totalCoverage
 
         where:
-        testsToAggregate            | totalCoverage
-        ["test"]                    | 63
-        ["integrationTest"]         | 21
-        ["test", "integrationTest"] | 75
+        testsToAggregate            | totalCoverage | projectWithIntegrationTests
+        ["test"]                    | 63            | "lib1"
+        ["integrationTest"]         | 21            | "lib1"
+        ["test", "integrationTest"] | 75            | "lib1"
+        ["test"]                    | 63            | "app"
+        ["integrationTest"]         | 21            | "app"
+        ["test", "integrationTest"] | 75            | "app"
     }
 
     def "can create multiple different test report aggregations for the app and its library dependencies into a single report"() {

@@ -34,6 +34,7 @@ import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -118,26 +119,29 @@ public class JacocoPlugin implements Plugin<Project> {
             c.setVisible(false);
             c.setCanBeResolved(false);
             c.setCanBeConsumed(false);
+            c.setDescription("Bucket for project dependencies to aggregate test coverage data from.");
         });
 
         project.getPluginManager().withPlugin("java", plugin -> {
-            Configuration implementation = configurations.getByName("implementation"); // Should implementation configuration name be derived from source set?
+            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            // TODO: what about other "production" source sets that the users might add?
+            SourceSet mainSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            Configuration implementation = configurations.getByName(mainSourceSet.getImplementationConfigurationName());
             aggregatedJacocoReport.extendsFrom(implementation);
 
-            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             // TODO: this probably belongs in java plugin
-            Configuration transitiveSourcesElements = createVariant("transitiveSourcesElements",
+            Configuration sourceDirectoriesElements = createVariant("sourceDirectoriesElements",
                 AggregatedJacocoReport.sourceDirectoriesAttributes(project));
-            transitiveSourcesElements.extendsFrom(implementation);
-            // TODO: what about other "production" source sets that the users might add?
-            javaPluginExtension.getSourceSets().getByName("main").getJava().getSrcDirs()
-                .forEach(f -> transitiveSourcesElements.getOutgoing().artifact(f));
+            sourceDirectoriesElements.extendsFrom(implementation);
+            sourceDirectoriesElements.setDescription("Java source directories variant.");
+            mainSourceSet.getJava().getSrcDirs().forEach(f -> sourceDirectoriesElements.getOutgoing().artifact(f));
 
             TaskContainer tasks = project.getTasks();
             project.afterEvaluate(p -> {
                 for (String taskName : tasks.withType(Test.class).getNames()) {
                     Configuration coverageElements = createVariant(taskName + "CoverageElements",
                         AggregatedJacocoReport.coverageDataAttributes(project, taskName));
+                    coverageElements.setDescription("Jacoco test coverage data variant for tests from " + taskName + " task.");
                     coverageElements.extendsFrom(implementation);
                     coverageElements.getOutgoing().artifact(tasks.named(taskName).map(task -> {
                         File destinationFile = task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile();

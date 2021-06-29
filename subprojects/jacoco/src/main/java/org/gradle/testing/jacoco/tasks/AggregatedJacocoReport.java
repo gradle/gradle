@@ -32,6 +32,7 @@ import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.jacoco.AntJacocoReport;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
@@ -62,7 +63,7 @@ public abstract class AggregatedJacocoReport extends JacocoReport {
         project.getPluginManager().withPlugin("java", plugin -> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             // TODO: what about other "production" source sets that the users might add?
-            sourceSets(javaPluginExtension.getSourceSets().getByName("main"));
+            sourceSets(javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME));
 
             executionData(getTestCategories().map(categories -> {
                 ConfigurableFileCollection coverageFiles = project.files();
