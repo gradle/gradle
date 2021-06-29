@@ -83,8 +83,10 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            withUniqueProblems(
+                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'",
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
 
@@ -95,8 +97,10 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model2.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            withUniqueProblems(
+                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'",
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }
@@ -121,8 +125,10 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            withUniqueProblems(
+                "Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'",
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
 
@@ -133,8 +139,10 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model2.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
-                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+            withUniqueProblems(
+                "Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'",
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (2 problems)")
     }
@@ -156,7 +164,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withUniqueProblems(
+                "Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
 
@@ -167,7 +177,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model2.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withUniqueProblems(
+                "Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
     }
@@ -190,7 +202,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withUniqueProblems(
+                "Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported"
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
 
@@ -201,7 +215,9 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model2.message == "It works!"
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withUniqueProblems(
+                "Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported"
+            )
         }
         result.assertHasPostBuildOutput("Configuration cache problems found (1 problem).")
     }
