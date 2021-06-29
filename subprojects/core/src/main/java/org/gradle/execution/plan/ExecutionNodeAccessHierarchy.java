@@ -77,7 +77,9 @@ public class ExecutionNodeAccessHierarchy {
     }
 
     private boolean relativePathMatchesSpec(Spec<FileTreeElement> filter, File element, String relativePathString) {
-        boolean elementIsFile = element.isFile();
+        // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
+        // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.
+        boolean elementIsFile = !element.isDirectory();
         RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
         if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
             return false;
