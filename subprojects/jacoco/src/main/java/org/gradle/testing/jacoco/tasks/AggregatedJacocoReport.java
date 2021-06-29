@@ -86,9 +86,9 @@ public abstract class AggregatedJacocoReport extends JacocoReport {
     private void resolveClassesVariantsFrom(Configuration aggregationConfiguration, JvmEcosystemUtilities jvmEcosystemUtilities) {
         Configuration coverageClassesDirs = createResolver("coverageClassesDirs");
         coverageClassesDirs.extendsFrom(aggregationConfiguration);
+        coverageClassesDirs.getResolutionStrategy().getComponentSelection().all(s -> s.reject("external dependencies are excluded from code coverage report"));
         jvmEcosystemUtilities.configureAsRuntimeClasspath(coverageClassesDirs);
-        // TODO: is there a better way to not include external dependency classes?
-        additionalClassDirs(coverageClassesDirs.filter(it -> it.getPath().contains(File.separator + "build" + File.separator + "libs" + File.separator)));
+        additionalClassDirs(coverageClassesDirs.getIncoming().artifactView(it -> it.lenient(true)).getFiles());
     }
 
     private void resolveSourcesVariantsFrom(Configuration aggregationConfiguration) {
@@ -100,7 +100,6 @@ public abstract class AggregatedJacocoReport extends JacocoReport {
 
     private void resolveTestCoverageDataVariantsFrom(Configuration aggregationConfiguration) {
         Project project = getProject();
-        getTestCategories().finalizeValueOnRead();
         executionData(getTestCategories().map(categories -> {
             ConfigurableFileCollection coverageFiles = project.files();
             for (String testCategory : categories) {
