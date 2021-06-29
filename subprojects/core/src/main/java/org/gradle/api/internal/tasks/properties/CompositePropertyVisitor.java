@@ -46,7 +46,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
                                             optional,
                                             skipWhenEmpty,
                                             directorySensitivity,
-                    lineEndingSensitivity,
+                                            lineEndingSensitivity,
                                             incremental,
                                             fileNormalizer,
                                             value,
