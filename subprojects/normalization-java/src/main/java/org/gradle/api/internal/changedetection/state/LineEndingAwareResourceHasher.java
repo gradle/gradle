@@ -33,6 +33,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * A {@link ResourceHasher} that ignores line endings while hashing the file.  It detects whether a file is text or binary and only
@@ -65,48 +67,31 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        return hashContent(snapshotContext);
+        // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
+        return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
+            .orElseGet(Suppliers.rethrow(() -> delegate.hash(snapshotContext)));
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().isDirectory() ?
-            delegate.hash(zipEntryContext) :
-            hashContent(zipEntryContext);
+        // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
+        return hashContent(zipEntryContext)
+            .orElseGet(Suppliers.rethrow(() -> delegate.hash(zipEntryContext)));
     }
 
-    @Nullable
-    private HashCode hashContent(RegularFileSnapshotContext snapshotContext) throws IOException {
-        try {
-            return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()));
-        } catch (BinaryContentDetectedException e) {
-            return delegate.hash(snapshotContext);
-        }
+    private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
+        return zipEntryContext.getEntry().isDirectory() ? Optional.empty() : zipEntryContext.getEntry().withInputStream(this::hashContent);
     }
 
-    @Nullable
-    private HashCode hashContent(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().withInputStream(inputStream -> {
-            try {
-                return hashContent(inputStream);
-            } catch (BinaryContentDetectedException e) {
-                return delegate.hash(zipEntryContext);
-            }
-        });
-    }
-
-    private HashCode hashContent(InputStream inputStream) throws BinaryContentDetectedException, IOException {
+    private Optional<HashCode> hashContent(InputStream inputStream) throws IOException {
         return new LineEndingAwareInputStreamHasher().hash(inputStream);
     }
 
-    private HashCode hashContent(File file) throws BinaryContentDetectedException, IOException {
+    private Optional<HashCode> hashContent(File file) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(file)) {
             return hashContent(inputStream);
         }
-    }
-
-    private static class BinaryContentDetectedException extends Exception {
     }
 
     @VisibleForTesting
@@ -114,7 +99,10 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
         private static final HashCode SIGNATURE = Hashing.signature(LineEndingAwareInputStreamHasher.class);
         int peekAhead = -1;
 
-        public HashCode hash(InputStream inputStream) throws IOException, BinaryContentDetectedException {
+        /**
+         * Returns empty if the file is detected to be a binary file
+         */
+        public Optional<HashCode> hash(InputStream inputStream) throws IOException {
             byte[] buffer = new byte[8192];
             PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
 
@@ -126,12 +114,12 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
                 }
 
                 if (checkForControlCharacters(buffer, nread)) {
-                    throw new BinaryContentDetectedException();
+                    return Optional.empty();
                 }
 
                 hasher.putBytes(buffer, 0, nread);
             }
-            return hasher.hash();
+            return Optional.of(hasher.hash());
         }
 
         int read(InputStream inputStream, byte[] b) throws IOException {
@@ -200,6 +188,59 @@ public class LineEndingAwareResourceHasher implements ResourceHasher {
 
         private static boolean isNotCommonTextChar(int c) {
             return !Character.isWhitespace(c);
+        }
+    }
+
+    /**
+     * Provides convenience methods that allow providing a supplier that throws an exception.
+     */
+    private static class Suppliers {
+        // TODO - This is probably more generally usable, but there currently is no dependency project
+        // that it makes sense to put this in.
+
+        public static <T, E extends Exception> Supplier<T> rethrow(ThrowingSupplier<T, E> supplier) {
+            return () -> get(wrap(supplier));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Nullable
+        public static <T, E extends Exception> T get(Supplier<T> supplier) throws E {
+            try {
+                return supplier.get();
+            } catch (WrappedException e) {
+                throw (E)e.rethrow();
+            }
+        }
+
+        public static <T, E extends Exception> Supplier<T> wrap(ThrowingSupplier<T, E> supplier) {
+            return () -> {
+                try {
+                    return supplier.get();
+                } catch (Exception e) {
+                    if (e instanceof RuntimeException) {
+                        throw (RuntimeException)e;
+                    } else {
+                        throw new WrappedException(e);
+                    }
+                }
+            };
+        }
+
+        @FunctionalInterface
+        public interface ThrowingSupplier<T, E extends Exception> {
+            @Nullable
+            T get() throws E;
+        }
+
+        private static class WrappedException extends RuntimeException {
+            public WrappedException(Throwable cause) {
+                super(cause);
+            }
+
+            @SuppressWarnings("unchecked")
+            public <T extends Exception> T rethrow() {
+                return (T)getCause();
+            }
         }
     }
 }

@@ -167,14 +167,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingAwareResourceHasher.wrap(delegate, lineEndingSensitivity)
         def dir = file('dir')
-        def snapshotContext = snapshotContext(dir, FileType.Directory)
         def zipContext = zipContext(dir, true)
-
-        when:
-        hasher.hash(snapshotContext)
-
-        then:
-        1 * delegate.hash(snapshotContext)
 
         when:
         hasher.hash(zipContext)
@@ -184,6 +177,52 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
         where:
         lineEndingSensitivity << LineEndingSensitivity.values()
+    }
+
+    def "throws IOException generated from hasher"() {
+        def file = file('doesNotExist')
+        def delegate = Mock(ResourceHasher)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def snapshotContext = snapshotContext(file)
+
+        when:
+        assert hasher instanceof LineEndingAwareResourceHasher
+        assert file.delete()
+        hasher.hash(snapshotContext)
+
+        then:
+        thrown(FileNotFoundException)
+    }
+
+    @Unroll
+    def "throws #exception.simpleName generated from delegate"() {
+        def file = file('doesNotExist') << PNG_CONTENT
+        def delegate = Mock(ResourceHasher)
+        def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def snapshotContext = snapshotContext(file)
+        def zipContext = zipContext(file)
+
+        when:
+        assert hasher instanceof LineEndingAwareResourceHasher
+        hasher.hash(snapshotContext)
+
+        then:
+        1 * delegate.hash(snapshotContext) >> { throw exception.getDeclaredConstructor().newInstance() }
+
+        and:
+        thrown(exception)
+
+        when:
+        hasher.hash(zipContext)
+
+        then:
+        1 * delegate.hash(zipContext) >> { throw exception.getDeclaredConstructor().newInstance() }
+
+        and:
+        thrown(exception)
+
+        where:
+        exception << [IOException, RuntimeException]
     }
 
     static String textWithLineEndings(String eol) {
