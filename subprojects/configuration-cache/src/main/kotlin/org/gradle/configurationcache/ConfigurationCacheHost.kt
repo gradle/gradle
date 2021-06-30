@@ -136,9 +136,9 @@ class ConfigurationCacheHost internal constructor(
             gradle.owner.projects.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
-            gradle.taskGraph.run {
-                addNodes(nodes)
-                populate()
+            gradle.owner.populateWorkGraph {
+                it.addNodes(nodes)
+                it.populate()
             }
         }
 

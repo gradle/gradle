@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State {
@@ -88,44 +89,57 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return withModel(BuildModelController::getLoadedSettings);
+        return withModel(modelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return withModel(BuildModelController::getConfiguredModel);
+        return withModel(modelController::getConfiguredModel);
     }
 
     @Override
     public void scheduleTasks(final Iterable<String> taskPaths) {
-        withModel(buildModelController -> {
+        withModel(() -> {
             state = State.TaskGraph;
-            buildModelController.scheduleTasks(taskPaths);
+            modelController.scheduleTasks(taskPaths);
             return null;
         });
     }
 
     @Override
     public void scheduleRequestedTasks() {
-        withModel(buildModelController -> {
+        withModel(() -> {
             state = State.TaskGraph;
-            buildModelController.scheduleRequestedTasks();
+            modelController.scheduleRequestedTasks();
+            return null;
+        });
+    }
+
+    @Override
+    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
+        withModel(() -> {
+            state = State.TaskGraph;
+            action.accept(gradle.getTaskGraph());
             return null;
         });
     }
 
     @Override
     public void executeTasks() {
-        withModel(buildModelController -> {
+        withModel(() -> {
             if (state != State.TaskGraph) {
                 throw new IllegalStateException("Cannot execute tasks as none have been scheduled for this build yet.");
             }
-            runWork();
+            List<Throwable> taskFailures = new ArrayList<>();
+            buildExecuter.execute(gradle, taskFailures);
+            if (!taskFailures.isEmpty()) {
+                throw new MultipleBuildFailures(taskFailures);
+            }
             return null;
         });
     }
 
-    private <T> T withModel(Function<BuildModelController, T> action) {
+    private <T> T withModel(Supplier<T> action) {
         if (stageFailure != null) {
             throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
@@ -134,7 +148,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
         try {
             try {
-                return action.apply(modelController);
+                return action.get();
             } finally {
                 if (state == State.Created) {
                     state = State.Configure;
@@ -169,14 +183,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
         state = State.Finished;
         stageFailure = null;
-    }
-
-    private void runWork() {
-        List<Throwable> taskFailures = new ArrayList<>();
-        buildExecuter.execute(gradle, taskFailures);
-        if (!taskFailures.isEmpty()) {
-            throw new MultipleBuildFailures(taskFailures);
-        }
     }
 
     /**
