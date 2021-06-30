@@ -24,6 +24,7 @@ import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import spock.lang.Issue
 
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -45,5 +46,27 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/13957")
+    @NoDebug
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.8") })
+    def "supports failing builds on older Java versions"() {
+        given:
+        testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
+        buildFile << """
+            task myTask {
+                doLast {
+                    throw new RuntimeException("Boom")
+                }
+            }
+        """
+
+        expect:
+        runner().withArguments("myTask").buildAndFail()
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.8")
     }
 }

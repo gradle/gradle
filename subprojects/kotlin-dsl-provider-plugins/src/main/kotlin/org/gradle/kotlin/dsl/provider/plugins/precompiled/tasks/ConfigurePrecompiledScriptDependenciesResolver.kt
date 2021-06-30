@@ -24,10 +24,12 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.listFilesOrdered
+import org.gradle.work.DisableCachingByDefault
 
 import javax.inject.Inject
 
 
+@DisableCachingByDefault(because = "Produces no cacheable output")
 abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructor(
 
     private

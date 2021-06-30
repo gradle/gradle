@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Try;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -42,6 +43,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,21 +167,21 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             return new BuildScopedModel(gradle);
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
-            GradleInternal build = findBuild(projectIdentity);
+            BuildState build = findBuild(projectIdentity);
             return new ProjectScopedModel(findProject(build, projectIdentity));
         } else if (target instanceof GradleBuildIdentity) {
             GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
-            return new BuildScopedModel(findBuild(buildIdentity));
+            return new BuildScopedModel(findBuild(buildIdentity).getMutableModel());
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
     }
 
-    private GradleInternal findBuild(GradleBuildIdentity buildIdentity) {
-        AtomicReference<GradleInternal> match = new AtomicReference<>();
+    private BuildState findBuild(GradleBuildIdentity buildIdentity) {
+        AtomicReference<BuildState> match = new AtomicReference<>();
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState.isImportableBuild() && buildState.getBuildRootDir().equals(buildIdentity.getRootDir())) {
-                match.set(buildState.getMutableModel());
+                match.set(buildState);
             }
         });
         if (match.get() != null) {
@@ -189,8 +191,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         }
     }
 
-    private ProjectInternal findProject(GradleInternal build, GradleProjectIdentity projectIdentity) {
-        return build.getRootProject().project(projectIdentity.getProjectPath());
+    private ProjectInternal findProject(BuildState build, GradleProjectIdentity projectIdentity) {
+        return build.getProjects().getProject(Path.path(projectIdentity.getProjectPath())).getMutableModel();
     }
 
     private ToolingModelBuilderLookup.Builder getToolingModelBuilder(ModelTarget modelTarget, boolean parameter, ModelIdentifier modelIdentifier) {

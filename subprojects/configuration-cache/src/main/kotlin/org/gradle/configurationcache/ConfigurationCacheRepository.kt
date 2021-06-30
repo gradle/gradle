@@ -72,8 +72,8 @@ class ConfigurationCacheRepository(
         class Invalid(val reason: String) : CheckedFingerprint()
     }
 
-    fun useForStateLoad(cacheKey: String, action: (ConfigurationCacheStateFile) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
+    fun <T> useForStateLoad(cacheKey: String, action: (ConfigurationCacheStateFile) -> T): T {
+        return withBaseCacheDirFor(cacheKey) { cacheDir ->
             action(
                 ReadableConfigurationCacheStateFile(cacheDir.stateFile)
             )

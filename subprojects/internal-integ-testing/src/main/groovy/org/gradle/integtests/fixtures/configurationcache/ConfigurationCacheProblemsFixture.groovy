@@ -403,7 +403,6 @@ ${text}
             this.messages = messages
         }
     }
-
 }
 
 final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblemsSpec {

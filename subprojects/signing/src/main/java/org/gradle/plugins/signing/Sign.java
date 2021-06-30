@@ -39,6 +39,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -56,6 +57,7 @@ import static java.util.stream.Collectors.toMap;
  * <p>The task produces {@link Signature}</p> objects that are publishable artifacts and can be assigned to another configuration. <p> The signature objects are created with defaults and using this
  * tasks signatory and signature type.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;

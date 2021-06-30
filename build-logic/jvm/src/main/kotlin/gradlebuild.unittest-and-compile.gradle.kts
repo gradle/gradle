@@ -27,6 +27,7 @@ import java.util.jar.Attributes
 
 plugins {
     groovy
+    idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
     id("org.gradle.test-retry")

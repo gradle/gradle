@@ -19,7 +19,9 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.concurrent.GradleThread
@@ -33,6 +35,7 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -110,10 +113,11 @@ class DefaultBuildControllerTest extends Specification {
     def "uses builder for specified project"() {
         def rootDir = new File("dummy")
         def target = Stub(GradleProjectIdentity)
-        def rootProject = Stub(ProjectInternal)
         def buildState1 = Stub(BuildState)
         def buildState2 = Stub(BuildState)
         def buildState3 = Stub(BuildState)
+        def projects3 = Stub(BuildProjectRegistry)
+        def projectState = Stub(ProjectState)
         def model = new Object()
 
         given:
@@ -129,9 +133,9 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState2.buildRootDir >> new File("different")
         _ * buildState3.importableBuild >> true
         _ * buildState3.buildRootDir >> rootDir
-        _ * buildState3.mutableModel >> gradle
-        _ * gradle.rootProject >> rootProject
-        _ * rootProject.project(":some:path") >> project
+        _ * buildState3.projects >> projects3
+        _ * projects3.getProject(Path.path(":some:path")) >> projectState
+        _ * projectState.mutableModel >> project
         _ * registry.locateForClientOperation("some.model", false, project) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 

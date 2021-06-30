@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -49,6 +50,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     ProjectInternal childProject
     GradleInternal gradle
     SettingsInternal settingsInternal
+    BuildProjectRegistry buildProjectRegistry = Mock(BuildProjectRegistry)
     BuildState buildState = Mock(BuildState)
     ProjectState rootProjectState = Mock(ProjectState)
 
@@ -86,13 +88,14 @@ class InstantiatingBuildLoaderTest extends Specification {
         settingsInternal = Mock(SettingsInternal) {
             getProjectRegistry() >> descriptorRegistry
         }
-        buildState.getProject(Path.ROOT) >> rootProjectState
+        buildState.projects >> buildProjectRegistry
+        buildProjectRegistry.getProject(Path.ROOT) >> rootProjectState
     }
 
     def createsBuildWithRootProjectAsTheDefaultOne() {
         given:
         settingsInternal.defaultProject >> rootDescriptor
-        buildState.getProject(_) >> Stub(ProjectState)
+        buildProjectRegistry.getProject(_) >> Stub(ProjectState)
 
         when:
         buildLoader.load(settingsInternal, gradle)
@@ -111,7 +114,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         def childProjectState = Mock(ProjectState)
         def childProjectClassLoaderScope = Mock(ClassLoaderScope)
         settingsInternal.defaultProject >> childDescriptor
-        buildState.getProject(_) >> childProjectState
+        buildProjectRegistry.getProject(_) >> childProjectState
         childProjectState.mutableModel >> childProject
 
         when:

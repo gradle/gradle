@@ -114,7 +114,7 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         hierarchy.recordNodeAccessingLocations(node6, [temporaryFolder.createDir("other").file("third").absolutePath])
 
         expect:
-        nodesRelatedTo(root, "*/within") == ([rootNode, node1, node3, node4, node5] as Set)
+        nodesRelatedTo(root, "*/within") == ([rootNode, node3, node5, node7] as Set)
         nodesRelatedTo(root, "included/*") == ([rootNode, node4, node7] as Set)
         nodesRelatedTo(root, "included/within") == ([rootNode, node4] as Set)
     }
@@ -133,8 +133,8 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         hierarchy.recordNodeAccessingLocations(file, [root.createFile("file").absolutePath])
 
         expect:
-        nodesRelatedTo(root, "**/within") == ([rootNode, missing, directory] as Set)
-        nodesRelatedTo(root, "**/file") == ([rootNode, missing, directory, file] as Set)
+        nodesRelatedTo(root, "**/within") == ([rootNode, directory] as Set)
+        nodesRelatedTo(root, "**/file") == ([rootNode, directory, file] as Set)
         nodesRelatedTo(root, "directory/**") == ([rootNode, directory] as Set)
         nodesRelatedTo(root, "missing/**") == ([rootNode, missing] as Set)
         nodesRelatedTo(root, "file/**") == ([rootNode, file] as Set)
@@ -153,11 +153,14 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
     def "can record filtered roots"() {
         def root = temporaryFolder.file("root")
         def node1 = Mock(Node)
+        root.file("sub/included").createDir()
 
         hierarchy.recordNodeAccessingFileTree(node1, root.absolutePath, includes("sub/included/*"))
 
         expect:
         nodesRelatedTo(root.file("sub/included")) == ([node1] as Set)
+        nodesRelatedTo(root.file("sub/included/within")) == ([node1] as Set)
+        nodesRelatedTo(root.file("sub/included/within/notMatched")) == Collections.emptySet()
     }
 
     def "can visit root path"() {

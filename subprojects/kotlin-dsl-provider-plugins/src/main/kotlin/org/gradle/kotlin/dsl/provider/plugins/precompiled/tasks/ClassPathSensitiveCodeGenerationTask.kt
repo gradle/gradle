@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.work.DisableCachingByDefault
 
 
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class ClassPathSensitiveCodeGenerationTask : ClassPathSensitiveTask() {
 
     @get:OutputDirectory

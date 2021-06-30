@@ -34,6 +34,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,6 +47,7 @@ import java.util.Set;
 /**
  * Generates build dashboard report.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
     private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 

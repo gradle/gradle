@@ -27,6 +27,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -36,6 +37,7 @@ import java.util.Properties;
 /**
  * Generates plugin descriptors from plugin declarations.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class GeneratePluginDescriptors extends DefaultTask {
 
     private final ListProperty<PluginDeclaration> declarations;

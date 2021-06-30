@@ -31,9 +31,9 @@ import java.net.URI;
  * This has been introduced to overcome a regression caused by switching to apache httpclient as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312)
  * The rational for httpclient not following redirects, by default, can be found here: https://issues.apache.org/jira/browse/HTTPCLIENT-860
  */
-public class AlwaysRedirectRedirectStrategy extends DefaultRedirectStrategy {
+public class AlwaysFollowAndPreserveMethodRedirectStrategy extends DefaultRedirectStrategy {
 
-    public AlwaysRedirectRedirectStrategy() {
+    public AlwaysFollowAndPreserveMethodRedirectStrategy() {
     }
 
     @Override

@@ -17,8 +17,10 @@
 package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import spock.lang.Unroll
 
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
@@ -40,5 +42,63 @@ task setup {
 
         then:
         project.description == 'this is a project'
+    }
+
+    @Unroll
+    def "#description means do not run any tasks even when default tasks defined"() {
+        file('build.gradle') << """
+            defaultTasks = ["broken"]
+
+            gradle.taskGraph.whenReady {
+                throw new RuntimeException()
+            }
+        """
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def builder = connection.model(HierarchicalEclipseProject.class)
+            action(builder)
+            collectOutputs(builder)
+            builder.get()
+        }
+
+        then:
+        noExceptionThrown()
+        assertHasConfigureSuccessfulLogging()
+
+        where:
+        description                 | action
+        "no task names specified"   | { ModelBuilder b -> }
+        "empty array of task names" | { ModelBuilder b -> b.forTasks() }
+        "empty list of task names"  | { ModelBuilder b -> b.forTasks([]) }
+    }
+
+    @Unroll
+    def "#description means do not run any tasks even when build logic injects tasks to execute"() {
+        file('build.gradle') << """
+            gradle.startParameter.taskNames = ["broken2"]
+
+            gradle.taskGraph.whenReady {
+                throw new RuntimeException()
+            }
+        """
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def builder = connection.model(HierarchicalEclipseProject.class)
+            action(builder)
+            collectOutputs(builder)
+            builder.get()
+        }
+
+        then:
+        noExceptionThrown()
+        assertHasConfigureSuccessfulLogging()
+
+        where:
+        description                 | action
+        "no task names specified"   | { ModelBuilder b -> }
+        "empty array of task names" | { ModelBuilder b -> b.forTasks() }
+        "empty list of task names"  | { ModelBuilder b -> b.forTasks([]) }
     }
 }

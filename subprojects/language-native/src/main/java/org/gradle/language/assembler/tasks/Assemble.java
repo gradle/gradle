@@ -42,6 +42,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -52,6 +53,7 @@ import java.util.concurrent.Callable;
  * Translates Assembly language source files into object files.
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;

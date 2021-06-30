@@ -26,6 +26,7 @@ import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.serialization.Transient;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -37,6 +38,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  *
  * @since 2.4
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractPublishToMaven extends DefaultTask {
 
     private final Transient.Var<MavenPublicationInternal> publication = varOf();
