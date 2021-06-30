@@ -16,22 +16,18 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
-import static org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext.from;
 
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
@@ -57,11 +53,9 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     }
 
     @Nullable
-    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, ResourceHasher normalizedContentHasher) {
+    protected HashCode getNormalizedContentHash(FileSystemLocationSnapshot snapshot, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         try {
-            return snapshot.getType() == FileType.RegularFile ?
-                normalizedContentHasher.hash(from((RegularFileSnapshot) snapshot)) :
-                snapshot.getHash();
+            return normalizedContentHasher.hash(snapshot);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath()), e);
         }

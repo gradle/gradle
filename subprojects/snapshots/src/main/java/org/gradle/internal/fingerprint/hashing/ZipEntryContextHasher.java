@@ -21,11 +21,13 @@ import org.gradle.internal.hash.HashCode;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-public interface RegularFileHasher {
-
+/**
+ * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
+ */
+public interface ZipEntryContextHasher {
     /**
-     * Returns {@code null} if the file should be ignored.
+     * Returns {@code null} if the zip entry should be ignored.
      */
     @Nullable
-    HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException;
+    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
 }

@@ -31,19 +31,16 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
+import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as content
 
 class LineEndingAwareResourceHasherTest extends Specification {
-    private static final byte[] PNG_CONTENT = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as byte[]
-    private static final byte[] JPG_CONTENT = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0xff, 0xda] as byte[]
-    private static final byte[] CLASS_FILE_CONTENT = [0xca, 0xfe, 0xba, 0xbe, 0x00, 0x00, 0x00, 0x37, 0x0a, 0x00] as byte[]
-
     @Rule
     TemporaryFolder tempDir = new TemporaryFolder()
 
     @Unroll
     def "can normalize line endings in files (eol = '#description')"() {
-        def unnormalized = file('unnormalized.txt') << textWithLineEndings(eol)
-        def normalized = file('normalized.txt') << textWithLineEndings('\n')
+        def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
+        def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
         def hasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
         expect:
@@ -58,8 +55,8 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
     @Unroll
     def "can normalize line endings in zip entries (eol = '#description')"() {
-        def unnormalized = file('unnormalized.txt') << textWithLineEndings(eol)
-        def normalized = file('normalized.txt') << textWithLineEndings('\n')
+        def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
+        def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
         def hasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
         expect:
@@ -73,26 +70,8 @@ class LineEndingAwareResourceHasherTest extends Specification {
     }
 
     @Unroll
-    def "handles read when #description"() {
-        def stream = inputStream(text)
-
-        expect:
-        readAllBytes(stream, 8) == normalizedText.bytes
-
-        where:
-        text              | normalizedText  | description
-        "\r1234567"       | "\n1234567"     | "first character in stream is a line ending"
-        "\r\n1234567"     | "\n1234567"     | "first character in stream is a multi-character line ending"
-        "1234567\r"       | "1234567\n"     | "last character in stream is a line ending"
-        "1234567\r\n"     | "1234567\n"     | "last character in stream is a multi-character line ending"
-        "1234567\r1234"   | "1234567\n1234" | "last character in buffer is a line ending"
-        "123456\r\n1234"  | "123456\n1234"  | "last character in buffer is a multi-character line ending"
-        "1234567\r\n1234" | "1234567\n1234" | "multi-character line ending crosses buffer boundary"
-    }
-
-    @Unroll
     def "calculates hash for text file with #description"() {
-        def file = file('foo') << content
+        def file = file('foo') << contents
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
 
@@ -109,7 +88,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
         0 * delegate._
 
         where:
-        description               | content
+        description               | contents
         "new lines"               | "this is\na text file\n".bytes
         "new lines with CR-LF"    | "this is\r\na text file\r\n".bytes
         "no new lines"            | "No new lines\tin this file".bytes
@@ -118,7 +97,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
     @Unroll
     def "calls delegate for binary files with #description"() {
-        def file = file('foo') << content
+        def file = file('foo') << contents
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
         def snapshotContext = snapshotContext(file)
@@ -137,14 +116,14 @@ class LineEndingAwareResourceHasherTest extends Specification {
         1 * delegate.hash(zipContext)
 
         where:
-        description               | content
-        "png content"             | PNG_CONTENT
-        "jpg content"             | JPG_CONTENT
-        "java class file content" | CLASS_FILE_CONTENT
+        description               | contents
+        "png content"             | content.PNG_CONTENT
+        "jpg content"             | content.JPG_CONTENT
+        "java class file content" | content.CLASS_FILE_CONTENT
     }
 
     def "always calls delegate when line ending sensitivity is set to DEFAULT"() {
-        def file = file('foo') << textWithLineEndings('\r\n')
+        def file = file('foo') << content.textWithLineEndings('\r\n')
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.DEFAULT)
         def snapshotContext = snapshotContext(file)
@@ -196,7 +175,7 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
     @Unroll
     def "throws #exception.simpleName generated from delegate"() {
-        def file = file('doesNotExist') << PNG_CONTENT
+        def file = file('doesNotExist') << content.PNG_CONTENT
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingAwareResourceHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
         def snapshotContext = snapshotContext(file)
@@ -223,10 +202,6 @@ class LineEndingAwareResourceHasherTest extends Specification {
 
         where:
         exception << [IOException, RuntimeException]
-    }
-
-    static String textWithLineEndings(String eol) {
-        return "${eol}This is a line${eol}Another line${eol}${eol}Yet another line\nAnd one more\n\nAnd yet one more${eol}${eol}"
     }
 
     File file(String path) {
@@ -264,7 +239,9 @@ class LineEndingAwareResourceHasherTest extends Specification {
     }
 
     RegularFileSnapshotContext snapshotContext(File file, FileType fileType = FileType.RegularFile) {
-        return RegularFileSnapshotContext.from(snapshot(file, fileType))
+        return Mock(RegularFileSnapshotContext) {
+            getSnapshot() >> snapshot(file, fileType)
+        }
     }
 
     RegularFileSnapshot snapshot(File file, FileType fileType) {
@@ -273,24 +250,5 @@ class LineEndingAwareResourceHasherTest extends Specification {
             getType() >> fileType
             getHash() >> Hashing.hashFile(file)
         }
-    }
-
-    static InputStream inputStream(String input) {
-        return inputStream(input.bytes)
-    }
-
-    static InputStream inputStream(byte[] bytes) {
-        return new ByteArrayInputStream(bytes)
-    }
-
-    static byte[] readAllBytes(InputStream inputStream, int bufferLength) {
-        def streamHasher = new LineEndingAwareResourceHasher.LineEndingAwareInputStreamHasher()
-        ArrayList<Byte> bytes = []
-        byte[] buffer = new byte[bufferLength]
-        int read
-        while ((read = streamHasher.read(inputStream, buffer)) != -1) {
-            bytes.addAll(buffer[0..(read-1)].collect { Byte.valueOf(it) })
-        }
-        return bytes as byte[]
     }
 }

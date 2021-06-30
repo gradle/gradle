@@ -16,34 +16,31 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
-import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
-/**
- * A {@link ResourceHasher} that ignores line endings while hashing the file.  It detects whether a file is text or binary and only
- * normalizes line endings for text files.  If a file is detected to be binary, we fall back to the existing non-normalized hash.
- */
-public class LineEndingAwareResourceHasher extends AbstractLineEndingAwareHasher implements ResourceHasher {
-    private final ResourceHasher delegate;
+public class LineEndingAwareFileSystemLocationSnapshotHasher extends AbstractLineEndingAwareHasher implements FileSystemLocationSnapshotHasher {
+    private final FileSystemLocationSnapshotHasher delegate;
 
-    private LineEndingAwareResourceHasher(ResourceHasher delegate) {
+    private LineEndingAwareFileSystemLocationSnapshotHasher(FileSystemLocationSnapshotHasher delegate) {
         this.delegate = delegate;
     }
 
-    public static ResourceHasher wrap(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
+    public static FileSystemLocationSnapshotHasher wrap(FileSystemLocationSnapshotHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return delegate;
             case IGNORE_LINE_ENDINGS:
-                return new LineEndingAwareResourceHasher(delegate);
+                return new LineEndingAwareFileSystemLocationSnapshotHasher(delegate);
             default:
                 throw new IllegalArgumentException();
         }
@@ -57,17 +54,13 @@ public class LineEndingAwareResourceHasher extends AbstractLineEndingAwareHasher
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
+    public HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException {
         // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
-        return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
-            .orElseGet(Suppliers.rethrow(() -> delegate.hash(snapshotContext)));
+        return hashContent(snapshot)
+            .orElseGet(Suppliers.rethrow(() -> delegate.hash(snapshot)));
     }
 
-    @Nullable
-    @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
-        return hashContent(zipEntryContext)
-            .orElseGet(Suppliers.rethrow(() -> delegate.hash(zipEntryContext)));
+    private Optional<HashCode> hashContent(FileSystemLocationSnapshot snapshot) throws IOException {
+        return snapshot.getType() == FileType.RegularFile ? hashContent(new File(snapshot.getAbsolutePath())) : Optional.empty();
     }
 }

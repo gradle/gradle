@@ -18,15 +18,14 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareResourceHasher;
+import org.gradle.api.internal.changedetection.state.CachingFileSystemLocationSnapshotHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingAwareFileSystemLocationSnapshotHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -42,7 +41,7 @@ public class FileCollectionFingerprinterRegistrations {
             stream(DirectorySensitivity.values())
                 .flatMap(directorySensitivity ->
                     stream(LineEndingSensitivity.values()).flatMap(lineEndingNormalization -> {
-                            ResourceHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, resourceSnapshotterCacheService);
+                            FileSystemLocationSnapshotHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, resourceSnapshotterCacheService);
                             return Stream.of(
                                 new AbsolutePathFileCollectionFingerprinter(directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, normalizedContentHasher),
                                 new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, lineEndingNormalization, fileCollectionSnapshotter, normalizedContentHasher),
@@ -53,7 +52,7 @@ public class FileCollectionFingerprinterRegistrations {
                 ),
             stream(LineEndingSensitivity.values())
                 .map(lineEndingNormalization -> {
-                        ResourceHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, resourceSnapshotterCacheService);
+                        FileSystemLocationSnapshotHasher normalizedContentHasher = normalizedContentHasher(lineEndingNormalization, resourceSnapshotterCacheService);
                         return new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, lineEndingNormalization, normalizedContentHasher);
                     }
                 )
@@ -64,17 +63,17 @@ public class FileCollectionFingerprinterRegistrations {
         return registrants;
     }
 
-    private static ResourceHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
-        ResourceHasher resourceHasher = LineEndingAwareResourceHasher.wrap(new RuntimeClasspathResourceHasher(), lineEndingSensitivity);
+    private static FileSystemLocationSnapshotHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+        FileSystemLocationSnapshotHasher resourceHasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, lineEndingSensitivity);
         return cacheIfNormalized(resourceHasher, lineEndingSensitivity, resourceSnapshotterCacheService);
     }
 
-    private static ResourceHasher cacheIfNormalized(ResourceHasher resourceHasher, LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
+    private static FileSystemLocationSnapshotHasher cacheIfNormalized(FileSystemLocationSnapshotHasher resourceHasher, LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return resourceHasher;
             case IGNORE_LINE_ENDINGS:
-                return new CachingResourceHasher(resourceHasher, resourceSnapshotterCacheService);
+                return new CachingFileSystemLocationSnapshotHasher(resourceHasher, resourceSnapshotterCacheService);
             default:
                 throw new IllegalArgumentException();
         }

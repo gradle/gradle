@@ -16,12 +16,16 @@
 
 package org.gradle.internal.fingerprint.hashing;
 
-import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.hash.HashCode;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import java.io.IOException;
 
-public interface RegularFileSnapshotContext {
-    Supplier<String[]> getRelativePathSegments();
+public interface RegularFileSnapshotContextHasher {
 
-    RegularFileSnapshot getSnapshot();
+    /**
+     * Returns {@code null} if the file should be ignored.
+     */
+    @Nullable
+    HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException;
 }

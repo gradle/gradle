@@ -27,7 +27,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
-import org.gradle.internal.fingerprint.hashing.RegularFileHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
+public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);

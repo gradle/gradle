@@ -17,17 +17,29 @@
 package org.gradle.internal.fingerprint.hashing;
 
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-/**
- * Hashes a zip entry (e.g. a class file in a jar, a manifest file, a properties file)
- */
-public interface ZipEntryHasher {
+public interface FileSystemLocationSnapshotHasher extends ConfigurableNormalizer {
     /**
-     * Returns {@code null} if the zip entry should be ignored.
+     * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(ZipEntryContext zipEntryContext) throws IOException;
+    HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException;
+
+    FileSystemLocationSnapshotHasher DEFAULT = new FileSystemLocationSnapshotHasher() {
+        @Nullable
+        @Override
+        public HashCode hash(FileSystemLocationSnapshot snapshot) {
+            return snapshot.getHash();
+        }
+
+        @Override
+        public void appendConfigurationToHasher(Hasher hasher) {
+            hasher.putString(getClass().getName());
+        }
+    };
 }

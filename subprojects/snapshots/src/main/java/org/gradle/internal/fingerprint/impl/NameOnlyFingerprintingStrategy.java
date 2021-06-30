@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -41,15 +41,15 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     public static final NameOnlyFingerprintingStrategy DEFAULT = new NameOnlyFingerprintingStrategy(DirectorySensitivity.DEFAULT);
     public static final NameOnlyFingerprintingStrategy IGNORE_DIRECTORIES = new NameOnlyFingerprintingStrategy(DirectorySensitivity.IGNORE_DIRECTORIES);
     public static final String IDENTIFIER = "NAME_ONLY";
-    private final ResourceHasher normalizedContentHasher;
+    private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
-    public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, ResourceHasher normalizedContentHasher) {
+    public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
     private NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity) {
-        this(directorySensitivity, LineEndingSensitivity.DEFAULT, ResourceHasher.NONE);
+        this(directorySensitivity, LineEndingSensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT);
     }
 
     @Override

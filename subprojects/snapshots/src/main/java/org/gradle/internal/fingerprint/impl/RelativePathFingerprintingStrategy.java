@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,16 +43,16 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     public static final String IDENTIFIER = "RELATIVE_PATH";
 
     private final Interner<String> stringInterner;
-    private final ResourceHasher normalizedContentHasher;
+    private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
-    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, ResourceHasher normalizedContentHasher) {
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
         super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
         this.stringInterner = stringInterner;
         this.normalizedContentHasher = normalizedContentHasher;
     }
 
     public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
-        this(stringInterner, directorySensitivity, LineEndingSensitivity.DEFAULT, ResourceHasher.NONE);
+        this(stringInterner, directorySensitivity, LineEndingSensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT);
     }
 
     @Override

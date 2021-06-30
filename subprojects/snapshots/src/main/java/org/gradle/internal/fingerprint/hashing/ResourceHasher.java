@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Hashes resources (e.g., a class file in a jar or a class file in a directory)
  */
-public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher, ZipEntryHasher {
+public interface ResourceHasher extends ConfigurableNormalizer, RegularFileSnapshotContextHasher, ZipEntryContextHasher {
     ResourceHasher NONE = new ResourceHasher() {
         @Override
         public void appendConfigurationToHasher(Hasher hasher) {
