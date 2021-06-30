@@ -1,0 +1,19 @@
+// tag::app-aggregation[]
+plugins {
+    id("application")
+    id("jacoco")
+}
+
+dependencies {
+    implementation(project(":lib1"))
+    implementation(project(":lib2"))
+}
+
+tasks.register("aggregatedTestReport", JacocoAggregatedReport)
+// end::app-aggregation[]
+
+// tag::combined-test-report[]
+tasks.register("combinedTestReport", JacocoAggregatedReport) {
+    testCategories = ["test", "integrationTest"]
+}
+// end::combined-test-report[]

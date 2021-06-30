@@ -40,7 +40,7 @@ While tests should be executed before generation of the report, the `jacocoTestR
 
 ====
 
-Depending on your usecases, you may want to always generate the `jacocoTestReport` or run the `test` task before generating the report explicitly.
+Depending on your use cases, you may want to always generate the `jacocoTestReport` or run the `test` task before generating the report explicitly.
 
 .Define dependencies between code coverage reports and test execution
 ====
@@ -70,7 +70,8 @@ include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gra
 [[sec:jacoco_report_configuration]]
 == JaCoCo Report configuration
 
-The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport] task can be used to generate code coverage reports in different formats. It implements the standard Gradle type link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] and exposes a report container of type link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoReportsContainer.html[JacocoReportsContainer].
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport] task can be used to generate code coverage reports in different formats.
+It implements the standard Gradle type link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] and exposes a report container of type link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoReportsContainer.html[JacocoReportsContainer].
 
 .Configuring test task
 ====
@@ -78,6 +79,68 @@ include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gra
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=report-configuration]"]
 ====
 image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
+
+
+[[sec:jacoco_aggregated_coverage_report]]
+== JaCoCo Report aggregation
+
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoAggregatedReport.html[JacocoAggregatedReport] task can be used to aggregate code
+coverage data from multiple subprojects and from multiple test tasks into a single code coverage report.
+
+Given a build with multiple subprojects where one of the subprojects builds the product and depends on
+other subprojects, for example, an application with some library dependencies:
+----
+.
+├── app
+├── lib1
+└── lib2
+----
+Here, `lib1` and `lib2` are some Java library subprojects - both of them apply `java-library` and `jacoco` plugins.
+The `app` subproject is an `application` that uses `lib1` and `lib2`.
+In this case, we are interested in code coverage for the whole application.
+Thus, the `app` subproject is a natural place to produce such an aggregated code coverage report.
+To achieve this, apply the `jacoco` plugin and register the link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoAggregatedReport.html[JacocoAggregatedReport]
+task, which will automatically pull in and aggregate the code coverage data produced by this project's dependencies:
+
+.Aggregating code coverage report for an application
+====
+include::sample[dir="snippets/testing/jacoco-aggregation-app/groovy",files="app/build.gradle[tags=app-aggregation]"]
+include::sample[dir="snippets/testing/jacoco-aggregation-app/kotlin",files="app/build.gradle.kts[tags=app-aggregation]"]
+====
+
+If the build contains more types of tests, for example, if there is another Test task named `integrationTest` in one or more subprojects,
+you can produce an aggregated report that contains combined coverage data of both unit and integrations tests:
+
+.Creating a combined code coverage report for multiple test tasks
+====
+include::sample[dir="snippets/testing/jacoco-aggregation-app/groovy",files="app/build.gradle[tags=combined-test-report]"]
+include::sample[dir="snippets/testing/jacoco-aggregation-app/kotlin",files="app/build.gradle.kts[tags=combined-test-report]"]
+====
+
+
+Alternatively, some builds may have dedicated subprojects that are used for producing various reports.
+For example, given a project structure:
+----
+.
+├── sub1
+├── sub2
+├── sub3
+└── reports
+----
+The projects `sub1`, `sub2` and `sub3` may each produce their own pieces of code coverage data.
+The `reports` project produces various reports about the project.
+It can also create an aggregated code coverage report from some subset of the subprojects:
+
+.Creating aggregated test report in a dedicated reporting subproject
+====
+include::sample[dir="snippets/testing/jacoco-aggregation-dedicated/groovy",files="reports/build.gradle[]"]
+include::sample[dir="snippets/testing/jacoco-aggregation-dedicated/kotlin",files="reports/build.gradle.kts[]"]
+====
+
+Note, that the `reports` project is not itself a `java` project and thus, projects to aggregate code coverage from are listed as dependencies in `jacocoAggregation` bucket.
+
+
+Have look at link:../samples/sample_jvm_multi_project_with_code_coverage.html[Reporting code coverage with JaCoCo Sample] for another example.
 
 [[sec:jacoco_report_violation_rules]]
 == Enforcing code coverage metrics
@@ -90,9 +153,13 @@ This feature requires the use of JaCoCo version 0.6.3 or higher.
 
 ====
 
-The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules-org.gradle.api.Action-[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules.
+Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules-org.gradle.api.Action-[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules.
+Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options.
+The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
 
-Code coverage requirements can be specified for a project as a whole, for individual files, and for particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example describes the syntax.
+Code coverage requirements can be specified for a project as a whole, for individual files, and for particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered.
+The following example describes the syntax.
 
 .Configuring violation rules
 ====
@@ -128,9 +195,10 @@ include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gra
 include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=testtask-configuration-defaults]"]
 ====
 
-While all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
+While all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] can be enhanced by the JaCoCo plugin.
+That is, any task that forks Java processes can be used to generate coverage information.
 
-For example you can configure your build to generate code coverage using the `application` plugin.
+For example, you can configure your build to generate code coverage using the `application` plugin.
 
 .Using application plugin to generate code coverage data
 ====
@@ -150,7 +218,6 @@ include::sample[dir="snippets/testing/jacoco-application/kotlin",files="build.gr
             └── applicationCodeCoverageReport
                 └── html
                     └── index.html
-
 ----
 
 
