@@ -43,7 +43,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.testing.jacoco.tasks.AggregatedJacocoReport;
+import org.gradle.testing.jacoco.tasks.JacocoAggregatedReport;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -115,7 +115,7 @@ public class JacocoPlugin implements Plugin<Project> {
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
         deprecateForConsumption(antConf);
 
-        Configuration aggregatedJacocoReport = configurations.create(AggregatedJacocoReport.AGGREGATION_CONFIGURATION_NAME, c -> {
+        Configuration aggregatedJacocoReport = configurations.create(JacocoAggregatedReport.AGGREGATION_CONFIGURATION_NAME, c -> {
             c.setVisible(false);
             c.setCanBeResolved(false);
             c.setCanBeConsumed(false);
@@ -131,7 +131,7 @@ public class JacocoPlugin implements Plugin<Project> {
 
             // TODO: this probably belongs in java plugin
             Configuration sourceDirectoriesElements = createVariant("sourceDirectoriesElements",
-                AggregatedJacocoReport.sourceDirectoriesAttributes(project));
+                JacocoAggregatedReport.sourceDirectoriesAttributes(project));
             sourceDirectoriesElements.extendsFrom(implementation);
             sourceDirectoriesElements.setDescription("Java source directories variant.");
             mainSourceSet.getJava().getSrcDirs().forEach(f -> sourceDirectoriesElements.getOutgoing().artifact(f));
@@ -140,7 +140,7 @@ public class JacocoPlugin implements Plugin<Project> {
             project.afterEvaluate(p -> {
                 for (String taskName : tasks.withType(Test.class).getNames()) {
                     Configuration coverageElements = createVariant(taskName + "CoverageElements",
-                        AggregatedJacocoReport.coverageDataAttributes(project, taskName));
+                        JacocoAggregatedReport.coverageDataAttributes(project, taskName));
                     coverageElements.setDescription("Jacoco test coverage data variant for tests from " + taskName + " task.");
                     coverageElements.extendsFrom(implementation);
                     coverageElements.getOutgoing().artifact(tasks.named(taskName).map(task -> {

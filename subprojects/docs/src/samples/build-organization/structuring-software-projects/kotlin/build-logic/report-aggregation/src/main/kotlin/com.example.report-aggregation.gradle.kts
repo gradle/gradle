@@ -4,7 +4,7 @@ plugins {
 }
 
 // Register a code coverage report task to generate the aggregated report
-val codeCoverageReport by tasks.registering(AggregatedJacocoReport::class) {
+val codeCoverageReport by tasks.registering(JacocoAggregatedReport::class) {
     reports {
         html.required.set(true)
         xml.required.set(true)

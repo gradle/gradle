@@ -42,21 +42,27 @@ import java.io.File;
 import java.util.Collections;
 
 /**
- * Task to aggregate HTML, Xml and CSV reports of Jacoco coverage data.
+ * Task to aggregate HTML, XML and CSV reports of Jacoco coverage data from multiple projects and/or multiple Test tasks.
  *
  * @since 7.2
  */
 @Incubating
 @CacheableTask
-public abstract class AggregatedJacocoReport extends JacocoReport {
+public abstract class JacocoAggregatedReport extends JacocoReport {
 
     public static final String AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
+    /**
+     * Configures the test categories to be aggregated by this task.
+     * The tests category is the name of the test task.
+     *
+     * Defaults to ["test"].
+     */
     @Input
     public abstract ListProperty<String> getTestCategories();
 
     @Inject
-    public AggregatedJacocoReport(JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public JacocoAggregatedReport(JvmEcosystemUtilities jvmEcosystemUtilities) {
         getTestCategories().convention(Collections.singletonList("test"));
 
         Project project = getProject();

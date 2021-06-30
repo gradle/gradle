@@ -8,7 +8,7 @@ repositories {
 }
 
 // Task to gather code coverage from multiple subprojects
-val codeCoverageReport by tasks.registering(AggregatedJacocoReport::class) {
+val codeCoverageReport by tasks.registering(JacocoAggregatedReport::class) {
     reports {
         // xml is usually used to integrate code coverage with
         // other tools like SonarQube, Coveralls or Codecov
