@@ -54,7 +54,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         and:
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("creating model for root project 'root'")
-        outputContains("Configuration cache entry reused.")
+        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """
@@ -108,7 +108,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         then:
         model2.message == "It works from project :"
         outputContains("Reusing configuration cache.")
-        outputContains("Configuration cache entry reused.")
+        result.assertHasPostBuildOutput("Configuration cache entry reused.")
     }
 
     def "caches calculation of GradleBuild model"() {
@@ -146,7 +146,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
 
         and:
         outputContains("Reusing configuration cache.")
-        outputContains("Configuration cache entry reused.")
+        result.assertHasPostBuildOutput("Configuration cache entry reused.")
     }
 
     def "caches execution of BuildAction that queries custom tooling model"() {
@@ -190,7 +190,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         and:
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("creating model")
-        outputContains("Configuration cache entry reused.")
+        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """
@@ -263,7 +263,7 @@ class IsolatedProjectsToolingApiInvocationIntegrationTest extends AbstractIsolat
         and:
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("creating model")
-        outputContains("Configuration cache entry reused.")
+        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """

@@ -162,13 +162,12 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (state == State.Created) {
-            state = State.Finished;
-            return;
-        }
         if (state == State.Finished) {
             return;
         }
+        // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
+        // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
+        // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
 
         Throwable reportableFailure = failure;
         if (reportableFailure == null && stageFailure != null) {
