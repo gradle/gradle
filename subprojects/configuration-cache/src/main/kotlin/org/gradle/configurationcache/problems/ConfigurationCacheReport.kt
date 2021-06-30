@@ -22,17 +22,20 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.configurationcache.logger
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.Closeable
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.io.Writer
 import java.net.URL
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import kotlin.contracts.contract
 
 
 @ServiceScope(Scopes.BuildTree::class)
@@ -45,7 +48,8 @@ class ConfigurationCacheReport(
 
         open fun onProblem(problem: PropertyProblem): State = illegalState()
 
-        open fun commitReportTo(htmlReportFile: File, cacheAction: String, totalProblemCount: Int): State = illegalState()
+        open fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File> =
+            illegalState()
 
         open fun close(): State = illegalState()
 
@@ -87,7 +91,10 @@ class ConfigurationCacheReport(
         ) : State() {
 
             private
-            val writer = HtmlReportWriter(spoolFile.bufferedWriter())
+            val hashingStream = HashingOutputStream(Hashing.md5(), spoolFile.outputStream().buffered())
+
+            private
+            val writer = HtmlReportWriter(hashingStream.writer())
 
             init {
                 executor.submit {
@@ -103,14 +110,14 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            override fun commitReportTo(htmlReportFile: File, cacheAction: String, totalProblemCount: Int): State {
+            override fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File> {
+                lateinit var reportFile: File
                 executor.submit {
-                    writer.endHtmlReport(cacheAction, totalProblemCount)
-                    writer.close()
-                    moveSpoolFileTo(htmlReportFile)
+                    closeHtmlReport(cacheAction, totalProblemCount)
+                    reportFile = moveSpoolFileTo(outputDirectory)
                 }
                 executor.shutdownAndAwaitTermination()
-                return Closed
+                return Closed to reportFile
             }
 
             override fun close(): State {
@@ -119,6 +126,12 @@ class ConfigurationCacheReport(
                 }
                 executor.shutdown()
                 return Closed
+            }
+
+            private
+            fun closeHtmlReport(cacheAction: String, totalProblemCount: Int) {
+                writer.endHtmlReport(cacheAction, totalProblemCount)
+                writer.close()
             }
 
             private
@@ -133,9 +146,21 @@ class ConfigurationCacheReport(
             }
 
             private
-            fun moveSpoolFileTo(htmlReportFile: File) {
-                Files.move(spoolFile.toPath(), htmlReportFile.toPath())
+            fun moveSpoolFileTo(outputDirectory: File): File {
+                val reportDir = outputDirectory.resolve(reportHash())
+                val reportFile = reportDir.resolve(HtmlReportTemplate.reportHtmlFileName)
+                if (!reportFile.exists()) {
+                    require(reportDir.mkdirs()) {
+                        "Could not create configuration cache report directory '$reportDir'"
+                    }
+                    Files.move(spoolFile.toPath(), reportFile.toPath())
+                }
+                return reportFile
             }
+
+            private
+            fun reportHash() =
+                hashingStream.hash().toCompactString()
         }
 
         object Closed : State() {
@@ -166,6 +191,9 @@ class ConfigurationCacheReport(
 
     private
     inline fun withState(f: State.() -> State) {
+        contract {
+            callsInPlace(f, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+        }
         synchronized(stateLock) {
             state = state.f()
         }
@@ -179,14 +207,13 @@ class ConfigurationCacheReport(
      */
     internal
     fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File {
-        require(outputDirectory.mkdirs()) {
-            "Could not create configuration cache report directory '$outputDirectory'"
+        lateinit var reportFile: File
+        withState {
+            val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, totalProblemCount)
+            reportFile = outputFile
+            newState
         }
-        return outputDirectory.resolve(HtmlReportTemplate.reportHtmlFileName).also { htmlReportFile ->
-            withState {
-                commitReportTo(htmlReportFile, cacheAction, totalProblemCount)
-            }
-        }
+        return reportFile
     }
 }
 
@@ -198,7 +225,7 @@ class ConfigurationCacheReport(
  * by looking for the `// begin-report-data` and `// end-report-data` markers.
  */
 internal
-class HtmlReportWriter(val writer: BufferedWriter) {
+class HtmlReportWriter(val writer: Writer) {
 
     private
     val jsonModelWriter = JsonModelWriter(writer)
@@ -248,7 +275,7 @@ class HtmlReportWriter(val writer: BufferedWriter) {
 
 
 private
-class JsonModelWriter(val writer: BufferedWriter) {
+class JsonModelWriter(val writer: Writer) {
 
     private
     val documentationRegistry = DocumentationRegistry()
