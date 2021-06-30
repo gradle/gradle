@@ -32,6 +32,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -45,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+@ServiceScope(Scopes.Gradle.class)
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final IncludedBuildTaskGraph taskGraph;

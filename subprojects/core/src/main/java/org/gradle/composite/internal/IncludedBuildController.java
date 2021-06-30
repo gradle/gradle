@@ -36,6 +36,11 @@ public interface IncludedBuildController {
     boolean populateTaskGraph();
 
     /**
+     * Validates the task graph, once all tasks have been discovered.
+     */
+    void validateTaskGraph();
+
+    /**
      * Must call {@link #populateTaskGraph()} prior to calling this method.
      */
     void startTaskExecution(ExecutorService executorService);

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.build.BuildStateRegistry;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
@@ -33,19 +34,38 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         this.buildRegistry = buildRegistry;
     }
 
+    @Override
+    public <T> T withNestedTaskGraph(Supplier<T> action) {
+        return includedBuilds.withNestedTaskGraph(action);
+    }
+
     private boolean isRoot(BuildIdentifier targetBuild) {
         return targetBuild.equals(DefaultBuildIdentifier.ROOT);
     }
 
     @Override
-    public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            if (findTaskInRootBuild(taskPath) == null) {
-                buildRegistry.getRootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
+    public IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, TaskInternal task) {
+        return locateTask(requestingBuild, targetBuild, task.getPath());
+    }
+
+    @Override
+    public synchronized IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
+        return new IncludedBuildTaskResource() {
+            @Override
+            public void queueForExecution() {
+                DefaultIncludedBuildTaskGraph.this.queueTask(targetBuild, taskPath);
             }
-        } else {
-            buildControllerFor(targetBuild).queueForExecution(taskPath);
-        }
+
+            @Override
+            public TaskInternal getTask() {
+                return DefaultIncludedBuildTaskGraph.this.getTask(targetBuild, taskPath);
+            }
+
+            @Override
+            public State getTaskState() {
+                return DefaultIncludedBuildTaskGraph.this.getTaskState(targetBuild, taskPath);
+            }
+        };
     }
 
     @Override
@@ -57,8 +77,17 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         includedBuilds.awaitTaskCompletion(taskFailures);
     }
 
-    @Override
-    public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
+    private void queueTask(BuildIdentifier targetBuild, String taskPath) {
+        if (isRoot(targetBuild)) {
+            if (findTaskInRootBuild(taskPath) == null) {
+                buildRegistry.getRootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
+            }
+        } else {
+            buildControllerFor(targetBuild).queueForExecution(taskPath);
+        }
+    }
+
+    private IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
             TaskInternal task = getTask(targetBuild, taskPath);
             if (task.getState().getFailure() != null) {
@@ -73,8 +102,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         }
     }
 
-    @Override
-    public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
+    private TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
         if (isRoot(targetBuild)) {
             TaskInternal task = findTaskInRootBuild(taskPath);
             if (task == null) {
@@ -98,5 +126,4 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         }
         return null;
     }
-
 }

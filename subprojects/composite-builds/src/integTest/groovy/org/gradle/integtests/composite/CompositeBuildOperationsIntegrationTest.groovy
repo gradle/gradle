@@ -198,21 +198,17 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
         def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
 
-        // The task graph for buildC is calculated multiple times, once for buildscript dependency and again for the dependency from buildB
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
-        taskGraphOps.size() == 4
-        taskGraphOps[0].displayName == "Calculate task graph (:buildC)"
-        taskGraphOps[0].details.buildPath == ":buildC"
+        taskGraphOps.size() == 3
+        taskGraphOps[0].displayName == "Calculate task graph (:buildB)"
+        taskGraphOps[0].details.buildPath == ":buildB"
         taskGraphOps[0].parentId == applyRootProjectBuildScript.id
-        taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
-        taskGraphOps[1].details.buildPath == ":buildB"
+        taskGraphOps[1].displayName == "Calculate task graph (:buildC)"
+        taskGraphOps[1].details.buildPath == ":buildC"
         taskGraphOps[1].parentId == applyRootProjectBuildScript.id
-        taskGraphOps[2].displayName == "Calculate task graph (:buildC)"
-        taskGraphOps[2].details.buildPath == ":buildC"
-        taskGraphOps[2].parentId == applyRootProjectBuildScript.id
-        taskGraphOps[3].displayName == "Calculate task graph"
-        taskGraphOps[3].details.buildPath == ":"
-        taskGraphOps[3].parentId == root.id
+        taskGraphOps[2].displayName == "Calculate task graph"
+        taskGraphOps[2].details.buildPath == ":"
+        taskGraphOps[2].parentId == root.id
     }
 
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {

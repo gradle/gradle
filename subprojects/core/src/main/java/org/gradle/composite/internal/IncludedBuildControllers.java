@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildControllers {
@@ -44,4 +45,9 @@ public interface IncludedBuildControllers {
     void finishPendingWork(Consumer<? super Throwable> collector);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+
+    /**
+     * See {@link IncludedBuildTaskGraph#withNestedTaskGraph(Supplier)}.
+     */
+    <T> T withNestedTaskGraph(Supplier<T> action);
 }

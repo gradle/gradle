@@ -17,20 +17,28 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
+import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraphRenderer;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -38,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -101,9 +110,79 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         } finally {
             lock.unlock();
         }
-        includedBuild.addTasks(tasksToExecute);
+
+        includedBuild.scheduleTasks(tasksToExecute);
+
         setState(State.ReadyToRun);
+
+        lock.lock();
+        try {
+            for (Map.Entry<String, TaskState> entry : tasks.entrySet()) {
+                TaskState taskState = entry.getValue();
+                if (taskState.task == null) {
+                    taskState.task = doGetTask(entry.getKey());
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
         return true;
+    }
+
+    @Override
+    public void validateTaskGraph() {
+        lock.lock();
+        try {
+            assertBuildInState(State.ReadyToRun);
+            // TODO - This check should live in the task execution plan, so that it can reuse checks that have already been performed and
+            //   also check for cycles across all nodes
+            Set<TaskInternal> visited = new HashSet<>();
+            Set<TaskInternal> visiting = new HashSet<>();
+            for (Map.Entry<String, TaskState> entry : tasks.entrySet()) {
+                checkForCyclesFor(entry.getValue().task, visited, visiting);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void checkForCyclesFor(TaskInternal task, Set<TaskInternal> visited, Set<TaskInternal> visiting) {
+        if (visited.contains(task)) {
+            // Already checked
+            return;
+        }
+        if (!visiting.add(task)) {
+            // Visiting dependencies -> have found a cycle
+            CachingDirectedGraphWalker<TaskInternal, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> visitDependenciesOf(node, connectedNodes::add));
+            graphWalker.add(task);
+            List<Set<TaskInternal>> cycles = graphWalker.findCycles();
+            Set<TaskInternal> cycle = cycles.get(0);
+
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>(
+                (node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()),
+                (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+                    if (cycle.contains(dep)) {
+                        connectedNodes.add(dep);
+                    }
+                })
+            );
+            StringWriter writer = new StringWriter();
+            graphRenderer.renderTo(task, writer);
+            throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
+        }
+        visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
+        visiting.remove(task);
+        visited.add(task);
+    }
+
+    private void visitDependenciesOf(TaskInternal task, Consumer<TaskInternal> consumer) {
+        TaskNodeFactory taskNodeFactory = ((GradleInternal) task.getProject().getGradle()).getServices().get(TaskNodeFactory.class);
+        TaskNode node = taskNodeFactory.getOrCreateNode(task);
+        for (Node dependency : node.getAllSuccessors()) {
+            if (dependency instanceof TaskNode) {
+                consumer.accept(((TaskNode) dependency).getTask());
+            }
+        }
     }
 
     @Override
@@ -144,8 +223,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         });
     }
 
-    @Override
-    public TaskInternal getTask(String taskPath) {
+    private TaskInternal doGetTask(String taskPath) {
         for (Task task : getTaskGraph().getAllTasks()) {
             if (task.getPath().equals(taskPath)) {
                 return (TaskInternal) task;
@@ -194,9 +272,11 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         try {
             Set<String> tasksToExecute = new LinkedHashSet<>();
             for (Map.Entry<String, TaskState> taskEntry : tasks.entrySet()) {
-                if (taskEntry.getValue().status == TaskStatus.QUEUED) {
-                    tasksToExecute.add(taskEntry.getKey());
-                    taskEntry.getValue().status = TaskStatus.EXECUTING;
+                TaskState taskState = taskEntry.getValue();
+                if (taskState.status == TaskStatus.QUEUED) {
+                    String taskPath = taskEntry.getKey();
+                    tasksToExecute.add(taskPath);
+                    taskState.status = TaskStatus.EXECUTING;
                 }
             }
             return tasksToExecute;
@@ -252,8 +332,12 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
             for (String task : tasksExecuted) {
                 TaskState taskState = tasks.get(task);
                 if (taskState.status == TaskStatus.EXECUTING) {
-                    taskState.status = TaskStatus.FAILED;
-                    someTasksNotCompleted = true;
+                    if (taskState.task.getState().getExecuted()) {
+                        taskState.status = TaskStatus.SUCCESS;
+                    } else {
+                        taskState.status = TaskStatus.FAILED;
+                        someTasksNotCompleted = true;
+                    }
                 }
             }
             if (failure != null) {
@@ -308,6 +392,23 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
         }
     }
 
+    @Override
+    public TaskInternal getTask(String taskPath) {
+        lock.lock();
+        try {
+            TaskState state = tasks.get(taskPath);
+            if (state == null) {
+                throw includedBuildTaskWasNeverScheduled(taskPath);
+            }
+            if (state.task == null) {
+                throw new IllegalStateException();
+            }
+            return state.task;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private IllegalStateException includedBuildTaskWasNeverScheduled(String taskPath) {
         return new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
     }
@@ -317,6 +418,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     private static class TaskState {
         public BuildResult result;
         public TaskStatus status = TaskStatus.QUEUED;
+        public TaskInternal task;
     }
 
     private class BuildOpRunnable implements Runnable {

@@ -199,7 +199,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public synchronized void addTasks(Iterable<String> taskPaths) {
+    public synchronized void scheduleTasks(Iterable<String> taskPaths) {
         buildLifecycleController.scheduleTasks(taskPaths);
     }
 

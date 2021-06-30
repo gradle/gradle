@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.build.BuildState;
@@ -41,32 +42,34 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     @Override
     public void execute(Configuration classpath) {
         ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
-        boolean found = false;
+        List<CompositeProjectComponentArtifactMetadata> localArtifacts = new ArrayList<>();
         for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
-            ComponentArtifactIdentifier componentArtifactIdentifier = artifactResult.getId();
-            found |= build(currentBuild, componentArtifactIdentifier);
-        }
-        if (found) {
-            List<Throwable> taskFailures = new ArrayList<>();
-            includedBuildTaskGraph.runScheduledTasks(taskFailures::add);
-            if (!taskFailures.isEmpty()) {
-                throw new MultipleBuildFailures(taskFailures);
+            ComponentArtifactIdentifier artifactIdentifier = artifactResult.getId();
+            if (artifactIdentifier instanceof CompositeProjectComponentArtifactMetadata) {
+                localArtifacts.add((CompositeProjectComponentArtifactMetadata) artifactIdentifier);
             }
+        }
+        if (!localArtifacts.isEmpty()) {
+            includedBuildTaskGraph.withNestedTaskGraph(() -> {
+                for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
+                    scheduleTasks(currentBuild, artifact);
+                }
+                List<Throwable> taskFailures = new ArrayList<>();
+                includedBuildTaskGraph.runScheduledTasks(taskFailures::add);
+                if (!taskFailures.isEmpty()) {
+                    throw new MultipleBuildFailures(taskFailures);
+                }
+                return null;
+            });
         }
     }
 
-    public boolean build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
-        boolean found = false;
-        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            BuildIdentifier targetBuild = compositeBuildArtifact.getComponentId().getBuild();
-            assert !requestingBuild.equals(targetBuild);
-            Set<? extends Task> tasks = compositeBuildArtifact.getBuildDependencies().getDependencies(null);
-            for (Task task : tasks) {
-                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
-            }
-            found = true;
+    public void scheduleTasks(BuildIdentifier requestingBuild, CompositeProjectComponentArtifactMetadata artifact) {
+        BuildIdentifier targetBuild = artifact.getComponentId().getBuild();
+        assert !requestingBuild.equals(targetBuild);
+        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+        for (Task task : tasks) {
+            includedBuildTaskGraph.locateTask(requestingBuild, targetBuild, (TaskInternal) task).queueForExecution();
         }
-        return found;
     }
 }

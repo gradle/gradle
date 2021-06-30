@@ -51,6 +51,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
+    private final BuildScopeServices buildScopeServices;
 
     DefaultNestedBuild(BuildIdentifier buildIdentifier,
                        Path identityPath,
@@ -65,7 +66,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.owner = owner;
         this.projectStateRegistry = projectStateRegistry;
 
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
 
         IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
@@ -123,7 +124,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
-        return buildAction.apply(buildTreeLifecycleController);
+        IncludedBuildTaskGraph includedBuildTaskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
+        return includedBuildTaskGraph.withNestedTaskGraph(() -> buildAction.apply(buildTreeLifecycleController));
     }
 
     @Override
