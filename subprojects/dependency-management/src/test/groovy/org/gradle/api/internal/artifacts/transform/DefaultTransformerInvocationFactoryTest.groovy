@@ -56,6 +56,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -94,7 +95,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def artifactTransformListener = Mock(ArtifactTransformListener)
 
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
-    def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
+    def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(dependencyFingerprinter)])
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {

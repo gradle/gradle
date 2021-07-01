@@ -63,6 +63,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -119,7 +120,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
-    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([fingerprinter])
+    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(fingerprinter)])
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)

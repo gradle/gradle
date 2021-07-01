@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileSystems;
 import org.apache.tools.ant.DirectoryScanner;
@@ -56,7 +55,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -66,9 +64,7 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
-import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
@@ -104,12 +100,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static java.util.stream.Stream.concat;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
@@ -392,16 +386,18 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileCollectionSnapshotter fileCollectionSnapshotter,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
-            return new FileCollectionFingerprinterRegistrations(stringInterner, fileCollectionSnapshotter, resourceSnapshotterCacheService);
+            return new FileCollectionFingerprinterRegistrations(
+                stringInterner,
+                fileCollectionSnapshotter,
+                resourceSnapshotterCacheService,
+                ResourceFilter.FILTER_NOTHING,
+                ResourceEntryFilter.FILTER_NOTHING,
+                PropertiesFileFilter.FILTER_NOTHING
+            );
         }
 
-        FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters, FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
-            return new DefaultFileCollectionFingerprinterRegistry(
-                concat(
-                    fileCollectionFingerprinterRegistrations.getRegistrants().stream(),
-                    fingerprinters.stream()
-                ).collect(ImmutableList.toImmutableList())
-            );
+        FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(FileCollectionFingerprinterRegistrations fileCollectionFingerprinterRegistrations) {
+            return new DefaultFileCollectionFingerprinterRegistry(fileCollectionFingerprinterRegistrations.getRegistrants());
         }
 
         InputFingerprinter createInputFingerprinter(
@@ -419,10 +415,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
             DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
             return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
-        }
-
-        CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-            return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
         }
     }
 
