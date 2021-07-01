@@ -35,7 +35,7 @@ public interface IoFunction<T, R> {
      * Any {@code IOException}s are rethrown as {@link UncheckedIOException}.
      */
     static <T, R> Function<T, R> wrap(IoFunction<T, R> function) {
-        return (t) -> {
+        return t -> {
             try {
                 return function.apply(t);
             } catch (IOException e) {

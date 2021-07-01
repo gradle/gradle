@@ -24,7 +24,7 @@ public interface IoPredicate<T> {
     boolean test(T t) throws IOException;
 
     static <T> Predicate<T> wrap(IoPredicate<T> predicate) {
-        return (t) -> {
+        return t -> {
             try {
                 return predicate.test(t);
             } catch (IOException e) {

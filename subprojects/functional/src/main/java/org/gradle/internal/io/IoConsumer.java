@@ -29,7 +29,7 @@ public interface IoConsumer<T> {
     void accept(@Nullable T payload) throws IOException;
 
     static <T> Consumer<T> wrap(IoConsumer<T> consumer) {
-        return (payload) -> {
+        return payload -> {
             try {
                 consumer.accept(payload);
             } catch (IOException e) {
