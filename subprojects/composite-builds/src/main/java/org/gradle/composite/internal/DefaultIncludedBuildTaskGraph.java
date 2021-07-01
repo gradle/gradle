@@ -36,14 +36,12 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
-        IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
-        return new TaskBackedResource(buildController, task);
+        return includedBuilds.getBuildController(targetBuild).locateTask(task);
     }
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
-        IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
-        return new PathBackedResource(buildController, taskPath);
+        return includedBuilds.getBuildController(targetBuild).locateTask(taskPath);
     }
 
     @Override
@@ -51,55 +49,5 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         includedBuilds.populateTaskGraphs();
         includedBuilds.startTaskExecution();
         includedBuilds.awaitTaskCompletion(taskFailures);
-    }
-
-    private static class PathBackedResource implements IncludedBuildTaskResource {
-        private final IncludedBuildController buildController;
-        private final String taskPath;
-
-        public PathBackedResource(IncludedBuildController buildController, String taskPath) {
-            this.buildController = buildController;
-            this.taskPath = taskPath;
-        }
-
-        @Override
-        public void queueForExecution() {
-            buildController.queueForExecution(taskPath);
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return buildController.getTask(taskPath);
-        }
-
-        @Override
-        public State getTaskState() {
-            return buildController.getTaskState(taskPath);
-        }
-    }
-
-    private static class TaskBackedResource implements IncludedBuildTaskResource {
-        private final IncludedBuildController buildController;
-        private final TaskInternal task;
-
-        public TaskBackedResource(IncludedBuildController buildController, TaskInternal task) {
-            this.buildController = buildController;
-            this.task = task;
-        }
-
-        @Override
-        public void queueForExecution() {
-            buildController.queueForExecution(task.getPath());
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return task;
-        }
-
-        @Override
-        public State getTaskState() {
-            return buildController.getTaskState(task.getPath());
-        }
     }
 }

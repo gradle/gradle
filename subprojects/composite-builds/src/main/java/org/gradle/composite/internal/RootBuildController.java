@@ -23,7 +23,7 @@ import org.gradle.internal.build.RootBuildState;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-class RootBuildController implements IncludedBuildController {
+class RootBuildController extends AbstractIncludedBuildController {
     private final RootBuildState rootBuild;
 
     public RootBuildController(RootBuildState rootBuild) {
@@ -31,7 +31,7 @@ class RootBuildController implements IncludedBuildController {
     }
 
     @Override
-    public void queueForExecution(String taskPath) {
+    protected void queueForExecution(String taskPath) {
         if (findTaskInRootBuild(taskPath) == null) {
             rootBuild.getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
         }
@@ -57,7 +57,7 @@ class RootBuildController implements IncludedBuildController {
     }
 
     @Override
-    public IncludedBuildTaskResource.State getTaskState(String taskPath) {
+    protected IncludedBuildTaskResource.State getTaskState(String taskPath) {
         TaskInternal task = getTask(taskPath);
         if (task.getState().getFailure() != null) {
             return IncludedBuildTaskResource.State.FAILED;
@@ -69,7 +69,7 @@ class RootBuildController implements IncludedBuildController {
     }
 
     @Override
-    public TaskInternal getTask(String taskPath) {
+    protected TaskInternal getTask(String taskPath) {
         TaskInternal task = findTaskInRootBuild(taskPath);
         if (task == null) {
             throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");

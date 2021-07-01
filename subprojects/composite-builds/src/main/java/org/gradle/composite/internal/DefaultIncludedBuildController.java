@@ -65,7 +65,7 @@ import static org.gradle.composite.internal.IncludedBuildTaskResource.State.FAIL
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.SUCCESS;
 import static org.gradle.composite.internal.IncludedBuildTaskResource.State.WAITING;
 
-class DefaultIncludedBuildController implements Stoppable, IncludedBuildController {
+class DefaultIncludedBuildController extends AbstractIncludedBuildController implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
     private final IncludedBuildState includedBuild;
     private final ResourceLockCoordinationService coordinationService;
@@ -357,7 +357,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     }
 
     @Override
-    public void queueForExecution(String taskPath) {
+    protected void queueForExecution(String taskPath) {
         lock.lock();
         try {
             if (state == State.RunningTasks) {
@@ -373,7 +373,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     }
 
     @Override
-    public IncludedBuildTaskResource.State getTaskState(String taskPath) {
+    protected IncludedBuildTaskResource.State getTaskState(String taskPath) {
         lock.lock();
         try {
             TaskState state = tasks.get(taskPath);
@@ -393,7 +393,7 @@ class DefaultIncludedBuildController implements Stoppable, IncludedBuildControll
     }
 
     @Override
-    public TaskInternal getTask(String taskPath) {
+    protected TaskInternal getTask(String taskPath) {
         lock.lock();
         try {
             TaskState state = tasks.get(taskPath);
