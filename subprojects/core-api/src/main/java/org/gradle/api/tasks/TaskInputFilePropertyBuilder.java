@@ -89,7 +89,7 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     TaskInputFilePropertyBuilder ignoreEmptyDirectories(boolean ignoreEmptyDirectories);
 
     /**
-     * Ignore line endings in text files during up-to-date checks and build cache key calculations.  This setting will have no effect on binary files.
+     * Normalize line endings in text files during up-to-date checks and build cache key calculations.  This setting will have no effect on binary files.
      *
      * Line ending normalization is only supported with ASCII encoding and its supersets (i.e.
      * UTF-8, ISO-8859-1, etc).  Other encodings (e.g. UTF-16) will be treated as binary files
@@ -98,15 +98,15 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
      * @since 7.2
      */
     @Incubating
-    TaskInputFilePropertyBuilder ignoreLineEndings();
+    TaskInputFilePropertyBuilder normalizeLineEndings();
 
     /**
-     * Sets whether line endings should be considered during up-to-date checks and build cache key calculations.  Defaults to false.
+     * Sets whether line endings should be normalized during up-to-date checks and build cache key calculations.  Defaults to false.
      *
-     * See {@link #ignoreLineEndings()}.
+     * See {@link #normalizeLineEndings()}.
      *
      * @since 7.2
      */
     @Incubating
-    TaskInputFilePropertyBuilder ignoreLineEndings(boolean ignoreLineEndings);
+    TaskInputFilePropertyBuilder normalizeLineEndings(boolean ignoreLineEndings);
 }

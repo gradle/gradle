@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
-import org.gradle.work.IgnoreLineEndings;
+import org.gradle.work.NormalizeLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -48,8 +48,8 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     IGNORE_EMPTY_DIRECTORIES("ignore empty directories",
         IgnoreEmptyDirectories.class
     ),
-    IGNORE_LINE_ENDINGS("ignore line endings",
-        IgnoreLineEndings.class
+    NORMALIZE_LINE_ENDINGS("ignore line endings",
+        NormalizeLineEndings.class
     );
 
     private final String displayName;

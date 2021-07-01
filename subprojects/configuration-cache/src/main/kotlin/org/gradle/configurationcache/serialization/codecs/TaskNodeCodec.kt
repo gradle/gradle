@@ -410,7 +410,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         skipWhenEmpty(skipWhenEmpty)
                         withNormalizer(normalizer.uncheckedCast())
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
-                        ignoreLineEndings(lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+                        normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
                     }
                 }
                 else -> {

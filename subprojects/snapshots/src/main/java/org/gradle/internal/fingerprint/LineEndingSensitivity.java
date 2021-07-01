@@ -18,5 +18,5 @@ package org.gradle.internal.fingerprint;
 
 public enum LineEndingSensitivity {
     DEFAULT,
-    IGNORE_LINE_ENDINGS;
+    NORMALIZE_LINE_ENDINGS;
 }

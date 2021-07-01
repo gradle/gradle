@@ -117,14 +117,14 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreLineEndings() {
-        this.lineEndingSensitivity = LineEndingSensitivity.IGNORE_LINE_ENDINGS;
+    public TaskInputFilePropertyBuilder normalizeLineEndings() {
+        this.lineEndingSensitivity = LineEndingSensitivity.NORMALIZE_LINE_ENDINGS;
         return this;
     }
 
     @Override
-    public TaskInputFilePropertyBuilder ignoreLineEndings(boolean ignoreLineEndings) {
-        this.lineEndingSensitivity = ignoreLineEndings ? LineEndingSensitivity.IGNORE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
+    public TaskInputFilePropertyBuilder normalizeLineEndings(boolean ignoreLineEndings) {
+        this.lineEndingSensitivity = ignoreLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
         return this;
     }
 

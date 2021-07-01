@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.work.IgnoreLineEndings
+import org.gradle.work.NormalizeLineEndings
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -79,7 +79,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
     @Unroll
     def "input files properties can ignore line endings when specified (#api, #pathsensitivity)"() {
-        createTaskWithNormalization(InputFiles, LineEndingSensitivity.IGNORE_LINE_ENDINGS, pathsensitivity, api)
+        createTaskWithNormalization(InputFiles, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, pathsensitivity, api)
 
         buildFile << """
             taskWithInputs {
@@ -157,7 +157,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
 
     @Unroll
     def "runtime classpath properties can ignore line endings when specified (#api)"() {
-        createTaskWithNormalization(Classpath, LineEndingSensitivity.IGNORE_LINE_ENDINGS, null, api)
+        createTaskWithNormalization(Classpath, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, null, api)
 
         buildFile << """
             taskWithInputs {
@@ -261,7 +261,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
     }
 
     def "artifact transforms can ignore line endings when specified"() {
-        createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        createParameterizedTransformWithLineEndingNormalization(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         file('producer/foo/bar.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('inputs/baz.txt') << toUnix(TEXT_WITH_LINE_ENDINGS)
         file('inputs/baz.jpg').bytes = JPG_CONTENT_WITH_LF
@@ -355,7 +355,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
             class TaskWithInputs extends DefaultTask {
                 @${inputAnnotation.simpleName}
                 ${pathSensitivityAnnotation(pathSensitivity)}
-                ${lineEndingSensitivity == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                ${lineEndingSensitivity == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS ? "@${NormalizeLineEndings.class.simpleName}" : ''}
                 FileCollection sources
 
                 @OutputFile
@@ -392,7 +392,7 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                     inputs.files(sources)
                         ${withNormalizer(normalizer)}
                         ${withPathSensitivity(pathSensitivity)}
-                        ${lineEndingSensitivity == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? '.ignoreLineEndings()' : ''}
+                        ${lineEndingSensitivity == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS ? '.normalizeLineEndings()' : ''}
                         .withPropertyName('sources')
                 }
 
@@ -427,12 +427,12 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
                 interface Parameters extends TransformParameters {
                     @InputFiles
                     @PathSensitive(PathSensitivity.RELATIVE)
-                    ${lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                    ${lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS ? "@${NormalizeLineEndings.class.simpleName}" : ''}
                     ConfigurableFileCollection getFiles()
                 }
 
                 @InputArtifact
-                ${lineEndingNormalization == LineEndingSensitivity.IGNORE_LINE_ENDINGS ? "@${IgnoreLineEndings.class.simpleName}" : ''}
+                ${lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS ? "@${NormalizeLineEndings.class.simpleName}" : ''}
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract Provider<FileSystemLocation> getInput()
 

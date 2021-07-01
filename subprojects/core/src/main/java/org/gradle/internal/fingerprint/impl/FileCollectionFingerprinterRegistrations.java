@@ -72,7 +72,7 @@ public class FileCollectionFingerprinterRegistrations {
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return resourceHasher;
-            case IGNORE_LINE_ENDINGS:
+            case NORMALIZE_LINE_ENDINGS:
                 return new CachingFileSystemLocationSnapshotHasher(resourceHasher, resourceSnapshotterCacheService);
             default:
                 throw new IllegalArgumentException();

@@ -42,7 +42,7 @@ public class LineEndingAwareResourceHasher extends AbstractLineEndingAwareHasher
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return delegate;
-            case IGNORE_LINE_ENDINGS:
+            case NORMALIZE_LINE_ENDINGS:
                 return new LineEndingAwareResourceHasher(delegate);
             default:
                 throw new IllegalArgumentException();

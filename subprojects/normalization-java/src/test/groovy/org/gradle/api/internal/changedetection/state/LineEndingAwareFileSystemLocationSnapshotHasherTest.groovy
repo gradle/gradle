@@ -38,7 +38,7 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
     def "can normalize line endings in files (eol = '#description')"() {
         def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
         def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
-        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
 
         expect:
         hasher.hash(snapshot(unnormalized)) == hasher.hash(snapshot(normalized))
@@ -54,7 +54,7 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
     def "calculates hash for text file with #description"() {
         def file = file('foo') << contents
         def delegate = Mock(LineEndingAwareFileSystemLocationSnapshotHasher)
-        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
 
         when:
         hasher.hash(snapshot(file))
@@ -74,7 +74,7 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
     def "calls delegate for binary files with #description"() {
         def file = file('foo') << contents
         def delegate = Mock(LineEndingAwareFileSystemLocationSnapshotHasher)
-        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         def snapshot = this.snapshot(file)
 
         when:
@@ -122,7 +122,7 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
     def "throws IOException generated from hasher"() {
         def file = file('doesNotExist')
         def delegate = Mock(LineEndingAwareFileSystemLocationSnapshotHasher)
-        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         def snapshot = this.snapshot(file)
 
         when:
@@ -138,7 +138,7 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
     def "throws #exception.simpleName generated from delegate"() {
         def file = file('doesNotExist') << content.PNG_CONTENT
         def delegate = Mock(LineEndingAwareFileSystemLocationSnapshotHasher)
-        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.IGNORE_LINE_ENDINGS)
+        def hasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         def snapshot = this.snapshot(file)
 
         when:

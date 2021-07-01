@@ -199,7 +199,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getPropertiesFileFilters(),
             stringInterner,
-            LineEndingSensitivity.IGNORE_LINE_ENDINGS
+            LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
         );
     }
 

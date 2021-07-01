@@ -39,7 +39,7 @@ public class LineEndingAwareFileSystemLocationSnapshotHasher extends AbstractLin
         switch (lineEndingSensitivity) {
             case DEFAULT:
                 return delegate;
-            case IGNORE_LINE_ENDINGS:
+            case NORMALIZE_LINE_ENDINGS:
                 return new LineEndingAwareFileSystemLocationSnapshotHasher(delegate);
             default:
                 throw new IllegalArgumentException();
