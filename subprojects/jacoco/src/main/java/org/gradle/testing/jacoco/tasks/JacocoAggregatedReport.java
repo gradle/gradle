@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.ListProperty;
@@ -62,7 +63,7 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
 
     @Inject
     public JacocoAggregatedReport(JvmEcosystemUtilities jvmEcosystemUtilities) {
-        getTestTaskNames().convention(Collections.singletonList("test"));
+        getTestTaskNames().convention(Collections.singletonList(JavaPlugin.TEST_TASK_NAME));
 
         Project project = getProject();
         project.getPluginManager().withPlugin("java", plugin -> {
