@@ -25,15 +25,15 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FetchCustomModelForEachProject implements BuildAction<List<SomeToolingModel>> {
+public class FetchPartialCustomModelForEachProject implements BuildAction<List<String>> {
     @Override
-    public List<SomeToolingModel> execute(BuildController controller) {
-        List<SomeToolingModel> result = new ArrayList<>();
+    public List<String> execute(BuildController controller) {
+        List<String> result = new ArrayList<>();
         GradleBuild buildModel = controller.getBuildModel();
         for (BasicGradleProject project : buildModel.getProjects()) {
             SomeToolingModel model = controller.findModel(project, SomeToolingModel.class);
             if (model != null) {
-                result.add(model);
+                result.add(model.getMessage());
             }
         }
         return result;

@@ -21,6 +21,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
@@ -53,6 +54,7 @@ class DefaultConfigurationCache internal constructor(
     private val projectStateRegistry: ProjectStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
+    private val includedBuildControllers: IncludedBuildControllers,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -112,9 +114,6 @@ class DefaultConfigurationCache internal constructor(
     override fun loadOrScheduledRequestedTasks(scheduler: () -> Unit) {
         if (canLoad) {
             loadWorkGraph()
-            // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
-            // TODO - It would be better to have the load() method signal this instead
-            scheduler()
         } else {
             prepareForConfiguration()
             scheduler()
@@ -208,7 +207,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveModel(model: Any) {
-        saveToCache { layout ->
+        saveToCache(StateType.Model) { layout ->
             cacheIO.writeModelTo(model, layout.state)
             // TODO - separate out writing the metadata about included builds from writing the value
             emptySet()
@@ -217,11 +216,11 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveWorkGraph() {
-        saveToCache { layout -> writeConfigurationCacheState(layout) }
+        saveToCache(StateType.Work) { layout -> writeConfigurationCacheState(layout) }
     }
 
     private
-    fun saveToCache(action: (ConfigurationCacheRepository.Layout) -> Set<File>) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheRepository.Layout) -> Set<File>) {
         crossConfigurationTimeBarrier()
 
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
@@ -231,7 +230,7 @@ class DefaultConfigurationCache internal constructor(
         stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-            cacheRepository.useForStore(cacheKey.string) { layout ->
+            cacheRepository.useForStore(cacheKey.string, stateType) { layout ->
                 problems.storing {
                     invalidateConfigurationCacheState(layout)
                 }
@@ -256,20 +255,23 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadModel(): Any {
-        return loadFromCache { stateFile ->
+        return loadFromCache(StateType.Model) { stateFile ->
             cacheIO.readModelFrom(stateFile)
         }
     }
 
     private
     fun loadWorkGraph() {
-        loadFromCache { stateFile ->
+        loadFromCache(StateType.Work) { stateFile ->
             cacheIO.readRootBuildStateFrom(stateFile)
         }
+        // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
+        // TODO - It would be better to have the load() method signal this instead
+        includedBuildControllers.populateTaskGraphs()
     }
 
     private
-    fun <T> loadFromCache(action: (ConfigurationCacheStateFile) -> T): T {
+    fun <T> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
         prepareConfigurationTimeBarrier()
         problems.loading()
 
@@ -278,7 +280,7 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         val result = buildOperationExecutor.withLoadOperation {
-            cacheRepository.useForStateLoad(cacheKey.string, action)
+            cacheRepository.useForStateLoad(cacheKey.string, stateType, action)
         }
         crossConfigurationTimeBarrier()
         return result
