@@ -106,7 +106,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 implementation(project(":lib2"))
             }
             tasks.register("${AGGREGATION_TASK_NAME}", JacocoAggregatedReport) {
-                testCategories = ['${testsToAggregate.join("', '")}']
+                testTaskNames = ['${testsToAggregate.join("', '")}']
             }
         """
 
@@ -141,13 +141,13 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                 implementation(project(":lib2"))
             }
             tasks.register("aggregatedTestReport", JacocoAggregatedReport) {
-                testCategories = ["test"]
+                testTaskNames = ["test"]
             }
             tasks.register("aggregatedIntegrationTestReport", JacocoAggregatedReport) {
-                testCategories = ["integrationTest"]
+                testTaskNames = ["integrationTest"]
             }
             tasks.register("aggregatedMergedReport", JacocoAggregatedReport) {
-                testCategories = ["test", "integrationTest"]
+                testTaskNames = ["test", "integrationTest"]
             }
         """
 

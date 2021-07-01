@@ -53,17 +53,16 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
     public static final String AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     /**
-     * Configures the test categories to be aggregated by this task.
-     * The tests category is the name of the test task.
+     * Configures the test task names that will contribute to the aggregated code coverage report.
      *
      * Defaults to ["test"].
      */
     @Input
-    public abstract ListProperty<String> getTestCategories();
+    public abstract ListProperty<String> getTestTaskNames();
 
     @Inject
     public JacocoAggregatedReport(JvmEcosystemUtilities jvmEcosystemUtilities) {
-        getTestCategories().convention(Collections.singletonList("test"));
+        getTestTaskNames().convention(Collections.singletonList("test"));
 
         Project project = getProject();
         project.getPluginManager().withPlugin("java", plugin -> {
@@ -71,7 +70,7 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
             // TODO: what about other "production" source sets that the users might add?
             sourceSets(javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME));
 
-            executionData(getTestCategories().map(categories -> {
+            executionData(getTestTaskNames().map(categories -> {
                 ConfigurableFileCollection coverageFiles = project.files();
                 for (String testCategory : categories) {
                     TaskContainer tasks = project.getTasks();
@@ -106,7 +105,7 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
 
     private void resolveTestCoverageDataVariantsFrom(Configuration aggregationConfiguration) {
         Project project = getProject();
-        executionData(getTestCategories().map(categories -> {
+        executionData(getTestTaskNames().map(categories -> {
             ConfigurableFileCollection coverageFiles = project.files();
             for (String testCategory : categories) {
                 String resolverName = testCategory + "CoverageDataPath";

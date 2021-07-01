@@ -14,6 +14,6 @@ tasks.register("aggregatedTestReport", JacocoAggregatedReport::class)
 
 // tag::combined-test-report[]
 tasks.register("combinedTestReport", JacocoAggregatedReport::class) {
-    testCategories.set(listOf("test", "integrationTest"))
+    testTaskNames.set(listOf("test", "integrationTest"))
 }
 // end::combined-test-report[]
