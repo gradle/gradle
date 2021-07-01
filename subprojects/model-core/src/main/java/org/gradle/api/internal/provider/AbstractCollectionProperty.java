@@ -408,6 +408,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
+        }
+
+        @Override
         protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
             for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
