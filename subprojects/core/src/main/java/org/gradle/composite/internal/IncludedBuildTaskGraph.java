@@ -32,12 +32,12 @@ public interface IncludedBuildTaskGraph {
     /**
      * Locates a task node in another build's work graph. Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
      */
-    IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, TaskInternal task);
+    IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task);
 
     /**
      * Locates a task node in another build's work graph. Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
      */
-    IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath);
+    IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath);
 
     /**
      * Schedules and executes queued tasks, collecting any task failures into the given collection.

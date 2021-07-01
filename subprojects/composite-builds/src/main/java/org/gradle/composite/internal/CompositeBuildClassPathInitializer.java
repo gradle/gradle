@@ -69,7 +69,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         assert !requestingBuild.equals(targetBuild);
         Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
         for (Task task : tasks) {
-            includedBuildTaskGraph.locateTask(requestingBuild, targetBuild, (TaskInternal) task).queueForExecution();
+            includedBuildTaskGraph.locateTask(targetBuild, (TaskInternal) task).queueForExecution();
         }
     }
 }

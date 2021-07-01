@@ -41,7 +41,6 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.composite.internal.IncludedBuildControllers;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -128,6 +127,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerGradleServices(registration);
             }
+            registration.add(TaskNodeFactory.class);
         });
     }
 
@@ -168,10 +168,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
         return new DefaultProjectFinder(gradle::getRootProject);
-    }
-
-    TaskNodeFactory createTaskNodeFactory(GradleInternal gradle, IncludedBuildTaskGraph includedBuildTaskGraph) {
-        return new TaskNodeFactory(gradle, includedBuildTaskGraph);
     }
 
     TaskNodeDependencyResolver createTaskNodeResolver(TaskNodeFactory taskNodeFactory) {

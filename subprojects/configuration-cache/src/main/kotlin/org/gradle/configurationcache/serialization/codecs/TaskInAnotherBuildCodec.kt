@@ -33,18 +33,15 @@ class TaskInAnotherBuildCodec(
         value.run {
             writeString(taskPath)
             write(targetBuild)
-            write(thisBuild)
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
-        val thisBuild = readNonNull<BuildIdentifier>()
         return TaskInAnotherBuild.of(
             taskPath,
             targetBuild,
-            thisBuild,
             includedTaskGraph
         )
     }

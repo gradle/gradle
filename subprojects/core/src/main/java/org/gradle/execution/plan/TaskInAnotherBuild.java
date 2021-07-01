@@ -34,43 +34,35 @@ import java.util.List;
 public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
-        BuildIdentifier currentBuildId,
         IncludedBuildTaskGraph taskGraph
     ) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(currentBuildId, targetBuild, task);
-        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), currentBuildId, targetBuild, taskResource);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, task);
+        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource);
     }
 
     public static TaskInAnotherBuild of(
         String taskPath,
         BuildIdentifier targetBuild,
-        BuildIdentifier thisBuild,
         IncludedBuildTaskGraph taskGraph
     ) {
-        IncludedBuildTaskResource taskResource = taskGraph.locateTask(thisBuild, targetBuild, taskPath);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskPath);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
-        return new TaskInAnotherBuild(taskIdentityPath, taskPath, thisBuild, targetBuild, taskResource);
+        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
     private final Path taskIdentityPath;
     private final String taskPath;
-    private final BuildIdentifier thisBuild;
     private final BuildIdentifier targetBuild;
     private final IncludedBuildTaskResource target;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier thisBuild, BuildIdentifier targetBuild, IncludedBuildTaskResource target) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild, IncludedBuildTaskResource target) {
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
-        this.thisBuild = thisBuild;
         this.targetBuild = targetBuild;
         this.target = target;
         doNotRequire();
-    }
-
-    public BuildIdentifier getThisBuild() {
-        return thisBuild;
     }
 
     public BuildIdentifier getTargetBuild() {

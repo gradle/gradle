@@ -21,7 +21,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -29,7 +28,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.Cast;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.service.scopes.Scopes;
@@ -52,14 +50,12 @@ public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
-    private final BuildIdentifier currentBuildId;
     private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
 
-    public TaskNodeFactory(GradleInternal thisBuild, IncludedBuildTaskGraph taskGraph) {
+    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
-        this.currentBuildId = thisBuild.getServices().get(BuildState.class).getBuildIdentifier();
-        this.documentationRegistry = thisBuild.getServices().get(DocumentationRegistry.class);
+        this.documentationRegistry = documentationRegistry;
         this.taskGraph = taskGraph;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
     }
@@ -74,7 +70,7 @@ public class TaskNodeFactory {
             if (task.getProject().getGradle() == thisBuild) {
                 node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
             } else {
-                node = TaskInAnotherBuild.of((TaskInternal) task, currentBuildId, taskGraph);
+                node = TaskInAnotherBuild.of((TaskInternal) task, taskGraph);
             }
             nodes.put(task, node);
         }

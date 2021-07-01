@@ -15,11 +15,8 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.internal.build.BuildStateRegistry;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -27,11 +24,9 @@ import java.util.function.Supplier;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final IncludedBuildControllers includedBuilds;
-    private final BuildStateRegistry buildRegistry;
 
-    public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds, BuildStateRegistry buildRegistry) {
+    public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
         this.includedBuilds = includedBuilds;
-        this.buildRegistry = buildRegistry;
     }
 
     @Override
@@ -39,91 +34,72 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         return includedBuilds.withNestedTaskGraph(action);
     }
 
-    private boolean isRoot(BuildIdentifier targetBuild) {
-        return targetBuild.equals(DefaultBuildIdentifier.ROOT);
+    @Override
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
+        IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+        return new TaskBackedResource(buildController, task);
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, TaskInternal task) {
-        return locateTask(requestingBuild, targetBuild, task.getPath());
-    }
-
-    @Override
-    public synchronized IncludedBuildTaskResource locateTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
-        return new IncludedBuildTaskResource() {
-            @Override
-            public void queueForExecution() {
-                DefaultIncludedBuildTaskGraph.this.queueTask(targetBuild, taskPath);
-            }
-
-            @Override
-            public TaskInternal getTask() {
-                return DefaultIncludedBuildTaskGraph.this.getTask(targetBuild, taskPath);
-            }
-
-            @Override
-            public State getTaskState() {
-                return DefaultIncludedBuildTaskGraph.this.getTaskState(targetBuild, taskPath);
-            }
-        };
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
+        IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+        return new PathBackedResource(buildController, taskPath);
     }
 
     @Override
     public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
-        // Start task execution if necessary: this is required for building plugin artifacts,
-        // since these are built on-demand prior to the regular start signal for included builds.
         includedBuilds.populateTaskGraphs();
         includedBuilds.startTaskExecution();
         includedBuilds.awaitTaskCompletion(taskFailures);
     }
 
-    private void queueTask(BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            if (findTaskInRootBuild(taskPath) == null) {
-                buildRegistry.getRootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
-            }
-        } else {
-            buildControllerFor(targetBuild).queueForExecution(taskPath);
+    private static class PathBackedResource implements IncludedBuildTaskResource {
+        private final IncludedBuildController buildController;
+        private final String taskPath;
+
+        public PathBackedResource(IncludedBuildController buildController, String taskPath) {
+            this.buildController = buildController;
+            this.taskPath = taskPath;
+        }
+
+        @Override
+        public void queueForExecution() {
+            buildController.queueForExecution(taskPath);
+        }
+
+        @Override
+        public TaskInternal getTask() {
+            return buildController.getTask(taskPath);
+        }
+
+        @Override
+        public State getTaskState() {
+            return buildController.getTaskState(taskPath);
         }
     }
 
-    private IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            TaskInternal task = getTask(targetBuild, taskPath);
-            if (task.getState().getFailure() != null) {
-                return IncludedBuildTaskResource.State.FAILED;
-            } else if (task.getState().getExecuted()) {
-                return IncludedBuildTaskResource.State.SUCCESS;
-            } else {
-                return IncludedBuildTaskResource.State.WAITING;
-            }
-        } else {
-            return buildControllerFor(targetBuild).getTaskState(taskPath);
-        }
-    }
+    private static class TaskBackedResource implements IncludedBuildTaskResource {
+        private final IncludedBuildController buildController;
+        private final TaskInternal task;
 
-    private TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            TaskInternal task = findTaskInRootBuild(taskPath);
-            if (task == null) {
-                throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");
-            }
+        public TaskBackedResource(IncludedBuildController buildController, TaskInternal task) {
+            this.buildController = buildController;
+            this.task = task;
+        }
+
+        @Override
+        public void queueForExecution() {
+            buildController.queueForExecution(task.getPath());
+        }
+
+        @Override
+        public TaskInternal getTask() {
             return task;
-        } else {
-            return buildControllerFor(targetBuild).getTask(taskPath);
         }
-    }
 
-    private IncludedBuildController buildControllerFor(BuildIdentifier buildId) {
-        return includedBuilds.getBuildController(buildId);
-    }
-
-    private TaskInternal findTaskInRootBuild(String taskPath) {
-        for (Task task : buildRegistry.getRootBuild().getBuild().getTaskGraph().getAllTasks()) {
-            if (task.getPath().equals(taskPath)) {
-                return (TaskInternal) task;
-            }
+        @Override
+        public State getTaskState() {
+            return buildController.getTaskState(task.getPath());
         }
-        return null;
     }
 }

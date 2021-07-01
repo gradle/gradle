@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -67,8 +68,13 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-        DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build, coordinationService, projectStateRegistry);
+        IncludedBuildController newBuildController;
+        if (buildId.equals(DefaultBuildIdentifier.ROOT)) {
+            newBuildController = new RootBuildController(buildRegistry.getRootBuild());
+        } else {
+            IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
+            newBuildController = new DefaultIncludedBuildController(build, coordinationService, projectStateRegistry);
+        }
         buildControllers.put(buildId, newBuildController);
         return newBuildController;
     }

@@ -54,6 +54,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             serviceRegistration.add(DefaultIncludedBuildControllers.class);
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);
+            serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);
         }
 
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
@@ -75,10 +76,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
         public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder(), calculatedValueContainerFactory);
-        }
-
-        public IncludedBuildTaskGraph createIncludedBuildTaskGraph(IncludedBuildControllers controllers, BuildStateRegistry buildRegistry) {
-            return new DefaultIncludedBuildTaskGraph(controllers, buildRegistry);
         }
     }
 
