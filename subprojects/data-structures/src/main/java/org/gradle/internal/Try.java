@@ -16,6 +16,8 @@
 
 package org.gradle.internal;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -221,7 +223,19 @@ public abstract class Try<T> {
 
         @Override
         public T get() {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            if (failure instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            if (failure instanceof RuntimeException) {
+                throw (RuntimeException) failure;
+            }
+            if (failure instanceof Error) {
+                throw (Error) failure;
+            }
+            if (failure instanceof IOException) {
+                throw new UncheckedIOException((IOException) failure);
+            }
+            throw new RuntimeException(failure);
         }
 
         @Override
@@ -234,19 +248,22 @@ public abstract class Try<T> {
             return Optional.of(failure);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <U> Try<U> flatMap(Function<? super T, Try<U>> f) {
-            return Cast.uncheckedNonnullCast(this);
+            return (Try<U>) this;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <U> Try<U> map(Function<? super T, U> f) {
-            return Cast.uncheckedNonnullCast(this);
+            return (Try<U>) this;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <U> Try<U> tryMap(Function<? super T, U> f) {
-            return Cast.uncheckedNonnullCast(this);
+            return (Try<U>) this;
         }
 
         @Override

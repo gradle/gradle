@@ -5,5 +5,5 @@ plugins {
 description = "A set of generic data structures."
 
 dependencies {
-    implementation(project(":base-services"))
+    implementation(project(":base-annotations"))
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.collect;
 
-import org.gradle.internal.Cast;
-
 import javax.annotation.CheckReturnValue;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -29,8 +27,9 @@ import java.util.function.Consumer;
  * Uses Cons/Nil as building blocks.
  */
 public abstract class PersistentList<T> {
+    @SuppressWarnings("unchecked")
     public static <T> PersistentList<T> of() {
-        return Cast.uncheckedNonnullCast(NIL);
+        return (PersistentList<T>) NIL;
     }
 
     public static <T> PersistentList<T> of(T first) {
