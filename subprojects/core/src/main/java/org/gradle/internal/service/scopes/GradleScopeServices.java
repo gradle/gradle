@@ -40,7 +40,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
-import org.gradle.composite.internal.IncludedBuildControllers;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -160,9 +160,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
     }
 
-    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildTaskGraph includedBuildTaskGraph, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
         return new BuildOperationFiringTaskExecutionPreparer(
-            new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildControllers, buildOperationExecutor, buildModelParameters),
+            new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildTaskGraph, buildOperationExecutor, buildModelParameters),
             buildOperationExecutor);
     }
 

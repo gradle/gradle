@@ -69,10 +69,10 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
 
-        IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
+        IncludedBuildTaskGraph taskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildModelParameters modelParameters = buildScopeServices.get(BuildModelParameters.class);
-        BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+        BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(taskGraph, buildLifecycleController);
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 
         // On completion of the action, finish only this build and do not finish any other builds

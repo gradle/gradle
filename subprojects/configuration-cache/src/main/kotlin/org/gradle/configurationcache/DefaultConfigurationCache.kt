@@ -21,7 +21,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
@@ -54,7 +54,7 @@ class DefaultConfigurationCache internal constructor(
     private val projectStateRegistry: ProjectStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val includedBuildControllers: IncludedBuildControllers,
+    private val includedBuildTaskGraph: IncludedBuildTaskGraph,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -267,7 +267,7 @@ class DefaultConfigurationCache internal constructor(
         }
         // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
         // TODO - It would be better to have the load() method signal this instead
-        includedBuildControllers.populateTaskGraphs()
+        includedBuildTaskGraph.populateTaskGraphs()
     }
 
     private

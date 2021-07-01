@@ -55,6 +55,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         try {
             result = action.get();
         } finally {
+            CompositeStoppable.stoppable(buildControllers.values()).stop();
             buildControllers.clear();
             buildControllers.putAll(currentControllers);
         }
@@ -80,13 +81,6 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void startTaskExecution() {
-        for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.startTaskExecution(executorService);
-        }
-    }
-
-    @Override
     public void populateTaskGraphs() {
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
@@ -103,14 +97,17 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    public void startTaskExecution() {
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.awaitTaskCompletion(taskFailures);
+            buildController.startTaskExecution(executorService);
         }
     }
 
     @Override
-    public void finishPendingWork(Consumer<? super Throwable> collector) {
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+        for (IncludedBuildController buildController : buildControllers.values()) {
+            buildController.awaitTaskCompletion(taskFailures);
+        }
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
     }

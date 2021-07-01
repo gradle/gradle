@@ -29,7 +29,7 @@ public interface IncludedBuildTaskResource {
     }
 
     /**
-     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildControllers#populateTaskGraphs()} to schedule tasks.
+     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
      */
     void queueForExecution();
 

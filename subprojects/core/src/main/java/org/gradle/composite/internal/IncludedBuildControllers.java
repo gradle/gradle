@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @ServiceScope(Scopes.BuildTree.class)
-public interface IncludedBuildControllers {
+interface IncludedBuildControllers {
     /**
      * Finish populating task graphs, once all entry point tasks have been scheduled.
      */
@@ -38,11 +38,6 @@ public interface IncludedBuildControllers {
      * Blocks until all scheduled tasks have completed.
      */
     void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
-
-    /**
-     * Completes any pending work, blocking until complete.
-     */
-    void finishPendingWork(Consumer<? super Throwable> collector);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 

@@ -48,7 +48,6 @@ class DefaultNestedBuildTest extends Specification {
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
 
     DefaultNestedBuild build() {
@@ -57,7 +56,6 @@ class DefaultNestedBuildTest extends Specification {
         _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
         _ * buildDefinition.name >> "nested"
         sessionServices.add(Stub(BuildOperationExecutor))
-        sessionServices.add(includedBuildControllers)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
         sessionServices.add(includedBuildTaskGraph)

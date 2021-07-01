@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.exception.ExceptionAnalyser
@@ -33,7 +33,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
 class DefaultBuildTreeLifecycleControllerFactory(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cache: BuildTreeConfigurationCache,
-    private val controllers: IncludedBuildControllers,
+    private val taskGraph: IncludedBuildTaskGraph,
     private val exceptionAnalyser: ExceptionAnalyser
 ) : BuildTreeLifecycleControllerFactory {
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
@@ -41,7 +41,7 @@ class DefaultBuildTreeLifecycleControllerFactory(
         // (that is, it assumes it is only applied to the root build)
         val rootBuild = targetBuild.gradle.isRootBuild
 
-        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild, controllers)
+        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild, taskGraph)
         val workPreparer = if (startParameter.isEnabled && rootBuild) {
             ConfigurationCacheAwareBuildTreeWorkPreparer(defaultWorkPreparer, cache)
         } else {

@@ -45,6 +45,21 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     }
 
     @Override
+    public void populateTaskGraphs() {
+        includedBuilds.populateTaskGraphs();
+    }
+
+    @Override
+    public void startTaskExecution() {
+        includedBuilds.startTaskExecution();
+    }
+
+    @Override
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+        includedBuilds.awaitTaskCompletion(taskFailures);
+    }
+
+    @Override
     public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
         includedBuilds.populateTaskGraphs();
         includedBuilds.startTaskExecution();

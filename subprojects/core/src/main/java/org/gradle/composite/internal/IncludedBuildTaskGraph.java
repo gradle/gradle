@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * This should evolve to represent a build tree task graph. Currently, responsibilities are spread across this interface and {@link IncludedBuildControllers}.
+ * This should evolve to represent a build tree task graph.
  */
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildTaskGraph {
@@ -40,6 +40,21 @@ public interface IncludedBuildTaskGraph {
     IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath);
 
     /**
+     * Finish populating task graphs, once all entry point tasks have been scheduled.
+     */
+    void populateTaskGraphs();
+
+    /**
+     * Starts running any scheduled tasks. Does nothing when {@link #populateTaskGraphs()} has not been called to schedule the tasks.
+     */
+    void startTaskExecution();
+
+    /**
+     * Blocks until all scheduled tasks have completed.
+     */
+    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+
+    /**
      * Schedules and executes queued tasks, collecting any task failures into the given collection.
      */
     void runScheduledTasks(Consumer<? super Throwable> taskFailures);
@@ -49,8 +64,7 @@ public interface IncludedBuildTaskGraph {
      * to build local plugins.
      *
      * It would be better if this method were to create and return a "build tree task graph" object that can be populated, executed and then discarded. However, quite a few consumers
-     * of this type and {@link IncludedBuildControllers} and {@link org.gradle.execution.taskgraph.TaskExecutionGraphInternal} assume that there is a single reusable instance of
-     * these types available as services.
+     * of this type and {@link org.gradle.execution.taskgraph.TaskExecutionGraphInternal} assume that there is a single reusable instance of these types available as services.
      */
     <T> T withNestedTaskGraph(Supplier<T> action);
 }
