@@ -345,6 +345,17 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    )
+    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
+        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
+            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
+            .solution("Add @DisableCachingByDefault(because = ...) or ${config.cacheableAnnotation}.")
+            .render()
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
@@ -845,4 +856,26 @@ trait ValidationMessageChecker {
             this
         }
     }
+
+    static class NotCacheableWithoutReason extends ValidationMessageDisplayConfiguration<NotCacheableWithoutReason> {
+        String workType
+        String cacheableAnnotation
+
+        NotCacheableWithoutReason(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NotCacheableWithoutReason noReasonOnTask() {
+            workType = "task"
+            cacheableAnnotation = "@CacheableTask"
+            this
+        }
+
+        NotCacheableWithoutReason noReasonOnArtifactTransform() {
+            workType = "transform action"
+            cacheableAnnotation = "@CacheableTransform"
+            this
+        }
+    }
+
 }

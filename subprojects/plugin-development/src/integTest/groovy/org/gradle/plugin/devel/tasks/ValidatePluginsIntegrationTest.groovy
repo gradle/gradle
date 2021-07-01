@@ -473,4 +473,27 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             error(missingAnnotationMessage { type('PluginTask').property('badProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
+
+    @ValidationTestFor(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    def "detects missing DisableCachingByDefault annotations"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.artifacts.transform.*;
+
+            public abstract class MyTransformAction implements TransformAction<TransformParameters.None> {
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
+            error(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+        ])
+    }
 }

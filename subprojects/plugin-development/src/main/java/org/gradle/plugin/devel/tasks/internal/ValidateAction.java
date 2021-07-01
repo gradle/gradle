@@ -141,9 +141,9 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 problem.reportAs(Severity.WARNING)
                     .withId(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
                     .forType(topLevelBean)
-                    .withDescription("A " + workType + " must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
-                    .happensBecause("The " + workType + " author should make clear why a task is not cacheable")
-                    .documentedAt("validation_problems", "sec:disable_caching_by_default")
+                    .withDescription("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
+                    .happensBecause("The " + workType + " author should make clear why a " + workType + " is not cacheable")
+                    .documentedAt("validation_problems", "disable_caching_by_default")
                     .addPossibleSolution("Add " + disableCachingAnnotation + "(because = ...) or " + cacheableAnnotation)
             );
         }
