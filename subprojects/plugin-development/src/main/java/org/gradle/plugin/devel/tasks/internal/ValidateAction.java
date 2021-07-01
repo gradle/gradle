@@ -104,21 +104,16 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     private static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         boolean cacheable;
         boolean canBeMadeCacheable;
-        boolean treatWarningsAsErrors;
         DocumentationRegistry documentationRegistry = new DocumentationRegistry();
         if (Task.class.isAssignableFrom(topLevelBean)) {
             canBeMadeCacheable = true;
             cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
-            // Treat all errors as warnings, for backwards compatibility
-            treatWarningsAsErrors = false;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
             canBeMadeCacheable = true;
             cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
-            treatWarningsAsErrors = true;
         } else {
             canBeMadeCacheable = false;
             cacheable = false;
-            treatWarningsAsErrors = true;
         }
 
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(documentationRegistry, topLevelBean, cacheable);
@@ -128,7 +123,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
 
         validationContext.getProblems()
-            .forEach((message, severity) -> problems.put(message, severity == ERROR || treatWarningsAsErrors));
+            .forEach((message, severity) -> problems.put(message, severity == ERROR));
     }
 
     private static void validateCacheableOrDisableCachingByDefaultReason(Class<?> topLevelBean, boolean cacheable, DefaultTypeValidationContext validationContext) {
