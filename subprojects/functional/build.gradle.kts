@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "A set of generic data structures."
+description = "Tools to work with functional code, including data structures"
 
 dependencies {
     implementation(project(":base-annotations"))
