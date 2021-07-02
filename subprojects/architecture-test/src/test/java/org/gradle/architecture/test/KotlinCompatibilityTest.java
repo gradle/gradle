@@ -23,13 +23,11 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.gradle.internal.reflect.PropertyAccessorType;
-import org.junit.runner.RunWith;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -46,7 +44,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toSet;
 
-@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "org.gradle")
 public class KotlinCompatibilityTest {
 

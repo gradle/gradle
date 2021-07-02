@@ -9,7 +9,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
 
-    testImplementation(libs.archunitJunit4)
+    testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributions-full"))
@@ -25,6 +25,8 @@ tasks.test {
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
+
+    useJUnitPlatform()
 }
 
 class ArchUnitFreezeConfiguration(
