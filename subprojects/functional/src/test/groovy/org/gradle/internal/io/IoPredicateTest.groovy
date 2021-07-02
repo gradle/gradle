@@ -16,13 +16,12 @@
 
 package org.gradle.internal.io
 
-import spock.lang.Specification
 
 import static org.gradle.internal.io.IoPredicate.wrap
 
-class IoPredicateTest extends Specification {
+class IoPredicateTest extends AbstractIoTest {
 
-    def "executed when it doesn't throw"() {
+    def "executed when it doesn't throw (result: #expected)"() {
         when:
         String encountered = null
         def actual = wrap({ String t -> encountered = t; return expected }).test("lajos")
@@ -34,20 +33,11 @@ class IoPredicateTest extends Specification {
         expected << [true, false]
     }
 
-    def "can throw RuntimeException directly"() {
-        when:
-        wrap({ String t -> throw new RuntimeException(t) }).test("lajos")
-        then:
-        def runtimeEx = thrown RuntimeException
-        runtimeEx.message == "lajos"
-    }
-
-    def "can throw IOException, but it gets wrapped"() {
-        when:
-        wrap({ String t -> throw new IOException(t) }).test("lajos")
-        then:
-        def ioEx = thrown UncheckedIOException
-        ioEx.cause instanceof IOException
-        ioEx.cause.message == "lajos"
+    @Override
+    protected void executeWithException(Throwable exception) {
+        wrap({ String t ->
+            assert t == "lajos"
+            throw exception
+        }).test("lajos")
     }
 }

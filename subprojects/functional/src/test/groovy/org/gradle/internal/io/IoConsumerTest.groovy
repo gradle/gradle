@@ -16,34 +16,24 @@
 
 package org.gradle.internal.io
 
-import spock.lang.Specification
 
 import static org.gradle.internal.io.IoConsumer.wrap
 
-class IoConsumerTest extends Specification {
+class IoConsumerTest extends AbstractIoTest {
 
     def "executed when it doesn't throw"() {
         when:
-        String encountered = null
-        wrap({ String payload -> encountered = payload }).accept("lajos")
+        String actual = null
+        wrap({ String payload -> actual = payload }).accept("lajos")
         then:
-        encountered == "lajos"
+        actual == "lajos"
     }
 
-    def "can throw RuntimeException directly"() {
-        when:
-        wrap({ String payload -> throw new RuntimeException(payload) }).accept("lajos")
-        then:
-        def runtimeEx = thrown RuntimeException
-        runtimeEx.message == "lajos"
-    }
-
-    def "can throw IOException, but it gets wrapped"() {
-        when:
-        wrap({ String payload -> throw new IOException(payload) }).accept("lajos")
-        then:
-        def ioEx = thrown UncheckedIOException
-        ioEx.cause instanceof IOException
-        ioEx.cause.message == "lajos"
+    @Override
+    protected void executeWithException(Throwable exception) {
+        wrap({ String payload ->
+            assert payload == "lajos"
+            throw exception
+        }).accept("lajos")
     }
 }
