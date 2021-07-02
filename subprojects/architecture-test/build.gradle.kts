@@ -29,6 +29,8 @@ tasks.test {
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
+
+    useJUnitPlatform()
 }
 
 class ArchUnitFreezeConfiguration(
