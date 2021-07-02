@@ -19,6 +19,7 @@ package org.gradle.configurationcache.problems
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.configurationcache.logger
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.service.scopes.Scopes
@@ -123,7 +124,12 @@ class ConfigurationCacheReport(
             private
             fun ManagedExecutor.shutdownAndAwaitTermination() {
                 shutdown()
-                awaitTermination(3, TimeUnit.SECONDS)
+                if (!awaitTermination(30, TimeUnit.SECONDS)) {
+                    logger.warn(
+                        "Configuration cache report is taking too long to write... "
+                            + "The build might finish before the report has been completely written."
+                    )
+                }
             }
 
             private
