@@ -1,5 +1,6 @@
 # Execution team
 subprojects/base-annotations/       @gradle/execution @marcphilipp @britter
+subprojects/functional/             @gradle/execution @bamboo
 subprojects/build-cache/            @gradle/execution
 subprojects/build-cache-base/       @gradle/execution @marcphilipp @britter
 subprojects/build-cache-http/       @gradle/execution

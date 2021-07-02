@@ -18,8 +18,6 @@ package org.gradle.internal;
 
 import java.util.function.Function;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 /**
  * Represents values with two possibilities.
  *
@@ -53,8 +51,9 @@ public abstract class Either<L, R> {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <U> Either<L, U> map(Function<R, U> r) {
-            return uncheckedCast(this);
+            return (Either<L, U>) this;
         }
     }
 
