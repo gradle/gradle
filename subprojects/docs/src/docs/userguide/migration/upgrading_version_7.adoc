@@ -53,6 +53,11 @@ Historically, Gradle also loads the serialized value from the last execution and
 Doing so is error prone, doesn't work with the build cache and has a performance impact, therefore it has been deprecated.
 Instead of using at `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
 
+[[forRepository_internal_api]]
+==== `ExclusiveContentRepository.forRepository(Factory<? extends ArtifactRepository>)` will be removed in Gradle 8
+
+This method inadvertently used an internal type (`Factory`) in its parameters. A replacement method has been added that instead uses `Callable`.
+
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier
 

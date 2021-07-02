@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
@@ -42,7 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import static org.gradle.util.internal.CollectionUtils.flattenCollections;
@@ -226,7 +228,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public static class ExclusiveContentRepositorySpec implements ExclusiveContentRepository {
         private final RepositoryHandler repositories;
-        private final List<Factory<? extends ArtifactRepository>> forRepositories = Lists.newArrayListWithExpectedSize(2);
+        private final List<Callable<? extends ArtifactRepository>> forRepositories = Lists.newArrayListWithExpectedSize(2);
         private Action<? super InclusiveRepositoryContentDescriptor> filter;
 
         public ExclusiveContentRepositorySpec(RepositoryHandler repositories) {
@@ -234,8 +236,19 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         }
 
         @Override
-        public ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repositoryProducer) {
+        public ExclusiveContentRepository forRepository(Callable<? extends ArtifactRepository> repositoryProducer) {
             forRepositories.add(repositoryProducer);
+            return this;
+        }
+
+        @Override
+        public ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repositoryProducer) {
+            DeprecationLogger.deprecateMethod(ExclusiveContentRepository.class,
+                    "forRepository(Factory<? extends ArtifactRepository>)").replaceWith("forRepository(Callable<? extends ArtifactRepository>)").
+                    willBeRemovedInGradle8().
+                    withUpgradeGuideSection(7, "forRepository_internal_api").
+                    nagUser();
+            forRepositories.add(repositoryProducer::create);
             return this;
         }
 
@@ -259,7 +272,16 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             if (filter == null) {
                 throw new InvalidUserCodeException("You must specify the filter for the repository using filter { ... }");
             }
-            Set<? extends ArtifactRepository> targetRepositories = forRepositories.stream().map(Factory::create).collect(Collectors.toSet());
+
+            Set<ArtifactRepository> targetRepositories = Sets.newHashSet();
+            try {
+                for (Callable<? extends ArtifactRepository> repositoryProducer : forRepositories) {
+                        targetRepositories.add(repositoryProducer.call());
+                }
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
             Action<? super RepositoryContentDescriptor> forExclusivity = transformForExclusivity(filter);
             this.repositories.all(repo -> {
                 if (targetRepositories.contains(repo)) {

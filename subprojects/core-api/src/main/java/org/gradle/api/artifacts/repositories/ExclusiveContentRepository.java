@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 
+import java.util.concurrent.Callable;
+
 /**
  * Describes one or more repositories which together constitute the only possible
  * source for an artifact, independently of the others.
@@ -32,8 +34,16 @@ public interface ExclusiveContentRepository {
      * Declares the repository
      * @param repository the repository for which we declare exclusive content
      * @return this repository descriptor
+     * @deprecated Use {@link #forRepository(Callable)} to avoid an internal Gradle API
      */
     ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repository);
+
+    /**
+     * Declares the repository
+     * @param repository the repository for which we declare exclusive content
+     * @return this repository descriptor
+     */
+    ExclusiveContentRepository forRepository(Callable<? extends ArtifactRepository> repository);
 
     /**
      * Declares the repository
