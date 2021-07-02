@@ -23,6 +23,7 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.io.IoSupplier;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -49,7 +50,7 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
     }
 
     @Nullable
-    private HashCode hashFile(FileSystemLocationSnapshot snapshot, HashCodeSupplier hashCodeSupplier, HashCode configurationHash) throws IOException {
+    private HashCode hashFile(FileSystemLocationSnapshot snapshot, IoSupplier<HashCode> hashCodeSupplier, HashCode configurationHash) throws IOException {
         HashCode resourceHashCacheKey = resourceHashCacheKey(snapshot.getHash(), configurationHash);
 
         HashCode resourceHash = persistentCache.getIfPresent(resourceHashCacheKey);
@@ -75,11 +76,5 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
         hasher.putHash(configurationHash);
         hasher.putHash(contentHash);
         return hasher.hash();
-    }
-
-    @FunctionalInterface
-    private interface HashCodeSupplier {
-        @Nullable
-        HashCode get() throws IOException;
     }
 }
