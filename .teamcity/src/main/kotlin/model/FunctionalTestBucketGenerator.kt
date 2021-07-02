@@ -192,10 +192,14 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
+        // native projects are not able to be run on TD for now
+        // quite a few TAPI tests also don't work
+        // `WatchedDirectoriesFileSystemWatchingIntegrationTest fails on local filesystem` doesn't work in remote executor
+        val forceNoTDSubprojects = listOf("language-native", "platform-native", "testing-native", "ide-native", "tooling-api", "file-watching")
         return if (testCoverage.testType == TestType.platform) {
-            splitDocsSubproject(validSubprojects) + splitIntoBuckets(listOf("docs"), validSubprojects, subProjectTestClassTimes, testCoverage)
+            splitDocsSubproject(validSubprojects) + splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), forceNoTDSubprojects)
         } else {
-            splitIntoBuckets(emptyList(), validSubprojects, subProjectTestClassTimes, testCoverage)
+            splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), forceNoTDSubprojects)
         }
     }
 
@@ -216,18 +220,19 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     }
 
     private fun splitIntoBuckets(
-        specialSubprojectNames: List<String>,
         validSubprojects: List<GradleSubproject>,
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
-        testCoverage: TestCoverage
+        testCoverage: TestCoverage,
+        excludedSubprojectNames: List<String> = listOf(),
+        forceSplitSubprojectNames: List<String> = listOf()
     ): List<BuildTypeBucket> {
-        val specialSubprojects = validSubprojects.filter { specialSubprojectNames.contains(it.name) }
-        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !specialSubprojectNames.contains(it.subProject.name) }
+        val specialSubprojects = validSubprojects.filter { excludedSubprojectNames.contains(it.name) }
+        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
         return splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement: SubprojectTestClassTime, size: Int ->
-                if (testCoverage.os == Os.LINUX)
+                if (testCoverage.os == Os.LINUX && !forceSplitSubprojectNames.contains(largeElement.subProject.name))
                     largeElement.split(1, true)
                 else
                     largeElement.split(size)
