@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.primitives.Bytes;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -28,7 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -38,7 +37,7 @@ public abstract class AbstractLineEndingAwareHasher {
     }
 
     private Optional<HashCode> hashContent(InputStream inputStream) throws IOException {
-        return new LineEndingAwareResourceHasher.LineEndingAwareInputStreamHasher().hash(inputStream);
+        return new LineEndingAwareInputStreamHasher().hash(inputStream);
     }
 
     protected Optional<HashCode> hashContent(File file) throws IOException {
@@ -103,77 +102,82 @@ public abstract class AbstractLineEndingAwareHasher {
     @VisibleForTesting
     static class LineEndingAwareInputStreamHasher {
         private static final HashCode SIGNATURE = Hashing.signature(LineEndingAwareInputStreamHasher.class);
-        int peekAhead = -1;
+        private static final int BUFFER_SIZE = 8192;
+        private final ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+        private final ByteBuffer original = ByteBuffer.allocate(BUFFER_SIZE);
+        private final byte[] readBuffer = new byte[BUFFER_SIZE];
+        private int peekAhead = -1;
 
         /**
          * Returns empty if the file is detected to be a binary file
          */
-        public Optional<HashCode> hash(InputStream inputStream) throws IOException {
-            byte[] buffer = new byte[8192];
+        Optional<HashCode> hash(InputStream inputStream) throws IOException {
             PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
 
             hasher.putHash(SIGNATURE);
+
             while (true) {
-                int nread = read(inputStream, buffer);
-                if (nread < 0) {
+                fillBuffer(inputStream, buffer);
+                if (!buffer.hasRemaining()) {
                     break;
                 }
 
-                if (checkForControlCharacters(buffer, nread)) {
+                if (checkForControlCharacters(buffer.array(), buffer.limit())) {
                     return Optional.empty();
                 }
 
-                hasher.putBytes(buffer, 0, nread);
+                hasher.putBytes(buffer.array(), 0, buffer.limit());
+                buffer.clear();
             }
+
             return Optional.of(hasher.hash());
         }
 
         @VisibleForTesting
-        int read(InputStream inputStream, byte[] b) throws IOException {
-            byte[] original = new byte[b.length];
+        void fillBuffer(InputStream inputStream, ByteBuffer buffer) throws IOException {
+            int readLimit = buffer.capacity();
 
             // If there is something left over in the peekAhead buffer, use that as the first byte
-            int readLimit = b.length;
             if (peekAhead != -1) {
                 readLimit--;
+                original.put((byte)peekAhead);
+                peekAhead = -1;
             }
 
-            int index = 0;
-            int read = inputStream.read(original, 0, readLimit);
+            // Fill the original byte buffer with bytes from the input stream
+            int read = inputStream.read(readBuffer, 0, readLimit);
             if (read != -1) {
-                Iterator<Byte> itr = Bytes.asList(original).subList(0, read).iterator();
-                while (itr.hasNext()) {
-                    // Get our next byte from the peek ahead buffer if it contains anything
-                    int next = peekAhead;
+                original.put(readBuffer, 0, read);
+            }
 
-                    // If there was something in the peek ahead buffer, use it, otherwise get the next byte
-                    if (next != -1) {
-                        peekAhead = -1;
-                    } else {
-                        next = itr.next();
-                    }
-
-                    // If the next bytes are '\r' or '\r\n', replace it with '\n'
-                    if (next == '\r') {
-                        peekAhead = itr.hasNext() ? itr.next() : inputStream.read();
-                        if (peekAhead == '\n') {
-                            peekAhead = -1;
-                        }
-                        next = '\n';
-                    }
-
-                    b[index++] = (byte) next;
-                }
-            } else if (peekAhead != -1) {
-                // If there is a character still left in the peekAhead buffer but not in the input stream, then normalize it and return
+            // Transfer the original bytes to the normalized byte buffer
+            original.flip();
+            while (original.hasRemaining()) {
+                // Get our next byte from the peek ahead buffer if it contains anything
                 int next = peekAhead;
-                peekAhead = -1;
+
+                // If there was something in the peek ahead buffer, use it, otherwise get the next byte
+                if (next != -1) {
+                    peekAhead = -1;
+                } else {
+                    next = original.get();
+                }
+
+                // If the next bytes are '\r' or '\r\n', replace it with '\n'
                 if (next == '\r') {
+                    peekAhead = original.hasRemaining() ? original.get() : inputStream.read();
+                    if (peekAhead == '\n') {
+                        peekAhead = -1;
+                    }
                     next = '\n';
                 }
-                b[index++] = (byte) next;
+
+               buffer.put((byte) next);
             }
-            return index == 0 ? -1 : index;
+
+            // Flip the normalized buffer in preparation for reading and clear the original byte stream
+            buffer.flip();
+            original.clear();
         }
 
         private boolean checkForControlCharacters(byte[] buffer, int length) {

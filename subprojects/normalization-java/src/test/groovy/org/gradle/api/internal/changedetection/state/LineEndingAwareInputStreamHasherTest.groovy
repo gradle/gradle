@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.ByteBuffer
+
 
 class LineEndingAwareInputStreamHasherTest extends Specification {
     @Unroll
@@ -41,11 +43,15 @@ class LineEndingAwareInputStreamHasherTest extends Specification {
 
     static byte[] readAllBytes(InputStream inputStream, int bufferLength) {
         def streamHasher = new AbstractLineEndingAwareHasher.LineEndingAwareInputStreamHasher()
-        ArrayList<Byte> bytes = []
-        byte[] buffer = new byte[bufferLength]
-        int read
-        while ((read = streamHasher.read(inputStream, buffer)) != -1) {
-            bytes.addAll(buffer[0..(read-1)].collect { Byte.valueOf(it) })
+        ByteBuffer buffer = ByteBuffer.allocate(bufferLength)
+        def bytes = []
+        while(true) {
+            streamHasher.fillBuffer(inputStream, buffer)
+            if (!buffer.hasRemaining()) {
+                break
+            }
+            bytes.addAll(buffer.array()[0..(buffer.limit()-1)])
+            buffer.clear()
         }
         return bytes as byte[]
     }
