@@ -223,6 +223,8 @@ public abstract class Try<T> {
 
         @Override
         public T get() {
+            // TODO Merge back with org.gradle.internal.UncheckedException.throwAsUncheckedException()
+            //      once it's extracted from :base-services
             if (failure instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
