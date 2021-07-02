@@ -55,15 +55,6 @@ class CIConfigIntegrationTests {
     }
 
     @Test
-    fun macBuildsHasEmptyRepoMirrorUrlsParam() {
-        val rootProject = CheckProject(model, gradleBuildBucketProvider)
-        val readyForRelease = rootProject.searchSubproject("Gradle_Master_Check_Stage_ReadyforRelease")
-        val macBuilds = readyForRelease.subProjects.filter { it.name.contains("Macos") }.flatMap { (it as FunctionalTestProject).functionalTests }
-        assertTrue(macBuilds.isNotEmpty())
-        assertTrue(macBuilds.all { it.params.findRawParam("env.REPO_MIRROR_URLS")!!.value == "" })
-    }
-
-    @Test
     fun macOSBuildsSubset() {
         val readyForRelease = rootProject.subProjects.find { it.name.contains(StageNames.READY_FOR_RELEASE.stageName) }!!
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!

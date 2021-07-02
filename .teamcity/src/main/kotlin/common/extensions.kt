@@ -134,7 +134,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os)
         }
 
         if (os == Os.MACOS) {
-            param("env.REPO_MIRROR_URLS", "")
+            param("env.REPO_MIRROR_GRDEV_URLS", "")
         }
     }
 }
