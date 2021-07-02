@@ -57,8 +57,14 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
         try {
             return normalizedContentHasher.hash(snapshot);
         } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath()), e);
+            throw new UncheckedIOException(failedToNormalize(snapshot), e);
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(failedToNormalize(snapshot), e.getCause());
         }
+    }
+
+    private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
+        return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
     }
 
     @Override

@@ -232,8 +232,14 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                     return classpathResourceHasher.hash(fileSnapshotContext);
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(String.format("Failed to normalize content of '%s'.", fileSnapshot.getAbsolutePath()), e);
+                throw new UncheckedIOException(failedToNormalize(fileSnapshot), e);
+            } catch (UncheckedIOException e) {
+                throw new UncheckedIOException(failedToNormalize(fileSnapshot), e.getCause());
             }
+        }
+
+        private String failedToNormalize(RegularFileSnapshot snapshot) {
+            return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
         }
     }
 

@@ -149,10 +149,13 @@ class LineEndingAwareFileSystemLocationSnapshotHasherTest extends Specification 
         1 * delegate.hash(snapshot) >> { throw exception.getDeclaredConstructor().newInstance() }
 
         and:
-        thrown(exception)
+        def e = thrown(thrownException)
+        exception == thrownException || e.cause.class == exception
 
         where:
-        exception << [IOException, RuntimeException]
+        exception        | thrownException
+        IOException      | UncheckedIOException
+        RuntimeException | RuntimeException
     }
 
     File file(String path) {

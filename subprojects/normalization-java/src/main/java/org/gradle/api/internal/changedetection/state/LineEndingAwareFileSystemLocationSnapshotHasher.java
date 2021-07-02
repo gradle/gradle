@@ -21,6 +21,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.io.IoSupplier;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -28,11 +29,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-public class LineEndingAwareFileSystemLocationSnapshotHasher extends AbstractLineEndingAwareHasher implements FileSystemLocationSnapshotHasher {
+public class LineEndingAwareFileSystemLocationSnapshotHasher implements FileSystemLocationSnapshotHasher {
     private final FileSystemLocationSnapshotHasher delegate;
+    private final LineEndingAwareInputStreamHasher hasher;
 
     private LineEndingAwareFileSystemLocationSnapshotHasher(FileSystemLocationSnapshotHasher delegate) {
         this.delegate = delegate;
+        this.hasher = new LineEndingAwareInputStreamHasher();
     }
 
     public static FileSystemLocationSnapshotHasher wrap(FileSystemLocationSnapshotHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
@@ -57,10 +60,10 @@ public class LineEndingAwareFileSystemLocationSnapshotHasher extends AbstractLin
     public HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException {
         // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
         return hashContent(snapshot)
-            .orElseGet(Suppliers.rethrow(() -> delegate.hash(snapshot)));
+            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshot)));
     }
 
     private Optional<HashCode> hashContent(FileSystemLocationSnapshot snapshot) throws IOException {
-        return snapshot.getType() == FileType.RegularFile ? hashContent(new File(snapshot.getAbsolutePath())) : Optional.empty();
+        return snapshot.getType() == FileType.RegularFile ? hasher.hashContent(new File(snapshot.getAbsolutePath())) : Optional.empty();
     }
 }

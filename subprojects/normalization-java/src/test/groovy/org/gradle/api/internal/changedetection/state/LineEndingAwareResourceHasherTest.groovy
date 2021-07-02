@@ -189,7 +189,8 @@ class LineEndingAwareResourceHasherTest extends Specification {
         1 * delegate.hash(snapshotContext) >> { throw exception.getDeclaredConstructor().newInstance() }
 
         and:
-        thrown(exception)
+        def e = thrown(thrownException)
+        exception == thrownException || e.cause.class == exception
 
         when:
         hasher.hash(zipContext)
@@ -198,10 +199,13 @@ class LineEndingAwareResourceHasherTest extends Specification {
         1 * delegate.hash(zipContext) >> { throw exception.getDeclaredConstructor().newInstance() }
 
         and:
-        thrown(exception)
+        e = thrown(thrownException)
+        exception == thrownException || e.cause.class == exception
 
         where:
-        exception << [IOException, RuntimeException]
+        exception           | thrownException
+        IOException         | UncheckedIOException
+        RuntimeException    | RuntimeException
     }
 
     File file(String path) {

@@ -22,20 +22,24 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.io.IoSupplier;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A {@link ResourceHasher} that ignores line endings while hashing the file.  It detects whether a file is text or binary and only
  * normalizes line endings for text files.  If a file is detected to be binary, we fall back to the existing non-normalized hash.
  */
-public class LineEndingAwareResourceHasher extends AbstractLineEndingAwareHasher implements ResourceHasher {
+public class LineEndingAwareResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
+    private final LineEndingAwareInputStreamHasher hasher;
 
     private LineEndingAwareResourceHasher(ResourceHasher delegate) {
         this.delegate = delegate;
+        this.hasher = new LineEndingAwareInputStreamHasher();
     }
 
     public static ResourceHasher wrap(ResourceHasher delegate, LineEndingSensitivity lineEndingSensitivity) {
@@ -58,16 +62,18 @@ public class LineEndingAwareResourceHasher extends AbstractLineEndingAwareHasher
     @Nullable
     @Override
     public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
-        return hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
-            .orElseGet(Suppliers.rethrow(() -> delegate.hash(snapshotContext)));
+        return hasher.hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
+            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
     }
 
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        // We have to use rethrow() in order to handle the IOException thrown from delegate.hash()
         return hashContent(zipEntryContext)
-            .orElseGet(Suppliers.rethrow(() -> delegate.hash(zipEntryContext)));
+            .orElseGet(IoSupplier.wrap(() -> delegate.hash(zipEntryContext)));
+    }
+
+    private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
+        return zipEntryContext.getEntry().isDirectory() ? Optional.empty() : zipEntryContext.getEntry().withInputStream(hasher::hashContent);
     }
 }
