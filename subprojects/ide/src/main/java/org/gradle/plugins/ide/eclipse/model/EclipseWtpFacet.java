@@ -26,6 +26,8 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -138,10 +140,12 @@ public class EclipseWtpFacet {
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     public void facet(Map<String, ?> args) {
+        Facet newFacet = ConfigureUtil.configureByMap(args, new Facet());
         facets = Lists.newArrayList(Iterables.concat(
-            getFacets(),
-            Collections.singleton(ConfigureUtil.configureByMap(args, new Facet()))
-        ));
+            getFacets().stream()
+                       .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
+                       .collect(Collectors.toList()),
+            Collections.singleton(newFacet)));
     }
 
     @SuppressWarnings("unchecked")
