@@ -90,20 +90,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m32");
-            Action<List<String>> m32args = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.add("-m32");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m32args);
-            gccToolChain.getcCompiler().withArguments(m32args);
-            gccToolChain.getObjcCompiler().withArguments(m32args);
-            gccToolChain.getObjcppCompiler().withArguments(m32args);
-            gccToolChain.getLinker().withArguments(m32args);
-            gccToolChain.getAssembler().withArguments(m32args);
-
         }
     }
 
@@ -116,19 +102,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
         @Override
         public void apply(DefaultGccPlatformToolChain gccToolChain) {
-            gccToolChain.compilerProbeArgs("-m64");
-            Action<List<String>> m64args = new Action<List<String>>() {
-                @Override
-                public void execute(List<String> args) {
-                    args.add("-m64");
-                }
-            };
-            gccToolChain.getCppCompiler().withArguments(m64args);
-            gccToolChain.getcCompiler().withArguments(m64args);
-            gccToolChain.getObjcCompiler().withArguments(m64args);
-            gccToolChain.getObjcppCompiler().withArguments(m64args);
-            gccToolChain.getLinker().withArguments(m64args);
-            gccToolChain.getAssembler().withArguments(m64args);
         }
     }
 
@@ -160,13 +133,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
         Architecture systemArchitecture = Architectures.forInput(systemInfo.getArchitectureName());
         Architecture targetArchitecture = targetPlatform.getArchitecture();
 
-        List<Architecture> x86architectures = Arrays.asList(
-            Architectures.of(Architectures.X86),
-            Architectures.of(Architectures.X86_64)
-        );
-
-        if (systemArchitecture.equals(targetArchitecture) || // if compiling for the same platform
-            (x86architectures.contains(targetArchitecture) && x86architectures.contains(systemArchitecture))) { // or native tools are compatible with that architecture
+        if (systemArchitecture.equals(targetArchitecture)) { // can use native tools for compiling on same platform
             addNativeTools(toolChain);
         } else {
             addCrossCompilingTools(targetPlatform, toolChain);
