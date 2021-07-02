@@ -17,52 +17,152 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
-public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
-    private final IncludedBuildControllers includedBuilds;
+public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
+    private enum State {
+        QueuingTasks, ReadyToRun, Running, Finished
+    }
 
-    public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds) {
-        this.includedBuilds = includedBuilds;
+    private final BuildStateRegistry buildRegistry;
+    private final ResourceLockCoordinationService coordinationService;
+    private final ProjectStateRegistry projectStateRegistry;
+    private final ManagedExecutor executorService;
+    private Thread owner;
+    private State state = State.QueuingTasks;
+    private IncludedBuildControllers includedBuilds;
+
+    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+        this.buildRegistry = buildRegistry;
+        this.coordinationService = coordinationService;
+        this.projectStateRegistry = projectStateRegistry;
+        this.executorService = executorFactory.create("included builds");
+        this.includedBuilds = createControllers();
+    }
+
+    private DefaultIncludedBuildControllers createControllers() {
+        return new DefaultIncludedBuildControllers(executorService, buildRegistry, coordinationService, projectStateRegistry);
     }
 
     @Override
     public <T> T withNestedTaskGraph(Supplier<T> action) {
-        return includedBuilds.withNestedTaskGraph(action);
+        return withState(() -> {
+            expectQueuingTasks();
+            IncludedBuildControllers currentControllers = includedBuilds;
+            includedBuilds = createControllers();
+            try {
+                return action.get();
+            } finally {
+                includedBuilds.close();
+                includedBuilds = currentControllers;
+                state = State.QueuingTasks;
+            }
+        });
     }
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
-        return includedBuilds.getBuildController(targetBuild).locateTask(task);
+        return withState(() -> {
+            expectQueuingTasks();
+            state = State.QueuingTasks;
+            return includedBuilds.getBuildController(targetBuild).locateTask(task);
+        });
     }
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
-        return includedBuilds.getBuildController(targetBuild).locateTask(taskPath);
+        return withState(() -> {
+            expectQueuingTasks();
+            state = State.QueuingTasks;
+            return includedBuilds.getBuildController(targetBuild).locateTask(taskPath);
+        });
     }
 
     @Override
     public void populateTaskGraphs() {
-        includedBuilds.populateTaskGraphs();
+        withState(() -> {
+            expectQueuingTasks();
+            includedBuilds.populateTaskGraphs();
+            state = State.ReadyToRun;
+            return null;
+        });
     }
 
     @Override
     public void startTaskExecution() {
-        includedBuilds.startTaskExecution();
+        withState(() -> {
+            expectInState(State.ReadyToRun);
+            state = State.Running;
+            includedBuilds.startTaskExecution();
+            return null;
+        });
     }
 
     @Override
     public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
-        includedBuilds.awaitTaskCompletion(taskFailures);
+        withState(() -> {
+            expectInState(State.Running);
+            try {
+                includedBuilds.awaitTaskCompletion(taskFailures);
+            } finally {
+                state = State.Finished;
+            }
+            return null;
+        });
     }
 
     @Override
     public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
-        includedBuilds.populateTaskGraphs();
-        includedBuilds.startTaskExecution();
-        includedBuilds.awaitTaskCompletion(taskFailures);
+        populateTaskGraphs();
+        startTaskExecution();
+        awaitTaskCompletion(taskFailures);
+    }
+
+    @Override
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(includedBuilds, executorService);
+    }
+
+    private void expectQueuingTasks() {
+        if (state != State.QueuingTasks && state != State.ReadyToRun) {
+            throw new IllegalStateException("Work graph is in unexpected state: " + state);
+        }
+    }
+
+    private void expectInState(State expectedState) {
+        if (state != expectedState) {
+            throw new IllegalStateException("Work graph is in unexpected state: " + state);
+        }
+    }
+
+    private <T> T withState(Supplier<T> action) {
+        Thread currentOwner;
+        synchronized (this) {
+            currentOwner = owner;
+            if (owner == null) {
+                owner = Thread.currentThread();
+            } else if (owner != Thread.currentThread()) {
+                // Currently, only a single thread should work with the task graph at a time
+                throw new IllegalStateException("This task graph is already in use.");
+            }
+        }
+        try {
+            return action.get();
+        } finally {
+            synchronized (this) {
+                owner = currentOwner;
+            }
+        }
     }
 }

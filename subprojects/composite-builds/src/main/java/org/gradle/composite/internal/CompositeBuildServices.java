@@ -51,7 +51,6 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
 
     private static class CompositeBuildTreeScopeServices {
         public void configure(ServiceRegistration serviceRegistration) {
-            serviceRegistration.add(DefaultIncludedBuildControllers.class);
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);
             serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);

@@ -23,43 +23,25 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
+class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new LinkedHashMap<>();
     private final ManagedExecutor executorService;
     private final ResourceLockCoordinationService coordinationService;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+    DefaultIncludedBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+        this.executorService = executorService;
         this.buildRegistry = buildRegistry;
-        this.executorService = executorFactory.create("included builds");
         this.coordinationService = coordinationService;
         this.projectStateRegistry = projectStateRegistry;
-    }
-
-    @Override
-    public <T> T withNestedTaskGraph(Supplier<T> action) {
-        Map<BuildIdentifier, IncludedBuildController> currentControllers = new LinkedHashMap<>(buildControllers);
-        buildControllers.clear();
-        T result;
-        try {
-            result = action.get();
-        } finally {
-            CompositeStoppable.stoppable(buildControllers.values()).stop();
-            buildControllers.clear();
-            buildControllers.putAll(currentControllers);
-        }
-        return result;
     }
 
     @Override
@@ -108,13 +90,10 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.awaitTaskCompletion(taskFailures);
         }
-        CompositeStoppable.stoppable(buildControllers.values()).stop();
-        buildControllers.clear();
     }
 
     @Override
-    public void stop() {
+    public void close() {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
-        executorService.stop();
     }
 }

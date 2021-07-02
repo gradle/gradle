@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.Closeable;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-@ServiceScope(Scopes.BuildTree.class)
-interface IncludedBuildControllers {
+interface IncludedBuildControllers extends Closeable {
     /**
      * Finish populating task graphs, once all entry point tasks have been scheduled.
      */
@@ -41,8 +38,6 @@ interface IncludedBuildControllers {
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 
-    /**
-     * See {@link IncludedBuildTaskGraph#withNestedTaskGraph(Supplier)}.
-     */
-    <T> T withNestedTaskGraph(Supplier<T> action);
+    @Override
+    void close();
 }
