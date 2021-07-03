@@ -62,12 +62,10 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     void testCanFinishBuildWhenNothingHasBeenDone() {
         def controller = controller()
 
-        when:
-        controller.finishBuild(null, consumer)
+        expect:
+        expectBuildFinished("Configure")
 
-        then:
-        0 * buildBroadcaster._
-        0 * consumer._
+        controller.finishBuild(null, consumer)
     }
 
     void testScheduleAndRunRequestedTasks() {

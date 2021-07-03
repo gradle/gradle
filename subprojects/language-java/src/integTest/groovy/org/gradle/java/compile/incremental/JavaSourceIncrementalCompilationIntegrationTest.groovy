@@ -120,4 +120,63 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         succeeds language.compileTaskName
         outputs.recompiledClasses('MyClass', 'Other')
     }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "recompiles all when constant used by annotation on module-info is changed"() {
+        given:
+        source("""
+            import java.util.logging.Logger;
+            class Foo {
+                Logger logger;
+            }
+        """)
+        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"unchecked\"; }"
+        def moduleInfo = file("src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            import constant.Const;
+
+            @SuppressWarnings(Const.CONST)
+            module foo {
+                requires java.logging;
+            }
+        """
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"raw-types\"; }"
+        succeeds language.compileTaskName
+
+        then:
+        outputs.recompiledClasses('Const', 'Foo', 'module-info')
+    }
+
+    def "recompiles all classes in a package if constant used by annotation on package-info is changed"() {
+        given:
+        file("src/main/${languageName}/annotations/Anno.${languageName}").text = """
+            package annotations;
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.RUNTIME)
+            @Target(ElementType.PACKAGE)
+            public @interface Anno {
+                   int value();
+            }
+        """
+        def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
+        packageFile.text = """@Deprecated @annotations.Anno(Const.CONST + 1) package foo; import constant.Const;"""
+        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
+        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
+        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
+        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
+        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int CONST = 1; }"
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int CONST = 2; }"
+        succeeds language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "E", "Const", "package-info")
+    }
 }

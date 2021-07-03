@@ -46,20 +46,22 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
     def "can run action and returns result when completed"() {
         given:
         def model = new Object()
+        def serialized = Stub(SerializedPayload)
         def internalAction = Mock(InternalBuildAction)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult == model
+        result.clientResult == serialized
         result.buildFailure == null
         result.clientFailure == null
 
         and:
+        1 * payloadSerializer.deserialize(action) >> internalAction
         1 * buildController.fromBuildModel(false, _) >> { Boolean b, Function function -> function.apply(gradle) }
         1 * internalAction.execute(_) >> model
-        1 * payloadSerializer.deserialize(action) >> internalAction
+        1 * payloadSerializer.serialize(model) >> serialized
     }
 
     def "can run action and reports failure"() {
@@ -117,18 +119,20 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         given:
         def model = new Object()
         def internalAction = Mock(InternalBuildActionVersion2)
+        def serializedResult = Stub(SerializedPayload)
 
         when:
         def result = runner.run(clientProvidedBuildAction, buildController)
 
         then:
-        result.clientResult == model
+        result.clientResult == serializedResult
         result.buildFailure == null
         result.clientFailure == null
 
         and:
+        1 * payloadSerializer.deserialize(action) >> internalAction
         1 * buildController.fromBuildModel(false, _) >> { Boolean b, Function function -> function.apply(gradle) }
         1 * internalAction.execute(_) >> model
-        1 * payloadSerializer.deserialize(action) >> internalAction
+        1 * payloadSerializer.serialize(model) >> serializedResult
     }
 }

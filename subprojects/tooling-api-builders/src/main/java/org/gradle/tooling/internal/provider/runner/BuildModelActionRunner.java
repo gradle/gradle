@@ -28,6 +28,8 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
@@ -36,6 +38,12 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class BuildModelActionRunner implements BuildActionRunner {
+    private final PayloadSerializer payloadSerializer;
+
+    public BuildModelActionRunner(PayloadSerializer payloadSerializer) {
+        this.payloadSerializer = payloadSerializer;
+    }
+
     @Override
     public Result run(BuildAction action, final BuildTreeLifecycleController buildController) {
         if (!(action instanceof BuildModelAction)) {
@@ -50,7 +58,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
             if (buildModelAction.isCreateModel()) {
                 gradle.addBuildListener(new ForceFullConfigurationListener());
                 Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
-                return Result.of(result);
+                SerializedPayload serializedResult = payloadSerializer.serialize(result);
+                return Result.of(serializedResult);
             } else {
                 buildController.scheduleAndRunTasks();
                 return Result.of(null);

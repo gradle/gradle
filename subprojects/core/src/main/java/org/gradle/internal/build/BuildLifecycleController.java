@@ -17,6 +17,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
@@ -46,14 +47,19 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
-     * Schedules the specified tasks for this build. Configures the build, if necessary.
+     * Adds the specified tasks and their dependencies to the work graph for this build. Configures the build, if necessary.
      */
     void scheduleTasks(final Iterable<String> tasks);
 
     /**
-     * Schedule requested tasks, as defined in the {@link org.gradle.StartParameter} for this build. Configures the build, if necessary.
+     * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build. Configures the build, if necessary.
      */
     void scheduleRequestedTasks();
+
+    /**
+     * Populates the work graph of this build.
+     */
+    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
 
     /**
      * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.

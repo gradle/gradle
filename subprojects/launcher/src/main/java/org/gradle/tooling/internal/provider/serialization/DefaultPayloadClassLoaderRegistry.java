@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -28,6 +27,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,8 +55,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     @Override
     public SerializeMap newSerializeSession() {
         return new SerializeMap() {
-            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
+            final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
 
             @Override
             public short visitClass(Class<?> target) {
@@ -116,7 +116,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
         final ClassLoader classLoader;
-        final List<ClassLoader> parents = new ArrayList<ClassLoader>();
+        final List<ClassLoader> parents = new ArrayList<>();
         ClassLoaderSpec spec;
         URL[] classPath;
 
@@ -152,7 +152,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
+                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.of()));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);

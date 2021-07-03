@@ -243,7 +243,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCacheRunLenient("help")
 
         then:
-        problems.assertFailureHasProblems(failure) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }

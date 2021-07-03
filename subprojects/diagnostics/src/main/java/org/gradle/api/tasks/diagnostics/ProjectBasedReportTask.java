@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.IOException;
 import java.util.TreeSet;
@@ -28,6 +29,7 @@ import java.util.TreeSet;
  * @since 6.8
  */
 @Incubating
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ProjectBasedReportTask extends ConventionReportTask {
 
     protected abstract void generate(Project project) throws IOException;

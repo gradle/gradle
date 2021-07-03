@@ -19,10 +19,12 @@ package org.gradle.language.cpp.tasks;
 import org.gradle.language.cpp.tasks.internal.DefaultCppPCHCompileSpec;
 import org.gradle.language.nativeplatform.tasks.AbstractNativePCHCompileTask;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Compiles C++ header source files into object files.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class CppPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {

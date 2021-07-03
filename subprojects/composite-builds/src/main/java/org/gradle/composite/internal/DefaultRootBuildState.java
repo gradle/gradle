@@ -82,6 +82,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
+    protected BuildLifecycleController getBuildController() {
+        return buildLifecycleController;
+    }
+
+    @Override
     protected ProjectStateRegistry getProjectStateRegistry() {
         return projectStateRegistry;
     }

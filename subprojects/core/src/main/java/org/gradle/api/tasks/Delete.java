@@ -21,6 +21,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.internal.file.Deleter;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,6 +41,7 @@ import java.util.Set;
  * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
  * this will have no effect.
  */
+@DisableCachingByDefault(because = "Deletion cannot be cached")
 public class Delete extends ConventionTask implements DeleteSpec {
     private ConfigurableFileCollection paths = getProject().getObjects().fileCollection();
 

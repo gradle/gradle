@@ -119,7 +119,7 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
-            val projectState = gradle.owner.getProject(descriptor.path())
+            val projectState = gradle.owner.projects.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
             val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
@@ -133,12 +133,12 @@ class ConfigurationCacheHost internal constructor(
         }
 
         override fun getProject(path: String): ProjectInternal =
-            gradle.owner.getProject(Path.path(path)).mutableModel
+            gradle.owner.projects.getProject(Path.path(path)).mutableModel
 
         override fun scheduleNodes(nodes: Collection<Node>) {
-            gradle.taskGraph.run {
-                addNodes(nodes)
-                populate()
+            gradle.owner.populateWorkGraph {
+                it.addNodes(nodes)
+                it.populate()
             }
         }
 

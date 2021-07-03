@@ -34,6 +34,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import static java.util.Collections.emptyList;
  * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
  * by enabling the command line option {@code --all}.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;

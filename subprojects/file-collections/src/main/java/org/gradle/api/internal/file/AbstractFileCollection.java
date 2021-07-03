@@ -366,12 +366,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
         @Override
         public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
-            ExecutionTimeValue<Set<FileSystemLocation>> value = ExecutionTimeValue.fixedValue(get());
             if (contentsAreBuiltByTask()) {
-                return value.withChangingContent();
-            } else {
-                return value;
+                return ExecutionTimeValue.changingValue(this);
             }
+            return ExecutionTimeValue.fixedValue(get());
         }
 
         private boolean contentsAreBuiltByTask() {

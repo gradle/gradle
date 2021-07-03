@@ -32,9 +32,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.util.PropertiesUtils;
-import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.WrapUtil;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.WrapperExecutor;
@@ -64,6 +65,7 @@ import java.util.Properties;
  * generates a small {@code gradle-wrapper.jar} bootstrap JAR file and properties file which should also be committed to
  * your VCS. The scripts delegates to this JAR.
  */
+@DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
 public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 

@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))

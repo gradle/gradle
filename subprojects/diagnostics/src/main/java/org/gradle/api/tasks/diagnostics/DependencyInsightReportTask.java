@@ -49,6 +49,7 @@ import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -90,6 +91,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * For more information please refer to {@link DependencyInsightReportTask#setDependencySpec(Object)}
  * and {@link DependencyInsightReportTask#setConfiguration(String)}
  */
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;

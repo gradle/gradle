@@ -22,7 +22,7 @@ dependencies {
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
-        api("org.gradle:test-retry-gradle-plugin:1.2.0")
+        api("org.gradle:test-retry-gradle-plugin:1.3.1")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
         api("com.diffplug.spotless:spotless-plugin-gradle:5.10.2")

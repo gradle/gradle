@@ -117,6 +117,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
+    protected BuildLifecycleController getBuildController() {
+        return buildLifecycleController;
+    }
+
+    @Override
     protected ProjectStateRegistry getProjectStateRegistry() {
         return buildServices.get(ProjectStateRegistry.class);
     }

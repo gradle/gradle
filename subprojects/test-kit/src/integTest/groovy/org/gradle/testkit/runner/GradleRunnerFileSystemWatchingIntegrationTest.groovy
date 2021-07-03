@@ -19,7 +19,6 @@ package org.gradle.testkit.runner
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -34,7 +33,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
                 id('java')
             }
         """
-        assumeTrue("File system watching is enabled by default", gradleVersion >= GradleVersion.version("7.0"))
+        assumeTrue("File system watching is enabled by default", isCompatibleVersion("7.0"))
     }
 
     @NoDebug
@@ -68,6 +67,8 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
 
     @Debug
     def "file system watching is disabled when using --debug"() {
+        assumeTrue("Do not initialize file system watching in client", isCompatibleVersion("7.2"))
+
         when:
         def result = runAssemble(*extraArguments)
         then:

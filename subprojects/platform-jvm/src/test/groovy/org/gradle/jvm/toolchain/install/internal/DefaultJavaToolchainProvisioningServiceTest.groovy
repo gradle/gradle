@@ -39,6 +39,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         binary.toFilename(spec) >> 'jdk-123.zip'
         def downloadLocation = Mock(File)
         downloadLocation.name >> "filename.zip"
@@ -71,6 +72,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         cache.acquireWriteLock(_, _) >> lock
         binary.toFilename(spec) >> 'jdk-123.zip'
         def downloadLocation = temporaryFolder.newFile("jdk.zip")
@@ -85,6 +87,24 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         0 * binary.download(_, _)
     }
 
+    def "skips downloading if cannot satisfy spec"() {
+        def cache = Mock(JdkCacheDirectory)
+        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
+
+        given:
+        binary.canProvideMatchingJdk(spec) >> false
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
+
+        when:
+        def result = provisioningService.tryInstall(spec)
+
+        then:
+        !result.isPresent()
+        0 * binary.download(_, _)
+    }
+
     def "auto download can be disabled"() {
         def cache = Mock(JdkCacheDirectory)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
@@ -92,6 +112,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
+        binary.canProvideMatchingJdk(spec) >> true
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
 
         when:

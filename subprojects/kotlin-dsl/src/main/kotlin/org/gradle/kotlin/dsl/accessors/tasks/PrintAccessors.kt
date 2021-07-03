@@ -27,8 +27,10 @@ import org.gradle.kotlin.dsl.accessors.accessorsFor
 import org.gradle.kotlin.dsl.accessors.fragmentsFor
 
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.work.DisableCachingByDefault
 
 
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 open class PrintAccessors : DefaultTask() {
 
     init {

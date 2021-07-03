@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.internal.Transformers;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -45,6 +46,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces no cacheable output")
 public class Upload extends ConventionTask {
 
     private Configuration configuration;

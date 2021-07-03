@@ -258,6 +258,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
+                    testSourceDirs = testSourceDirs + performanceTestSourceSet.java.srcDirs
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                 }

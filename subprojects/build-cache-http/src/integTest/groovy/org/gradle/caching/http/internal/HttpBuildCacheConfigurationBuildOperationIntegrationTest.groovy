@@ -52,14 +52,14 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 local {
-                    enabled = false 
+                    enabled = false
                 }
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "$url"   
-                    push = $push 
+                    enabled = true
+                    url = "$url"
+                    push = $push
                     $credentials
                 }
             }
@@ -84,6 +84,8 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             result.remote.config.authenticated == null
         }
 
+        result.remote.config.useExpectContinue == "false"
+
         result.remote.type == 'HTTP'
         result.remote.push == push
 
@@ -101,10 +103,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         def safeUri = httpBuildCacheServer.uri
         def basicAuthUri = new URI(safeUri.getScheme(), 'user:pwd', safeUri.getHost(), safeUri.getPort(), safeUri.getPath(), safeUri.getQuery(), safeUri.getFragment())
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "${basicAuthUri}/"   
+                    enabled = true
+                    url = "${basicAuthUri}/"
                 }
             }
         """
@@ -124,10 +126,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = true 
-                    url = "$url/"   
+                    enabled = true
+                    url = "$url/"
                 }
             }
         """
@@ -145,10 +147,10 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         httpBuildCacheServer.start()
         def url = "${httpBuildCacheServer.uri}/"
         settingsFile << """
-            buildCache {  
+            buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
-                    enabled = false 
-                    url = "$url/"   
+                    enabled = false
+                    url = "$url/"
                 }
             }
         """
@@ -166,11 +168,11 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
     def "remote build cache configuration details is not exposed when not defined"() {
         given:
         settingsFile << """
-            buildCache {  
+            buildCache {
                 local {
-                    enabled = false 
+                    enabled = false
                     directory = 'directory'
-                    push = false 
+                    push = false
                 }
             }
         """
@@ -184,6 +186,30 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         !result.remoteEnabled
         result.remote == null
     }
+
+    def "captures useExpectContinue"() {
+        given:
+        httpBuildCacheServer.start()
+        def url = "${httpBuildCacheServer.uri}/"
+
+        settingsFile << """
+            buildCache {
+                remote(org.gradle.caching.http.HttpBuildCache) {
+                    enabled = true
+                    url = "$url"
+                    useExpectContinue = true
+                }
+            }
+        """
+        executer.withBuildCacheEnabled()
+
+        when:
+        succeeds("help")
+
+        then:
+        result().remote.config.useExpectContinue == "true"
+    }
+
 
     Map<String, ?> result() {
         buildOperations.result("Finalize build cache configuration")

@@ -295,9 +295,9 @@ include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files
 [[sec:build_cache_configure_remote]]
 === Remote HTTP build cache
 
-Gradle has built-in support for connecting to a remote build cache backend via HTTP.
-For more details on what the protocol looks like see link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache].
-Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
+link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] provides the ability read to and write from a remote cache via HTTP.
+
+With the following configuration, the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
 .Load from HttpBuildCache
 ====
@@ -305,27 +305,80 @@ include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="setting
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=http-build-cache]"]
 ====
 
-You can configure the credentials the link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache] uses to access the build cache server as shown in the following example.
+When attempting to load an entry, a `GET` request is made to `\https://example.com:8123/cache/«cache-key»`.
+The response must have a `2xx` status and the cache entry as the body, or a `404 Not Found` status if the entry does not exist.
 
-.Configure remote HTTP cache
+When attempting to store an entry, a `PUT` request is made to `\https://example.com:8123/cache/«cache-key»`.
+Any `2xx` response status is interpreted as success.
+A `413 Payload Too Large` response may be returned to indicate that the payload is larger than the server will accept, which will not be treated as an error.
+
+==== Specifying access credentials
+
+https://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic Authentication] is supported, with credentials being sent preemptively.
+
+.Specifying access credentials
 ====
 include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-http-build-cache]"]
 include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-http-build-cache]"]
 ====
 
-[NOTE]
-====
-You may encounter problems with an untrusted SSL certificate when you try to use a build cache backend with an HTTPS URL.
-The ideal solution is for someone to add a valid SSL certificate to the build cache backend, but we recognize that you may not be able to do that.
-In that case, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`.
+[[sec:build_cache_redirects]]
+==== Redirects
 
-This is a convenient workaround, but you shouldn’t use it as a long-term solution.
-====
+`3xx` redirecting responses will be followed automatically.
+
+Servers must take care when redirecting `PUT` requests as only `307` and `308` redirect responses will be followed with a `PUT` request.
+All other redirect responses will be followed with a `GET` request, as per https://datatracker.ietf.org/doc/html/rfc7231#page-54[RFC 7231],
+without the entry payload as the body.
+
+[[sec:build_cache_error_handling]]
+==== Network error handling
+
+Requests that fail during request transmission, after having established a TCP connection, will be retried automatically.
+
+This prevents temporary problems, such as connection drops, read or write timeouts, and low level network failures such as a connection resets, causing cache operations to fail and disabling the remote cache for the remainder of the build.
+
+Requests will be retried up to 3 times.
+If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+
+==== Using SSL
+
+By default, use of HTTPS requires the server to present a certificate that is trusted by the build's Java runtime.
+If your server's certificate is not trusted, you can:
+
+1. Update the trust store of your Java runtime to allow it to be trusted
+2. Change the <<build_environment.adoc#build_environment,build environment>> to use an alternative trust store for the build runtime
+3. Disable the requirement for a trusted certificate
+
+The trust requirement can be disabled by setting link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowUntrustedServer[HttpBuildCache.isAllowUntrustedServer()] to `true`.
+Enabling this option is a security risk, as it allows any cache server to impersonate the intended server.
+It should only be used as a temporary measure or in very tightly controlled network environments.
 
 .Allow untrusted cache server
 ====
 include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=allow-untrusted-server]"]
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
+====
+
+[[sec:build_cache_expect_continue]]
+==== HTTP expect-continue
+
+Use of https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3[HTTP Expect-Continue] can be enabled.
+This causes upload requests to happen in two parts: first a check whether a body would be accepted, then transmission of the body if the server indicates it will accept it.
+
+This is useful when uploading to cache servers that routinely redirect or reject upload requests,
+as it avoids uploading the cache entry just to have it rejected (e.g. the cache entry is larger than the cache will allow) or redirected.
+This additional check incurs extra latency when the server accepts the request, but reduces latency when the request is rejected or redirected.
+
+Not all HTTP servers and proxies reliably implement Expect-Continue.
+Be sure to check that your cache server does support it before enabling.
+
+To enable, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:useExpectContinue[HttpBuildCache.isUseExpectContinue()] to `true`.
+
+.Use Expect-Continue
+====
+include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=use-expect-continue]"]
+include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=use-expect-continue]"]
 ====
 
 [[sec:build_cache_configure_use_cases]]
