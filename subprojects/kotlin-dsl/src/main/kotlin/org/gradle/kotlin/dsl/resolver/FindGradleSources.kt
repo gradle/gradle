@@ -34,7 +34,7 @@ import java.io.File
  * a downloaded ZIP of the Gradle sources, and will return the list of main sources
  * subdirectories for all subprojects.
  */
-@DisableCachingByDefault(because = "Only selects locations in the input artifact")
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
