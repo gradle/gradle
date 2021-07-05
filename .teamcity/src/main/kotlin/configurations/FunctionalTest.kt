@@ -47,7 +47,6 @@ class FunctionalTest(
 
     params {
         if (enableTestDistribution) {
-            param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
             param("maxParallelForks", "16")
         }
     }
