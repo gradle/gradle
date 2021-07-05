@@ -83,7 +83,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.tasks.*
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             class MyTask extends DefaultTask {
                 @Nested
                 Tree tree
@@ -117,7 +117,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.artifacts.transform.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @${ann.simpleName}
                 String getThing() {
@@ -165,7 +165,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.tasks.*
             import org.gradle.work.*
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             class MyTask extends DefaultTask {
                 @InputFile
                 File fileProp
@@ -211,7 +211,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import java.io.File;
             import com.typesafe.config.Config;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public long getGoodTime() {
@@ -267,7 +267,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public long getGoodTime() {
@@ -299,7 +299,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.work.*;
             import java.io.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test transform action")
             public abstract class MyTransformAction implements TransformAction {
                 // Should be ignored because it's not a getter
                 public void getVoid() {
@@ -441,7 +441,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MainTask extends DefaultTask {
                 // WIll not be called out because it's in the main source set
                 public long getBadProperty() {
@@ -457,7 +457,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class PluginTask extends DefaultTask {
                 // WIll be called out because it's among the plugin's sources
                 public long getBadProperty() {

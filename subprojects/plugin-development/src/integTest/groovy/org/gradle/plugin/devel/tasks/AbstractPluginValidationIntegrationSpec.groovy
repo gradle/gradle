@@ -38,8 +38,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.Severity
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -60,7 +60,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 // Should be ignored because it's not a getter
                 public void getVoid() {
@@ -155,7 +155,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import java.io.File;
             import java.util.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 ${application}
                 public ${type.name} getThing() {
@@ -199,7 +199,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Optional @Input
                 ${primitiveType.name} getPrimitive() {
@@ -240,7 +240,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.artifacts.transform.*;
 
             @CacheableTransform
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Nested
                 Options getOptions() {
@@ -279,7 +279,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*
             import org.gradle.work.*
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             class MyTask extends DefaultTask {
                 @Input
                 long goodTime
@@ -341,7 +341,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import java.io.File;
             import java.util.concurrent.Callable;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 private final Provider<String> text;
                 private final Property<File> file;
@@ -412,7 +412,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 private final ${testedType} mutableProperty = ${init};
 
@@ -536,7 +536,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import java.util.*;
             import java.io.File;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Nested
                 public Options getOptions() {
@@ -652,7 +652,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.work.*;
             import java.io.File;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 private long getBadTime() {
@@ -699,7 +699,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.work.*;
             import java.io.File;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public String notAGetter() {
@@ -741,7 +741,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.work.*;
             import java.io.File;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public void setWriteOnly(String value) {
@@ -801,7 +801,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.provider.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 private final Property<String> newProperty = getProject().getObjects().property(String.class).convention("value");
 
@@ -842,7 +842,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.provider.*;
             import org.gradle.work.*;
 
-            @DisableCachingByDefault(because = "my task")
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Optional
                 @InputFile
