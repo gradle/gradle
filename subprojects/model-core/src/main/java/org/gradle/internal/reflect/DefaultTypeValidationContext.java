@@ -43,8 +43,8 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
     @Override
     protected void recordProblem(TypeValidationProblem problem) {
-        boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
-        if (cacheableProblemOnly && !reportCacheabilityProblems) {
+        boolean onlyAffectsCacheableWork = problem.isOnlyAffectsCacheableWork();
+        if (onlyAffectsCacheableWork && !reportCacheabilityProblems) {
             return;
         }
         problems.put(TypeValidationProblemRenderer.renderMinimalInformationAbout(problem), problem.getSeverity());
