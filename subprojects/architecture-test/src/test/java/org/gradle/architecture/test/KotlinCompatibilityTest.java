@@ -26,7 +26,6 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.gradle.internal.reflect.PropertyAccessorType;
 
 import javax.annotation.Nullable;
@@ -43,6 +42,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toSet;
+import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class KotlinCompatibilityTest {
@@ -52,10 +52,10 @@ public class KotlinCompatibilityTest {
     }
 
     @ArchTest
-    public static final ArchRule consistent_nullable_annotations_on_public_api = FreezingArchRule.freeze(classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations()));
+    public static final ArchRule consistent_nullable_annotations_on_public_api = freeze(classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations()));
 
     @ArchTest
-    public static final ArchRule consistent_nullable_annotations_on_internal_api = FreezingArchRule.freeze(classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations()));
+    public static final ArchRule consistent_nullable_annotations_on_internal_api = freeze(classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations()));
 
     private static ArchCondition<JavaClass> haveAccessorsWithSymmetricalNullableAnnotations() {
         return new ArchCondition<JavaClass>("have accessors with symmetrical @Nullable annotations") {
