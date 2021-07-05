@@ -240,4 +240,16 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
     }
+
+    @Issue('https://github.com/gradle/gradle/issues/15405')
+    def "calling notifyDaemonsAboutChangedPaths on uninitialized connection does not trigger wrapper download"() {
+        when:
+        def connector = toolingApi.connector()
+        connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        connector.connect().notifyDaemonsAboutChangedPaths([])
+        connector.disconnect()
+
+        then:
+        !toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
+    }
 }

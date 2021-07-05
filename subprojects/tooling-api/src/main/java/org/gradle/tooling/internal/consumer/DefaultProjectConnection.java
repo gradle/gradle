@@ -24,8 +24,6 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
-import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
-import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 import java.nio.file.Path;
@@ -104,19 +102,7 @@ class DefaultProjectConnection implements ProjectConnection {
         operationParamsBuilder.setCancellationToken(new DefaultCancellationTokenSource().token());
         operationParamsBuilder.setParameters(parameters);
         operationParamsBuilder.setEntryPoint("Notify daemons about changed paths API");
-        connection.run(
-            new ConsumerAction<Void>() {
-                @Override
-                public ConsumerOperationParameters getParameters() {
-                    return operationParamsBuilder.build();
-                }
-
-                @Override
-                public Void run(ConsumerConnection connection) {
-                    connection.notifyDaemonsAboutChangedPaths(absolutePaths, getParameters());
-                    return null;
-                }
-            },
+        connection.run(new NotifyAboutChangedPathsConsumerAction(operationParamsBuilder, absolutePaths),
             new ResultHandlerAdapter<Void>(new BlockingResultHandler<Void>(Void.class),
                 new ExceptionTransformer(new Transformer<String, Throwable>() {
                     @Override
@@ -126,4 +112,5 @@ class DefaultProjectConnection implements ProjectConnection {
                 })
             ));
     }
+
 }

@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
+import org.gradle.tooling.internal.consumer.NotifyAboutChangedPathsConsumerAction;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
@@ -136,17 +137,27 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     @Override
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
+            lock.lock();
+            // If the client hasn't done any build invocations then there's no reason to send update a daemon about changed paths
+            // This ensures that calling notifyDaemonsAboutChangedPaths() on an un-initialized connection won't trigger a wrapper download.
+            if (action instanceof NotifyAboutChangedPathsConsumerAction && connection == null) {
+                return null;
+            }
+        } finally {
+            lock.unlock();
+        }
+        try {
             ConsumerOperationParameters parameters = action.getParameters();
             this.cancellationToken = parameters.getCancellationToken();
             InternalBuildProgressListener buildProgressListener = parameters.getBuildProgressListener();
-            ConsumerConnection connection = onStartAction(cancellationToken, buildProgressListener);
+            ConsumerConnection connection = onStartAction(cancellationToken, buildProgressListener, action);
             return action.run(connection);
         } finally {
             onEndAction();
         }
     }
 
-    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener) {
+    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener, ConsumerAction<?> action) {
         lock.lock();
         try {
             if (stopped) {
