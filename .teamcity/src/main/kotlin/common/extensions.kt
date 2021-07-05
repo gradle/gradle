@@ -132,10 +132,6 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os)
         if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
         }
-
-        if (os == Os.MACOS) {
-            param("env.REPO_MIRROR_URLS", "")
-        }
     }
 }
 
