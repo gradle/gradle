@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
@@ -105,6 +106,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore("wip: remove once a new `kotlin-dsl` version is published")
     @Unroll
     @ToBeFixedForConfigurationCache(because = "kotlin-dsl plugin applied in buildSrc")
     @UsesSample("testing/testReport")
