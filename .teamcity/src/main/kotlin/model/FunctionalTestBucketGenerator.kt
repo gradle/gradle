@@ -195,7 +195,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         // native projects are not able to be run on TD for now
         // quite a few TAPI tests also don't work
         // `WatchedDirectoriesFileSystemWatchingIntegrationTest fails on local filesystem` doesn't work in remote executor
-        val forceNoTDSubprojects = listOf("language-native", "platform-native", "testing-native", "ide-native", "tooling-api", "file-watching")
+        // `workers` has a known haning issue
+        val forceNoTDSubprojects = listOf("language-native", "platform-native", "testing-native", "ide-native", "tooling-api", "file-watching", "workers")
         return if (testCoverage.testType == TestType.platform) {
             splitDocsSubproject(validSubprojects) + splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), forceNoTDSubprojects)
         } else {

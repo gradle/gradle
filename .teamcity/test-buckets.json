@@ -607,10 +607,53 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -789,24 +832,18 @@
 					"resources",
 					"internal-integ-testing",
 					"process-services",
-					"platform-jvm"
+					"platform-jvm",
+					"publish",
+					"base-services"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"persistent-cache",
-					"publish",
-					"base-services",
 					"messaging",
 					"build-profile",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"test-kit",
+					"internal-performance-testing",
 					"ear",
 					"build-cache",
 					"core-api"
@@ -815,23 +852,17 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"ide-native",
+					"test-kit",
 					"resources-gcs",
-					"tooling-native"
+					"tooling-native",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
-					"build-events",
-					"build-cache-http"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"language-groovy",
+					"ide-native",
+					"build-cache-http",
 					"model-groovy",
 					"resources-sftp"
 				]
@@ -839,29 +870,31 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"antlr",
-					"wrapper"
+					"file-collections",
+					"wrapper",
+					"reporting"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"signing",
-					"reporting",
-					"diagnostics"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"resources-s3",
+					"language-groovy",
+					"diagnostics",
 					"testing-base"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"antlr",
 					"platform-base"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"signing",
+					"resources-s3"
 				]
 			}
 		],
@@ -4008,10 +4041,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -4130,13 +4199,7 @@
 					"jvm-services",
 					"process-services",
 					"snapshots",
-					"resources"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"resources",
 					"platform-jvm",
 					"base-services",
 					"publish",
@@ -4146,71 +4209,72 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"kotlin-dsl-plugins",
 					"messaging",
 					"build-profile",
-					"tooling-native"
+					"tooling-native",
+					"resources-gcs"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"file-watching",
+					"ear",
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"resources-gcs",
-					"ear"
+					"resources-sftp",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"version-control",
-					"build-cache",
-					"resources-sftp"
+					"testing-base",
+					"core-api"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"wrapper",
-					"build-events",
-					"testing-base"
+					"reporting",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"jacoco",
-					"core-api",
-					"reporting"
+					"resources-s3",
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"file-collections",
-					"build-cache-http",
-					"resources-s3"
+					"antlr",
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"model-groovy",
-					"antlr"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
-					"persistent-cache",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -6998,10 +7062,55 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"workers"
 			},
 			{
 				"classes":[
@@ -7316,66 +7425,42 @@
 				"subproject":"platform-native"
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"enterprise"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"wrapper"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"version-control"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-collections"
-				]
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"enterprise",
 					"docs",
 					"configuration-cache",
 					"model-groovy",
 					"execution",
 					"resources-http",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"diagnostics",
+					"internal-performance-testing",
 					"snapshots",
-					"internal-integ-testing"
+					"internal-integ-testing",
+					"jvm-services"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
-					"jvm-services",
+					"wrapper",
 					"process-services",
-					"base-services"
+					"base-services",
+					"resources"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"persistent-cache",
-					"resources",
+					"version-control",
 					"publish",
 					"platform-jvm",
-					"platform-base",
+					"platform-base"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"file-collections",
 					"messaging",
 					"kotlin-dsl-tooling-builders"
 				]
@@ -7383,16 +7468,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"signing",
+					"kotlin-dsl-plugins",
 					"build-profile",
-					"resources-gcs",
+					"resources-gcs"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
 					"ear"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"resources-s3",
+					"jacoco",
 					"resources-sftp",
 					"build-events"
 				]
@@ -7400,7 +7491,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"antlr",
+					"persistent-cache",
 					"build-cache",
 					"reporting"
 				]
@@ -7408,15 +7499,23 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"language-groovy",
-					"testing-base"
+					"signing",
+					"testing-base",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"resources-s3",
 					"core-api",
-					"build-cache-http"
+					"language-groovy"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"antlr"
 				]
 			}
 		],
@@ -7719,10 +7818,44 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -7995,53 +8128,19 @@
 				]
 			},
 			{
-				"enableTD":true,
+				"enableTD":false,
 				"subprojects":[
-					"code-quality"
+					"code-quality",
+					"docs",
+					"execution",
+					"resources-http",
+					"internal-performance-testing"
 				]
-			},
-			{
-				"classes":[
-					"org.gradle.integtests.tooling.ToolingApiClientCurrentJdkCompatibilityTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiShutdownIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiUnsupportedVersionIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.AutoTestedSamplesToolingApiTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiClasspathIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiResolveIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ConcurrentToolingApiIntegrationSpec=integTest",
-					"org.gradle.integtests.tooling.ToolingApiRemoteIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.GlobalLoggingManipulationIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.SamplesToolingApiIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"tooling-api"
-			},
-			{
-				"classes":[
-					"org.gradle.integtests.tooling.ToolingApiClientCurrentJdkCompatibilityTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiShutdownIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiUnsupportedVersionIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.AutoTestedSamplesToolingApiTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiClasspathIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ToolingApiResolveIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.ConcurrentToolingApiIntegrationSpec=integTest",
-					"org.gradle.integtests.tooling.ToolingApiRemoteIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.GlobalLoggingManipulationIntegrationTest=integTest",
-					"org.gradle.integtests.tooling.SamplesToolingApiIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"tooling-api"
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
-					"docs",
-					"execution",
-					"resources-http",
-					"internal-performance-testing",
+					"tooling-api",
 					"internal-integ-testing",
 					"jvm-services"
 				]
@@ -8049,17 +8148,23 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"version-control",
 					"process-services",
-					"resources",
-					"snapshots"
+					"resources"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"kotlin-dsl-plugins",
+					"snapshots",
+					"platform-jvm"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"platform-jvm",
 					"base-services",
 					"publish"
 				]
@@ -8598,10 +8703,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -8744,15 +8885,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"file-collections"
-				]
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"file-collections",
 					"docs",
 					"execution",
 					"resources-http",
@@ -8768,59 +8903,60 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"signing",
+					"jacoco",
 					"base-services",
 					"platform-jvm",
 					"snapshots",
 					"build-profile",
 					"publish",
-					"messaging"
+					"messaging",
+					"persistent-cache"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"signing",
+					"testing-base",
+					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"tooling-api",
-					"persistent-cache",
-					"testing-base"
+					"build-events",
+					"resources-gcs"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"model-groovy",
-					"language-groovy",
-					"build-events"
+					"reporting",
+					"antlr"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"core-api",
-					"resources-gcs",
-					"reporting"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"build-cache-http",
-					"antlr",
-					"build-cache"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"resources-s3",
+					"build-cache",
 					"ear"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"build-cache-http",
 					"resources-sftp"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"resources-s3",
+					"wrapper"
 				]
 			}
 		],
@@ -12477,10 +12613,53 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerDaemonLifecycleTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -12667,86 +12846,22 @@
 				"subproject":"file-watching"
 			},
 			{
-				"classes":[
-					"org.gradle.nativeplatform.NativeDependentComponentsReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.NativeBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.GeneratedSourcesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.NativeDependentComponentsReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.NativeBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.GeneratedSourcesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"platform-native",
 					"docs",
 					"execution",
-					"resources-http",
-					"jvm-services",
-					"internal-performance-testing",
-					"snapshots",
-					"resources"
+					"resources-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"test-kit",
+					"jacoco",
+					"jvm-services",
+					"internal-performance-testing",
+					"snapshots",
+					"resources",
 					"internal-integ-testing",
 					"process-services",
 					"wrapper"
@@ -12755,7 +12870,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"persistent-cache",
+					"test-kit",
 					"platform-jvm",
 					"publish",
 					"base-services"
@@ -12764,7 +12879,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"persistent-cache",
 					"build-profile",
 					"messaging",
 					"kotlin-dsl-tooling-builders"
@@ -12773,7 +12888,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"antlr",
+					"file-collections",
 					"build-cache",
 					"core-api"
 				]
@@ -12781,7 +12896,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"ide-native",
+					"antlr",
 					"resources-s3",
 					"resources-gcs"
 				]
@@ -12789,42 +12904,43 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"language-groovy",
-					"model-groovy"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
+					"ide-native",
+					"model-groovy",
 					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"signing",
+					"language-groovy",
 					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"platform-base",
 					"resources-sftp"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"testing-base",
+					"signing",
 					"reporting"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"diagnostics",
 					"ear"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"testing-base"
 				]
 			}
 		],
@@ -14144,10 +14260,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -14267,23 +14419,17 @@
 					"jvm-services",
 					"process-services",
 					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-plugins",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"internal-performance-testing",
 					"messaging",
 					"build-profile",
 					"tooling-native"
@@ -14292,7 +14438,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"file-watching",
 					"resources-gcs",
 					"ear"
 				]
@@ -14300,7 +14446,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"kotlin-dsl-integ-tests",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -14308,46 +14454,47 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"version-control",
 					"build-events",
-					"testing-base"
+					"testing-base",
+					"core-api"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"wrapper",
+					"reporting",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"jacoco",
-					"core-api",
-					"reporting"
+					"resources-s3",
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"file-collections",
-					"build-cache-http",
-					"resources-s3"
+					"antlr",
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"model-groovy",
-					"antlr"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
-					"persistent-cache",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -17625,10 +17772,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -17747,13 +17930,7 @@
 					"jvm-services",
 					"process-services",
 					"snapshots",
-					"resources"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"resources",
 					"platform-jvm",
 					"base-services",
 					"publish",
@@ -17763,71 +17940,72 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"kotlin-dsl-plugins",
 					"messaging",
 					"build-profile",
-					"tooling-native"
+					"tooling-native",
+					"resources-gcs"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"file-watching",
+					"ear",
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"resources-gcs",
-					"ear"
+					"resources-sftp",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"version-control",
-					"build-cache",
-					"resources-sftp"
+					"testing-base",
+					"core-api"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"wrapper",
-					"build-events",
-					"testing-base"
+					"reporting",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"jacoco",
-					"core-api",
-					"reporting"
+					"resources-s3",
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"file-collections",
-					"build-cache-http",
-					"resources-s3"
+					"antlr",
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"model-groovy",
-					"antlr"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
-					"persistent-cache",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -21100,10 +21278,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -21223,23 +21437,17 @@
 					"jvm-services",
 					"process-services",
 					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-plugins",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"internal-performance-testing",
 					"messaging",
 					"build-profile",
 					"tooling-native"
@@ -21248,7 +21456,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"file-watching",
 					"resources-gcs",
 					"ear"
 				]
@@ -21256,7 +21464,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"kotlin-dsl-integ-tests",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -21264,46 +21472,47 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"version-control",
 					"build-events",
-					"testing-base"
+					"testing-base",
+					"core-api"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"wrapper",
+					"reporting",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"jacoco",
-					"core-api",
-					"reporting"
+					"resources-s3",
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"file-collections",
-					"build-cache-http",
-					"resources-s3"
+					"antlr",
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"model-groovy",
-					"antlr"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
-					"persistent-cache",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -24581,10 +24790,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -24703,13 +24948,7 @@
 					"jvm-services",
 					"process-services",
 					"snapshots",
-					"resources"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"resources",
 					"platform-jvm",
 					"base-services",
 					"publish",
@@ -24719,71 +24958,72 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"kotlin-dsl-plugins",
 					"messaging",
 					"build-profile",
-					"tooling-native"
+					"tooling-native",
+					"resources-gcs"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"file-watching",
+					"ear",
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"resources-gcs",
-					"ear"
+					"resources-sftp",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"version-control",
-					"build-cache",
-					"resources-sftp"
+					"testing-base",
+					"core-api"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"wrapper",
-					"build-events",
-					"testing-base"
+					"reporting",
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"jacoco",
-					"core-api",
-					"reporting"
+					"resources-s3",
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"file-collections",
-					"build-cache-http",
-					"resources-s3"
+					"antlr",
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"diagnostics",
-					"model-groovy",
-					"antlr"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"platform-base",
-					"persistent-cache",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -28056,10 +28296,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -28148,39 +28424,27 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services"
+					"jvm-services",
+					"process-services",
+					"snapshots"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"process-services",
-					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish",
+					"internal-performance-testing"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"enterprise",
-					"platform-jvm",
-					"base-services",
-					"publish"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
-					"internal-performance-testing",
-					"messaging"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"messaging",
 					"build-profile",
 					"tooling-native"
 				]
@@ -28188,7 +28452,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-gcs",
 					"ear"
 				]
@@ -28196,7 +28460,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -28204,7 +28468,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-events",
 					"testing-base"
 				]
@@ -28212,7 +28476,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"core-api",
 					"reporting"
 				]
@@ -28220,7 +28484,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -28228,7 +28492,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"model-groovy",
 					"antlr"
 				]
@@ -28236,14 +28500,21 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
-					"persistent-cache",
+					"file-collections",
+					"persistent-cache"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -29020,10 +29291,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -29112,39 +29419,27 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services"
+					"jvm-services",
+					"process-services",
+					"snapshots"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"process-services",
-					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish",
+					"internal-performance-testing"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"enterprise",
-					"platform-jvm",
-					"base-services",
-					"publish"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
-					"internal-performance-testing",
-					"messaging"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"messaging",
 					"build-profile",
 					"tooling-native"
 				]
@@ -29152,7 +29447,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-gcs",
 					"ear"
 				]
@@ -29160,7 +29455,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -29168,7 +29463,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-events",
 					"testing-base"
 				]
@@ -29176,7 +29471,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"core-api",
 					"reporting"
 				]
@@ -29184,7 +29479,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -29192,7 +29487,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"model-groovy",
 					"antlr"
 				]
@@ -29200,14 +29495,21 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
-					"persistent-cache",
+					"file-collections",
+					"persistent-cache"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -29996,10 +30298,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -30088,39 +30426,27 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services"
+					"jvm-services",
+					"process-services",
+					"snapshots"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"process-services",
-					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish",
+					"internal-performance-testing"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"enterprise",
-					"platform-jvm",
-					"base-services",
-					"publish"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
-					"internal-performance-testing",
-					"messaging"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"messaging",
 					"build-profile",
 					"tooling-native"
 				]
@@ -30128,7 +30454,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-gcs",
 					"ear"
 				]
@@ -30136,7 +30462,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -30144,7 +30470,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-events",
 					"testing-base"
 				]
@@ -30152,7 +30478,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"core-api",
 					"reporting"
 				]
@@ -30160,7 +30486,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -30168,7 +30494,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"model-groovy",
 					"antlr"
 				]
@@ -30176,14 +30502,21 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
-					"persistent-cache",
+					"file-collections",
+					"persistent-cache"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
@@ -33420,10 +33753,46 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"workers"
+			},
+			{
+				"classes":[
+					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorCompositeBuildIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorParallelBuildOperationsIntegrationTest=integTest",
+					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
+					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLoggingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorErrorHandlingIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
+				],
+				"include":false,
+				"number":2,
+				"subproject":"workers"
 			},
 			{
 				"enableTD":true,
@@ -33512,39 +33881,27 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services"
+					"jvm-services",
+					"process-services",
+					"snapshots"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"process-services",
-					"snapshots",
-					"resources"
+					"resources",
+					"platform-jvm",
+					"base-services",
+					"publish",
+					"internal-performance-testing"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"enterprise",
-					"platform-jvm",
-					"base-services",
-					"publish"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
-					"internal-performance-testing",
-					"messaging"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"file-watching",
+					"messaging",
 					"build-profile",
 					"tooling-native"
 				]
@@ -33552,7 +33909,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-gcs",
 					"ear"
 				]
@@ -33560,7 +33917,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -33568,7 +33925,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-events",
 					"testing-base"
 				]
@@ -33576,7 +33933,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"core-api",
 					"reporting"
 				]
@@ -33584,7 +33941,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -33592,7 +33949,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"model-groovy",
 					"antlr"
 				]
@@ -33600,14 +33957,21 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
-					"persistent-cache",
+					"file-collections",
+					"persistent-cache"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"platform-base",
 					"signing"
 				]
 			}
