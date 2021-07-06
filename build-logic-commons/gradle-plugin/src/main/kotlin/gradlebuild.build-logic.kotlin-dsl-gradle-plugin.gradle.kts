@@ -57,7 +57,7 @@ tasks.codeQuality {
 
 tasks.validatePlugins {
     failOnWarning.set(true)
-    enableStricterValidation.set(true)
+    enableStricterValidation.set(false)
 }
 
 
