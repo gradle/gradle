@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
 
@@ -35,8 +34,7 @@ class ConfigurationCacheIncludedBuildState(
     isImplicit: Boolean,
     owner: BuildState,
     buildTree: BuildTreeState,
-    parentLease: WorkerLeaseRegistry.WorkerLease,
     buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
     projectStateRegistry: ProjectStateRegistry,
     instantiator: Instantiator
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, parentLease, buildLifecycleControllerFactory, projectStateRegistry, instantiator)
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, buildLifecycleControllerFactory, projectStateRegistry, instantiator)

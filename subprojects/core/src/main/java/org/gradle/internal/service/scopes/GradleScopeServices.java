@@ -48,15 +48,12 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
-import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
-import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.UndefinedBuildWorkExecutor;
@@ -78,13 +75,11 @@ import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -108,7 +103,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -131,10 +125,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
-        return new CompositeAwareTaskSelector(gradle, buildStateRegistry, projectConfigurer, new TaskNameResolver());
-    }
-
     OptionReader createOptionReader() {
         return new OptionReader();
     }
@@ -153,17 +143,15 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
-        return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions, projectStateRegistry);
+        return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildTaskGraph includedBuildTaskGraph, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
-        return new BuildOperationFiringTaskExecutionPreparer(
-            new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildTaskGraph, buildOperationExecutor, buildModelParameters),
-            buildOperationExecutor);
+        return new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildTaskGraph, buildOperationExecutor, buildModelParameters);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
@@ -240,8 +228,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
         ProjectStateRegistry projectStateRegistry,
-        ServiceRegistry gradleScopedServices,
-        TaskSelector taskSelector
+        ServiceRegistry gradleScopedServices
     ) {
         return new DefaultTaskExecutionGraph(
             planExecutor,
@@ -255,8 +242,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             projectStateRegistry,
-            gradleScopedServices,
-            taskSelector
+            gradleScopedServices
         );
     }
 

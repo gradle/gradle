@@ -39,7 +39,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
-import org.gradle.execution.TaskSelector
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
@@ -96,8 +95,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskExecutionListeners,
         listenerRegistrationListener,
         projectStateRegistry,
-        Stub(ServiceRegistry),
-        Stub(TaskSelector)
+        Stub(ServiceRegistry)
     )
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
@@ -398,8 +396,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             taskExecutionListeners,
             listenerRegistrationListener,
             projectStateRegistry,
-            Stub(ServiceRegistry),
-            Stub(TaskSelector)
+            Stub(ServiceRegistry)
         )
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
@@ -437,8 +434,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             taskExecutionListeners,
             listenerRegistrationListener,
             projectStateRegistry,
-            Stub(ServiceRegistry),
-            Stub(TaskSelector)
+            Stub(ServiceRegistry)
         )
         def closure = Mock(Closure)
         def action = Mock(Action)

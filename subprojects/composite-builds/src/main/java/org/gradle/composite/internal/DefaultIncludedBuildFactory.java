@@ -26,7 +26,6 @@ import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -34,18 +33,15 @@ import java.io.File;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final BuildTreeState buildTree;
     private final Instantiator instantiator;
-    private final WorkerLeaseService workerLeaseService;
     private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
     private final ProjectStateRegistry projectStateRegistry;
 
     public DefaultIncludedBuildFactory(BuildTreeState buildTree,
                                        Instantiator instantiator,
-                                       WorkerLeaseService workerLeaseService,
                                        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
                                        ProjectStateRegistry projectStateRegistry) {
         this.buildTree = buildTree;
         this.instantiator = instantiator;
-        this.workerLeaseService = workerLeaseService;
         this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
         this.projectStateRegistry = projectStateRegistry;
     }
@@ -69,7 +65,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             isImplicit,
             owner,
             buildTree,
-            workerLeaseService.getCurrentWorkerLease(),
             buildLifecycleControllerFactory,
             projectStateRegistry,
             instantiator

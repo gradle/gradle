@@ -28,8 +28,8 @@ class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelControlle
     // TODO - this method should fail, as the fully configured build model is not actually available
     override fun getConfiguredModel() = gradle
 
-    // TODO - this method should fail, as the tasks are already scheduled for this build
-    override fun scheduleTasks(tasks: Iterable<String>) {
+    override fun prepareToScheduleTasks() {
+        // Already done
     }
 
     override fun scheduleRequestedTasks() {

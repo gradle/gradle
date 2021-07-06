@@ -19,6 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.configuration.ProjectsPreparer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,16 +27,15 @@ import java.util.Set;
 /**
  * A {@link BuildConfigurationAction} which filters excluded tasks.
  */
-public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfigurationAction {
+public class ExcludedTaskFilteringProjectsPreparer implements ProjectsPreparer {
     private final TaskSelector taskSelector;
 
-    public ExcludedTaskFilteringBuildConfigurationAction(TaskSelector taskSelector) {
+    public ExcludedTaskFilteringProjectsPreparer(TaskSelector taskSelector) {
         this.taskSelector = taskSelector;
     }
 
     @Override
-    public void configure(BuildExecutionContext context) {
-        GradleInternal gradle = context.getGradle();
+    public void prepareProjects(GradleInternal gradle) {
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
             final Set<Spec<Task>> filters = new HashSet<Spec<Task>>();
@@ -44,7 +44,5 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
             }
             gradle.getTaskGraph().useFilter(Specs.intersect(filters));
         }
-
-        context.proceed();
     }
 }

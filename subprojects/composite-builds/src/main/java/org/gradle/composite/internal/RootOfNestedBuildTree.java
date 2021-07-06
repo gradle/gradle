@@ -39,6 +39,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -119,6 +120,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     protected BuildLifecycleController getBuildController() {
         return buildLifecycleController;
+    }
+
+    @Override
+    public BuildWorkGraph getWorkGraph() {
+        return buildServices.get(BuildWorkGraph.class);
     }
 
     @Override

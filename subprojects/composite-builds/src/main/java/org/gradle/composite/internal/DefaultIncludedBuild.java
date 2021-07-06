@@ -30,14 +30,14 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildWorkGraph;
+import org.gradle.internal.build.DefaultBuildWorkGraph;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -49,11 +49,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
     private final BuildState owner;
-    private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final ProjectStateRegistry projectStateRegistry;
 
     private final BuildLifecycleController buildLifecycleController;
     private final IncludedBuildImpl model;
+    private final DefaultBuildWorkGraph workGraph;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
@@ -62,7 +62,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         boolean isImplicit,
         BuildState owner,
         BuildTreeState buildTree,
-        WorkerLeaseRegistry.WorkerLease parentLease,
         BuildLifecycleControllerFactory buildLifecycleControllerFactory,
         ProjectStateRegistry projectStateRegistry,
         Instantiator instantiator
@@ -72,11 +71,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.owner = owner;
-        this.parentLease = parentLease;
         this.projectStateRegistry = projectStateRegistry;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner.getMutableModel(), buildScopeServices);
+        this.workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 
@@ -199,18 +198,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public synchronized void scheduleTasks(Iterable<String> taskPaths) {
-        buildLifecycleController.scheduleTasks(taskPaths);
-    }
-
-    @Override
-    public synchronized void execute(final Object listener) {
-        buildLifecycleController.addListener(listener);
-        WorkerLeaseService workerLeaseService = gradleService(WorkerLeaseService.class);
-        workerLeaseService.withSharedLease(
-            parentLease,
-            buildLifecycleController::executeTasks
-        );
+    public BuildWorkGraph getWorkGraph() {
+        return workGraph;
     }
 
     @Override
@@ -225,10 +214,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public GradleInternal getMutableModel() {
         return buildLifecycleController.getGradle();
-    }
-
-    private <T> T gradleService(Class<T> serviceType) {
-        return getGradle().getServices().get(serviceType);
     }
 
     public static class IncludedBuildImpl implements IncludedBuildInternal {

@@ -24,7 +24,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,15 +33,15 @@ import java.util.function.Consumer;
 class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new LinkedHashMap<>();
     private final ManagedExecutor executorService;
-    private final ResourceLockCoordinationService coordinationService;
     private final ProjectStateRegistry projectStateRegistry;
+    private final WorkerLeaseService workerLeaseService;
     private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+    DefaultIncludedBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.executorService = executorService;
         this.buildRegistry = buildRegistry;
-        this.coordinationService = coordinationService;
         this.projectStateRegistry = projectStateRegistry;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -56,7 +56,7 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
             newBuildController = new RootBuildController(buildRegistry.getRootBuild());
         } else {
             IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-            newBuildController = new DefaultIncludedBuildController(build, coordinationService, projectStateRegistry);
+            newBuildController = new DefaultIncludedBuildController(build, projectStateRegistry, workerLeaseService);
         }
         buildControllers.put(buildId, newBuildController);
         return newBuildController;
@@ -74,7 +74,7 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
             }
         }
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.validateTaskGraph();
+            buildController.prepareForExecution();
         }
     }
 

@@ -22,7 +22,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -36,39 +36,60 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     private final BuildStateRegistry buildRegistry;
-    private final ResourceLockCoordinationService coordinationService;
+    private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
     private Thread owner;
     private State state = State.QueuingTasks;
     private IncludedBuildControllers includedBuilds;
 
-    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.buildRegistry = buildRegistry;
-        this.coordinationService = coordinationService;
         this.projectStateRegistry = projectStateRegistry;
         this.executorService = executorFactory.create("included builds");
+        this.workerLeaseService = workerLeaseService;
         this.includedBuilds = createControllers();
     }
 
     private DefaultIncludedBuildControllers createControllers() {
-        return new DefaultIncludedBuildControllers(executorService, buildRegistry, coordinationService, projectStateRegistry);
+        return new DefaultIncludedBuildControllers(executorService, buildRegistry, projectStateRegistry, workerLeaseService);
     }
 
     @Override
     public <T> T withNestedTaskGraph(Supplier<T> action) {
-        return withState(() -> {
-            expectQueuingTasks();
-            IncludedBuildControllers currentControllers = includedBuilds;
-            includedBuilds = createControllers();
-            try {
-                return action.get();
-            } finally {
-                includedBuilds.close();
-                includedBuilds = currentControllers;
-                state = State.QueuingTasks;
+        Thread currentOwner;
+        State currentState;
+        IncludedBuildControllers currentControllers;
+        synchronized (this) {
+            if (state != State.Running) {
+                if (owner == null || owner == Thread.currentThread()) {
+                    expectQueuingTasks();
+                } else {
+                    throw new IllegalStateException("This task graph is already in use.");
+                }
             }
-        });
+            // Else, some other thread is currently running tasks.
+            // The later can happen when a task performs dependency resolution without declaring it and the resolution
+            // includes a dependency substitution on an included build or a source dependency build
+            // Allow this to proceed, but this should become an error at some point
+            currentOwner = owner;
+            currentState = state;
+            currentControllers = includedBuilds;
+            owner = Thread.currentThread();
+            state = State.QueuingTasks;
+            includedBuilds = createControllers();
+        }
+
+        try {
+            return action.get();
+        } finally {
+            includedBuilds.close();
+            synchronized (this) {
+                owner = currentOwner;
+                state = currentState;
+                includedBuilds = currentControllers;
+            }
+        }
     }
 
     @Override
@@ -161,6 +182,9 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             return action.get();
         } finally {
             synchronized (this) {
+                if (owner != Thread.currentThread()) {
+                    throw new IllegalStateException("This task graph is in use by another thread.");
+                }
                 owner = currentOwner;
             }
         }

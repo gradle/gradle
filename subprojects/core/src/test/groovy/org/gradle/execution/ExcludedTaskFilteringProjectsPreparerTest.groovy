@@ -22,29 +22,27 @@ import org.gradle.api.specs.Spec
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
-class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
-    final BuildExecutionContext context = Mock()
+class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
     final StartParameterInternal startParameter = Mock()
     final TaskExecutionGraphInternal taskGraph = Mock()
     final DefaultTaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
-    final action = new ExcludedTaskFilteringBuildConfigurationAction(selector)
+    final action = new ExcludedTaskFilteringProjectsPreparer(selector)
 
     def setup() {
-        _ * context.gradle >> gradle
         _ * gradle.startParameter >> startParameter
         _ * gradle.taskGraph >> taskGraph
     }
 
-    def "calls proceed when there are no excluded tasks defined"() {
+    def "does nothing when there are no excluded tasks defined"() {
         given:
         _ * startParameter.excludedTaskNames >> []
 
         when:
-        action.configure(context)
+        action.prepareProjects(gradle)
 
         then:
-        1 * context.proceed()
+        0 * taskGraph._
     }
 
     def "applies a filter for excluded tasks before proceeding"() {
@@ -54,11 +52,10 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
         _ * startParameter.excludedTaskNames >> ['a']
 
         when:
-        action.configure(context)
+        action.prepareProjects(gradle)
 
         then:
         1 * selector.getFilter('a') >> filter
         1 * taskGraph.useFilter(filter)
-        1 * context.proceed()
     }
 }

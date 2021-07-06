@@ -42,9 +42,9 @@ public interface IncludedBuildController {
     boolean populateTaskGraph();
 
     /**
-     * Validates the task graph, once all tasks have been discovered.
+     * Prepares the work graph, once all tasks have been scheduled.
      */
-    void validateTaskGraph();
+    void prepareForExecution();
 
     /**
      * Must call {@link #populateTaskGraph()} prior to calling this method.

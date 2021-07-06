@@ -133,7 +133,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
             children.first().children*.displayName == ["Apply script '${relativePath('included-build/includedWhenReady.gradle')}' to project ':included-build'"]
-            parentId == operations.first("Calculate task graph (:included-build)").id
+            parentId == operations.first("Calculate task graph").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {

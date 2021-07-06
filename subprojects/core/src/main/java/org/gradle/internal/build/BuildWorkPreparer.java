@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-class RootBuildController extends AbstractIncludedBuildController {
-    public RootBuildController(RootBuildState rootBuild) {
-        super(rootBuild);
-    }
-
-    @Override
-    protected void doStartTaskExecution(ExecutorService executorService) {
-        // This is started via another path
-    }
-
-    @Override
-    protected void doAwaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
-    }
+public interface BuildWorkPreparer {
+    void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action);
 }

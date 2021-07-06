@@ -42,12 +42,5 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
 
     GradleInternal getConfiguredBuild();
 
-    /**
-     * Adds the given tasks and their dependencies to the work graph of this build.
-     */
-    void scheduleTasks(Iterable<String> tasks);
-
-    void execute(Object listener);
-
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

@@ -47,11 +47,6 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
-     * Adds the specified tasks and their dependencies to the work graph for this build. Configures the build, if necessary.
-     */
-    void scheduleTasks(final Iterable<String> tasks);
-
-    /**
      * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build. Configures the build, if necessary.
      */
     void scheduleRequestedTasks();
