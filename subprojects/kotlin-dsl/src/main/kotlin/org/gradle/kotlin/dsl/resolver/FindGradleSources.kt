@@ -36,6 +36,7 @@ import java.io.File
  */
 @DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 

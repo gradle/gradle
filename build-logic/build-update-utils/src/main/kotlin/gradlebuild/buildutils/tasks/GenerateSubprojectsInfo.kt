@@ -17,8 +17,10 @@
 package gradlebuild.buildutils.tasks
 
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class GenerateSubprojectsInfo : SubprojectsInfo() {
 
     @TaskAction

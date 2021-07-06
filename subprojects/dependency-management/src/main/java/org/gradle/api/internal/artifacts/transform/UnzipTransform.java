@@ -24,7 +24,10 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.UncheckedException;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -41,8 +44,10 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * is located in the output directory of the transform and is named after the zipped file name
  * minus the extension.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public interface UnzipTransform extends TransformAction<TransformParameters.None> {
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
     Provider<FileSystemLocation> getZippedFile();
 
