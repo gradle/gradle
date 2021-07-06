@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
@@ -110,7 +111,8 @@ Root project 'webinar-parent'
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME) // Kotlin compilation is used for the pre-compiled script plugin
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME)
+    // Kotlin compilation is used for the pre-compiled script plugin
     def "multiModuleWithNestedParent"() {
         def dsl = dslFixtureFor(scriptDsl)
 
@@ -523,6 +525,7 @@ Root project 'webinar-parent'
     }
 }
 
+@Ignore("wip: remove once a new `kotlin-dsl` version is published")
 class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
 }
