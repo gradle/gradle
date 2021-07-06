@@ -92,6 +92,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         val cacheAction: String,
         val documentationLink: String,
         val totalProblems: Int,
+        val reportedProblems: Int,
         val messageTree: ProblemTreeModel,
         val locationTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All,
@@ -147,7 +148,7 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             learnMore(model.documentationLink),
             div(
                 attributes { className("title") },
-                h1("${model.totalProblems} problems were found ${model.cacheAction} the configuration cache"),
+                h1(model.summary()),
                 div(
                     attributes { className("filters") },
                     div(
@@ -175,6 +176,13 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             }
         )
     )
+
+    private
+    fun Model.summary() =
+        "$totalProblems problems were found $cacheAction the configuration cache".let {
+            if (totalProblems > reportedProblems) "$it, only the first $reportedProblems were included in this report"
+            else it
+        }
 
     private
     fun displayTabButton(tab: Tab, activeTab: Tab, problemsCount: Int): View<Intent> = div(
