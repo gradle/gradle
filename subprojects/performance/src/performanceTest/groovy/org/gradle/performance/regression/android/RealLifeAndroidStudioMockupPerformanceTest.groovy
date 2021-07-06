@@ -35,7 +35,6 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
 
     def "get IDE model for Android Studio"() {
         given:
-        Assume.assumeFalse(true)
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
