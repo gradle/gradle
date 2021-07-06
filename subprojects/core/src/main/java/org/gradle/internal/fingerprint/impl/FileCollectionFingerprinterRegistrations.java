@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileSystemLocationSnapshotHasher;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareFileSystemLocationSnapshotHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingNormalizingFileSystemLocationSnapshotHasher;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -162,7 +162,7 @@ public class FileCollectionFingerprinterRegistrations {
     }
 
     private static FileSystemLocationSnapshotHasher normalizedContentHasher(LineEndingSensitivity lineEndingSensitivity, ResourceSnapshotterCacheService resourceSnapshotterCacheService) {
-        FileSystemLocationSnapshotHasher resourceHasher = LineEndingAwareFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, lineEndingSensitivity);
+        FileSystemLocationSnapshotHasher resourceHasher = LineEndingNormalizingFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, lineEndingSensitivity);
         return cacheIfNormalized(resourceHasher, lineEndingSensitivity, resourceSnapshotterCacheService);
     }
 

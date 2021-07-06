@@ -28,14 +28,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
-public class LineEndingAwareInputStreamHasher {
-    private static final HashCode SIGNATURE = Hashing.signature(LineEndingAwareInputStreamHasher.class);
+/**
+ * Hashes input streams while normalizing line endings in text files.  Normalization involves treating '\r' and '\r\n' characters
+ * as '\n' while calculating the hash.  If a file is detected to be binary (i.e. if the file contains ASCII control characters) then the hashing
+ * returns an empty {@link Optional} object.  Non-ASCII encodings (e.g. UTF-16) are treated as binary files.
+ */
+public class LineEndingNormalizingInputStreamHasher {
+    private static final HashCode SIGNATURE = Hashing.signature(LineEndingNormalizingInputStreamHasher.class);
     private static final int BUFFER_SIZE = 8192;
 
+    /**
+     * Hash the contents of the provided input stream, normalizing line endings.
+     *
+     * @param inputStream The input stream to hash
+     * @return An {@link Optional} containing the {@link HashCode} or empty if the file is binary
+     * @throws IOException
+     */
     public Optional<HashCode> hashContent(InputStream inputStream) throws IOException {
         return hash(inputStream);
     }
 
+    /**
+     * Hash the contents of the provided file, normalizing line endings.
+     *
+     * @param file The file to hash
+     * @return An {@link Optional} containing the {@link HashCode} or empty if the file is binary
+     * @throws IOException
+     */
     public Optional<HashCode> hashContent(File file) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(file)) {
             return hashContent(inputStream);

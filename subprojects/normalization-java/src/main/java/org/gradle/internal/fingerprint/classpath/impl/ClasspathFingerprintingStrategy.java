@@ -21,7 +21,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
-import org.gradle.api.internal.changedetection.state.LineEndingAwareResourceHasher;
+import org.gradle.api.internal.changedetection.state.LineEndingNormalizingResourceHasher;
 import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
@@ -109,7 +109,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         Interner<String> stringInterner,
         LineEndingSensitivity lineEndingSensitivity
     ) {
-        ResourceHasher resourceHasher = LineEndingAwareResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
+        ResourceHasher resourceHasher = LineEndingNormalizingResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
         resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
         resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);
