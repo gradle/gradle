@@ -23,6 +23,7 @@ import org.gradle.performance.android.SyncAction
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
+import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -34,6 +35,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
 
     def "get IDE model for Android Studio"() {
         given:
+        Assume.assumeFalse(true)
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)

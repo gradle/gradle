@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.regression.corefeature.AbstractIncrementalExecutionPerformanceTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -68,6 +69,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def "non-abi change#configurationCaching"() {
         given:
+        Assume.assumeFalse(true)
         testProject.configureForNonAbiChange(runner)
         enableConfigurationCaching(configurationCachingEnabled)
 
