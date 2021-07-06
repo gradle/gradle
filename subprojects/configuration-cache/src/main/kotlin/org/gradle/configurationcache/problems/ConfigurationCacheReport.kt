@@ -121,10 +121,14 @@ class ConfigurationCacheReport(
             }
 
             override fun close(): State {
-                executor.submit {
+                if (executor.isShutdown) {
                     writer.close()
+                } else {
+                    executor.submit {
+                        writer.close()
+                    }
+                    executor.shutdown()
                 }
-                executor.shutdown()
                 return Closed
             }
 
