@@ -1,2 +1,1 @@
- - Faster incremental Java compilation
- - Easier source set configuration in the Kotlin DSL
+ - TODO
