@@ -182,10 +182,6 @@ fun applyTestDefaults(
     daemon: Boolean = true,
     preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
 ) {
-    if (os == Os.MACOS) {
-        buildType.params.param("env.REPO_MIRROR_URLS", "")
-    }
-
     buildType.applyDefaultSettings(os, timeout = timeout)
 
     buildType.steps {
