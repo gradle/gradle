@@ -38,38 +38,6 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
     TemporaryFolder tempDir = new TemporaryFolder()
 
     @Unroll
-    def "can normalize line endings in files (eol = '#description')"() {
-        def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
-        def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
-        def hasher = LineEndingNormalizingResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
-
-        expect:
-        hasher.hash(snapshotContext(unnormalized)) == hasher.hash(snapshotContext(normalized))
-
-        where:
-        eol     | description
-        '\r'    | 'CR'
-        '\r\n'  | 'CR-LF'
-        '\n'    | 'LF'
-    }
-
-    @Unroll
-    def "can normalize line endings in zip entries (eol = '#description')"() {
-        def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
-        def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
-        def hasher = LineEndingNormalizingResourceHasher.wrap(new RuntimeClasspathResourceHasher(), LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
-
-        expect:
-        hasher.hash(zipContext(unnormalized)) == hasher.hash(zipContext(normalized))
-
-        where:
-        eol     | description
-        '\r'    | 'CR'
-        '\r\n'  | 'CR-LF'
-        '\n'    | 'LF'
-    }
-
-    @Unroll
     def "calculates hash for text file with #description"() {
         def file = file('foo') << contents
         def delegate = Mock(ResourceHasher)

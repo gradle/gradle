@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.junit.Rule
@@ -33,22 +32,6 @@ import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as
 class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specification {
     @Rule
     TemporaryFolder tempDir = new TemporaryFolder()
-
-    @Unroll
-    def "can normalize line endings in files (eol = '#description')"() {
-        def unnormalized = file('unnormalized.txt') << content.textWithLineEndings(eol)
-        def normalized = file('normalized.txt') << content.textWithLineEndings('\n')
-        def hasher = LineEndingNormalizingFileSystemLocationSnapshotHasher.wrap(FileSystemLocationSnapshotHasher.DEFAULT, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
-
-        expect:
-        hasher.hash(snapshot(unnormalized)) == hasher.hash(snapshot(normalized))
-
-        where:
-        eol     | description
-        '\r'    | 'CR'
-        '\r\n'  | 'CR-LF'
-        '\n'    | 'LF'
-    }
 
     @Unroll
     def "calculates hash for text file with #description"() {
