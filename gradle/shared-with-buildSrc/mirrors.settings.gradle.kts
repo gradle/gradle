@@ -34,11 +34,22 @@ val originalUrls: Map<String, String> = mapOf(
 )
 
 val mirrorUrls: Map<String, String> =
+<<<<<<< HEAD
     System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
         val (name, url) = nameToUrl.split(':', limit = 2)
         name to url
     } ?: emptyMap()
 
+=======
+    providers.environmentVariable("REPO_MIRROR_GRDEV_URLS").forUseAtConfigurationTime().orNull
+        ?.ifBlank { null }
+        ?.split(',')
+        ?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        }
+        ?: emptyMap()
+>>>>>>> d700521e64b (Revert "Revert "Replace dev12 mirror with repo.grdev.net (#17597)"")
 
 fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
 
@@ -69,9 +80,13 @@ fun normalizeUrl(url: String): String {
 if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
     // https://github.com/gradle/gradle-private/issues/2725
     // https://github.com/gradle/gradle-private/issues/2951
-    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
-    gradle.buildFinished {
-        System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
+    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://repo.grdev.net/artifactory/gradle-plugin-portal-prod/")
+
+    abstract class ClearPortalOverride : BuildService<BuildServiceParameters.None>, OperationCompletionListener, AutoCloseable {
+        override fun onFinish(event: FinishEvent) = Unit
+        override fun close() {
+            System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
+        }
     }
 }
 
