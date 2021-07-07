@@ -45,14 +45,14 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * minus the extension.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public interface UnzipTransform extends TransformAction<TransformParameters.None> {
+public abstract class UnzipTransform implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
-    Provider<FileSystemLocation> getZippedFile();
+    public abstract Provider<FileSystemLocation> getZippedFile();
 
     @Override
-    default void transform(TransformOutputs outputs) {
+    public void transform(TransformOutputs outputs) {
         File zippedFile = getZippedFile().get().getAsFile();
         String unzippedDirName = removeExtension(zippedFile.getName());
         File unzipDir = outputs.dir(unzippedDirName);
@@ -63,7 +63,7 @@ public interface UnzipTransform extends TransformAction<TransformParameters.None
         }
     }
 
-    static void unzipTo(File headersZip, File unzipDir) throws IOException {
+    private static void unzipTo(File headersZip, File unzipDir) throws IOException {
         try (ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)))) {
             ZipEntry entry;
             while ((entry = inputStream.getNextEntry()) != null) {
