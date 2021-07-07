@@ -42,6 +42,7 @@ private
 external interface JsModel {
     val cacheAction: String
     val documentationLink: String
+    val totalProblemCount: Int
     val problems: Array<JsProblem>
 }
 
@@ -127,7 +128,8 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
     return ConfigurationCacheReportPage.Model(
         cacheAction = jsModel.cacheAction,
         documentationLink = jsModel.documentationLink,
-        totalProblems = jsModel.problems.size,
+        totalProblems = jsModel.totalProblemCount,
+        reportedProblems = jsModel.problems.size,
         messageTree = treeModelFor(
             ProblemNode.Label("Problems grouped by message"),
             problemNodesByMessage(problems)
@@ -135,7 +137,7 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
         locationTree = treeModelFor(
             ProblemNode.Label("Problems grouped by location"),
             problemNodesByLocation(problems)
-        )
+        ),
     )
 }
 

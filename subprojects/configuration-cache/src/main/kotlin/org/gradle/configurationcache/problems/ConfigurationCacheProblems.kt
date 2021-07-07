@@ -91,8 +91,9 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        summary.onProblem(problem)
-        report.onProblem(problem)
+        if (summary.onProblem(problem)) {
+            report.onProblem(problem)
+        }
     }
 
     override fun getId(): String {
@@ -111,7 +112,7 @@ class ConfigurationCacheProblems(
         }
         val cacheActionText = cacheAction.summaryText()
         val outputDirectory = outputDirectoryFor(reportDir)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText)
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
         when {
             isFailOnProblems -> {
                 // TODO - always include this as a build failure;

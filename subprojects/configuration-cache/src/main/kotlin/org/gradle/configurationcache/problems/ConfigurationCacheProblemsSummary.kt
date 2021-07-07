@@ -26,6 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 
 private
+const val maxReportedProblems = 4096
+
+
+private
 const val maxConsoleProblems = 15
 
 
@@ -53,21 +57,22 @@ class ConfigurationCacheProblemsSummary {
             causesSummary.toList()
         }
 
-    fun onProblem(problem: PropertyProblem) {
-
-        problemCountSummary.getAndIncrement()
-
-        val uniqueProblem = UniquePropertyProblem.of(problem)
-        if (uniqueProblems.add(uniqueProblem)) {
-            // TODO: summarize console problems here instead of keeping all problems until the end
-            problem.exception?.let { cause ->
-                synchronized(causesSummary) {
-                    if (causesSummary.size < maxCauses) {
-                        causesSummary.add(cause)
+    fun onProblem(problem: PropertyProblem): Boolean {
+        val problemCount = problemCountSummary.incrementAndGet()
+        val isReported = problemCount <= maxReportedProblems
+        if (isReported) {
+            val uniqueProblem = UniquePropertyProblem.of(problem)
+            if (uniqueProblems.add(uniqueProblem)) {
+                problem.exception?.let { cause ->
+                    synchronized(causesSummary) {
+                        if (causesSummary.size < maxCauses) {
+                            causesSummary.add(cause)
+                        }
                     }
                 }
             }
         }
+        return isReported
     }
 
     fun textForConsole(cacheActionText: String, htmlReportFile: File): String {
@@ -105,6 +110,11 @@ class ConfigurationCacheProblemsSummary {
         append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
         append(cacheAction)
         append(" the configuration cache")
+        if (totalProblemCount > maxReportedProblems) {
+            append(", only the first ")
+            append(maxReportedProblems)
+            append(" were considered")
+        }
         if (totalProblemCount != uniqueProblemCount) {
             append(", ")
             append(uniqueProblemCount)

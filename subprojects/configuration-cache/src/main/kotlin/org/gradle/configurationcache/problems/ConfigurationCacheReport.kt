@@ -45,7 +45,7 @@ class ConfigurationCacheReport(
 
         open fun onProblem(problem: PropertyProblem): State = illegalState()
 
-        open fun commitReportTo(htmlReportFile: File, cacheAction: String): State = illegalState()
+        open fun commitReportTo(htmlReportFile: File, cacheAction: String, totalProblemCount: Int): State = illegalState()
 
         open fun close(): State = illegalState()
 
@@ -103,9 +103,9 @@ class ConfigurationCacheReport(
                 return this
             }
 
-            override fun commitReportTo(htmlReportFile: File, cacheAction: String): State {
+            override fun commitReportTo(htmlReportFile: File, cacheAction: String, totalProblemCount: Int): State {
                 executor.submit {
-                    writer.endHtmlReport(cacheAction)
+                    writer.endHtmlReport(cacheAction, totalProblemCount)
                     writer.close()
                     moveSpoolFileTo(htmlReportFile)
                 }
@@ -178,13 +178,13 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String): File {
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File {
         require(outputDirectory.mkdirs()) {
             "Could not create configuration cache report directory '$outputDirectory'"
         }
         return outputDirectory.resolve(HtmlReportTemplate.reportHtmlFileName).also { htmlReportFile ->
             withState {
-                commitReportTo(htmlReportFile, cacheAction)
+                commitReportTo(htmlReportFile, cacheAction, totalProblemCount)
             }
         }
     }
@@ -212,8 +212,8 @@ class HtmlReportWriter(val writer: BufferedWriter) {
         jsonModelWriter.beginModel()
     }
 
-    fun endHtmlReport(cacheAction: String) {
-        jsonModelWriter.endModel(cacheAction)
+    fun endHtmlReport(cacheAction: String, totalProblemCount: Int) {
+        jsonModelWriter.endModel(cacheAction, totalProblemCount)
         endReportData()
         writer.append(htmlTemplate.second)
     }
@@ -263,9 +263,13 @@ class JsonModelWriter(val writer: BufferedWriter) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String) {
+    fun endModel(cacheAction: String, totalProblemCount: Int) {
         endArray()
 
+        comma()
+        property("totalProblemCount") {
+            write(totalProblemCount.toString())
+        }
         comma()
         property("cacheAction", cacheAction)
         comma()
