@@ -104,7 +104,7 @@ class SubstIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static isPresent(String drive) {
-        File.listRoots().any { "${it}".toUpperCase().startsWith(drive.toUpperCase()) }
+        File.listRoots().any { "${it}".toUpperCase(Locale.US).startsWith(drive.toUpperCase(Locale.US)) }
     }
 
     def cleanupSubst(String drive) {

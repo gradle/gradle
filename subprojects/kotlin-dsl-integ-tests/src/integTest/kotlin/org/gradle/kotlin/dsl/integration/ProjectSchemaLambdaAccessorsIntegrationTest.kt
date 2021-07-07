@@ -35,7 +35,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             addPlugin(
                 """
                 project.extensions.add("closureExtension", { String name ->
-                    name.toUpperCase()
+                    name.toUpperCase(java.util.Locale.US)
                 })
                 """.trimIndent(),
                 "my"
@@ -74,7 +74,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             "buildSrc/src/main/kotlin/my.gradle.kts",
             """
             extensions.add("lambdaExtension", { name: String ->
-                name.toUpperCase()
+                name.toUpperCase(java.util.Locale.US)
             })
             """
         )
@@ -131,7 +131,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
             public class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    Function<String, String> lambda = s -> s.toUpperCase();
+                    Function<String, String> lambda = s -> s.toUpperCase(java.util.Locale.US);
                     project.getExtensions().add("lambdaExtension", lambda);
                 }
             }
@@ -170,7 +170,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
                 """
                 def typeToken = new org.gradle.api.reflect.TypeOf<Closure<String>>() {}
                 project.extensions.add(typeToken, "closureExtension", { String name ->
-                    name.toUpperCase()
+                    name.toUpperCase(java.util.Locale.US)
                 })
                 """.trimIndent(),
                 "my"
@@ -209,7 +209,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             "buildSrc/src/main/kotlin/my.gradle.kts",
             """
             val typeToken = typeOf<(String) -> String>()
-            val lambda = { name: String ->  name.toUpperCase() }
+            val lambda = { name: String ->  name.toUpperCase(java.util.Locale.US) }
             extensions.add(typeToken, "lambdaExtension", lambda)
             """
         )
@@ -269,7 +269,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             public class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     TypeOf<Function<String, String>> typeToken = new TypeOf<Function<String, String>>() {};
-                    Function<String, String> lambda = s -> s.toUpperCase();
+                    Function<String, String> lambda = s -> s.toUpperCase(java.util.Locale.US);
                     project.getExtensions().add(typeToken, "lambdaExtension", lambda);
                 }
             }

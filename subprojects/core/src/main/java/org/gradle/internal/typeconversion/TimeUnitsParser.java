@@ -25,7 +25,7 @@ import static org.gradle.internal.typeconversion.NormalizedTimeUnit.millis;
 public class TimeUnitsParser {
 
     public NormalizedTimeUnit parseNotation(CharSequence notation, int value) {
-        String candidate = notation.toString().toUpperCase();
+        String candidate = notation.toString().toUpperCase(java.util.Locale.US);
         //jdk5 does not have days, hours or minutes, normalizing to millis
         switch (candidate) {
             case "DAYS":

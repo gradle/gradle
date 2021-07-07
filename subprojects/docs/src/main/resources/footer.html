@@ -150,7 +150,7 @@
         }
 
         function capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
+            return string.charAt(0).toUpperCase(java.util.Locale.US) + string.slice(1);
         }
 
         function processSampleEl(sampleEl, prefLangId) {

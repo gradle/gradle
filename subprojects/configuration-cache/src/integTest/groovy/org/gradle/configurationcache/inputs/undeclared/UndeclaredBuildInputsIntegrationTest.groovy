@@ -78,11 +78,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         where:
         expression                                                             | notDefined | value     | expectedValue
-        'System.getProperty("${ci.toUpperCase()}1")'                           | ""         | "defined" | "defined"
-        'System.getProperty("${ci.toUpperCase()}1", "${value.toUpperCase()}")' | "VALUE"    | "defined" | "defined"
-        'Boolean.getBoolean("${ci.toUpperCase()}1")'                           | "false"    | "true"    | "true"
-        'Integer.getInteger("${ci.toUpperCase()}1")'                           | "null"     | "123"     | "123"
-        'Long.getLong("${ci.toUpperCase()}1")'                                 | "null"     | "123"     | "123"
+        'System.getProperty("${ci.toUpperCase(java.util.Locale.US)}1")'                           | ""         | "defined" | "defined"
+        'System.getProperty("${ci.toUpperCase(java.util.Locale.US)}1", "${value.toUpperCase(java.util.Locale.US)}")' | "VALUE"    | "defined" | "defined"
+        'Boolean.getBoolean("${ci.toUpperCase(java.util.Locale.US)}1")'                           | "false"    | "true"    | "true"
+        'Integer.getInteger("${ci.toUpperCase(java.util.Locale.US)}1")'                           | "null"     | "123"     | "123"
+        'Long.getLong("${ci.toUpperCase(java.util.Locale.US)}1")'                                 | "null"     | "123"     | "123"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13652")

@@ -520,7 +520,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     boolean hasUid = false;
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
-                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
+                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(java.util.Locale.US) + "\n").getBytes(StandardCharsets.US_ASCII));
                     Iterator<String> userIDs = pk.getUserIDs();
                     while (userIDs.hasNext()) {
                         hasUid = true;

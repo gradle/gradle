@@ -357,7 +357,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             fun test() {
 
                 // Implicit SAM conversion in regular source
-                println(createK(String::class) { it.toUpperCase() })
+                println(createK(String::class) { it.toUpperCase(java.util.Locale.US) })
                 println(create("FOO") { it.toLowerCase(java.util.Locale.US) })
 
                 // Implicit SAM with receiver conversion in regular source

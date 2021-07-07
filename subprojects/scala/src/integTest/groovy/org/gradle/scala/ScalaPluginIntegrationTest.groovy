@@ -60,9 +60,9 @@ task someTask
                     id 'scala'
                 }
             """
-            file("${project}/src/main/scala/${project}/${project.toUpperCase()}.scala") << """
+            file("${project}/src/main/scala/${project}/${project.toUpperCase(Locale.US)}.scala") << """
                 package ${project}
-                trait ${project.toUpperCase()}
+                trait ${project.toUpperCase(Locale.US)}
             """
         }
         file("a/build.gradle") << """

@@ -339,7 +339,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
 
         @Override
         void execute(Details details) {
-            details.name = details.name.toUpperCase()
+            details.name = details.name.toUpperCase(Locale.US)
         }
     }
 
@@ -347,7 +347,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
 
         @Override
         void execute(Details details) {
-            details.name = details.name.toUpperCase()
+            details.name = details.name.toUpperCase(Locale.US)
         }
     }
 
@@ -363,7 +363,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
 
         @Override
         void execute(Details details) {
-            details.name = details.name.toUpperCase()
+            details.name = details.name.toUpperCase(Locale.US)
         }
     }
 

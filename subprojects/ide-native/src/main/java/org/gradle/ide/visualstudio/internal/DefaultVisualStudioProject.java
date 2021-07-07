@@ -106,7 +106,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public static String getUUID(File projectFile) {
-        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase() + "}";
+        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase(java.util.Locale.US) + "}";
     }
 
     @Internal

@@ -70,8 +70,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())) {
-                toolExec.getEnvironment().remove(pathVar.toUpperCase());
+            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase(java.util.Locale.US))) {
+                toolExec.getEnvironment().remove(pathVar.toUpperCase(java.util.Locale.US));
             }
         }
 

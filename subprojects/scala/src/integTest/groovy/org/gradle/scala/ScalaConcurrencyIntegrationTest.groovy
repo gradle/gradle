@@ -62,18 +62,18 @@ class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
                     id 'scala'
                 }
             """
-            file("${project}/src/main/scala/${project}/${project.toUpperCase()}.scala") << """
+            file("${project}/src/main/scala/${project}/${project.toUpperCase(Locale.US)}.scala") << """
                 package ${project}
-                trait ${project.toUpperCase()}
+                trait ${project.toUpperCase(Locale.US)}
             """
-            file("${project}/src/test/scala/${project}/${project.toUpperCase()}Test.scala") << """
+            file("${project}/src/test/scala/${project}/${project.toUpperCase(Locale.US)}Test.scala") << """
                 package ${project}
                 import org.scalatest.funsuite.AnyFunSuite
                 import org.junit.runner.RunWith
                 import org.scalatestplus.junit.JUnitRunner
 
                 @RunWith(classOf[JUnitRunner])
-                class ${project.toUpperCase()}Test extends AnyFunSuite {
+                class ${project.toUpperCase(Locale.US)}Test extends AnyFunSuite {
                   test("always true") {
                       assert(true)
                   }

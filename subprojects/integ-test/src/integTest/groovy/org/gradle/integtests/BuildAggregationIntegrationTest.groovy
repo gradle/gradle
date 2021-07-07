@@ -116,7 +116,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void upper() {
-                  output.text = input.text.toUpperCase()
+                  output.text = input.text.toUpperCase(java.util.Locale.US)
                 }
             }
 

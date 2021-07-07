@@ -65,7 +65,7 @@ public class S3ConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
+                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(java.util.Locale.US))) {
                     throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {
@@ -82,7 +82,7 @@ public class S3ConnectionProperties {
     public Optional<HttpProxySettings.HttpProxy> getProxy() {
         if (endpoint.isPresent()) {
             String host = endpoint.get().getHost();
-            if (endpoint.get().getScheme().toUpperCase().equals("HTTP")) {
+            if (endpoint.get().getScheme().toUpperCase(java.util.Locale.US).equals("HTTP")) {
                 return Optional.fromNullable(proxySettings.getProxy(host));
             } else {
                 return Optional.fromNullable(secureProxySettings.getProxy(host));

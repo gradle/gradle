@@ -120,7 +120,7 @@ public class DefaultColorMap implements ColorMap {
         if (style.getColor().equals(Style.Color.GREY)) {
             colors.add(new BrightForegroundColor(Ansi.Color.BLACK));
         } else {
-            Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase());
+            Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase(java.util.Locale.US));
             if (ansiColor != DEFAULT) {
                 colors.add(new ForegroundColor(ansiColor));
             }
@@ -184,7 +184,7 @@ public class DefaultColorMap implements ColorMap {
             return new CompositeColor(colorList);
         }
 
-        Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
+        Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase(java.util.Locale.US));
         if (ansiColor != DEFAULT) {
             return new ForegroundColor(ansiColor);
         }

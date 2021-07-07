@@ -68,7 +68,7 @@ public class ModelReport extends DefaultTask {
 
     @Option(option = "format", description = "Output format (full, short)")
     public void setFormat(String format) {
-        this.format = Format.valueOf(format.toUpperCase());
+        this.format = Format.valueOf(format.toUpperCase(java.util.Locale.US));
     }
 
     @Console

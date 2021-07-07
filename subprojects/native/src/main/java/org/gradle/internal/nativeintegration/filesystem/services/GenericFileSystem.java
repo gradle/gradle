@@ -145,7 +145,7 @@ class GenericFileSystem implements FileSystem {
 
     private boolean probeCaseSensitive(File file, String content) {
         try {
-            File upperCased = new File(file.getPath().toUpperCase());
+            File upperCased = new File(file.getPath().toUpperCase(java.util.Locale.US));
             return !hasContent(upperCased, content);
         } catch (IOException e) {
             // not fully accurate but a sensible fallback

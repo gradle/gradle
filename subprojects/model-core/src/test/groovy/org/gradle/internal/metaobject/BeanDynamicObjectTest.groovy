@@ -284,7 +284,7 @@ class BeanDynamicObjectTest extends Specification {
         def dynamicObject = new BeanDynamicObject(bean)
 
         when:
-        dynamicObject.setProperty("prop", "${"a".toUpperCase()}")
+        dynamicObject.setProperty("prop", "${"a".toUpperCase(Locale.US)}")
 
         then:
         bean.prop == "A"

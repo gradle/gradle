@@ -195,11 +195,11 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     subject.mapWithOtherParameters(foo = "foo", bar = 42)
                     subject.mapWithOtherParameters("foo", 42, "bar" to 23L, "bazar" to "cathedral")
 
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.toUpperCase()) })
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.toUpperCase()) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.toUpperCase(java.util.Locale.US)) }
+                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.toUpperCase(java.util.Locale.US)) }
+                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.toUpperCase(java.util.Locale.US)) }
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.toUpperCase(java.util.Locale.US)) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.toUpperCase(java.util.Locale.US)) })
                 }
                 """
             )

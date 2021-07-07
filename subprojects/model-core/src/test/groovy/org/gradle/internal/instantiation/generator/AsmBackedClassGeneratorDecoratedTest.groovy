@@ -712,7 +712,7 @@ class CallsPrivateMethods {
     }
 
     private upperCaser(String str) {
-        str.toUpperCase()
+        str.toUpperCase(Locale.US)
     }
 }
 

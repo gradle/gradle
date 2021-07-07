@@ -28,7 +28,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             task assertLogging {
                 def logLevel = project.gradle.startParameter.logLevel
                 doLast {
-                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
+                    assert LogLevel.${logLevel.toUpperCase(Locale.US)} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)
@@ -62,7 +62,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
                 def logLevel = project.gradle.startParameter.logLevel
                 doLast {
                     assert System.getProperty("org.gradle.logging.level") == "${logLevel}"
-                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
+                    assert LogLevel.${logLevel.toUpperCase(Locale.US)} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') {
@@ -96,7 +96,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
             task assertLogging {
                 def logLevel = project.gradle.startParameter.logLevel
                 doLast {
-                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
+                    assert LogLevel.${logLevel.toUpperCase(Locale.US)} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)

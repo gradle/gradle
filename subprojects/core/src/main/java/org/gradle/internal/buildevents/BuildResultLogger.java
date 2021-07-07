@@ -63,7 +63,7 @@ public class BuildResultLogger {
 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
         textOutput.println();
-        String action = result.getAction().toUpperCase();
+        String action = result.getAction().toUpperCase(java.util.Locale.US);
         if (buildSucceeded) {
             textOutput.withStyle(SuccessHeader).text(action + " SUCCESSFUL");
         } else {

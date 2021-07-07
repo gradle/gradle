@@ -154,13 +154,13 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
     }),
     SMART_TERMINAL({
-        System.getenv("TERM")?.toUpperCase() != "DUMB"
+        System.getenv("TERM")?.toUpperCase(Locale.US) != "DUMB"
     }),
     PULL_REQUEST_BUILD({
-        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
+        if (System.getenv("TRAVIS")?.toUpperCase(Locale.US) == "TRUE") {
             return true
         }
-        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
+        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase(Locale.US) == "TRUE") {
             return true
         }
         return false

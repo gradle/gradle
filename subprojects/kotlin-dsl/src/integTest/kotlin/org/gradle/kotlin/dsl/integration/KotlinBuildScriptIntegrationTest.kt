@@ -234,16 +234,16 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             task("test") {
                 doLast {
                     // Explicit SAM conversion
-                    println(create("foo", NamedDomainObjectFactory<String> { it.toUpperCase() }))
+                    println(create("foo", NamedDomainObjectFactory<String> { it.toUpperCase(java.util.Locale.US) }))
                     // Explicit SAM conversion with generic type argument inference
-                    println(create<String>("bar", NamedDomainObjectFactory { it.toUpperCase() }))
+                    println(create<String>("bar", NamedDomainObjectFactory { it.toUpperCase(java.util.Locale.US) }))
                     // Implicit SAM conversion
-                    println(create<String>("baz") { it.toUpperCase() })
-                    println(create(String::class) { it.toUpperCase() })
-                    println(create(String::class, { name: String -> name.toUpperCase() }))
+                    println(create<String>("baz") { it.toUpperCase(java.util.Locale.US) })
+                    println(create(String::class) { it.toUpperCase(java.util.Locale.US) })
+                    println(create(String::class, { name: String -> name.toUpperCase(java.util.Locale.US) }))
                     // Implicit SAM with receiver conversion
                     applyActionTo("action") {
-                        println(toUpperCase())
+                        println(toUpperCase(java.util.Locale.US))
                     }
                 }
             }

@@ -64,7 +64,7 @@ class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
 
         then:
         def expectedMethod = redirect in METHOD_PRESERVING_REDIRECTS ? httpMethod : httpMethod == "HEAD" ? "HEAD" : "GET"
-        redirectRequest.method.toUpperCase() == expectedMethod
+        redirectRequest.method.toUpperCase(Locale.US) == expectedMethod
 
         where:
         [httpMethod, redirect] << [HTTP_METHODS, REDIRECTS].combinations()

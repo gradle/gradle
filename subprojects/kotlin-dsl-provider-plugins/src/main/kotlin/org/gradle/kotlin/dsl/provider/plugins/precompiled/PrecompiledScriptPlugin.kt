@@ -165,7 +165,7 @@ fun CharSequence.kebabCaseToPascalCase() =
 
 private
 fun CharSequence.kebabCaseToCamelCase() =
-    replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+    replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase(java.util.Locale.US) }
 
 
 private

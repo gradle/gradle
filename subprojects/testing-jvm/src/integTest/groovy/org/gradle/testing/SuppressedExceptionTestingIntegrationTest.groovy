@@ -129,7 +129,7 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
                         throw exception;
                     }
 
-                    return input.toUpperCase();
+                    return input.toUpperCase(java.util.Locale.US);
                 }
 
                 @Test

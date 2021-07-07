@@ -26,7 +26,7 @@ public class HandleReportStatus implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof ReportStatus) {
             String version = GradleVersion.current().getVersion();
-            String status = execution.getDaemonStateControl().getState().toString().toUpperCase();
+            String status = execution.getDaemonStateControl().getState().toString().toUpperCase(java.util.Locale.US);
             Status message = new Status(execution.getDaemonContext().getPid(), version, status);
             execution.getConnection().completed(new Success(message));
         } else {

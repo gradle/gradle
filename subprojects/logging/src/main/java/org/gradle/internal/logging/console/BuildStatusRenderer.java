@@ -128,7 +128,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        progressBar = newProgressBar(phase.name().toUpperCase(), 0, progressStartEvent.getTotalProgress());
+        progressBar = newProgressBar(phase.name().toUpperCase(java.util.Locale.US), 0, progressStartEvent.getTotalProgress());
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {

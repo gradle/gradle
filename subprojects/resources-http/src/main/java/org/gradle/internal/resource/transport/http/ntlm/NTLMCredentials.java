@@ -42,7 +42,7 @@ public class NTLMCredentials {
         } else {
             domain = System.getProperty("http.auth.ntlm.domain", DEFAULT_DOMAIN);
         }
-        this.domain = domain == null ? null : domain.toUpperCase();
+        this.domain = domain == null ? null : domain.toUpperCase(java.util.Locale.US);
         this.username = username;
         this.password = credentials.getPassword();
         this.workstation = determineWorkstationName();
@@ -56,7 +56,7 @@ public class NTLMCredentials {
         }
 
         try {
-            return removeDotSuffix(getHostName()).toUpperCase();
+            return removeDotSuffix(getHostName()).toUpperCase(java.util.Locale.US);
         } catch (UnknownHostException e) {
             return DEFAULT_WORKSTATION;
         }

@@ -86,7 +86,7 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "GROOVY",
-            closure { toUpperCase() }.call("groovy")
+            closure { toUpperCase(java.util.Locale.US) }.call("groovy")
         )
     }
 

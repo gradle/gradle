@@ -46,7 +46,7 @@ class CaseInsensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest
     def "can compare lower and upper case correctly (#left - #right = #result)"() {
         def char1 = left as char
         def char2 = right as char
-        def caseInsensitiveResult = left.toUpperCase() == right.toUpperCase() ? 0 : result
+        def caseInsensitiveResult = left.toUpperCase(Locale.US) == right.toUpperCase(Locale.US) ? 0 : result
 
         expect:
         compareCharsIgnoringCase(char1, char2) == caseInsensitiveResult

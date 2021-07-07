@@ -334,7 +334,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(java.util.Locale.US), length);
         ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }

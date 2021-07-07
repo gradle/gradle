@@ -368,7 +368,7 @@ public class GUtil {
         if (string == null) {
             return null;
         }
-        return toWords(string, '_').toUpperCase();
+        return toWords(string, '_').toUpperCase(java.util.Locale.US);
     }
 
     /**

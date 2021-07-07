@@ -398,7 +398,7 @@ class CollectionUtilsTest extends Specification {
     def "grouping"() {
         expect:
         groupBy([1, 2, 3], transformer { "a" }) == ["a": [1, 2, 3]]
-        groupBy(["a", "b", "c"], transformer { it.toUpperCase() }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
+        groupBy(["a", "b", "c"], transformer { it.toUpperCase(Locale.US) }) == ["A": ["a"], "B": ["b"], "C": ["c"]]
         groupBy([], transformer { throw new AssertionError("shouldn't be called") }).isEmpty()
     }
     def unpack() {

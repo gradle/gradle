@@ -16,7 +16,7 @@ public class ServerEnvironmentPlugin implements Plugin<Project> {
 
         serverEnvironmentContainer.all(serverEnvironment -> {
             String env = serverEnvironment.getName();
-            String capitalizedServerEnv = env.substring(0, 1).toUpperCase() + env.substring(1);
+            String capitalizedServerEnv = env.substring(0, 1).toUpperCase(java.util.Locale.US) + env.substring(1);
             String taskName = "deployTo" + capitalizedServerEnv;
             project.getTasks().register(taskName, Deploy.class, task -> task.getUrl().set(serverEnvironment.getUrl()));
         });

@@ -195,7 +195,7 @@ tasks.register<Copy>("rename") {
     into(layout.buildDirectory.dir("explodedWar"))
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
-        fileName.toUpperCase()
+        fileName.toUpperCase(java.util.Locale.US)
     }
     // Use a regular expression to map the file name
     rename("(.+)-staging-(.+)", "$1$2")

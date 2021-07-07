@@ -74,7 +74,7 @@ public class NameMatcher {
 
         Pattern camelCasePattern = getPatternForName(pattern);
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
-        String normalisedPattern = pattern.toUpperCase();
+        String normalisedPattern = pattern.toUpperCase(java.util.Locale.US);
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
         Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
 
@@ -107,7 +107,7 @@ public class NameMatcher {
                 kebabCasePrefixMatches.add(candidate);
                 found = true;
             }
-            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
+            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase(java.util.Locale.US)) <= Math.min(3, pattern.length() / 2)) {
                 candidates.add(candidate);
             }
         }

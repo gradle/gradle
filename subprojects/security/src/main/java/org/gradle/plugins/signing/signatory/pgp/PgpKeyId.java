@@ -93,7 +93,7 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
     }
 
     private static String normaliseKeyId(String keyId) {
-        String keyIdUpped = keyId.toUpperCase();
+        String keyIdUpped = keyId.toUpperCase(java.util.Locale.US);
         switch (keyIdUpped.length()) {
             case 10:
                 if (!keyIdUpped.startsWith("0X")) {

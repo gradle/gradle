@@ -81,7 +81,7 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
                 enumValue = tryGetValue(value.toLowerCase(Locale.US));
             }
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toUpperCase());
+                enumValue = tryGetValue(value.toUpperCase(java.util.Locale.US));
             }
         }
         if (enumValue == null) {

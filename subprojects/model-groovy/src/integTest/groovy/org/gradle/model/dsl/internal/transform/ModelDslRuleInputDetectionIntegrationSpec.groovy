@@ -61,7 +61,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             "(\$('thing')).value",
             '$("thing")."${"value"}"',
             "\$('thing').'value'",
-            "\$('thing').value.toUpperCase().toLowerCase(java.util.Locale.US)",
+            "\$('thing').value.toUpperCase(java.util.Locale.US).toLowerCase(java.util.Locale.US)",
             "\$('thing').value[0] + 'oo'",
             "(true ? \$('thing.value') : 'bar')",
             "new String(\$('thing.value'))",
@@ -102,7 +102,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             '$."thing"."value"',
             '$.thing.getValue()',
             "\$.'thing'.'value'",
-            '$.thing.value.toUpperCase().toLowerCase(java.util.Locale.US)',
+            '$.thing.value.toUpperCase(java.util.Locale.US).toLowerCase(java.util.Locale.US)',
             '(true ? $.thing.value : "bar")',
             "new String(\$.thing.value)",
         ]
