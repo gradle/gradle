@@ -17,12 +17,10 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.Task;
-import org.gradle.work.DisableCachingByDefault;
 
 /**
  * A task that combines a set of object files into a single binary.
  */
-@DisableCachingByDefault(because = "Interface, not to be instantiated directly")
 public interface ObjectFilesToBinary extends Task {
     /**
      * Adds a set of object files to be combined into the file binary.

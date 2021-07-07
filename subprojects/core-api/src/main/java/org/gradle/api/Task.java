@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -157,7 +156,6 @@ import java.util.Set;
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
  */
-@DisableCachingByDefault(because = "Interface, not to be instantiated directly")
 public interface Task extends Comparable<Task>, ExtensionAware {
     String TASK_NAME = "name";
 

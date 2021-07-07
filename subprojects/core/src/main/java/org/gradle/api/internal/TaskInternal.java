@@ -30,13 +30,11 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
-import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-@DisableCachingByDefault(because = "Interface, not to be instantiated directly")
 public interface TaskInternal extends Task, Configurable<Task> {
 
     /**
