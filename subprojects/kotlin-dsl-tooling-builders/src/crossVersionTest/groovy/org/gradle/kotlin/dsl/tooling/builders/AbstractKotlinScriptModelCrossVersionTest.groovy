@@ -70,6 +70,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     def setup() {
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
+
+        // Required to prevent lock contention for generated api jars when tests run in parallel
+        toolingApi.requireIsolatedUserHome()
     }
 
     private String defaultSettingsScript = ""
