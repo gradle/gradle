@@ -659,6 +659,10 @@ Implies `<<#incremental,@Incremental>>`.
 | `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track only changes to the contents of directories and not differences in the directories themselves. For example, removing, renaming or adding an empty directory somewhere in the directory structure will not make the task out-of-date.
+
+| `@link:{javadocPath}/org/gradle/work/NormalizeLineEndings.html[NormalizeLineEndings]`
+| `Iterable&lt;File&gt;`*
+| Used with `@InputFiles`, `@InputDirectory` or `@Classpath` to instruct Gradle to normalize line endings when calculating up-to-date checks or build cache keys.  For example, switching a file between Unix line endings and Windows line endings (or vice-versa) will not make the task out-of-date.
 |===
 
 [NOTE]

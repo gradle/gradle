@@ -66,6 +66,38 @@ as it avoids the overhead of transmitting the large file just to have it rejecte
 
 Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue.
 
+## Performance Improvements
+
+### More cache hits when switching platforms
+For [up-to-date](userguide/more_about_tasks.html#sec:up_to_date_checks) checks and the [build cache](userguide/build_cache.html), Gradle needs to determine if two directory structures contain the same contents.  When line endings in text files differ (e.g. when checking out source code on different platforms) this can appear like the inputs of a task are different, even though the task may not actually produce different outputs.  This difference can cause tasks to re-execute unnecessarily, producing identical outputs that could otherwise have been retrieved from the build cache.
+
+A new annotation has been introduced that allows task authors to specify that an input should not be sensitive to differences in line endings.  Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html), [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) or [@Classpath](javadoc/org/gradle/api/tasks/Classpath.html) can additionally be annotated with [@NormalizeLineEndings](javadoc/org/gradle/work/NormalizeLineEndings.html) to specify that line endings in text files should be normalized during build cache and up-to-date checks so that files that only differ by line endings will be considered identical.  Binary files, on the other hand, will not be affected by this annotation.  Note that line ending normalization only applies to text files encoded with the ASCII character set or one of its supersets (e.g. UTF-8).  Text files encoded in a non-ASCII character set (e.g. UTF-16) will be treated as binary files and will not be subject to line ending normalization.
+
+```groovy
+class MyTask extends DefaultTask {
+    @InputFiles
+    @PathSensitive(@PathSensitivity.RELATIVE)
+    @NormalizeLineEndings
+    FileCollection inputFiles;
+}
+```
+
+Similarly, there is a corresponding runtime API equivalent:
+
+```groovy
+tasks.register("myTask") {
+    ext.inputFiles = files()
+    inputs.files(inputFiles)
+          .withPropertyName('inputFiles')
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+          .normalizeLineEndings()
+}
+```
+
+The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task has been updated to now normalize line endings in source files when doing up-to-date checks and build cache key calculations.
+
+See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
