@@ -134,4 +134,12 @@
     <module name="RegexpSingleline">
         <property name="format" value="^\s*\*\s*@author"/>
     </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="(?&lt;!Character\.)toLowerCase\(\)" />
+        <property name="message" value="Cannot invoke String.toLowerCase() without a locale as an argument" />
+    </module>
+    <module name="RegexpSingleline">
+        <property name="format" value="(?&lt;!Character\.)toUpperCase\(\)" />
+        <property name="message" value="Cannot invoke String.toUpperCase() without a locale as an argument" />
+    </module>
 </module>
