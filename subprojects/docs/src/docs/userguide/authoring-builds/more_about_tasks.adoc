@@ -639,7 +639,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Indicates that the property has been replaced by another and should be ignored as an input or output.
 
 | [[skip-when-empty]]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
-| `File`+++*+++
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 Implies `<<#incremental,@Incremental>>`.
@@ -653,11 +653,11 @@ Implies `<<#incremental,@Incremental>>`.
 | Used with any of the property type annotations listed in the link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional] API documentation. This annotation disables validation checks on the corresponding property. See <<#sec:task_input_output_validation,the section on validation>> for more details.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`
-| `File`+++*+++
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | [[inputs_path_sensitivity]]Used with any input file property to tell Gradle to only consider the given part of the file paths as important. For example, if a property is annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, then moving the files around without changing their contents will not make the task out-of-date.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]`
-| `Iterable&lt;File&gt;`*
+| `File` or `Iterable&lt;File&gt;`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track only changes to the contents of directories and not differences in the directories themselves. For example, removing, renaming or adding an empty directory somewhere in the directory structure will not make the task out-of-date.
 |===
 
