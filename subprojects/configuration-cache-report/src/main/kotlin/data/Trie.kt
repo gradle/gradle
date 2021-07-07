@@ -18,7 +18,7 @@ package data
 
 
 @Suppress("experimental_feature_warning")
-inline class Trie<T>(
+value class Trie<T>(
 
     private
     val nestedMaps: Map<T, Any>
