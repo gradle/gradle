@@ -113,7 +113,7 @@ abstract class UserGuideTransformTask extends DefaultTask {
 
             def classMetaData = linkRepository.get(className)
             LinkMetaData linkMetaData = methodName ? classMetaData.getMethod(methodName) : classMetaData.classLink
-            String style = element.'@style' ?: linkMetaData.style.toString().toLowerCase()
+            String style = element.'@style' ?: linkMetaData.style.toString().toLowerCase(Locale.US)
 
             Element ulinkElement = doc.createElement('ulink')
 

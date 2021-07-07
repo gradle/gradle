@@ -25,6 +25,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
+import java.util.Locale
 
 import java.util.stream.Collectors
 
@@ -146,10 +147,10 @@ Enter selection (default: JUnit 4) [1..4]
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
             .withBinding("language", descriptor.language.toString().replace("C++", "{cpp}"))
-            .withBinding("languageLC", descriptor.language.name.toLowerCase())
+            .withBinding("languageLC", descriptor.language.name.toLowerCase(Locale.US))
             .withBinding("languageExtension", descriptor.language.extension)
             .withBinding("languageIndex", "" + (languages.indexOf(descriptor.language) + 1))
-            .withBinding("componentType", descriptor.componentType.name.toLowerCase())
+            .withBinding("componentType", descriptor.componentType.name.toLowerCase(Locale.US))
             .withBinding("componentTypeIndex", "" + (descriptor.componentType.ordinal + 1))
             .withBinding("packageNameChoice", packageNameChoice)
             .withBinding("subprojectName", settings.subprojects.first())
