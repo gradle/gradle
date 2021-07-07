@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.archive.ZipEntry
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -441,7 +443,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
                 return bos.size()
             }
         }
-        return new ZipEntryContext(zipEntry, path, "foo.zip")
+        return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }
 
     def fileSnapshot(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {

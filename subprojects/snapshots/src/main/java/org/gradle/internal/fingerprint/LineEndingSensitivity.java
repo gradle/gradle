@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.hash.HashCode;
-
-import javax.annotation.Nullable;
-
-public interface RegularFileHasher {
-
-    /**
-     * Returns {@code null} if the file should be ignored.
-     */
-    @Nullable
-    HashCode hash(RegularFileSnapshotContext snapshotContext);
+public enum LineEndingSensitivity {
+    DEFAULT,
+    NORMALIZE_LINE_ENDINGS;
 }

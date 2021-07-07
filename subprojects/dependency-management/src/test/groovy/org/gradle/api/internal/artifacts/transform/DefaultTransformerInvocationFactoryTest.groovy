@@ -52,8 +52,11 @@ import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetect
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
@@ -91,8 +94,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
 
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter)
-    def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter])
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
+    def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(dependencyFingerprinter)])
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
@@ -245,6 +248,16 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         @Override
         DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
             return DirectorySensitivity.DEFAULT
+        }
+
+        @Override
+        LineEndingSensitivity getInputArtifactLineEndingNormalization() {
+            return LineEndingSensitivity.DEFAULT
+        }
+
+        @Override
+        LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
+            return LineEndingSensitivity.DEFAULT
         }
     }
 

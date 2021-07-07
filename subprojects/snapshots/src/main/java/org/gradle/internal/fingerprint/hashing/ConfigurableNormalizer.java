@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.fingerprint.hashing;
+
+import org.gradle.internal.hash.Hasher;
 
 /**
- * Hashes resources (e.g., a class file in a jar or a class file in a directory)
+ * A resource normalizer which is configurable.
+ *
+ * Allows tracking changes to its configuration.
  */
-public interface ResourceHasher extends ConfigurableNormalizer, RegularFileHasher, ZipEntryHasher {
+public interface ConfigurableNormalizer {
+    void appendConfigurationToHasher(Hasher hasher);
 }

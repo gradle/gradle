@@ -16,29 +16,34 @@
 
 package org.gradle.internal.execution.fingerprint.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.fingerprint.impl.FingerprinterRegistration;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-
-import static org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec.from;
 
 public class DefaultFileCollectionFingerprinterRegistry implements FileCollectionFingerprinterRegistry {
     private final Map<FileNormalizationSpec, FileCollectionFingerprinter> fingerprinters;
 
-    public DefaultFileCollectionFingerprinterRegistry(Collection<FileCollectionFingerprinter> fingerprinters) {
-        this.fingerprinters = ImmutableMap.copyOf(Maps.uniqueIndex(fingerprinters, input -> from(input.getRegisteredType(), input.getDirectorySensitivity())));
+    public DefaultFileCollectionFingerprinterRegistry(Collection<FingerprinterRegistration> registrations) {
+        this.fingerprinters = ImmutableMap.copyOf(entriesFrom(registrations));
+    }
+
+    private List<Map.Entry<FileNormalizationSpec, FileCollectionFingerprinter>> entriesFrom(Collection<FingerprinterRegistration> registrations) {
+        return registrations.stream().map(registration -> Maps.immutableEntry(registration.getSpec(), registration.getFingerprinter())).collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(spec);
         if (fingerprinter == null) {
-            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s' and directory sensitivity '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name()));
+            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s', directory sensitivity '%s' and line ending normalization '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name(), spec.getLineEndingNormalization()));
         }
         return fingerprinter;
     }

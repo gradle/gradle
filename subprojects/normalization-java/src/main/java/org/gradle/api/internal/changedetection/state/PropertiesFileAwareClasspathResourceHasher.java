@@ -21,6 +21,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.file.pattern.PathMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -66,7 +69,7 @@ public class PropertiesFileAwareClasspathResourceHasher implements ResourceHashe
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         ResourceEntryFilter resourceEntryFilter = matchingFiltersFor(snapshotContext.getRelativePathSegments());
         if (resourceEntryFilter == null) {
             return delegate.hash(snapshotContext);
