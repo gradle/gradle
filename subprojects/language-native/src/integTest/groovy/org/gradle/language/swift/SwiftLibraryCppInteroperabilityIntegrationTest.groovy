@@ -28,7 +28,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can compile and link against a #linkage.toLowerCase() c++ library"() {
+    def "can compile and link against a #linkage.toLowerCase(java.util.Locale.US) c++ library"() {
         settingsFile << "include 'hello', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -77,7 +77,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can compile and link against a c++ library with a dependency on a #linkage.toLowerCase() c++ library"() {
+    def "can compile and link against a c++ library with a dependency on a #linkage.toLowerCase(java.util.Locale.US) c++ library"() {
         settingsFile << "include 'hello', 'cppGreeter', 'logger'"
         def cppGreeter = new CppGreeterFunctionUsesLogger()
         def logger = new CppLogger()

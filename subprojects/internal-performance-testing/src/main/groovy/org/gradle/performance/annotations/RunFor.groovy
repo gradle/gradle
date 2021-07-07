@@ -114,7 +114,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
     private static GroupsBean createGroup(Scenario scenario, String testProject) {
         return new GroupsBean(
             testProject: testProject,
-            coverage: [(scenario.type().toString().toLowerCase()): scenario.operatingSystems().collect { it.coverageName }] as TreeMap,
+            coverage: [(scenario.type().toString().toLowerCase(java.util.Locale.US)): scenario.operatingSystems().collect { it.coverageName }] as TreeMap,
             comment: scenario.comment() ?: null
         )
     }

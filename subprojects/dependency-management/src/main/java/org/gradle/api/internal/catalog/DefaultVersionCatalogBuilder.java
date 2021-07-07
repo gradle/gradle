@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -289,7 +290,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private void validateAlias(String alias) {
         for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
-            String sl = alias.toLowerCase();
+            String sl = alias.toLowerCase(Locale.US);
             if (sl.endsWith(suffix)) {
                 throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
                     spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")

@@ -23,7 +23,7 @@ enum CompiledLanguage {
     GROOVY;
 
     String getName() {
-        return name().toLowerCase()
+        return name().toLowerCase(java.util.Locale.US)
     }
 
     String getCapitalizedName() {

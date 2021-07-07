@@ -250,8 +250,8 @@ task thing {
 
         where:
         value                                                                                         | _
-        '[ "${str.substring(0, 1)}", "${str.toLowerCase().substring(1, 2)}" ]'                        | _
-        'providers.provider { [ "${str.substring(0, 1)}", "${str.toLowerCase().substring(1, 2)}" ] }' | _
+        '[ "${str.substring(0, 1)}", "${str.toLowerCase(java.util.Locale.US).substring(1, 2)}" ]'                        | _
+        'providers.provider { [ "${str.substring(0, 1)}", "${str.toLowerCase(java.util.Locale.US).substring(1, 2)}" ] }' | _
     }
 
     def "can add elements to default value"() {
@@ -285,8 +285,8 @@ task thing {
 
         where:
         value                                                           | _
-        '"${str.toLowerCase().substring(1, 2)}"'                        | _
-        'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
+        '"${str.toLowerCase(java.util.Locale.US).substring(1, 2)}"'                        | _
+        'providers.provider { "${str.toLowerCase(java.util.Locale.US).substring(1, 2)}" }' | _
     }
 
     @Unroll
@@ -304,9 +304,9 @@ task thing {
 
         where:
         value                                                                                         | _
-        '"${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}"'                            | _
-        '[ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ]'                        | _
-        'providers.provider { [ "${str.toLowerCase().substring(1, 2)}", "${str.substring(2, 3)}" ] }' | _
+        '"${str.toLowerCase(java.util.Locale.US).substring(1, 2)}", "${str.substring(2, 3)}"'                            | _
+        '[ "${str.toLowerCase(java.util.Locale.US).substring(1, 2)}", "${str.substring(2, 3)}" ]'                        | _
+        'providers.provider { [ "${str.toLowerCase(java.util.Locale.US).substring(1, 2)}", "${str.substring(2, 3)}" ] }' | _
     }
 
     def "reports failure to set property value using incompatible type"() {

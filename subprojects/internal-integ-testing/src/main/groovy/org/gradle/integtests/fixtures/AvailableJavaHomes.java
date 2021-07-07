@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -284,7 +285,7 @@ public abstract class AvailableJavaHomes {
             if (files != null) {
                 return Arrays.stream(files)
                     .filter(File::isDirectory)
-                    .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
+                    .filter(file -> file.getName().toLowerCase(Locale.US).contains("jdk") || file.getName().toLowerCase(Locale.US).contains("jre"))
                     .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
                     .map(file -> new InstallationLocation(file, "base dir " + baseDir.getName()))
                     .collect(Collectors.toSet());

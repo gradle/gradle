@@ -220,7 +220,7 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         }
 
         String getTestLoggingIdentifier() {
-            name().toLowerCase()
+            name().toLowerCase(java.util.Locale.US)
         }
     }
 }

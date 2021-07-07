@@ -33,6 +33,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Locale;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
@@ -156,7 +157,7 @@ public class ConfigurationVariantMapping {
         }
 
         private static String assertValidScope(String scope) {
-            scope = scope.toLowerCase();
+            scope = scope.toLowerCase(Locale.US);
             if ("compile".equals(scope) || "runtime".equals(scope)) {
                 return scope;
             }

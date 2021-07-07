@@ -101,9 +101,9 @@ class TestProjectGeneratorConfigurationBuilder {
 
     private String productionFile(int project = 0, int pkg = 0, int file = 0) {
         if (project >= 0) {
-            "project${project}/src/main/${this.language.name}/org/gradle/test/performance/${this.templateName.toLowerCase()}/project${project}/p${pkg}/Production${file}.${this.language.name}"
+            "project${project}/src/main/${this.language.name}/org/gradle/test/performance/${this.templateName.toLowerCase(java.util.Locale.US)}/project${project}/p${pkg}/Production${file}.${this.language.name}"
         } else {
-            "src/main/${this.language.name}/org/gradle/test/performance/${this.templateName.toLowerCase()}/p${pkg}/Production${file}.${this.language.name}"
+            "src/main/${this.language.name}/org/gradle/test/performance/${this.templateName.toLowerCase(java.util.Locale.US)}/p${pkg}/Production${file}.${this.language.name}"
         }
     }
 

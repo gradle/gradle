@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -63,10 +64,10 @@ public class Jvm implements JavaInfo {
     @VisibleForTesting
     static JvmImplementation createCurrent() {
         String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.")) {
+        if (vendor.toLowerCase(Locale.US).startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current());
         }
-        if (vendor.toLowerCase().startsWith("ibm corporation")) {
+        if (vendor.toLowerCase(Locale.US).startsWith("ibm corporation")) {
             return new IbmJvm(OperatingSystem.current());
         }
         return new JvmImplementation(OperatingSystem.current());
@@ -107,7 +108,7 @@ public class Jvm implements JavaInfo {
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
-     * @throws org.gradle.internal.jvm.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {

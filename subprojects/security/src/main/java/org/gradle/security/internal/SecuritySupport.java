@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class SecuritySupport {
     private static final Logger LOGGER = Logging.getLogger(SecuritySupport.class);
@@ -129,7 +130,7 @@ public class SecuritySupport {
     }
 
     public static File asciiArmoredFileFor(File keyringsFile) {
-        String baseName = keyringsFile.getName().substring(0, keyringsFile.getName().toLowerCase().lastIndexOf(".gpg"));
+        String baseName = keyringsFile.getName().substring(0, keyringsFile.getName().toLowerCase(Locale.US).lastIndexOf(".gpg"));
         return new File(keyringsFile.getParentFile(), baseName + KEYS_FILE_EXT);
     }
 }

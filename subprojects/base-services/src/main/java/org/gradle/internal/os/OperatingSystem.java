@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import static org.gradle.internal.FileUtils.withExtension;
@@ -58,7 +59,7 @@ public abstract class OperatingSystem {
     }
 
     public static OperatingSystem forName(String os) {
-        String osName = os.toLowerCase();
+        String osName = os.toLowerCase(Locale.US);
         if (osName.contains("windows")) {
             return WINDOWS;
         } else if (osName.contains("mac os x") || osName.contains("darwin") || osName.contains("osx")) {
@@ -362,7 +363,7 @@ public abstract class OperatingSystem {
         }
 
         protected String getOsPrefix() {
-            String osPrefix = getName().toLowerCase();
+            String osPrefix = getName().toLowerCase(Locale.US);
             int space = osPrefix.indexOf(" ");
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);

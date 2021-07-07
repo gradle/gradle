@@ -50,6 +50,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -262,7 +263,7 @@ public class IdeDependencySet {
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
             for (Configuration c : configurations) {
-                if (!c.getName().toLowerCase().contains("test")) {
+                if (!c.getName().toLowerCase(Locale.US).contains("test")) {
                     return false;
                 }
             }

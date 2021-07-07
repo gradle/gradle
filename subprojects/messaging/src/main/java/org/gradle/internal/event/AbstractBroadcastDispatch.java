@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInvocation> {
     protected final Class<T> type;
@@ -34,7 +35,7 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
     }
 
     private String getErrorMessage() {
-        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
+        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase(Locale.US);
         return "Failed to notify " + typeDescription + ".";
     }
 

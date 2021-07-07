@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -385,7 +386,7 @@ public class GUtil {
             if (builder.length() > 0) {
                 builder.append(separator);
             }
-            String group1 = matcher.group(1).toLowerCase();
+            String group1 = matcher.group(1).toLowerCase(Locale.US);
             String group2 = matcher.group(2);
             if (group2.length() == 0) {
                 builder.append(group1);

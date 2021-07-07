@@ -24,6 +24,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Attribute;
@@ -42,12 +43,12 @@ public class DefaultColorMap implements ColorMap {
     private final Map<String, String> defaults = new HashMap<String, String>();
 
     /**
-     * Maps a {@link StyledTextOutput.Style} to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     * Maps a {@link StyledTextOutput.Style} to the {@link ColorMap.Color} that has been created for it
      */
     private final Map<String, Color> colorByStyle = new HashMap<String, Color>();
 
     /**
-     * Maps a color spec to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     * Maps a color spec to the {@link ColorMap.Color} that has been created for it
      */
     private final Map<String, Color> colorBySpec = new HashMap<String, Color>();
 
@@ -78,7 +79,7 @@ public class DefaultColorMap implements ColorMap {
 
 
     private void addDefault(StyledTextOutput.Style style, String colorSpec) {
-        addDefault(style.name().toLowerCase(), colorSpec);
+        addDefault(style.name().toLowerCase(Locale.US), colorSpec);
     }
 
     private void addDefault(String style, String color) {
@@ -90,7 +91,7 @@ public class DefaultColorMap implements ColorMap {
         for (int i = 1; i < styles.length; i++) {
             colorSpec += COLOR_DIVIDER + getColorSpecForStyle(styles[i]);
         }
-        addDefault(style.name().toLowerCase(), colorSpec);
+        addDefault(style.name().toLowerCase(Locale.US), colorSpec);
     }
 
     @Override
@@ -100,7 +101,7 @@ public class DefaultColorMap implements ColorMap {
 
     @Override
     public Color getColourFor(StyledTextOutput.Style style) {
-        return getColor(style.name().toLowerCase());
+        return getColor(style.name().toLowerCase(Locale.US));
     }
 
     @Override
@@ -139,7 +140,7 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private String getColorSpecForStyle(StyledTextOutput.Style style) {
-        return getColorSpecForStyle(style.name().toLowerCase());
+        return getColorSpecForStyle(style.name().toLowerCase(Locale.US));
     }
 
     private String getColorSpecForStyle(String style) {

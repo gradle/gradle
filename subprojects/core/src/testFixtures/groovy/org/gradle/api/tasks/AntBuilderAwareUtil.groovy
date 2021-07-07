@@ -50,7 +50,7 @@ class AntBuilderAwareUtil {
 
         types.each { FileCollection.AntType type ->
             FileListTask task = ant.test {
-                set.addToAntBuilder(ant, type == FileCollection.AntType.ResourceCollection ? null : type.toString().toLowerCase(), type)
+                set.addToAntBuilder(ant, type == FileCollection.AntType.ResourceCollection ? null : type.toString().toLowerCase(java.util.Locale.US), type)
             }
 
             assertThat("Unexpected FileCollection contents for type $type", task.filenames, equalTo(filenames))

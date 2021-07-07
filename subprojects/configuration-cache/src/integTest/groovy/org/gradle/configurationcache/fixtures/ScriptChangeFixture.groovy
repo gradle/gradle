@@ -41,7 +41,7 @@ class ScriptChangeFixture {
 
         @Override
         String toString() {
-            "$scriptDiscovery $scriptLanguage $scriptType script".toLowerCase()
+            "$scriptDiscovery $scriptLanguage $scriptType script".toLowerCase(java.util.Locale.US)
         }
 
         ScriptChangeFixture fixtureForProjectDir(TestFile projectDir, TestFile rootProjectDir = projectDir) {

@@ -161,7 +161,7 @@ public class NameMatcher {
             if (pos > 0) {
                 builder.append('-');
             }
-            builder.append(Pattern.quote(matcher.group().toLowerCase()));
+            builder.append(Pattern.quote(matcher.group().toLowerCase(Locale.US)));
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }

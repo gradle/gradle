@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 class IntegrationTestSamplesExecutor extends CommandExecutor {
@@ -58,7 +59,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
         WarningMode warningMode = WarningMode.Fail;
         for (String flag : flags) {
             if (flag.startsWith(WARNING_MODE_FLAG_PREFIX)) {
-                warningMode = WarningMode.valueOf(capitalize(flag.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase()));
+                warningMode = WarningMode.valueOf(capitalize(flag.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase(Locale.US)));
             } else {
                 filteredFlags.add(flag);
             }

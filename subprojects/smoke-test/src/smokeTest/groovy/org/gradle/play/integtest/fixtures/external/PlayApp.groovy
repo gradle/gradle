@@ -34,7 +34,7 @@ abstract class PlayApp {
     }
 
     String getName() {
-        getClass().getSimpleName().toLowerCase()
+        getClass().getSimpleName().toLowerCase(java.util.Locale.US)
     }
 
     List<SourceFile> getAllFiles() {

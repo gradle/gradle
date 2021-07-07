@@ -38,7 +38,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 file('reference.txt').mode = 0746
             }
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskName.toLowerCase(java.util.Locale.US)}"
         and:
         buildFile << """
             task pack(type: $taskName) {
@@ -69,7 +69,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
                 file('reference.txt').mode = 0777
             }
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskName.toLowerCase(java.util.Locale.US)}"
 
         and:
         buildFile << """
@@ -103,7 +103,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             mode = 0753
             file('reference.txt').mode = 0762
         }
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskName.toLowerCase(java.util.Locale.US)}"
         testDir.usingNativeTools()."$packMethod"(file(archName))
         and:
         buildFile << """
@@ -137,7 +137,7 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
             testDir.setReadOnly()
         }
         testDir.setReadOnly()
-        def archName = "test.${taskName.toLowerCase()}"
+        def archName = "test.${taskName.toLowerCase(java.util.Locale.US)}"
         testDir."$packMethod"(file(archName))
         and:
         buildFile << """

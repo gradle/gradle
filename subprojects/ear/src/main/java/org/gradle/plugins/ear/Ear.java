@@ -51,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 
 import static java.util.Collections.singleton;
@@ -148,7 +149,7 @@ public class Ear extends Jar {
         // since we might generate the deployment descriptor, record each top-level module
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
-            if (details.getPath().toLowerCase().endsWith(".war")) {
+            if (details.getPath().toLowerCase(Locale.US).endsWith(".war")) {
                 module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
             } else {
                 module = new DefaultEarModule(details.getPath());

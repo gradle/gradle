@@ -79,7 +79,7 @@ trait VersionCatalogErrorMessages {
 
     private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
         def desc = clazz.newInstance()
-        desc.section = id.name().toLowerCase()
+        desc.section = id.name().toLowerCase(java.util.Locale.US)
         spec.delegate = desc
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

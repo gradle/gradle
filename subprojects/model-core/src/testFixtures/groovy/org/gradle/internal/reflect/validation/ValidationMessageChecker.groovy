@@ -569,7 +569,7 @@ trait ValidationMessageChecker {
         }
 
         IncorrectInputMessage kind(String kind) {
-            this.kind = kind.toLowerCase()
+            this.kind = kind.toLowerCase(java.util.Locale.US)
             this
         }
 

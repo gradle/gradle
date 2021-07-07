@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static org.gradle.ide.fixtures.IdeCommandLineUtil.buildEnvironment;
 import static org.junit.Assert.assertTrue;
@@ -39,7 +40,7 @@ public class XcodebuildExecutor {
 
         @Override
         public String toString() {
-            return this.name().toLowerCase();
+            return this.name().toLowerCase(Locale.US);
         }
     }
 

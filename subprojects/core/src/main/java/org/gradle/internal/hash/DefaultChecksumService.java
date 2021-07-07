@@ -25,6 +25,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
+import java.util.Locale;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class DefaultChecksumService implements ChecksumService {
@@ -80,7 +81,7 @@ public class DefaultChecksumService implements ChecksumService {
 
     @Override
     public HashCode hash(File src, String algorithm) {
-        switch (algorithm.toLowerCase()) {
+        switch (algorithm.toLowerCase(Locale.US)) {
             case "md5":
                 return md5(src);
             case "sha1":

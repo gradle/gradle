@@ -107,7 +107,7 @@ class TestFileHelper {
     }
 
     private boolean isUnix() {
-        return !System.getProperty('os.name').toLowerCase().contains('windows')
+        return !System.getProperty('os.name').toLowerCase(java.util.Locale.US).contains('windows')
     }
 
     String getPermissions() {

@@ -532,7 +532,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canInvokeClosurePropertyAsAMethod() {
         Bean bean = new Bean();
-        bean.defineProperty("someMethod", TestUtil.toClosure("{ param -> param.toLowerCase() }"));
+        bean.defineProperty("someMethod", TestUtil.toClosure("{ param -> param.toLowerCase(java.util.Locale.US) }"));
         assertThat(bean.invokeMethod("someMethod", "Param"), equalTo((Object) "param"));
     }
 

@@ -44,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -221,7 +222,7 @@ public class SourceFoldersCreator {
         // Using the test sources feature introduced in Eclipse Photon
         String name = sourceSet.getName();
         if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
+            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase(Locale.US).contains("test")) {
                 folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
             }
         }

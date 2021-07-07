@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
@@ -146,7 +147,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Nullable
     private String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase();
+        return string == null ? null : string.toLowerCase(Locale.US);
     }
 
     /**

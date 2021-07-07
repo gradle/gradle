@@ -88,7 +88,7 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
                 styled += "{bold-off}"
             }
             if (color != null && color != previousColor) {
-                styled += "{foreground-color " + color.name().toLowerCase() + "}"
+                styled += "{foreground-color " + color.name().toLowerCase(java.util.Locale.US) + "}"
             }
             if (color == null && previousColor != null) {
                 styled += "{foreground-color default}"

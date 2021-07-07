@@ -63,7 +63,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
         def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
-        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase(java.util.Locale.US)}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
 
         when:
         run 'init', '--dsl', scriptDsl.id as String

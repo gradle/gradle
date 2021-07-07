@@ -97,7 +97,7 @@ class DefaultTestLoggingContainerTest extends Specification {
     @Unroll
     def "allows to explicitly configure level #level"(LogLevel level) {
         def logging = container.get(level)
-        def configMethod = level.toString().toLowerCase()
+        def configMethod = level.toString().toLowerCase(java.util.Locale.US)
 
         when:
         container."$configMethod"(new Action<TestLogging>() {

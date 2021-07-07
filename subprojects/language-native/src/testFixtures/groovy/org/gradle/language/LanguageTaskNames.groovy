@@ -234,10 +234,10 @@ abstract trait LanguageTaskNames {
         protected String getVariant() {
             String result = ""
             if (operatingSystemFamily != null) {
-                result += operatingSystemFamily.toLowerCase().capitalize()
+                result += operatingSystemFamily.toLowerCase(java.util.Locale.US).capitalize()
             }
             if (architecture != null) {
-                result += architecture.toLowerCase().capitalize()
+                result += architecture.toLowerCase(java.util.Locale.US).capitalize()
             }
             return result
         }

@@ -53,9 +53,9 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
         def redirect = new AlwaysFollowAndPreserveMethodRedirectStrategy().getRedirect(request, response, context)
 
         then:
-        redirect.getClass() == Class.forName("org.apache.http.client.methods.Http${httpMethod.toLowerCase().capitalize()}")
+        redirect.getClass() == Class.forName("org.apache.http.client.methods.Http${httpMethod.toLowerCase(java.util.Locale.US).capitalize()}")
 
         where:
-        httpMethod << HTTP_METHODS + HTTP_METHODS.collect { it.toLowerCase() }
+        httpMethod << HTTP_METHODS + HTTP_METHODS.collect { it.toLowerCase(java.util.Locale.US) }
     }
 }

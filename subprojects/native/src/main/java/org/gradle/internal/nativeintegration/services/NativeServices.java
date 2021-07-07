@@ -67,6 +67,7 @@ import java.lang.reflect.Proxy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
+import java.util.Locale;
 
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
@@ -167,12 +168,12 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         if (useNativeIntegrations) {
             nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
             try {
-                net.rubygrapefruit.platform.Native.init(nativeBaseDir);
+                Native.init(nativeBaseDir);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.US).contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else if (ex.getMessage().equals("Could not extract native JNI library.")
@@ -260,7 +261,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
+                net.rubygrapefruit.platform.Process process = Native.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
@@ -277,7 +278,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                Terminals terminals = Native.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
@@ -300,7 +301,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
-            return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
+            return Native.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class);
     }
@@ -308,7 +309,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected SystemInfo createSystemInfo() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
+                return Native.get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
@@ -319,7 +320,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected Memory createMemory() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(Memory.class);
+                return Native.get(Memory.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
@@ -330,7 +331,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+                return Native.get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
             }
@@ -341,7 +342,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected PosixFiles createPosixFiles() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+                return Native.get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
@@ -375,7 +376,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
         if (useNativeIntegrations) {
             try {
-                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+                return new NativePlatformBackedFileMetadataAccessor(Native.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
@@ -405,7 +406,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected FileSystems createFileSystems() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(FileSystems.class);
+                return Native.get(FileSystems.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }

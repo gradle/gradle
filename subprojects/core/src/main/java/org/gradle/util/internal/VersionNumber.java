@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 
 /**
  * Represents, parses, and compares version numbers. Supports a couple of different schemes: <ul> <li>MAJOR.MINOR.MICRO-QUALIFIER (the default).</li> <li>MAJOR.MINOR.MICRO.PATCH-QUALIFIER.</li> </ul>
@@ -152,7 +153,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Nullable
     private String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase();
+        return string == null ? null : string.toLowerCase(Locale.US);
     }
 
     public interface Scheme {

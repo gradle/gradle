@@ -28,7 +28,7 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
 
     @Override
     protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
-        return ":assembleDebugShared${architecture.toLowerCase().capitalize()}"
+        return ":assembleDebugShared${architecture.toLowerCase(java.util.Locale.US).capitalize()}"
     }
 
     @Override

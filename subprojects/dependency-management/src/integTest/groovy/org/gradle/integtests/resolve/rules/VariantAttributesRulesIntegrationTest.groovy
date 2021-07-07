@@ -429,7 +429,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                 root(':', ':test:') {
                     module("org.test:moduleA:1.0:$expectedVariant") {
                         module("org.test:moduleB:1.0") {
-                            artifact(classifier: (selectedVariant - 'custom').toLowerCase())
+                            artifact(classifier: (selectedVariant - 'custom').toLowerCase(java.util.Locale.US))
                         }
                     }
                 }

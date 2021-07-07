@@ -396,7 +396,7 @@ abstract class FileContentGenerator {
     def packageName(int classNumber, Integer subProjectNumber = null, String separator = '.') {
         def projectPackage = subProjectNumber == null ? "" : "${separator}project$subProjectNumber"
         def subPackage = "${separator}p${(int) (classNumber / 20)}"
-        "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase()}${projectPackage}$subPackage"
+        "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase(java.util.Locale.US)}${projectPackage}$subPackage"
     }
 
     protected final int getPropertyCount() {

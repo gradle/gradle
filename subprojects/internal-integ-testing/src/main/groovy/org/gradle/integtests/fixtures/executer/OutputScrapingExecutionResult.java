@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -219,7 +221,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     public ExecutionResult assertContentContains(String actualText, String expectedOutput, String label) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (!actualText.contains(expectedText)) {
-            failOnMissingOutput("Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
+            failOnMissingOutput("Did not find expected text in " + label.toLowerCase(Locale.US) + ".", label, expectedOutput, actualText);
         }
         return this;
     }
@@ -402,7 +404,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> taskStatusLines = Lists.newArrayList();
 
         getMainContent().eachLine(line -> {
-            java.util.regex.Matcher matcher = pattern.matcher(line);
+            Matcher matcher = pattern.matcher(line);
             if (matcher.matches()) {
                 String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
                 String taskName = matcher.group(2);

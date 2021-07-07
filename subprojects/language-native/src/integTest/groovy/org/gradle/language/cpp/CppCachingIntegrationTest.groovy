@@ -67,7 +67,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         then:
         compileIsCached(buildType)
-        installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
+        installation("build/install/main/${buildType.toLowerCase(java.util.Locale.US)}").exec().out == app.expectedOutput
 
         when:
         file('lib1/src/main/public/greeter.h') << """
@@ -116,7 +116,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         then:
         compileIsCached(release, newLocation)
         assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
-        installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
+        installation(newLocation.file("build/install/main/${release.toLowerCase(java.util.Locale.US)}")).exec().out == app.expectedOutput
     }
 
 
@@ -165,7 +165,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         skipped tasks.withBuildType(buildType).compile
         // checking the object file only works in `temporaryFolder.testDirectory` since the base class has a hard coded reference to it
         if (projectDir == temporaryFolder.testDirectory) {
-            objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase()}").assertExists()
+            objectFileFor(projectDir.file('src/main/cpp/main.cpp'), "build/obj/main/${buildType.toLowerCase(java.util.Locale.US)}").assertExists()
         }
     }
 

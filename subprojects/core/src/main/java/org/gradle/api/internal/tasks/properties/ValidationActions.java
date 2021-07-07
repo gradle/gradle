@@ -27,6 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Locale;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
@@ -133,7 +134,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
-            String lowerKind = kind.toLowerCase();
+            String lowerKind = kind.toLowerCase(Locale.US);
             problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
@@ -147,7 +148,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
-            String lowerKind = kind.toLowerCase();
+            String lowerKind = kind.toLowerCase(Locale.US);
             problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
                 .forProperty(propertyName)
                 .reportAs(ERROR)

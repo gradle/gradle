@@ -47,6 +47,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class DependencyInsightReporter {
@@ -107,7 +108,7 @@ public class DependencyInsightReporter {
             reasonShortDescription = null;
             extraDetails.add(selectionReasonsSection);
         } else {
-            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase();
+            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.US);
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);

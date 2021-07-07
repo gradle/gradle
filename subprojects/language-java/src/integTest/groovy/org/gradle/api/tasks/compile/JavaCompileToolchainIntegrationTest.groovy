@@ -169,7 +169,7 @@ public class Foo {
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
-                    vendor = JvmVendorSpec.matching("${System.getProperty("java.vendor").toLowerCase()}")
+                    vendor = JvmVendorSpec.matching("${System.getProperty("java.vendor").toLowerCase(java.util.Locale.US)}")
                 }
             }
         """

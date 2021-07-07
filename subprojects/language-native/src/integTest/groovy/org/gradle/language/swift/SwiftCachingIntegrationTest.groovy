@@ -148,7 +148,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     TestFile installDir(TestFile projectDir = testDirectory, buildType) {
-        projectDir.file("build/install/main/${buildType.toLowerCase()}")
+        projectDir.file("build/install/main/${buildType.toLowerCase(java.util.Locale.US)}")
     }
 
     String compileTask(String project = '', String buildType) {

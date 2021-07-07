@@ -35,7 +35,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can depend on a #linkage.toLowerCase() c++ library"() {
+    def "can depend on a #linkage.toLowerCase(java.util.Locale.US) c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDepXCTest(cppGreeter)

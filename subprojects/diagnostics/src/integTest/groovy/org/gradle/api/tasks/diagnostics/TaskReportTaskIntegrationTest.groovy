@@ -441,7 +441,7 @@ model - Displays the configuration model of root project 'test-project'. [deprec
             tasks.addRule("test rule") {
                 if (it.startsWith("autoCreate")) {
                     def name = it - "autoCreate"
-                    name = name[0].toLowerCase() + name[1..-1]
+                    name = name[0].toLowerCase(java.util.Locale.US) + name[1..-1]
                     if (tasks.findByName(name)) {
                         project.tasks.create(it)
                     }

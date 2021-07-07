@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Condition;
@@ -296,7 +297,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private LockState lock(LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
+            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(Locale.US), displayName);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);

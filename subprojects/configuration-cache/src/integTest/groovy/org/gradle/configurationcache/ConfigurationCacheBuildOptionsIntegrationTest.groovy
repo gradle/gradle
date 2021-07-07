@@ -264,7 +264,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         @Override
         String toString() {
-            name().toLowerCase().replace('_', ' ')
+            name().toLowerCase(java.util.Locale.US).replace('_', ' ')
         }
     }
 

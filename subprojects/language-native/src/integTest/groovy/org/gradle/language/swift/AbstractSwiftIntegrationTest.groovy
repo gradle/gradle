@@ -68,7 +68,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
+        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase(java.util.Locale.US)), ":${taskNameToAssembleDevelopmentBinary}"
     }
 
     // TODO Move this to AbstractSwiftComponentIntegrationTest when xcode test works properly with architecture

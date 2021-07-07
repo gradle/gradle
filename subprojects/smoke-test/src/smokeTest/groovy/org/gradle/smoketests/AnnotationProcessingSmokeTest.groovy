@@ -46,7 +46,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
                 val example = new ArrayList<String>();
                 example.add("Hello, World!");
                 val foo = example.get(0);
-                return foo.toLowerCase();
+                return foo.toLowerCase(java.util.Locale.US);
               }
 
               public void example2() {

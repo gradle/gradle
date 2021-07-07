@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import java.util.Locale;
+
 public interface JvmVendor {
 
     enum KnownJvmVendor {
@@ -47,7 +49,7 @@ public interface JvmVendor {
             if (rawVendor == null) {
                 return UNKNOWN;
             }
-            rawVendor = rawVendor.toLowerCase();
+            rawVendor = rawVendor.toLowerCase(Locale.US);
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
                 if (rawVendor.contains(jvmVendor.indicatorString)) {
                     return jvmVendor;

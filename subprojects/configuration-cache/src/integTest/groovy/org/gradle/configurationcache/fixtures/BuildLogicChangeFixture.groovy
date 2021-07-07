@@ -65,7 +65,7 @@ class BuildLogicChangeFixture {
 
         @Override
         String toString() {
-            name().toLowerCase().capitalize()
+            name().toLowerCase(java.util.Locale.US).capitalize()
         }
     }
 
@@ -77,7 +77,7 @@ class BuildLogicChangeFixture {
 
         @Override
         String toString() {
-            name().toLowerCase().replace('_', ' ')
+            name().toLowerCase(java.util.Locale.US).replace('_', ' ')
         }
     }
 

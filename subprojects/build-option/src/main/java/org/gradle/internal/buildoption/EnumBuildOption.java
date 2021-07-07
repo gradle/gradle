@@ -22,6 +22,7 @@ import org.gradle.cli.ParsedCommandLine;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -77,7 +78,7 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         if (value != null) {
             enumValue = tryGetValue(value);
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toLowerCase());
+                enumValue = tryGetValue(value.toLowerCase(Locale.US));
             }
             if (enumValue == null) {
                 enumValue = tryGetValue(value.toUpperCase());

@@ -23,6 +23,7 @@ import org.gradle.util.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
@@ -35,7 +36,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
-        this.group = Strings.isNullOrEmpty(group) ? null : group.toLowerCase();
+        this.group = Strings.isNullOrEmpty(group) ? null : group.toLowerCase(Locale.US);
     }
 
     public void add(TaskReportModel project) {
@@ -66,7 +67,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         if (Strings.isNullOrEmpty(group)) {
             return detail;
         } else {
-            return this.group == null || group.toLowerCase().equals(this.group);
+            return this.group == null || group.toLowerCase(Locale.US).equals(this.group);
         }
     }
 

@@ -18,7 +18,7 @@ $(document).ready(function () {
                 if (title.length === 0) {
                     return;
                 }
-                var id = title.replace(/[^\w]/g, '-').toLowerCase();
+                var id = title.replace(/[^\w]/g, '-').toLowerCase(java.util.Locale.US);
                 if (groups.indexOf(id) < 0) {
                     groups.push(id);
                     var div = controls.append("<div/>");

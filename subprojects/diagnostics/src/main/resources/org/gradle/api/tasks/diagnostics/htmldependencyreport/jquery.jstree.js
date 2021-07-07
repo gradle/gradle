@@ -21,22 +21,22 @@
 (function () { if(jQuery && jQuery.jstree) { return; }
 	var is_ie6 = false, is_ie7 = false, is_ff2 = false;
 
-/* 
+/*
  * jsTree core
  */
 (function ($) {
-	// Common functions not related to jsTree 
+	// Common functions not related to jsTree
 	// decided to move them to a `vakata` "namespace"
 	$.vakata = {};
 	// CSS related functions
 	$.vakata.css = {
 		get_css : function(rule_name, delete_flag, sheet) {
-			rule_name = rule_name.toLowerCase();
+			rule_name = rule_name.toLowerCase(java.util.Locale.US);
 			var css_rules = sheet.cssRules || sheet.rules,
 				j = 0;
 			do {
 				if(css_rules.length && j > css_rules.length + 5) { return false; }
-				if(css_rules[j].selectorText && css_rules[j].selectorText.toLowerCase() == rule_name) {
+				if(css_rules[j].selectorText && css_rules[j].selectorText.toLowerCase(java.util.Locale.US) == rule_name) {
 					if(delete_flag === true) {
 						if(sheet.removeRule) { sheet.removeRule(j); }
 						if(sheet.deleteRule) { sheet.deleteRule(j); }
@@ -53,8 +53,8 @@
 			if(sheet.insertRule) { sheet.insertRule(rule_name + ' { }', 0); } else { sheet.addRule(rule_name, null, 0); }
 			return $.vakata.css.get_css(rule_name);
 		},
-		remove_css : function(rule_name, sheet) { 
-			return $.vakata.css.get_css(rule_name, true, sheet); 
+		remove_css : function(rule_name, sheet) {
+			return $.vakata.css.get_css(rule_name, true, sheet);
 		},
 		add_sheet : function(opts) {
 			var tmp = false, is_new = true;
@@ -67,12 +67,12 @@
 					if(opts.title) { tmp.setAttribute("id", opts.title + "-stylesheet"); }
 				}
 				if(tmp.styleSheet) {
-					if(is_new) { 
-						document.getElementsByTagName("head")[0].appendChild(tmp); 
-						tmp.styleSheet.cssText = opts.str; 
+					if(is_new) {
+						document.getElementsByTagName("head")[0].appendChild(tmp);
+						tmp.styleSheet.cssText = opts.str;
 					}
 					else {
-						tmp.styleSheet.cssText = tmp.styleSheet.cssText + " " + opts.str; 
+						tmp.styleSheet.cssText = tmp.styleSheet.cssText + " " + opts.str;
 					}
 				}
 				else {
@@ -98,7 +98,7 @@
 		}
 	};
 
-	// private variables 
+	// private variables
 	var instances = [],			// instance array (used by $.jstree.reference/create/focused)
 		focused_instance = -1,	// the index in the instance array of the currently focused instance
 		plugins = {},			// list of included plugins
@@ -107,7 +107,7 @@
 	// jQuery plugin wrapper (thanks to jquery UI widget function)
 	$.fn.jstree = function (settings) {
 		var isMethodCall = (typeof settings == 'string'), // is this a method call like $().jstree("open_node")
-			args = Array.prototype.slice.call(arguments, 1), 
+			args = Array.prototype.slice.call(arguments, 1),
 			returnValue = this;
 
 		// if a method call execute the method on all selected instances
@@ -125,8 +125,8 @@
 				var instance_id = $.data(this, "jstree_instance_id"),
 					a = [],
 					b = settings ? $.extend({}, true, settings) : {},
-					c = $(this), 
-					s = false, 
+					c = $(this),
+					s = false,
 					t = [];
 				a = a.concat(args);
 				if(c.data("jstree")) { a.push(c.data("jstree")); }
@@ -147,14 +147,14 @@
 				// extend defaults with passed data
 				s = $.extend(true, {}, $.jstree.defaults, b);
 				s.plugins = b.plugins;
-				$.each(plugins, function (i, val) { 
-					if($.inArray(i, s.plugins) === -1) { s[i] = null; delete s[i]; } 
+				$.each(plugins, function (i, val) {
+					if($.inArray(i, s.plugins) === -1) { s[i] = null; delete s[i]; }
 					else { t.push(i); }
 				});
 				s.plugins = t;
 
 				// push the new object to the instances array (at the same time set the default classes to the container) and init
-				instances[instance_id] = new $.jstree._instance(instance_id, $(this).addClass("jstree jstree-" + instance_id), s); 
+				instances[instance_id] = new $.jstree._instance(instance_id, $(this).addClass("jstree jstree-" + instance_id), s);
 				// init all activated plugins for this instance
 				$.each(instances[instance_id]._get_settings().plugins, function (i, val) { instances[instance_id].data[val] = {}; });
 				$.each(instances[instance_id]._get_settings().plugins, function (i, val) { if(plugins[val]) { plugins[val].__init.apply(instances[instance_id]); } });
@@ -171,16 +171,16 @@
 			plugins : []
 		},
 		_focused : function () { return instances[focused_instance] || null; },
-		_reference : function (needle) { 
+		_reference : function (needle) {
 			// get by instance id
 			if(instances[needle]) { return instances[needle]; }
 			// get by DOM (if still no luck - return null
-			var o = $(needle); 
+			var o = $(needle);
 			if(!o.length && typeof needle === "string") { o = $("#" + needle); }
 			if(!o.length) { return null; }
-			return instances[o.closest(".jstree").data("jstree_instance_id")] || null; 
+			return instances[o.closest(".jstree").data("jstree_instance_id")] || null;
 		},
-		_instance : function (index, container, settings) { 
+		_instance : function (index, container, settings) {
 			// for plugins to store data in
 			this.data = { core : {} };
 			this.get_settings	= function () { return $.extend(true, {}, settings); };
@@ -188,14 +188,14 @@
 			this.get_index		= function () { return index; };
 			this.get_container	= function () { return container; };
 			this.get_container_ul = function () { return container.children("ul:eq(0)"); };
-			this._set_settings	= function (s) { 
+			this._set_settings	= function (s) {
 				settings = $.extend(true, {}, settings, s);
 			};
 		},
 		_fn : { },
 		plugin : function (pname, pdata) {
 			pdata = $.extend({}, {
-				__init		: $.noop, 
+				__init		: $.noop,
 				__destroy	: $.noop,
 				_fn			: {},
 				defaults	: false
@@ -232,11 +232,11 @@
 						if(typeof rslt !== "undefined") { args = rslt; }
 
 						rslt = func.apply(
-							$.extend({}, this, { 
-								__callback : function (data) { 
+							$.extend({}, this, {
+								__callback : function (data) {
 									this.get_container().triggerHandler( i + '.jstree', { "inst" : this, "args" : args, "rslt" : data, "rlbk" : rlbk });
 								},
-								__rollback : function () { 
+								__rollback : function () {
 									rlbk = this.get_rollback();
 									return rlbk;
 								},
@@ -268,24 +268,24 @@
 	// load the css when DOM is ready
 	$(function() {
 		// code is copied from jQuery ($.browser is deprecated + there is a bug in IE)
-		var u = navigator.userAgent.toLowerCase(),
+		var u = navigator.userAgent.toLowerCase(java.util.Locale.US),
 			v = (u.match( /.+?(?:rv|it|ra|ie)[\/: ]([\d.]+)/ ) || [0,'0'])[1],
-			css_string = '' + 
-				'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' + 
-				'.jstree li { display:block; min-height:18px; line-height:18px; white-space:nowrap; margin-left:18px; min-width:18px; } ' + 
-				'.jstree-rtl li { margin-left:0; margin-right:18px; } ' + 
-				'.jstree > ul > li { margin-left:0px; } ' + 
-				'.jstree-rtl > ul > li { margin-right:0px; } ' + 
-				'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; } ' + 
-				'.jstree a { display:inline-block; line-height:16px; height:16px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' + 
-				'.jstree a:focus { outline: none; } ' + 
-				'.jstree a > ins { height:16px; width:16px; } ' + 
-				'.jstree a > .jstree-icon { margin-right:3px; } ' + 
-				'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' + 
-				'li.jstree-open > ul { display:block; } ' + 
+			css_string = '' +
+				'.jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; } ' +
+				'.jstree li { display:block; min-height:18px; line-height:18px; white-space:nowrap; margin-left:18px; min-width:18px; } ' +
+				'.jstree-rtl li { margin-left:0; margin-right:18px; } ' +
+				'.jstree > ul > li { margin-left:0px; } ' +
+				'.jstree-rtl > ul > li { margin-right:0px; } ' +
+				'.jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; } ' +
+				'.jstree a { display:inline-block; line-height:16px; height:16px; color:black; white-space:nowrap; text-decoration:none; padding:1px 2px; margin:0; } ' +
+				'.jstree a:focus { outline: none; } ' +
+				'.jstree a > ins { height:16px; width:16px; } ' +
+				'.jstree a > .jstree-icon { margin-right:3px; } ' +
+				'.jstree-rtl a > .jstree-icon { margin-left:3px; margin-right:0; } ' +
+				'li.jstree-open > ul { display:block; } ' +
 				'li.jstree-closed > ul { display:none; } ';
 		// Correct IE 6 (does not support the > CSS selector)
-		if(/msie/.test(u) && parseInt(v, 10) == 6) { 
+		if(/msie/.test(u) && parseInt(v, 10) == 6) {
 			is_ie6 = true;
 
 			// fix image flicker and lack of caching
@@ -293,28 +293,28 @@
 				document.execCommand("BackgroundImageCache", false, true);
 			} catch (err) { }
 
-			css_string += '' + 
-				'.jstree li { height:18px; margin-left:0; margin-right:0; } ' + 
-				'.jstree li li { margin-left:18px; } ' + 
-				'.jstree-rtl li li { margin-left:0px; margin-right:18px; } ' + 
-				'li.jstree-open ul { display:block; } ' + 
-				'li.jstree-closed ul { display:none !important; } ' + 
-				'.jstree li a { display:inline; border-width:0 !important; padding:0px 2px !important; } ' + 
-				'.jstree li a ins { height:16px; width:16px; margin-right:3px; } ' + 
+			css_string += '' +
+				'.jstree li { height:18px; margin-left:0; margin-right:0; } ' +
+				'.jstree li li { margin-left:18px; } ' +
+				'.jstree-rtl li li { margin-left:0px; margin-right:18px; } ' +
+				'li.jstree-open ul { display:block; } ' +
+				'li.jstree-closed ul { display:none !important; } ' +
+				'.jstree li a { display:inline; border-width:0 !important; padding:0px 2px !important; } ' +
+				'.jstree li a ins { height:16px; width:16px; margin-right:3px; } ' +
 				'.jstree-rtl li a ins { margin-right:0px; margin-left:3px; } ';
 		}
 		// Correct IE 7 (shifts anchor nodes onhover)
-		if(/msie/.test(u) && parseInt(v, 10) == 7) { 
+		if(/msie/.test(u) && parseInt(v, 10) == 7) {
 			is_ie7 = true;
 			css_string += '.jstree li a { border-width:0 !important; padding:0px 2px !important; } ';
 		}
 		// correct ff2 lack of display:inline-block
 		if(!/compatible/.test(u) && /mozilla/.test(u) && parseFloat(v, 10) < 1.9) {
 			is_ff2 = true;
-			css_string += '' + 
-				'.jstree ins { display:-moz-inline-box; } ' + 
+			css_string += '' +
+				'.jstree ins { display:-moz-inline-box; } ' +
 				'.jstree li { line-height:12px; } ' + // WHY??
-				'.jstree a { display:-moz-inline-box; } ' + 
+				'.jstree a { display:-moz-inline-box; } ' +
 				'.jstree .jstree-no-icons .jstree-checkbox { display:-moz-inline-stack !important; } ';
 				/* this shouldn't be here as it is theme specific */
 		}
@@ -329,7 +329,7 @@
 			this.data.core.to_open = this.get_settings().core.initially_open;
 			this.data.core.to_load = this.get_settings().core.initially_load;
 		},
-		defaults : { 
+		defaults : {
 			html_titles	: false,
 			animation	: 500,
 			initially_open : [],
@@ -344,9 +344,9 @@
 				multiple_selection : "Multiple selection"
 			}
 		},
-		_fn : { 
-			init	: function () { 
-				this.set_focus(); 
+		_fn : {
+			init	: function () {
+				this.set_focus();
 				if(this._get_settings().core.rtl) {
 					this.get_container().addClass("jstree-rtl").css("direction", "rtl");
 				}
@@ -359,16 +359,16 @@
 							// if(trgt.is("ins") && event.pageY - trgt.offset().top < this.data.core.li_height) { this.toggle_node(trgt); }
 							this.toggle_node(trgt);
 						}, this))
-					.bind("mousedown.jstree", $.proxy(function () { 
+					.bind("mousedown.jstree", $.proxy(function () {
 							this.set_focus(); // This used to be setTimeout(set_focus,0) - why?
 						}, this))
-					.bind("dblclick.jstree", function (event) { 
+					.bind("dblclick.jstree", function (event) {
 						var sel;
 						if(document.selection && document.selection.empty) { document.selection.empty(); }
 						else {
 							if(window.getSelection) {
 								sel = window.getSelection();
-								try { 
+								try {
 									sel.removeAllRanges();
 									sel.collapse();
 								} catch (err) { }
@@ -377,7 +377,7 @@
 					});
 				if(this._get_settings().core.notify_plugins) {
 					this.get_container()
-						.bind("load_node.jstree", $.proxy(function (e, data) { 
+						.bind("load_node.jstree", $.proxy(function (e, data) {
 								var o = this._get_node(data.rslt.obj),
 									t = this;
 								if(o === -1) { o = this.get_container_ul(); }
@@ -396,7 +396,7 @@
 				}
 				if(this._get_settings().core.load_open) {
 					this.get_container()
-						.bind("load_node.jstree", $.proxy(function (e, data) { 
+						.bind("load_node.jstree", $.proxy(function (e, data) {
 								var o = this._get_node(data.rslt.obj),
 									t = this;
 								if(o === -1) { o = this.get_container_ul(); }
@@ -409,7 +409,7 @@
 				this.__callback();
 				this.load_node(-1, function () { this.loaded(); this.reload_nodes(); });
 			},
-			destroy	: function () { 
+			destroy	: function () {
 				var i,
 					n = this.get_index(),
 					s = this._get_settings(),
@@ -420,12 +420,12 @@
 				});
 				this.__callback();
 				// set focus to another instance if this one is focused
-				if(this.is_focused()) { 
-					for(i in instances) { 
-						if(instances.hasOwnProperty(i) && i != n) { 
-							instances[i].set_focus(); 
-							break; 
-						} 
+				if(this.is_focused()) {
+					for(i in instances) {
+						if(instances.hasOwnProperty(i) && i != n) {
+							instances[i].set_focus();
+							break;
+						}
 					}
 				}
 				// if no other instance found
@@ -466,7 +466,7 @@
 			save_opened : function () {
 				var _this = this;
 				this.data.core.to_open = [];
-				this.get_container_ul().find("li.jstree-open").each(function () { 
+				this.get_container_ul().find("li.jstree-open").each(function () {
 					if(this.id) { _this.data.core.to_open.push("#" + this.id.toString().replace(/^#/,"").replace(/\\\//g,"/").replace(/\//g,"\\\/").replace(/\\\./g,".").replace(/\./g,"\\.").replace(/\:/g,"\\:")); }
 				});
 				this.__callback(_this.data.core.to_open);
@@ -477,9 +477,9 @@
 					done = true,
 					current = [],
 					remaining = [];
-				if(!is_callback) { 
-					this.data.core.reopen = false; 
-					this.data.core.refreshing = true; 
+				if(!is_callback) {
+					this.data.core.reopen = false;
+					this.data.core.refreshing = true;
 					this.data.core.to_open = $.map($.makeArray(this.data.core.to_open), function (n) { return "#" + n.toString().replace(/^#/,"").replace(/\\\//g,"/").replace(/\//g,"\\\/").replace(/\\\./g,".").replace(/\./g,"\\.").replace(/\:/g,"\\:"); });
 					this.data.core.to_load = $.map($.makeArray(this.data.core.to_load), function (n) { return "#" + n.toString().replace(/^#/,"").replace(/\\\//g,"/").replace(/\//g,"\\\/").replace(/\\\./g,".").replace(/\./g,"\\.").replace(/\:/g,"\\:"); });
 					if(this.data.core.to_open.length) {
@@ -494,7 +494,7 @@
 					});
 					if(current.length) {
 						this.data.core.to_load = remaining;
-						$.each(current, function (i, val) { 
+						$.each(current, function (i, val) {
 							if(!_this._is_loaded(val)) {
 								_this.load_node(val, function () { _this.reload_nodes(true); }, function () { _this.reload_nodes(true); });
 								done = false;
@@ -504,10 +504,10 @@
 				}
 				if(this.data.core.to_open.length) {
 					$.each(this.data.core.to_open, function (i, val) {
-						_this.open_node(val, false, true); 
+						_this.open_node(val, false, true);
 					});
 				}
-				if(done) { 
+				if(done) {
 					// TODO: find a more elegant approach to synchronizing returning requests
 					if(this.data.core.reopen) { clearTimeout(this.data.core.reopen); }
 					this.data.core.reopen = setTimeout(function () { _this.__callback({}, _this); }, 50);
@@ -519,7 +519,7 @@
 				var _this = this;
 				if(this.data.core.to_open.length) {
 					$.each(this.data.core.to_open, function (i, val) {
-						_this.open_node(val, false, true); 
+						_this.open_node(val, false, true);
 					});
 				}
 				this.__callback({});
@@ -535,36 +535,36 @@
 				this.load_node(obj, function () { _this.__callback({ "obj" : obj}); _this.reload_nodes(); });
 			},
 			// Dummy function to fire after the first load (so that there is a jstree.loaded event)
-			loaded	: function () { 
-				this.__callback(); 
+			loaded	: function () {
+				this.__callback();
 			},
 			// deal with focus
-			set_focus	: function () { 
+			set_focus	: function () {
 				if(this.is_focused()) { return; }
 				var f = $.jstree._focused();
 				if(f) { f.unset_focus(); }
 
-				this.get_container().addClass("jstree-focused"); 
-				focused_instance = this.get_index(); 
+				this.get_container().addClass("jstree-focused");
+				focused_instance = this.get_index();
 				this.__callback();
 			},
-			is_focused	: function () { 
-				return focused_instance == this.get_index(); 
+			is_focused	: function () {
+				return focused_instance == this.get_index();
 			},
 			unset_focus	: function () {
 				if(this.is_focused()) {
-					this.get_container().removeClass("jstree-focused"); 
-					focused_instance = -1; 
+					this.get_container().removeClass("jstree-focused");
+					focused_instance = -1;
 				}
 				this.__callback();
 			},
 
 			// traverse
-			_get_node		: function (obj) { 
-				var $obj = $(obj, this.get_container()); 
-				if($obj.is(".jstree") || obj == -1) { return -1; } 
-				$obj = $obj.closest("li", this.get_container()); 
-				return $obj.length ? $obj : false; 
+			_get_node		: function (obj) {
+				var $obj = $(obj, this.get_container());
+				if($obj.is(".jstree") || obj == -1) { return -1; }
+				$obj = $obj.closest("li", this.get_container());
+				return $obj.length ? $obj : false;
 			},
 			_get_next		: function (obj, strict) {
 				obj = this._get_node(obj);
@@ -674,7 +674,7 @@
 			open_all	: function (obj, do_animation, original_obj) {
 				obj = obj ? this._get_node(obj) : -1;
 				if(!obj || obj === -1) { obj = this.get_container_ul(); }
-				if(original_obj) { 
+				if(original_obj) {
 					obj = obj.find("li.jstree-closed");
 				}
 				else {
@@ -683,8 +683,8 @@
 					else { obj = obj.find("li.jstree-closed"); }
 				}
 				var _this = this;
-				obj.each(function () { 
-					var __this = this; 
+				obj.each(function () {
+					var __this = this;
 					if(!_this._is_loaded(this)) { _this.open_node(this, function() { _this.open_all(__this, do_animation, original_obj); }, !do_animation); }
 					else { _this.open_node(this, false, !do_animation); }
 				});
@@ -709,9 +709,9 @@
 				this.__callback({ "obj" : obj });
 			},
 			// rollback
-			get_rollback : function () { 
+			get_rollback : function () {
 				this.__callback();
-				return { i : this.get_index(), h : this.get_container().children("ul").clone(true), d : this.data }; 
+				return { i : this.get_index(), h : this.get_container().children("ul").clone(true), d : this.data };
 			},
 			set_rollback : function (html, data) {
 				this.get_container().empty().append(html);
@@ -754,7 +754,7 @@
 					}
 					tmp.prepend("<ins class='jstree-icon'>&#160;</ins>");
 					if(!m.icon && js.icon) { m.icon = js.icon; }
-					if(m.icon) { 
+					if(m.icon) {
 						if(m.icon.indexOf("/") === -1) { tmp.children("ins").addClass(m.icon); }
 						else { tmp.children("ins").css("background","url('" + m.icon + "') center center no-repeat"); }
 					}
@@ -869,11 +869,11 @@
 						case "first":
 						case "before":
 						case "inside":
-							p.cp = 0; 
+							p.cp = 0;
 							break;
 						case "after":
 						case "last":
-							p.cp = p.rt.get_container().find(" > ul > li").length; 
+							p.cp = p.rt.get_container().find(" > ul > li").length;
 							break;
 						default:
 							p.cp = p.p;
@@ -899,10 +899,10 @@
 							p.cr = p.r;
 							break;
 						case "last":
-							p.cp = p.r.find(" > ul > li").length; 
+							p.cp = p.r.find(" > ul > li").length;
 							p.cr = p.r;
 							break;
-						default: 
+						default:
 							p.cp = p.p;
 							p.cr = p.r;
 							break;
@@ -924,19 +924,19 @@
 				if(!obj || !obj.o || obj.or[0] === obj.o[0]) { return false; }
 				if(!obj.cy) {
 					if(obj.op && obj.np && obj.op[0] === obj.np[0] && obj.cp - 1 === obj.o.index()) { return false; }
-					obj.o.each(function () { 
+					obj.o.each(function () {
 						if(r.parentsUntil(".jstree", "li").addBack().index(this) !== -1) { ret = false; return false; }
 					});
 				}
 				return ret;
 			},
 			move_node : function (obj, ref, position, is_copy, is_prepared, skip_check) {
-				if(!is_prepared) { 
+				if(!is_prepared) {
 					return this.prepare_move(obj, ref, position, function (p) {
 						this.move_node(p, false, false, is_copy, true, skip_check);
 					});
 				}
-				if(is_copy) { 
+				if(is_copy) {
 					prepared_move.cy = true;
 				}
 				if(!skip_check && !this.check_move()) { return false; }
@@ -952,12 +952,12 @@
 				else { o = obj.o; }
 
 				if(obj.or.length) { obj.or.before(o); }
-				else { 
+				else {
 					if(!obj.np.children("ul").length) { $("<ul />").appendTo(obj.np); }
-					obj.np.children("ul:eq(0)").append(o); 
+					obj.np.children("ul:eq(0)").append(o);
 				}
 
-				try { 
+				try {
 					obj.ot.clean_node(obj.op);
 					obj.rt.clean_node(obj.np);
 					if(!obj.op.find("> ul > li").length) {
@@ -965,9 +965,9 @@
 					}
 				} catch (e) { }
 
-				if(is_copy) { 
+				if(is_copy) {
 					prepared_move.cy = true;
-					prepared_move.oc = o; 
+					prepared_move.oc = o;
 				}
 				this.__callback(prepared_move);
 				return prepared_move;
@@ -978,19 +978,19 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree ui plugin
  * This plugins handles selecting/deselecting/hovering/dehovering nodes
  */
 (function ($) {
 	var scrollbar_width, e1, e2;
 	$(function() {
-		if (/msie/.test(navigator.userAgent.toLowerCase())) {
+		if (/msie/.test(navigator.userAgent.toLowerCase(java.util.Locale.US))) {
 			e1 = $('<textarea cols="10" rows="2"></textarea>').css({ position: 'absolute', top: -1000, left: 0 }).appendTo('body');
 			e2 = $('<textarea cols="10" rows="2" style="overflow: hidden;"></textarea>').css({ position: 'absolute', top: -1000, left: 0 }).appendTo('body');
 			scrollbar_width = e1.width() - e2.width();
 			e1.add(e2).remove();
-		} 
+		}
 		else {
 			e1 = $('<div />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
 					.prependTo('body').append('<div />').find('div').css({ width: '100%', height: 200 });
@@ -999,9 +999,9 @@
 		}
 	});
 	$.jstree.plugin("ui", {
-		__init : function () { 
-			this.data.ui.selected = $(); 
-			this.data.ui.last_selected = false; 
+		__init : function () {
+			this.data.ui.selected = $();
+			this.data.ui.last_selected = false;
 			this.data.ui.hovered = null;
 			this.data.ui.to_select = this.get_settings().ui.initially_select;
 
@@ -1023,41 +1023,41 @@
 							this.dehover_node(event.target);
 						}
 					}, this))
-				.bind("reopen.jstree", $.proxy(function () { 
+				.bind("reopen.jstree", $.proxy(function () {
 						this.reselect();
 					}, this))
-				.bind("get_rollback.jstree", $.proxy(function () { 
+				.bind("get_rollback.jstree", $.proxy(function () {
 						this.dehover_node();
 						this.save_selected();
 					}, this))
-				.bind("set_rollback.jstree", $.proxy(function () { 
+				.bind("set_rollback.jstree", $.proxy(function () {
 						this.reselect();
 					}, this))
-				.bind("close_node.jstree", $.proxy(function (event, data) { 
+				.bind("close_node.jstree", $.proxy(function (event, data) {
 						var s = this._get_settings().ui,
 							obj = this._get_node(data.rslt.obj),
 							clk = (obj && obj.length) ? obj.children("ul").find("a.jstree-clicked") : $(),
 							_this = this;
 						if(s.selected_parent_close === false || !clk.length) { return; }
-						clk.each(function () { 
+						clk.each(function () {
 							_this.deselect_node(this);
 							if(s.selected_parent_close === "select_parent") { _this.select_node(obj); }
 						});
 					}, this))
-				.bind("delete_node.jstree", $.proxy(function (event, data) { 
+				.bind("delete_node.jstree", $.proxy(function (event, data) {
 						var s = this._get_settings().ui.select_prev_on_delete,
 							obj = this._get_node(data.rslt.obj),
 							clk = (obj && obj.length) ? obj.find("a.jstree-clicked") : [],
 							_this = this;
 						clk.each(function () { _this.deselect_node(this); });
-						if(s && clk.length) { 
-							data.rslt.prev.each(function () { 
+						if(s && clk.length) {
+							data.rslt.prev.each(function () {
 								if(this.parentNode) { _this.select_node(this); return false; /* if return false is removed all prev nodes will be selected */}
 							});
 						}
 					}, this))
-				.bind("move_node.jstree", $.proxy(function (event, data) { 
-						if(data.rslt.cy) { 
+				.bind("move_node.jstree", $.proxy(function (event, data) {
+						if(data.rslt.cy) {
 							data.rslt.oc.find("a.jstree-clicked").removeClass("jstree-clicked");
 						}
 					}, this));
@@ -1072,13 +1072,13 @@
 			disable_selecting_children : false,
 			initially_select : []
 		},
-		_fn : { 
+		_fn : {
 			_get_node : function (obj, allow_multiple) {
 				if(typeof obj === "undefined" || obj === null) { return allow_multiple ? this.data.ui.selected : this.data.ui.last_selected; }
-				var $obj = $(obj, this.get_container()); 
-				if($obj.is(".jstree") || obj == -1) { return -1; } 
-				$obj = $obj.closest("li", this.get_container()); 
-				return $obj.length ? $obj : false; 
+				var $obj = $(obj, this.get_container());
+				if($obj.is(".jstree") || obj == -1) { return -1; }
+				$obj = $obj.closest("li", this.get_container());
+				return $obj.length ? $obj : false;
 			},
 			_ui_notify : function (n, data) {
 				if(data.selected) {
@@ -1130,7 +1130,7 @@
 					proceed = true,
 					t = this;
 				if(check) {
-					if(s.disable_selecting_children && is_multiple && 
+					if(s.disable_selecting_children && is_multiple &&
 						(
 							(obj.parentsUntil(".jstree","li").children("a.jstree-clicked").length) ||
 							(obj.children("ul").find("a.jstree-clicked:eq(0)").length)
@@ -1155,22 +1155,22 @@
 								proceed = false;
 							}
 							break;
-						case (is_selected && !is_multiple): 
+						case (is_selected && !is_multiple):
 							this.deselect_all();
 							is_selected = false;
 							proceed = true;
 							break;
-						case (!is_selected && !is_multiple): 
+						case (!is_selected && !is_multiple):
 							if(s.select_limit == -1 || s.select_limit > 0) {
 								this.deselect_all();
 								proceed = true;
 							}
 							break;
-						case (is_selected && is_multiple): 
+						case (is_selected && is_multiple):
 							this.deselect_node(obj);
 							break;
-						case (!is_selected && is_multiple): 
-							if(s.select_limit == -1 || this.data.ui.selected.length + 1 <= s.select_limit) { 
+						case (!is_selected && is_multiple):
+							if(s.select_limit == -1 || this.data.ui.selected.length + 1 <= s.select_limit) {
 								proceed = true;
 							}
 							break;
@@ -1193,11 +1193,11 @@
 					obj = this._get_node(obj);
 					if(!obj || obj === -1 || !obj.length || !obj.is(":visible")) { return; }
 					t = obj.offset().top - this.get_container().offset().top;
-					if(t < 0) { 
-						c.scrollTop = c.scrollTop + t - 1; 
+					if(t < 0) {
+						c.scrollTop = c.scrollTop + t - 1;
 					}
-					if(t + this.data.core.li_height + (c.scrollWidth > c.offsetWidth ? scrollbar_width : 0) > c.offsetHeight) { 
-						c.scrollTop = c.scrollTop + (t - c.offsetHeight + this.data.core.li_height + 1 + (c.scrollWidth > c.offsetWidth ? scrollbar_width : 0)); 
+					if(t + this.data.core.li_height + (c.scrollWidth > c.offsetWidth ? scrollbar_width : 0) > c.offsetHeight) {
+						c.scrollTop = c.scrollTop + (t - c.offsetHeight + this.data.core.li_height + 1 + (c.scrollWidth > c.offsetWidth ? scrollbar_width : 0));
 					}
 				}
 			},
@@ -1218,8 +1218,8 @@
 				else { this.select_node(obj); }
 			},
 			is_selected : function (obj) { return this.data.ui.selected.index(this._get_node(obj)) >= 0; },
-			get_selected : function (context) { 
-				return context ? $(context).find("a.jstree-clicked").parent() : this.data.ui.selected; 
+			get_selected : function (context) {
+				return context ? $(context).find("a.jstree-clicked").parent() : this.data.ui.selected;
 			},
 			deselect_all : function (context) {
 				var ret = context ? $(context).find("a.jstree-clicked").parent() : this.get_container().find("a.jstree-clicked").parent();
@@ -1235,12 +1235,12 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree CRRM plugin
  * Handles creating/renaming/removing/moving nodes by user interaction.
  */
 (function ($) {
-	$.jstree.plugin("crrm", { 
+	$.jstree.plugin("crrm", {
 		__init : function () {
 			this.get_container()
 				.bind("move_node.jstree", $.proxy(function (e, data) {
@@ -1271,7 +1271,7 @@
 					t = this.get_text(obj),
 					h1 = $("<div />", { css : { "position" : "absolute", "top" : "-200px", "left" : (rtl ? "0px" : "-1000px"), "visibility" : "hidden" } }).appendTo("body"),
 					h2 = obj.css("position","relative").append(
-					$("<input />", { 
+					$("<input />", {
 						"value" : t,
 						"class" : "jstree-rename-input",
 						// "size" : t.length,
@@ -1310,7 +1310,7 @@
 							if(key == 13) { return false; }
 						}
 					})
-				).children(".jstree-rename-input"); 
+				).children(".jstree-rename-input");
 				this.set_text(obj, "");
 				h1.css({
 						fontFamily		: h2.css('fontFamily')		|| '',
@@ -1328,7 +1328,7 @@
 				obj = this._get_node(obj);
 				this.__rollback();
 				var f = this.__callback;
-				this._show_input(obj, function (obj, new_name, old_name) { 
+				this._show_input(obj, function (obj, new_name, old_name) {
 					f.call(this, { "obj" : obj, "new_name" : new_name, "old_name" : old_name });
 				});
 			},
@@ -1342,8 +1342,8 @@
 						pos = $(t).index();
 					if(callback) { callback.call(this, t); }
 					if(p.length && p.hasClass("jstree-closed")) { this.open_node(p, false, true); }
-					if(!skip_rename) { 
-						this._show_input(t, function (obj, new_name, old_name) { 
+					if(!skip_rename) {
+						this._show_input(t, function (obj, new_name, old_name) {
 							_this.__callback({ "obj" : obj, "name" : new_name, "parent" : p, "position" : pos });
 						});
 					}
@@ -1366,7 +1366,7 @@
 			},
 			move_node : function (obj, ref, position, is_copy, is_prepared, skip_check) {
 				var s = this._get_settings().crrm.move;
-				if(!is_prepared) { 
+				if(!is_prepared) {
 					if(typeof position === "undefined") { position = s.default_position; }
 					if(position === "inside" && !s.default_position.match(/^(before|after)$/)) { position = s.default_position; }
 					return this.__call_old(true, obj, ref, position, is_copy, false, skip_check);
@@ -1392,7 +1392,7 @@
 				this.data.crrm.cp_nodes = obj;
 				this.__callback({ "obj" : obj });
 			},
-			paste : function (obj) { 
+			paste : function (obj) {
 				obj = this._get_node(obj);
 				if(!obj || !obj.length) { return false; }
 				var nodes = this.data.crrm.ct_nodes ? this.data.crrm.ct_nodes : this.data.crrm.cp_nodes;
@@ -1408,7 +1408,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree themes plugin
  * Handles loading and setting themes, as well as detecting path to themes, etc.
  */
@@ -1417,12 +1417,12 @@
 	// this variable stores the path to the themes folder - if left as false - it will be autodetected
 	$.jstree._themes = false;
 	$.jstree.plugin("themes", {
-		__init : function () { 
+		__init : function () {
 			this.get_container()
 				.bind("init.jstree", $.proxy(function () {
 						var s = this._get_settings().themes;
-						this.data.themes.dots = s.dots; 
-						this.data.themes.icons = s.icons; 
+						this.data.themes.dots = s.dots;
+						this.data.themes.icons = s.icons;
 						this.set_theme(s.theme, s.url);
 					}, this))
 				.bind("loaded.jstree", $.proxy(function () {
@@ -1433,8 +1433,8 @@
 						else { this.show_icons(); }
 					}, this));
 		},
-		defaults : { 
-			theme : "default", 
+		defaults : {
+			theme : "default",
 			url : false,
 			dots : true,
 			icons : true
@@ -1472,10 +1472,10 @@
 	// autodetect themes path
 	$(function () {
 		if($.jstree._themes === false) {
-			$("script").each(function () { 
-				if(this.src.toString().match(/jquery\.jstree[^\/]*?\.js(\?.*)?$/)) { 
-					$.jstree._themes = this.src.toString().replace(/jquery\.jstree[^\/]*?\.js(\?.*)?$/, "") + 'themes/'; 
-					return false; 
+			$("script").each(function () {
+				if(this.src.toString().match(/jquery\.jstree[^\/]*?\.js(\?.*)?$/)) {
+					$.jstree._themes = this.src.toString().replace(/jquery\.jstree[^\/]*?\.js(\?.*)?$/, "") + 'themes/';
+					return false;
 				}
 			});
 		}
@@ -1495,7 +1495,7 @@
 	var bound = [];
 	function exec(i, event) {
 		var f = $.jstree._focused(), tmp;
-		if(f && f.data && f.data.hotkeys && f.data.hotkeys.enabled) { 
+		if(f && f.data && f.data.hotkeys && f.data.hotkeys.enabled) {
 			tmp = f._get_settings().hotkeys[i];
 			if(tmp) { return tmp.call(f, event); }
 		}
@@ -1520,37 +1520,37 @@
 			this.enable_hotkeys();
 		},
 		defaults : {
-			"up" : function () { 
+			"up" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_prev(o));
-				return false; 
+				return false;
 			},
-			"ctrl+up" : function () { 
+			"ctrl+up" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_prev(o));
-				return false; 
+				return false;
 			},
-			"shift+up" : function () { 
+			"shift+up" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_prev(o));
-				return false; 
+				return false;
 			},
-			"down" : function () { 
+			"down" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_next(o));
 				return false;
 			},
-			"ctrl+down" : function () { 
+			"ctrl+down" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_next(o));
 				return false;
 			},
-			"shift+down" : function () { 
+			"shift+down" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected || -1;
 				this.hover_node(this._get_next(o));
 				return false;
 			},
-			"left" : function () { 
+			"left" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o) {
 					if(o.hasClass("jstree-open")) { this.close_node(o); }
@@ -1558,7 +1558,7 @@
 				}
 				return false;
 			},
-			"ctrl+left" : function () { 
+			"ctrl+left" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o) {
 					if(o.hasClass("jstree-open")) { this.close_node(o); }
@@ -1566,7 +1566,7 @@
 				}
 				return false;
 			},
-			"shift+left" : function () { 
+			"shift+left" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o) {
 					if(o.hasClass("jstree-open")) { this.close_node(o); }
@@ -1574,7 +1574,7 @@
 				}
 				return false;
 			},
-			"right" : function () { 
+			"right" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o && o.length) {
 					if(o.hasClass("jstree-closed")) { this.open_node(o); }
@@ -1582,7 +1582,7 @@
 				}
 				return false;
 			},
-			"ctrl+right" : function () { 
+			"ctrl+right" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o && o.length) {
 					if(o.hasClass("jstree-closed")) { this.open_node(o); }
@@ -1590,7 +1590,7 @@
 				}
 				return false;
 			},
-			"shift+right" : function () { 
+			"shift+right" : function () {
 				var o = this.data.ui.hovered || this.data.ui.last_selected;
 				if(o && o.length) {
 					if(o.hasClass("jstree-closed")) { this.open_node(o); }
@@ -1598,19 +1598,19 @@
 				}
 				return false;
 			},
-			"space" : function () { 
-				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").click(); } 
-				return false; 
+			"space" : function () {
+				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").click(); }
+				return false;
 			},
-			"ctrl+space" : function (event) { 
+			"ctrl+space" : function (event) {
 				event.type = "click";
-				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").trigger(event); } 
-				return false; 
+				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").trigger(event); }
+				return false;
 			},
-			"shift+space" : function (event) { 
+			"shift+space" : function (event) {
 				event.type = "click";
-				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").trigger(event); } 
-				return false; 
+				if(this.data.ui.hovered) { this.data.ui.hovered.children("a:eq(0)").trigger(event); }
+				return false;
 			},
 			"f2" : function () { this.rename(this.data.ui.hovered || this.data.ui.last_selected); },
 			"del" : function () { this.remove(this.data.ui.hovered || this._get_node(null)); }
@@ -1627,7 +1627,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree JSON plugin
  * The JSON data store. Datastores are build by overriding the `load_node` and `_is_loaded` functions.
  */
@@ -1641,11 +1641,11 @@
 				});
 			}
 		},
-		defaults : { 
+		defaults : {
 			// `data` can be a function:
 			//  * accepts two arguments - node being loaded and a callback to pass the result to
 			//  * will be executed in the current tree's scope & ajax won't be supported
-			data : false, 
+			data : false,
 			ajax : false,
 			correct_state : true,
 			progressive_render : false,
@@ -1653,9 +1653,9 @@
 		},
 		_fn : {
 			load_node : function (obj, s_call, e_call) { var _this = this; this.load_node_json(obj, function () { _this.__callback({ "obj" : _this._get_node(obj) }); s_call.call(this); }, e_call); },
-			_is_loaded : function (obj) { 
+			_is_loaded : function (obj) {
 				var s = this._get_settings().json_data;
-				obj = this._get_node(obj); 
+				obj = this._get_node(obj);
 				return obj == -1 || !obj || (!s.ajax && !s.progressive_render && !$.isFunction(s.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").length > 0;
 			},
 			refresh : function (obj) {
@@ -1693,7 +1693,7 @@
 					case ($.isFunction(s.data)):
 						s.data.call(this, obj, $.proxy(function (d) {
 							d = this._parse_json(d, obj);
-							if(!d) { 
+							if(!d) {
 								if(obj === -1 || !obj) {
 									if(s.correct_state) { this.get_container().children("ul").empty(); }
 								}
@@ -1719,7 +1719,7 @@
 								this.get_container().children("ul").empty().append(d.children());
 								this.clean_node();
 							}
-							else { 
+							else {
 								if(s.correct_state) { this.get_container().children("ul").empty(); }
 							}
 						}
@@ -1727,7 +1727,7 @@
 						break;
 					case (!s.data && !!s.ajax) || (!!s.data && !!s.ajax && obj && obj !== -1):
 						error_func = function (x, t, e) {
-							var ef = this.get_settings().json_data.ajax.error; 
+							var ef = this.get_settings().json_data.ajax.error;
 							if(ef) { ef.call(this, x, t, e); }
 							if(obj != -1 && obj.length) {
 								obj.children("a.jstree-loading").removeClass("jstree-loading");
@@ -1740,7 +1740,7 @@
 							if(e_call) { e_call.call(this); }
 						};
 						success_func = function (d, t, x) {
-							var sf = this.get_settings().json_data.ajax.success; 
+							var sf = this.get_settings().json_data.ajax.success;
 							if(sf) { d = sf.call(this,d,t,x) || d; }
 							if(d === "" || (d && d.toString && d.toString().replace(/^[\s\n]+$/,"") === "") || (!$.isArray(d) && !$.isPlainObject(d))) {
 								return error_func.call(this, x, t, "");
@@ -1754,17 +1754,17 @@
 							}
 							else {
 								if(obj === -1 || !obj) {
-									if(s.correct_state) { 
-										this.get_container().children("ul").empty(); 
+									if(s.correct_state) {
+										this.get_container().children("ul").empty();
 										if(s_call) { s_call.call(this); }
 									}
 								}
 								else {
 									obj.children("a.jstree-loading").removeClass("jstree-loading");
 									obj.removeData("jstree_is_loading");
-									if(s.correct_state) { 
+									if(s.correct_state) {
 										this.correct_state(obj);
-										if(s_call) { s_call.call(this); } 
+										if(s_call) { s_call.call(this); }
 									}
 								}
 							}
@@ -1780,14 +1780,14 @@
 				}
 			},
 			_parse_json : function (js, obj, is_callback) {
-				var d = false, 
+				var d = false,
 					p = this._get_settings(),
 					s = p.json_data,
 					t = p.core.html_titles,
 					tmp, i, j, ul1, ul2;
 
 				if(!js) { return d; }
-				if(s.progressive_unload && obj && obj !== -1) { 
+				if(s.progressive_unload && obj && obj !== -1) {
 					obj.data("jstree_children", d);
 				}
 				if($.isArray(js)) {
@@ -1821,14 +1821,14 @@
 						}
 						tmp.prepend("<ins class='jstree-icon'>&#160;</ins>");
 						if(!m.icon && js.icon) { m.icon = js.icon; }
-						if(m.icon) { 
+						if(m.icon) {
 							if(m.icon.indexOf("/") === -1) { tmp.children("ins").addClass(m.icon); }
 							else { tmp.children("ins").css("background","url('" + m.icon + "') center center no-repeat"); }
 						}
 						d.append(tmp);
 					});
 					d.prepend("<ins class='jstree-icon'>&#160;</ins>");
-					if(js.children) { 
+					if(js.children) {
 						if(s.progressive_render && js.state !== "open") {
 							d.addClass("jstree-closed").data("jstree_children", js.children);
 						}
@@ -1853,8 +1853,8 @@
 				return d;
 			},
 			get_json : function (obj, li_attr, a_attr, is_callback) {
-				var result = [], 
-					s = this._get_settings(), 
+				var result = [],
+					s = this._get_settings(),
 					_this = this,
 					tmp1, tmp2, li, a, t, lang;
 				obj = this._get_node(obj);
@@ -1867,10 +1867,10 @@
 					li = $(this);
 					tmp1 = { data : [] };
 					if(li_attr.length) { tmp1.attr = { }; }
-					$.each(li_attr, function (i, v) { 
-						tmp2 = li.attr(v); 
+					$.each(li_attr, function (i, v) {
+						tmp2 = li.attr(v);
 						if(tmp2 && tmp2.length && tmp2.replace(/jstree[^ ]*/ig,'').length) {
-							tmp1.attr[v] = (" " + tmp2).replace(/ jstree[^ ]*/ig,'').replace(/\s+$/ig," ").replace(/^ /,"").replace(/ $/,""); 
+							tmp1.attr[v] = (" " + tmp2).replace(/ jstree[^ ]*/ig,'').replace(/\s+$/ig," ").replace(/^ /,"").replace(/ $/,"");
 						}
 					});
 					if(li.hasClass("jstree-open")) { tmp1.state = "open"; }
@@ -1880,11 +1880,11 @@
 					a.each(function () {
 						t = $(this);
 						if(
-							a_attr.length || 
-							$.inArray("languages", s.plugins) !== -1 || 
-							t.children("ins").get(0).style.backgroundImage.length || 
+							a_attr.length ||
+							$.inArray("languages", s.plugins) !== -1 ||
+							t.children("ins").get(0).style.backgroundImage.length ||
 							(t.children("ins").get(0).className && t.children("ins").get(0).className.replace(/jstree[^ ]*|$/ig,'').length)
-						) { 
+						) {
 							lang = false;
 							if($.inArray("languages", s.plugins) !== -1 && $.isArray(s.languages) && s.languages.length) {
 								$.each(s.languages, function (l, lv) {
@@ -1894,7 +1894,7 @@
 									}
 								});
 							}
-							tmp2 = { attr : { }, title : _this.get_text(t, lang) }; 
+							tmp2 = { attr : { }, title : _this.get_text(t, lang) };
 							$.each(a_attr, function (k, z) {
 								tmp2.attr[z] = (" " + (t.attr(z) || "")).replace(/ jstree[^ ]*/ig,'').replace(/\s+$/ig," ").replace(/^ /,"").replace(/ $/,"");
 							});
@@ -1927,7 +1927,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree languages plugin
  * Adds support for multiple language versions in one tree
  * This basically allows for many titles coexisting in one node, but only one of them being visible at any given time
@@ -1939,7 +1939,7 @@
 		__init : function () { this._load_css();  },
 		defaults : [],
 		_fn : {
-			set_lang : function (i) { 
+			set_lang : function (i) {
 				var langs = this._get_settings().languages,
 					st = false,
 					selector = ".jstree-" + this.get_index() + ' a';
@@ -2077,7 +2077,7 @@
 			this.get_container()
 				.one( ( this.data.ui ? "reselect" : "reopen" ) + ".jstree", $.proxy(function () {
 					this.get_container()
-						.bind("open_node.jstree close_node.jstree select_node.jstree deselect_node.jstree", $.proxy(function (e) { 
+						.bind("open_node.jstree close_node.jstree select_node.jstree deselect_node.jstree", $.proxy(function (e) {
 								if(this._get_settings().cookies.auto_save) { this.save_cookie((e.handleObj.namespace + e.handleObj.type).replace("jstree","")); }
 							}, this));
 				}, this));
@@ -2111,20 +2111,20 @@
 				switch(c) {
 					case "open_node":
 					case "close_node":
-						if(!!s.save_opened) { 
-							this.save_opened(); 
-							$.cookie(s.save_opened, this.data.core.to_open.join(","), s.cookie_options); 
+						if(!!s.save_opened) {
+							this.save_opened();
+							$.cookie(s.save_opened, this.data.core.to_open.join(","), s.cookie_options);
 						}
-						if(!!s.save_loaded) { 
-							this.save_loaded(); 
-							$.cookie(s.save_loaded, this.data.core.to_load.join(","), s.cookie_options); 
+						if(!!s.save_loaded) {
+							this.save_loaded();
+							$.cookie(s.save_loaded, this.data.core.to_load.join(","), s.cookie_options);
 						}
 						break;
 					case "select_node":
 					case "deselect_node":
-						if(!!s.save_selected && this.data.ui) { 
-							this.save_selected(); 
-							$.cookie(s.save_selected, this.data.ui.to_select.join(","), s.cookie_options); 
+						if(!!s.save_selected && this.data.ui) {
+							this.save_selected();
+							$.cookie(s.save_selected, this.data.ui.to_select.join(","), s.cookie_options);
 						}
 						break;
 				}
@@ -2197,7 +2197,7 @@
 		helper_top : 10,
 		user_data : {},
 
-		drag_start : function (e, data, html) { 
+		drag_start : function (e, data, html) {
 			if($.vakata.dnd.is_drag) { $.vakata.drag_stop({}); }
 			try {
 				e.currentTarget.unselectable = "on";
@@ -2213,10 +2213,10 @@
 			$(document).bind("mouseup", $.vakata.dnd.drag_stop);
 			return false;
 		},
-		drag : function (e) { 
+		drag : function (e) {
 			if(!$.vakata.dnd.is_down) { return; }
 			if(!$.vakata.dnd.is_drag) {
-				if(Math.abs(e.pageX - $.vakata.dnd.init_x) > 5 || Math.abs(e.pageY - $.vakata.dnd.init_y) > 5) { 
+				if(Math.abs(e.pageX - $.vakata.dnd.init_x) > 5 || Math.abs(e.pageY - $.vakata.dnd.init_y) > 5) {
 					$.vakata.dnd.helper.appendTo("body");
 					$.vakata.dnd.is_drag = true;
 					$(document).triggerHandler("drag_start.vakata", { "event" : e, "data" : $.vakata.dnd.user_data });
@@ -2227,18 +2227,18 @@
 			// maybe use a scrolling parent element instead of document?
 			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse position is n/a
 				var d = $(document), t = d.scrollTop(), l = d.scrollLeft();
-				if(e.pageY - t < 20) { 
+				if(e.pageY - t < 20) {
 					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
 					if(!sti) { dir1 = "up"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() - $.vakata.dnd.scroll_spd); }, 150); }
 				}
-				else { 
+				else {
 					if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
 				}
 				if($(window).height() - (e.pageY - t) < 20) {
 					if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
 					if(!sti) { dir1 = "down"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() + $.vakata.dnd.scroll_spd); }, 150); }
 				}
-				else { 
+				else {
 					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
 				}
 
@@ -2246,14 +2246,14 @@
 					if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
 					if(!sli) { dir2 = "left"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() - $.vakata.dnd.scroll_spd); }, 150); }
 				}
-				else { 
+				else {
 					if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
 				}
 				if($(window).width() - (e.pageX - l) < 20) {
 					if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
 					if(!sli) { dir2 = "right"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() + $.vakata.dnd.scroll_spd); }, 150); }
 				}
-				else { 
+				else {
 					if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
 				}
 			}
@@ -2303,7 +2303,7 @@
 				.bind("mouseenter.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							if(this.data.themes) {
-								m.attr("class", "jstree-" + this.data.themes.theme); 
+								m.attr("class", "jstree-" + this.data.themes.theme);
 								if(ml) { ml.attr("class", "jstree-" + this.data.themes.theme); }
 								$.vakata.dnd.helper.attr("class", "jstree-dnd-helper jstree-" + this.data.themes.theme);
 							}
@@ -2342,7 +2342,7 @@
 					}, this))
 				.bind("mouseleave.jstree", $.proxy(function (e) {
 						if(e.relatedTarget && e.relatedTarget.id && e.relatedTarget.id === "jstree-marker-line") {
-							return false; 
+							return false;
 						}
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							if(this.data.dnd.i1) { clearInterval(this.data.dnd.i1); }
@@ -2386,24 +2386,24 @@
 
 						}
 					}, this))
-				.bind("scroll.jstree", $.proxy(function (e) { 
+				.bind("scroll.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree && m && ml) {
 							m.hide();
 							ml.hide();
 						}
 					}, this))
-				.delegate("a", "mousedown.jstree", $.proxy(function (e) { 
+				.delegate("a", "mousedown.jstree", $.proxy(function (e) {
 						if(e.which === 1) {
 							this.start_drag(e.currentTarget, e);
 							return false;
 						}
 					}, this))
-				.delegate("a", "mouseenter.jstree", $.proxy(function (e) { 
+				.delegate("a", "mouseenter.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							this.dnd_enter(e.currentTarget);
 						}
 					}, this))
-				.delegate("a", "mousemove.jstree", $.proxy(function (e) { 
+				.delegate("a", "mousemove.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							if(!r || !r.length || r.children("a")[0] !== e.currentTarget) {
 								this.dnd_enter(e.currentTarget);
@@ -2414,27 +2414,27 @@
 							this.dnd_show();
 						}
 					}, this))
-				.delegate("a", "mouseleave.jstree", $.proxy(function (e) { 
+				.delegate("a", "mouseleave.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							if(e.relatedTarget && e.relatedTarget.id && e.relatedTarget.id === "jstree-marker-line") {
-								return false; 
+								return false;
 							}
 								if(m) { m.hide(); }
 								if(ml) { ml.hide(); }
 							/*
-							var ec = $(e.currentTarget).closest("li"), 
+							var ec = $(e.currentTarget).closest("li"),
 								er = $(e.relatedTarget).closest("li");
 							if(er[0] !== ec.prev()[0] && er[0] !== ec.next()[0]) {
 								if(m) { m.hide(); }
 								if(ml) { ml.hide(); }
 							}
 							*/
-							this.data.dnd.mto = setTimeout( 
+							this.data.dnd.mto = setTimeout(
 								(function (t) { return function () { t.dnd_leave(e); }; })(this),
 							0);
 						}
 					}, this))
-				.delegate("a", "mouseup.jstree", $.proxy(function (e) { 
+				.delegate("a", "mouseup.jstree", $.proxy(function (e) {
 						if($.vakata.dnd.is_drag && $.vakata.dnd.user_data.jstree) {
 							this.dnd_finish(e);
 						}
@@ -2462,7 +2462,7 @@
 						if(ml) { ml.css({ "top" : "-2000px" }); }
 					}, this))
 				.bind("drag_start.vakata", $.proxy(function (e, data) {
-						if(data.data.jstree) { 
+						if(data.data.jstree) {
 							var et = $(data.event.target);
 							if(et.closest(".jstree").hasClass("jstree-" + this.get_index())) {
 								this.dnd_enter(et);
@@ -2475,7 +2475,7 @@
 							var h = $.vakata.dnd.helper.children("ins");
 							if(e[this._get_settings().dnd.copy_modifier + "Key"] && h.hasClass("jstree-ok")) {
 								h.parent().html(h.parent().html().replace(/ \(Copy\)$/, "") + " (Copy)");
-							} 
+							}
 							else {
 								h.parent().html(h.parent().html().replace(/ \(Copy\)$/, ""));
 							}
@@ -2490,10 +2490,10 @@
 					.delegate(s.drag_target, "mousedown.jstree-" + this.get_index(), $.proxy(function (e) {
 						o = e.target;
 						$.vakata.dnd.drag_start(e, { jstree : true, obj : e.target }, "<ins class='jstree-icon'></ins>" + $(e.target).text() );
-						if(this.data.themes) { 
+						if(this.data.themes) {
 							if(m) { m.attr("class", "jstree-" + this.data.themes.theme); }
 							if(ml) { ml.attr("class", "jstree-" + this.data.themes.theme); }
-							$.vakata.dnd.helper.attr("class", "jstree-dnd-helper jstree-" + this.data.themes.theme); 
+							$.vakata.dnd.helper.attr("class", "jstree-dnd-helper jstree-" + this.data.themes.theme);
 						}
 						$.vakata.dnd.helper.children("ins").attr("class","jstree-invalid");
 						var cnt = this.get_container();
@@ -2574,7 +2574,7 @@
 					o = this.data.dnd.w < this.data.core.li_height/2 ? ["inside","before","after"] : ["inside","after","before"];
 				}
 				else { o = ["after","inside","before"]; }
-				$.each(o, $.proxy(function (i, val) { 
+				$.each(o, $.proxy(function (i, val) {
 					if(this.data.dnd[val]) {
 						$.vakata.dnd.helper.children("ins").attr("class","jstree-ok");
 						r = val;
@@ -2582,7 +2582,7 @@
 					}
 				}, this));
 				if(r === false) { $.vakata.dnd.helper.children("ins").attr("class","jstree-invalid"); }
-				
+
 				pos = rtl ? (this.data.dnd.off.right - 18) : (this.data.dnd.off.left + 10);
 				switch(r) {
 					case "before":
@@ -2625,30 +2625,30 @@
 				if(ml) { ml.hide(); }
 			},
 			dnd_enter : function (obj) {
-				if(this.data.dnd.mto) { 
+				if(this.data.dnd.mto) {
 					clearTimeout(this.data.dnd.mto);
 					this.data.dnd.mto = false;
 				}
 				var s = this._get_settings().dnd;
 				this.data.dnd.prepared = false;
 				r = this._get_node(obj);
-				if(s.check_timeout) { 
+				if(s.check_timeout) {
 					// do the calculations after a minimal timeout (users tend to drag quickly to the desired location)
 					if(this.data.dnd.to1) { clearTimeout(this.data.dnd.to1); }
-					this.data.dnd.to1 = setTimeout($.proxy(this.dnd_prepare, this), s.check_timeout); 
+					this.data.dnd.to1 = setTimeout($.proxy(this.dnd_prepare, this), s.check_timeout);
 				}
-				else { 
-					this.dnd_prepare(); 
+				else {
+					this.dnd_prepare();
 				}
-				if(s.open_timeout) { 
+				if(s.open_timeout) {
 					if(this.data.dnd.to2) { clearTimeout(this.data.dnd.to2); }
-					if(r && r.length && r.hasClass("jstree-closed")) { 
+					if(r && r.length && r.hasClass("jstree-closed")) {
 						// if the node is closed - open it, then recalculate
 						this.data.dnd.to2 = setTimeout($.proxy(this.dnd_open, this), s.open_timeout);
 					}
 				}
 				else {
-					if(r && r.length && r.hasClass("jstree-closed")) { 
+					if(r && r.length && r.hasClass("jstree-closed")) {
 						this.dnd_open();
 					}
 				}
@@ -2678,10 +2678,10 @@
 					cnt = this.get_container();
 				if(!this._get_settings().core.html_titles) { dt = dt.replace(/</ig,"&lt;").replace(/>/ig,"&gt;"); }
 				$.vakata.dnd.drag_start(e, { jstree : true, obj : o }, "<ins class='jstree-icon'></ins>" + dt );
-				if(this.data.themes) { 
+				if(this.data.themes) {
 					if(m) { m.attr("class", "jstree-" + this.data.themes.theme); }
 					if(ml) { ml.attr("class", "jstree-" + this.data.themes.theme); }
-					$.vakata.dnd.helper.attr("class", "jstree-dnd-helper jstree-" + this.data.themes.theme); 
+					$.vakata.dnd.helper.attr("class", "jstree-dnd-helper jstree-" + this.data.themes.theme);
 				}
 				this.data.dnd.cof = cnt.offset();
 				this.data.dnd.cw = parseInt(cnt.width(),10);
@@ -2691,47 +2691,47 @@
 		}
 	});
 	$(function() {
-		var css_string = '' + 
-			'#vakata-dragged ins { display:block; text-decoration:none; width:16px; height:16px; margin:0 0 0 0; padding:0; position:absolute; top:4px; left:4px; ' + 
+		var css_string = '' +
+			'#vakata-dragged ins { display:block; text-decoration:none; width:16px; height:16px; margin:0 0 0 0; padding:0; position:absolute; top:4px; left:4px; ' +
 			' -moz-border-radius:4px; border-radius:4px; -webkit-border-radius:4px; ' +
-			'} ' + 
-			'#vakata-dragged .jstree-ok { background:green; } ' + 
-			'#vakata-dragged .jstree-invalid { background:red; } ' + 
-			'#jstree-marker { padding:0; margin:0; font-size:12px; overflow:hidden; height:12px; width:8px; position:absolute; top:-30px; z-index:10001; background-repeat:no-repeat; display:none; background-color:transparent; text-shadow:1px 1px 1px white; color:black; line-height:10px; } ' + 
-			'#jstree-marker-line { padding:0; margin:0; line-height:0%; font-size:1px; overflow:hidden; height:1px; width:100px; position:absolute; top:-30px; z-index:10000; background-repeat:no-repeat; display:none; background-color:#456c43; ' + 
-			' cursor:pointer; border:1px solid #eeeeee; border-left:0; -moz-box-shadow: 0px 0px 2px #666; -webkit-box-shadow: 0px 0px 2px #666; box-shadow: 0px 0px 2px #666; ' + 
+			'} ' +
+			'#vakata-dragged .jstree-ok { background:green; } ' +
+			'#vakata-dragged .jstree-invalid { background:red; } ' +
+			'#jstree-marker { padding:0; margin:0; font-size:12px; overflow:hidden; height:12px; width:8px; position:absolute; top:-30px; z-index:10001; background-repeat:no-repeat; display:none; background-color:transparent; text-shadow:1px 1px 1px white; color:black; line-height:10px; } ' +
+			'#jstree-marker-line { padding:0; margin:0; line-height:0%; font-size:1px; overflow:hidden; height:1px; width:100px; position:absolute; top:-30px; z-index:10000; background-repeat:no-repeat; display:none; background-color:#456c43; ' +
+			' cursor:pointer; border:1px solid #eeeeee; border-left:0; -moz-box-shadow: 0px 0px 2px #666; -webkit-box-shadow: 0px 0px 2px #666; box-shadow: 0px 0px 2px #666; ' +
 			' -moz-border-radius:1px; border-radius:1px; -webkit-border-radius:1px; ' +
-			'}' + 
+			'}' +
 			'';
 		$.vakata.css.add_sheet({ str : css_string, title : "jstree" });
 		m = $("<div />").attr({ id : "jstree-marker" }).hide().html("&raquo;")
-			.bind("mouseleave mouseenter", function (e) { 
+			.bind("mouseleave mouseenter", function (e) {
 				m.hide();
 				ml.hide();
-				e.preventDefault(); 
-				e.stopImmediatePropagation(); 
-				return false; 
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				return false;
 			})
 			.appendTo("body");
 		ml = $("<div />").attr({ id : "jstree-marker-line" }).hide()
-			.bind("mouseup", function (e) { 
-				if(r && r.length) { 
-					r.children("a").trigger(e); 
-					e.preventDefault(); 
-					e.stopImmediatePropagation(); 
-					return false; 
-				} 
+			.bind("mouseup", function (e) {
+				if(r && r.length) {
+					r.children("a").trigger(e);
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					return false;
+				}
 			})
-			.bind("mouseleave", function (e) { 
+			.bind("mouseleave", function (e) {
 				var rt = $(e.relatedTarget);
 				if(rt.is(".jstree") || rt.closest(".jstree").length === 0) {
-					if(r && r.length) { 
-						r.children("a").trigger(e); 
+					if(r && r.length) {
+						r.children("a").trigger(e);
 						m.hide();
 						ml.hide();
-						e.preventDefault(); 
-						e.stopImmediatePropagation(); 
-						return false; 
+						e.preventDefault();
+						e.stopImmediatePropagation();
+						return false;
 					}
 				}
 			})
@@ -2762,7 +2762,7 @@
 			}
 
 			this.get_container()
-				.bind("open_node.jstree create_node.jstree clean_node.jstree refresh.jstree", $.proxy(function (e, data) { 
+				.bind("open_node.jstree create_node.jstree clean_node.jstree refresh.jstree", $.proxy(function (e, data) {
 						this._prepare_checkboxes(data.rslt.obj);
 					}, this))
 				.bind("loaded.jstree", $.proxy(function (e) {
@@ -2832,7 +2832,7 @@
 					});
 				});
 				if(!ts) {
-					obj.find(".jstree-checked").parent().parent().each(function () { _this._repair_state(this); }); 
+					obj.find(".jstree-checked").parent().parent().each(function () { _this._repair_state(this); });
 				}
 			},
 			change_state : function (obj, state) {
@@ -2841,26 +2841,26 @@
 				if(!obj || obj === -1) { return false; }
 				state = (state === false || state === true) ? state : obj.hasClass("jstree-checked");
 				if(this._get_settings().checkbox.two_state) {
-					if(state) { 
-						obj.removeClass("jstree-checked").addClass("jstree-unchecked"); 
+					if(state) {
+						obj.removeClass("jstree-checked").addClass("jstree-unchecked");
 						if(rc) { obj.children(":checkbox").prop("checked", false); }
 					}
-					else { 
-						obj.removeClass("jstree-unchecked").addClass("jstree-checked"); 
+					else {
+						obj.removeClass("jstree-unchecked").addClass("jstree-checked");
 						if(rc) { obj.children(":checkbox").prop("checked", true); }
 					}
 				}
 				else {
-					if(state) { 
+					if(state) {
 						coll = obj.find("li").addBack();
 						if(!coll.filter(".jstree-checked, .jstree-undetermined").length) { return false; }
-						coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked"); 
+						coll.removeClass("jstree-checked jstree-undetermined").addClass("jstree-unchecked");
 						if(rc) { coll.children(":checkbox").prop("checked", false); }
 					}
-					else { 
+					else {
 						coll = obj.find("li").addBack();
 						if(!coll.filter(".jstree-unchecked, .jstree-undetermined").length) { return false; }
-						coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked"); 
+						coll.removeClass("jstree-unchecked jstree-undetermined").addClass("jstree-checked");
 						if(rc) { coll.children(":checkbox").prop("checked", true); }
 						if(this.data.ui) { this.data.ui.last_selected = obj; }
 						this.data.checkbox.last_selected = obj;
@@ -2896,20 +2896,20 @@
 				return true;
 			},
 			check_node : function (obj) {
-				if(this.change_state(obj, false)) { 
+				if(this.change_state(obj, false)) {
 					obj = this._get_node(obj);
 					if(this._get_settings().checkbox.checked_parent_open) {
 						var t = this;
 						obj.parents(".jstree-closed").each(function () { t.open_node(this, false, true); });
 					}
-					this.__callback({ "obj" : obj }); 
+					this.__callback({ "obj" : obj });
 				}
 			},
 			uncheck_node : function (obj) {
 				if(this.change_state(obj, true)) { this.__callback({ "obj" : this._get_node(obj) }); }
 			},
 			check_all : function () {
-				var _this = this, 
+				var _this = this,
 					coll = this._get_settings().checkbox.two_state ? this.get_container_ul().find("li") : this.get_container_ul().children("li");
 				coll.each(function () {
 					_this.change_state(this, false);
@@ -2933,7 +2933,7 @@
 				obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
 				return get_all || this._get_settings().checkbox.two_state ? obj.find(".jstree-checked") : obj.find("> ul > .jstree-checked, .jstree-undetermined > ul > .jstree-checked");
 			},
-			get_unchecked : function (obj, get_all) { 
+			get_unchecked : function (obj, get_all) {
 				obj = !obj || obj === -1 ? this.get_container() : this._get_node(obj);
 				return get_all || this._get_settings().checkbox.two_state ? obj.find(".jstree-unchecked") : obj.find("> ul > .jstree-unchecked, .jstree-undetermined > ul > .jstree-unchecked");
 			},
@@ -2955,13 +2955,13 @@
 				if(c === 0) { if(obj.hasClass("jstree-undetermined")) { this.change_state(obj, false); } }
 				else if(a === 0 && b === 0) { this.change_state(obj, true); }
 				else if(a === c) { this.change_state(obj, false); }
-				else { 
+				else {
 					obj.parentsUntil(".jstree","li").addBack().removeClass("jstree-checked jstree-unchecked").addClass("jstree-undetermined");
 					if(rc) { obj.parentsUntil(".jstree", "li").addBack().children(":checkbox").prop("checked", false); }
 				}
 			},
 			reselect : function () {
-				if(this.data.ui && this.data.checkbox.noui) { 
+				if(this.data.ui && this.data.checkbox.noui) {
 					var _this = this,
 						s = this.data.ui.to_select;
 					s = $.map($.makeArray(s), function (n) { return "#" + n.toString().replace(/^#/,"").replace(/\\\//g,"/").replace(/\//g,"\\\/").replace(/\\\./g,".").replace(/\./g,"\\.").replace(/\:/g,"\\:"); });
@@ -2969,8 +2969,8 @@
 					$.each(s, function (i, val) { _this.check_node(val); });
 					this.__callback();
 				}
-				else { 
-					this.__call_old(); 
+				else {
+					this.__call_old();
 				}
 			},
 			save_loaded : function () {
@@ -2989,7 +2989,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree XML plugin
  * The XML data store. Datastores are build by overriding the `load_node` and `_is_loaded` functions.
  */
@@ -3028,137 +3028,137 @@
 		callback.call(null, r);
 	};
 	var xsl = {
-		'nest' : '<' + '?xml version="1.0" encoding="utf-8" ?>' + 
-			'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' + 
-			'<xsl:output method="html" encoding="utf-8" omit-xml-declaration="yes" standalone="no" indent="no" media-type="text/html" />' + 
-			'<xsl:template match="/">' + 
-			'	<xsl:call-template name="nodes">' + 
-			'		<xsl:with-param name="node" select="/root" />' + 
-			'	</xsl:call-template>' + 
-			'</xsl:template>' + 
-			'<xsl:template name="nodes">' + 
-			'	<xsl:param name="node" />' + 
-			'	<ul>' + 
-			'	<xsl:for-each select="$node/item">' + 
-			'		<xsl:variable name="children" select="count(./item) &gt; 0" />' + 
-			'		<li>' + 
-			'			<xsl:attribute name="class">' + 
-			'				<xsl:if test="position() = last()">jstree-last </xsl:if>' + 
-			'				<xsl:choose>' + 
-			'					<xsl:when test="@state = \'open\'">jstree-open </xsl:when>' + 
-			'					<xsl:when test="$children or @hasChildren or @state = \'closed\'">jstree-closed </xsl:when>' + 
-			'					<xsl:otherwise>jstree-leaf </xsl:otherwise>' + 
-			'				</xsl:choose>' + 
-			'				<xsl:value-of select="@class" />' + 
-			'			</xsl:attribute>' + 
-			'			<xsl:for-each select="@*">' + 
-			'				<xsl:if test="name() != \'class\' and name() != \'state\' and name() != \'hasChildren\'">' + 
-			'					<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' + 
-			'				</xsl:if>' + 
-			'			</xsl:for-each>' + 
-			'	<ins class="jstree-icon"><xsl:text>&#xa0;</xsl:text></ins>' + 
-			'			<xsl:for-each select="content/name">' + 
-			'				<a>' + 
-			'				<xsl:attribute name="href">' + 
-			'					<xsl:choose>' + 
-			'					<xsl:when test="@href"><xsl:value-of select="@href" /></xsl:when>' + 
-			'					<xsl:otherwise>#</xsl:otherwise>' + 
-			'					</xsl:choose>' + 
-			'				</xsl:attribute>' + 
-			'				<xsl:attribute name="class"><xsl:value-of select="@lang" /> <xsl:value-of select="@class" /></xsl:attribute>' + 
-			'				<xsl:attribute name="style"><xsl:value-of select="@style" /></xsl:attribute>' + 
-			'				<xsl:for-each select="@*">' + 
-			'					<xsl:if test="name() != \'style\' and name() != \'class\' and name() != \'href\'">' + 
-			'						<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' + 
-			'					</xsl:if>' + 
-			'				</xsl:for-each>' + 
-			'					<ins>' + 
-			'						<xsl:attribute name="class">jstree-icon ' + 
-			'							<xsl:if test="string-length(attribute::icon) > 0 and not(contains(@icon,\'/\'))"><xsl:value-of select="@icon" /></xsl:if>' + 
-			'						</xsl:attribute>' + 
-			'						<xsl:if test="string-length(attribute::icon) > 0 and contains(@icon,\'/\')"><xsl:attribute name="style">background:url(<xsl:value-of select="@icon" />) center center no-repeat;</xsl:attribute></xsl:if>' + 
-			'						<xsl:text>&#xa0;</xsl:text>' + 
-			'					</ins>' + 
-			'					<xsl:copy-of select="./child::node()" />' + 
-			'				</a>' + 
-			'			</xsl:for-each>' + 
-			'			<xsl:if test="$children or @hasChildren"><xsl:call-template name="nodes"><xsl:with-param name="node" select="current()" /></xsl:call-template></xsl:if>' + 
-			'		</li>' + 
-			'	</xsl:for-each>' + 
-			'	</ul>' + 
-			'</xsl:template>' + 
+		'nest' : '<' + '?xml version="1.0" encoding="utf-8" ?>' +
+			'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' +
+			'<xsl:output method="html" encoding="utf-8" omit-xml-declaration="yes" standalone="no" indent="no" media-type="text/html" />' +
+			'<xsl:template match="/">' +
+			'	<xsl:call-template name="nodes">' +
+			'		<xsl:with-param name="node" select="/root" />' +
+			'	</xsl:call-template>' +
+			'</xsl:template>' +
+			'<xsl:template name="nodes">' +
+			'	<xsl:param name="node" />' +
+			'	<ul>' +
+			'	<xsl:for-each select="$node/item">' +
+			'		<xsl:variable name="children" select="count(./item) &gt; 0" />' +
+			'		<li>' +
+			'			<xsl:attribute name="class">' +
+			'				<xsl:if test="position() = last()">jstree-last </xsl:if>' +
+			'				<xsl:choose>' +
+			'					<xsl:when test="@state = \'open\'">jstree-open </xsl:when>' +
+			'					<xsl:when test="$children or @hasChildren or @state = \'closed\'">jstree-closed </xsl:when>' +
+			'					<xsl:otherwise>jstree-leaf </xsl:otherwise>' +
+			'				</xsl:choose>' +
+			'				<xsl:value-of select="@class" />' +
+			'			</xsl:attribute>' +
+			'			<xsl:for-each select="@*">' +
+			'				<xsl:if test="name() != \'class\' and name() != \'state\' and name() != \'hasChildren\'">' +
+			'					<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' +
+			'				</xsl:if>' +
+			'			</xsl:for-each>' +
+			'	<ins class="jstree-icon"><xsl:text>&#xa0;</xsl:text></ins>' +
+			'			<xsl:for-each select="content/name">' +
+			'				<a>' +
+			'				<xsl:attribute name="href">' +
+			'					<xsl:choose>' +
+			'					<xsl:when test="@href"><xsl:value-of select="@href" /></xsl:when>' +
+			'					<xsl:otherwise>#</xsl:otherwise>' +
+			'					</xsl:choose>' +
+			'				</xsl:attribute>' +
+			'				<xsl:attribute name="class"><xsl:value-of select="@lang" /> <xsl:value-of select="@class" /></xsl:attribute>' +
+			'				<xsl:attribute name="style"><xsl:value-of select="@style" /></xsl:attribute>' +
+			'				<xsl:for-each select="@*">' +
+			'					<xsl:if test="name() != \'style\' and name() != \'class\' and name() != \'href\'">' +
+			'						<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' +
+			'					</xsl:if>' +
+			'				</xsl:for-each>' +
+			'					<ins>' +
+			'						<xsl:attribute name="class">jstree-icon ' +
+			'							<xsl:if test="string-length(attribute::icon) > 0 and not(contains(@icon,\'/\'))"><xsl:value-of select="@icon" /></xsl:if>' +
+			'						</xsl:attribute>' +
+			'						<xsl:if test="string-length(attribute::icon) > 0 and contains(@icon,\'/\')"><xsl:attribute name="style">background:url(<xsl:value-of select="@icon" />) center center no-repeat;</xsl:attribute></xsl:if>' +
+			'						<xsl:text>&#xa0;</xsl:text>' +
+			'					</ins>' +
+			'					<xsl:copy-of select="./child::node()" />' +
+			'				</a>' +
+			'			</xsl:for-each>' +
+			'			<xsl:if test="$children or @hasChildren"><xsl:call-template name="nodes"><xsl:with-param name="node" select="current()" /></xsl:call-template></xsl:if>' +
+			'		</li>' +
+			'	</xsl:for-each>' +
+			'	</ul>' +
+			'</xsl:template>' +
 			'</xsl:stylesheet>',
 
-		'flat' : '<' + '?xml version="1.0" encoding="utf-8" ?>' + 
-			'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' + 
-			'<xsl:output method="html" encoding="utf-8" omit-xml-declaration="yes" standalone="no" indent="no" media-type="text/xml" />' + 
-			'<xsl:template match="/">' + 
-			'	<ul>' + 
+		'flat' : '<' + '?xml version="1.0" encoding="utf-8" ?>' +
+			'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' +
+			'<xsl:output method="html" encoding="utf-8" omit-xml-declaration="yes" standalone="no" indent="no" media-type="text/xml" />' +
+			'<xsl:template match="/">' +
+			'	<ul>' +
 			'	<xsl:for-each select="//item[not(@parent_id) or @parent_id=0 or not(@parent_id = //item/@id)]">' + /* the last `or` may be removed */
-			'		<xsl:call-template name="nodes">' + 
-			'			<xsl:with-param name="node" select="." />' + 
-			'			<xsl:with-param name="is_last" select="number(position() = last())" />' + 
-			'		</xsl:call-template>' + 
-			'	</xsl:for-each>' + 
-			'	</ul>' + 
-			'</xsl:template>' + 
-			'<xsl:template name="nodes">' + 
-			'	<xsl:param name="node" />' + 
-			'	<xsl:param name="is_last" />' + 
-			'	<xsl:variable name="children" select="count(//item[@parent_id=$node/attribute::id]) &gt; 0" />' + 
-			'	<li>' + 
-			'	<xsl:attribute name="class">' + 
-			'		<xsl:if test="$is_last = true()">jstree-last </xsl:if>' + 
-			'		<xsl:choose>' + 
-			'			<xsl:when test="@state = \'open\'">jstree-open </xsl:when>' + 
-			'			<xsl:when test="$children or @hasChildren or @state = \'closed\'">jstree-closed </xsl:when>' + 
-			'			<xsl:otherwise>jstree-leaf </xsl:otherwise>' + 
-			'		</xsl:choose>' + 
-			'		<xsl:value-of select="@class" />' + 
-			'	</xsl:attribute>' + 
-			'	<xsl:for-each select="@*">' + 
-			'		<xsl:if test="name() != \'parent_id\' and name() != \'hasChildren\' and name() != \'class\' and name() != \'state\'">' + 
-			'		<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' + 
-			'		</xsl:if>' + 
-			'	</xsl:for-each>' + 
-			'	<ins class="jstree-icon"><xsl:text>&#xa0;</xsl:text></ins>' + 
-			'	<xsl:for-each select="content/name">' + 
-			'		<a>' + 
-			'		<xsl:attribute name="href">' + 
-			'			<xsl:choose>' + 
-			'			<xsl:when test="@href"><xsl:value-of select="@href" /></xsl:when>' + 
-			'			<xsl:otherwise>#</xsl:otherwise>' + 
-			'			</xsl:choose>' + 
-			'		</xsl:attribute>' + 
-			'		<xsl:attribute name="class"><xsl:value-of select="@lang" /> <xsl:value-of select="@class" /></xsl:attribute>' + 
-			'		<xsl:attribute name="style"><xsl:value-of select="@style" /></xsl:attribute>' + 
-			'		<xsl:for-each select="@*">' + 
-			'			<xsl:if test="name() != \'style\' and name() != \'class\' and name() != \'href\'">' + 
-			'				<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' + 
-			'			</xsl:if>' + 
-			'		</xsl:for-each>' + 
-			'			<ins>' + 
-			'				<xsl:attribute name="class">jstree-icon ' + 
-			'					<xsl:if test="string-length(attribute::icon) > 0 and not(contains(@icon,\'/\'))"><xsl:value-of select="@icon" /></xsl:if>' + 
-			'				</xsl:attribute>' + 
-			'				<xsl:if test="string-length(attribute::icon) > 0 and contains(@icon,\'/\')"><xsl:attribute name="style">background:url(<xsl:value-of select="@icon" />) center center no-repeat;</xsl:attribute></xsl:if>' + 
-			'				<xsl:text>&#xa0;</xsl:text>' + 
-			'			</ins>' + 
-			'			<xsl:copy-of select="./child::node()" />' + 
-			'		</a>' + 
-			'	</xsl:for-each>' + 
-			'	<xsl:if test="$children">' + 
-			'		<ul>' + 
-			'		<xsl:for-each select="//item[@parent_id=$node/attribute::id]">' + 
-			'			<xsl:call-template name="nodes">' + 
-			'				<xsl:with-param name="node" select="." />' + 
-			'				<xsl:with-param name="is_last" select="number(position() = last())" />' + 
-			'			</xsl:call-template>' + 
-			'		</xsl:for-each>' + 
-			'		</ul>' + 
-			'	</xsl:if>' + 
-			'	</li>' + 
-			'</xsl:template>' + 
+			'		<xsl:call-template name="nodes">' +
+			'			<xsl:with-param name="node" select="." />' +
+			'			<xsl:with-param name="is_last" select="number(position() = last())" />' +
+			'		</xsl:call-template>' +
+			'	</xsl:for-each>' +
+			'	</ul>' +
+			'</xsl:template>' +
+			'<xsl:template name="nodes">' +
+			'	<xsl:param name="node" />' +
+			'	<xsl:param name="is_last" />' +
+			'	<xsl:variable name="children" select="count(//item[@parent_id=$node/attribute::id]) &gt; 0" />' +
+			'	<li>' +
+			'	<xsl:attribute name="class">' +
+			'		<xsl:if test="$is_last = true()">jstree-last </xsl:if>' +
+			'		<xsl:choose>' +
+			'			<xsl:when test="@state = \'open\'">jstree-open </xsl:when>' +
+			'			<xsl:when test="$children or @hasChildren or @state = \'closed\'">jstree-closed </xsl:when>' +
+			'			<xsl:otherwise>jstree-leaf </xsl:otherwise>' +
+			'		</xsl:choose>' +
+			'		<xsl:value-of select="@class" />' +
+			'	</xsl:attribute>' +
+			'	<xsl:for-each select="@*">' +
+			'		<xsl:if test="name() != \'parent_id\' and name() != \'hasChildren\' and name() != \'class\' and name() != \'state\'">' +
+			'		<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' +
+			'		</xsl:if>' +
+			'	</xsl:for-each>' +
+			'	<ins class="jstree-icon"><xsl:text>&#xa0;</xsl:text></ins>' +
+			'	<xsl:for-each select="content/name">' +
+			'		<a>' +
+			'		<xsl:attribute name="href">' +
+			'			<xsl:choose>' +
+			'			<xsl:when test="@href"><xsl:value-of select="@href" /></xsl:when>' +
+			'			<xsl:otherwise>#</xsl:otherwise>' +
+			'			</xsl:choose>' +
+			'		</xsl:attribute>' +
+			'		<xsl:attribute name="class"><xsl:value-of select="@lang" /> <xsl:value-of select="@class" /></xsl:attribute>' +
+			'		<xsl:attribute name="style"><xsl:value-of select="@style" /></xsl:attribute>' +
+			'		<xsl:for-each select="@*">' +
+			'			<xsl:if test="name() != \'style\' and name() != \'class\' and name() != \'href\'">' +
+			'				<xsl:attribute name="{name()}"><xsl:value-of select="." /></xsl:attribute>' +
+			'			</xsl:if>' +
+			'		</xsl:for-each>' +
+			'			<ins>' +
+			'				<xsl:attribute name="class">jstree-icon ' +
+			'					<xsl:if test="string-length(attribute::icon) > 0 and not(contains(@icon,\'/\'))"><xsl:value-of select="@icon" /></xsl:if>' +
+			'				</xsl:attribute>' +
+			'				<xsl:if test="string-length(attribute::icon) > 0 and contains(@icon,\'/\')"><xsl:attribute name="style">background:url(<xsl:value-of select="@icon" />) center center no-repeat;</xsl:attribute></xsl:if>' +
+			'				<xsl:text>&#xa0;</xsl:text>' +
+			'			</ins>' +
+			'			<xsl:copy-of select="./child::node()" />' +
+			'		</a>' +
+			'	</xsl:for-each>' +
+			'	<xsl:if test="$children">' +
+			'		<ul>' +
+			'		<xsl:for-each select="//item[@parent_id=$node/attribute::id]">' +
+			'			<xsl:call-template name="nodes">' +
+			'				<xsl:with-param name="node" select="." />' +
+			'				<xsl:with-param name="is_last" select="number(position() = last())" />' +
+			'			</xsl:call-template>' +
+			'		</xsl:for-each>' +
+			'		</ul>' +
+			'	</xsl:if>' +
+			'	</li>' +
+			'</xsl:template>' +
 			'</xsl:stylesheet>'
 	},
 	escape_xml = function(string) {
@@ -3171,7 +3171,7 @@
 			.replace(/'/g, '&apos;');
 	};
 	$.jstree.plugin("xml_data", {
-		defaults : { 
+		defaults : {
 			data : false,
 			ajax : false,
 			xsl : "flat",
@@ -3182,7 +3182,7 @@
 		},
 		_fn : {
 			load_node : function (obj, s_call, e_call) { var _this = this; this.load_node_xml(obj, function () { _this.__callback({ "obj" : _this._get_node(obj) }); s_call.call(this); }, e_call); },
-			_is_loaded : function (obj) { 
+			_is_loaded : function (obj) {
 				var s = this._get_settings().xml_data;
 				obj = this._get_node(obj);
 				return obj == -1 || !obj || (!s.ajax && !$.isFunction(s.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").size() > 0;
@@ -3212,18 +3212,18 @@
 										if(s_call) { s_call.call(this); }
 									}
 									else {
-										if(obj && obj !== -1) { 
+										if(obj && obj !== -1) {
 											obj.children("a.jstree-loading").removeClass("jstree-loading");
 											obj.removeData("jstree_is_loading");
-											if(s.correct_state) { 
+											if(s.correct_state) {
 												this.correct_state(obj);
-												if(s_call) { s_call.call(this); } 
+												if(s_call) { s_call.call(this); }
 											}
 										}
 										else {
-											if(s.correct_state) { 
+											if(s.correct_state) {
 												this.get_container().children("ul").empty();
-												if(s_call) { s_call.call(this); } 
+												if(s_call) { s_call.call(this); }
 											}
 										}
 									}
@@ -3243,9 +3243,9 @@
 										if(s_call) { s_call.call(this); }
 									}
 								}
-								else { 
-									if(s.correct_state) { 
-										this.get_container().children("ul").empty(); 
+								else {
+									if(s.correct_state) {
+										this.get_container().children("ul").empty();
 										if(s_call) { s_call.call(this); }
 									}
 								}
@@ -3254,7 +3254,7 @@
 						break;
 					case (!s.data && !!s.ajax) || (!!s.data && !!s.ajax && obj && obj !== -1):
 						error_func = function (x, t, e) {
-							var ef = this.get_settings().xml_data.ajax.error; 
+							var ef = this.get_settings().xml_data.ajax.error;
 							if(ef) { ef.call(this, x, t, e); }
 							if(obj !== -1 && obj.length) {
 								obj.children("a.jstree-loading").removeClass("jstree-loading");
@@ -3268,7 +3268,7 @@
 						};
 						success_func = function (d, t, x) {
 							d = x.responseText;
-							var sf = this.get_settings().xml_data.ajax.success; 
+							var sf = this.get_settings().xml_data.ajax.success;
 							if(sf) { d = sf.call(this,d,t,x) || d; }
 							if(d === "" || (d && d.toString && d.toString().replace(/^[\s\n]+$/,"") === "")) {
 								return error_func.call(this, x, t, "");
@@ -3284,18 +3284,18 @@
 										if(s_call) { s_call.call(this); }
 									}
 									else {
-										if(obj && obj !== -1) { 
+										if(obj && obj !== -1) {
 											obj.children("a.jstree-loading").removeClass("jstree-loading");
 											obj.removeData("jstree_is_loading");
-											if(s.correct_state) { 
+											if(s.correct_state) {
 												this.correct_state(obj);
-												if(s_call) { s_call.call(this); } 
+												if(s_call) { s_call.call(this); }
 											}
 										}
 										else {
-											if(s.correct_state) { 
+											if(s.correct_state) {
 												this.get_container().children("ul").empty();
-												if(s_call) { s_call.call(this); } 
+												if(s_call) { s_call.call(this); }
 											}
 										}
 									}
@@ -3317,8 +3317,8 @@
 				$.vakata.xslt(xml, xsl[s.xsl], callback);
 			},
 			get_xml : function (tp, obj, li_attr, a_attr, is_callback) {
-				var result = "", 
-					s = this._get_settings(), 
+				var result = "",
+					s = this._get_settings(),
 					_this = this,
 					tmp1, tmp2, li, a, lang;
 				if(!tp) { tp = "flat"; }
@@ -3330,19 +3330,19 @@
 
 				a_attr = $.isArray(a_attr) ? a_attr : [ ];
 
-				if(!is_callback) { 
-					if(s.xml_data.get_include_preamble) { 
-						result += '<' + '?xml version="1.0" encoding="UTF-8"?' + '>'; 
+				if(!is_callback) {
+					if(s.xml_data.get_include_preamble) {
+						result += '<' + '?xml version="1.0" encoding="UTF-8"?' + '>';
 					}
-					result += "<root>"; 
+					result += "<root>";
 				}
 				obj.each(function () {
 					result += "<item";
 					li = $(this);
-					$.each(li_attr, function (i, v) { 
+					$.each(li_attr, function (i, v) {
 						var t = li.attr(v);
 						if(!s.xml_data.get_skip_empty || typeof t !== "undefined") {
-							result += " " + v + "=\"" + escape_xml((" " + (t || "")).replace(/ jstree[^ ]*/ig,'').replace(/\s+$/ig," ").replace(/^ /,"").replace(/ $/,"")) + "\""; 
+							result += " " + v + "=\"" + escape_xml((" " + (t || "")).replace(/ jstree[^ ]*/ig,'').replace(/\s+$/ig," ").replace(/^ /,"").replace(/ $/,"")) + "\"";
 						}
 					});
 					if(li.hasClass("jstree-open")) { result += " state=\"open\""; }
@@ -3360,7 +3360,7 @@
 								if(tmp1.hasClass(z)) { result += " lang=\"" + escape_xml(z) + "\""; lang = z; return false; }
 							});
 						}
-						if(a_attr.length) { 
+						if(a_attr.length) {
 							$.each(a_attr, function (k, z) {
 								var t = tmp1.attr(z);
 								if(!s.xml_data.get_skip_empty || typeof t !== "undefined") {
@@ -3404,21 +3404,21 @@
 	if($().jquery.split('.')[1] >= 8) {
 		$.expr[':'].jstree_contains = $.expr.createPseudo(function(search) {
 			return function(a) {
-				return (a.textContent || a.innerText || "").toLowerCase().indexOf(search.toLowerCase())>=0;
+				return (a.textContent || a.innerText || "").toLowerCase(java.util.Locale.US).indexOf(search.toLowerCase(java.util.Locale.US))>=0;
 			};
 		});
 		$.expr[':'].jstree_title_contains = $.expr.createPseudo(function(search) {
 			return function(a) {
-				return (a.getAttribute("title") || "").toLowerCase().indexOf(search.toLowerCase())>=0;
+				return (a.getAttribute("title") || "").toLowerCase(java.util.Locale.US).indexOf(search.toLowerCase(java.util.Locale.US))>=0;
 			};
 		});
 	}
 	else {
 		$.expr[':'].jstree_contains = function(a,i,m){
-			return (a.textContent || a.innerText || "").toLowerCase().indexOf(m[3].toLowerCase())>=0;
+			return (a.textContent || a.innerText || "").toLowerCase(java.util.Locale.US).indexOf(m[3].toLowerCase(java.util.Locale.US))>=0;
 		};
 		$.expr[':'].jstree_title_contains = function(a,i,m) {
-			return (a.getAttribute("title") || "").toLowerCase().indexOf(m[3].toLowerCase())>=0;
+			return (a.getAttribute("title") || "").toLowerCase(java.util.Locale.US).indexOf(m[3].toLowerCase(java.util.Locale.US))>=0;
 		};
 	}
 	$.jstree.plugin("search", {
@@ -3445,7 +3445,7 @@
 		_fn : {
 			search : function (str, skip_async) {
 				if($.trim(str) === "") { this.clear_search(); return; }
-				var s = this.get_settings().search, 
+				var s = this.get_settings().search,
 					t = this,
 					error_func = function () { },
 					success_func = function () { };
@@ -3455,7 +3455,7 @@
 					this.search.suppress_callback = true;
 					error_func = function () { };
 					success_func = function (d, t, x) {
-						var sf = this.get_settings().search.ajax.success; 
+						var sf = this.get_settings().search.ajax.success;
 						if(sf) { d = sf.call(this,d,t,x) || d; }
 						this.data.search.to_open = d;
 						this._search_open();
@@ -3495,8 +3495,8 @@
 					});
 					if(current.length) {
 						this.data.search.to_open = remaining;
-						$.each(current, function (i, val) { 
-							_this.open_node(val, function () { _this._search_open(true); }); 
+						$.each(current, function (i, val) {
+							_this.open_node(val, function () { _this._search_open(true); });
 						});
 						done = false;
 					}
@@ -3508,7 +3508,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree contextmenu plugin
  */
 (function ($) {
@@ -3541,27 +3541,27 @@
 
 			h = $.vakata.context.cnt.height();
 			w = $.vakata.context.cnt.width();
-			if(x + w > $(document).width()) { 
-				x = $(document).width() - (w + 5); 
-				$.vakata.context.cnt.find("li > ul").addClass("right"); 
+			if(x + w > $(document).width()) {
+				x = $(document).width() - (w + 5);
+				$.vakata.context.cnt.find("li > ul").addClass("right");
 			}
-			if(y + h > $(document).height()) { 
-				y = y - (h + t[0].offsetHeight); 
-				$.vakata.context.cnt.find("li > ul").addClass("bottom"); 
+			if(y + h > $(document).height()) {
+				y = y - (h + t[0].offsetHeight);
+				$.vakata.context.cnt.find("li > ul").addClass("bottom");
 			}
 
 			$.vakata.context.cnt
 				.css({ "left" : x, "top" : y })
 				.find("li:has(ul)")
-					.bind("mouseenter", function (e) { 
+					.bind("mouseenter", function (e) {
 						var w = $(document).width(),
 							h = $(document).height(),
-							ul = $(this).children("ul").show(); 
+							ul = $(this).children("ul").show();
 						if(w !== $(document).width()) { ul.toggleClass("right"); }
 						if(h !== $(document).height()) { ul.toggleClass("bottom"); }
 					})
-					.bind("mouseleave", function (e) { 
-						$(this).children("ul").hide(); 
+					.bind("mouseleave", function (e) {
+						$(this).children("ul").hide();
 					})
 					.end()
 				.css({ "visibility" : "visible" })
@@ -3620,17 +3620,17 @@
 		}
 	};
 	$(function () {
-		var css_string = '' + 
-			'#vakata-contextmenu { display:block; visibility:hidden; left:0; top:-200px; position:absolute; margin:0; padding:0; min-width:180px; background:#ebebeb; border:1px solid silver; z-index:10000; *width:180px; } ' + 
-			'#vakata-contextmenu ul { min-width:180px; *width:180px; } ' + 
-			'#vakata-contextmenu ul, #vakata-contextmenu li { margin:0; padding:0; list-style-type:none; display:block; } ' + 
-			'#vakata-contextmenu li { line-height:20px; min-height:20px; position:relative; padding:0px; } ' + 
-			'#vakata-contextmenu li a { padding:1px 6px; line-height:17px; display:block; text-decoration:none; margin:1px 1px 0 1px; } ' + 
-			'#vakata-contextmenu li ins { float:left; width:16px; height:16px; text-decoration:none; margin-right:2px; } ' + 
-			'#vakata-contextmenu li a:hover, #vakata-contextmenu li.vakata-hover > a { background:gray; color:white; } ' + 
-			'#vakata-contextmenu li ul { display:none; position:absolute; top:-2px; left:100%; background:#ebebeb; border:1px solid gray; } ' + 
-			'#vakata-contextmenu .right { right:100%; left:auto; } ' + 
-			'#vakata-contextmenu .bottom { bottom:-1px; top:auto; } ' + 
+		var css_string = '' +
+			'#vakata-contextmenu { display:block; visibility:hidden; left:0; top:-200px; position:absolute; margin:0; padding:0; min-width:180px; background:#ebebeb; border:1px solid silver; z-index:10000; *width:180px; } ' +
+			'#vakata-contextmenu ul { min-width:180px; *width:180px; } ' +
+			'#vakata-contextmenu ul, #vakata-contextmenu li { margin:0; padding:0; list-style-type:none; display:block; } ' +
+			'#vakata-contextmenu li { line-height:20px; min-height:20px; position:relative; padding:0px; } ' +
+			'#vakata-contextmenu li a { padding:1px 6px; line-height:17px; display:block; text-decoration:none; margin:1px 1px 0 1px; } ' +
+			'#vakata-contextmenu li ins { float:left; width:16px; height:16px; text-decoration:none; margin-right:2px; } ' +
+			'#vakata-contextmenu li a:hover, #vakata-contextmenu li.vakata-hover > a { background:gray; color:white; } ' +
+			'#vakata-contextmenu li ul { display:none; position:absolute; top:-2px; left:100%; background:#ebebeb; border:1px solid gray; } ' +
+			'#vakata-contextmenu .right { right:100%; left:auto; } ' +
+			'#vakata-contextmenu .bottom { bottom:-1px; top:auto; } ' +
 			'#vakata-contextmenu li.vakata-separator { min-height:0; height:1px; line-height:1px; font-size:1px; overflow:hidden; margin:0 2px; background:silver; /* border-top:1px solid #fefefe; */ padding:0; } ';
 		$.vakata.css.add_sheet({ str : css_string, title : "vakata" });
 		$.vakata.context.cnt
@@ -3648,43 +3648,43 @@
 		$(document).bind("mousedown", function (e) { if($.vakata.context.vis && !$.contains($.vakata.context.cnt[0], e.target)) { $.vakata.context.hide(); } });
 		if(typeof $.hotkeys !== "undefined") {
 			$(document)
-				.bind("keydown", "up", function (e) { 
-					if($.vakata.context.vis) { 
+				.bind("keydown", "up", function (e) {
+					if($.vakata.context.vis) {
 						var o = $.vakata.context.cnt.find("ul:visible").last().children(".vakata-hover").removeClass("vakata-hover").prevAll("li:not(.vakata-separator)").first();
 						if(!o.length) { o = $.vakata.context.cnt.find("ul:visible").last().children("li:not(.vakata-separator)").last(); }
 						o.addClass("vakata-hover");
-						e.stopImmediatePropagation(); 
+						e.stopImmediatePropagation();
 						e.preventDefault();
-					} 
+					}
 				})
-				.bind("keydown", "down", function (e) { 
-					if($.vakata.context.vis) { 
+				.bind("keydown", "down", function (e) {
+					if($.vakata.context.vis) {
 						var o = $.vakata.context.cnt.find("ul:visible").last().children(".vakata-hover").removeClass("vakata-hover").nextAll("li:not(.vakata-separator)").first();
 						if(!o.length) { o = $.vakata.context.cnt.find("ul:visible").last().children("li:not(.vakata-separator)").first(); }
 						o.addClass("vakata-hover");
-						e.stopImmediatePropagation(); 
+						e.stopImmediatePropagation();
 						e.preventDefault();
-					} 
+					}
 				})
-				.bind("keydown", "right", function (e) { 
-					if($.vakata.context.vis) { 
+				.bind("keydown", "right", function (e) {
+					if($.vakata.context.vis) {
 						$.vakata.context.cnt.find(".vakata-hover").children("ul").show().children("li:not(.vakata-separator)").removeClass("vakata-hover").first().addClass("vakata-hover");
-						e.stopImmediatePropagation(); 
+						e.stopImmediatePropagation();
 						e.preventDefault();
-					} 
+					}
 				})
-				.bind("keydown", "left", function (e) { 
-					if($.vakata.context.vis) { 
+				.bind("keydown", "left", function (e) {
+					if($.vakata.context.vis) {
 						$.vakata.context.cnt.find(".vakata-hover").children("ul").hide().children(".vakata-separator").removeClass("vakata-hover");
-						e.stopImmediatePropagation(); 
+						e.stopImmediatePropagation();
 						e.preventDefault();
-					} 
+					}
 				})
-				.bind("keydown", "esc", function (e) { 
-					$.vakata.context.hide(); 
+				.bind("keydown", "esc", function (e) {
+					$.vakata.context.hide();
 					e.preventDefault();
 				})
-				.bind("keydown", "space", function (e) { 
+				.bind("keydown", "space", function (e) {
 					$.vakata.context.cnt.find(".vakata-hover").last().children("a").click();
 					e.preventDefault();
 				});
@@ -3713,7 +3713,7 @@
 					}, this));
 			$(document).bind("context_hide.vakata", $.proxy(function () { this.data.contextmenu = false; }, this));
 		},
-		defaults : { 
+		defaults : {
 			select_node : false, // requires UI plugin
 			show_at_node : true,
 			items : { // Could be a function that should return an object like this one
@@ -3742,7 +3742,7 @@
 					"separator_after"	: false,
 					"label"				: "Edit",
 					"action"			: false,
-					"submenu" : { 
+					"submenu" : {
 						"cut" : {
 							"separator_before"	: false,
 							"separator_after"	: false,
@@ -3794,7 +3794,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree types plugin
  * Adds support types of nodes
  * You can set an attribute on each li node, that represents its type.
@@ -3806,14 +3806,14 @@
 			var s = this._get_settings().types;
 			this.data.types.attach_to = [];
 			this.get_container()
-				.bind("init.jstree", $.proxy(function () { 
-						var types = s.types, 
-							attr  = s.type_attr, 
-							icons_css = "", 
+				.bind("init.jstree", $.proxy(function () {
+						var types = s.types,
+							attr  = s.type_attr,
+							icons_css = "",
 							_this = this;
 
 						$.each(types, function (i, tp) {
-							$.each(tp, function (k, v) { 
+							$.each(tp, function (k, v) {
 								if(!/^(max_depth|max_children|icon|valid_children)$/.test(k)) { _this.data.types.attach_to.push(k); }
 							});
 							if(!tp.icon) { return true; }
@@ -3828,9 +3828,9 @@
 						});
 						if(icons_css !== "") { $.vakata.css.add_sheet({ 'str' : icons_css, title : "jstree-types" }); }
 					}, this))
-				.bind("before.jstree", $.proxy(function (e, data) { 
-						var s, t, 
-							o = this._get_settings().types.use_data ? this._get_node(data.args[0]) : false, 
+				.bind("before.jstree", $.proxy(function (e, data) {
+						var s, t,
+							o = this._get_settings().types.use_data ? this._get_node(data.args[0]) : false,
 							d = o && o !== -1 && o.length ? o.data("jstree") : false;
 						if(d && d.types && d.types[data.func] === false) { e.stopImmediatePropagation(); return false; }
 						if($.inArray(data.func, this.data.types.attach_to) !== -1) {
@@ -3838,9 +3838,9 @@
 							s = this._get_settings().types.types;
 							t = this._get_type(data.args[0]);
 							if(
-								( 
-									(s[t] && typeof s[t][data.func] !== "undefined") || 
-									(s["default"] && typeof s["default"][data.func] !== "undefined") 
+								(
+									(s[t] && typeof s[t][data.func] !== "undefined") ||
+									(s["default"] && typeof s["default"][data.func] !== "undefined")
 								) && this._check(data.func, data.args[0]) === false
 							) {
 								e.stopImmediatePropagation();
@@ -3873,7 +3873,7 @@
 			valid_children		: "all",
 
 			// whether to use $.data
-			use_data : false, 
+			use_data : false,
 			// where is the type stores (the rel attribute of the LI element)
 			type_attr : "rel",
 			// a list of types
@@ -3908,7 +3908,7 @@
 			_check : function (rule, obj, opts) {
 				obj = this._get_node(obj);
 				var v = false, t = this._get_type(obj), d = 0, _this = this, s = this._get_settings().types, data = false;
-				if(obj === -1) { 
+				if(obj === -1) {
 					if(!!s[rule]) { v = s[rule]; }
 					else { return; }
 				}
@@ -3945,7 +3945,7 @@
 					vc = m.rt._check("valid_children", m.cr),
 					ch = 0, d = 1, t;
 
-				if(vc === "none") { return false; } 
+				if(vc === "none") { return false; }
 				if($.isArray(vc) && m.ot && m.ot._get_type) {
 					m.o.each(function () {
 						if($.inArray(m.ot._get_type(this), vc) === -1) { d = false; return false; }
@@ -3982,11 +3982,11 @@
 						ch;
 					if(typeof js === "string") { js = { data : js }; }
 					if(!js) { js = {}; }
-					if(vc === "none") { return false; } 
+					if(vc === "none") { return false; }
 					if($.isArray(vc)) {
-						if(!js.attr || !js.attr[s.type_attr]) { 
+						if(!js.attr || !js.attr[s.type_attr]) {
 							if(!js.attr) { js.attr = {}; }
-							js.attr[s.type_attr] = vc[0]; 
+							js.attr[s.type_attr] = vc[0];
 						}
 						else {
 							if($.inArray(js.attr[s.type_attr], vc) === -1) { return false; }
@@ -4005,27 +4005,27 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree HTML plugin
  * The HTML data store. Datastores are build by replacing the `load_node` and `_is_loaded` functions.
  */
 (function ($) {
 	$.jstree.plugin("html_data", {
-		__init : function () { 
+		__init : function () {
 			// this used to use html() and clean the whitespace, but this way any attached data was lost
 			this.data.html_data.original_container_html = this.get_container().find(" > ul > li").clone(true);
 			// remove white space from LI node - otherwise nodes appear a bit to the right
 			this.data.html_data.original_container_html.find("li").addBack().contents().filter(function() { return this.nodeType == 3; }).remove();
 		},
-		defaults : { 
+		defaults : {
 			data : false,
 			ajax : false,
 			correct_state : true
 		},
 		_fn : {
 			load_node : function (obj, s_call, e_call) { var _this = this; this.load_node_html(obj, function () { _this.__callback({ "obj" : _this._get_node(obj) }); s_call.call(this); }, e_call); },
-			_is_loaded : function (obj) { 
-				obj = this._get_node(obj); 
+			_is_loaded : function (obj) {
+				obj = this._get_node(obj);
 				return obj == -1 || !obj || (!this._get_settings().html_data.ajax && !$.isFunction(this._get_settings().html_data.data)) || obj.is(".jstree-open, .jstree-leaf") || obj.children("ul").children("li").size() > 0;
 			},
 			load_node_html : function (obj, s_call, e_call) {
@@ -4053,15 +4053,15 @@
 								if(obj && obj !== -1) {
 									obj.children("a.jstree-loading").removeClass("jstree-loading");
 									obj.removeData("jstree_is_loading");
-									if(s.correct_state) { 
+									if(s.correct_state) {
 										this.correct_state(obj);
-										if(s_call) { s_call.call(this); } 
+										if(s_call) { s_call.call(this); }
 									}
 								}
 								else {
-									if(s.correct_state) { 
+									if(s.correct_state) {
 										this.get_container().children("ul").empty();
-										if(s_call) { s_call.call(this); } 
+										if(s_call) { s_call.call(this); }
 									}
 								}
 							}
@@ -4093,7 +4093,7 @@
 					case (!s.data && !!s.ajax) || (!!s.data && !!s.ajax && obj && obj !== -1):
 						obj = this._get_node(obj);
 						error_func = function (x, t, e) {
-							var ef = this.get_settings().html_data.ajax.error; 
+							var ef = this.get_settings().html_data.ajax.error;
 							if(ef) { ef.call(this, x, t, e); }
 							if(obj != -1 && obj.length) {
 								obj.children("a.jstree-loading").removeClass("jstree-loading");
@@ -4106,7 +4106,7 @@
 							if(e_call) { e_call.call(this); }
 						};
 						success_func = function (d, t, x) {
-							var sf = this.get_settings().html_data.ajax.success; 
+							var sf = this.get_settings().html_data.ajax.success;
 							if(sf) { d = sf.call(this,d,t,x) || d; }
 							if(d === "" || (d && d.toString && d.toString().replace(/^[\s\n]+$/,"") === "")) {
 								return error_func.call(this, x, t, "");
@@ -4123,15 +4123,15 @@
 								if(obj && obj !== -1) {
 									obj.children("a.jstree-loading").removeClass("jstree-loading");
 									obj.removeData("jstree_is_loading");
-									if(s.correct_state) { 
+									if(s.correct_state) {
 										this.correct_state(obj);
-										if(s_call) { s_call.call(this); } 
+										if(s_call) { s_call.call(this); }
 									}
 								}
 								else {
-									if(s.correct_state) { 
+									if(s.correct_state) {
 										this.get_container().children("ul").empty();
-										if(s_call) { s_call.call(this); } 
+										if(s_call) { s_call.call(this); }
 									}
 								}
 							}
@@ -4153,7 +4153,7 @@
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree themeroller plugin
  * Adds support for jQuery UI themes. Include this at the end of your plugins list, also make sure "themes" is not included.
  */
@@ -4172,11 +4172,11 @@
 				.delegate("a","mouseleave.jstree", function () {
 					$(this).removeClass(s.item_h);
 				})
-				.bind("init.jstree", $.proxy(function (e, data) { 
+				.bind("init.jstree", $.proxy(function (e, data) {
 						data.inst.get_container().find("> ul > li > .jstree-loading > ins").addClass("ui-icon-refresh");
 						this._themeroller(data.inst.get_container().find("> ul > li"));
 					}, this))
-				.bind("open_node.jstree create_node.jstree", $.proxy(function (e, data) { 
+				.bind("open_node.jstree create_node.jstree", $.proxy(function (e, data) {
 						this._themeroller(data.rslt.obj);
 					}, this))
 				.bind("loaded.jstree refresh.jstree", $.proxy(function (e) {
@@ -4192,10 +4192,10 @@
 						data.rslt.obj
 							.children("ins.jstree-icon").removeClass(s.opened + " " + s.closed + " ui-icon").end()
 							.find("> a > ins.ui-icon")
-								.filter(function() { 
+								.filter(function() {
 									return this.className.toString()
 										.replace(s.item_clsd,"").replace(s.item_open,"").replace(s.item_leaf,"")
-										.indexOf("ui-icon-") === -1; 
+										.indexOf("ui-icon-") === -1;
 								}).removeClass(s.item_open + " " + s.item_clsd).addClass(s.item_leaf || "jstree-no-icon");
 					}, this))
 				.bind("select_node.jstree", $.proxy(function (e, data) {
@@ -4240,10 +4240,10 @@
 						.children("ins.jstree-icon").removeClass(s.opened).addClass("ui-icon " + s.closed).end()
 						.children("a").addClass(s.item)
 							.children("ins.jstree-icon").addClass("ui-icon")
-								.filter(function() { 
+								.filter(function() {
 									return this.className.toString()
 										.replace(s.item_clsd,"").replace(s.item_open,"").replace(s.item_leaf,"")
-										.indexOf("ui-icon-") === -1; 
+										.indexOf("ui-icon-") === -1;
 								}).removeClass(s.item_leaf + " " + s.item_open).addClass(s.item_clsd || "jstree-no-icon")
 								.end()
 							.end()
@@ -4253,10 +4253,10 @@
 						.children("ins.jstree-icon").removeClass(s.closed).addClass("ui-icon " + s.opened).end()
 						.children("a").addClass(s.item)
 							.children("ins.jstree-icon").addClass("ui-icon")
-								.filter(function() { 
+								.filter(function() {
 									return this.className.toString()
 										.replace(s.item_clsd,"").replace(s.item_open,"").replace(s.item_leaf,"")
-										.indexOf("ui-icon-") === -1; 
+										.indexOf("ui-icon-") === -1;
 								}).removeClass(s.item_leaf + " " + s.item_clsd).addClass(s.item_open || "jstree-no-icon")
 								.end()
 							.end()
@@ -4266,10 +4266,10 @@
 						.children("ins.jstree-icon").removeClass(s.closed + " ui-icon " + s.opened).end()
 						.children("a").addClass(s.item)
 							.children("ins.jstree-icon").addClass("ui-icon")
-								.filter(function() { 
+								.filter(function() {
 									return this.className.toString()
 										.replace(s.item_clsd,"").replace(s.item_open,"").replace(s.item_leaf,"")
-										.indexOf("ui-icon-") === -1; 
+										.indexOf("ui-icon-") === -1;
 								}).removeClass(s.item_clsd + " " + s.item_open).addClass(s.item_leaf || "jstree-no-icon");
 			}
 		},
@@ -4285,16 +4285,16 @@
 		}
 	});
 	$(function() {
-		var css_string = '' + 
-			'.jstree-themeroller .ui-icon { overflow:visible; } ' + 
-			'.jstree-themeroller a { padding:0 2px; } ' + 
+		var css_string = '' +
+			'.jstree-themeroller .ui-icon { overflow:visible; } ' +
+			'.jstree-themeroller a { padding:0 2px; } ' +
 			'.jstree-themeroller .jstree-no-icon { display:none; }';
 		$.vakata.css.add_sheet({ str : css_string, title : "jstree" });
 	});
 })(jQuery);
 //*/
 
-/* 
+/*
  * jsTree unique plugin
  * Forces different names amongst siblings (still a bit experimental)
  * NOTE: does not check language versions (it will not be possible to have nodes with the same title, even in different languages)
@@ -4303,7 +4303,7 @@
 	$.jstree.plugin("unique", {
 		__init : function () {
 			this.get_container()
-				.bind("before.jstree", $.proxy(function (e, data) { 
+				.bind("before.jstree", $.proxy(function (e, data) {
 						var nms = [], res = true, p, t;
 						if(data.func == "move_node") {
 							// obj, ref, position, is_copy, is_prepared, skip_check
@@ -4342,10 +4342,10 @@
 						}
 					}, this));
 		},
-		defaults : { 
+		defaults : {
 			error_callback : $.noop
 		},
-		_fn : { 
+		_fn : {
 			_check_unique : function (nms, p, func) {
 				var cnms = [], ok = true;
 				p.children("a").each(function () { cnms.push($(this).text().replace(/^\s+/g,"")); });
@@ -4387,27 +4387,27 @@
 			this.data.wholerow.html = false;
 			this.data.wholerow.to = false;
 			this.get_container()
-				.bind("init.jstree", $.proxy(function (e, data) { 
+				.bind("init.jstree", $.proxy(function (e, data) {
 						this._get_settings().core.animation = 0;
 					}, this))
-				.bind("open_node.jstree create_node.jstree clean_node.jstree loaded.jstree", $.proxy(function (e, data) { 
+				.bind("open_node.jstree create_node.jstree clean_node.jstree loaded.jstree", $.proxy(function (e, data) {
 						this._prepare_wholerow_span( data && data.rslt && data.rslt.obj ? data.rslt.obj : -1 );
 					}, this))
-				.bind("search.jstree clear_search.jstree reopen.jstree after_open.jstree after_close.jstree create_node.jstree delete_node.jstree clean_node.jstree", $.proxy(function (e, data) { 
+				.bind("search.jstree clear_search.jstree reopen.jstree after_open.jstree after_close.jstree create_node.jstree delete_node.jstree clean_node.jstree", $.proxy(function (e, data) {
 						if(this.data.to) { clearTimeout(this.data.to); }
 						this.data.to = setTimeout( (function (t, o) { return function() { t._prepare_wholerow_ul(o); }; })(this,  data && data.rslt && data.rslt.obj ? data.rslt.obj : -1), 0);
 					}, this))
-				.bind("deselect_all.jstree", $.proxy(function (e, data) { 
+				.bind("deselect_all.jstree", $.proxy(function (e, data) {
 						this.get_container().find(" > .jstree-wholerow .jstree-clicked").removeClass("jstree-clicked " + (this.data.themeroller ? this._get_settings().themeroller.item_a : "" ));
 					}, this))
-				.bind("select_node.jstree deselect_node.jstree ", $.proxy(function (e, data) { 
-						data.rslt.obj.each(function () { 
+				.bind("select_node.jstree deselect_node.jstree ", $.proxy(function (e, data) {
+						data.rslt.obj.each(function () {
 							var ref = data.inst.get_container().find(" > .jstree-wholerow li:visible:eq(" + ( parseInt((($(this).offset().top - data.inst.get_container().offset().top + data.inst.get_container()[0].scrollTop) / data.inst.data.core.li_height),10)) + ")");
 							// ref.children("a")[e.type === "select_node" ? "addClass" : "removeClass"]("jstree-clicked");
 							ref.children("a").attr("class",data.rslt.obj.children("a").attr("class"));
 						});
 					}, this))
-				.bind("hover_node.jstree dehover_node.jstree", $.proxy(function (e, data) { 
+				.bind("hover_node.jstree dehover_node.jstree", $.proxy(function (e, data) {
 						this.get_container().find(" > .jstree-wholerow .jstree-hovered").removeClass("jstree-hovered " + (this.data.themeroller ? this._get_settings().themeroller.item_h : "" ));
 						if(e.type === "hover_node") {
 							var ref = this.get_container().find(" > .jstree-wholerow li:visible:eq(" + ( parseInt(((data.rslt.obj.offset().top - this.get_container().offset().top + this.get_container()[0].scrollTop) / this.data.core.li_height),10)) + ")");
@@ -4471,25 +4471,25 @@
 		}
 	});
 	$(function() {
-		var css_string = '' + 
-			'.jstree .jstree-wholerow-real { position:relative; z-index:1; } ' + 
-			'.jstree .jstree-wholerow-real li { cursor:pointer; } ' + 
-			'.jstree .jstree-wholerow-real a { border-left-color:transparent !important; border-right-color:transparent !important; } ' + 
-			'.jstree .jstree-wholerow { position:relative; z-index:0; height:0; } ' + 
-			'.jstree .jstree-wholerow ul, .jstree .jstree-wholerow li { width:100%; } ' + 
-			'.jstree .jstree-wholerow, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow li, .jstree .jstree-wholerow a { margin:0 !important; padding:0 !important; } ' + 
-			'.jstree .jstree-wholerow, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow li { background:transparent !important; }' + 
-			'.jstree .jstree-wholerow ins, .jstree .jstree-wholerow span, .jstree .jstree-wholerow input { display:none !important; }' + 
-			'.jstree .jstree-wholerow a, .jstree .jstree-wholerow a:hover { text-indent:-9999px; !important; width:100%; padding:0 !important; border-right-width:0px !important; border-left-width:0px !important; } ' + 
+		var css_string = '' +
+			'.jstree .jstree-wholerow-real { position:relative; z-index:1; } ' +
+			'.jstree .jstree-wholerow-real li { cursor:pointer; } ' +
+			'.jstree .jstree-wholerow-real a { border-left-color:transparent !important; border-right-color:transparent !important; } ' +
+			'.jstree .jstree-wholerow { position:relative; z-index:0; height:0; } ' +
+			'.jstree .jstree-wholerow ul, .jstree .jstree-wholerow li { width:100%; } ' +
+			'.jstree .jstree-wholerow, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow li, .jstree .jstree-wholerow a { margin:0 !important; padding:0 !important; } ' +
+			'.jstree .jstree-wholerow, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow li { background:transparent !important; }' +
+			'.jstree .jstree-wholerow ins, .jstree .jstree-wholerow span, .jstree .jstree-wholerow input { display:none !important; }' +
+			'.jstree .jstree-wholerow a, .jstree .jstree-wholerow a:hover { text-indent:-9999px; !important; width:100%; padding:0 !important; border-right-width:0px !important; border-left-width:0px !important; } ' +
 			'.jstree .jstree-wholerow-span { position:absolute; left:0; margin:0px; padding:0; height:18px; border-width:0; padding:0; z-index:0; }';
 		if(is_ff2) {
-			css_string += '' + 
-				'.jstree .jstree-wholerow a { display:block; height:18px; margin:0; padding:0; border:0; } ' + 
+			css_string += '' +
+				'.jstree .jstree-wholerow a { display:block; height:18px; margin:0; padding:0; border:0; } ' +
 				'.jstree .jstree-wholerow-real a { border-color:transparent !important; } ';
 		}
 		if(is_ie7 || is_ie6) {
-			css_string += '' + 
-				'.jstree .jstree-wholerow, .jstree .jstree-wholerow li, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow a { margin:0; padding:0; line-height:18px; } ' + 
+			css_string += '' +
+				'.jstree .jstree-wholerow, .jstree .jstree-wholerow li, .jstree .jstree-wholerow ul, .jstree .jstree-wholerow a { margin:0; padding:0; line-height:18px; } ' +
 				'.jstree .jstree-wholerow a { display:block; height:18px; line-height:18px; overflow:hidden; } ';
 		}
 		$.vakata.css.add_sheet({ str : css_string, title : "jstree" });
@@ -4535,7 +4535,7 @@
 		},
 		_fn : {
 			model_done : function (data, callback) {
-				var ret = [], 
+				var ret = [],
 					s = this._get_settings(),
 					_this = this;
 

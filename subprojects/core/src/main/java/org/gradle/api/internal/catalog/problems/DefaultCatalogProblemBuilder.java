@@ -23,6 +23,7 @@ import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -105,7 +106,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
 
     @Override
     public DescribedProblemWithCause documented() {
-        return documentedAt("version_catalog_problems", id.name().toLowerCase());
+        return documentedAt("version_catalog_problems", id.name().toLowerCase(Locale.US));
     }
 
     @Override

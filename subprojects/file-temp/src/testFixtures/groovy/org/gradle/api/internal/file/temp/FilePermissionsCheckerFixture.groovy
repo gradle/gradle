@@ -36,7 +36,7 @@ class FilePermissionsChecker {
 
     static void assertSafeParentFile(File file) {
         def userHome = new File(System.getProperty("user.home")).toPath()
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (System.getProperty("os.name").toLowerCase(java.util.Locale.US).contains("windows")) {
             // Windows this should always be true
             assert file.toPath().startsWith(userHome) : "Test kit directory must be under the user home for security reasons. Home: '\$userHome', File: '\${file.toPath()}'"
         } else if (file.toPath().startsWith(userHome)) {

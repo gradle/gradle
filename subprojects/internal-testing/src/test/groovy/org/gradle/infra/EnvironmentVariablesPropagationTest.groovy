@@ -24,8 +24,8 @@ class EnvironmentVariablesPropagationTest extends Specification {
     def "no sensitive env variables #value propagated to test JVMs"() {
         expect:
         System.getenv().each { k, v ->
-            assert !k.toLowerCase().contains(value.toLowerCase())
-            assert !v.toLowerCase().contains(value.toLowerCase())
+            assert !k.toLowerCase(java.util.Locale.US).contains(value.toLowerCase(java.util.Locale.US))
+            assert !v.toLowerCase(java.util.Locale.US).contains(value.toLowerCase(java.util.Locale.US))
         }
 
         where:

@@ -942,7 +942,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         fails("assemble")
 
         then:
-        failure.assertHasCause("No matching variant of some.group:deck:1.2 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-link', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value 'x86' but:")
+        failure.assertHasCause("No matching variant of some.group:deck:1.2 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-link', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase(java.util.Locale.US)}', attribute 'org.gradle.native.architecture' with value 'x86' but:")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.native.architecture' with value 'x86-64' and the consumer needed attribute 'org.gradle.native.architecture' with value 'x86'")
     }
 

@@ -61,7 +61,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
                 targetMachines.each { machine ->
                     String architectureNormalized = Dimensions.createDimensionSuffix(machine.architecture, targetMachines.collect { it.architecture }.unique())
                     String osFamilyNormalized = Dimensions.createDimensionSuffix(machine.os, targetMachines.collect { it.os }.unique())
-                    assert mainMetadata.variant("${buildType}${osFamilyNormalized.capitalize()}${architectureNormalized.capitalize()}${linkage.capitalize()}").availableAt.coords == "${group}:${module}_${buildType}${osFamilyNormalized.empty ? "" : "_${osFamilyNormalized.toLowerCase()}"}${architectureNormalized.empty ? "" : "_${architectureNormalized.toLowerCase().replace("-", "_")}"}:${version}"
+                    assert mainMetadata.variant("${buildType}${osFamilyNormalized.capitalize()}${architectureNormalized.capitalize()}${linkage.capitalize()}").availableAt.coords == "${group}:${module}_${buildType}${osFamilyNormalized.empty ? "" : "_${osFamilyNormalized.toLowerCase(java.util.Locale.US)}"}${architectureNormalized.empty ? "" : "_${architectureNormalized.toLowerCase(java.util.Locale.US).replace("-", "_")}"}:${version}"
                 }
             }
         }

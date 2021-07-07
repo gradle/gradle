@@ -107,7 +107,7 @@ class VariantContext {
         }
 
         static VariantDimension of(String dimensionName, String dimensionValue) {
-            return new DefaultVariantDimension(dimensionName, dimensionValue.toLowerCase())
+            return new DefaultVariantDimension(dimensionName, dimensionValue.toLowerCase(java.util.Locale.US))
         }
 
         static List<VariantDimension> of(String dimensionName, List<String> dimensionValues) {

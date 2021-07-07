@@ -99,7 +99,7 @@ class ProjectFile extends IdeProjectFixture {
         }
 
         String getOutputDir() {
-            return name.replaceFirst("(\\p{Upper})", "/\$1").toLowerCase()
+            return name.replaceFirst("(\\p{Upper})", "/\$1").toLowerCase(java.util.Locale.US)
         }
 
         String getMacros() {

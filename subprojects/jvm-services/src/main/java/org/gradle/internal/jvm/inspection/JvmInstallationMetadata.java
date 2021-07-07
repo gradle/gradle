@@ -26,6 +26,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
@@ -138,7 +139,7 @@ public interface JvmInstallationMetadata {
 
         private String determineInstallationType(String vendor) {
             if (hasCapability(JavaInstallationCapability.JAVA_COMPILER)) {
-                if (!vendor.toLowerCase().contains("jdk")) {
+                if (!vendor.toLowerCase(Locale.US).contains("jdk")) {
                     return " JDK";
                 }
                 return "";

@@ -69,7 +69,7 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
 
     @Override
     protected void doStyleChange(Style style) {
-        result.append("{${style.toString().toLowerCase()}}")
+        result.append("{${style.toString().toLowerCase(java.util.Locale.US)}}")
     }
 
     @Override

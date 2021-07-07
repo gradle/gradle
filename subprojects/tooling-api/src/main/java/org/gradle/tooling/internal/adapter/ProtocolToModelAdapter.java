@@ -27,6 +27,7 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationHandler;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -232,7 +234,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             if (builder.length() > 0) {
                 builder.append(separator);
             }
-            String group1 = matcher.group(1).toLowerCase();
+            String group1 = matcher.group(1).toLowerCase(Locale.US);
             String group2 = matcher.group(2);
             if (group2.length() == 0) {
                 builder.append(group1);
@@ -331,7 +333,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             this.typeProvider = typeProvider;
         }
 
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             views = new HashMap<ViewKey, Object>();
         }
@@ -377,7 +379,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             setup();
         }
 
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
             graphDetails.views.put(new ViewKey(targetType, sourceObject, decoration), proxy);

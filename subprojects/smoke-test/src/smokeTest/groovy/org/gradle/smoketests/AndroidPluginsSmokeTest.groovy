@@ -267,7 +267,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     private writeActivity(String basedir, String packageName, String className, changed = false) {
-        String resourceName = className.toLowerCase()
+        String resourceName = className.toLowerCase(java.util.Locale.US)
 
         file("${basedir}/src/main/java/${packageName.replaceAll('\\.', '/')}/${className}.java").text = """
             package ${packageName};

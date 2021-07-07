@@ -121,7 +121,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
             model {
                 components {
                     main(NativeExecutableSpec) {
-                        sources.${app.sourceType}.lib library: "mainLib", linkage: '${libType.toLowerCase()}'
+                        sources.${app.sourceType}.lib library: "mainLib", linkage: '${libType.toLowerCase(java.util.Locale.US)}'
                     }
                     mainLib(NativeLibrarySpec) {
                         binaries.withType(${oppositeLibType(libType).capitalize()}LibraryBinarySpec) {
@@ -137,6 +137,6 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     }
 
     String oppositeLibType(String libType) {
-        return libType.toLowerCase() == "static" ? "shared" : "static"
+        return libType.toLowerCase(java.util.Locale.US) == "static" ? "shared" : "static"
     }
 }

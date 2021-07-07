@@ -32,7 +32,7 @@ import spock.lang.Unroll
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can compile and link against a #linkage.toLowerCase() c++ library"() {
+    def "can compile and link against a #linkage.toLowerCase(java.util.Locale.US) c++ library"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def app = new SwiftMainWithCppDep(cppGreeter)
@@ -105,7 +105,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
+    def "can compile and link against a library with a dependency on a #linkage.toLowerCase(java.util.Locale.US) c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -163,7 +163,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
+    def "can compile and link against a #linkage.toLowerCase(java.util.Locale.US) c++ library with a dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
         def logger = new CppLogger()
         def cppGreeter = new CppGreeterFunctionUsesLogger()

@@ -164,7 +164,7 @@ class TestUtil {
 
                         @Override
                         HashCode hash(File src, String algorithm) {
-                            def algo = algorithm.toLowerCase().replaceAll('-', '')
+                            def algo = algorithm.toLowerCase(java.util.Locale.US).replaceAll('-', '')
                             Hashing."$algo"().hashBytes(src.bytes)
                         }
                     }

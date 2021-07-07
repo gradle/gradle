@@ -817,8 +817,8 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     private static String createPlugin(String pluginClassName, String targetType, String src) {
         """
             class ${pluginClassName} implements Plugin<${targetType}> {
-                void apply(${targetType} ${targetType.toLowerCase()}) {
-                    ${targetType != 'Gradle' ? "def gradle = ${targetType.toLowerCase()}.gradle" : ''}
+                void apply(${targetType} ${targetType.toLowerCase(java.util.Locale.US)}) {
+                    ${targetType != 'Gradle' ? "def gradle = ${targetType.toLowerCase(java.util.Locale.US)}.gradle" : ''}
                     $src
                 }
             }

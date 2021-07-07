@@ -90,6 +90,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -659,7 +660,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String parentRevision = attributes.getValue("revision");
             String location = elvis(attributes.getValue("location"), "../ivy.xml");
 
-            String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase();
+            String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase(Locale.US);
             List<String> extendTypes = Arrays.asList(extendType.split(","));
 
             ModuleDescriptor parent;

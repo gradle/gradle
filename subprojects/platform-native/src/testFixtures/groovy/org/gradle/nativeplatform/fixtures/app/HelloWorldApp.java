@@ -22,6 +22,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
@@ -60,7 +61,7 @@ public abstract class HelloWorldApp extends TestApp {
     }
 
     private String getNormalizedPluginName() {
-        return getSourceType().replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase();
+        return getSourceType().replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase(Locale.US);
     }
 
     public String getPluginScript() {

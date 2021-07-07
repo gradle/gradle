@@ -440,9 +440,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         succeeds ":app:assemble"
 
         result.assertTasksExecuted(tasks(':hello').withOperatingSystemFamily(currentOsFamilyName).debug.allToLink, tasks(':app').withOperatingSystemFamily(currentOsFamilyName).debug.allToInstall, ":app:assemble")
-        executable("app/build/exe/main/debug/${currentOsFamilyName.toLowerCase()}/app").assertExists()
-        sharedLibrary("hello/build/lib/main/debug/${currentOsFamilyName.toLowerCase()}/hello").assertExists()
-        def installation = installation("app/build/install/main/debug/${currentOsFamilyName.toLowerCase()}")
+        executable("app/build/exe/main/debug/${currentOsFamilyName.toLowerCase(java.util.Locale.US)}/app").assertExists()
+        sharedLibrary("hello/build/lib/main/debug/${currentOsFamilyName.toLowerCase(java.util.Locale.US)}/hello").assertExists()
+        def installation = installation("app/build/install/main/debug/${currentOsFamilyName.toLowerCase(java.util.Locale.US)}")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("hello")
     }
@@ -477,7 +477,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase(java.util.Locale.US)}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
