@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,10 +64,10 @@ public class Jvm implements JavaInfo {
     @VisibleForTesting
     static JvmImplementation createCurrent() {
         String vendor = System.getProperty("java.vm.vendor");
-        if (vendor.toLowerCase().startsWith("apple inc.")) {
+        if (TextUtil.toLowerCaseUserLocale(vendor).startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current());
         }
-        if (vendor.toLowerCase().startsWith("ibm corporation")) {
+        if (TextUtil.toLowerCaseUserLocale(vendor).startsWith("ibm corporation")) {
             return new IbmJvm(OperatingSystem.current());
         }
         return new JvmImplementation(OperatingSystem.current());

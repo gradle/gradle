@@ -358,7 +358,7 @@ public class GUtil {
         if (string == null) {
             return null;
         }
-        return toWords(string, '_').toUpperCase();
+        return TextUtil.toUpperCaseUserLocale(toWords(string, '_'));
     }
 
     /**
@@ -385,7 +385,7 @@ public class GUtil {
             if (builder.length() > 0) {
                 builder.append(separator);
             }
-            String group1 = matcher.group(1).toLowerCase();
+            String group1 = TextUtil.toLowerCaseUserLocale(matcher.group(1));
             String group2 = matcher.group(2);
             if (group2.length() == 0) {
                 builder.append(group1);

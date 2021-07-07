@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -128,7 +129,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        progressBar = newProgressBar(phase.name().toUpperCase(), 0, progressStartEvent.getTotalProgress());
+        progressBar = newProgressBar(TextUtil.toUpperCaseUserLocale(phase.name()), 0, progressStartEvent.getTotalProgress());
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {

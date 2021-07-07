@@ -130,7 +130,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         private LogLevel parseLogLevel(String value) {
             LogLevel logLevel = null;
             try {
-                logLevel = LogLevel.valueOf(value.toUpperCase());
+                logLevel = LogLevel.valueOf(TextUtil.toUpperCaseUserLocale(value));
                 if (logLevel == LogLevel.ERROR) {
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }

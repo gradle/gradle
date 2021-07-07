@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -232,7 +233,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), getSupplier().toString());
+        return String.format("Map(%s->%s, %s)", TextUtil.toLowerCaseUserLocale(keyType.getSimpleName()), valueType.getSimpleName(), getSupplier().toString());
     }
 
     @Override

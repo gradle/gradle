@@ -33,6 +33,7 @@ import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
@@ -106,7 +107,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public static String getUUID(File projectFile) {
-        return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase() + "}";
+        return "{" + TextUtil.toUpperCaseUserLocale(UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString()) + "}";
     }
 
     @Internal

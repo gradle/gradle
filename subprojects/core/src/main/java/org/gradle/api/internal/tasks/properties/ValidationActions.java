@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -133,7 +134,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
-            String lowerKind = kind.toLowerCase();
+            String lowerKind = TextUtil.toLowerCaseUserLocale(kind);
             problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
                 .forProperty(propertyName)
                 .reportAs(ERROR)
@@ -147,7 +148,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
-            String lowerKind = kind.toLowerCase();
+            String lowerKind = TextUtil.toLowerCaseUserLocale(kind);
             problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
                 .forProperty(propertyName)
                 .reportAs(ERROR)

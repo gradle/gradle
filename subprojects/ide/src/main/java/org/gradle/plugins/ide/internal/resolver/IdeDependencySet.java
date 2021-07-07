@@ -45,6 +45,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.Collection;
@@ -262,7 +263,7 @@ public class IdeDependencySet {
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {
             for (Configuration c : configurations) {
-                if (!c.getName().toLowerCase().contains("test")) {
+                if (!TextUtil.toLowerCaseUserLocale(c.getName()).contains("test")) {
                     return false;
                 }
             }

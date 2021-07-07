@@ -20,6 +20,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -138,7 +139,7 @@ public interface JvmInstallationMetadata {
 
         private String determineInstallationType(String vendor) {
             if (hasCapability(JavaInstallationCapability.JAVA_COMPILER)) {
-                if (!vendor.toLowerCase().contains("jdk")) {
+                if (!TextUtil.toLowerCaseUserLocale(vendor).contains("jdk")) {
                     return " JDK";
                 }
                 return "";

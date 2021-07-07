@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.gcp.gcs;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.internal.TextUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,7 +76,7 @@ public final class GcsConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
+                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(TextUtil.toUpperCaseUserLocale(uri.getScheme()))) {
                     throw new IllegalArgumentException("System property [" + GCS_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {

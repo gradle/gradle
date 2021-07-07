@@ -23,6 +23,7 @@ import org.gradle.internal.logging.format.DurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
+import org.gradle.util.internal.TextUtil;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
@@ -63,7 +64,7 @@ public class BuildResultLogger {
 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
         textOutput.println();
-        String action = result.getAction().toUpperCase();
+        String action = TextUtil.toUpperCaseUserLocale(result.getAction());
         if (buildSucceeded) {
             textOutput.withStyle(SuccessHeader).text(action + " SUCCESSFUL");
         } else {

@@ -26,8 +26,8 @@ import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.file.Directory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
@@ -35,6 +35,7 @@ import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.util.internal.RelativePathUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public class Maven2Gradle {
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions");
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + TextUtil.toLowerCaseUserLocale(dsl.name()) + "/" + groupId + ".java-conventions");
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 

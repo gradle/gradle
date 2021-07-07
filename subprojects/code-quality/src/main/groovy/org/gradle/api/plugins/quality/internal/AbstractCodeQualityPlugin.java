@@ -35,6 +35,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,15 +74,15 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected String getTaskBaseName() {
-        return getToolName().toLowerCase();
+        return TextUtil.toLowerCaseUserLocale(getToolName());
     }
 
     protected String getConfigurationName() {
-        return getToolName().toLowerCase();
+        return TextUtil.toLowerCaseUserLocale(getToolName());
     }
 
     protected String getReportName() {
-        return getToolName().toLowerCase();
+        return TextUtil.toLowerCaseUserLocale(getToolName());
     }
 
     protected Class<? extends Plugin> getBasePlugin() {
@@ -151,7 +152,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                 if (prunedName.isEmpty()) {
                     prunedName = task.getName();
                 }
-                prunedName = ("" + prunedName.charAt(0)).toLowerCase() + prunedName.substring(1);
+                prunedName = TextUtil.toLowerCaseUserLocale("" + prunedName.charAt(0)) + prunedName.substring(1);
                 configureTaskDefaults((T) task, prunedName);
             }
         });

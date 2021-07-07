@@ -7,6 +7,6 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     implementation(project(":cli"))
 
-    implementation(project(":base-annotations"))
+    implementation(project(":base-services"))
     implementation(libs.commonsLang)
 }

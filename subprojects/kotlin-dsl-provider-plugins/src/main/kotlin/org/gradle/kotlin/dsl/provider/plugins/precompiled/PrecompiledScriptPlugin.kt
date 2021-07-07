@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+import org.gradle.util.internal.TextUtil
 
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 
@@ -165,7 +166,7 @@ fun CharSequence.kebabCaseToPascalCase() =
 
 private
 fun CharSequence.kebabCaseToCamelCase() =
-    replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+    replace("-[a-z]".toRegex()) { TextUtil.toUpperCaseUserLocale(it.value.drop(1)) }
 
 
 private

@@ -24,6 +24,7 @@ import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.util.internal.DefaultGradleVersion;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +100,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
             LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{} {}",
                 WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getVersion(),
-                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
+                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, TextUtil.toLowerCaseUserLocale(WarningMode.All.name()),
                 WARNING_LOGGING_DOCS_MESSAGE, DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
         }
     }

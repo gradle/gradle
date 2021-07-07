@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,9 +107,9 @@ public class PathFactory {
             for (Variable variable : variables) {
                 expandedUrl = expandedUrl.replace(variable.getName(), variable.getPrefix());
             }
-            if (expandedUrl.toLowerCase().startsWith("file://")) {
+            if (TextUtil.toLowerCaseUserLocale(expandedUrl).startsWith("file://")) {
                 expandedUrl = toUrl("file", new File(expandedUrl.substring(7)).getCanonicalFile());
-            } else if (expandedUrl.toLowerCase().startsWith("jar://")) {
+            } else if (TextUtil.toLowerCaseUserLocale(expandedUrl).startsWith("jar://")) {
                 String[] parts = expandedUrl.substring(6).split("!");
                 if (parts.length == 2) {
                     expandedUrl = toUrl("jar", new File(parts[0]).getCanonicalFile()) + "!" + parts[1];

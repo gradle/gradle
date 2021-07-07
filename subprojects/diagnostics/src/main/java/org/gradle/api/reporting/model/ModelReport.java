@@ -29,6 +29,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -68,7 +69,7 @@ public class ModelReport extends DefaultTask {
 
     @Option(option = "format", description = "Output format (full, short)")
     public void setFormat(String format) {
-        this.format = Format.valueOf(format.toUpperCase());
+        this.format = Format.valueOf(TextUtil.toUpperCaseUserLocale(format));
     }
 
     @Console

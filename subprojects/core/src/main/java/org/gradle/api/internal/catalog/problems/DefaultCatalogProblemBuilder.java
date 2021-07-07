@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.problems.Solution;
 import org.gradle.problems.StandardSeverity;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -105,7 +106,7 @@ public class DefaultCatalogProblemBuilder implements VersionCatalogProblemBuilde
 
     @Override
     public DescribedProblemWithCause documented() {
-        return documentedAt("version_catalog_problems", id.name().toLowerCase());
+        return documentedAt("version_catalog_problems", TextUtil.toLowerCaseUserLocale(id.name()));
     }
 
     @Override

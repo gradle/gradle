@@ -29,6 +29,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         URI repositoryUrl = artifactRepository.getUrl();
         LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
 
-        String protocol = repositoryUrl.getScheme().toLowerCase();
+        String protocol = TextUtil.toLowerCaseUserLocale(repositoryUrl.getScheme());
         DefaultMavenArtifactRepository realRepository = (DefaultMavenArtifactRepository) artifactRepository;
         RepositoryTransport transport = realRepository.getTransport(protocol);
         ExternalResourceRepository repository = transport.getRepository();

@@ -43,6 +43,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -107,7 +108,7 @@ public class DependencyInsightReporter {
             reasonShortDescription = null;
             extraDetails.add(selectionReasonsSection);
         } else {
-            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase();
+            reasonShortDescription = reasonSections.isEmpty() ? null : TextUtil.toLowerCaseUserLocale(reasonSections.get(0).getDescription());
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);

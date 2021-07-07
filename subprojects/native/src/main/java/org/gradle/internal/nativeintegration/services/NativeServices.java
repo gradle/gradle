@@ -57,6 +57,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceCreationException;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,7 +173,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && TextUtil.toLowerCaseUserLocale(ex.getCause().getMessage()).contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else if (ex.getMessage().equals("Could not extract native JNI library.")

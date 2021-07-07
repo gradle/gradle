@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 
@@ -146,7 +147,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Nullable
     private String toLowerCase(@Nullable String string) {
-        return string == null ? null : string.toLowerCase();
+        return string == null ? null : TextUtil.toLowerCaseUserLocale(string);
     }
 
     /**

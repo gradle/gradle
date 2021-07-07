@@ -28,6 +28,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +146,7 @@ class GenericFileSystem implements FileSystem {
 
     private boolean probeCaseSensitive(File file, String content) {
         try {
-            File upperCased = new File(file.getPath().toUpperCase());
+            File upperCased = new File(TextUtil.toUpperCaseUserLocale(file.getPath()));
             return !hasContent(upperCased, content);
         } catch (IOException e) {
             // not fully accurate but a sensible fallback

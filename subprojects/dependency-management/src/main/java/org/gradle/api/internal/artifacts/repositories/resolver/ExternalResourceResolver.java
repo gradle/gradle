@@ -75,6 +75,7 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -334,7 +335,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+        byte[] checksum = createChecksumFile(content, TextUtil.toUpperCaseUserLocale(algorithm), length);
         ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }

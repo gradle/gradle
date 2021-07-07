@@ -17,6 +17,7 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +26,7 @@ import static org.gradle.internal.typeconversion.NormalizedTimeUnit.millis;
 public class TimeUnitsParser {
 
     public NormalizedTimeUnit parseNotation(CharSequence notation, int value) {
-        String candidate = notation.toString().toUpperCase();
+        String candidate = TextUtil.toUpperCaseUserLocale(notation.toString());
         //jdk5 does not have days, hours or minutes, normalizing to millis
         switch (candidate) {
             case "DAYS":

@@ -16,7 +16,11 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
-import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.*;
+import org.gradle.util.internal.TextUtil;
+
+import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.LINUX;
+import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.MAC_OS_X;
+import static org.gradle.internal.nativeintegration.jansi.JansiOperatingSystemSupport.WINDOWS;
 
 /**
  * Portions of this class have been copied from org.fusesource.hawtjni.runtime.Library.java,
@@ -28,7 +32,7 @@ public class DefaultJansiRuntimeResolver implements JansiRuntimeResolver {
 
     @Override
     public String getOperatingSystem() {
-        String name = System.getProperty("os.name").toLowerCase().trim();
+        String name = TextUtil.toLowerCaseUserLocale(System.getProperty("os.name")).trim();
 
         if (name.startsWith("linux")) {
             return LINUX.getIdentifier();

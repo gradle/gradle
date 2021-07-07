@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
 
     private static Subject computeWhatToLog() {
         String subjectString = System.getProperty("org.gradle.internal.dm.trace.excludes", Subject.all.toString());
-        return Subject.valueOf(subjectString.toLowerCase());
+        return Subject.valueOf(TextUtil.toLowerCaseUserLocale(subjectString));
     }
 
     public static ExcludeFactory maybeLog(ExcludeFactory factory) {

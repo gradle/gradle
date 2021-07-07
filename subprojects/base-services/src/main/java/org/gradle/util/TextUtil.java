@@ -43,7 +43,7 @@ public class TextUtil {
     private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
         @Override
         public String apply(String input) {
-            return input.toLowerCase();
+            return org.gradle.util.internal.TextUtil.toLowerCaseUserLocale(input);
         }
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");

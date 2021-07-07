@@ -15,11 +15,16 @@
  */
 package org.gradle.util;
 
-import java.util.*;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.util.internal.TextUtil;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
@@ -74,7 +79,7 @@ public class NameMatcher {
 
         Pattern camelCasePattern = getPatternForName(pattern);
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
-        String normalisedPattern = pattern.toUpperCase();
+        String normalisedPattern = TextUtil.toUpperCaseUserLocale(pattern);
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
         Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
 
@@ -107,7 +112,7 @@ public class NameMatcher {
                 kebabCasePrefixMatches.add(candidate);
                 found = true;
             }
-            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
+            if (!found && StringUtils.getLevenshteinDistance(normalisedPattern, TextUtil.toUpperCaseUserLocale(candidate)) <= Math.min(3, pattern.length() / 2)) {
                 candidates.add(candidate);
             }
         }
@@ -164,7 +169,7 @@ public class NameMatcher {
             if (pos > 0) {
                 builder.append('-');
             }
-            builder.append(Pattern.quote(matcher.group().toLowerCase()));
+            builder.append(Pattern.quote(TextUtil.toLowerCaseUserLocale(matcher.group())));
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }

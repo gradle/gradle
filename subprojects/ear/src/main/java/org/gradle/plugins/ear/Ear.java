@@ -43,6 +43,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -148,7 +149,7 @@ public class Ear extends Jar {
         // since we might generate the deployment descriptor, record each top-level module
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
             EarModule module;
-            if (details.getPath().toLowerCase().endsWith(".war")) {
+            if (TextUtil.toLowerCaseUserLocale(details.getPath()).endsWith(".war")) {
                 module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
             } else {
                 module = new DefaultEarModule(details.getPath());

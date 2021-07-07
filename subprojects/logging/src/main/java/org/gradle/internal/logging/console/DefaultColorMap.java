@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.fusesource.jansi.Ansi;
 import org.gradle.internal.logging.text.Style;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +29,17 @@ import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Attribute;
 import static org.fusesource.jansi.Ansi.Color.DEFAULT;
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.ProgressStatus;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.SuccessHeader;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUS_BAR = "statusbar";
@@ -78,7 +88,7 @@ public class DefaultColorMap implements ColorMap {
 
 
     private void addDefault(StyledTextOutput.Style style, String colorSpec) {
-        addDefault(style.name().toLowerCase(), colorSpec);
+        addDefault(TextUtil.toLowerCaseUserLocale(style.name()), colorSpec);
     }
 
     private void addDefault(String style, String color) {
@@ -90,7 +100,7 @@ public class DefaultColorMap implements ColorMap {
         for (int i = 1; i < styles.length; i++) {
             colorSpec += COLOR_DIVIDER + getColorSpecForStyle(styles[i]);
         }
-        addDefault(style.name().toLowerCase(), colorSpec);
+        addDefault(TextUtil.toLowerCaseUserLocale(style.name()), colorSpec);
     }
 
     @Override
@@ -100,7 +110,7 @@ public class DefaultColorMap implements ColorMap {
 
     @Override
     public Color getColourFor(StyledTextOutput.Style style) {
-        return getColor(style.name().toLowerCase());
+        return getColor(TextUtil.toLowerCaseUserLocale(style.name()));
     }
 
     @Override
@@ -119,7 +129,7 @@ public class DefaultColorMap implements ColorMap {
         if (style.getColor().equals(Style.Color.GREY)) {
             colors.add(new BrightForegroundColor(Ansi.Color.BLACK));
         } else {
-            Ansi.Color ansiColor = Ansi.Color.valueOf(style.getColor().name().toUpperCase());
+            Ansi.Color ansiColor = Ansi.Color.valueOf(TextUtil.toUpperCaseUserLocale(style.getColor().name()));
             if (ansiColor != DEFAULT) {
                 colors.add(new ForegroundColor(ansiColor));
             }
@@ -139,7 +149,7 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private String getColorSpecForStyle(StyledTextOutput.Style style) {
-        return getColorSpecForStyle(style.name().toLowerCase());
+        return getColorSpecForStyle(TextUtil.toLowerCaseUserLocale(style.name()));
     }
 
     private String getColorSpecForStyle(String style) {
@@ -183,7 +193,7 @@ public class DefaultColorMap implements ColorMap {
             return new CompositeColor(colorList);
         }
 
-        Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
+        Ansi.Color ansiColor = Ansi.Color.valueOf(TextUtil.toUpperCaseUserLocale(colorSpec));
         if (ansiColor != DEFAULT) {
             return new ForegroundColor(ansiColor);
         }

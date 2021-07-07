@@ -18,6 +18,7 @@ package org.gradle.process.internal.util;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -32,7 +33,7 @@ public class MergeOptionsUtil {
             return -1; // unspecified
         }
 
-        String normalized = heapSize.trim().toLowerCase();
+        String normalized = TextUtil.toLowerCaseUserLocale(heapSize.trim());
         try {
             if (normalized.endsWith("m")) {
                 return Integer.parseInt(normalized.substring(0, normalized.length() - 1));

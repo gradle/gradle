@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,10 +78,10 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         if (value != null) {
             enumValue = tryGetValue(value);
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toLowerCase());
+                enumValue = tryGetValue(TextUtil.toLowerCaseUserLocale(value));
             }
             if (enumValue == null) {
-                enumValue = tryGetValue(value.toUpperCase());
+                enumValue = tryGetValue(TextUtil.toUpperCaseUserLocale(value));
             }
         }
         if (enumValue == null) {

@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -151,7 +152,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(),
-            "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions");
+            "buildSrc/src/main/" + TextUtil.toLowerCaseUserLocale(settings.getDsl().name()) + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions");
         descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }

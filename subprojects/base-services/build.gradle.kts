@@ -36,6 +36,8 @@ dependencies {
 classycle {
     // Needed for the factory methods in the base class
     excludePatterns.add("org/gradle/util/GradleVersion**")
+    // Several subprojects make use of toLowerCaseUserLocale and toUpperCaseUserLocale
+    excludePatterns.add("org/gradle/util/internal/TextUtil**")
 }
 
 jmh.includes.set(listOf("HashingAlgorithmsBenchmark"))

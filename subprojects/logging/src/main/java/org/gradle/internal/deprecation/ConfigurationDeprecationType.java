@@ -16,6 +16,8 @@
 
 package org.gradle.internal.deprecation;
 
+import org.gradle.util.internal.TextUtil;
+
 public enum ConfigurationDeprecationType {
     DEPENDENCY_DECLARATION("use", true),
     CONSUMPTION("use attributes to consume", false),
@@ -31,6 +33,6 @@ public enum ConfigurationDeprecationType {
     }
 
     public String displayName() {
-        return name().toLowerCase().replace('_', ' ');
+        return TextUtil.toLowerCaseUserLocale(name()).replace('_', ' ');
     }
 }

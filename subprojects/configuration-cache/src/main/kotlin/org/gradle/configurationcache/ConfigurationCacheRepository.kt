@@ -34,6 +34,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.TextUtil
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -218,5 +219,5 @@ class ConfigurationCacheRepository(
         get() = resolve("fingerprint.bin")
 
     private
-    fun File.stateFile(stateType: StateType) = resolve("${stateType.name.toLowerCase()}.bin")
+    fun File.stateFile(stateType: StateType) = resolve("${TextUtil.toLowerCaseUserLocale(stateType.name)}.bin")
 }

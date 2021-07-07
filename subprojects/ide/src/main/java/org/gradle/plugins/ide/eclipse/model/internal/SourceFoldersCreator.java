@@ -37,6 +37,7 @@ import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -221,7 +222,7 @@ public class SourceFoldersCreator {
         // Using the test sources feature introduced in Eclipse Photon
         String name = sourceSet.getName();
         if (!SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || folder.getPath().toLowerCase().contains("test")) {
+            if (SourceSet.TEST_SOURCE_SET_NAME.equals(name) || TextUtil.toLowerCaseUserLocale(folder.getPath()).contains("test")) {
                 folder.getEntryAttributes().put(EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_KEY, EclipsePluginConstants.TEST_SOURCES_ATTRIBUTE_VALUE);
             }
         }

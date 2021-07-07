@@ -20,12 +20,13 @@ import com.google.common.base.Joiner;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -70,8 +71,8 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase())) {
-                toolExec.getEnvironment().remove(pathVar.toUpperCase());
+            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(TextUtil.toUpperCaseUserLocale(pathVar))) {
+                toolExec.getEnvironment().remove(TextUtil.toUpperCaseUserLocale(pathVar));
             }
         }
 

@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpProxySettings;
 import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHttpProxySettings;
+import org.gradle.util.internal.TextUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -65,7 +66,7 @@ public class S3ConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
+                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(TextUtil.toUpperCaseUserLocale(uri.getScheme()))) {
                     throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {
@@ -82,7 +83,7 @@ public class S3ConnectionProperties {
     public Optional<HttpProxySettings.HttpProxy> getProxy() {
         if (endpoint.isPresent()) {
             String host = endpoint.get().getHost();
-            if (endpoint.get().getScheme().toUpperCase().equals("HTTP")) {
+            if (TextUtil.toUpperCaseUserLocale(endpoint.get().getScheme()).equals("HTTP")) {
                 return Optional.fromNullable(proxySettings.getProxy(host));
             } else {
                 return Optional.fromNullable(secureProxySettings.getProxy(host));
