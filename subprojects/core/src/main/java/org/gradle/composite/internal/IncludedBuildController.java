@@ -16,9 +16,9 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.ExecutionResult;
 
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 public interface IncludedBuildController {
     /**
@@ -54,5 +54,5 @@ public interface IncludedBuildController {
     /**
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
-    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    ExecutionResult<Void> awaitTaskCompletion();
 }

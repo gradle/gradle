@@ -26,6 +26,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
@@ -40,7 +41,6 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
@@ -118,8 +118,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public void finishBuild(Consumer<? super Throwable> collector) {
-        buildLifecycleController.finishBuild(null, collector);
+    public ExecutionResult<Void> finishBuild() {
+        return buildLifecycleController.finishBuild(null);
     }
 
     @Override
@@ -160,7 +160,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     private static class DoNothingBuildFinishExecutor implements BuildTreeFinishExecutor {
         @Override
-        public void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures) {
+        public ExecutionResult<Void> finishBuildTree(List<Throwable> failures) {
+            return ExecutionResult.succeeded();
         }
     }
 
@@ -172,9 +173,9 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         }
 
         @Override
-        public void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures) {
+        public ExecutionResult<Void> finishBuildTree(List<Throwable> failures) {
             RuntimeException reportable = exceptionAnalyser.transform(failures);
-            buildLifecycleController.finishBuild(reportable, finishFailures);
+            return buildLifecycleController.finishBuild(reportable);
         }
     }
 }

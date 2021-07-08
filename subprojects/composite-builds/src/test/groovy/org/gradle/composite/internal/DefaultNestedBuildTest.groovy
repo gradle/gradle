@@ -24,6 +24,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeState
@@ -93,8 +94,9 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        _ * exceptionAnalyzer.transform(_)
-        1 * controller.finishBuild(_, _)
+        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
+        1 * controller.finishBuild(_)
     }
 
     def "runs action but does not finish build when model is required by root build"() {
@@ -114,7 +116,8 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        _ * exceptionAnalyzer.transform(_)
+        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         0 * controller.finishBuild(_, _)
     }
 

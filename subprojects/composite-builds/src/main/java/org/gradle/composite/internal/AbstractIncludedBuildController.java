@@ -23,6 +23,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -30,6 +31,7 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -119,13 +121,19 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    public ExecutionResult<Void> awaitTaskCompletion() {
         assertInState(State.RunningTasks);
+        ExecutionResult<Void> result;
         if (!scheduled.isEmpty()) {
-            doAwaitTaskCompletion(taskFailures);
+            List<Throwable> failures = new ArrayList<>();
+            doAwaitTaskCompletion(failures::add);
+            result = ExecutionResult.maybeFailed(failures);
+        } else {
+            result = ExecutionResult.succeeded();
         }
         scheduled.clear();
         state = State.Finished;
+        return result;
     }
 
     @Override

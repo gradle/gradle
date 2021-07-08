@@ -18,10 +18,10 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -52,12 +52,12 @@ public interface IncludedBuildTaskGraph {
     /**
      * Blocks until all scheduled tasks have completed.
      */
-    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    ExecutionResult<Void> awaitTaskCompletion();
 
     /**
-     * Schedules and executes queued tasks, collecting any task failures into the given collection.
+     * Schedules and executes queued tasks.
      */
-    void runScheduledTasks(Consumer<? super Throwable> taskFailures);
+    void runScheduledTasks();
 
     /**
      * Runs the given action against a new, empty task graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run buildSrc tasks or

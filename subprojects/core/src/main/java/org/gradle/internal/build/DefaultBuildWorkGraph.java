@@ -83,10 +83,12 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     }
 
     @Override
-    public void execute() {
+    public ExecutionResult<Void> execute() {
         try {
             if (tasksScheduled) {
-                controller.executeTasks();
+                return controller.executeTasks();
+            } else {
+                return ExecutionResult.succeeded();
             }
         } finally {
             updateTasksAfterExecution();

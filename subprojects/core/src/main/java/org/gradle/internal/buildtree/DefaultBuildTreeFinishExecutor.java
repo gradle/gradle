@@ -19,11 +19,11 @@ package org.gradle.internal.buildtree;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.NestedBuildState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final BuildStateRegistry buildStateRegistry;
@@ -39,18 +39,19 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     }
 
     @Override
-    public void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures) {
-        List<Throwable> allFailures = new ArrayList<>(failures);
-        Consumer<Throwable> collector = throwable -> {
-            allFailures.add(throwable);
-            finishFailures.accept(throwable);
-        };
+    public ExecutionResult<Void> finishBuildTree(List<Throwable> failures) {
+        List<Throwable> finishFailures = new ArrayList<>();
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
-                ((NestedBuildState) buildState).finishBuild(collector);
+                ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
+                finishFailures.addAll(result.getFailures());
             }
         });
+        List<Throwable> allFailures = new ArrayList<>(failures);
+        allFailures.addAll(finishFailures);
         RuntimeException reportableFailure = exceptionAnalyser.transform(allFailures);
-        buildLifecycleController.finishBuild(reportableFailure, finishFailures);
+        ExecutionResult<Void> result = buildLifecycleController.finishBuild(reportableFailure);
+        finishFailures.addAll(result.getFailures());
+        return ExecutionResult.maybeFailed(finishFailures);
     }
 }
