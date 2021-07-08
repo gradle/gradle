@@ -77,6 +77,25 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         "sourceDirectoriesElements"       | "Java source directories variant."                                       | "src${File.separator}main${File.separator}java"
     }
 
+    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
+    def "registers jacoco coverage variant when test task is used outside of java ecosystem"() {
+        given:
+        file("lib1/build.gradle").setText("""
+            plugins {
+                id("jacoco")
+            }
+            tasks.register("someTest", Test)
+        """)
+
+        when:
+        succeeds(":lib1:outgoingVariants", "--variant", "someTestCoverageElements")
+
+        then:
+        outputContains("Description = Jacoco test coverage data variant for tests from someTest task.")
+        outputContains("- build/jacoco/someTest.exec (artifactType = exec)")
+    }
+
+
     def "aggregates unit test results for the app and its library dependencies"() {
         given:
         file("app/build.gradle") << """

@@ -135,25 +135,24 @@ public class JacocoPlugin implements Plugin<Project> {
             sourceDirectoriesElements.extendsFrom(implementation);
             sourceDirectoriesElements.setDescription("Java source directories variant.");
             mainSourceSet.getJava().getSrcDirs().forEach(f -> sourceDirectoriesElements.getOutgoing().artifact(f));
-
-            TaskContainer tasks = project.getTasks();
-            project.afterEvaluate(p -> {
-                for (String taskName : tasks.withType(Test.class).getNames()) {
-                    Configuration coverageElements = createVariant(taskName + "CoverageElements",
-                        JacocoAggregatedReport.coverageDataAttributes(project, taskName));
-                    coverageElements.setDescription("Jacoco test coverage data variant for tests from " + taskName + " task.");
-                    coverageElements.extendsFrom(implementation);
-                    coverageElements.getOutgoing().artifact(tasks.named(taskName).map(task -> {
-                        File destinationFile = task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile();
-                        if (destinationFile == null) {
-                            throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
-                        }
-                        return destinationFile;
-                    }));
-                }
-            });
         });
 
+        project.afterEvaluate(p -> {
+            TaskContainer tasks = project.getTasks();
+            for (String taskName : tasks.withType(Test.class).getNames()) {
+                Configuration coverageElements = createVariant(taskName + "CoverageElements",
+                    JacocoAggregatedReport.coverageDataAttributes(project, taskName));
+                coverageElements.setDescription("Jacoco test coverage data variant for tests from " + taskName + " task.");
+                coverageElements.extendsFrom(aggregatedJacocoReport);
+                coverageElements.getOutgoing().artifact(tasks.named(taskName).map(task -> {
+                    File destinationFile = task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile();
+                    if (destinationFile == null) {
+                        throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
+                    }
+                    return destinationFile;
+                }));
+            }
+        });
     }
 
     private Configuration createVariant(String name, Action<? super AttributeContainer> attributesSpec) {
