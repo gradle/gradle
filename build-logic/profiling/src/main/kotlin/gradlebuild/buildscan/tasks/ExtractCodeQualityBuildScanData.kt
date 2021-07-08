@@ -68,7 +68,7 @@ abstract class AbstractExtractCodeQualityBuildScanData : DefaultTask() {
 }
 
 
-@DisableCachingByDefault(because = "Does not have cacheable outputs")
+@DisableCachingByDefault(because = "Does not produce cacheable outputs")
 abstract class ExtractCheckstyleBuildScanData : AbstractExtractCodeQualityBuildScanData() {
 
     override val buildScanValueName: String = "Checkstyle Issue"
@@ -85,7 +85,7 @@ abstract class ExtractCheckstyleBuildScanData : AbstractExtractCodeQualityBuildS
 }
 
 
-@DisableCachingByDefault(because = "Does not have cacheable outputs")
+@DisableCachingByDefault(because = "Does not produce cacheable outputs")
 abstract class ExtractCodeNarcBuildScanData : AbstractExtractCodeQualityBuildScanData() {
 
     override val buildScanValueName: String = "CodeNarc Issue"
