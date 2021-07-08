@@ -213,6 +213,6 @@ public class StartParameterInternal extends StartParameter {
      */
     public static boolean useLocationAsProjectRoot(@Nullable File potentialProjectLocation, List<String> requestedTaskNames) {
         return requestedTaskNames.contains("init")
-            || (potentialProjectLocation != null && potentialProjectLocation.getName().equals(BUILD_SRC));
+            || potentialProjectLocation != null && potentialProjectLocation.getName().equals(BUILD_SRC);
     }
 }

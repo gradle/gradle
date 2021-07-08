@@ -59,7 +59,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks() {
-        doBuild((buildController, failures) -> {
+        doBuild(failures -> {
             workPreparer.scheduleRequestedTasks();
             workExecutor.execute(failures);
             return null;
@@ -68,7 +68,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
-        return doBuild((buildController, failureCollector) -> {
+        return doBuild(failureCollector -> {
             if (runTasks) {
                 workPreparer.scheduleRequestedTasks();
                 List<Throwable> failures = new ArrayList<>();
@@ -86,7 +86,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
-        return doBuild((buildController, failures) -> action.apply(buildController.getLoadedSettings()));
+        return doBuild(failures -> action.apply(buildLifecycleController.getLoadedSettings()));
     }
 
     private <T> T doBuild(final BuildAction<T> build) {
@@ -99,7 +99,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
         T result;
         try {
-            result = build.run(buildLifecycleController, collector);
+            result = build.run(collector);
         } catch (Throwable t) {
             result = null;
             failures.add(t);
@@ -116,6 +116,6 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private interface BuildAction<T> {
-        T run(BuildLifecycleController buildLifecycleController, Consumer<Throwable> failures);
+        T run(Consumer<Throwable> failures);
     }
 }

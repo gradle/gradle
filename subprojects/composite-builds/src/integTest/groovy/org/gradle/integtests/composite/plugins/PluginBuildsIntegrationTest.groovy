@@ -86,7 +86,6 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         pluginBuild.assertProjectPluginApplied()
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can execute a task from included plugin build"() {
         given:
         def pluginBuild = pluginBuild("build-logic")

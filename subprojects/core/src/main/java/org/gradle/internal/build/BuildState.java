@@ -20,10 +20,12 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -96,4 +98,9 @@ public interface BuildState {
      * Returns the current state of the mutable model of this build.
      */
     GradleInternal getMutableModel();
+
+    /**
+     * Populates the task graph of this build using the given action.
+     */
+    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
 }

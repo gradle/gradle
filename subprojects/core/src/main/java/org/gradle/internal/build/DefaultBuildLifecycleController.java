@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State {
@@ -50,7 +51,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
     private final InternalBuildFinishedListener buildFinishedListener;
-    private final BuildWorkExecutor buildExecuter;
+    private final BuildWorkPreparer workPreparer;
+    private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
     private final GradleInternal gradle;
     private final BuildModelController modelController;
@@ -65,14 +67,16 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildListener buildListener,
         BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
-        BuildWorkExecutor buildExecuter,
+        BuildWorkPreparer workPreparer,
+        BuildWorkExecutor workExecutor,
         BuildScopeServices buildServices
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
-        this.buildExecuter = buildExecuter;
+        this.workPreparer = workPreparer;
+        this.workExecutor = workExecutor;
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
@@ -88,44 +92,50 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return withModel(BuildModelController::getLoadedSettings);
+        return withModel(modelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return withModel(BuildModelController::getConfiguredModel);
+        return withModel(modelController::getConfiguredModel);
     }
 
     @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        withModel(buildModelController -> {
+    public void scheduleRequestedTasks() {
+        withModel(() -> {
             state = State.TaskGraph;
-            buildModelController.scheduleTasks(taskPaths);
+            modelController.prepareToScheduleTasks();
+            workPreparer.populateWorkGraph(gradle, taskGraph -> modelController.scheduleRequestedTasks());
             return null;
         });
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        withModel(buildModelController -> {
+    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
+        withModel(() -> {
             state = State.TaskGraph;
-            buildModelController.scheduleRequestedTasks();
+            modelController.prepareToScheduleTasks();
+            workPreparer.populateWorkGraph(gradle, action);
             return null;
         });
     }
 
     @Override
     public void executeTasks() {
-        withModel(buildModelController -> {
+        withModel(() -> {
             if (state != State.TaskGraph) {
                 throw new IllegalStateException("Cannot execute tasks as none have been scheduled for this build yet.");
             }
-            runWork();
+            List<Throwable> taskFailures = new ArrayList<>();
+            workExecutor.execute(gradle, taskFailures);
+            if (!taskFailures.isEmpty()) {
+                throw new MultipleBuildFailures(taskFailures);
+            }
             return null;
         });
     }
 
-    private <T> T withModel(Function<BuildModelController, T> action) {
+    private <T> T withModel(Supplier<T> action) {
         if (stageFailure != null) {
             throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
         }
@@ -134,7 +144,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
         try {
             try {
-                return action.apply(modelController);
+                return action.get();
             } finally {
                 if (state == State.Created) {
                     state = State.Configure;
@@ -148,13 +158,12 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
-        if (state == State.Created) {
-            state = State.Finished;
-            return;
-        }
         if (state == State.Finished) {
             return;
         }
+        // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
+        // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
+        // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
 
         Throwable reportableFailure = failure;
         if (reportableFailure == null && stageFailure != null) {
@@ -169,14 +178,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
         state = State.Finished;
         stageFailure = null;
-    }
-
-    private void runWork() {
-        List<Throwable> taskFailures = new ArrayList<>();
-        buildExecuter.execute(gradle, taskFailures);
-        if (!taskFailures.isEmpty()) {
-            throw new MultipleBuildFailures(taskFailures);
-        }
     }
 
     /**

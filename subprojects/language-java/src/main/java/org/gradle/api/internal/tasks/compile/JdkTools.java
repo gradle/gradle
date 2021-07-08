@@ -103,7 +103,14 @@ public class JdkTools {
             if (isJava9Compatible) {
                 clazz = isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
                 try {
-                    return (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                    JavaCompiler compiler = (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                    if (compiler == null) {
+                        // We were trying to load a compiler in our process so Jvm.current() is the correct one to blame.
+                        throw new IllegalStateException("Java compiler is not available. Please check that "
+                            + Jvm.current().getJavaHome().getAbsolutePath()
+                            + " contains a valid JDK installation.");
+                    }
+                    return compiler;
                 } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     cannotCreateJavaCompiler(e);
                 }

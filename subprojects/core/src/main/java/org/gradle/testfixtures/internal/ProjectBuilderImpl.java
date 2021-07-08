@@ -44,8 +44,10 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -226,6 +228,16 @@ public class ProjectBuilderImpl {
             buildServices.add(BuildState.class, this);
             this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
             this.gradle = buildServices.get(GradleInternal.class);
+        }
+
+        @Override
+        protected BuildLifecycleController getBuildController() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public BuildWorkGraph getWorkGraph() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

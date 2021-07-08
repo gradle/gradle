@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -40,7 +41,6 @@ import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
-import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import java.io.File
 
@@ -135,11 +135,8 @@ class ConfigurationCacheHost internal constructor(
         override fun getProject(path: String): ProjectInternal =
             gradle.owner.projects.getProject(Path.path(path)).mutableModel
 
-        override fun scheduleNodes(nodes: Collection<Node>) {
-            gradle.taskGraph.run {
-                addNodes(nodes)
-                populate()
-            }
+        override fun scheduleNodes(action: (TaskExecutionGraphInternal) -> Unit) {
+            gradle.owner.populateWorkGraph(action)
         }
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState {
@@ -159,7 +156,6 @@ class ConfigurationCacheHost internal constructor(
             isImplicit,
             owner,
             service(),
-            service<WorkerLeaseService>().currentWorkerLease,
             service(),
             service(),
             service()

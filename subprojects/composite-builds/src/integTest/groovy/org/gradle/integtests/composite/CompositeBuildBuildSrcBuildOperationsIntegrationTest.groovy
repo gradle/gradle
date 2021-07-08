@@ -124,7 +124,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps[1].parentId == taskGraphOps[1].id
         graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
         graphNotifyOps[2].details.buildPath == ":buildB"
-        graphNotifyOps[2].parentId == taskGraphOps[2].id
+        graphNotifyOps[2].parentId == taskGraphOps[1].id
 
         where:
         settings                     | display
@@ -233,7 +233,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps[2].parentId == taskGraphOps[2].id
         graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
         graphNotifyOps[3].details.buildPath == ":buildB"
-        graphNotifyOps[3].parentId == taskGraphOps[3].id
+        graphNotifyOps[3].parentId == taskGraphOps[2].id
 
         where:
         settings                     | display

@@ -43,12 +43,10 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 
 [NOTE]
 ====
-Toolchain support is only available in the Java plugins and for the tasks they define.
+Toolchain support is available in the Java plugins and for the tasks they define.
 For the Groovy plugin, compilation is supported but not yet Groovydoc generation.
+For the Scala plugin, compilation and Scaladoc generation are supported.
 
-Support for the Scala plugin will be released later.
-
-However, _running tests_ can leverage the toolchain support since the `Test` task does support toolchains.
 ====
 
 [[sec:vendors]]

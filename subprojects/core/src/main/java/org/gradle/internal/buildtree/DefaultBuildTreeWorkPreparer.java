@@ -16,21 +16,21 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.composite.internal.IncludedBuildControllers;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.build.BuildLifecycleController;
 
 public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     private final BuildLifecycleController buildController;
-    private final IncludedBuildControllers includedBuildControllers;
+    private final IncludedBuildTaskGraph includedBuildTaskGraph;
 
-    public DefaultBuildTreeWorkPreparer(BuildLifecycleController buildLifecycleController, IncludedBuildControllers includedBuildControllers) {
+    public DefaultBuildTreeWorkPreparer(BuildLifecycleController buildLifecycleController, IncludedBuildTaskGraph includedBuildTaskGraph) {
         this.buildController = buildLifecycleController;
-        this.includedBuildControllers = includedBuildControllers;
+        this.includedBuildTaskGraph = includedBuildTaskGraph;
     }
 
     @Override
     public void scheduleRequestedTasks() {
         buildController.scheduleRequestedTasks();
-        includedBuildControllers.populateTaskGraphs();
+        includedBuildTaskGraph.populateTaskGraphs();
     }
 }

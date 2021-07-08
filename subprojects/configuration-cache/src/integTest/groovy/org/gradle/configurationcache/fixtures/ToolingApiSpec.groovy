@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
@@ -71,7 +72,7 @@ trait ToolingApiSpec {
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
                     $content
-                    return new MyModel("It works!")
+                    return new MyModel("It works from project \${project.path}")
                 }
             }
         """.stripIndent()
@@ -155,7 +156,7 @@ trait ToolingApiSpec {
         return model
     }
 
-    def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction) {
+    def <T, S> Pair<T, S> runPhasedBuildAction(BuildAction<T> projectsLoadedAction, BuildAction<S> modelAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
         def args = executer.allArgs
@@ -164,7 +165,7 @@ trait ToolingApiSpec {
         T projectsLoadedModel = null
         S buildModel = null
         toolingApiExecutor.usingToolingConnection(testDirectory) { connection ->
-            connection.action()
+            def builder = connection.action()
                 .projectsLoaded(projectsLoadedAction, { Object model ->
                     projectsLoadedModel = model
                 })
@@ -172,6 +173,9 @@ trait ToolingApiSpec {
                     buildModel = model
                 })
                 .build()
+            config.delegate = builder
+            config.call()
+            builder
                 .addJvmArguments(executer.jvmArgs)
                 .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))

@@ -35,6 +35,7 @@ import static org.gradle.util.Path.path
 class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
     def workExecutor = Mock(BuildWorkExecutor)
+    def workPreparer = Mock(BuildWorkPreparer)
 
     def settingsMock = Mock(SettingsInternal.class)
     def gradleMock = Mock(GradleInternal.class)
@@ -56,18 +57,16 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, workExecutor, buildServices)
+            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices)
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
         def controller = controller()
 
-        when:
-        controller.finishBuild(null, consumer)
+        expect:
+        expectBuildFinished("Configure")
 
-        then:
-        0 * buildBroadcaster._
-        0 * consumer._
+        controller.finishBuild(null, consumer)
     }
 
     void testScheduleAndRunRequestedTasks() {
@@ -209,6 +208,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         isRootBuild()
 
         and:
+        1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
         1 * buildModelController.scheduleRequestedTasks() >> { throw failure }
 
         when:
@@ -363,7 +363,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         controller.finishBuild(null, {})
 
         when:
-        controller.scheduleTasks(['a'])
+        controller.scheduleRequestedTasks()
 
         then:
         thrown IllegalStateException
@@ -385,6 +385,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     private void expectTaskGraphBuilt() {
+        1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
         1 * buildModelController.scheduleRequestedTasks()
     }
 

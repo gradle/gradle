@@ -30,7 +30,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -50,7 +49,7 @@ class DefaultIncludedBuildTest extends Specification {
         _ * gradle.settings >> Stub(SettingsInternal)
         _ * buildTree.services >> new DefaultServiceRegistry()
 
-        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Stub(WorkerLeaseRegistry.WorkerLease), buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
     }
 
     def "creates a foreign id for projects"() {

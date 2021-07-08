@@ -81,7 +81,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         groovyTaskSource << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
+            import org.gradle.work.*;
 
+            @DisableCachingByDefault(because = "test task")
             class MyTask extends DefaultTask {
                 @Nested
                 Tree tree
@@ -113,7 +115,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
 
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @${ann.simpleName}
                 String getThing() {
@@ -159,7 +163,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         groovyTaskSource << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
+            import org.gradle.work.*
 
+            @DisableCachingByDefault(because = "test task")
             class MyTask extends DefaultTask {
                 @InputFile
                 File fileProp
@@ -201,9 +207,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
             import java.io.File;
             import com.typesafe.config.Config;
 
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public long getGoodTime() {
@@ -257,7 +265,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
 
+            @DisableCachingByDefault(because = "test task")
             public class MyTask extends DefaultTask {
                 @Input
                 public long getGoodTime() {
@@ -286,8 +296,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
             import java.io.*;
 
+            @DisableCachingByDefault(because = "test transform action")
             public abstract class MyTransformAction implements TransformAction {
                 // Should be ignored because it's not a getter
                 public void getVoid() {
@@ -427,7 +439,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         file("src/main/java/MainTask.java") << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
 
+            @DisableCachingByDefault(because = "test task")
             public class MainTask extends DefaultTask {
                 // WIll not be called out because it's in the main source set
                 public long getBadProperty() {
@@ -441,7 +455,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         file("src/plugin/java/PluginTask.java") << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
 
+            @DisableCachingByDefault(because = "test task")
             public class PluginTask extends DefaultTask {
                 // WIll be called out because it's among the plugin's sources
                 public long getBadProperty() {
@@ -455,6 +471,32 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         expect:
         assertValidationFailsWith([
             error(missingAnnotationMessage { type('PluginTask').property('badProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
+    }
+
+    @ValidationTestFor(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
+    def "detects missing DisableCachingByDefault annotations"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.artifacts.transform.*;
+
+            public abstract class MyTransformAction implements TransformAction<TransformParameters.None> {
+            }
+        """
+        buildFile << """
+            validatePlugins.enableStricterValidation = true
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
+            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
         ])
     }
 }

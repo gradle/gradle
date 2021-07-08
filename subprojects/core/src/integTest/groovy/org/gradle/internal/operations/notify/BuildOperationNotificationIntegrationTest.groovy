@@ -216,7 +216,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).id
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':buildSrc']).id
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':a:buildSrc']).id
 

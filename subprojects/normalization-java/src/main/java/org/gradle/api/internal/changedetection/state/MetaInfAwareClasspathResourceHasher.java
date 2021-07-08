@@ -17,6 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -58,7 +61,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
         String relativePath = join("/", snapshotContext.getRelativePathSegments().get());
         if (isManifestFile(relativePath)) {
             return tryHashWithFallback(snapshotContext);
@@ -79,7 +82,7 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
     }
 
     @Nullable
-    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) {
+    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) throws IOException {
         try (FileInputStream manifestFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
             return hashManifest(manifestFileInputStream);
         } catch (IOException e) {

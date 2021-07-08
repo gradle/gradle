@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -36,13 +39,19 @@ import java.util.Map;
  * Ignores directories.
  */
 public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStrategy {
-
-    public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+    public static final IgnoredPathFingerprintingStrategy DEFAULT = new IgnoredPathFingerprintingStrategy();
     public static final String IDENTIFIER = "IGNORED_PATH";
     public static final String IGNORED_PATH = "";
 
+    private final FileSystemLocationSnapshotHasher normalizedContentHasher;
+
+    public IgnoredPathFingerprintingStrategy(LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        super(IDENTIFIER, DirectorySensitivity.DEFAULT, lineEndingSensitivity);
+        this.normalizedContentHasher = normalizedContentHasher;
+    }
+
     private IgnoredPathFingerprintingStrategy() {
-        super(IDENTIFIER);
+        this(LineEndingSensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT);
     }
 
     @Override
@@ -69,7 +78,10 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
                 private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot) {
                     String absolutePath = snapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
-                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), snapshot.getHash()));
+                        HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
+                        if (normalizedContentHash != null) {
+                            builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash));
+                        }
                     }
                 }
             });
@@ -81,10 +93,5 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     @Override
     public FingerprintHashingStrategy getHashingStrategy() {
         return FingerprintHashingStrategy.SORT;
-    }
-
-    @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return DirectorySensitivity.DEFAULT;
     }
 }

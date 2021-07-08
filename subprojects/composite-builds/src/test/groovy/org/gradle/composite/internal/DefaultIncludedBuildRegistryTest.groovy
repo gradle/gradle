@@ -72,7 +72,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def services = new DefaultServiceRegistry()
 
         services.add(Stub(WorkerLeaseService))
-        services.add(Stub(IncludedBuildControllers))
+        services.add(Stub(IncludedBuildTaskGraph))
         services.add(Stub(ExceptionAnalyser))
         services.add(Stub(BuildOperationExecutor))
         services.add(Stub(BuildStateRegistry))

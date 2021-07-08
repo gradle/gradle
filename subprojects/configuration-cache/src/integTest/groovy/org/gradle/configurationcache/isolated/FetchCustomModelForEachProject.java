@@ -22,18 +22,18 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-public class FetchCustomModelForEachProject implements BuildAction<Map<String, SomeToolingModel>> {
+public class FetchCustomModelForEachProject implements BuildAction<List<SomeToolingModel>> {
     @Override
-    public Map<String, SomeToolingModel> execute(BuildController controller) {
-        Map<String, SomeToolingModel> result = new LinkedHashMap<>();
+    public List<SomeToolingModel> execute(BuildController controller) {
+        List<SomeToolingModel> result = new ArrayList<>();
         GradleBuild buildModel = controller.getBuildModel();
         for (BasicGradleProject project : buildModel.getProjects()) {
             SomeToolingModel model = controller.findModel(project, SomeToolingModel.class);
             if (model != null) {
-                result.put(project.getPath(), model);
+                result.add(model);
             }
         }
         return result;

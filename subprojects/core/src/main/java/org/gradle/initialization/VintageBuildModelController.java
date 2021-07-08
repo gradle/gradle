@@ -22,11 +22,12 @@ import org.gradle.internal.build.BuildModelController;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage {
-        Created, LoadSettings, Configure, TaskGraph
+        Created, LoadSettings, Configure, ScheduleTasks, TaskGraph
     }
 
     private final ProjectsPreparer projectsPreparer;
     private final GradleInternal gradle;
+    private final ProjectsPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
 
@@ -35,11 +36,13 @@ public class VintageBuildModelController implements BuildModelController {
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
+        ProjectsPreparer taskGraphPreparer,
         SettingsPreparer settingsPreparer,
         TaskExecutionPreparer taskExecutionPreparer
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
+        this.taskGraphPreparer = taskGraphPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
     }
@@ -57,6 +60,11 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
+    public void prepareToScheduleTasks() {
+        doBuildStages(Stage.ScheduleTasks);
+    }
+
+    @Override
     public void scheduleRequestedTasks() {
         doBuildStages(Stage.TaskGraph);
     }
@@ -68,6 +76,10 @@ public class VintageBuildModelController implements BuildModelController {
         }
         prepareProjects();
         if (upTo == Stage.Configure) {
+            return;
+        }
+        prepareTaskGraph();
+        if (upTo == Stage.ScheduleTasks) {
             return;
         }
         prepareTaskExecution();
@@ -87,21 +99,17 @@ public class VintageBuildModelController implements BuildModelController {
         }
     }
 
-    private void prepareTaskExecution() {
+    private void prepareTaskGraph() {
         if (stage == Stage.Configure) {
-            taskExecutionPreparer.prepareForTaskExecution(gradle);
-            stage = Stage.TaskGraph;
+            taskGraphPreparer.prepareProjects(gradle);
+            stage = Stage.ScheduleTasks;
         }
     }
 
-    @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        boolean added = getConfiguredModel().getStartParameter().addTaskNames(taskPaths);
-        if (!added) {
-            return;
+    private void prepareTaskExecution() {
+        if (stage == Stage.ScheduleTasks) {
+            taskExecutionPreparer.prepareForTaskExecution(gradle);
+            stage = Stage.TaskGraph;
         }
-        // Force back to configure so that task graph will get reevaluated
-        stage = Stage.Configure;
-        doBuildStages(Stage.TaskGraph);
     }
 }

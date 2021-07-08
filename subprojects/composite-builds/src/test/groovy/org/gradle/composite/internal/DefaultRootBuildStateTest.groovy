@@ -45,7 +45,7 @@ class DefaultRootBuildStateTest extends Specification {
     def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
+    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     DefaultRootBuildState build
 
@@ -54,7 +54,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def sessionServices = new DefaultServiceRegistry()
         sessionServices.add(new TestBuildOperationExecutor())
-        sessionServices.add(includedBuildControllers)
+        sessionServices.add(includedBuildTaskGraph)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
         sessionServices.add(Stub(BuildStateRegistry))
@@ -97,7 +97,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         1 * lifecycleListener.beforeComplete()
         0 * launcher._
-        0 * includedBuildControllers._
+        0 * includedBuildTaskGraph._
         0 * lifecycleListener._
     }
 
@@ -132,9 +132,9 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * launcher.scheduleRequestedTasks()
-        1 * includedBuildControllers.startTaskExecution()
+        1 * includedBuildTaskGraph.startTaskExecution()
         1 * launcher.executeTasks()
-        1 * includedBuildControllers.awaitTaskCompletion(_)
+        1 * includedBuildTaskGraph.awaitTaskCompletion(_)
         1 * launcher.finishBuild(null, _)
 
         and:

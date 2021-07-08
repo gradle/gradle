@@ -54,6 +54,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSup
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -107,6 +108,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     private final CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters;
     private final DirectorySensitivity artifactDirectorySensitivity;
     private final DirectorySensitivity dependenciesDirectorySensitivity;
+    private final LineEndingSensitivity artifactLineEndingSensitivity;
+    private final LineEndingSensitivity dependenciesLineEndingSensitivity;
 
     public DefaultTransformer(
         Class<? extends TransformAction<?>> implementationClass,
@@ -117,6 +120,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         boolean cacheable,
         DirectorySensitivity artifactDirectorySensitivity,
         DirectorySensitivity dependenciesDirectorySensitivity,
+        LineEndingSensitivity artifactLineEndingSensitivity,
+        LineEndingSensitivity dependenciesLineEndingSensitivity,
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
@@ -140,6 +145,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.cacheable = cacheable;
         this.artifactDirectorySensitivity = artifactDirectorySensitivity;
         this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
+        this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
+        this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
         this.isolatedParameters = calculatedValueContainerFactory.create(Describables.of("parameters of", this),
             new IsolateTransformerParameters(parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher,
                 fileCollectionFactory, documentationRegistry));
@@ -159,7 +166,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         InstantiationScheme actionInstantiationScheme,
         ServiceLookup internalServices,
         DirectorySensitivity artifactDirectorySensitivity,
-        DirectorySensitivity dependenciesDirectorySensitivity
+        DirectorySensitivity dependenciesDirectorySensitivity,
+        LineEndingSensitivity artifactLineEndingSensitivity,
+        LineEndingSensitivity dependenciesLineEndingSensitivity
     ) {
         super(implementationClass, fromAttributes);
         this.fileNormalizer = inputArtifactNormalizer;
@@ -173,6 +182,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         this.isolatedParameters = isolatedParameters;
         this.artifactDirectorySensitivity = artifactDirectorySensitivity;
         this.dependenciesDirectorySensitivity = dependenciesDirectorySensitivity;
+        this.artifactLineEndingSensitivity = artifactLineEndingSensitivity;
+        this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
@@ -229,6 +240,16 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     @Override
     public DirectorySensitivity getInputArtifactDependenciesDirectorySensitivity() {
         return dependenciesDirectorySensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getInputArtifactLineEndingNormalization() {
+        return artifactLineEndingSensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
+        return dependenciesLineEndingSensitivity;
     }
 
     @Override
@@ -297,6 +318,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     boolean optional,
                     boolean skipWhenEmpty,
                     DirectorySensitivity directorySensitivity,
+                    LineEndingSensitivity lineEndingNormalization,
                     boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value,
@@ -310,6 +332,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,
+                            lineEndingNormalization,
                             () -> FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value)));
                 }
 
@@ -572,6 +595,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                         boolean optional,
                         boolean skipWhenEmpty,
                         DirectorySensitivity directorySensitivity,
+                        LineEndingSensitivity lineEndingSensitivity,
                         boolean incremental,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                         PropertyValue value,

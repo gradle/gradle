@@ -162,7 +162,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def childBuildScript = server.expectAndBlock('child-build-script')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def childTaskGraph = server.expectAndBlock('child-task-graph')
-        def childTaskGraph2 = server.expectAndBlock('child-task-graph')
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
@@ -187,11 +186,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         childTaskGraph.waitForAllPendingCalls()
         assertHasBuildPhase("100% CONFIGURING")
         childTaskGraph.releaseAll()
-
-        and:
-        childTaskGraph2.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
-        childTaskGraph2.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()

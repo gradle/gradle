@@ -26,6 +26,11 @@ import org.gradle.api.internal.file.archive.impl.StreamZipInput;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -41,7 +46,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
+public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
     private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
@@ -108,7 +113,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
                 continue;
             }
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
-            ZipEntryContext zipEntryContext = new ZipEntryContext(zipEntry, fullName, rootParentName);
+            ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));

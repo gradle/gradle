@@ -33,6 +33,8 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraph;
+import org.gradle.internal.build.DefaultBuildWorkGraph;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
@@ -58,6 +60,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
+    private final BuildWorkGraph workGraph;
     private boolean completed;
 
     DefaultRootBuildState(BuildDefinition buildDefinition,
@@ -71,19 +74,30 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
 
-        IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
+        IncludedBuildTaskGraph controllers = buildScopeServices.get(IncludedBuildTaskGraph.class);
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController), buildOperationExecutor);
-        BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
+        BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
+        this.workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+    }
+
+    @Override
+    protected BuildLifecycleController getBuildController() {
+        return buildLifecycleController;
     }
 
     @Override
     protected ProjectStateRegistry getProjectStateRegistry() {
         return projectStateRegistry;
+    }
+
+    @Override
+    public BuildWorkGraph getWorkGraph() {
+        return workGraph;
     }
 
     @Override
