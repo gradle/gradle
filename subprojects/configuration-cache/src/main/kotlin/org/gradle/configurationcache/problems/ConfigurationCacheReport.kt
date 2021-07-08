@@ -46,12 +46,18 @@ class ConfigurationCacheReport(
 
     sealed class State {
 
-        open fun onProblem(problem: PropertyProblem): State = illegalState()
-
-        open fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File> =
+        open fun onProblem(problem: PropertyProblem): State =
             illegalState()
 
-        open fun close(): State = illegalState()
+        open fun commitReportTo(
+            outputDirectory: File,
+            cacheAction: String,
+            totalProblemCount: Int
+        ): Pair<State, File> =
+            illegalState()
+
+        open fun close(): State =
+            illegalState()
 
         private
         fun illegalState(): Nothing =
@@ -182,24 +188,14 @@ class ConfigurationCacheReport(
     val stateLock = Object()
 
     override fun close() {
-        withState {
+        modifyState {
             close()
         }
     }
 
     fun onProblem(problem: PropertyProblem) {
-        withState {
+        modifyState {
             onProblem(problem)
-        }
-    }
-
-    private
-    inline fun withState(f: State.() -> State) {
-        contract {
-            callsInPlace(f, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
-        }
-        synchronized(stateLock) {
-            state = state.f()
         }
     }
 
@@ -212,12 +208,22 @@ class ConfigurationCacheReport(
     internal
     fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File {
         lateinit var reportFile: File
-        withState {
+        modifyState {
             val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, totalProblemCount)
             reportFile = outputFile
             newState
         }
         return reportFile
+    }
+
+    private
+    inline fun modifyState(f: State.() -> State) {
+        contract {
+            callsInPlace(f, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+        }
+        synchronized(stateLock) {
+            state = state.f()
+        }
     }
 }
 
