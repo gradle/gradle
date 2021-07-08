@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.build;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,30 +40,35 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static java.util.Collections.newSetFromMap;
 import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings({"Guava"})
-public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionPreparer {
-    private final TaskExecutionPreparer delegate;
+public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildWorkPreparer delegate;
 
-    public BuildOperationFiringTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
-        this.delegate = delegate;
+    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.delegate = delegate;
     }
 
     @Override
-    public void prepareForTaskExecution(GradleInternal gradle) {
-        buildOperationExecutor.run(new CalculateTaskGraph(gradle));
+    public void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action) {
+        buildOperationExecutor.run(new PopulateWorkGraph(gradle, delegate, action));
     }
 
-    private class CalculateTaskGraph implements RunnableBuildOperation {
+    private static class PopulateWorkGraph implements RunnableBuildOperation {
         private final GradleInternal gradle;
+        private final BuildWorkPreparer delegate;
+        private final Consumer<? super TaskExecutionGraphInternal> action;
 
-        public CalculateTaskGraph(GradleInternal gradle) {
+        public PopulateWorkGraph(GradleInternal gradle, BuildWorkPreparer delegate, Consumer<? super TaskExecutionGraphInternal> action) {
             this.gradle = gradle;
+            this.delegate = delegate;
+            this.action = action;
         }
 
         @Override
@@ -111,7 +117,7 @@ public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionP
         }
 
         TaskExecutionGraphInternal populateTaskGraph() {
-            delegate.prepareForTaskExecution(gradle);
+            delegate.populateWorkGraph(gradle, action);
             return gradle.getTaskGraph();
         }
 
@@ -157,7 +163,7 @@ public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionP
         }
         return FluentIterable.from(nodes)
             .filter(TaskNode.class)
-            .transform(BuildOperationFiringTaskExecutionPreparer::toIdentity)
+            .transform(BuildOperationFiringBuildWorkPreparer::toIdentity)
             .toList();
     }
 

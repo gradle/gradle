@@ -18,31 +18,30 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
-    private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new HashMap<>();
+class DefaultIncludedBuildControllers implements IncludedBuildControllers {
+    private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new LinkedHashMap<>();
     private final ManagedExecutor executorService;
-    private final ResourceLockCoordinationService coordinationService;
     private final ProjectStateRegistry projectStateRegistry;
+    private final WorkerLeaseService workerLeaseService;
     private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ResourceLockCoordinationService coordinationService, ProjectStateRegistry projectStateRegistry) {
+    DefaultIncludedBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+        this.executorService = executorService;
         this.buildRegistry = buildRegistry;
-        this.executorService = executorFactory.create("included builds");
-        this.coordinationService = coordinationService;
         this.projectStateRegistry = projectStateRegistry;
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -52,17 +51,15 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-        DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build, coordinationService, projectStateRegistry);
+        IncludedBuildController newBuildController;
+        if (buildId.equals(DefaultBuildIdentifier.ROOT)) {
+            newBuildController = new RootBuildController(buildRegistry.getRootBuild());
+        } else {
+            IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
+            newBuildController = new DefaultIncludedBuildController(build, projectStateRegistry, workerLeaseService);
+        }
         buildControllers.put(buildId, newBuildController);
         return newBuildController;
-    }
-
-    @Override
-    public void startTaskExecution() {
-        for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.startTaskExecution(executorService);
-        }
     }
 
     @Override
@@ -76,6 +73,16 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
                 }
             }
         }
+        for (IncludedBuildController buildController : buildControllers.values()) {
+            buildController.prepareForExecution();
+        }
+    }
+
+    @Override
+    public void startTaskExecution() {
+        for (IncludedBuildController buildController : buildControllers.values()) {
+            buildController.startTaskExecution(executorService);
+        }
     }
 
     @Override
@@ -86,14 +93,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void finishPendingWork(Consumer<? super Throwable> collector) {
+    public void close() {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
-        buildControllers.clear();
-    }
-
-    @Override
-    public void stop() {
-        CompositeStoppable.stoppable(buildControllers.values()).stop();
-        executorService.stop();
     }
 }

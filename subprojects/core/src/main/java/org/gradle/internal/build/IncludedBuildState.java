@@ -29,16 +29,18 @@ import java.io.File;
  */
 public interface IncludedBuildState extends NestedBuildState, CompositeBuildParticipantBuildState {
     String getName();
+
     File getRootDirectory();
+
     boolean isPluginBuild();
+
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
+
     boolean hasInjectedSettingsPlugins();
 
     SettingsInternal loadSettings();
 
     GradleInternal getConfiguredBuild();
-    void addTasks(Iterable<String> tasks);
-    void execute(Object listener);
 
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 }

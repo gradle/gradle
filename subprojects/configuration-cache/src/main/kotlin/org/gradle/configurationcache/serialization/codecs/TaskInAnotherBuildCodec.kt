@@ -23,7 +23,6 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
-import org.gradle.util.Path.path
 
 
 class TaskInAnotherBuildCodec(
@@ -32,23 +31,17 @@ class TaskInAnotherBuildCodec(
 
     override suspend fun WriteContext.encode(value: TaskInAnotherBuild) {
         value.run {
-            writeString(taskIdentityPath.toString())
             writeString(taskPath)
             write(targetBuild)
-            write(thisBuild)
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
-        val taskIdentityPath = path(readString())
         val taskPath = readString()
         val targetBuild = readNonNull<BuildIdentifier>()
-        val thisBuild = readNonNull<BuildIdentifier>()
         return TaskInAnotherBuild.of(
-            taskIdentityPath,
             taskPath,
             targetBuild,
-            thisBuild,
             includedTaskGraph
         )
     }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -97,8 +98,11 @@ import org.gradle.configuration.project.DelayedConfigurationActions;
 import org.gradle.configuration.project.LifecycleProjectEvaluator;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
 import org.gradle.configuration.project.ProjectEvaluator;
+import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskPathProjectEvaluator;
+import org.gradle.execution.TaskSelector;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -145,8 +149,11 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
+import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkPreparer;
+import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -504,6 +511,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 buildStateRegistry,
                 buildSourceBuilder),
             buildOperationExecutor);
+    }
+
+    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor) {
+        return new BuildOperationFiringBuildWorkPreparer(buildOperationExecutor, new DefaultBuildWorkPreparer());
+    }
+
+    protected TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
+        return new CompositeAwareTaskSelector(gradle, buildStateRegistry, projectConfigurer, new TaskNameResolver());
     }
 
     protected ProjectAccessHandler createProjectAccessHandler() {

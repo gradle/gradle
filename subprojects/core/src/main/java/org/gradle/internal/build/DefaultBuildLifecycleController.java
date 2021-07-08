@@ -51,7 +51,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildListener buildListener;
     private final BuildCompletionListener buildCompletionListener;
     private final InternalBuildFinishedListener buildFinishedListener;
-    private final BuildWorkExecutor buildExecuter;
+    private final BuildWorkPreparer workPreparer;
+    private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
     private final GradleInternal gradle;
     private final BuildModelController modelController;
@@ -66,14 +67,16 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildListener buildListener,
         BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
-        BuildWorkExecutor buildExecuter,
+        BuildWorkPreparer workPreparer,
+        BuildWorkExecutor workExecutor,
         BuildScopeServices buildServices
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
-        this.buildExecuter = buildExecuter;
+        this.workPreparer = workPreparer;
+        this.workExecutor = workExecutor;
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
@@ -98,19 +101,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void scheduleTasks(final Iterable<String> taskPaths) {
-        withModel(() -> {
-            state = State.TaskGraph;
-            modelController.scheduleTasks(taskPaths);
-            return null;
-        });
-    }
-
-    @Override
     public void scheduleRequestedTasks() {
         withModel(() -> {
             state = State.TaskGraph;
-            modelController.scheduleRequestedTasks();
+            modelController.prepareToScheduleTasks();
+            workPreparer.populateWorkGraph(gradle, taskGraph -> modelController.scheduleRequestedTasks());
             return null;
         });
     }
@@ -119,7 +114,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
         withModel(() -> {
             state = State.TaskGraph;
-            action.accept(gradle.getTaskGraph());
+            modelController.prepareToScheduleTasks();
+            workPreparer.populateWorkGraph(gradle, action);
             return null;
         });
     }
@@ -131,7 +127,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
                 throw new IllegalStateException("Cannot execute tasks as none have been scheduled for this build yet.");
             }
             List<Throwable> taskFailures = new ArrayList<>();
-            buildExecuter.execute(gradle, taskFailures);
+            workExecutor.execute(gradle, taskFailures);
             if (!taskFailures.isEmpty()) {
                 throw new MultipleBuildFailures(taskFailures);
             }

@@ -51,6 +51,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
+    private final BuildScopeServices buildScopeServices;
 
     DefaultNestedBuild(BuildIdentifier buildIdentifier,
                        Path identityPath,
@@ -65,13 +66,13 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.owner = owner;
         this.projectStateRegistry = projectStateRegistry;
 
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildScopeServices);
 
-        IncludedBuildControllers controllers = buildScopeServices.get(IncludedBuildControllers.class);
+        IncludedBuildTaskGraph taskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildModelParameters modelParameters = buildScopeServices.get(BuildModelParameters.class);
-        BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
+        BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor(taskGraph, buildLifecycleController);
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 
         // On completion of the action, finish only this build and do not finish any other builds
@@ -123,7 +124,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
-        return buildAction.apply(buildTreeLifecycleController);
+        IncludedBuildTaskGraph includedBuildTaskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
+        return includedBuildTaskGraph.withNestedTaskGraph(() -> buildAction.apply(buildTreeLifecycleController));
     }
 
     @Override

@@ -39,4 +39,8 @@ public interface CompositeBuildParticipantBuildState extends BuildState {
      */
     ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 
+    /**
+     * Returns the work graph for this build.
+     */
+    BuildWorkGraph getWorkGraph();
 }

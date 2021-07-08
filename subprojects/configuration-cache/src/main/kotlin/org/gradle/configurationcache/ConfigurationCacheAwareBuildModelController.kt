@@ -42,9 +42,10 @@ class ConfigurationCacheAwareBuildModelController(
         }
     }
 
-    override fun scheduleTasks(tasks: Iterable<String>) {
-        check(!maybeLoadFromCache()) { "Cannot schedule specific tasks when model has been loaded from configuration cache." }
-        delegate.scheduleTasks(tasks)
+    override fun prepareToScheduleTasks() {
+        if (!maybeLoadFromCache()) {
+            delegate.prepareToScheduleTasks()
+        } // Else, already done
     }
 
     override fun scheduleRequestedTasks() {

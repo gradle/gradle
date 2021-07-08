@@ -39,6 +39,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -104,11 +105,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner.getMutableModel(), buildServices);
 
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
-        IncludedBuildControllers controllers = buildServices.get(IncludedBuildControllers.class);
+        IncludedBuildTaskGraph controllers = buildServices.get(IncludedBuildTaskGraph.class);
         ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
         BuildStateRegistry buildStateRegistry = buildServices.get(BuildStateRegistry.class);
         BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(controllers, buildLifecycleController);
-        BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(controllers, buildStateRegistry, exceptionAnalyser, buildLifecycleController);
+        BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
     }
 
@@ -119,6 +120,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     protected BuildLifecycleController getBuildController() {
         return buildLifecycleController;
+    }
+
+    @Override
+    public BuildWorkGraph getWorkGraph() {
+        return buildServices.get(BuildWorkGraph.class);
     }
 
     @Override

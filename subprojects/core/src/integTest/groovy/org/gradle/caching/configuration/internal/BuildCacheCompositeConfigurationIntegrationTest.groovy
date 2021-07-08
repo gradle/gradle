@@ -155,7 +155,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         buildTestFixture.withBuildInSubDir()
         multiProjectBuild('included', ['first', 'second']) {
             buildFile << """
-                gradle.startParameter.setTaskNames(['clean', 'build'])
                 allprojects {
                     apply plugin: 'java-library'
 
@@ -166,6 +165,8 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
                         }
                     }
                 }
+                tasks.build.dependsOn(subprojects.tasks.build)
+                tasks.clean.dependsOn(subprojects.tasks.clean)
             """
             file("src/test/java/Test.java") << """class Test {}"""
             file("first/src/test/java/Test.java") << """class TestFirst {}"""
@@ -177,13 +178,12 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         """
         buildFile << """
             apply plugin: 'java-library'
-            // This dependency is needed to actually trigger the included build at all
-            processResources.dependsOn gradle.includedBuild('included').task(':processResources')
         """
 
         expect:
-        succeeds "build"
-        succeeds "build", "--info"
+        succeeds "build", ":included:build"
+        succeeds "clean", ":included:clean"
+        succeeds "build", ":included:build", "--info"
 
         and:
         // Will run after the root build has finished

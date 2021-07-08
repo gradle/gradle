@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
 import java.util.function.Consumer;
 
-/**
- * A resource produced by a task in an included build.
- */
-public interface IncludedBuildTaskResource {
-    enum State {
-        WAITING, SUCCESS, FAILED;
-    }
-
-    /**
-     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
-     */
-    void queueForExecution();
-
-    TaskInternal getTask();
-
-    State getTaskState();
+public interface BuildWorkPreparer {
+    void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action);
 }

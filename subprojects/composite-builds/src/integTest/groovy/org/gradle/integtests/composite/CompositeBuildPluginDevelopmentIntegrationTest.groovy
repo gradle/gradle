@@ -456,12 +456,16 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "tasks")
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:jar"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:classes"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyB:compileJava"))
-        failure.assertThatDescription(containsNormalizedString(":pluginDependencyA:compileJava (*)"))
+        failure.assertHasCause("""
+Circular dependency between the following tasks:
+:pluginDependencyA:compileJava
+\\--- :pluginDependencyB:jar
+     \\--- :pluginDependencyB:classes
+          \\--- :pluginDependencyB:compileJava
+               \\--- :pluginDependencyA:compileJava (*)
+
+(*) - details omitted (listed previously)
+""".trim())
     }
 
     def "can co-develop plugin applied via plugins block with resolution strategy applied"() {

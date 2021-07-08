@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.Closeable;
 import java.util.function.Consumer;
 
-@ServiceScope(Scopes.BuildTree.class)
-public interface IncludedBuildControllers {
+interface IncludedBuildControllers extends Closeable {
     /**
      * Finish populating task graphs, once all entry point tasks have been scheduled.
      */
@@ -38,10 +36,8 @@ public interface IncludedBuildControllers {
      */
     void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
 
-    /**
-     * Completes any pending work, blocking until complete.
-     */
-    void finishPendingWork(Consumer<? super Throwable> collector);
-
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+
+    @Override
+    void close();
 }

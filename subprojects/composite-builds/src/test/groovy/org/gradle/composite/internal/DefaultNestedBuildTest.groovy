@@ -33,6 +33,7 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Function
+import java.util.function.Supplier
 
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
@@ -46,7 +47,7 @@ class DefaultNestedBuildTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
+    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
 
     DefaultNestedBuild build() {
@@ -55,9 +56,9 @@ class DefaultNestedBuildTest extends Specification {
         _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
         _ * buildDefinition.name >> "nested"
         sessionServices.add(Stub(BuildOperationExecutor))
-        sessionServices.add(includedBuildControllers)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
+        sessionServices.add(includedBuildTaskGraph)
         _ * tree.services >> sessionServices
         _ * controller.gradle >> gradle
 
@@ -87,6 +88,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -107,6 +109,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -127,9 +130,9 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             return null
         }
     }
-
 }
