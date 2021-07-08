@@ -45,7 +45,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             def fileExtension = useKotlinDSL ? '.gradle.kts' : '.gradle'
             def sourceDirectory = useKotlinDSL ? 'kotlin' : 'groovy'
             def pluginPluginId = useKotlinDSL
-                ? 'kotlin("jvm") version "1.5.20"\n`kotlin-dsl`' // TODO: remove kotlin("jvm") plugin once kotlin-dsl is published
+                ? '`kotlin-dsl`'
                 : 'id("groovy-gradle-plugin")'
 
             this.buildName = buildName

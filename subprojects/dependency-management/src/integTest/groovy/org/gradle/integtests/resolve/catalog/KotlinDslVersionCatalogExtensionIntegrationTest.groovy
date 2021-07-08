@@ -104,7 +104,6 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         """
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version "1.5.20" // TODO: remove once a new `kotlin-dsl` version is published
                 `kotlin-dsl`
             }
 

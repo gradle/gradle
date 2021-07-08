@@ -150,7 +150,6 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun scriptWithKotlinDslPlugin(): String =
         """
             plugins {
-                kotlin("jvm") version "1.5.20" // TODO: remove once a new `kotlin-dsl` version is published
                 `kotlin-dsl`
             }
 
