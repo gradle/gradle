@@ -131,7 +131,11 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     }
 
     private static void validateCacheabilityAnnotationPresent(Class<?> topLevelBean, boolean cacheable, Class<? extends Annotation> cacheableAnnotationClass, DefaultTypeValidationContext validationContext) {
-        if (!topLevelBean.isInterface() && !cacheable && topLevelBean.getAnnotation(DisableCachingByDefault.class) == null) {
+        if (topLevelBean.isInterface()) {
+            // Won't validate interfaces
+            return;
+        }
+        if (!cacheable && topLevelBean.getAnnotation(DisableCachingByDefault.class) == null) {
             boolean isTask = Task.class.isAssignableFrom(topLevelBean);
             String cacheableAnnotation = "@" + cacheableAnnotationClass.getSimpleName();
             String disableCachingAnnotation = "@" + DisableCachingByDefault.class.getSimpleName();

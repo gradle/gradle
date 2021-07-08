@@ -33,7 +33,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
 @CompileStatic
-@DisableCachingByDefault(because = "Only filters the input artifact")
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class ExplodeZipAndFindJars implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
