@@ -33,4 +33,29 @@ class PropertyReportRendererTest extends Specification {
         then:
         assert containsLine(out.toString(), "prop: value")
     }
+
+    def 'writes null property'() {
+        when:
+        renderer.addProperty("prop", null)
+
+        then:
+        assert containsLine(out.toString(), "prop: null")
+    }
+
+    void 'writes property that throws in toString'() {
+        when:
+        renderer.addProperty("prop", new RenderFailedValue())
+
+        then:
+        assert containsLine(out.toString(), 'prop: ' +
+            'class org.gradle.api.tasks.diagnostics.internal.PropertyReportRendererTest$RenderFailedValue ' +
+            '[Rendering failed]')
+    }
+
+    private static class RenderFailedValue {
+        @Override
+        String toString() {
+            throw new UnsupportedOperationException("You cannot toString me!")
+        }
+    }
 }
