@@ -92,7 +92,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Description = Jacoco test coverage data variant for tests from someTest task.")
-        outputContains("- build/jacoco/someTest.exec (artifactType = exec)")
+        outputContains("- build${File.separator}jacoco${File.separator}someTest.exec (artifactType = exec)")
     }
 
 
