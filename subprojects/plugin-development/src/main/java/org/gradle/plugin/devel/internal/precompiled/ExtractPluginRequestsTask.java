@@ -40,22 +40,18 @@ import javax.inject.Inject;
 import java.io.File;
 
 @CacheableTask
-abstract class ExtractPluginRequestsTask extends DefaultTask {
-
-    private final ScriptCompilationHandler scriptCompilationHandler;
-    private final CompileOperationFactory compileOperationFactory;
-    private final FileSystemOperations fileSystemOperations;
-    private final ClassLoaderScope classLoaderScope;
+public abstract class ExtractPluginRequestsTask extends DefaultTask {
+    @Inject
+    abstract protected FileSystemOperations getFileSystemOperations();
 
     @Inject
-    public ExtractPluginRequestsTask(ScriptCompilationHandler scriptCompilationHandler,
-                                     ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                     CompileOperationFactory compileOperationFactory, FileSystemOperations fileSystemOperations) {
-        this.scriptCompilationHandler = scriptCompilationHandler;
-        this.compileOperationFactory = compileOperationFactory;
-        this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
-        this.fileSystemOperations = fileSystemOperations;
-    }
+    abstract protected ClassLoaderScopeRegistry getClassLoaderScopeRegistry();
+
+    @Inject
+    abstract protected ScriptCompilationHandler getScriptCompilationHandler();
+
+    @Inject
+    abstract protected CompileOperationFactory getCompileOperationFactory();
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
@@ -73,7 +69,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     @TaskAction
     void extractPluginsBlocks() {
-        fileSystemOperations.delete(spec -> spec.delete(getExtractedPluginRequestsClassesDirectory()));
+        getFileSystemOperations().delete(spec -> spec.delete(getExtractedPluginRequestsClassesDirectory()));
         getExtractedPluginRequestsClassesDirectory().get().getAsFile().mkdirs();
 
         // TODO: Use worker API?
@@ -83,13 +79,14 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
     }
 
     private void compilePluginsBlock(PrecompiledGroovyScript scriptPlugin) {
-        CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
+        ClassLoaderScope classLoaderScope = getClassLoaderScopeRegistry().getCoreAndPluginsScope();
+        CompileOperation<?> pluginsCompileOperation = getCompileOperationFactory().getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
-        scriptCompilationHandler.compileToDir(
+        getScriptCompilationHandler().compileToDir(
             scriptPlugin.getFirstPassSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
             FirstPassPrecompiledScript.class, Actions.doNothing());
 
-        fileSystemOperations.sync(copySpec -> {
+        getFileSystemOperations().sync(copySpec -> {
             copySpec.from(getExtractedPluginRequestsClassesDirectory().getAsFileTree().getFiles()).include("**.class");
             copySpec.into(getExtractedPluginRequestsClassesStagingDirectory());
         });
