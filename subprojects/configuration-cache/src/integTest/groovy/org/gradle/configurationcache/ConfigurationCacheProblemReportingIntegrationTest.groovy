@@ -32,6 +32,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "report file is content addressable"() {
         given:
+        settingsFile << """
+            rootProject.name = 'car'
+        """
+
         file("build.gradle") << """
             buildDir = 'out'
             tasks.register('broken') {
@@ -41,19 +45,22 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
                 doFirst { println(project.name) }
             }
         """
+        def reportDir = {
+            resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        }
 
         when:
         configurationCacheFails 'broken'
 
         then:
-        def reportDir1 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        def reportDir1 = reportDir()
         reportDir1?.isDirectory()
 
         when:
         configurationCacheFails 'alsoBroken'
 
         then:
-        def reportDir2 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        def reportDir2 = reportDir()
         reportDir2?.isDirectory()
         reportDir2 != reportDir1
 
@@ -61,14 +68,14 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        def reportDir3 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        def reportDir3 = reportDir()
         reportDir3 == reportDir1
 
         when:
         configurationCacheFails 'alsoBroken'
 
         then:
-        def reportDir4 = resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        def reportDir4 = reportDir()
         reportDir4 == reportDir2
     }
 
