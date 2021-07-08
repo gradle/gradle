@@ -24,6 +24,10 @@ plugins {
     id("gradlebuild.code-quality")
 }
 
+ktlint {
+    version.set("0.41.0")
+}
+
 kotlin {
     js {
         browser {

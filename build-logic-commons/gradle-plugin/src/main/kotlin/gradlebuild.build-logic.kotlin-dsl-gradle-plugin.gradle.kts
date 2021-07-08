@@ -28,6 +28,10 @@ plugins {
     id("org.gradle.kotlin-dsl.ktlint-convention")
 }
 
+ktlint {
+    version.set("0.41.0")
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
@@ -41,6 +45,7 @@ dependencies {
 }
 
 ktlint {
+    version.set("0.41.0")
     filter {
         exclude("gradle/kotlin/dsl/accessors/_*/**")
     }

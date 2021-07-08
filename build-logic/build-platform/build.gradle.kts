@@ -24,6 +24,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.3.1")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
+        api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
         api("com.diffplug.spotless:spotless-plugin-gradle:5.10.2")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
