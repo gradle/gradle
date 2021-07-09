@@ -36,6 +36,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
@@ -122,7 +123,8 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                         original.close();
                     }
                     StringWriter writer = new StringWriter();
-                    template.make(properties).writeTo(writer);
+                    // SimpleTemplateEngine expects to be able to mutate the map internally.
+                    template.make(new LinkedHashMap<>(properties)).writeTo(writer);
                     return new StringReader(writer.toString());
                 } catch (MissingPropertyException e) {
                     throw new GradleException(String.format("Missing property (%s) for Groovy template expansion. Defined keys %s.", e.getProperty(), properties.keySet()), e);
