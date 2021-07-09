@@ -395,6 +395,46 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         notExecuted(":app:test", ":lib1:test", ":lib2:test")
     }
 
+    def "resolve jacoco execution data for some custom processing"() {
+        given:
+        file("lib1/build.gradle") << """
+            dependencies {
+                 implementation("commons-io:commons-io:2.6")
+            }
+        """
+        file("app/build.gradle") << """
+            abstract class CustomAggregation extends DefaultTask {
+                @TaskAction
+                void aggregate() {
+                    Configuration resolver = getProject().getConfigurations().create("jacocoResolver")
+                    resolver.visible = false
+                    resolver.canBeConsumed = false
+                    resolver.canBeResolved = true
+                    resolver.extendsFrom(getProject().getConfigurations().getByName("implementation"))
+                    resolver.attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
+                        attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.DOCUMENTATION));
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.getObjects().named(DocsType.class, "jacoco-coverage-data"));
+                    }
+                    println(resolver.getIncoming().artifactView{ lenient(true) }.getFiles().getFiles())
+                }
+            }
+
+            dependencies {
+                implementation(project(":lib1"))
+                implementation(project(":lib2"))
+            }
+            tasks.register("customAggregation", CustomAggregation)
+        """
+
+        when:
+        succeeds("customAggregation")
+
+        then:
+        outputContains("lib1${File.separator}build${File.separator}jacoco${File.separator}test.exec")
+        outputContains("lib2${File.separator}build${File.separator}jacoco${File.separator}test.exec")
+    }
+
     private JacocoReportFixture htmlReport(String project, String reportName) {
         return new JacocoReportFixture(file(project + "/build/reports/jacoco/${reportName}/html"))
     }
