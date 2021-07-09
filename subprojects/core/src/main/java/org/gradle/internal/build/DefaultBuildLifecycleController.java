@@ -98,6 +98,15 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public void prepareToScheduleTasks() {
+        withModelOrThrow(() -> {
+            state = State.TaskGraph;
+            modelController.prepareToScheduleTasks();
+            return null;
+        });
+    }
+
+    @Override
     public void scheduleRequestedTasks() {
         withModelOrThrow(() -> {
             state = State.TaskGraph;

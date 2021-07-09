@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.internal.taskgraph;
 
-import org.gradle.internal.buildtree.BuildTreeWorkPreparer
+import org.gradle.internal.operations.BuildOperationType;
 
+/**
+ * Computing the task graph for the build tree based on the inputs and build configuration.
+ */
+public final class CalculateTreeTaskGraphBuildOperationType implements BuildOperationType<CalculateTreeTaskGraphBuildOperationType.Details, CalculateTreeTaskGraphBuildOperationType.Result> {
+    public interface Details {
+    }
 
-class ConfigurationCacheAwareBuildTreeWorkPreparer(
-    private val delegate: BuildTreeWorkPreparer,
-    private val cache: BuildTreeConfigurationCache
-) : BuildTreeWorkPreparer {
-    override fun scheduleRequestedTasks() {
-        cache.loadOrScheduleRequestedTasks {
-            delegate.scheduleRequestedTasks()
-        }
+    public interface Result {
+    }
+
+    private CalculateTreeTaskGraphBuildOperationType() {
     }
 }

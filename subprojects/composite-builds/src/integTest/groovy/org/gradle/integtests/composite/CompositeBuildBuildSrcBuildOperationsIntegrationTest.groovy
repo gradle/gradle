@@ -22,6 +22,7 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
@@ -90,17 +91,24 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[2].details.buildPath == ":buildB:buildSrc"
         configureOps[2].parentId == buildSrcOps[0].id
 
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeTaskGraphOps.size() == 2
+        treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[0].parentId == buildSrcOps[0].id
+        treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[1].parentId == root.id
+
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
         taskGraphOps[0].displayName == "Calculate task graph (:buildB:buildSrc)"
         taskGraphOps[0].details.buildPath == ":buildB:buildSrc"
-        taskGraphOps[0].parentId == buildSrcOps[0].id
+        taskGraphOps[0].parentId == treeTaskGraphOps[0].id
         taskGraphOps[1].displayName == "Calculate task graph"
         taskGraphOps[1].details.buildPath == ":"
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].parentId == treeTaskGraphOps[1].id
         taskGraphOps[2].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[2].details.buildPath == ":buildB"
-        taskGraphOps[2].parentId == taskGraphOps[1].id
+        taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id
@@ -124,7 +132,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps[1].parentId == taskGraphOps[1].id
         graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
         graphNotifyOps[2].details.buildPath == ":buildB"
-        graphNotifyOps[2].parentId == taskGraphOps[1].id
+        graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
 
         where:
         settings                     | display
@@ -191,20 +199,29 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[3].details.buildPath == ":buildSrc"
         configureOps[3].parentId == buildSrcOps[1].id
 
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeTaskGraphOps.size() == 3
+        treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[0].parentId == buildSrcOps[0].id
+        treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[1].parentId == buildSrcOps[1].id
+        treeTaskGraphOps[2].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[2].parentId == root.id
+
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 4
         taskGraphOps[0].displayName == "Calculate task graph (:buildB:buildSrc)"
         taskGraphOps[0].details.buildPath == ":buildB:buildSrc"
-        taskGraphOps[0].parentId == buildSrcOps[0].id
+        taskGraphOps[0].parentId == treeTaskGraphOps[0].id
         taskGraphOps[1].displayName == "Calculate task graph (:buildSrc)"
         taskGraphOps[1].details.buildPath == ":buildSrc"
-        taskGraphOps[1].parentId == buildSrcOps[1].id
+        taskGraphOps[1].parentId == treeTaskGraphOps[1].id
         taskGraphOps[2].displayName == "Calculate task graph"
         taskGraphOps[2].details.buildPath == ":"
-        taskGraphOps[2].parentId == root.id
+        taskGraphOps[2].parentId == treeTaskGraphOps[2].id
         taskGraphOps[3].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[3].details.buildPath == ":buildB"
-        taskGraphOps[3].parentId == taskGraphOps[2].id
+        taskGraphOps[3].parentId == treeTaskGraphOps[2].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id
@@ -233,7 +250,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps[2].parentId == taskGraphOps[2].id
         graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
         graphNotifyOps[3].details.buildPath == ":buildB"
-        graphNotifyOps[3].parentId == taskGraphOps[2].id
+        graphNotifyOps[3].parentId == treeTaskGraphOps[2].id
 
         where:
         settings                     | display

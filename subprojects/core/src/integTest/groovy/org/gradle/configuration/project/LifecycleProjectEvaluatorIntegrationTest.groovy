@@ -19,6 +19,7 @@ package org.gradle.configuration.project
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -129,11 +130,14 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             parentId == operations.first("Calculate task graph (:buildSrc)").id
         }
 
+        def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeGraphOps.size() == 2
+
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
             children.first().children*.displayName == ["Apply script '${relativePath('included-build/includedWhenReady.gradle')}' to project ':included-build'"]
-            parentId == operations.first("Calculate task graph").id
+            parentId == treeGraphOps[1].id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {

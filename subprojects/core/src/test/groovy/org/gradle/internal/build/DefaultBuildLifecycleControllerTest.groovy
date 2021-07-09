@@ -102,7 +102,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        1 * buildModelController.loadedSettings >> { throw failure }
+        expectSettingsBuiltWithFailure(failure)
 
         def controller = this.controller()
         controller.getLoadedSettings()
@@ -334,8 +334,13 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * buildModelController.loadedSettings >> settingsMock
     }
 
+    private void expectSettingsBuiltWithFailure(Throwable failure) {
+        1 * buildModelController.loadedSettings >> { throw failure }
+    }
+
     private void expectTaskGraphBuilt() {
         1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
+        1 * buildModelController.prepareToScheduleTasks()
         1 * buildModelController.scheduleRequestedTasks()
     }
 

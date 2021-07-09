@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
@@ -68,14 +69,21 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         configureOps[1].details.buildPath == ":buildSrc"
         configureOps[1].parentId == buildSrcOps[0].id
 
+        def treeTaskGraphOps = ops.all(CalculateTreeTaskGraphBuildOperationType)
+        treeTaskGraphOps.size() == 2
+        treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[0].parentId == buildSrcOps[0].id
+        treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[1].parentId == root.id
+
         def taskGraphOps = ops.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
         taskGraphOps[0].displayName == "Calculate task graph (:buildSrc)"
         taskGraphOps[0].details.buildPath == ':buildSrc'
-        taskGraphOps[0].parentId == buildSrcOps[0].id
+        taskGraphOps[0].parentId == treeTaskGraphOps[0].id
         taskGraphOps[1].displayName == "Calculate task graph"
         taskGraphOps[1].details.buildPath == ':'
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].parentId == treeTaskGraphOps[1].id
 
         def runMainTasks = ops.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id

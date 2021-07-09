@@ -44,13 +44,8 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
         buildConfigurationActionExecuter.select(gradle);
 
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+        // TODO - This happens too early and may miss incoming dependencies from other builds in the tree
         taskGraph.populate();
-
-        if (gradle.isRootBuild()) {
-            // Force the population of other task graphs to happen as part of the build operation for populating
-            // the root build task graph. Should get rid of this nesting instead
-            includedBuildTaskGraph.populateTaskGraphs();
-        }
 
         if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
             new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);

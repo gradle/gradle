@@ -20,11 +20,12 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 class DefaultIncludedBuildTaskGraphTest extends Specification {
-    def graph = new DefaultIncludedBuildTaskGraph(Stub(ExecutorFactory), Stub(BuildStateRegistry), Stub(ProjectStateRegistry), Stub(WorkerLeaseService))
+    def graph = new DefaultIncludedBuildTaskGraph(Stub(ExecutorFactory), new TestBuildOperationExecutor(), Stub(BuildStateRegistry), Stub(ProjectStateRegistry), Stub(WorkerLeaseService))
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
