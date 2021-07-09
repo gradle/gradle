@@ -18,11 +18,13 @@ package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.work.DisableCachingByDefault
 
 import java.io.File
 
 
 @Suppress("unused")
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class GenerateKotlinDependencyExtensions : CodeGenerationTask() {
 
     @get:Input

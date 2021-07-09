@@ -22,6 +22,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
+import org.gradle.work.DisableCachingByDefault
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -31,6 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * Fetch the latest AGP versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class UpdateAgpVersions : DefaultTask() {
 
     @get:Internal
