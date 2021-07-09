@@ -17,12 +17,12 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Try;
-import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -43,11 +43,11 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
@@ -56,13 +56,19 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final BuildStateRegistry buildStateRegistry;
     private final boolean parallelActions = !"false".equalsIgnoreCase(System.getProperty("org.gradle.internal.tooling.parallel"));
 
-    public DefaultBuildController(GradleInternal gradle, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry) {
+    public DefaultBuildController(GradleInternal gradle,
+                                  BuildCancellationToken cancellationToken,
+                                  BuildOperationExecutor buildOperationExecutor,
+                                  ProjectLeaseRegistry projectLeaseRegistry,
+                                  BuildStateRegistry buildStateRegistry) {
         this.gradle = gradle;
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
         this.projectLeaseRegistry = projectLeaseRegistry;
+        this.buildStateRegistry = buildStateRegistry;
     }
 
     /**
@@ -161,47 +167,32 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             return new BuildScopedModel(gradle);
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
-            GradleInternal build = findBuild(projectIdentity);
+            BuildState build = findBuild(projectIdentity);
             return new ProjectScopedModel(findProject(build, projectIdentity));
         } else if (target instanceof GradleBuildIdentity) {
             GradleBuildIdentity buildIdentity = (GradleBuildIdentity) target;
-            return new BuildScopedModel(findBuild(buildIdentity));
+            return new BuildScopedModel(findBuild(buildIdentity).getMutableModel());
         } else {
             throw new IllegalArgumentException("Don't know how to build models for " + target);
         }
     }
 
-    private GradleInternal findBuild(GradleBuildIdentity buildIdentity) {
-        Set<GradleInternal> visited = new HashSet<>();
-        GradleInternal build = findBuild(gradle, buildIdentity, visited);
-        if (build != null) {
-            return build;
+    private BuildState findBuild(GradleBuildIdentity buildIdentity) {
+        AtomicReference<BuildState> match = new AtomicReference<>();
+        buildStateRegistry.visitBuilds(buildState -> {
+            if (buildState.isImportableBuild() && buildState.getBuildRootDir().equals(buildIdentity.getRootDir())) {
+                match.set(buildState);
+            }
+        });
+        if (match.get() != null) {
+            return match.get();
         } else {
             throw new IllegalArgumentException(buildIdentity.getRootDir() + " is not included in this build");
         }
     }
 
-    private GradleInternal findBuild(GradleInternal rootBuild, GradleBuildIdentity buildIdentity, Set<GradleInternal> visited) {
-        if (rootBuild.getRootProject().getProjectDir().equals(buildIdentity.getRootDir())) {
-            return rootBuild;
-        }
-        for (IncludedBuild includedBuild : rootBuild.getIncludedBuilds()) {
-            if (includedBuild instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
-                if (!visited.contains(build)) {
-                    visited.add(build);
-                    GradleInternal matchingBuild = findBuild(build, buildIdentity, visited);
-                    if (matchingBuild != null) {
-                        return matchingBuild;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private ProjectInternal findProject(GradleInternal build, GradleProjectIdentity projectIdentity) {
-        return build.getRootProject().project(projectIdentity.getProjectPath());
+    private ProjectInternal findProject(BuildState build, GradleProjectIdentity projectIdentity) {
+        return build.getProjects().getProject(Path.path(projectIdentity.getProjectPath())).getMutableModel();
     }
 
     private ToolingModelBuilderLookup.Builder getToolingModelBuilder(ModelTarget modelTarget, boolean parameter, ModelIdentifier modelIdentifier) {

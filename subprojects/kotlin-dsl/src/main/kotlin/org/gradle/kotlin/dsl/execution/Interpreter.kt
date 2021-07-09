@@ -18,8 +18,11 @@ package org.gradle.kotlin.dsl.execution
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalog
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.invocation.Gradle
@@ -37,6 +40,7 @@ import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import kotlin.script.experimental.api.KotlinType
 
 
 /**
@@ -320,11 +324,27 @@ class Interpreter(val host: Host) {
                     temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     pluginAccessorsClassPath = pluginAccessorsClassPath,
-                    packageName = residualProgram.packageName
+                    packageName = residualProgram.packageName,
+                    injectedProperties = scriptHost.injectedProperties
                 ).compile(residualProgram.document)
             }
         }
     }
+
+    private
+    val KotlinScriptHost<*>.injectedProperties: Map<String, KotlinType>
+        get() = when (target) {
+            is Project -> target.extensions.findByType(VersionCatalogsExtension::class.java)?.associateBy(VersionCatalog::getName) {
+                KotlinType(
+                    if (it is GeneratedSubclass) {
+                        it.publicType().kotlin
+                    } else {
+                        it.javaClass.kotlin
+                    }
+                )
+            } ?: mapOf()
+            else -> mapOf()
+        }
 
     private
     fun loadClassInChildScopeOf(

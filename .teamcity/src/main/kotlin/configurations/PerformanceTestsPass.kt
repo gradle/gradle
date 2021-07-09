@@ -20,78 +20,83 @@ import common.Os
 import common.applyDefaultSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
-import model.PerformanceTestProjectSpec
 import model.PerformanceTestType
 import projects.PerformanceTestProject
 
-class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(init = {
-    id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
-    val performanceTestSpec = performanceTestProject.spec
-    name = performanceTestProject.name + " (Trigger)"
+class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(
+    failStage = performanceTestProject.spec.failsStage,
+    init = {
+        id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
+        val performanceTestSpec = performanceTestProject.spec
+        name = performanceTestProject.name + " (Trigger)"
 
-    val os = Os.LINUX
-    val type = performanceTestSpec.type
+        val os = Os.LINUX
+        val type = performanceTestSpec.type
 
-    applyDefaultSettings(os)
-    params {
-        param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
-        param("performance.db.username", "tcagent")
-        param("performance.channel", performanceTestSpec.channel())
-    }
+        applyDefaultSettings(os)
+        params {
+            param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
+            param("performance.db.username", "tcagent")
+            param("performance.channel", performanceTestSpec.channel())
+        }
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
+        features {
+            publishBuildStatusToGithub(model)
+        }
 
-    val performanceResultsDir = "perf-results"
-    val performanceProjectName = "performance"
+        val performanceResultsDir = "perf-results"
+        val performanceProjectName = "performance"
 
-    val taskName = if (performanceTestSpec.type == PerformanceTestType.flakinessDetection)
-        "performanceTestFlakinessReport"
-    else
-        "performanceTestReport"
+        val taskName = if (performanceTestSpec.type == PerformanceTestType.flakinessDetection)
+            "performanceTestFlakinessReport"
+        else
+            "performanceTestReport"
 
-    artifactRules = """
+        artifactRules = """
 subprojects/$performanceProjectName/build/performance-test-results.zip
 """
-    if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
-        gradleRunnerStep(
-            model,
-            ":$performanceProjectName:$taskName --channel %performance.channel%",
-            extraParameters = listOf(
-                "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
-                "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-                "-Porg.gradle.performance.db.username" to "%performance.db.username%"
-            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
-        )
-    }
+        if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
+            val dependencyBuildIds = performanceTestProject.performanceTests
+                .filter { it.testProjects.isNotEmpty() }
+                .joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
 
-    dependencies {
-        snapshotDependencies(performanceTestProject.performanceTests) {
-            if (type == PerformanceTestType.flakinessDetection) {
-                reuseBuilds = ReuseBuilds.NO
-            }
+            gradleRunnerStep(
+                model,
+                ":$performanceProjectName:$taskName --channel %performance.channel%",
+                extraParameters = listOf(
+                    "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
+                    "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+                    "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+                    "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds
+                ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
+            )
         }
-        performanceTestProject.performanceTests.forEachIndexed { index, performanceTest ->
-            if (performanceTest.testProjects.isNotEmpty()) {
-                artifacts(performanceTest.id!!) {
-                    id = "ARTIFACT_DEPENDENCY_${performanceTest.id!!}"
-                    cleanDestination = true
-                    val perfResultArtifactRule = """results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => $performanceResultsDir/${performanceTest.bucketIndex}/"""
-                    artifactRules = if (index == 0) {
-                        // The artifact rule report/css/*.css => performanceResultsDir is there to clean up the target directory.
-                        // If we don't clean that up there might be leftover json files from other report builds running on the same machine.
-                        """
+
+        dependencies {
+            snapshotDependencies(performanceTestProject.performanceTests) {
+                if (type == PerformanceTestType.flakinessDetection) {
+                    reuseBuilds = ReuseBuilds.NO
+                }
+            }
+            performanceTestProject.performanceTests.forEachIndexed { index, performanceTest ->
+                if (performanceTest.testProjects.isNotEmpty()) {
+                    artifacts(performanceTest.id!!) {
+                        id = "ARTIFACT_DEPENDENCY_${performanceTest.id!!}"
+                        cleanDestination = true
+                        val perfResultArtifactRule = """results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => $performanceResultsDir/${performanceTest.bucketIndex}/"""
+                        artifactRules = if (index == 0) {
+                            // The artifact rule report/css/*.css => performanceResultsDir is there to clean up the target directory.
+                            // If we don't clean that up there might be leftover json files from other report builds running on the same machine.
+                            """
                             results/performance/build/test-results-*.zip!performance-tests/report/css/*.css => $performanceResultsDir/
                             $perfResultArtifactRule
                         """.trimIndent()
-                    } else {
-                        perfResultArtifactRule
+                        } else {
+                            perfResultArtifactRule
+                        }
                     }
                 }
             }
         }
     }
-}) {
-    val performanceSpec: PerformanceTestProjectSpec = performanceTestProject.spec
-}
+)

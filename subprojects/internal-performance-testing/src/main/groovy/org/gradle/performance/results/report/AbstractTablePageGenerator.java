@@ -19,10 +19,11 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
-import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceReportScenario;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
-import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.io.Writer;
 import java.util.List;
@@ -40,6 +41,10 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     public AbstractTablePageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
         this.flakinessDataProvider = flakinessDataProvider;
         this.executionDataProvider = executionDataProvider;
+    }
+
+    public static String getTeamCityWebUrlFromBuildId(String buildId) {
+        return "https://builds.gradle.org/viewLog.html?buildId=" + buildId;
     }
 
     protected abstract class TableHtml extends MetricsHtml {
@@ -78,15 +83,15 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
 
             protected abstract boolean renderFailureSelectButton();
 
-            protected abstract List<ScenarioBuildResultData> getCrossVersionScenarios();
+            protected abstract List<PerformanceReportScenario> getCrossVersionScenarios();
 
-            protected abstract List<ScenarioBuildResultData> getCrossBuildScenarios();
+            protected abstract List<PerformanceReportScenario> getCrossBuildScenarios();
 
             private void renderTableHeader() {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col p-0");
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Performance Coordinator Build")
-                            .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
+                            .href(getTeamCityWebUrlFromBuildId(System.getenv("BUILD_ID"))).target("_blank").text("<-").end();
                     end();
                     div().classAttr("col-5 p-0");
                         text(getTableTitle());
@@ -135,7 +140,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
 
-            private void renderTable(String title, String description, List<ScenarioBuildResultData> scenarios) {
+            private void renderTable(String title, String description, List<PerformanceReportScenario> scenarios) {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col-12 p-0").text(title);
                 i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
@@ -144,7 +149,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 scenarios.forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
             }
 
-            private String getTextColorCss(ScenarioBuildResultData scenario, ScenarioBuildResultData.ExecutionData executionData) {
+            private String getTextColorCss(PerformanceReportScenario scenario, PerformanceReportScenarioHistoryExecution executionData) {
                 if(scenario.isCrossBuild()) {
                     return "text-dark";
                 }
@@ -158,8 +163,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 }
             }
 
-            private void renderScenario(int index, ScenarioBuildResultData scenario) {
-                PerformanceExperiment experiment = scenario.getPerformanceExperiment();
+            private void renderScenario(int index, PerformanceReportScenario scenario) {
                 Set<Tag> tags = determineTags(scenario);
                 div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).attr("tag", tags.stream().map(Tag::getName).collect(joining(","))).id("scenario" + index);
                     div().id("heading" + index).classAttr("card-header");
@@ -170,19 +174,19 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                 end();
                             end();
                             div().classAttr("col-6");
-                                big().text(experiment.getDisplayName()).end();
+                                big().text(scenario.getName()).end();
                                 tags.stream().filter(Tag::isValid).forEach(this::renderTag);
                             end();
                             div().classAttr("col-3");
                                 renderScenarioButtons(index, scenario);
-                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(experiment.getDisplayName()) + ".html")).text("Graph").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(scenario.getName()) + ".html")).text("Graph").end();
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
                             end();
                             div().classAttr("col-2 p-0");
                                 if(scenario.isBuildFailed()) {
                                     text("N/A");
                                 } else {
-                                    scenario.getExecutionsToDisplayInRow().forEach(execution -> {
+                                    scenario.getCurrentExecutions().forEach(execution -> {
                                         div().classAttr("row p-0").style("font-size: smaller");
                                             div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getDifferenceDisplay()).end();
                                             div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
@@ -196,7 +200,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     div().id("collapse" + index).classAttr("collapse");
                         div().classAttr("card-body");
                             if(scenario.isBuildFailed()) {
-                                pre().text(scenario.getRawData().stream().map(ScenarioBuildResultData::getTestFailure).collect(joining("\n"))).end();
+                                pre().text(scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTestFailure).collect(joining("\n"))).end();
                             } else {
                                 renderDetailsTable(scenario);
                             }
@@ -215,23 +219,23 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 }
             }
 
-            protected abstract String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario);
+            protected abstract String determineScenarioBackgroundColorCss(PerformanceReportScenario scenario);
 
-            protected abstract Set<Tag> determineTags(ScenarioBuildResultData scenario);
+            protected abstract Set<Tag> determineTags(PerformanceReportScenario scenario);
 
-            protected abstract void renderScenarioButtons(int index, ScenarioBuildResultData scenario);
+            protected abstract void renderScenarioButtons(int index, PerformanceReportScenario scenario);
 
-            private void renderDetailsTable(ScenarioBuildResultData scenario) {
+            private void renderDetailsTable(PerformanceReportScenario scenario) {
                 table().classAttr("table table-condensed table-bordered table-striped");
                     tr();
                         th().text("Date").end();
                         th().text("Commit").end();
-                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getBaseVersion().getName());
-                        renderVersionHeader(scenario.getExecutions().isEmpty() ? "" : scenario.getExecutions().get(0).getCurrentVersion().getName());
+                        renderVersionHeader(scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getBaseVersion().getName());
+                        renderVersionHeader(scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getCurrentVersion().getName());
                         th().text("Difference").end();
                         th().text("Confidence").end();
                     end();
-                    scenario.getExecutions().forEach(execution -> {
+                    scenario.getHistoryExecutions().forEach(execution -> {
                         tr();
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();

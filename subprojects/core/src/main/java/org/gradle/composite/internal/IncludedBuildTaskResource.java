@@ -16,13 +16,24 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.internal.TaskInternal;
+
+import java.util.function.Consumer;
+
 /**
  * A resource produced by a task in an included build.
  */
 public interface IncludedBuildTaskResource {
     enum State {
-        WAITING, SUCCESS, FAILED
+        WAITING, SUCCESS, FAILED;
     }
+
+    /**
+     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
+     */
+    void queueForExecution();
+
+    TaskInternal getTask();
 
     State getTaskState();
 }

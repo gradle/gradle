@@ -72,7 +72,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>
      *
-     * <p>If not configured, null, or an empty array is passed, then no tasks will be executed.</p>
+     * <p>If not configured or a null array, then no tasks will be executed. If an empty array, the default tasks for the build will be executed.</p>
      *
      * <p>If the target Gradle version is &gt;=6.8 then you can execute tasks from included builds. You can target tasks from included builds by specifying the task identity path (i.e. {@code
      * ':included-build-name:subproject-name:taskName'}).</p>
@@ -86,7 +86,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
     /**
      * <p>Specifies the tasks to execute before executing the BuildAction.</p>
      *
-     * <p>If not configured, null, or an empty array is passed, then no tasks will be executed.</p>
+     * <p>If not configured or a null iterable, then no tasks will be executed. If an empty iterable, the default tasks for the build will be executed.</p>
      *
      * <p>If the target Gradle version is &gt;=6.8 then you can execute tasks from included builds. You can target tasks from included builds by specifying the task identity path (i.e. {@code
      * ':included-build-name:subproject-name:taskName'}).</p>

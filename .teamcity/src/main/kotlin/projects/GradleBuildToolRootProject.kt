@@ -3,8 +3,8 @@ package projects
 import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
+import model.DefaultFunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider
-import model.StatisticBasedFunctionalTestBucketProvider
 import promotion.PromotionProject
 import util.UtilPerformanceProject
 import util.UtilProject
@@ -17,12 +17,10 @@ class GradleBuildToolRootProject(branch: VersionedSettingsBranch) : Project({
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("./subprojects.json"))
     )
-    val gradleBuildBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, File("./test-class-data.json"))
+    val gradleBuildBucketProvider = DefaultFunctionalTestBucketProvider(model, File("./test-buckets.json"))
     subProject(CheckProject(model, gradleBuildBucketProvider))
 
-    if (model.branch != VersionedSettingsBranch.EXPERIMENTAL) {
-        subProject(PromotionProject(model.branch))    
-    }
+    subProject(PromotionProject(model.branch))
     subProject(UtilProject)
     subProject(UtilPerformanceProject)
 })

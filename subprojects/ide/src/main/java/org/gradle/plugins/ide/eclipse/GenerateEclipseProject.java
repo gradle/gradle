@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Project;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 
@@ -29,6 +30,7 @@ import javax.inject.Inject;
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseProject}.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     private EclipseProject projectModel;

@@ -12,7 +12,7 @@ plugins {
 }
 
 val antVersion = "1.10.9"
-val archunitVersion = "0.16.0"
+val archunitVersion = "0.20.0"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
@@ -21,7 +21,7 @@ val jacksonVersion = "2.12.1"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-16"
+val nativePlatformVersion = "0.22-milestone-17"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.6") }}
-        api(libs.guava)                 { version { strictly("27.1-android"); because("JRE variant introduces regression - https://github.com/google/guava/issues/3223") }}
+        api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
@@ -138,7 +138,7 @@ dependencies {
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
-        api(libs.archunitJunit4)        { version { strictly(archunitVersion) }}
+        api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
         api(libs.awaitility)            { version { strictly("3.1.6") }}
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}

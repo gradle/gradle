@@ -16,3 +16,12 @@ buildCache {
     }
 }
 // end::allow-untrusted-server[]
+
+// tag::use-expect-continue[]
+buildCache {
+    remote(HttpBuildCache) {
+        url = 'https://example.com:8123/cache/'
+        useExpectContinue = true
+    }
+}
+// end::use-expect-continue[]

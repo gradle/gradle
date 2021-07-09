@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.DependencyModel
+import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
@@ -81,6 +82,14 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
         then:
         hasVersion('guava', '17')
+    }
+
+    def "parses a file with a single plugin and nothing else"() {
+        when:
+        parse('one-plugin')
+
+        then:
+        hasPlugin('greeter', 'org.example.greeter', '1.13')
     }
 
     def "parses dependencies with various notations"() {
@@ -195,6 +204,65 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         }
     }
 
+    def "parses plugins with different notations"() {
+        when:
+        parse('plugin-notations')
+
+        then:
+        hasPlugin('simple', 'org.example', '1.0')
+        hasPlugin('with.id', 'org.example', '1.1')
+        hasPlugin('with.ref') {
+            withId 'org.example'
+            withVersionRef 'ref'
+            withVersion {
+                require '1.6'
+            }
+        }
+        hasPlugin('with-rich1') {
+            withId 'org.example'
+            withVersion {
+                prefer '1.0'
+            }
+        }
+        hasPlugin('with-rich2') {
+            withId 'org.example'
+            withVersion {
+                prefer '1.0'
+            }
+        }
+        hasPlugin('with-rich3') {
+            withId 'org.example'
+            withVersion {
+                require '1.0'
+            }
+        }
+        hasPlugin('with-rich4') {
+            withId 'org.example'
+            withVersion {
+                strictly '1.0'
+            }
+        }
+        hasPlugin('with-rich5') {
+            withId 'org.example'
+            withVersion {
+                rejectAll()
+            }
+        }
+        hasPlugin('with-rich6') {
+            withId 'org.example'
+            withVersion {
+                require '1.0'
+                reject '1.1', '1.2'
+            }
+        }
+        hasPlugin('indirect') {
+            withId 'org.example'
+            withVersion {
+                require '1.5'
+            }
+        }
+    }
+
     def "parses bundles"() {
         when:
         parse 'with-bundles'
@@ -209,13 +277,14 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         hasDependency('groovy-templates') {
             withGAV("org.codehaus.groovy:groovy-templates:2.5.6")
         }
-        hasBundle('groovy', ['groovy-json', 'groovy', 'groovy-templates'])
+        hasBundle('groovy', ['groovy.json', 'groovy', 'groovy.templates'])
     }
 
     @VersionCatalogProblemTestFor([
         VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE,
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION,
-        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR,
+        VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION
     ])
     @Unroll
     def "fails parsing TOML file #name with reasonable error message"() {
@@ -242,6 +311,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         'invalid12' | "In version catalog libs, unknown top level elements [toto, tata]"
         'invalid13' | "Expected an array but value of 'groovy' is a string."
         'invalid14' | "In version catalog libs, version reference 'nope' doesn't exist"
+        'invalid15' | "In version catalog libs, on alias 'my' notation 'some.plugin.id' is not a valid plugin notation."
     }
 
     def "supports dependencies without version"() {
@@ -272,7 +342,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         verify(ex.message, unexpectedFormatVersion {
             inCatalog('libs')
             unsupportedVersion('999.999')
-            expectedVersion('1.0')
+            expectedVersion('1.1')
         })
     }
 
@@ -328,6 +398,22 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         assert actual == version
     }
 
+    void hasPlugin(String alias, String id, String version) {
+        def plugin = model.getPlugin(alias)
+        assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
+        assert plugin.id == id
+        assert plugin.version.requiredVersion == version
+    }
+
+    void hasPlugin(String alias, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = PluginSpec) Closure<Void> spec) {
+        def plugin = model.getPlugin(alias)
+        assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
+        def pluginSpec = new PluginSpec(plugin)
+        spec.delegate = pluginSpec
+        spec.resolveStrategy = Closure.DELEGATE_FIRST
+        spec()
+    }
+
     private void parse(String name) {
         TomlCatalogFileParser.parse(toml(name), builder)
         model = builder.build()
@@ -370,6 +456,32 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             withVersion {
                 require version
             }
+        }
+
+        void withVersion(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = MutableVersionConstraint) Closure<Void> spec) {
+            def mutable = new DefaultMutableVersionConstraint("")
+            spec.delegate = mutable
+            spec.resolveStrategy = Closure.DELEGATE_FIRST
+            spec.call()
+            def version = DefaultImmutableVersionConstraint.of(mutable)
+            assert model.version == version
+        }
+    }
+
+    @CompileStatic
+    private static class PluginSpec {
+        private final PluginModel model
+
+        PluginSpec(PluginModel model) {
+            this.model = model
+        }
+
+        void withId(String id) {
+            assert model.id == id
+        }
+
+        void withVersionRef(String ref) {
+            assert model.versionRef == ref
         }
 
         void withVersion(@DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = MutableVersionConstraint) Closure<Void> spec) {

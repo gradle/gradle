@@ -37,9 +37,11 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
+@DisableCachingByDefault(because = "Uses data from the database, which can't be tracked as an input")
 abstract class PerformanceTestReport : DefaultTask() {
 
     @get:Classpath
@@ -81,11 +83,23 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val projectName: Property<String>
 
+    @get:Input
+    abstract val dependencyBuildIds: Property<String>
+
+    @get:Option(option = "debug-jvm", description = "Debug the JVM started for report generation.")
+    @get:Input
+    abstract val debugReportGeneration: Property<Boolean>
+
     @get:Inject
     abstract val fileOperations: FileSystemOperations
 
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    init {
+        debugReportGeneration.convention(false)
+        outputs.doNotCacheIf("Debug enabled") { debugReportGeneration.get() }
+    }
 
     @TaskAction
     fun generateReport() {
@@ -99,7 +113,9 @@ abstract class PerformanceTestReport : DefaultTask() {
             branchName.get(),
             commitId.get(),
             classpath,
-            projectName.get()
+            projectName.get(),
+            dependencyBuildIds.getOrElse(""),
+            debugReportGeneration.getOrElse(false)
         )
     }
 }

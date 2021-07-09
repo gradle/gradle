@@ -19,7 +19,11 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -31,8 +35,10 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
+import org.gradle.util.Path
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
@@ -54,7 +60,8 @@ class DefaultBuildControllerTest extends Specification {
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
     def projectLeaseRegistry = Stub(ProjectLeaseRegistry)
     def buildOperationExecutor = new TestBuildOperationExecutor()
-    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectLeaseRegistry)
+    def buildStateRegistry = Stub(BuildStateRegistry)
+    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectLeaseRegistry, buildStateRegistry)
 
     def setup() {
         GradleThread.setManaged()
@@ -106,15 +113,29 @@ class DefaultBuildControllerTest extends Specification {
     def "uses builder for specified project"() {
         def rootDir = new File("dummy")
         def target = Stub(GradleProjectIdentity)
-        def rootProject = Stub(ProjectInternal)
+        def buildState1 = Stub(BuildState)
+        def buildState2 = Stub(BuildState)
+        def buildState3 = Stub(BuildState)
+        def projects3 = Stub(BuildProjectRegistry)
+        def projectState = Stub(ProjectState)
         def model = new Object()
 
         given:
         _ * target.projectPath >> ":some:path"
         _ * target.rootDir >> rootDir
-        _ * gradle.rootProject >> rootProject
-        _ * rootProject.project(":some:path") >> project
-        _ * rootProject.projectDir >> rootDir
+        _ * buildStateRegistry.visitBuilds(_) >> { Consumer consumer ->
+            consumer.accept(buildState1)
+            consumer.accept(buildState2)
+            consumer.accept(buildState3)
+        }
+        _ * buildState1.importableBuild >> false
+        _ * buildState2.importableBuild >> true
+        _ * buildState2.buildRootDir >> new File("different")
+        _ * buildState3.importableBuild >> true
+        _ * buildState3.buildRootDir >> rootDir
+        _ * buildState3.projects >> projects3
+        _ * projects3.getProject(Path.path(":some:path")) >> projectState
+        _ * projectState.mutableModel >> project
         _ * registry.locateForClientOperation("some.model", false, project) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
@@ -129,12 +150,21 @@ class DefaultBuildControllerTest extends Specification {
         def rootDir = new File("dummy")
         def target = Stub(GradleBuildIdentity)
         def rootProject = Stub(ProjectInternal)
+        def buildState1 = Stub(BuildState)
+        def buildState2 = Stub(BuildState)
         def model = new Object()
 
         given:
         _ * target.rootDir >> rootDir
+        _ * buildStateRegistry.visitBuilds(_) >> { Consumer consumer ->
+            consumer.accept(buildState1)
+            consumer.accept(buildState2)
+        }
+        _ * buildState1.importableBuild >> false
+        _ * buildState2.importableBuild >> true
+        _ * buildState2.buildRootDir >> rootDir
+        _ * buildState2.mutableModel >> gradle
         _ * gradle.rootProject >> rootProject
-        _ * rootProject.projectDir >> rootDir
         _ * gradle.defaultProject >> project
         _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
         _ * modelBuilder.build(null) >> model

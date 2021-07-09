@@ -20,11 +20,12 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -46,6 +47,11 @@ public interface BuildState {
      * Is this an implicit build? An implicit build is one that is managed by Gradle and which is not addressable by user build logic.
      */
     boolean isImplicitBuild();
+
+    /**
+     * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
+     */
+    boolean isImportableBuild();
 
     /**
      * The configured settings object for this build, if available.
@@ -72,9 +78,9 @@ public interface BuildState {
     ProjectComponentIdentifier getIdentifierForProject(Path projectPath) throws IllegalStateException;
 
     /**
-     * Locates a project of this build.
+     * Returns the projects of this build.
      */
-    ProjectState getProject(Path projectPath);
+    BuildProjectRegistry getProjects();
 
     /**
      * Asserts that the given build can be included by this build.
@@ -92,4 +98,9 @@ public interface BuildState {
      * Returns the current state of the mutable model of this build.
      */
     GradleInternal getMutableModel();
+
+    /**
+     * Populates the task graph of this build using the given action.
+     */
+    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
 }

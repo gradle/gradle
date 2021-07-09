@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
@@ -65,6 +66,7 @@ import java.io.File;
  * }
  * </pre>
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Copy extends AbstractCopyTask {
 
     @Override

@@ -123,12 +123,92 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[0].parentId == taskGraphOps[0].id
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:${buildName})"
         graphNotifyOps[1].details.buildPath == ":${buildName}"
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
+        graphNotifyOps[1].parentId == taskGraphOps[0].id
 
         where:
         settings                     | buildName | dependencyName | display
         ""                           | "buildB"  | "buildB"       | "default root project name"
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
+    }
+
+    def "generates build lifecycle operations for multiple included builds"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """
+        }
+        includedBuilds << buildC
+        dependency "org.test:buildB:1.0"
+        dependency "org.test:buildC:1.0"
+        dependency buildB, "org.test:buildC:1.0"
+
+        when:
+        execute(buildA, ":jar", [])
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        def root = operations.root(RunBuildBuildOperationType)
+
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
+        taskGraphOps.size() == 3
+        taskGraphOps[0].displayName == "Calculate task graph"
+        taskGraphOps[0].details.buildPath == ":"
+        taskGraphOps[0].parentId == root.id
+        taskGraphOps[1].displayName == "Calculate task graph (:buildC)"
+        taskGraphOps[1].details.buildPath == ":buildC"
+        taskGraphOps[1].parentId == taskGraphOps[0].id
+        taskGraphOps[2].displayName == "Calculate task graph (:buildB)"
+        taskGraphOps[2].details.buildPath == ":buildB"
+        taskGraphOps[2].parentId == taskGraphOps[0].id
+    }
+
+    def "generates build lifecycle operations for multiple included builds used as buildscript dependencies"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ["someLib"]) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+            """
+        }
+        includedBuilds << buildC
+        buildA.buildFile.text = """
+            buildscript {
+                dependencies {
+                    classpath 'org.test:buildB:1.0'
+                    classpath 'org.test:buildC:1.0'
+                }
+            }
+        """ + buildA.buildFile.text
+        dependency buildB, "org.test:buildC:1.0"
+
+        when:
+        execute(buildA, ":jar", [])
+
+        then:
+        executed ":buildB:jar", ":buildC:jar"
+
+        and:
+        def root = operations.root(RunBuildBuildOperationType)
+
+        def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
+
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
+        taskGraphOps.size() == 3
+        taskGraphOps[0].displayName == "Calculate task graph (:buildB)"
+        taskGraphOps[0].details.buildPath == ":buildB"
+        taskGraphOps[0].parentId == applyRootProjectBuildScript.id
+        taskGraphOps[1].displayName == "Calculate task graph (:buildC)"
+        taskGraphOps[1].details.buildPath == ":buildC"
+        taskGraphOps[1].parentId == applyRootProjectBuildScript.id
+        taskGraphOps[2].displayName == "Calculate task graph"
+        taskGraphOps[2].details.buildPath == ":"
+        taskGraphOps[2].parentId == root.id
     }
 
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
@@ -202,7 +282,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps.size() == 2
         graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildB)'
         graphNotifyOps[0].details.buildPath == ':buildB'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
+        graphNotifyOps[0].parentId == applyRootProjectBuildScript.id
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[1].details.buildPath == ":"
         graphNotifyOps[1].parentId == taskGraphOps[1].id

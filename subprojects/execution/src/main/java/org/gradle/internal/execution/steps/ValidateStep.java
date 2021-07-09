@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -27,8 +29,12 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
@@ -70,6 +76,8 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
     public R execute(UnitOfWork work, BeforeExecutionContext context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
+        context.getBeforeExecutionState()
+            .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         Map<Severity, List<String>> problems = validationContext.getProblems()
             .stream()
@@ -156,6 +164,66 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
                 return context.getValidationContext();
             }
         });
+    }
+
+    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
+        MutableReference<Class<?>> workClass = MutableReference.empty();
+        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+            @Override
+            public void visitImplementation(Class<?> implementation) {
+                workClass.set(GeneratedSubclasses.unpack(implementation));
+            }
+
+            @Override
+            public void visitImplementation(ImplementationSnapshot implementation) {
+            }
+        });
+        // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
+        Class<?> workType = workClass.get();
+        TypeValidationContext workValidationContext = validationContext.forType(workType, true);
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work
+        );
+        beforeExecutionState.getAdditionalImplementations()
+            .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
+        beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
+            if (valueSnapshot instanceof ImplementationSnapshot) {
+                ImplementationSnapshot implementationSnapshot = (ImplementationSnapshot) valueSnapshot;
+                validateNestedInput(workValidationContext, propertyName, implementationSnapshot);
+            }
+        });
+    }
+
+    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementationSnapshot) {
+        if (implementationSnapshot.isUnknown()) {
+            workValidationContext.visitPropertyProblem(problem -> {
+                ImplementationSnapshot.UnknownReason unknownReason = implementationSnapshot.getUnknownReason();
+                configureImplementationValidationProblem(problem)
+                    .forProperty(propertyName)
+                    .withDescription(() -> unknownReason.descriptionFor(implementationSnapshot))
+                    .happensBecause(unknownReason.getReason())
+                    .addPossibleSolution(unknownReason.getSolution());
+            });
+        }
+    }
+
+    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
+        if (implementation.isUnknown()) {
+            workValidationContext.visitPropertyProblem(problem -> {
+                ImplementationSnapshot.UnknownReason unknownReason = implementation.getUnknownReason();
+                configureImplementationValidationProblem(problem)
+                    .withDescription(() -> descriptionPrefix + work + " " + unknownReason.descriptionFor(implementation))
+                    .happensBecause(unknownReason.getReason())
+                    .addPossibleSolution(unknownReason.getSolution());
+            });
+        }
+    }
+
+    private <T extends ValidationProblemBuilder<T>> T configureImplementationValidationProblem(ValidationProblemBuilder<T> problem) {
+        return problem
+            .typeIsIrrelevantInErrorMessage()
+            .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
+            .reportAs(Severity.WARNING)
+            .documentedAt("validation_problems", "implementation_unknown");
     }
 
     private static String renderedMessage(org.gradle.internal.reflect.validation.TypeValidationProblem p) {

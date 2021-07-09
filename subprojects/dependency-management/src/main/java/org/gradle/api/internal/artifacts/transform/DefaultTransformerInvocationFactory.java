@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -52,27 +50,18 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-import static org.gradle.internal.UncheckedException.unchecked;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.PRIMARY;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
@@ -87,8 +76,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
     private static final String OUTPUT_DIRECTORY_PROPERTY_NAME = "outputDirectory";
     private static final String RESULTS_FILE_PROPERTY_NAME = "resultsFile";
-    private static final String INPUT_FILE_PATH_PREFIX = "i/";
-    private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
@@ -153,22 +140,23 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         return executionEngine.createRequest(execution)
             .withIdentityCache(workspaceServices.getIdentityCache())
-            .getOrDeferExecution(new DeferredExecutionHandler<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+            .getOrDeferExecution(new DeferredExecutionHandler<TransformationResult, CacheableInvocation<ImmutableList<File>>>() {
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<TransformationResult> cachedOutput) {
                     return CacheableInvocation.cached(mapResult(cachedOutput));
                 }
 
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
+                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<TransformationResult>> deferredExecution) {
                     return CacheableInvocation.nonCached(() ->
                         fireTransformListeners(transformer, subject, () ->
                             mapResult(deferredExecution.get())));
                 }
 
                 @Nonnull
-                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                private Try<ImmutableList<File>> mapResult(Try<TransformationResult> cachedOutput) {
                     return cachedOutput
+                        .map(result -> result.resolveOutputsForInputArtifact(inputArtifact))
                         .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 }
             });
@@ -225,7 +213,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
             visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () -> {
                 FileCollectionFingerprinter inputArtifactFingerprinter = inputFingerprinter.getFingerprinterRegistry().getFingerprinter(
-                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity()));
+                    DefaultFileNormalizationSpec.from(transformer.getInputArtifactNormalizer(), transformer.getInputArtifactDirectorySensitivity(), transformer.getInputArtifactLineEndingNormalization()));
                 return inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
             });
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
@@ -273,7 +261,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
 
-        private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
         private final TransformationWorkspaceServices workspaceServices;
@@ -291,7 +278,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.transformer = transformer;
             this.inputArtifact = inputArtifact;
             this.dependencies = dependencies;
-            this.executionTimer = Time.startTimer();
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
 
             this.buildOperationExecutor = buildOperationExecutor;
@@ -302,14 +288,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public WorkOutput execute(ExecutionRequest executionRequest) {
-            ImmutableList<File> result = buildOperationExecutor.call(new CallableBuildOperation<ImmutableList<File>>() {
+            TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
                 @Override
-                public ImmutableList<File> call(BuildOperationContext context) {
+                public TransformationResult call(BuildOperationContext context) {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    writeResultsFile(workspace, result);
-                    return result;
+                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
+                    return resultSerializer.writeToFile(getResultsFile(workspace), result);
                 }
 
                 @Override
@@ -335,7 +321,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Object loadRestoredOutput(File workspace) {
-            return readResultsFile(workspace);
+            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
+            return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
 
         @Override
@@ -346,49 +333,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public InputFingerprinter getInputFingerprinter() {
             return inputFingerprinter;
-        }
-
-        private void writeResultsFile(File workspace, ImmutableList<File> result) {
-            File outputDir = getOutputDir(workspace);
-            String outputDirPrefix = outputDir.getPath() + File.separator;
-            String inputFilePrefix = inputArtifact.getPath() + File.separator;
-            Stream<String> relativePaths = result.stream().map(file -> {
-                if (file.equals(outputDir)) {
-                    return OUTPUT_FILE_PATH_PREFIX;
-                }
-                if (file.equals(inputArtifact)) {
-                    return INPUT_FILE_PATH_PREFIX;
-                }
-                String absolutePath = file.getAbsolutePath();
-                if (absolutePath.startsWith(outputDirPrefix)) {
-                    return OUTPUT_FILE_PATH_PREFIX + RelativePath.parse(true, absolutePath.substring(outputDirPrefix.length())).getPathString();
-                }
-                if (absolutePath.startsWith(inputFilePrefix)) {
-                    return INPUT_FILE_PATH_PREFIX + RelativePath.parse(true, absolutePath.substring(inputFilePrefix.length())).getPathString();
-                }
-                throw new IllegalStateException("Invalid result path: " + absolutePath);
-            });
-            unchecked(() -> Files.write(getResultsFile(workspace).toPath(), (Iterable<String>) relativePaths::iterator));
-        }
-
-        private ImmutableList<File> readResultsFile(File workspace) {
-            Path transformerResultsPath = getResultsFile(workspace).toPath();
-            try {
-                ImmutableList.Builder<File> builder = ImmutableList.builder();
-                List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
-                for (String path : paths) {
-                    if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                        builder.add(new File(getOutputDir(workspace), path.substring(2)));
-                    } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
-                        builder.add(new File(inputArtifact, path.substring(2)));
-                    } else {
-                        throw new IllegalStateException("Cannot parse result path string: " + path);
-                    }
-                }
-                return builder.build();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
         }
 
         private static File getOutputDir(File workspace) {
@@ -424,6 +368,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
+                    transformer.getInputArtifactDependenciesLineEndingNormalization(),
                     () -> dependencies.getFiles()
                         .orElse(fileCollectionFactory.empty())));
         }
@@ -436,6 +381,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),
+                    transformer.getInputArtifactLineEndingNormalization(),
                     () -> fileCollectionFactory.fixed(inputArtifact)));
         }
 
@@ -449,11 +395,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
                 resultsFile,
                 fileCollectionFactory.fixed(resultsFile));
-        }
-
-        @Override
-        public long markExecutionTime() {
-            return executionTimer.getElapsedMillis();
         }
 
         @Override

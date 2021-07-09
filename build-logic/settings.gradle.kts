@@ -16,10 +16,6 @@
 
 pluginManagement {
     repositories {
-        maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-        }
         gradlePluginPortal()
     }
 }
@@ -42,18 +38,6 @@ dependencyResolutionManagement {
                 // This repository contains an older version which has been overwritten in Central
                 excludeModule("com.google.j2objc", "j2objc-annotations")
             }
-        }
-        maven {
-            name = "kotlinx"
-            url = uri("https://dl.bintray.com/kotlin/kotlinx")
-        }
-        maven {
-            name = "kotlin-dev"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
-        }
-        maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
         maven {
             name = "ge-release-candidates"

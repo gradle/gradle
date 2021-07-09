@@ -18,11 +18,12 @@ package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
-import com.google.common.io.ByteStreams
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.hash.HashingOutputStream
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -338,7 +339,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
                 return bytes.length
             }
         }
-        return new ZipEntryContext(zipEntry, path, "foo.zip")
+        return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }
 
     RegularFileSnapshotContext fileSnapshot(String path, Map<String, String> attributes, String comments = "") {
@@ -358,9 +359,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
             _ * getSnapshot() >> Mock(RegularFileSnapshot) {
                 _ * getAbsolutePath() >> file.absolutePath
                 _ * getHash() >> {
-                    HashingOutputStream hasher = Hashing.primitiveStreamHasher()
-                    ByteStreams.copy(new ByteArrayInputStream(bytes), hasher)
-                    return hasher.hash()
+                    return Hashing.hashBytes(bytes)
                 }
             }
             _ * getRelativePathSegments() >> new Supplier<String[]>() {

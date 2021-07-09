@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
@@ -35,6 +36,7 @@ import static org.junit.Assert.assertTrue
 
 
 @TargetGradleVersion(">=5.4")
+@Ignore('https://github.com/gradle/gradle-private/issues/3414')
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch buildSrc classpath in face of compilation errors"() {

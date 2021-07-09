@@ -16,14 +16,12 @@
 
 package org.gradle.internal.composite;
 
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 
@@ -52,7 +50,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuild> children = new LinkedHashSet<>(includedBuilds.size());
+            Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
             RootBuildState rootBuild = buildRegistry.getRootBuild();
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 if (!includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
@@ -60,7 +58,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
                     children.add(includedBuild.getModel());
                 } else {
                     buildRegistry.registerSubstitutionsForRootBuild();
-                    children.add(new IncludedRootBuild((CompositeBuildParticipantBuildState) buildRegistry.getRootBuild()));
+                    children.add(buildRegistry.getRootBuild().getModel());
                 }
             }
 

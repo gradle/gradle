@@ -26,11 +26,13 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.provider.DefaultPropertyFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -162,6 +164,8 @@ class DefaultProjectSpec extends Specification {
         def projectDir = new File("project")
         def objectFactory = Stub(ObjectFactory)
         objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
+        def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
+        objectFactory.property(Object) >> propertyFactory.property(Object)
 
         def container = Mock(ProjectState)
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))

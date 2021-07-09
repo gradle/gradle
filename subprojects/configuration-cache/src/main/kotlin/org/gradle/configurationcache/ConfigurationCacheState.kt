@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
-import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -27,6 +26,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.extensions.serviceOf
@@ -50,17 +50,17 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
-import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.initialization.SettingsLocation
 import org.gradle.internal.Actions
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
+import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
@@ -77,6 +77,12 @@ import java.io.InputStream
 import java.io.OutputStream
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+
+
+internal
+enum class StateType {
+    Work, Model
+}
 
 
 internal
@@ -107,7 +113,7 @@ class ConfigurationCacheState(
             "corrupt state file"
         }
         configureBuild(buildState)
-        calculateTaskGraph(buildState)
+        calculateRootTaskGraph(buildState)
     }
 
     private
@@ -122,15 +128,26 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateTaskGraph(state: CachedBuildState) {
-        fireCalculateTaskGraph(state.build.gradle) {
-            state.build.scheduleNodes(state.workGraph)
-            state.children.forEach(::calculateTaskGraph)
+    fun calculateRootTaskGraph(state: CachedBuildState) {
+        state.build.scheduleNodes {
+            it.addNodes(state.workGraph)
+            state.build.gradle.taskGraph.populate()
+            state.children.forEach(::addNodesForChildBuilds)
+            // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
+            // TODO - It would be better to have the load() method signal this instead
+            state.build.gradle.services.get(IncludedBuildTaskGraph::class.java).populateTaskGraphs()
         }
     }
 
     private
+    fun addNodesForChildBuilds(state: CachedBuildState) {
+        state.build.gradle.taskGraph.addNodes(state.workGraph)
+        state.children.forEach(::addNodesForChildBuilds)
+    }
+
+    private
     suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
+        require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
             writeString(gradle.rootProject.name)
@@ -322,7 +339,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal, buildTreeState: StoredBuildTreeState) {
-        writeCollection(gradle.includedBuilds) {
+        writeCollection(gradle.includedBuilds()) {
             writeIncludedBuildState(it, buildTreeState)
         }
         if (gradle.serviceOf<VcsMappingsStore>().asResolver().hasRules()) {
@@ -349,17 +366,18 @@ class ConfigurationCacheState(
                 documentationSection = NotYetImplementedSourceDependencies
             )
         }
-        parentBuild.gradle.includedBuilds = includedBuilds.map { it.first.model }
+        parentBuild.gradle.setIncludedBuilds(includedBuilds.map { it.first.model })
         return includedBuilds.mapNotNull { it.second }
     }
 
     private
     suspend fun DefaultWriteContext.writeIncludedBuildState(
-        includedBuild: IncludedBuild,
+        reference: IncludedBuildInternal,
         buildTreeState: StoredBuildTreeState
     ) {
-        if (includedBuild is IncludedBuildState) {
-            val includedGradle = includedBuild.configuredBuild
+        val target = reference.target
+        if (target is IncludedBuildState) {
+            val includedGradle = target.configuredBuild
             val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
             writeBuildDefinition(buildDefinition)
             when {
@@ -558,7 +576,7 @@ class ConfigurationCacheState(
 
     private
     fun buildIdentifierOf(gradle: GradleInternal) =
-        gradle.serviceOf<BuildState>().buildIdentifier
+        gradle.owner.buildIdentifier
 
     private
     fun buildEventListenersOf(gradle: GradleInternal) =
@@ -598,16 +616,6 @@ class ConfigurationCacheState(
     private
     fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal) {
         NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor).load(gradle.settings, gradle)
-    }
-
-    /**
-     * Fire build operation required by build scan to determine when task execution starts.
-     *
-     * This might be better done as a new build operation type.
-     **/
-    private
-    fun fireCalculateTaskGraph(gradle: GradleInternal, delegate: (GradleInternal) -> Unit) {
-        BuildOperationFiringTaskExecutionPreparer(delegate, gradle.serviceOf()).prepareForTaskExecution(gradle)
     }
 
     /**

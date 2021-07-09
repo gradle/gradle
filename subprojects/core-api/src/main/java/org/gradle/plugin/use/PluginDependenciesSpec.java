@@ -16,6 +16,9 @@
 
 package org.gradle.plugin.use;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+
 /**
  * The DSL for declaring plugins to use in a script.
  * <p>
@@ -123,5 +126,17 @@ public interface PluginDependenciesSpec {
      * @return a mutable plugin dependency specification that can be used to further refine the dependency
      */
     PluginDependencySpec id(String id);
+
+    /**
+     * Adds a plugin dependency using a notation coming from a version catalog.
+     * The resulting dependency spec can be refined with a version overriding
+     * what the version catalog provides.
+     * @param notation the plugin reference
+     * @return a mutable plugin dependency specification  that can be used to further refine the dependency
+     *
+     * @since 7.2
+     */
+    @Incubating
+    PluginDependencySpec alias(Provider<PluginDependency> notation);
 
 }

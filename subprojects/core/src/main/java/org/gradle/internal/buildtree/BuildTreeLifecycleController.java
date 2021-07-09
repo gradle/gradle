@@ -22,7 +22,7 @@ import org.gradle.api.internal.SettingsInternal;
 import java.util.function.Function;
 
 /**
- * Controls the lifecycle of the build tree, allowing a single action to be run against the root build.
+ * Controls the lifecycle of the build tree, allowing a single action to be run against the build tree.
  */
 public interface BuildTreeLifecycleController {
 
@@ -40,6 +40,8 @@ public interface BuildTreeLifecycleController {
     /**
      * Creates the task graph for the tasks specified in the {@link org.gradle.StartParameter} associated with the build, runs the tasks and finishes up the build.
      * When this method returns, all user code will have completed, including 'build finished' hooks.
+     *
+     * <p>This method may or may nor configure the build. When a cached task graph is available, this may be used instead of configuring the build.
      */
     void scheduleAndRunTasks();
 
@@ -47,7 +49,9 @@ public interface BuildTreeLifecycleController {
      * Configures the build, optionally schedules and runs any tasks, calls the given action and finally finishes up the build.
      * When this method returns, all user code will have completed, including 'build finished' hooks.
      *
-     * Does not call the given action if execution fails.
+     * <p>This method may or may not run the action. When a cached result is available, this may be used instead of configuring the build and running the action.</p>
+     *
+     * <p>Does not call the given action when task execution fails.
      */
     <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action);
 }

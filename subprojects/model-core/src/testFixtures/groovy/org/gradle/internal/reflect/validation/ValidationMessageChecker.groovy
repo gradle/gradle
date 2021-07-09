@@ -334,6 +334,28 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.UNKNOWN_IMPLEMENTATION
+    )
+    String implementationUnknown(boolean renderSolutions = false, @DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnknownImplementation, 'implementation_unknown', spec)
+        config.description("${config.prefix} ${config.postfix}")
+            .reason(config.reason)
+            .solution(config.solution)
+            .render(renderSolutions)
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
+    )
+    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
+        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
+            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
+            .solution("Add @DisableCachingByDefault(because = ...) or ${config.cacheableAnnotation}.")
+            .render()
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
@@ -793,4 +815,67 @@ trait ValidationMessageChecker {
             inConflict(Arrays.asList(conflicting))
         }
     }
+
+    static class UnknownImplementation extends ValidationMessageDisplayConfiguration<UnknownImplementation> {
+
+        String prefix
+        String postfix
+        String reason
+        String solution
+
+        UnknownImplementation(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnknownImplementation nestedProperty(String propertyName) {
+            prefix = "Property '${propertyName}'"
+            this
+        }
+
+        UnknownImplementation implementationOfTask(String taskPath) {
+            prefix = "Implementation of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation additionalTaskAction(String taskPath) {
+            prefix = "Additional action of task '${taskPath}'"
+            this
+        }
+
+        UnknownImplementation unknownClassloader(String className) {
+            postfix = "was loaded with an unknown classloader (class '${className}')."
+            reason = "Gradle cannot track the implementation for classes loaded with an unknown classloader."
+            solution = "Load your class by using one of Gradle's built-in ways."
+            this
+        }
+
+        UnknownImplementation implementedByLambda(String lambdaPrefix) {
+            postfix = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'."
+            reason = "Using Java lambdas is not supported as task inputs."
+            solution = "Use an (anonymous inner) class instead."
+            this
+        }
+    }
+
+    static class NotCacheableWithoutReason extends ValidationMessageDisplayConfiguration<NotCacheableWithoutReason> {
+        String workType
+        String cacheableAnnotation
+
+        NotCacheableWithoutReason(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NotCacheableWithoutReason noReasonOnTask() {
+            workType = "task"
+            cacheableAnnotation = "@CacheableTask"
+            this
+        }
+
+        NotCacheableWithoutReason noReasonOnArtifactTransform() {
+            workType = "transform action"
+            cacheableAnnotation = "@CacheableTransform"
+            this
+        }
+    }
+
 }

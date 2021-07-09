@@ -18,24 +18,26 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.hash.HashValue
+import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.util.internal.GFileUtils.relativePathOf
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.GFileUtils.relativePathOf
 import java.io.File
 
 
+@ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheKey(
-    private val startParameter: ConfigurationCacheStartParameter
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val buildActionRequirements: BuildActionModelRequirements
 ) {
 
     val string: String by unsafeLazy {
-        HashValue(
-            Hashing.md5().newHasher().apply {
-                putCacheKeyComponents()
-            }.hash().toByteArray()
-        ).asCompactString()
+        Hashing.md5().newHasher().apply {
+            putCacheKeyComponents()
+        }.hash().toCompactString()
     }
 
     override fun toString() = string
@@ -60,6 +62,16 @@ class ConfigurationCacheKey(
             }
         )
 
+        buildActionRequirements.appendKeyTo(this)
+
+        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
+        if (buildActionRequirements.isRunsTasks) {
+            appendRequestedTasks()
+        }
+    }
+
+    private
+    fun Hasher.appendRequestedTasks() {
         val requestedTaskNames = startParameter.requestedTaskNames
         putAll(requestedTaskNames)
 

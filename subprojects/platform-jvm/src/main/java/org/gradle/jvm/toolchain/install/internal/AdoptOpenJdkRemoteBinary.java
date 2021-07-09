@@ -55,7 +55,7 @@ public class AdoptOpenJdkRemoteBinary {
         return Optional.of(destinationFile);
     }
 
-    private boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+    public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
         final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
         JvmVendor vendor = JvmVendor.fromString("adoptopenjdk");

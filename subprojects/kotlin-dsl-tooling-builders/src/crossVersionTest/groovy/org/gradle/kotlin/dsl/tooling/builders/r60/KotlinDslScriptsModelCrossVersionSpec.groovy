@@ -17,113 +17,18 @@
 package org.gradle.kotlin.dsl.tooling.builders.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import spock.lang.Ignore
 
 import java.lang.reflect.Proxy
-
-import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
-class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
-
-    def "can fetch model for the scripts of a build"() {
-
-        given:
-        def spec = withMultiProjectBuildWithBuildSrc()
-
-        when:
-        def model = kotlinDslScriptsModelFor()
-
-        then:
-        model.scriptModels.keySet() == spec.scripts.values() as Set
-
-        and:
-        assertModelMatchesBuildSpec(model, spec)
-    }
-
-    def "can fetch model for the scripts of a build in lenient mode"() {
-
-        given:
-        def spec = withMultiProjectBuildWithBuildSrc()
-
-        and:
-        spec.scripts.a << """
-            script_body_compilation_error
-        """
-
-        when:
-        def model = kotlinDslScriptsModelFor(true)
-
-        then:
-        model.scriptModels.keySet() == spec.scripts.values() as Set
-
-        and:
-        assertModelMatchesBuildSpec(model, spec)
-
-        and:
-        assertHasExceptionMessage(
-            model,
-            spec.scripts.a,
-            "Unresolved reference: script_body_compilation_error"
-        )
-    }
-
-    def "can fetch model for a given set of scripts"() {
-
-        given:
-        def spec = withMultiProjectBuildWithBuildSrc()
-        def requestedScripts = spec.scripts.values() + spec.appliedScripts.some
-
-        when:
-        def model = kotlinDslScriptsModelFor(requestedScripts)
-
-        then:
-        model.scriptModels.keySet() == requestedScripts as Set
-
-        and:
-        assertModelMatchesBuildSpec(model, spec)
-
-        and:
-        assertModelAppliedScripts(model, spec)
-    }
-
-    def "can fetch model for a given set of scripts of a build in lenient mode"() {
-
-        given:
-        def spec = withMultiProjectBuildWithBuildSrc()
-        def requestedScripts = spec.scripts.values() + spec.appliedScripts.some
-
-        and:
-        spec.scripts.a << """
-            script_body_compilation_error
-        """
-
-        when:
-        def model = kotlinDslScriptsModelFor(true, requestedScripts)
-
-        then:
-        model.scriptModels.keySet() == requestedScripts as Set
-
-        and:
-        assertModelMatchesBuildSpec(model, spec)
-
-        and:
-        assertModelAppliedScripts(model, spec)
-
-        and:
-        assertHasExceptionMessage(
-            model,
-            spec.scripts.a,
-            "Unresolved reference: script_body_compilation_error"
-        )
-    }
+@Ignore('https://github.com/gradle/gradle-private/issues/3414')
+class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 
     def "single request models equal multi requests models"() {
 
@@ -183,130 +88,5 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         buildFileKtsModel.implicitImports.isEmpty()
         buildFileKtsModel.editorReports.isEmpty()
         buildFileKtsModel.exceptions.isEmpty()
-    }
-
-    private BuildSpec withMultiProjectBuildWithBuildSrc() {
-        withBuildSrc()
-        def someJar = withEmptyJar("classes_some.jar")
-        def settingsJar = withEmptyJar("classes_settings.jar")
-        def rootJar = withEmptyJar("classes_root.jar")
-        def aJar = withEmptyJar("classes_a.jar")
-        def bJar = withEmptyJar("classes_b.jar")
-        def precompiledJar = withEmptyJar("classes_b_precompiled.jar")
-
-        def some = withFile("some.gradle.kts", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(someJar)}"))
-                }
-            }
-        """)
-        def settings = withSettings("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(settingsJar)}"))
-                }
-            }
-            apply(from = "some.gradle.kts")
-            include("a", "b")
-        """)
-        def root = withBuildScript("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(rootJar)}"))
-                }
-            }
-            apply(from = "some.gradle.kts")
-        """)
-        def a = withBuildScriptIn("a", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(aJar)}"))
-                }
-            }
-            apply(from = "../some.gradle.kts")
-        """)
-        def b = withBuildScriptIn("b", """
-            plugins {
-                `kotlin-dsl`
-            }
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(bJar)}"))
-                }
-            }
-            apply(from = "../some.gradle.kts")
-
-            $repositoriesBlock
-
-            dependencies {
-                implementation(files("${escapeString(precompiledJar)}"))
-            }
-        """)
-        def precompiled = withFile("b/src/main/kotlin/precompiled/precompiled.gradle.kts", "")
-        return new BuildSpec(
-            scripts: [
-                settings: settings,
-                root: root,
-                a: a,
-                b: b,
-                precompiled: precompiled
-            ],
-            appliedScripts: [
-                some: some
-            ],
-            jars: [
-                some: someJar,
-                settings: settingsJar,
-                root: rootJar,
-                a: aJar,
-                b: bJar,
-                precompiled: precompiledJar
-            ]
-        )
-    }
-
-    private static void assertModelMatchesBuildSpec(KotlinDslScriptsModel model, BuildSpec spec) {
-
-        model.scriptModels.values().each { script ->
-            assertContainsGradleKotlinDslJars(script.classPath)
-        }
-
-        def settingsClassPath = canonicalClasspathOf(model, spec.scripts.settings)
-        assertNotContainsBuildSrc(settingsClassPath)
-        assertContainsGradleKotlinDslJars(settingsClassPath)
-        assertIncludes(settingsClassPath, spec.jars.settings)
-        assertExcludes(settingsClassPath, spec.jars.root, spec.jars.a, spec.jars.b)
-
-        def rootClassPath = canonicalClasspathOf(model, spec.scripts.root)
-        assertContainsBuildSrc(rootClassPath)
-        assertIncludes(rootClassPath, spec.jars.root)
-        assertExcludes(rootClassPath, spec.jars.a, spec.jars.b)
-
-        def aClassPath = canonicalClasspathOf(model, spec.scripts.a)
-        assertContainsBuildSrc(aClassPath)
-        assertIncludes(aClassPath, spec.jars.root, spec.jars.a)
-        assertExcludes(aClassPath, spec.jars.b)
-
-        def bClassPath = canonicalClasspathOf(model, spec.scripts.b)
-        assertContainsBuildSrc(bClassPath)
-        assertIncludes(bClassPath, spec.jars.root, spec.jars.b)
-        assertExcludes(bClassPath, spec.jars.a)
-
-        def precompiledClassPath = canonicalClasspathOf(model, spec.scripts.precompiled)
-        assertNotContainsBuildSrc(precompiledClassPath)
-        assertIncludes(precompiledClassPath, spec.jars.precompiled)
-        assertExcludes(precompiledClassPath, spec.jars.root, spec.jars.a, spec.jars.b)
-    }
-
-    private static void assertModelAppliedScripts(KotlinDslScriptsModel model, BuildSpec spec) {
-        spec.appliedScripts.each { appliedScript ->
-            def classPath = model.scriptModels[appliedScript.value].classPath
-            assertContainsGradleKotlinDslJars(classPath)
-            assertContainsBuildSrc(classPath)
-            def appliedJar = spec.jars[appliedScript.key]
-            assertIncludes(classPath, appliedJar)
-            assertExcludes(classPath, *(spec.jars.values() - appliedJar) as TestFile[])
-        }
     }
 }

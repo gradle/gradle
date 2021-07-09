@@ -18,6 +18,9 @@ package org.gradle.internal.buildtree;
 
 import java.util.function.Consumer;
 
+/**
+ * Responsible for running all scheduled work for the build tree.
+ */
 public interface BuildTreeWorkExecutor {
     void execute(Consumer<? super Throwable> consumer);
 }

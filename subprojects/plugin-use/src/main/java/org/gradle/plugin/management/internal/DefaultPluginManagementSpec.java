@@ -21,11 +21,13 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.Provider;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.plugin.management.PluginResolutionStrategy;
 import org.gradle.plugin.use.PluginDependenciesSpec;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -107,6 +109,12 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
         @Override
         public PluginDependencySpec id(String id) {
             return new PluginDependencySpecImpl(DefaultPluginId.of(id));
+        }
+
+        @Override
+        public PluginDependencySpec alias(Provider<PluginDependency> notation) {
+            PluginDependency pluginDependency = notation.get();
+            return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
         }
     }
 

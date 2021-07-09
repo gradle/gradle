@@ -27,6 +27,7 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioSolution;
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioSolutionFile;
 import org.gradle.plugins.ide.api.GeneratorTask;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 
@@ -34,6 +35,7 @@ import java.io.File;
  * Task for generating a Visual Studio solution file (e.g. {@code foo.sln}).
  */
 @Incubating
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
     private DefaultVisualStudioSolution solution;
 

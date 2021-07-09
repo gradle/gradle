@@ -491,7 +491,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
         run ':checkDeps'
 
         then:
-        outputContains "Duplicate entry for alias 'my-lib': dependency {group='org.gradle.test', name='lib', version='1.0'} is replaced with dependency {group='org.gradle.test', name='lib', version='1.1'}"
+        outputContains "Duplicate entry for alias 'my.lib': dependency {group='org.gradle.test', name='lib', version='1.0'} is replaced with dependency {group='org.gradle.test', name='lib', version='1.1'}"
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.gradle.test:lib:1.1')

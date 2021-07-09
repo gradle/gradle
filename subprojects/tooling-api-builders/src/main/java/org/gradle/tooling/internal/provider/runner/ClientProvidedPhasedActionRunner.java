@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
@@ -30,12 +27,16 @@ import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
+import javax.annotation.Nullable;
+
 public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer buildEventConsumer;
 
-    public ClientProvidedPhasedActionRunner(BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry, PayloadSerializer payloadSerializer, BuildEventConsumer buildEventConsumer) {
-        super(buildCancellationToken, buildOperationExecutor, projectLeaseRegistry);
+    public ClientProvidedPhasedActionRunner(BuildControllerFactory buildControllerFactory,
+                                            PayloadSerializer payloadSerializer,
+                                            BuildEventConsumer buildEventConsumer) {
+        super(buildControllerFactory, payloadSerializer);
         this.payloadSerializer = payloadSerializer;
         this.buildEventConsumer = buildEventConsumer;
     }
@@ -72,20 +73,20 @@ public class ClientProvidedPhasedActionRunner extends AbstractClientProvidedBuil
         }
 
         @Override
-        public void collectActionResult(Object result, PhasedActionResult.Phase phase) {
-            SerializedPayload serializedResult = payloadSerializer.serialize(result);
+        public void collectActionResult(SerializedPayload serializedResult, PhasedActionResult.Phase phase) {
             PhasedBuildActionResult res = new PhasedBuildActionResult(serializedResult, phase);
             buildEventConsumer.dispatch(res);
+        }
+
+        @Nullable
+        @Override
+        public SerializedPayload getResult() {
+            return null;
         }
 
         @Override
         public boolean isRunTasks() {
             return action.isRunTasks();
-        }
-
-        @Override
-        public Object getResult() {
-            return null;
         }
     }
 }

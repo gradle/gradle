@@ -16,9 +16,13 @@
 
 package org.gradle.caching.http.internal
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.deprecation.Documentation
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 @IntegrationTestTimeout(120)
@@ -38,6 +42,8 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
                 }
             }
         """
+
+    def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         settingsFile << withHttpBuildCacheServer()
@@ -331,5 +337,179 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         output.contains("java.net.UnknownHostException")
         output.contains("invalid.invalid")
         output.contains("The remote build cache was disabled during the build due to errors.")
+    }
+
+    def "storing to cache does follow method preserving redirects"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            if (!req.requestURI.startsWith("/redirect")) {
+                res.setHeader("location", "redirect$req.requestURI")
+                res.setStatus(307)
+                res.writer.close()
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+        and:
+        // Only one store operation, not one per redirect
+        compileJavaStoreOperations().size() == 1
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
+    /**
+     * This scenario represents a potentially misconfigured server trying to redirect writes, but using the wrong status to do so.
+     * This is still potentially valid usage though, and is valid HTTP.
+     * Theoretically, a service could accept the write and then redirect to another page that polls for the success of that write.
+     */
+    def "non method preserving redirects on write result in discarded write"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                res.setHeader("location", "/ok")
+                res.setStatus(301)
+                res.writer.close()
+                false
+            } else if (req.requestURI == "/ok") {
+                res.setStatus(200)
+                res.writer.close()
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+    }
+
+    def "treats redirect loop as failure"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            res.setHeader("location", req.requestURI)
+            res.setStatus(301)
+            res.writer.close()
+            false
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        and:
+        output.contains("Could not load entry")
+        output.contains("Circular redirect to")
+    }
+
+    def "treats too many redirects as failure"() {
+        given:
+        httpBuildCacheServer.cacheDir.createDir("redirect")
+        httpBuildCacheServer.addResponder { req, res ->
+            res.setHeader("location", "/r$req.requestURI")
+            res.setStatus(301)
+            res.writer.close()
+            false
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        and:
+        output.contains("Could not load entry")
+        output.contains("Maximum redirects (10) exceeded")
+    }
+
+    def "can use expect continue"() {
+        given:
+        settingsFile << """
+            buildCache {
+                remote {
+                    useExpectContinue = true
+                }
+            }
+        """.stripIndent()
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+
+        expect:
+        withBuildCache().run "clean"
+
+        when:
+        withBuildCache().run "jar"
+        then:
+        skipped ":compileJava"
+    }
+
+    def "store can be rejected when using expect continue"() {
+        given:
+        settingsFile << """
+            buildCache {
+                remote {
+                    useExpectContinue = true
+                }
+            }
+        """.stripIndent()
+
+        and:
+        httpBuildCacheServer.addResponder { req, res ->
+            if (req.method == "PUT") {
+                assert req.getHeader("expect") == "100-continue"
+                res.sendError(401)
+                false
+            } else {
+                true
+            }
+        }
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        withBuildCache().run "jar"
+        then:
+        noneSkipped()
+        and:
+        def storeOps = compileJavaStoreOperations()
+        storeOps.size() == 1
+        storeOps.first().failure.contains("response status 401: Unauthorized")
+    }
+
+    private List<BuildOperationRecord> compileJavaStoreOperations() {
+        buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
+            buildOperations.parentsOf(it).any {
+                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
+            }
+        }
     }
 }

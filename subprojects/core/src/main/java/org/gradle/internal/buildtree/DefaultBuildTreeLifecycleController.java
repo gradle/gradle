@@ -17,10 +17,8 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,20 +29,23 @@ import java.util.function.Function;
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
-    private final WorkerLeaseService workerLeaseService;
+    private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
-    private final IncludedBuildControllers includedBuildControllers;
+    private final BuildTreeModelCreator modelCreator;
+    private final BuildTreeFinishExecutor finishExecutor;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
-                                               WorkerLeaseService workerLeaseService,
+                                               BuildTreeWorkPreparer workPreparer,
                                                BuildTreeWorkExecutor workExecutor,
-                                               IncludedBuildControllers includedBuildControllers,
+                                               BuildTreeModelCreator modelCreator,
+                                               BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
-        this.workerLeaseService = workerLeaseService;
+        this.workPreparer = workPreparer;
+        this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
-        this.includedBuildControllers = includedBuildControllers;
+        this.finishExecutor = finishExecutor;
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
@@ -58,8 +59,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks() {
-        doBuild((buildController, failures) -> {
-            buildController.scheduleRequestedTasks();
+        doBuild(failures -> {
+            workPreparer.scheduleRequestedTasks();
             workExecutor.execute(failures);
             return null;
         });
@@ -67,9 +68,9 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
-        return doBuild((buildController, failureCollector) -> {
+        return doBuild(failureCollector -> {
             if (runTasks) {
-                buildController.scheduleRequestedTasks();
+                workPreparer.scheduleRequestedTasks();
                 List<Throwable> failures = new ArrayList<>();
                 workExecutor.execute(throwable -> {
                     failures.add(throwable);
@@ -78,16 +79,14 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
                 if (!failures.isEmpty()) {
                     return null;
                 }
-            } else {
-                buildController.getConfiguredBuild();
             }
-            return action.apply(buildController.getGradle());
+            return modelCreator.fromBuildModel(action);
         });
     }
 
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
-        return doBuild((buildController, failures) -> action.apply(buildController.getLoadedSettings()));
+        return doBuild(failures -> action.apply(buildLifecycleController.getLoadedSettings()));
     }
 
     private <T> T doBuild(final BuildAction<T> build) {
@@ -95,33 +94,28 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             throw new IllegalStateException("Cannot run more than one action for this build.");
         }
         completed = true;
-        // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
-        return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), () -> {
-            List<Throwable> failures = new ArrayList<>();
-            Consumer<Throwable> collector = failures::add;
+        List<Throwable> failures = new ArrayList<>();
+        Consumer<Throwable> collector = failures::add;
 
-            T result;
-            try {
-                result = build.run(buildLifecycleController, collector);
-            } catch (Throwable t) {
-                result = null;
-                failures.add(t);
-            }
+        T result;
+        try {
+            result = build.run(collector);
+        } catch (Throwable t) {
+            result = null;
+            failures.add(t);
+        }
 
-            includedBuildControllers.finishBuild(collector);
-            RuntimeException reportableFailure = exceptionAnalyser.transform(failures);
-            buildLifecycleController.finishBuild(reportableFailure, collector);
+        finishExecutor.finishBuildTree(Collections.unmodifiableList(failures), collector);
 
-            RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
-            if (finalReportableFailure != null) {
-                throw finalReportableFailure;
-            }
+        RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+        if (finalReportableFailure != null) {
+            throw finalReportableFailure;
+        }
 
-            return result;
-        });
+        return result;
     }
 
     private interface BuildAction<T> {
-        T run(BuildLifecycleController buildLifecycleController, Consumer<Throwable> failures);
+        T run(Consumer<Throwable> failures);
     }
 }

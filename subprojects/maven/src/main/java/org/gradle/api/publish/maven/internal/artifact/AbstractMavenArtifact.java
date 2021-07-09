@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.internal.artifact;
 import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -75,7 +74,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         return allBuildDependencies;
     }
 
-    protected abstract TaskDependencyInternal getDefaultBuildDependencies();
+    protected abstract TaskDependency getDefaultBuildDependencies();
 
     @Override
     public final String toString() {
@@ -86,7 +85,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            getDefaultBuildDependencies().visitDependencies(context);
+            context.add(getDefaultBuildDependencies());
             additionalBuildDependencies.visitDependencies(context);
         }
     }

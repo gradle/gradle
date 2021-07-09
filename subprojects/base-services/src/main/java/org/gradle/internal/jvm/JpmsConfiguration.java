@@ -43,6 +43,21 @@ public class JpmsConfiguration {
 
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
+    public static final List<String> gradleDaemonJpmsArgs(List<String> existingJvmArgs) {
+        List<String> result = new ArrayList<String>(GRADLE_DAEMON_JPMS_ARGS);
+
+        String kotlinCompilerOptions = null;
+        for (String jvmArg : existingJvmArgs) {
+            if (jvmArg.startsWith("-Dkotlin.daemon.jvm.options=")) {
+                kotlinCompilerOptions = jvmArg.substring(28);
+            }
+        }
+        if (kotlinCompilerOptions != null) {
+            result.add(result.size() - 1, "-Dkotlin.daemon.jvm.options=--illegal-access=permit " + kotlinCompilerOptions);
+        }
+        return result;
+    }
+
     static {
         List<String> gradleDaemonJvmArgs = new ArrayList<String>();
         gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);

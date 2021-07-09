@@ -21,6 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.project.DefaultCompileOperationFactory
@@ -109,7 +110,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with imperative and inheritable code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -133,7 +136,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with imperative code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -156,7 +161,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with inheritable and deferred code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -179,7 +186,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using script with deferred code"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)
@@ -201,7 +210,9 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configures a project object using empty script"() {
         given:
-        def target = Mock(ProjectInternal)
+        def target = Mock(ProjectInternal) {
+            getExtensions() >> Mock(ExtensionContainerInternal)
+        }
 
         when:
         def configurer = factory.create(scriptSource, scriptHandler, targetScope, baseScope, true)

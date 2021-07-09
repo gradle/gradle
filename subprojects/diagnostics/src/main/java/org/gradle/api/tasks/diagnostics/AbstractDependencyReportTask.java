@@ -18,12 +18,14 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -36,6 +38,7 @@ import java.util.TreeSet;
 /**
  * Displays the dependency tree for a configuration.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractDependencyReportTask extends ProjectBasedReportTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
@@ -96,7 +99,7 @@ public abstract class AbstractDependencyReportTask extends ProjectBasedReportTas
      */
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
-        this.configurations = Collections.singleton(getTaskConfigurations().getByName(configurationName));
+        this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {

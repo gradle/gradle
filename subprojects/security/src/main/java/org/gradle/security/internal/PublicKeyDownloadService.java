@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ExponentialBackoff;
+import org.gradle.internal.io.IOQuery;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
@@ -76,14 +77,14 @@ public class PublicKeyDownloadService implements PublicKeyService {
                 URI baseUri = serversLeft.poll();
                 if (baseUri == null) {
                     // no more servers left despite retries
-                    return false;
+                    return IOQuery.Result.successful(false);
                 }
                 try {
                     URI query = toQuery(baseUri, fingerprint);
                     ExternalResourceReadResponse response = client.openResource(query, false);
                     if (response != null) {
                         extractKeyRing(response, builder, onKeyring);
-                        return true;
+                        return IOQuery.Result.successful(true);
                     } else {
                         logKeyDownloadAttempt(fingerprint, baseUri);
                         // null means the resource is missing from this repo
@@ -94,7 +95,7 @@ public class PublicKeyDownloadService implements PublicKeyService {
                     serversLeft.add(baseUri);
                 }
                 // retry
-                return null;
+                return IOQuery.Result.notSuccessful(false);
             });
         } catch (InterruptedException | IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

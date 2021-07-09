@@ -29,6 +29,10 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
+
+import java.time.Duration;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
@@ -52,6 +56,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
+        Timer timer = Time.startTimer();
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
@@ -62,8 +67,14 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
                 .details(Operation.Details.INSTANCE)
         );
+        long snapshotOutputDuration = timer.getElapsedMillis();
 
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), work.markExecutionTime());
+        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+        // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+        // which is currently the _only_ thing this value is used for.
+        Duration originExecutionTime = result.getDuration().plus(Duration.ofMillis(snapshotOutputDuration));
+
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
 
         return new CurrentSnapshotResult() {
             @Override
@@ -79,6 +90,11 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
             @Override
             public Try<ExecutionResult> getExecutionResult() {
                 return result.getExecutionResult();
+            }
+
+            @Override
+            public Duration getDuration() {
+                return result.getDuration();
             }
 
             @Override
@@ -115,11 +131,13 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Details INSTANCE = new Details() {};
+            Details INSTANCE = new Details() {
+            };
         }
 
         interface Result {
-            Result INSTANCE = new Result() {};
+            Result INSTANCE = new Result() {
+            };
         }
     }
 }

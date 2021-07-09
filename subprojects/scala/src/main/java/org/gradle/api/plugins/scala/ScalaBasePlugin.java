@@ -39,10 +39,12 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
@@ -55,10 +57,13 @@ import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -202,47 +207,45 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    private static void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
+    private void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage) {
         final ScalaSourceDirectorySet scalaSourceSet = sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class);
 
-        final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
-            @Override
-            public void execute(ScalaCompile scalaCompile) {
-                JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet, scalaCompile, scalaCompile.getOptions(), project);
-                scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
-                scalaCompile.setSource(scalaSourceSet);
+        final TaskProvider<ScalaCompile> scalaCompileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
+            JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet, scalaCompile, scalaCompile.getOptions(), project);
+            scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
+            scalaCompile.setSource(scalaSourceSet);
+            scalaCompile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
 
-                scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
+            scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
-                // cannot compute at task execution time because we need association with source set
-                IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                incrementalOptions.getAnalysisFile().set(
-                    project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
-                );
+            // cannot compute at task execution time because we need association with source set
+            IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+            incrementalOptions.getAnalysisFile().set(
+                project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
+            );
 
-                incrementalOptions.getClassfileBackupDir().set(
-                    project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
-                );
+            incrementalOptions.getClassfileBackupDir().set(
+                project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
+            );
 
-                final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
-                if (jarTask != null) {
-                    incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
-                }
-                scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
-                    @Override
-                    public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
-                        viewConfiguration.lenient(true);
-                        viewConfiguration.componentFilter(new IsProjectComponent());
-                    }
-                }).getFiles());
-
-                // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
-                // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
-                // it can potentially block trying to resolve project dependencies.
-                scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
+            final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
+            if (jarTask != null) {
+                incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
             }
+            scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(new Action<ArtifactView.ViewConfiguration>() {
+                @Override
+                public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
+                    viewConfiguration.lenient(true);
+                    viewConfiguration.componentFilter(new IsProjectComponent());
+                }
+            }).getFiles());
+
+            // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
+            // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
+            // it can potentially block trying to resolve project dependencies.
+            scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
         });
-        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet, project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet, project, scalaCompileTask, scalaCompileTask.map(new Transformer<CompileOptions, ScalaCompile>() {
             @Override
             public CompileOptions transform(ScalaCompile scalaCompile) {
                 return scalaCompile.getOptions();
@@ -252,61 +255,36 @@ public class ScalaBasePlugin implements Plugin<Project> {
         project.getTasks().named(sourceSet.getClassesTaskName(), new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.dependsOn(scalaCompile);
+                task.dependsOn(scalaCompileTask);
             }
         });
+    }
+
+    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
+        final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
+        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
+        return toolMapper.apply(service, extension.getToolchain());
     }
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaCompile.class).configureEach(new Action<ScalaCompile>() {
-            @Override
-            public void execute(final ScalaCompile compile) {
-                compile.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        return scalaRuntime.inferScalaClasspath(compile.getClasspath());
-                    }
-                });
-                compile.getConventionMapping().map("zincClasspath", new Callable<Configuration>() {
-                    @Override
-                    public Configuration call() throws Exception {
-                        return project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
-                    }
-                });
-                compile.getConventionMapping().map("scalaCompilerPlugins", new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        return project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
-                    }
-                });
-            }
+        project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
+            compile.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
+            compile.getConventionMapping().map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
+            compile.getConventionMapping().map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
         });
     }
 
-    private static void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaDoc.class).configureEach(new Action<ScalaDoc>() {
-            @Override
-            public void execute(final ScalaDoc scalaDoc) {
-                scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
-                    @Override
-                    public File call() throws Exception {
-                        return project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile();
-                    }
-                });
-                scalaDoc.getConventionMapping().map("title", new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
-                    }
-                });
-                scalaDoc.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        return scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath());
-                    }
-                });
-            }
+    private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
+        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
+            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile());
+            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
+            scalaDoc.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
         });
+    }
+
+    private <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
+        return extensionAware.getExtensions().getByType(type);
     }
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {

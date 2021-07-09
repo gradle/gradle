@@ -29,6 +29,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 /**
  * A {@link BuildExecuter} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
@@ -55,7 +56,12 @@ public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExec
                     BuildActionRunner.Result result = context.execute(action);
                     PayloadSerializer payloadSerializer = context.getServices().get(PayloadSerializer.class);
                     if (result.getBuildFailure() == null) {
-                        return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
+                        if (result.getClientResult() instanceof SerializedPayload) {
+                            // Already serialized
+                            return BuildActionResult.of((SerializedPayload) result.getClientResult());
+                        } else {
+                            return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
+                        }
                     }
                     if (requestContext.getCancellationToken().isCancellationRequested()) {
                         return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));

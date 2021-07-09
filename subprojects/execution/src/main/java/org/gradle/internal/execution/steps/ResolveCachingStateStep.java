@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
@@ -168,6 +169,11 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
             @Override
             public Try<ExecutionResult> getExecutionResult() {
                 return result.getExecutionResult();
+            }
+
+            @Override
+            public Duration getDuration() {
+                return result.getDuration();
             }
         };
     }

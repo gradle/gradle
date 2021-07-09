@@ -22,11 +22,15 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -37,14 +41,18 @@ import java.util.Map;
  */
 public class RelativePathFingerprintingStrategy extends AbstractFingerprintingStrategy {
     public static final String IDENTIFIER = "RELATIVE_PATH";
-    private final DirectorySensitivity directorySensitivity;
 
     private final Interner<String> stringInterner;
+    private final FileSystemLocationSnapshotHasher normalizedContentHasher;
+
+    public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
+        this.stringInterner = stringInterner;
+        this.normalizedContentHasher = normalizedContentHasher;
+    }
 
     public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity) {
-        super(IDENTIFIER);
-        this.stringInterner = stringInterner;
-        this.directorySensitivity = directorySensitivity;
+        this(stringInterner, directorySensitivity, LineEndingSensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT);
     }
 
     @Override
@@ -62,31 +70,35 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
         HashSet<String> processedEntries = new HashSet<>();
         roots.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
             String absolutePath = snapshot.getAbsolutePath();
-            if (processedEntries.add(absolutePath) && directorySensitivity.shouldFingerprint(snapshot)) {
+            if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                 FileSystemLocationFingerprint fingerprint;
                 if (relativePath.isRoot()) {
                     if (snapshot.getType() == FileType.Directory) {
                         fingerprint = IgnoredPathFileSystemLocationFingerprint.DIRECTORY;
                     } else {
-                        fingerprint = new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot);
+                        fingerprint = fingerprint(snapshot.getName(), snapshot.getType(), snapshot);
                     }
                 } else {
-                    fingerprint = new DefaultFileSystemLocationFingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot);
+                    fingerprint = fingerprint(stringInterner.intern(relativePath.toRelativePath()), snapshot.getType(), snapshot);
                 }
-                builder.put(absolutePath, fingerprint);
+
+                if (fingerprint != null) {
+                    builder.put(absolutePath, fingerprint);
+                }
             }
             return SnapshotVisitResult.CONTINUE;
         });
         return builder.build();
     }
 
-    @Override
-    public FingerprintHashingStrategy getHashingStrategy() {
-        return FingerprintHashingStrategy.SORT;
+    @Nullable
+    FileSystemLocationFingerprint fingerprint(String name, FileType type, FileSystemLocationSnapshot snapshot) {
+        HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
+        return normalizedContentHash == null ? null : new DefaultFileSystemLocationFingerprint(name, type, normalizedContentHash);
     }
 
     @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
+    public FingerprintHashingStrategy getHashingStrategy() {
+        return FingerprintHashingStrategy.SORT;
     }
 }

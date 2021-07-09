@@ -16,14 +16,11 @@
 
 package org.gradle.configurationcache
 
-
 import org.gradle.configurationcache.fixtures.SomeToolingModelBuildAction
 import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.configurationcache.fixtures.ToolingApiSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle-private/issues/3395")
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ToolingApiSpec {
     @Override
     GradleExecuter createExecuter() {
@@ -159,14 +156,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = fetchModel()
 
         then:
-        model.message == "It works!"
+        model.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = fetchModel()
 
         then:
-        model2.message == "It works!"
+        model2.message == "It works from project :"
         outputContains("script log statement")
     }
 
@@ -179,14 +176,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
-        model.message == "It works!"
+        model.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
-        model2.message == "It works!"
+        model2.message == "It works from project :"
         outputContains("script log statement")
     }
 
@@ -199,16 +196,16 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
-        model.left.message == "It works!"
-        model.right.message == "It works!"
+        model.left.message == "It works from project :"
+        model.right.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
-        model2.left.message == "It works!"
-        model2.right.message == "It works!"
+        model2.left.message == "It works from project :"
+        model2.right.message == "It works from project :"
         outputContains("script log statement")
     }
 

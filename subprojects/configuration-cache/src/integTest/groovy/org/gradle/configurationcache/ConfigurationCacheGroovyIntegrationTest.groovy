@@ -95,18 +95,10 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         """
 
         when:
-        configurationCacheRunLenient "build"
+        configurationCacheRun "build"
 
         then:
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Task `:compileGroovy` of type `org.gradle.api.tasks.compile.GroovyCompile`: value 'Groovy runtime classpath' failed to visit file collection",
-                "Task `:compileTestGroovy` of type `org.gradle.api.tasks.compile.GroovyCompile`: value 'Groovy runtime classpath' failed to visit file collection"
-            )
-            withTotalProblemsCount(2)
-            withProblemsWithStackTraceCount(2)
-        }
 
         when:
         configurationCacheRun "clean"
@@ -133,12 +125,6 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
         then:
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(
-                "Task `:compileGroovy` of type `org.gradle.api.tasks.compile.GroovyCompile`: value 'Groovy runtime classpath' failed to visit file collection"
-            )
-            withProblemsWithStackTraceCount(1)
-        }
 
         and:
         result.assertTaskExecuted(":compileGroovy")

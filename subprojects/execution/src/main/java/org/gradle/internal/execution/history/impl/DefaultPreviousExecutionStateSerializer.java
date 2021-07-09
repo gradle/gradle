@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshotSerializer;
 import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 
+import java.time.Duration;
 import java.util.Map;
 
 public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<AfterPreviousExecutionState> {
@@ -53,7 +54,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             decoder.readString(),
-            decoder.readLong()
+            Duration.ofMillis(decoder.readLong())
         );
 
         ImplementationSnapshot taskImplementation = implementationSnapshotSerializer.read(decoder);
@@ -88,7 +89,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId());
-        encoder.writeLong(originMetadata.getExecutionTime());
+        encoder.writeLong(originMetadata.getExecutionTime().toMillis());
 
         implementationSnapshotSerializer.write(encoder, execution.getImplementation());
         ImmutableList<ImplementationSnapshot> additionalImplementations = execution.getAdditionalImplementations();

@@ -17,26 +17,28 @@
 package org.gradle.plugins.ide.internal.tooling
 
 
-import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
-@UsesNativeServices
+import java.util.function.Consumer
+
 @CleanupTestDirectory
 class GradleBuildBuilderTest extends Specification {
     @Shared
     @ClassRule
     public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    def builder = new GradleBuildBuilder()
     @Shared
     def project = TestUtil.builder(temporaryFolder).withName("root").build()
     @Shared
@@ -45,6 +47,8 @@ class GradleBuildBuilderTest extends Specification {
     def child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 
     def "builds model"() {
+        def builder = new GradleBuildBuilder(project.services.get(BuildStateRegistry))
+
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
         model.rootProject.path == ":"
@@ -65,6 +69,8 @@ class GradleBuildBuilderTest extends Specification {
     }
 
     def "builds model for included builds"() {
+        def buildRegistry = Mock(BuildStateRegistry)
+
         def rootProject = Mock(ProjectInternal)
         def project1 = Mock(ProjectInternal)
         def project2 = Mock(ProjectInternal)
@@ -77,8 +83,16 @@ class GradleBuildBuilderTest extends Specification {
         def build1 = Mock(GradleInternal)
         def build2 = Mock(GradleInternal)
 
-        def includedBuild1 = Mock(TestIncludedBuild)
-        def includedBuild2 = Mock(TestIncludedBuild)
+        def rootProjects = Mock(BuildProjectRegistry)
+        def projects1 = Mock(BuildProjectRegistry)
+        def projects2 = Mock(BuildProjectRegistry)
+
+        def rootBuildState = Mock(BuildState)
+        def includedBuildState1 = Mock(IncludedBuildState)
+        def includedBuildState2 = Mock(IncludedBuildState)
+
+        def includedBuild1 = Mock(IncludedBuildInternal)
+        def includedBuild2 = Mock(IncludedBuildInternal)
 
         rootProject.gradle >> rootBuild
         rootProject.rootDir >> rootDir
@@ -93,20 +107,49 @@ class GradleBuildBuilderTest extends Specification {
         project2.childProjects >> [:]
         project2.allprojects >> [project2]
 
+        rootBuild.owner >> rootBuildState
         rootBuild.rootProject >> rootProject
-        rootBuild.includedBuilds >> [includedBuild1]
+        rootBuild.includedBuilds() >> [includedBuild1]
 
-        includedBuild1.configuredBuild >> build1
+        rootBuildState.mutableModel >> rootBuild
+        rootBuildState.projects >> rootProjects
 
-        build1.includedBuilds >> [includedBuild2]
+        includedBuild1.target >> includedBuildState1
+        includedBuild2.target >> includedBuildState2
+
+        includedBuildState1.projects >> projects1
+        includedBuildState1.configuredBuild >> build1
+        includedBuildState1.importableBuild >> true
+
+        rootProjects.allProjects >> [].toSet()
+        projects1.allProjects >> [].toSet()
+        projects2.allProjects >> [].toSet()
+
+        build1.owner >> includedBuildState1
+        build1.includedBuilds() >> [includedBuild2]
         build1.rootProject >> project1
         build1.parent >> rootBuild
 
-        includedBuild2.configuredBuild >> build2
+        includedBuildState1.mutableModel >> build1
 
-        build2.includedBuilds >> []
+        includedBuildState2.projects >> projects2
+        includedBuildState2.configuredBuild >> build2
+        includedBuildState2.importableBuild >> true
+
+        build2.owner >> includedBuildState2
+        build2.includedBuilds() >> []
         build2.rootProject >> project2
         build2.parent >> rootBuild
+
+        includedBuildState2.mutableModel >> build2
+
+        buildRegistry.visitBuilds(_) >> { Consumer consumer ->
+            consumer.accept(rootBuildState)
+            consumer.accept(includedBuildState1)
+            consumer.accept(includedBuildState2)
+        }
+
+        def builder = new GradleBuildBuilder(buildRegistry)
 
         expect:
         def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", rootProject)
@@ -126,8 +169,5 @@ class GradleBuildBuilderTest extends Specification {
 
         model1.editableBuilds.empty
         model2.editableBuilds.empty
-    }
-
-    interface TestIncludedBuild extends IncludedBuild, IncludedBuildState {
     }
 }

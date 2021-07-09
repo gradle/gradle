@@ -1295,7 +1295,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         addLocalKey << [true, false]
     }
 
-    def "can read public keys from keyring"() {
+    def "can read public keys from #keyRingFormat keyring"() {
         // key will not be published on the server fixture but available locally
         def keyring = newKeyRing()
         def pkId = toLongIdHexString(keyring.publicKey.keyID)
@@ -1306,7 +1306,13 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             addTrustedKey("org:foo:1.0", pkId)
             addTrustedKey("org:foo:1.0", pkId, "pom", "pom")
         }
-        keyring.writePublicKeyRingTo(file("gradle/verification-keyring.gpg"))
+
+        def verifFile = file("gradle/verification-keyring.${extension}")
+        keyring.writePublicKeyRingTo(verifFile)
+        if (header != null) {
+            verifFile.setText("""$header
+${verifFile.getText('us-ascii')}""", 'us-ascii')
+        }
 
         given:
         javaLibrary()
@@ -1324,6 +1330,11 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         expect:
         succeeds ":compileJava"
 
+        where:
+        keyRingFormat       | extension | header
+        'GPG'               | 'gpg'     | null
+        'ASCII'             | 'keys'    | null
+        'ASCII with header' | 'keys'    | 'some comment showing we can have arbitrary text'
     }
 
     @Unroll
@@ -1366,6 +1377,91 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
 """
         where:
         terse << [true, false]
+    }
+
+    def "dependency verification should work correctly with artifact queries"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "jar", "jar")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-javadoc.jar", validPublicKeyHexString)
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-sources.jar", validPublicKeyHexString)
+        }
+
+        terseConsoleOutput(false)
+        javaLibrary()
+        def module = mavenHttpRepo.module("org", "foo", "1.0")
+            .withSourceAndJavadoc()
+            .publish()
+
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+
+            tasks.register("artifactQuery") {
+                doLast {
+                    dependencies.createArtifactResolutionQuery()
+                        .forModule("org", "foo", "1.0")
+                        .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)
+                        .execute()
+                        .components
+                        .each {
+                            // trigger file access for verification to happen
+                            it.getArtifacts(SourcesArtifact)*.file
+                            it.getArtifacts(JavadocArtifact)*.file
+                        }
+                }
+            }
+        """
+
+        when:
+        module.pom.expectGet()
+        module.getArtifact(type:'pom.asc').expectGet()
+        module.getArtifact(classifier:'sources').expectHead()
+        module.getArtifact(classifier:'sources').expectGet()
+        module.getArtifact(classifier:'sources', type:'jar.asc').expectGet()
+        module.getArtifact(classifier:'javadoc').expectHead()
+        module.getArtifact(classifier:'javadoc').expectGet()
+        module.getArtifact(classifier:'javadoc', type:'jar.asc').expectGet()
+        run ":artifactQuery"
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can disable reaching out to key servers"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri) // make sure we declare a key server for tests
+            disableKeyServers() // but disable access to the key server
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath'
+2 artifacts failed verification:
+  - foo-1.0.jar (org:foo:1.0) from repository maven
+  - foo-1.0.pom (org:foo:1.0) from repository maven
+This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
     }
 
     private static void tamperWithFile(File file) {

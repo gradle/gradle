@@ -26,8 +26,6 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.hash.HashingOutputStream;
-import org.gradle.internal.io.NullOutputStream;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
 
@@ -469,25 +467,11 @@ public class TestFile extends File {
     }
 
     public static HashCode md5(File file) {
-        HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
         try {
-            Files.copy(file.toPath(), hashingStream);
+            return Hashing.hashFile(file);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return hashingStream.hash();
-    }
-
-    public String getSha256Hash() {
-        // Sha256 is not part of core-services (i.e. no Hashing.sha256() available), hence we use plain Guava classes here.
-        com.google.common.hash.HashingOutputStream hashingStream =
-            new com.google.common.hash.HashingOutputStream(com.google.common.hash.Hashing.sha256(), NullOutputStream.INSTANCE);
-        try {
-            Files.copy(this.toPath(), hashingStream);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return hashingStream.hash().toString();
     }
 
     public TestFile createLink(String target) {

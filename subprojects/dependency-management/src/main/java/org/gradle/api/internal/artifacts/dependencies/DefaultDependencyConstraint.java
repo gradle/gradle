@@ -159,6 +159,7 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
         this.reason = reason;
     }
 
+    @Override
     public DependencyConstraint copy() {
         DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(moduleIdentifier, versionConstraint);
         constraint.reason = reason;

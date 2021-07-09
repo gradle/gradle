@@ -67,7 +67,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "hello", "--info"
         then:
         outputContains "Hello from original task!"
-        assertWatchableHierarchies([ImmutableSet.of(testDirectory)] * 2)
+        assertWatchableHierarchies([ImmutableSet.of(testDirectory), ImmutableSet.of(testDirectory, file("buildSrc"))])
     }
 
     def "works with composite build"() {
@@ -372,7 +372,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         file("input.txt").text = "input"
 
         when:
-        run "myTask", "--info"
+        run "myTask", "--debug"
         then:
         assertWatchedHierarchies([testDirectory])
         result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")

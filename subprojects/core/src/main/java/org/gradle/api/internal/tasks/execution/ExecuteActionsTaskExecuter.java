@@ -326,6 +326,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         value,
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty.getLineEndingNormalization(),
                         inputFileProperty::getPropertyFiles));
             }
         }
@@ -394,11 +395,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
             return InputChangeTrackingStrategy.NONE;
-        }
-
-        @Override
-        public long markExecutionTime() {
-            return context.markExecutionTime();
         }
 
         @Override

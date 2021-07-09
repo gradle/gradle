@@ -26,8 +26,10 @@ import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.readCollectionInto
+import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -64,8 +66,8 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
-        withReadContextFor(stateFile.inputStream()) { codecs ->
-            ConfigurationCacheState(codecs, stateFile).run {
+        readConfigurationCacheState(stateFile) { state ->
+            state.run {
                 readRootBuildState(host::createBuild)
             }
         }
@@ -82,11 +84,23 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
-        withReadContextFor(stateFile.inputStream()) { codecs ->
-            ConfigurationCacheState(codecs, stateFile).run {
+        readConfigurationCacheState(stateFile) { state ->
+            state.run {
                 readBuildState(includedBuild)
             }
         }
+
+    private
+    fun <T> readConfigurationCacheState(
+        stateFile: ConfigurationCacheStateFile,
+        action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
+    ): T {
+        return withReadContextFor(stateFile.inputStream()) { codecs ->
+            ConfigurationCacheState(codecs, stateFile).run {
+                action(this)
+            }
+        }
+    }
 
     private
     fun <T> writeConfigurationCacheState(
@@ -98,6 +112,24 @@ class ConfigurationCacheIO internal constructor(
         return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile))
+            }
+        }
+    }
+
+    internal
+    fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
+        writeConfigurationCacheState(stateFile) {
+            withGradleIsolate(host.currentBuild.gradle, codecs().userTypesCodec) {
+                write(model)
+            }
+        }
+    }
+
+    internal
+    fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
+        return readConfigurationCacheState(stateFile) {
+            withGradleIsolate(host.currentBuild.gradle, codecs().userTypesCodec) {
+                readNonNull()
             }
         }
     }

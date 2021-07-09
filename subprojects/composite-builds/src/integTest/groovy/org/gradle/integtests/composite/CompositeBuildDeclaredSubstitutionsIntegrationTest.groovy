@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -368,6 +369,89 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         "module('org.test:buildB')"                                                                             | "project(':')"
         "variant(module('org.test:buildB')) { capabilities { requireCapability('org:buildB-test-fixtures') } }" | "project(':')"
         "module('org.test:buildB')"                                                                             | "variant(project(':')) { capabilities { requireCapability('org:should-not-be-used') } }"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15659")
+    @ToBeFixedForConfigurationCache(because = "uses dependencies task")
+    def "resolves dependencies of included build with dependency substitution when substitution build contains buildSrc"() {
+        given:
+        includeBuild(buildB, """
+            substitute(module("org.test:b1")).using(project(":b1"))
+        """)
+        includeBuild(buildC)
+        buildC.buildFile << """
+            dependencies {
+                implementation('org.test:b1:1.0')
+            }
+        """
+
+        when:
+        // presence of buildSrc build causes IllegalStateException for the execution below
+        buildB.file("buildSrc/build.gradle").touch()
+
+        then:
+        execute(buildA, ":buildC:dependencies")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15659")
+    def "builds included build with dependency substitution when substitution build contains buildSrc"() {
+        given:
+        includeBuild(buildB, """
+            substitute(module("org.test:b1")).using(project(":b1"))
+        """)
+        includeBuild(buildC)
+        buildC.buildFile << """
+            dependencies {
+                implementation('org.test:b1:1.0')
+            }
+        """
+
+        when:
+        // presence of buildSrc build causes IllegalStateException for the execution below
+        buildB.file("buildSrc/build.gradle").touch()
+
+        then:
+        execute(buildA, ":buildC:build")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "uses dependencies tasks")
+    @Issue("https://github.com/gradle/gradle/issues/15659")
+    def "resolves dependencies of included build with dependency substitution when substitution build uses a plugin from its build-logic build"() {
+        given:
+        includeBuild(buildB, """
+            substitute(module("org.test:b1")).using(project(":b1"))
+        """)
+        includeBuild(buildC)
+        buildC.buildFile << """
+            dependencies {
+                implementation('org.test:b1:1.0')
+            }
+        """
+
+        when:
+        buildB.file("build-logic/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """
+        buildB.file("build-logic/src/main/groovy/foo.gradle") << """
+            println("foo applied")
+        """
+        buildB.settingsFile.setText("""
+            pluginManagement {
+                includeBuild('build-logic')
+            }
+            ${buildB.settingsFile.text}
+        """)
+        buildB.buildFile.setText("""
+            plugins {
+                id("java-library")
+                id("foo")
+            }
+        """)
+
+        then:
+        execute(buildA, ":buildC:dependencies")
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

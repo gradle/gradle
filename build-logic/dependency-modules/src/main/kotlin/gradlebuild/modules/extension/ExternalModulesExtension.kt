@@ -131,7 +131,7 @@ abstract class ExternalModulesExtension {
     // Test classpath only libraries
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
-    val archunitJunit4 = "com.tngtech.archunit:archunit-junit4"
+    val archunitJunit5 = "com.tngtech.archunit:archunit-junit5"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"

@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.composite.internal.IncludedBuildControllers;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -26,15 +26,15 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
-    private final IncludedBuildControllers includedBuildControllers;
+    private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter,
-                                        IncludedBuildControllers includedBuildControllers,
+                                        IncludedBuildTaskGraph includedBuildTaskGraph,
                                         BuildOperationExecutor buildOperationExecutor,
                                         BuildModelParameters buildModelParameters) {
         this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
-        this.includedBuildControllers = includedBuildControllers;
+        this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildModelParameters = buildModelParameters;
     }
@@ -46,7 +46,11 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
         taskGraph.populate();
 
-        includedBuildControllers.populateTaskGraphs();
+        if (gradle.isRootBuild()) {
+            // Force the population of other task graphs to happen as part of the build operation for populating
+            // the root build task graph. Should get rid of this nesting instead
+            includedBuildTaskGraph.populateTaskGraphs();
+        }
 
         if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
             new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);

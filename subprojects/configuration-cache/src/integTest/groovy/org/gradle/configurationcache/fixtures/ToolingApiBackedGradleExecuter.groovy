@@ -73,6 +73,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         } finally {
             if (GradleContextualExecuter.embedded) {
                 System.clearProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME)
+                System.clearProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME)
             }
         }
     }

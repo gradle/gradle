@@ -60,7 +60,7 @@ This will create a minimal distribution at `subprojects/distributions-full/build
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
-    ./gradle wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
+    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
 
 To create a full distribution (includes sources and docs):
 
@@ -68,7 +68,7 @@ To create a full distribution (includes sources and docs):
 
 The full distribution will be created at `subprojects/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
-    ./gradle wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
+    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 
 ### Development Setup
 

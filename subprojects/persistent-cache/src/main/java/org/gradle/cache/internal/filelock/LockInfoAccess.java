@@ -19,7 +19,6 @@ package org.gradle.cache.internal.filelock;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.io.RandomAccessFileOutputStream;
 
-import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -69,13 +68,17 @@ public class LockInfoAccess {
         lockFileAccess.setLength(Math.min(lockFileAccess.length(), infoRegionPos));
     }
 
-    @Nullable
-    public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
+    public FileLockOutcome tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
         try {
-            return lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
+            FileLock fileLock = lockFileAccess.getChannel().tryLock(infoRegionPos, INFORMATION_REGION_SIZE - infoRegionPos, shared);
+            if (fileLock == null) {
+                return FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS;
+            } else {
+                return FileLockOutcome.acquired(fileLock);
+            }
         } catch (OverlappingFileLockException e) {
-            // Locked by the same process, treat as if locked by another process
-            return null;
+            // Locked by this process, treat as not acquired
+            return FileLockOutcome.LOCKED_BY_THIS_PROCESS;
         }
     }
 

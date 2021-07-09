@@ -407,6 +407,36 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":produceInBuild", ":showSources")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17561")
+    def "missing dependency detection takes ** excludes for non-existing files into account"() {
+        file("build/my/some.foo") << "foo!"
+        file("build/other/some.bar") << "bar!"
+
+        buildFile """
+            task fooReport {
+                inputs.files(fileTree(buildDir) { include("**/*.foo")})
+                def reportPath = file("\${buildDir}/fooReport.txt")
+                outputs.file(reportPath)
+                doLast {
+                    reportPath.text = "foo"
+                }
+            }
+            task barReport {
+                inputs.files(fileTree(buildDir) { include("**/*.bar")})
+                def reportPath = file("\${buildDir}/barReport.txt")
+                outputs.file(reportPath)
+                doLast {
+                    reportPath.text = "bar"
+                }
+            }
+        """
+
+        when:
+        run("fooReport", "barReport")
+        then:
+        executedAndNotSkipped(":fooReport", ":barReport")
+    }
+
     @ValidationTestFor(
         ValidationProblemId.UNRESOLVABLE_INPUT
     )

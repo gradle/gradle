@@ -31,7 +31,6 @@ import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
@@ -99,7 +98,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         hasher.putString(dslId);
         hasher.putHash(sourceHashCode);
         hasher.putHash(classLoaderHash);
-        String key = HashUtil.compactStringFor(hasher.hash().toByteArray());
+        String key = hasher.hash().toCompactString();
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
         // 1. First, we look for a cache script which (path, hash) matches. This cache is invalidated when the compile classpath of the script changes

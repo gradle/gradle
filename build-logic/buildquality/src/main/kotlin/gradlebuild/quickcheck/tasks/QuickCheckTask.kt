@@ -24,8 +24,10 @@ import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.work.DisableCachingByDefault
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class QuickCheckTask : DefaultTask() {
 
     @TaskAction

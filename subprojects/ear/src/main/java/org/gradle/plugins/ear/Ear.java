@@ -43,6 +43,7 @@ import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -58,6 +59,7 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 /**
  * Assembles an EAR archive.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 

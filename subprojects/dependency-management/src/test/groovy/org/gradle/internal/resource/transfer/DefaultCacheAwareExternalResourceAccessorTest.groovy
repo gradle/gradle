@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerS
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
@@ -36,8 +35,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -212,7 +211,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def etag = "686897696a7c876b7e"
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def candidate = tempDir.createFile("candidate-file")
-        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def sha1 = Hashing.sha1().hashFile(candidate)
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def cachedMetaData = Stub(ExternalResourceMetaData) {
             getEtag() >> etag

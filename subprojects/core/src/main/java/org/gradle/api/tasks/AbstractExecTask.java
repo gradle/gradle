@@ -28,6 +28,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultExecSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -42,6 +43,7 @@ import java.util.Map;
  *
  * @param <T> The concrete type of the class.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractExecTask<T extends AbstractExecTask> extends ConventionTask implements ExecSpec {
 
     private final Class<T> taskType;

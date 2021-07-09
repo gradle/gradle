@@ -106,7 +106,7 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
         new LegacyGradleEnterprisePluginCheckInService(
             gradle,
-            new BuildModelParameters(false, false, false),
+            new BuildModelParameters(false, false, false, false),
             new GradleEnterprisePluginManager(),
             BuildType.TASKS
         )

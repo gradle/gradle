@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.rules.ExternalResource
 
 import javax.servlet.DispatcherType
-
 import javax.servlet.Filter
 import javax.servlet.FilterChain
 import javax.servlet.FilterConfig
@@ -38,15 +37,15 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
     private TestFile cacheDir
-    private long dropConnectionForPutBytes = -1
     private int blockIncomingConnectionsForSeconds = 0
+    private final List<Responder> responders = []
 
     HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
         this.webapp = new WebAppContext()
         // The following code is because of a problem under Windows: the file descriptors are kept open under JDK 11
         // even after server shutdown, which prevents from deleting the test directory
-        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false")
     }
 
     TestFile getCacheDir() {
@@ -59,25 +58,9 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     private void addFilters() {
-        if (dropConnectionForPutBytes > -1) {
-            this.webapp.addFilter(new FilterHolder(new DropConnectionFilter(dropConnectionForPutBytes, this)), "/*", EnumSet.of(DispatcherType.REQUEST))
-        }
         if (blockIncomingConnectionsForSeconds > 0) {
             this.webapp.addFilter(new FilterHolder(new BlockFilter(blockIncomingConnectionsForSeconds)), "/*", EnumSet.of(DispatcherType.REQUEST))
         }
-        // TODO: Find Jetty 9 idiomatic way to get rid of this filter
-        this.webapp.addFilter(RestFilter, "/*", EnumSet.of(DispatcherType.REQUEST))
-    }
-
-    void dropConnectionForPutAfterBytes(long numBytes) {
-        this.dropConnectionForPutBytes = numBytes
-    }
-
-    interface Responder {
-        boolean respond(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
-    }
-
-    HttpBuildCacheServer addResponder(Responder responder) {
         def filter = new Filter() {
             @Override
             void init(FilterConfig filterConfig) throws ServletException {
@@ -86,9 +69,12 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
             @Override
             void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                if (responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
-                    chain.doFilter(request, response)
+                for (responder in responders) {
+                    if (!responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
+                        return
+                    }
                 }
+                chain.doFilter(request, response)
             }
 
             @Override
@@ -96,8 +82,21 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
             }
         }
-
         webapp.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+
+        // TODO: Find Jetty 9 idiomatic way to get rid of this filter
+        this.webapp.addFilter(RestFilter, "/*", EnumSet.of(DispatcherType.REQUEST))
+    }
+
+    interface Responder {
+        /**
+         * Return false to prevent further processing.
+         */
+        boolean respond(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    }
+
+    HttpBuildCacheServer addResponder(Responder responder) {
+        responders << responder
         this
     }
 
