@@ -31,7 +31,8 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
         graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
 
         then:
-        thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: NotCreated"
     }
 
     def "cannot schedule tasks when after graph has finished execution"() {
@@ -40,6 +41,63 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
         graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
 
         then:
-        thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: NotCreated"
+    }
+
+    def "cannot schedule tasks when graph is not yet being prepared for execution"() {
+        when:
+        graph.withNewTaskGraph {
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: NotPrepared"
+    }
+
+    def "cannot schedule tasks when graph has been prepared for execution"() {
+        when:
+        graph.withNewTaskGraph {
+            graph.prepareTaskGraph {
+                graph.populateTaskGraphs()
+            }
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: ReadyToRun"
+    }
+
+    def "cannot schedule tasks when graph has started task execution"() {
+        when:
+        graph.withNewTaskGraph {
+            graph.prepareTaskGraph {
+                graph.populateTaskGraphs()
+            }
+            graph.startTaskExecution()
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: Running"
+    }
+
+    def "cannot schedule tasks when graph has completed task execution"() {
+        when:
+        graph.withNewTaskGraph {
+            graph.prepareTaskGraph {
+                graph.populateTaskGraphs()
+            }
+            graph.startTaskExecution()
+            graph.awaitTaskCompletion()
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Work graph is in an unexpected state: Finished"
     }
 }

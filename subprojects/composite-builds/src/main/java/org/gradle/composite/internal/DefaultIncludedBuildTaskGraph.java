@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
     private enum State {
-        NotReady, QueuingTasks, ReadyToRun, Running, Finished
+        NotCreated, NotPrepared, QueuingTasks, Populated, ReadyToRun, Running, Finished
     }
 
     private final BuildStateRegistry buildRegistry;
@@ -40,7 +40,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
     private Thread owner;
-    private State state = State.NotReady;
+    private State state = State.NotCreated;
     private IncludedBuildControllers includedBuilds;
 
     public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
@@ -74,7 +74,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             currentState = state;
             currentControllers = includedBuilds;
             owner = Thread.currentThread();
-            state = State.QueuingTasks;
+            state = State.NotPrepared;
             includedBuilds = createControllers();
         }
 
@@ -88,6 +88,18 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                 includedBuilds = currentControllers;
             }
         }
+    }
+
+    @Override
+    public void prepareTaskGraph(Runnable action) {
+        withState(() -> {
+            expectInState(State.NotPrepared);
+            state = State.QueuingTasks;
+            action.run();
+            expectInState(State.Populated);
+            state = State.ReadyToRun;
+            return null;
+        });
     }
 
     @Override
@@ -113,7 +125,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         withState(() -> {
             expectQueuingTasks();
             includedBuilds.populateTaskGraphs();
-            state = State.ReadyToRun;
+            state = State.Populated;
             return null;
         });
     }
@@ -142,7 +154,6 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
 
     @Override
     public void runScheduledTasks() {
-        populateTaskGraphs();
         startTaskExecution();
         ExecutionResult<Void> result = awaitTaskCompletion();
         result.rethrow();
@@ -154,7 +165,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     private void expectQueuingTasks() {
-        if (state != State.QueuingTasks && state != State.ReadyToRun) {
+        if (state != State.QueuingTasks && state != State.Populated) {
             throw unexpectedState();
         }
     }

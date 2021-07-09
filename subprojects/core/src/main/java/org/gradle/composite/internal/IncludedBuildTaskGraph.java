@@ -60,6 +60,11 @@ public interface IncludedBuildTaskGraph {
     void runScheduledTasks();
 
     /**
+     * Does the work to schedule tasks and prepare the task graphs for execution.
+     */
+    void prepareTaskGraph(Runnable action);
+
+    /**
      * Runs the given action against a new, empty task graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run buildSrc tasks or
      * to build local plugins.
      *

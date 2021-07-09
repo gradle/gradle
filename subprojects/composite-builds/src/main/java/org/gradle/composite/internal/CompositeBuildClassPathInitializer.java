@@ -50,9 +50,12 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         }
         if (!localArtifacts.isEmpty()) {
             includedBuildTaskGraph.withNewTaskGraph(() -> {
-                for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
-                    scheduleTasks(currentBuild, artifact);
-                }
+                includedBuildTaskGraph.prepareTaskGraph(() -> {
+                    for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
+                        scheduleTasks(currentBuild, artifact);
+                    }
+                    includedBuildTaskGraph.populateTaskGraphs();
+                });
                 includedBuildTaskGraph.runScheduledTasks();
                 return null;
             });
