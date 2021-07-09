@@ -95,7 +95,6 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         outputContains("- build${File.separator}jacoco${File.separator}someTest.exec (artifactType = exec)")
     }
 
-
     def "aggregates unit test results for the app and its library dependencies"() {
         given:
         file("app/build.gradle") << """
