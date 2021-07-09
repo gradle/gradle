@@ -18,8 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepositoryDefinition
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 class KotlinDslTestUtil {
 
@@ -34,9 +33,7 @@ class KotlinDslTestUtil {
         """
             allprojects {
                 repositories {
-                    //TODO:kotlin-dsl remove once we're no longer on a kotlin eap
-                    ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
