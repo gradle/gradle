@@ -24,7 +24,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -45,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -233,7 +233,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             if (builder.length() > 0) {
                 builder.append(separator);
             }
-            String group1 = TextUtil.toLowerCaseUserLocale(matcher.group(1));
+            String group1 = matcher.group(1).toLowerCase(Locale.ENGLISH);
             String group2 = matcher.group(2);
             if (group2.length() == 0) {
                 builder.append(group1);

@@ -20,12 +20,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.operations.BuildOperationInvocationException;
-import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInvocation> {
     protected final Class<T> type;
@@ -35,7 +35,7 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
     }
 
     private String getErrorMessage() {
-        String typeDescription = TextUtil.toLowerCaseUserLocale(type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim());
+        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").toLowerCase(Locale.ENGLISH).trim();
         return "Failed to notify " + typeDescription + ".";
     }
 
