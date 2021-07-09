@@ -46,7 +46,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.unixLineSeparator).length == 183
+        destination.toString().split(TextUtil.unixLineSeparator).length == 200
     }
 
     def "defaultJvmOpts is expanded properly in unix script"() {
@@ -119,18 +119,6 @@ class UnixStartScriptGeneratorTest extends Specification {
 
         then:
         destination.toString().contains(/DEFAULT_JVM_OPTS=""/)
-    }
-
-    def "determines application-relative path"() {
-        given:
-        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin/sample/start')
-        Writer destination = new StringWriter()
-
-        when:
-        generator.generateScript(details, destination)
-
-        then:
-        destination.toString().contains('cd "`dirname \\"$PRG\\"`/../.." >/dev/null')
     }
 
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {

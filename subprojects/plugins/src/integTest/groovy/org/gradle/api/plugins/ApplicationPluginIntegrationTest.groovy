@@ -42,7 +42,6 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         File unixStartScript = assertGeneratedUnixStartScript()
         String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
@@ -68,7 +67,6 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         File unixStartScript = assertGeneratedUnixStartScript()
         String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH="\\\\\\"\\\\\\""')
@@ -96,7 +94,6 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         then:
         File unixStartScript = assertGeneratedUnixStartScript('myApp')
         String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  myApp start up script for UN*X')
         unixStartScriptContent.contains('APP_NAME="myApp"')
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
