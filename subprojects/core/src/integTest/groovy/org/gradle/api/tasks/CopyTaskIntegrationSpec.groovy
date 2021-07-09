@@ -228,6 +228,42 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/a.txt').text == "1 + 2"
     }
 
+    def "can expand tokens with escaped backslash when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2) {
+                    escapeBackslash = true
+                }
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\\n2"
+    }
+
+    def "can expand tokens but not escape backslash by default when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2)
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\n2"
+    }
+
     def "can filter content using a filtering Reader when copying"() {
         file('files/a.txt').text = "one"
         file('files/b.txt').text = "two"

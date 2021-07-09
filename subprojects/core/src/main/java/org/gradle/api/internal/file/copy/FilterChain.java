@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.provider.Provider;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.io.FilterReader;
@@ -110,7 +111,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         add(new ClosureBackedTransformer(closure));
     }
 
-    public void expand(final Map<String, ?> properties) {
+    public void expand(final Map<String, ?> properties, final Provider<Boolean> escapeBackslash) {
         transformers.add(new Transformer<Reader, Reader>() {
             @Override
             public Reader transform(Reader original) {
@@ -118,6 +119,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                     Template template;
                     try {
                         SimpleTemplateEngine engine = new SimpleTemplateEngine();
+                        engine.setEscapeBackslash(escapeBackslash.get());
                         template = engine.createTemplate(original);
                     } finally {
                         original.close();
