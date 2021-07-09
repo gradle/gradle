@@ -547,10 +547,56 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":4,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -615,15 +661,7 @@
 					"org.gradle.workers.internal.WaitForCompletionWorkerExecutorSampleIntegrationTest=integTest",
 					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
-					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"workers"
-			},
-			{
-				"classes":[
-					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
+					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
@@ -631,7 +669,7 @@
 					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
 				],
 				"include":true,
-				"number":2,
+				"number":1,
 				"subproject":"workers"
 			},
 			{
@@ -644,7 +682,6 @@
 					"org.gradle.workers.internal.NoIsolationWorkerExecutorSampleIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerDaemonIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerDaemonLoggingIntegrationTest=integTest",
-					"org.gradle.workers.internal.WorkerExecutorParallelIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkQueueIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerExecutorNestingIntegrationTest=integTest",
 					"org.gradle.workers.internal.WorkerDaemonExpirationIntegrationTest=integTest",
@@ -652,7 +689,7 @@
 					"org.gradle.workers.internal.WorkerExecutorLegacyApiIntegrationTest=integTest"
 				],
 				"include":false,
-				"number":3,
+				"number":2,
 				"subproject":"workers"
 			},
 			{
@@ -772,27 +809,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"version-control"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"code-quality"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-plugins"
-				]
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"version-control",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -808,7 +827,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"code-quality",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -824,7 +843,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-native",
+					"kotlin-dsl-plugins",
 					"execution",
 					"resources-http",
 					"jvm-services",
@@ -840,37 +859,37 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"persistent-cache",
+					"file-watching",
 					"messaging",
 					"build-profile",
 					"internal-performance-testing",
 					"ear",
-					"build-cache",
-					"core-api"
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"test-kit",
+					"jacoco",
+					"core-api",
 					"resources-gcs",
-					"tooling-native",
-					"build-events"
+					"tooling-native"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"ide-native",
+					"platform-native",
+					"build-events",
 					"build-cache-http",
-					"model-groovy",
-					"resources-sftp"
+					"model-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"persistent-cache",
+					"resources-sftp",
 					"wrapper",
 					"reporting"
 				]
@@ -878,7 +897,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"language-groovy",
+					"test-kit",
 					"diagnostics",
 					"testing-base"
 				]
@@ -886,15 +905,23 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"antlr",
-					"platform-base"
+					"ide-native",
+					"platform-base",
+					"resources-s3"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
+					"file-collections",
 					"signing",
-					"resources-s3"
+					"antlr"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"language-groovy"
 				]
 			}
 		],
@@ -3817,10 +3844,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -4089,79 +4153,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -4177,7 +4171,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl",
+					"platform-native",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -4193,7 +4187,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"enterprise",
+					"code-quality",
 					"resources-http",
 					"internal-integ-testing",
 					"jvm-services",
@@ -4209,7 +4203,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"kotlin-dsl",
 					"messaging",
 					"build-profile",
 					"tooling-native",
@@ -4219,7 +4213,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"ear",
 					"build-cache"
 				]
@@ -4227,7 +4221,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-sftp",
 					"build-events"
 				]
@@ -4235,7 +4229,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"testing-base",
 					"core-api"
 				]
@@ -4243,7 +4237,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"reporting",
 					"build-cache-http"
 				]
@@ -4251,7 +4245,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"resources-s3",
 					"model-groovy"
 				]
@@ -4259,7 +4253,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"antlr",
 					"persistent-cache"
 				]
@@ -4267,15 +4261,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -14036,10 +14037,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -14308,79 +14346,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -14396,7 +14364,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl",
+					"platform-native",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -14412,7 +14380,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"enterprise",
+					"code-quality",
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
@@ -14428,7 +14396,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"kotlin-dsl",
 					"internal-performance-testing",
 					"messaging",
 					"build-profile",
@@ -14438,24 +14406,24 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"resources-gcs",
-					"ear"
+					"ear",
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"build-cache",
-					"resources-sftp"
+					"kotlin-dsl-plugins",
+					"resources-sftp",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
-					"build-events",
+					"file-watching",
 					"testing-base",
 					"core-api"
 				]
@@ -14463,7 +14431,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"reporting",
 					"build-cache-http"
 				]
@@ -14471,7 +14439,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"resources-s3",
 					"model-groovy"
 				]
@@ -14479,7 +14447,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"antlr",
 					"persistent-cache"
 				]
@@ -14487,15 +14455,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -17548,10 +17523,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -17820,79 +17832,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -17908,7 +17850,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl",
+					"platform-native",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -17924,7 +17866,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"enterprise",
+					"code-quality",
 					"resources-http",
 					"internal-integ-testing",
 					"jvm-services",
@@ -17940,7 +17882,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"kotlin-dsl",
 					"messaging",
 					"build-profile",
 					"tooling-native",
@@ -17950,7 +17892,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"ear",
 					"build-cache"
 				]
@@ -17958,7 +17900,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-sftp",
 					"build-events"
 				]
@@ -17966,7 +17908,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"testing-base",
 					"core-api"
 				]
@@ -17974,7 +17916,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"reporting",
 					"build-cache-http"
 				]
@@ -17982,7 +17924,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"resources-s3",
 					"model-groovy"
 				]
@@ -17990,7 +17932,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"antlr",
 					"persistent-cache"
 				]
@@ -17998,15 +17940,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -21054,10 +21003,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -21326,79 +21312,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -21414,7 +21330,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl",
+					"platform-native",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -21430,7 +21346,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"enterprise",
+					"code-quality",
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
@@ -21446,7 +21362,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"kotlin-dsl",
 					"internal-performance-testing",
 					"messaging",
 					"build-profile",
@@ -21456,24 +21372,24 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"resources-gcs",
-					"ear"
+					"ear",
+					"build-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
-					"build-cache",
-					"resources-sftp"
+					"kotlin-dsl-plugins",
+					"resources-sftp",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
-					"build-events",
+					"file-watching",
 					"testing-base",
 					"core-api"
 				]
@@ -21481,7 +21397,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"reporting",
 					"build-cache-http"
 				]
@@ -21489,7 +21405,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"resources-s3",
 					"model-groovy"
 				]
@@ -21497,7 +21413,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"antlr",
 					"persistent-cache"
 				]
@@ -21505,15 +21421,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -24566,10 +24489,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -24838,79 +24798,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"tooling-api-builders",
 					"problems",
 					"normalization-java",
@@ -24926,7 +24816,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl",
+					"platform-native",
 					"configuration-cache-report",
 					"cli",
 					"build-option",
@@ -24942,7 +24832,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"enterprise",
+					"code-quality",
 					"resources-http",
 					"internal-integ-testing",
 					"jvm-services",
@@ -24958,7 +24848,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-plugins",
+					"kotlin-dsl",
 					"messaging",
 					"build-profile",
 					"tooling-native",
@@ -24968,7 +24858,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"ear",
 					"build-cache"
 				]
@@ -24976,7 +24866,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"resources-sftp",
 					"build-events"
 				]
@@ -24984,7 +24874,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"testing-base",
 					"core-api"
 				]
@@ -24992,7 +24882,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"reporting",
 					"build-cache-http"
 				]
@@ -25000,7 +24890,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"resources-s3",
 					"model-groovy"
 				]
@@ -25008,7 +24898,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"antlr",
 					"persistent-cache"
 				]
@@ -25016,15 +24906,22 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -28072,10 +27969,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -28344,79 +28278,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"kotlin-dsl-provider-plugins",
 					"security",
 					"docs",
@@ -28424,35 +28288,35 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services",
+					"jvm-services"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"platform-native",
 					"process-services",
-					"snapshots"
+					"snapshots",
+					"resources",
+					"platform-jvm"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"code-quality",
+					"base-services",
+					"publish",
+					"internal-performance-testing",
+					"messaging",
+					"build-profile"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"resources",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"enterprise",
-					"messaging",
-					"build-profile",
-					"tooling-native"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"tooling-native",
 					"resources-gcs",
 					"ear"
 				]
@@ -28460,7 +28324,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -28468,7 +28332,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"build-events",
 					"testing-base"
 				]
@@ -28476,7 +28340,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"core-api",
 					"reporting"
 				]
@@ -28484,7 +28348,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -28492,7 +28356,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"model-groovy",
 					"antlr"
 				]
@@ -28500,22 +28364,29 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -29067,10 +28938,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -29339,79 +29247,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"kotlin-dsl-provider-plugins",
 					"security",
 					"docs",
@@ -29419,35 +29257,35 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services",
+					"jvm-services"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"platform-native",
 					"process-services",
-					"snapshots"
+					"snapshots",
+					"resources",
+					"platform-jvm"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"code-quality",
+					"base-services",
+					"publish",
+					"internal-performance-testing",
+					"messaging",
+					"build-profile"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"resources",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"enterprise",
-					"messaging",
-					"build-profile",
-					"tooling-native"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"tooling-native",
 					"resources-gcs",
 					"ear"
 				]
@@ -29455,7 +29293,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -29463,7 +29301,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"build-events",
 					"testing-base"
 				]
@@ -29471,7 +29309,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"core-api",
 					"reporting"
 				]
@@ -29479,7 +29317,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -29487,7 +29325,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"model-groovy",
 					"antlr"
 				]
@@ -29495,22 +29333,29 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -30074,10 +29919,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -30346,79 +30228,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"kotlin-dsl-provider-plugins",
 					"security",
 					"docs",
@@ -30426,35 +30238,35 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services",
+					"jvm-services"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"platform-native",
 					"process-services",
-					"snapshots"
+					"snapshots",
+					"resources",
+					"platform-jvm"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"code-quality",
+					"base-services",
+					"publish",
+					"internal-performance-testing",
+					"messaging",
+					"build-profile"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"resources",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"enterprise",
-					"messaging",
-					"build-profile",
-					"tooling-native"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"tooling-native",
 					"resources-gcs",
 					"ear"
 				]
@@ -30462,7 +30274,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -30470,7 +30282,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"build-events",
 					"testing-base"
 				]
@@ -30478,7 +30290,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"core-api",
 					"reporting"
 				]
@@ -30486,7 +30298,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -30494,7 +30306,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"model-groovy",
 					"antlr"
 				]
@@ -30502,22 +30314,29 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],
@@ -33529,10 +33348,47 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-tooling-builders"
-				]
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":1,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":true,
+				"number":2,
+				"subproject":"kotlin-dsl-tooling-builders"
+			},
+			{
+				"classes":[
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelIntegrationTest=integTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r41.KotlinBuildScriptTemplateModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinInitScriptModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslGivenScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r71.KotlinDslScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r60.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r68.KotlinDslDefaultScriptsModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.AccessorsClassPathModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.PrecompiledScriptPluginModelCrossVersionSpec=crossVersionTest",
+					"org.gradle.kotlin.dsl.tooling.builders.r54.KotlinSettingsScriptModelCrossVersionSpec=crossVersionTest"
+				],
+				"include":false,
+				"number":3,
+				"subproject":"kotlin-dsl-tooling-builders"
 			},
 			{
 				"enableTD":true,
@@ -33801,79 +33657,9 @@
 				]
 			},
 			{
-				"enableTD":true,
-				"subprojects":[
-					"samples"
-				]
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":1,
-				"subproject":"platform-native"
-			},
-			{
-				"classes":[
-					"org.gradle.nativeplatform.LibraryDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.VisualCppToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.AutoTestedSamplesPlatformNativeIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.SwiftToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.MultipleNativeToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PlatformNativeComponentReportIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolchainCustomizationIntegTest=integTest",
-					"org.gradle.nativeplatform.toolchain.NativeToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCrossCompilationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.CommonToolChainIntegrationTest=integTest",
-					"org.gradle.nativeplatform.platform.InstallExecutableIntegrationTest=integTest",
-					"org.gradle.nativeplatform.plugins.NativeComponentPluginIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetLinkDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.SharedLibrarySoNameIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetCompileDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainDiscoveryIntegrationTest=integTest",
-					"org.gradle.nativeplatform.sourceset.SourceSetDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.StripSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryBinariesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.toolchain.GccToolChainCustomisationIntegrationTest=integTest",
-					"org.gradle.nativeplatform.tasks.ExtractSymbolsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryBuildTypesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.BinaryFlavorsIntegrationTest=integTest",
-					"org.gradle.nativeplatform.LibraryApiDependenciesIntegrationTest=integTest",
-					"org.gradle.nativeplatform.PrebuiltLibrariesIntegrationTest=integTest"
-				],
-				"include":false,
-				"number":2,
-				"subproject":"platform-native"
-			},
-			{
 				"enableTD":false,
 				"subprojects":[
-					"code-quality",
+					"samples",
 					"kotlin-dsl-provider-plugins",
 					"security",
 					"docs",
@@ -33881,35 +33667,35 @@
 					"execution",
 					"resources-http",
 					"internal-integ-testing",
-					"jvm-services",
+					"jvm-services"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"platform-native",
 					"process-services",
-					"snapshots"
+					"snapshots",
+					"resources",
+					"platform-jvm"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"code-quality",
+					"base-services",
+					"publish",
+					"internal-performance-testing",
+					"messaging",
+					"build-profile"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl",
-					"resources",
-					"platform-jvm",
-					"base-services",
-					"publish",
-					"internal-performance-testing"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"enterprise",
-					"messaging",
-					"build-profile",
-					"tooling-native"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"kotlin-dsl-plugins",
+					"tooling-native",
 					"resources-gcs",
 					"ear"
 				]
@@ -33917,7 +33703,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-watching",
+					"enterprise",
 					"build-cache",
 					"resources-sftp"
 				]
@@ -33925,7 +33711,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl-plugins",
 					"build-events",
 					"testing-base"
 				]
@@ -33933,7 +33719,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"version-control",
+					"file-watching",
 					"core-api",
 					"reporting"
 				]
@@ -33941,7 +33727,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"wrapper",
+					"kotlin-dsl-integ-tests",
 					"build-cache-http",
 					"resources-s3"
 				]
@@ -33949,7 +33735,7 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"jacoco",
+					"version-control",
 					"model-groovy",
 					"antlr"
 				]
@@ -33957,22 +33743,29 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"file-collections",
+					"wrapper",
 					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"diagnostics",
+					"jacoco",
 					"language-groovy"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
-					"platform-base",
+					"file-collections",
 					"signing"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"diagnostics",
+					"platform-base"
 				]
 			}
 		],

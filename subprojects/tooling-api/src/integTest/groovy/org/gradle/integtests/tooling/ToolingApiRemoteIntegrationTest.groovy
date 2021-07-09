@@ -31,6 +31,8 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -239,5 +241,38 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         !download.successful
         download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/15405')
+    def "calling disconnect on uninitialized connection does not trigger wrapper download"() {
+        when:
+        def connector = toolingApi.connector()
+        connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        connector.connect()
+        connector.disconnect()
+
+        then:
+        !toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/15405')
+    @Requires(TestPrecondition.NOT_WINDOWS) // cannot delete files when daemon is running
+    def "calling disconnect on existing connection does not re-trigger wrapper download"() {
+        setup:
+        server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))
+        def connector = toolingApi.connector()
+        connector.useDistribution(URI.create("http://localhost:${server.port}/custom-dist.zip"))
+        def connection = connector.connect()
+        connection.newBuild().forTasks("help").run()
+
+        expect:
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
+
+        when:
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").deleteDir()
+        connector.disconnect()
+
+        then:
+        !toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").exists()
     }
 }

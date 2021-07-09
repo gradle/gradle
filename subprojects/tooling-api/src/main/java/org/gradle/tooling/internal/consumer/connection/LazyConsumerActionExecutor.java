@@ -83,7 +83,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     public void disconnect() {
         lock.lock();
         try {
-            if (stopped) {
+            if (stopped || connection == null) {
                 return;
             }
             requestCancellation();

@@ -1,0 +1,4 @@
+#
+#Fri Jun 25 10:33:07 CEST 2021
+classes\ that\ are\ not\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=b422a7b8-e77b-4a79-934b-70b4cfd5eebd
+classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=599bf77e-e598-4e41-bbc4-47951bba0c0f

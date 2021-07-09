@@ -30,6 +30,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 
@@ -38,6 +39,7 @@ private
 val commitVersionRegex = """(\d+(\.\d+)+)-commit-[a-f0-9]+""".toRegex()
 
 
+@DisableCachingByDefault(because = "Child Gradle build will do its own caching")
 abstract class BuildCommitDistribution : DefaultTask() {
     @get:Input
     @get:Optional

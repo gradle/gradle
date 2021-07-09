@@ -37,9 +37,11 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
+@DisableCachingByDefault(because = "Uses data from the database, which can't be tracked as an input")
 abstract class PerformanceTestReport : DefaultTask() {
 
     @get:Classpath

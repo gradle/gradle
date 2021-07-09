@@ -36,6 +36,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.SortedSet
 
@@ -47,6 +48,7 @@ import java.util.SortedSet
  * to test functionality that requires rea distributions (like the wrapper)
  * or separately published libraries (like the Tooling API Jar).
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class DistributionTest : Test() {
 
     /**

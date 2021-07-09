@@ -12,7 +12,7 @@ plugins {
 }
 
 val antVersion = "1.10.9"
-val archunitVersion = "0.16.0"
+val archunitVersion = "0.20.0"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
@@ -138,7 +138,7 @@ dependencies {
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
-        api(libs.archunitJunit4)        { version { strictly(archunitVersion) }}
+        api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
         api(libs.awaitility)            { version { strictly("3.1.6") }}
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}

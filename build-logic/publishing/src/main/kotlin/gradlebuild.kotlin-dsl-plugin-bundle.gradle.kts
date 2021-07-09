@@ -27,7 +27,7 @@ plugins {
 extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin, pluginBundle)
 
 tasks.validatePlugins {
-    enableStricterValidation.set(false)
+    enableStricterValidation.set(true)
 }
 
 // Remove gradleApi() and gradleTestKit() as we want to compile/run against Gradle modules
