@@ -66,5 +66,5 @@ public interface IncludedBuildTaskGraph {
      * It would be better if this method were to create and return a "build tree task graph" object that can be populated, executed and then discarded. However, quite a few consumers
      * of this type and {@link org.gradle.execution.taskgraph.TaskExecutionGraphInternal} assume that there is a single reusable instance of these types available as services.
      */
-    <T> T withNestedTaskGraph(Supplier<T> action);
+    <T> T withNewTaskGraph(Supplier<T> action);
 }

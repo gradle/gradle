@@ -60,6 +60,6 @@ class DefaultBuildTreeLifecycleControllerFactory(
             cache.attachRootBuild(targetBuild.gradle.services.get())
         }
 
-        return DefaultBuildTreeLifecycleController(targetBuild, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyser)
+        return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyser)
     }
 }

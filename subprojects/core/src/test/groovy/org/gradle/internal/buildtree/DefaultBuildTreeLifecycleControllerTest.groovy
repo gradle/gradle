@@ -17,29 +17,90 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.ExecutionResult
 import spock.lang.Specification
 
 import java.util.function.Function
+import java.util.function.Supplier
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
+    def taskGraph = Mock(IncludedBuildTaskGraph)
     def workPreparer = Mock(BuildTreeWorkPreparer)
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyzer)
     def reportableFailure = new RuntimeException()
 
     def setup() {
         buildController.gradle >> gradle
     }
 
-    def "runs action after running tasks"() {
+    def "runs tasks"() {
+        when:
+        controller.scheduleAndRunTasks()
+
+        then:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+
+        and:
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.succeeded()
+
+        and:
+        1 * finishExecutor.finishBuildTree([]) >> ExecutionResult.succeeded()
+    }
+
+    def "runs tasks and collects failure to schedule tasks"() {
+        def failure = new RuntimeException()
+
+        when:
+        controller.scheduleAndRunTasks()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == reportableFailure
+
+        and:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+
+        and:
+        1 * workPreparer.scheduleRequestedTasks() >> { throw failure }
+
+        and:
+        1 * exceptionAnalyzer.transform([failure]) >> reportableFailure
+        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.succeeded()
+    }
+
+    def "runs tasks and collects failure to execute tasks"() {
+        def failure = new RuntimeException()
+
+        when:
+        controller.scheduleAndRunTasks()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == reportableFailure
+
+        and:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+
+        and:
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.failed(failure)
+
+        and:
+        1 * exceptionAnalyzer.transform([failure]) >> reportableFailure
+        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.succeeded()
+    }
+
+    def "runs action after running tasks when task execution is requested"() {
         def action = Mock(Function)
 
         when:
@@ -49,6 +110,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * workPreparer.scheduleRequestedTasks()
         1 * workExecutor.execute() >> ExecutionResult.succeeded()
 
@@ -71,6 +133,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * workPreparer.scheduleRequestedTasks()
         1 * workExecutor.execute() >> ExecutionResult.failed(failure)
         0 * action._

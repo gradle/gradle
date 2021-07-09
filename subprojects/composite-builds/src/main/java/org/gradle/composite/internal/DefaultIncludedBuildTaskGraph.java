@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
     private enum State {
-        QueuingTasks, ReadyToRun, Running, Finished
+        NotReady, QueuingTasks, ReadyToRun, Running, Finished
     }
 
     private final BuildStateRegistry buildRegistry;
@@ -40,7 +40,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
     private Thread owner;
-    private State state = State.QueuingTasks;
+    private State state = State.NotReady;
     private IncludedBuildControllers includedBuilds;
 
     public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
@@ -56,15 +56,13 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
-    public <T> T withNestedTaskGraph(Supplier<T> action) {
+    public <T> T withNewTaskGraph(Supplier<T> action) {
         Thread currentOwner;
         State currentState;
         IncludedBuildControllers currentControllers;
         synchronized (this) {
             if (state != State.Running) {
-                if (owner == null || owner == Thread.currentThread()) {
-                    expectQueuingTasks();
-                } else {
+                if (owner != null && owner != Thread.currentThread()) {
                     throw new IllegalStateException("This task graph is already in use.");
                 }
             }
@@ -157,14 +155,18 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
 
     private void expectQueuingTasks() {
         if (state != State.QueuingTasks && state != State.ReadyToRun) {
-            throw new IllegalStateException("Work graph is in an unexpected state: " + state);
+            throw unexpectedState();
         }
     }
 
     private void expectInState(State expectedState) {
         if (state != expectedState) {
-            throw new IllegalStateException("Work graph is in an unexpected state: " + state);
+            throw unexpectedState();
         }
+    }
+
+    private IllegalStateException unexpectedState() {
+        return new IllegalStateException("Work graph is in an unexpected state: " + state);
     }
 
     private <T> T withState(Supplier<T> action) {

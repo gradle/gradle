@@ -17,6 +17,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
@@ -27,6 +28,7 @@ import java.util.function.Supplier;
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
+    private final IncludedBuildTaskGraph taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
@@ -34,12 +36,14 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
+                                               IncludedBuildTaskGraph taskGraph,
                                                BuildTreeWorkPreparer workPreparer,
                                                BuildTreeWorkExecutor workExecutor,
                                                BuildTreeModelCreator modelCreator,
                                                BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
+        this.taskGraph = taskGraph;
         this.workPreparer = workPreparer;
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
@@ -57,24 +61,27 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks() {
-        runBuild(() -> {
-            workPreparer.scheduleRequestedTasks();
-            return workExecutor.execute();
-        });
+        runBuild(this::doScheduleAndRunTasks);
     }
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
         return runBuild(() -> {
             if (runTasks) {
-                workPreparer.scheduleRequestedTasks();
-                ExecutionResult<Void> result = workExecutor.execute();
+                ExecutionResult<Void> result = doScheduleAndRunTasks();
                 if (!result.getFailures().isEmpty()) {
                     return result.asFailure();
                 }
             }
             T model = modelCreator.fromBuildModel(action);
             return ExecutionResult.succeeded(model);
+        });
+    }
+
+    private ExecutionResult<Void> doScheduleAndRunTasks() {
+        return taskGraph.withNewTaskGraph(() -> {
+            workPreparer.scheduleRequestedTasks();
+            return workExecutor.execute();
         });
     }
 

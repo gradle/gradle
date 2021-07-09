@@ -124,8 +124,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
-        IncludedBuildTaskGraph includedBuildTaskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
-        return includedBuildTaskGraph.withNestedTaskGraph(() -> buildAction.apply(buildTreeLifecycleController));
+        return buildAction.apply(buildTreeLifecycleController);
     }
 
     @Override

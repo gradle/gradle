@@ -34,7 +34,6 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Function
-import java.util.function.Supplier
 
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
@@ -89,7 +88,6 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
-        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -111,7 +109,6 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
-        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -133,7 +130,6 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             return null
         }
