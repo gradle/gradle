@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -34,6 +35,7 @@ import java.util.concurrent.Callable;
 /**
  * Links a binary shared library from object files and imported libraries.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 public class LinkSharedLibrary extends AbstractLinkTask {
     private final Property<String> installName = getProject().getObjects().property(String.class);
     private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();

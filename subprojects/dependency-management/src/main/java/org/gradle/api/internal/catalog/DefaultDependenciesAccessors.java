@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
@@ -52,6 +53,7 @@ import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -325,6 +327,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private class DependencyAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
         private static final String IN_DEPENDENCY_ALIASES = "dependencyAliases";
         private static final String IN_BUNDLES = "bundles";
+        private static final String IN_PLUGINS = "plugins";
         private static final String IN_VERSIONS = "versions";
         private static final String IN_MODEL_NAME = "modelName";
         private static final String IN_CLASSPATH = "classpath";
@@ -345,12 +348,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getDependencyAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
+            visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
             visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
                 new FileValueSupplier(
                     classPath,
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
+                    LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
         }
 
@@ -512,6 +517,11 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 return Optional.of(catalogs.get(name));
             }
             return Optional.empty();
+        }
+
+        @Override
+        public Set<String> getCatalogNames() {
+            return ImmutableSet.copyOf(catalogs.keySet());
         }
 
         @Override

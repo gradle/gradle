@@ -25,12 +25,14 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.util.Arrays;
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 public abstract class FindGradleSources implements TransformAction<TransformParameters.None> {
-    @PathSensitive(PathSensitivity.NONE)
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputArtifact
     protected abstract Provider<FileSystemLocation> getInputArtifact();
 

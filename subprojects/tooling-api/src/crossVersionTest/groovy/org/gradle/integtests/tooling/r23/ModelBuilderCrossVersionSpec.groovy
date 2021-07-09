@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 
 class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
@@ -48,28 +47,4 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
         model != null
         OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
     }
-
-    def "empty list of tasks to execute when asking for model from target Gradle is treated like null tasks and executes no tasks"() {
-        projectDir.file('build.gradle') << """
-            defaultTasks 'alpha'
-            task alpha() { doLast { throw new RuntimeException() } }
-        """
-
-        def outputStream = new ByteArrayOutputStream()
-        def errorStream = new ByteArrayOutputStream()
-
-        when:
-        GradleProject model = toolingApi.withConnection { ProjectConnection connection ->
-            ModelBuilder<GradleProject> modelBuilder = connection.model(GradleProject.class)
-            modelBuilder.forTasks(new String[0])
-            modelBuilder.setStandardOutput(outputStream)
-            modelBuilder.setStandardError(errorStream)
-            modelBuilder.get()
-        }
-
-        then:
-        model != null
-        OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
-    }
-
 }

@@ -317,7 +317,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         }
         then:
         def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
-        (platformType == ENFORCED_PLATFORM && !failure) || failure.assertHasCause(
+        (platformType == ENFORCED_PLATFORM && failureOrNull == null) || failure.assertHasCause(
             """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'

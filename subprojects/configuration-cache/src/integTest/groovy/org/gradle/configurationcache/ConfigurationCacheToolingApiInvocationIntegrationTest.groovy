@@ -156,14 +156,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = fetchModel()
 
         then:
-        model.message == "It works!"
+        model.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = fetchModel()
 
         then:
-        model2.message == "It works!"
+        model2.message == "It works from project :"
         outputContains("script log statement")
     }
 
@@ -176,14 +176,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
-        model.message == "It works!"
+        model.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = runBuildAction(new SomeToolingModelBuildAction())
 
         then:
-        model2.message == "It works!"
+        model2.message == "It works from project :"
         outputContains("script log statement")
     }
 
@@ -196,16 +196,16 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         def model = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
-        model.left.message == "It works!"
-        model.right.message == "It works!"
+        model.left.message == "It works from project :"
+        model.right.message == "It works from project :"
         outputContains("script log statement")
 
         when:
         def model2 = runPhasedBuildAction(new SomeToolingModelBuildAction(), new SomeToolingModelBuildAction())
 
         then:
-        model2.left.message == "It works!"
-        model2.right.message == "It works!"
+        model2.left.message == "It works from project :"
+        model2.right.message == "It works from project :"
         outputContains("script log statement")
     }
 

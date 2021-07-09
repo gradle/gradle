@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -27,16 +26,13 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
-    private final IncludedBuildControllers includedBuildControllers;
     private final BuildStateRegistry buildStateRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
 
-    public DefaultBuildTreeFinishExecutor(IncludedBuildControllers includedBuildControllers,
-                                          BuildStateRegistry buildStateRegistry,
+    public DefaultBuildTreeFinishExecutor(BuildStateRegistry buildStateRegistry,
                                           ExceptionAnalyser exceptionAnalyser,
                                           BuildLifecycleController buildLifecycleController) {
-        this.includedBuildControllers = includedBuildControllers;
         this.buildStateRegistry = buildStateRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLifecycleController = buildLifecycleController;
@@ -49,7 +45,6 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
             allFailures.add(throwable);
             finishFailures.accept(throwable);
         };
-        includedBuildControllers.finishPendingWork(collector);
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
                 ((NestedBuildState) buildState).finishBuild(collector);

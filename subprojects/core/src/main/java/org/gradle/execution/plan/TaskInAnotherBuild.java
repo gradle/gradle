@@ -24,64 +24,63 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-public abstract class TaskInAnotherBuild extends TaskNode {
-
-    protected final IncludedBuildTaskGraph taskGraph;
-
+public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
-        BuildIdentifier currentBuildId,
         IncludedBuildTaskGraph taskGraph
     ) {
-        return new Resolved(task, buildIdentifierOf(task), currentBuildId, taskGraph);
+        BuildIdentifier targetBuild = buildIdentifierOf(task);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, task);
+        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild, taskResource);
     }
 
     public static TaskInAnotherBuild of(
-        Path taskIdentityPath,
         String taskPath,
         BuildIdentifier targetBuild,
-        BuildIdentifier thisBuild,
         IncludedBuildTaskGraph taskGraph
     ) {
-        return new Deferred(taskIdentityPath, taskPath, targetBuild, thisBuild, taskGraph);
+        IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskPath);
+        Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
+        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
-    private final BuildIdentifier thisBuild;
+    private final Path taskIdentityPath;
+    private final String taskPath;
     private final BuildIdentifier targetBuild;
+    private final IncludedBuildTaskResource target;
 
-    protected TaskInAnotherBuild(BuildIdentifier thisBuild, BuildIdentifier targetBuild, IncludedBuildTaskGraph taskGraph) {
-        this.thisBuild = thisBuild;
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild, IncludedBuildTaskResource target) {
+        this.taskIdentityPath = taskIdentityPath;
+        this.taskPath = taskPath;
         this.targetBuild = targetBuild;
+        this.target = target;
         doNotRequire();
-        this.taskGraph = taskGraph;
-    }
-
-    public BuildIdentifier getThisBuild() {
-        return thisBuild;
     }
 
     public BuildIdentifier getTargetBuild() {
         return targetBuild;
     }
 
-    public abstract String getTaskPath();
+    public String getTaskPath() {
+        return taskPath;
+    }
 
-    public abstract Path getTaskIdentityPath();
+    @Override
+    public TaskInternal getTask() {
+        return target.getTask();
+    }
 
     @Override
     public void prepareForExecution() {
-        // Should get back some kind of reference that can be queried below instead of looking the task up every time
-        taskGraph.addTask(thisBuild, targetBuild, getTaskPath());
+        target.queueForExecution();
     }
 
     @Nullable
@@ -116,7 +115,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public void appendPostAction(Action<? super Task> action) {
-        // Ignore. Currently the actions don't need to run, it's just better if they do
+        // Ignore. Currently, the actions don't need to run, it's just better if they do
         // By the time this node is notified that the task in the other build has completed, it's too late to run the action
         // Instead, the action should be attached to the task in the other build rather than here
     }
@@ -151,7 +150,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
             return true;
         }
 
-        state = taskGraph.getTaskState(targetBuild, getTaskPath());
+        state = target.getTaskState();
         return state != IncludedBuildTaskResource.State.WAITING;
     }
 
@@ -161,12 +160,12 @@ public abstract class TaskInAnotherBuild extends TaskNode {
             return getClass().getName().compareTo(other.getClass().getName());
         }
         TaskInAnotherBuild taskNode = (TaskInAnotherBuild) other;
-        return getTaskIdentityPath().compareTo(taskNode.getTaskIdentityPath());
+        return taskIdentityPath.compareTo(taskNode.taskIdentityPath);
     }
 
     @Override
     public String toString() {
-        return getTaskIdentityPath().toString();
+        return taskIdentityPath.toString();
     }
 
     @Override
@@ -175,82 +174,6 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     }
 
     private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(BuildState.class).getBuildIdentifier();
-    }
-
-    private static class Resolved extends TaskInAnotherBuild {
-        private final TaskInternal task;
-
-        Resolved(
-            TaskInternal task,
-            BuildIdentifier targetBuild, BuildIdentifier thisBuild,
-            IncludedBuildTaskGraph taskGraph
-        ) {
-            super(thisBuild, targetBuild, taskGraph);
-            this.task = task;
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            // Expose the task to build logic (for now)
-            return task;
-        }
-
-        @Override
-        public Path getTaskIdentityPath() {
-            return getTask().getIdentityPath();
-        }
-
-        @Override
-        public String getTaskPath() {
-            return task.getPath();
-        }
-
-        @Override
-        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-            Set<Node> dependencies = dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
-            for (Node targetNode : dependencies) {
-                if (targetNode instanceof TaskNode) {
-                    addDependencySuccessor(targetNode);
-                    processHardSuccessor.execute(targetNode);
-                }
-            }
-        }
-    }
-
-    private static class Deferred extends TaskInAnotherBuild {
-
-        private final Path taskIdentityPath;
-        private final String taskPath;
-        private TaskInternal task;
-
-        public Deferred(
-            Path taskIdentityPath,
-            String taskPath,
-            BuildIdentifier targetBuild, BuildIdentifier thisBuild,
-            IncludedBuildTaskGraph taskGraph
-        ) {
-            super(thisBuild, targetBuild, taskGraph);
-            this.taskIdentityPath = taskIdentityPath;
-            this.taskPath = taskPath;
-        }
-
-        @Override
-        public Path getTaskIdentityPath() {
-            return taskIdentityPath;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return taskPath;
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            if (task == null) {
-                task = taskGraph.getTask(getTargetBuild(), getTaskPath());
-            }
-            return task;
-        }
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
     }
 }

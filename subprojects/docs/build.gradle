@@ -4,6 +4,7 @@ import org.gradle.docs.samples.internal.tasks.InstallSample
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
 import static gradlebuild.basics.Repositories_extensionsKt.googleApisJs
+import org.gradle.docs.internal.tasks.CheckLinks
 
 plugins {
     id 'gradlebuild.internal.java'
@@ -556,4 +557,12 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
          "-DintegTest.samplesdir=${samplesdir.get().asFile}",
          "-DintegTest.gradleUserHomeDir=${repoRoot(project).dir("intTestHomeDir/$distributionName").asFile}"]
     }
+}
+
+tasks.withType(CheckLinks).configureEach {
+    enabled = !gradle.startParameter.taskNames.contains("docs:platformTest")
+}
+
+tasks.register("checkLinks") {
+    dependsOn(tasks.withType(CheckLinks))
 }

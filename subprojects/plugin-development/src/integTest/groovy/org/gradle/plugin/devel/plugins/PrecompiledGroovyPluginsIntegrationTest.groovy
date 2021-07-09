@@ -122,7 +122,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             logger.lifecycle("hello from " + path)
         """
 
-        [buildFile, file("a/build.gradle"), file("b/build.gradle"), file("c/build.gradle") ].each { bf ->
+        [buildFile, file("a/build.gradle"), file("b/build.gradle"), file("c/build.gradle")].each { bf ->
             bf << """
                 plugins {
                     id 'foo'
@@ -164,7 +164,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("baz.bar applied")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share precompiled plugin via a jar"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle")
@@ -212,13 +211,12 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share multiple precompiled plugins via a jar"() {
         given:
         def pluginsJar = packagePrecompiledPlugins([
-                "foo.gradle": 'tasks.register("firstPluginTask") {}',
-                "bar.gradle": 'tasks.register("secondPluginTask") {}',
-                "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
+            "foo.gradle": 'tasks.register("firstPluginTask") {}',
+            "bar.gradle": 'tasks.register("secondPluginTask") {}',
+            "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
         ])
 
         when:
@@ -244,7 +242,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thirdPluginTask")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share precompiled plugin by publishing it"() {
         given:
         pluginWithSampleTask("plugin/src/main/groovy/plugins/foo.bar.my-plugin.gradle")
@@ -428,7 +425,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("The `buildscript` block is not supported in Groovy script plugins. Use the `plugins` block or project level dependencies instead.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled init plugin"() {
         given:
         def pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
@@ -795,8 +791,8 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("from custom task")
     }
 
-    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     def "can write tests for precompiled script plugins"() {
         given:
         pluginWithSampleTask("src/main/groovy/test-plugin.gradle")
@@ -983,7 +979,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         executer.inDirectory(pluginsDir).withTasks("jar").run()
-                .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
+            .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
         def pluginJar = pluginsDir.file("build/libs/plugins.jar").assertExists()
         def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)

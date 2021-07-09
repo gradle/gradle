@@ -60,6 +60,8 @@ Compiles the given source set's Scala source files.
 +
 Generates API documentation for the production Scala source files.
 
+The `ScalaCompile` and `ScalaDoc` tasks can also leverage the <<toolchains.adoc#toolchains,Java toolchain support>>.
+
 The Scala plugin adds the following dependencies to tasks added by the Java plugin.
 
 .Scala plugin - additional task dependencies

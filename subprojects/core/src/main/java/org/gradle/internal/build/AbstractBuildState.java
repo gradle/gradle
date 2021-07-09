@@ -19,11 +19,13 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.util.Path;
+
+import java.util.function.Consumer;
 
 public abstract class AbstractBuildState implements BuildState {
     @Override
@@ -44,8 +46,8 @@ public abstract class AbstractBuildState implements BuildState {
     protected abstract ProjectStateRegistry getProjectStateRegistry();
 
     @Override
-    public ProjectState getProject(Path projectPath) {
-        return getProjectStateRegistry().stateFor(getBuildIdentifier(), projectPath);
+    public BuildProjectRegistry getProjects() {
+        return getProjectStateRegistry().projectsFor(getBuildIdentifier());
     }
 
     @Override
@@ -58,5 +60,12 @@ public abstract class AbstractBuildState implements BuildState {
         }
         String name = project.getName();
         return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, name);
+    }
+
+    protected abstract BuildLifecycleController getBuildController();
+
+    @Override
+    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
+        getBuildController().populateWorkGraph(action);
     }
 }

@@ -22,11 +22,13 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 
 /**
  * Used to validate that :kotlinCompilerEmbeddable dependencies are aligned with the original dependencies.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
 
     /**

@@ -107,7 +107,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 return;
             }
 
-            FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity());
+            FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity(), value.getLineEndingNormalization());
             CurrentFileCollectionFingerprint fingerprint = fingerprinterRegistry.getFingerprinter(normalizationSpec)
                 .fingerprint(value.getFiles());
             fingerprintsBuilder.put(propertyName, fingerprint);

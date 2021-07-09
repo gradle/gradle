@@ -44,12 +44,15 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
@@ -106,7 +109,7 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
-        NativeServices.initialize(userHomeDir);
+        NativeServices.initializeOnDaemon(userHomeDir);
 
         final ServiceRegistry globalServices = getGlobalServices();
 
@@ -114,7 +117,7 @@ public class ProjectBuilderImpl {
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(true, false, startParameter);
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir, startParameter);
         TestRootBuild build = new TestRootBuild(projectDir, buildServices);
@@ -151,7 +154,7 @@ public class ProjectBuilderImpl {
                 (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
                 (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
                 buildServices,
-                    buildTreeState,
+                buildTreeState,
                 buildSessionState,
                 crossBuildSessionState
             )
@@ -225,6 +228,16 @@ public class ProjectBuilderImpl {
             buildServices.add(BuildState.class, this);
             this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
             this.gradle = buildServices.get(GradleInternal.class);
+        }
+
+        @Override
+        protected BuildLifecycleController getBuildController() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public BuildWorkGraph getWorkGraph() {
+            throw new UnsupportedOperationException();
         }
 
         @Override

@@ -32,6 +32,12 @@ public class ConfigurationFinder {
             return configuration;
         }
 
+        // if configuration with exact name is present return it
+        configuration = configurations.findByName(configurationName);
+        if (configuration != null) {
+            return configuration;
+        }
+
         throw new InvalidUserDataException(matcher.formatErrorMessage("configuration", configurations));
     }
 }

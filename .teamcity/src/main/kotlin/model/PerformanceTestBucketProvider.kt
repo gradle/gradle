@@ -51,12 +51,10 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
         val testProjectToScenarioDurations = determineScenarioTestDurations(performanceTestSpec.os, performanceTestDurations)
         val testProjectScenarioDurationsFallback = determineScenarioTestDurations(Os.LINUX, performanceTestDurations)
-        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 2 else 1
         val buckets = splitBucketsByScenarios(
             scenarios,
             testProjectToScenarioDurations,
             testProjectScenarioDurationsFallback,
-            repetitions,
             performanceTestCoverage.numberOfBuckets
         )
         return buckets.mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
@@ -110,8 +108,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
 }
 
 private
-fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioDurations: Map<String, List<PerformanceTestDuration>>, testProjectScenarioDurationsFallback: Map<String, List<PerformanceTestDuration>>, scenarioRepetitions: Int, numberOfBuckets: Int): List<PerformanceTestBucket> {
-
+fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioDurations: Map<String, List<PerformanceTestDuration>>, testProjectScenarioDurationsFallback: Map<String, List<PerformanceTestDuration>>, numberOfBuckets: Int): List<PerformanceTestBucket> {
     val testProjectDurations = scenarios
         .groupBy({ it.testProject }, { scenario ->
             listOf(testProjectToScenarioDurations, testProjectScenarioDurationsFallback)
@@ -120,7 +117,6 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         })
         .entries
         .map { TestProjectDuration(it.key, it.value) }
-        .flatMap { testProjectDuration -> generateSequence { testProjectDuration }.take(scenarioRepetitions).toList() }
         .sortedBy { -it.totalTime }
     return splitIntoBuckets(
         LinkedList(testProjectDurations),
@@ -230,7 +226,7 @@ class MultipleTestProjectBucket(private val projectDurations: List<TestProjectDu
 private
 fun projectDurationsToScenariosPerTestProject(projectDurations: List<TestProjectDuration>): Map<String, List<Scenario>> {
     val durationsPerTestProject = projectDurations.groupBy({ it.testProject }, { it.scenarioDurations })
-    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than on scenario split for test project $key: $projectDurations") }
+    durationsPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than one scenario split for test project $key: $projectDurations") }
     return durationsPerTestProject
         .mapValues { (_, durations) -> durations.flatten().map { it.scenario } }
 }

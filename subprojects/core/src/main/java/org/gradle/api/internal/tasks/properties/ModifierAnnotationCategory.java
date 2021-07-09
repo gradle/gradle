@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.work.NormalizeLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -32,31 +33,38 @@ import java.util.Collection;
 import java.util.Map;
 
 public enum ModifierAnnotationCategory implements AnnotationCategory {
-    INCREMENTAL(ImmutableSet.of(
+    INCREMENTAL("incremental",
         Incremental.class,
         SkipWhenEmpty.class
-    )),
-    NORMALIZATION(ImmutableSet.of(
+    ),
+    NORMALIZATION("normalization",
         Classpath.class,
         CompileClasspath.class,
         PathSensitive.class
-    )),
-    OPTIONAL(ImmutableSet.of(
+    ),
+    OPTIONAL("optional",
         Optional.class
-    )),
-    IGNORE_EMPTY_DIRECTORIES(ImmutableSet.of(
+    ),
+    IGNORE_EMPTY_DIRECTORIES("ignore empty directories",
         IgnoreEmptyDirectories.class
-    ));
+    ),
+    NORMALIZE_LINE_ENDINGS("ignore line endings",
+        NormalizeLineEndings.class
+    );
 
+    private final String displayName;
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
-    ModifierAnnotationCategory(ImmutableSet<Class<? extends Annotation>> annotations) {
-        this.annotations = annotations;
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    ModifierAnnotationCategory(String displayName, Class<? extends Annotation>... annotations) {
+        this.displayName = displayName;
+        this.annotations = ImmutableSet.copyOf(annotations);
     }
 
     @Override
     public String getDisplayName() {
-        return name().toLowerCase();
+        return displayName;
     }
 
     public static Map<Class<? extends Annotation>, AnnotationCategory> asMap(Collection<Class<? extends Annotation>> typeAnnotations) {

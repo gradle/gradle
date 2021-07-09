@@ -22,16 +22,19 @@ import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.groovy.scripts.internal.Permits;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
 
 import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSinglePropertyExpressionArgument;
 import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
 
 public class PluginUseScriptBlockMetadataCompiler {
@@ -41,13 +44,16 @@ public class PluginUseScriptBlockMetadataCompiler {
     public static final String NEED_INTERPOLATED_STRING = "argument list must be exactly 1 literal String or String with property replacement";
     public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
     public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
+    public static final String DISALLOWED_ALIAS_NOTATION = "only alias(libs.plugins.someAlias) plugin identifiers where `libs` is a valid version catalog";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
     private final DocumentationRegistry documentationRegistry;
+    private final Permits pluginsBlockPermits;
 
-    public PluginUseScriptBlockMetadataCompiler(DocumentationRegistry documentationRegistry) {
+    public PluginUseScriptBlockMetadataCompiler(DocumentationRegistry documentationRegistry, Permits pluginsBlockPermits) {
         this.documentationRegistry = documentationRegistry;
+        this.pluginsBlockPermits = pluginsBlockPermits;
     }
 
     public void compile(SourceUnit sourceUnit, ScriptBlock scriptBlock) {
@@ -79,6 +85,19 @@ public class PluginUseScriptBlockMetadataCompiler {
                     if (isOfType(methodName, String.class)) {
                         String methodNameText = methodName.getText();
                         switch (methodNameText) {
+                            case "alias":
+                                PropertyExpression fullExpression = hasSinglePropertyExpressionArgument(call);
+                                if (fullExpression != null) {
+                                    // <versionCatalog>.plugins.someId
+                                    // or <versionCatalog>.plugins.some.id
+                                    // because the expression might be complex we rely on its textual representation
+                                    String fullExpressionText = fullExpression.getText();
+                                    if (pluginsBlockPermits.getAllowedExtensions().stream().anyMatch(ext -> fullExpressionText.startsWith(ext + ".plugins."))) {
+                                        return;
+                                    }
+                                }
+                                restrict(call, formatErrorMessage(DISALLOWED_ALIAS_NOTATION));
+                                return;
                             case "id":
                                 ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
                                 if (argumentExpression == null) {
@@ -95,6 +114,16 @@ public class PluginUseScriptBlockMetadataCompiler {
 
                                 break;
                             case "version":
+                                fullExpression = hasSinglePropertyExpressionArgument(call);
+                                if (fullExpression != null) {
+                                    // <versionCatalog>.versions.someId
+                                    // or <versionCatalog>.versions.some.id
+                                    // because the expression might be complex we rely on its textual representation
+                                    String fullExpressionText = fullExpression.getText();
+                                    if (pluginsBlockPermits.getAllowedExtensions().stream().anyMatch(ext -> fullExpressionText.startsWith(ext + ".versions."))) {
+                                        return;
+                                    }
+                                }
                                 if (!hasSimpleInterpolatedStringType(call)) {
                                     restrict(call, formatErrorMessage(NEED_INTERPOLATED_STRING));
                                     return;

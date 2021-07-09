@@ -17,7 +17,9 @@
 package gradlebuild.performance.generator.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.work.DisableCachingByDefault
 
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class ProjectGeneratorTask extends DefaultTask {
 
 }

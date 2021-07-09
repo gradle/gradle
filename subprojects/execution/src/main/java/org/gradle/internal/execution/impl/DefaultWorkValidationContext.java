@@ -50,8 +50,8 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
 
             @Override
             protected void recordProblem(TypeValidationProblem problem) {
-                boolean cacheableProblemOnly = problem.isCacheabilityProblemOnly();
-                if (cacheableProblemOnly && !cacheable) {
+                boolean onlyAffectsCacheableWork = problem.isOnlyAffectsCacheableWork();
+                if (onlyAffectsCacheableWork && !cacheable) {
                     return;
                 }
                 problems.add(problem);

@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":composite-builds"))
     implementation(project(":core"))
     implementation(project(":core-api"))
-    implementation(project(":data-structures"))
+    implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":launcher"))
     implementation(project(":logging"))

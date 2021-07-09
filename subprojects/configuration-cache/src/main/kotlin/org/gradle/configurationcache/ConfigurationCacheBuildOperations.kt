@@ -19,11 +19,11 @@ package org.gradle.configurationcache
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.operations.CallableBuildOperation
 
 
 internal
-fun BuildOperationExecutor.withLoadOperation(block: () -> Unit) =
+fun <T> BuildOperationExecutor.withLoadOperation(block: () -> T) =
     withOperation("Load configuration cache state", block)
 
 
@@ -33,14 +33,14 @@ fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
 
 
 private
-fun BuildOperationExecutor.withOperation(displayName: String, block: () -> Unit) {
-    run(object : RunnableBuildOperation {
+fun <T> BuildOperationExecutor.withOperation(displayName: String, block: () -> T): T {
+    return call(object : CallableBuildOperation<T> {
 
         override fun description(): BuildOperationDescriptor.Builder =
             BuildOperationDescriptor.displayName(displayName)
 
-        override fun run(context: BuildOperationContext) {
-            block()
+        override fun call(context: BuildOperationContext): T {
+            return block()
         }
     })
 }

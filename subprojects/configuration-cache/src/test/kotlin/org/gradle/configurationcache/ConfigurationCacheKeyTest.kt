@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
@@ -90,8 +91,9 @@ class ConfigurationCacheKeyTest {
     }
 
     private
-    fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String =
-        ConfigurationCacheKey(
+    fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
+        val startParameter = StartParameterInternal().apply(configure)
+        return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildLayout(
                     file("root"),
@@ -99,9 +101,11 @@ class ConfigurationCacheKeyTest {
                     null
                 ),
                 BuildModelParameters(false, true, false, false),
-                StartParameterInternal().apply(configure)
-            )
+                startParameter
+            ),
+            RunTasksRequirements(startParameter)
         ).string
+    }
 
     private
     fun file(path: String) =

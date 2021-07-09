@@ -230,12 +230,12 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     tr();
                         th().text("Date").end();
                         th().text("Commit").end();
-                        renderVersionHeader(scenario.getRecentExecutions().isEmpty() ? "" : scenario.getRecentExecutions().get(0).getBaseVersion().getName());
-                        renderVersionHeader(scenario.getRecentExecutions().isEmpty() ? "" : scenario.getRecentExecutions().get(0).getCurrentVersion().getName());
+                        renderVersionHeader(scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getBaseVersion().getName());
+                        renderVersionHeader(scenario.getHistoryExecutions().isEmpty() ? "" : scenario.getHistoryExecutions().get(0).getCurrentVersion().getName());
                         th().text("Difference").end();
                         th().text("Confidence").end();
                     end();
-                    scenario.getRecentExecutions().forEach(execution -> {
+                    scenario.getHistoryExecutions().forEach(execution -> {
                         tr();
                             DataSeries<Duration> baseVersion = execution.getBaseVersion().getTotalTime();
                             DataSeries<Duration> currentVersion = execution.getCurrentVersion().getTotalTime();

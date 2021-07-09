@@ -25,10 +25,6 @@ class ConfigurationCacheBuildEnablement(
     private val buildPath: PublicBuildPath,
     private val startParameter: ConfigurationCacheStartParameter
 ) {
-    val isEnabledForCurrentBuild by lazy {
-        startParameter.isEnabled && buildPath.buildPath == Path.ROOT
-    }
-
     val isProblemListenerEnabledForCurrentBuild by lazy {
         startParameter.isEnabled && BUILD_SRC != buildPath.buildPath.lastSegment()
     }

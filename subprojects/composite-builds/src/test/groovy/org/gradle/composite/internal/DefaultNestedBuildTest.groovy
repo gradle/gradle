@@ -29,11 +29,11 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Function
+import java.util.function.Supplier
 
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
@@ -43,30 +43,32 @@ class DefaultNestedBuildTest extends Specification {
     def parentGradle = Mock(GradleInternal)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
-    def sessionServices = Mock(ServiceRegistry)
+    def sessionServices = new DefaultServiceRegistry()
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def includedBuildControllers = Mock(IncludedBuildControllers)
+    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    DefaultNestedBuild build
 
-    def setup() {
+    DefaultNestedBuild build() {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * owner.mutableModel >> parentGradle
         _ * factory.newInstance(buildDefinition, _, parentGradle, _) >> controller
         _ * buildDefinition.name >> "nested"
-        _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
-        _ * sessionServices.get(IncludedBuildControllers) >> includedBuildControllers
-        _ * sessionServices.get(ExceptionAnalyser) >> exceptionAnalyzer
-        _ * tree.services >> new DefaultServiceRegistry()
+        sessionServices.add(Stub(BuildOperationExecutor))
+        sessionServices.add(exceptionAnalyzer)
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
+        sessionServices.add(includedBuildTaskGraph)
+        _ * tree.services >> sessionServices
         _ * controller.gradle >> gradle
-        _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, projectStateRegistry)
+        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, projectStateRegistry)
     }
 
-    def "stops launcher on stop"() {
+    def "stops controller on stop"() {
+        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        def build = build()
+
         when:
         build.stop()
 
@@ -76,7 +78,8 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and finishes build when model is not required by root build"() {
         given:
-        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, false)
+        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        def build = build()
 
         when:
         def result = build.run(action)
@@ -85,6 +88,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -95,7 +99,8 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action but does not finish build when model is required by root build"() {
         given:
-        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, true)
+        sessionServices.add(new BuildModelParameters(false, false, false, true))
+        def build = build()
 
         when:
         def result = build.run(action)
@@ -104,6 +109,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         then:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
             '<result>'
@@ -114,7 +120,8 @@ class DefaultNestedBuildTest extends Specification {
 
     def "can have null result"() {
         given:
-        sessionServices.get(BuildModelParameters) >> new BuildModelParameters(false, false, false, false)
+        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        def build = build()
 
         when:
         def result = build.run(action)
@@ -123,6 +130,7 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
+        1 * includedBuildTaskGraph.withNestedTaskGraph(_) >> { Supplier supplier -> supplier.get() }
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
             return null
         }

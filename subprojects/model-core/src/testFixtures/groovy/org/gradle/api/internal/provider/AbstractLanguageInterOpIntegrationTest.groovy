@@ -51,7 +51,7 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
 
     def cleanup() {
         // Let's copy the Kotlin compiler logs in case of failure
-        if (result instanceof ExecutionFailure) {
+        if (resultOrNull instanceof ExecutionFailure) {
             def pattern = "kotlin-daemon.${new Date().format("yyyy-MM-dd")}.*.log"
             def kotlinCompilerLogFiles = new FileNameFinder().getFileNames(System.getenv("TMPDIR"), pattern)
             def target = buildContext.gradleUserHomeDir.createDir("kotlin-compiler-daemon").toPath()

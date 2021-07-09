@@ -82,7 +82,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     def "sensitivity NONE"() {
-        def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.INSTANCE)
+        def fingerprints = collectFingerprints(IgnoredPathFingerprintingStrategy.DEFAULT)
         expect:
         allFilesToFingerprint.each { file ->
             if (file.isFile() || !file.exists()) {

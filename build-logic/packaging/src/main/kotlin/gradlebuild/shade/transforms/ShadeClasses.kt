@@ -31,6 +31,7 @@ import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 
 
 private
@@ -86,7 +87,9 @@ abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 }
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindClassTrees : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
@@ -96,7 +99,9 @@ abstract class FindClassTrees : TransformAction<TransformParameters.None> {
 }
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindEntryPoints : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
@@ -106,7 +111,9 @@ abstract class FindEntryPoints : TransformAction<TransformParameters.None> {
 }
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindRelocatedClasses : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
@@ -116,7 +123,9 @@ abstract class FindRelocatedClasses : TransformAction<TransformParameters.None> 
 }
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindManifests : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 
@@ -129,7 +138,9 @@ abstract class FindManifests : TransformAction<TransformParameters.None> {
 }
 
 
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindBuildReceipt : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputArtifact
     abstract val input: Provider<FileSystemLocation>
 

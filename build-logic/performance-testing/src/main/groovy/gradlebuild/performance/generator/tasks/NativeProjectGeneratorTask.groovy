@@ -17,12 +17,14 @@
 package gradlebuild.performance.generator.tasks
 
 import gradlebuild.performance.generator.TestProject
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Generates source code for projects using a standard layout (src/componentname/c).
  *
  * Currently only supports C and PCH.
  */
+@DisableCachingByDefault(because = "Not made cacheable, yet")
 class NativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {

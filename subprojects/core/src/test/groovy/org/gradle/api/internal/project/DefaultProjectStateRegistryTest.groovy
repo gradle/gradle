@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project
 
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -72,9 +73,17 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         registry.stateFor(p1.componentIdentifier).is(p1)
         registry.stateFor(p2.componentIdentifier).is(p2)
 
-        registry.stateFor(build.buildIdentifier, Path.ROOT).is(root)
-        registry.stateFor(build.buildIdentifier, Path.path(":p1")).is(p1)
-        registry.stateFor(build.buildIdentifier, Path.path(":p2")).is(p2)
+        def projects = registry.projectsFor(build.buildIdentifier)
+        projects.getProject(Path.ROOT).is(root)
+        projects.getProject(Path.path(":p1")).is(p1)
+        projects.getProject(Path.path(":p2")).is(p2)
+
+        // Currently need to attach the project objects in order to query all projects from registry
+        createRootProject()
+        createProject(p1, project("p1"))
+        createProject(p2, project("p2"))
+
+        projects.allProjects.toList() == [root, p1, p2]
     }
 
     def "can create mutable project model"() {
@@ -117,7 +126,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         e.message == 'The project object for project :p1 has not been attached yet.'
     }
 
-    def createRootProject() {
+    void createRootProject() {
         def rootProject = project(':')
         def rootState = registry.stateFor(rootProject)
 
@@ -126,7 +135,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 
-    def createProject(ProjectState state, ProjectInternal project) {
+    void createProject(ProjectState state, ProjectInternal project) {
         1 * projectFactory.createProject(_, _, state, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
@@ -675,7 +684,9 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
     ProjectInternal project(String name) {
         def project = Stub(ProjectInternal)
-        project.identityPath >> (name == ':' ? Path.ROOT : Path.ROOT.child(name))
+        def path = name == ':' ? Path.ROOT : Path.ROOT.child(name)
+        project.identityPath >> path
+        project.compareTo(_) >> { ProjectInternal other -> path.compareTo(other.identityPath) }
         return project
     }
 

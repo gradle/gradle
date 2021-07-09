@@ -19,6 +19,7 @@ package org.gradle.language.scala.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -28,6 +29,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
@@ -36,6 +38,7 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -48,9 +51,14 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -58,15 +66,19 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;
     private final RegularFileProperty analysisMappingFile;
     private final ConfigurableFileCollection analysisFiles;
+    private final Property<JavaLauncher> javaLauncher;
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
         ObjectFactory objectFactory = getObjectFactory();
@@ -75,6 +87,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
         this.scalaCompileOptions = scalaCompileOptions;
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
 
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
@@ -108,6 +121,19 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         compiler.execute(spec);
     }
 
+    /**
+     * The toolchain {@link JavaLauncher} to use for executing the Scala compiler.
+     *
+     * @return the java launcher property
+     * @since 7.2
+     */
+    @Incubating
+    @Internal
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
+
     private boolean isNonIncrementalCompilation() {
         File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
         if (!analysisFile.exists()) {
@@ -117,22 +143,66 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         return false;
     }
 
+    @Nullable
+    private JavaInstallationMetadata getToolchain() {
+        return javaLauncher.map(JavaLauncher::getMetadata).getOrNull();
+    }
+
     protected ScalaJavaJointCompileSpec createSpec() {
-        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions).create();
+        validateConfiguration();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setSourceCompatibility(getSourceCompatibility());
-        spec.setTargetCompatibility(getTargetCompatibility());
+        configureCompatibilityOptions(spec);
         spec.setCompileOptions(getOptions());
         spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
+        configureExecutable(spec.getCompileOptions().getForkOptions());
         return spec;
+    }
+
+    private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
+        if (javaLauncher.isPresent()) {
+            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+        } else {
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
+        }
+    }
+
+    private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
+        JavaInstallationMetadata toolchain = getToolchain();
+        if (toolchain != null) {
+            boolean isSourceOrTargetConfigured = false;
+            if (super.getSourceCompatibility() != null) {
+                spec.setSourceCompatibility(getSourceCompatibility());
+                isSourceOrTargetConfigured = true;
+            }
+            if (super.getTargetCompatibility() != null) {
+                spec.setTargetCompatibility(getTargetCompatibility());
+                isSourceOrTargetConfigured = true;
+            }
+            if (!isSourceOrTargetConfigured) {
+                String languageVersion = toolchain.getLanguageVersion().toString();
+                spec.setSourceCompatibility(languageVersion);
+                spec.setTargetCompatibility(languageVersion);
+            }
+        } else {
+            spec.setSourceCompatibility(getSourceCompatibility());
+            spec.setTargetCompatibility(getTargetCompatibility());
+        }
+    }
+
+    private void validateConfiguration() {
+        if (javaLauncher.isPresent()) {
+            checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaLauncher` property");
+            checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `executable` property on `ForkOptions` together with `javaLauncher` property");
+        }
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {
@@ -194,8 +264,10 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      */
     @Input
     // We track this as an input since the Scala compiler output may depend on it.
-    // TODO: This should be replaced by a property in the Scala toolchain as soon as we model these.
     protected String getJvmVersion() {
+        if (javaLauncher.isPresent()) {
+            return javaLauncher.get().getMetadata().getLanguageVersion().toString();
+        }
         return JavaVersion.current().getMajorVersion();
     }
 

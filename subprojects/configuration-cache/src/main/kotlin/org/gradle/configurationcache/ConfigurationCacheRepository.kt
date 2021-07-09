@@ -32,11 +32,14 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
 
+@ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
     cacheRepository: CacheRepository,
@@ -69,22 +72,22 @@ class ConfigurationCacheRepository(
         class Invalid(val reason: String) : CheckedFingerprint()
     }
 
-    fun useForStateLoad(cacheKey: String, action: (ConfigurationCacheStateFile) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
+    fun <T> useForStateLoad(cacheKey: String, stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+        return withBaseCacheDirFor(cacheKey) { cacheDir ->
             action(
-                ReadableConfigurationCacheStateFile(cacheDir.stateFile)
+                ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
             )
         }
     }
 
-    fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
+    fun useForStore(cacheKey: String, stateType: StateType, action: (Layout) -> Unit) {
         withBaseCacheDirFor(cacheKey) { cacheDir ->
             // TODO GlobalCache require(!cacheDir.isDirectory)
             cacheDir.mkdirs()
             chmod(cacheDir, 448) // octal 0700
             markAccessed(cacheDir)
             val stateFiles = mutableListOf<File>()
-            val rootStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile, stateFiles::add)
+            val rootStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateFiles::add)
             val layout = Layout(cacheDir.fingerprintFile, rootStateFile)
             try {
                 action(layout)
@@ -215,6 +218,5 @@ class ConfigurationCacheRepository(
         get() = resolve("fingerprint.bin")
 
     private
-    val File.stateFile
-        get() = resolve("state.bin")
+    fun File.stateFile(stateType: StateType) = resolve("${stateType.name.toLowerCase()}.bin")
 }

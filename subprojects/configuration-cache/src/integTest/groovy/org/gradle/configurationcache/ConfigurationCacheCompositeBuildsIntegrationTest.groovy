@@ -63,7 +63,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             "Run build / Calculate task graph",
             "Run build / Calculate task graph / Notify task graph whenReady listeners",
             "Run build / Calculate task graph / Calculate task graph (:lib)",
-            "Run build / Calculate task graph / Calculate task graph (:lib) / Notify task graph whenReady listeners (:lib)"
+            "Run build / Calculate task graph / Notify task graph whenReady listeners (:lib)"
         ]
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
@@ -243,7 +243,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCacheRunLenient("help")
 
         then:
-        problems.assertFailureHasProblems(failure) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }

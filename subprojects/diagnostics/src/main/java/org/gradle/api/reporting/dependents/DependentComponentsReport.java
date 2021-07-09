@@ -33,6 +33,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -45,6 +46,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  * Displays dependent components.
  */
 @Deprecated
+@DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;

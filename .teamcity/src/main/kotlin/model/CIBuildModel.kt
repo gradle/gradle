@@ -1,18 +1,19 @@
 package model
 
-import common.VersionedSettingsBranch
 import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
+import common.VersionedSettingsBranch
+import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
+import configurations.CheckLinks
 import configurations.CompileAll
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -55,6 +56,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
+                SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
@@ -258,8 +260,7 @@ data class TestCoverage(
     val vendor: JvmVendor = JvmVendor.oracle,
     val buildJvmVersion: JvmVersion = JvmVersion.java11,
     val expectedBucketNumber: Int = 50,
-    val withoutDependencies: Boolean = false,
-    val testDistribution: Boolean = false
+    val withoutDependencies: Boolean = false
 ) {
 
     constructor(
@@ -269,10 +270,8 @@ data class TestCoverage(
         testJvm: JvmCategory,
         buildJvmVersion: JvmVersion = JvmVersion.java11,
         expectedBucketNumber: Int = 50,
-        withoutDependencies: Boolean = false,
-        testDistribution: Boolean = false
-    ) :
-        this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies, testDistribution)
+        withoutDependencies: Boolean = false
+    ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies)
 
     fun asId(projectId: String): String {
         return "${projectId}_$testCoveragePrefix"
@@ -305,6 +304,7 @@ data class TestCoverage(
         "${testType.name.capitalize()} ${testJvmVersion.name.capitalize()} ${vendor.name.capitalize()} ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
 
     val isQuick: Boolean = withoutDependencies || testType == TestType.quick
+    val isPlatform: Boolean = testType == TestType.platform
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
@@ -384,65 +384,70 @@ enum class Trigger {
 const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 enum class SpecificBuild {
     CompileAll {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CompileAll(model, stage)
         }
     },
     SanityCheck {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SanityCheck(model, stage)
         }
     },
     BuildDistributions {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return BuildDistributions(model, stage)
         }
     },
     Gradleception {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return Gradleception(model, stage)
         }
     },
+    CheckLinks {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return CheckLinks(model, stage)
+        }
+    },
     TestPerformanceTest {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return TestPerformanceTest(model, stage)
         }
     },
     SmokeTestsMinJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MIN_VERSION)
         }
     },
     SmokeTestsMaxJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
         }
     },
     GradleBuildSmokeTests {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, GRADLE_BUILD_SMOKE_TEST_NAME)
         }
     },
     ConfigCacheSmokeTestsMinJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest")
         }
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
         }
     },
     SmokeTestsExperimentalJDK {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION)
         }
     },
     ConfigCacheSmokeTestsExperimentalJDK {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION, "configCacheSmokeTest")
         }
     };
 
-    abstract fun create(model: CIBuildModel, stage: Stage): BuildType
+    abstract fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType
 }

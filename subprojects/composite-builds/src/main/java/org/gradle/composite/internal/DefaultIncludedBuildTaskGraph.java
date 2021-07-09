@@ -15,88 +15,178 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.work.WorkerLeaseService;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
-public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
-    private final IncludedBuildControllers includedBuilds;
-    private final BuildStateRegistry buildRegistry;
-
-    public DefaultIncludedBuildTaskGraph(IncludedBuildControllers includedBuilds, BuildStateRegistry buildRegistry) {
-        this.includedBuilds = includedBuilds;
-        this.buildRegistry = buildRegistry;
+public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
+    private enum State {
+        QueuingTasks, ReadyToRun, Running, Finished
     }
 
-    private boolean isRoot(BuildIdentifier targetBuild) {
-        return targetBuild.equals(DefaultBuildIdentifier.ROOT);
+    private final BuildStateRegistry buildRegistry;
+    private final WorkerLeaseService workerLeaseService;
+    private final ProjectStateRegistry projectStateRegistry;
+    private final ManagedExecutor executorService;
+    private Thread owner;
+    private State state = State.QueuingTasks;
+    private IncludedBuildControllers includedBuilds;
+
+    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+        this.buildRegistry = buildRegistry;
+        this.projectStateRegistry = projectStateRegistry;
+        this.executorService = executorFactory.create("included builds");
+        this.workerLeaseService = workerLeaseService;
+        this.includedBuilds = createControllers();
+    }
+
+    private DefaultIncludedBuildControllers createControllers() {
+        return new DefaultIncludedBuildControllers(executorService, buildRegistry, projectStateRegistry, workerLeaseService);
     }
 
     @Override
-    public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            if (findTaskInRootBuild(taskPath) == null) {
-                buildRegistry.getRootBuild().getBuild().getTaskGraph().addAdditionalEntryTask(taskPath);
+    public <T> T withNestedTaskGraph(Supplier<T> action) {
+        Thread currentOwner;
+        State currentState;
+        IncludedBuildControllers currentControllers;
+        synchronized (this) {
+            if (state != State.Running) {
+                if (owner == null || owner == Thread.currentThread()) {
+                    expectQueuingTasks();
+                } else {
+                    throw new IllegalStateException("This task graph is already in use.");
+                }
             }
-        } else {
-            buildControllerFor(targetBuild).queueForExecution(taskPath);
+            // Else, some other thread is currently running tasks.
+            // The later can happen when a task performs dependency resolution without declaring it and the resolution
+            // includes a dependency substitution on an included build or a source dependency build
+            // Allow this to proceed, but this should become an error at some point
+            currentOwner = owner;
+            currentState = state;
+            currentControllers = includedBuilds;
+            owner = Thread.currentThread();
+            state = State.QueuingTasks;
+            includedBuilds = createControllers();
         }
+
+        try {
+            return action.get();
+        } finally {
+            includedBuilds.close();
+            synchronized (this) {
+                owner = currentOwner;
+                state = currentState;
+                includedBuilds = currentControllers;
+            }
+        }
+    }
+
+    @Override
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
+        return withState(() -> {
+            expectQueuingTasks();
+            state = State.QueuingTasks;
+            return includedBuilds.getBuildController(targetBuild).locateTask(task);
+        });
+    }
+
+    @Override
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
+        return withState(() -> {
+            expectQueuingTasks();
+            state = State.QueuingTasks;
+            return includedBuilds.getBuildController(targetBuild).locateTask(taskPath);
+        });
+    }
+
+    @Override
+    public void populateTaskGraphs() {
+        withState(() -> {
+            expectQueuingTasks();
+            includedBuilds.populateTaskGraphs();
+            state = State.ReadyToRun;
+            return null;
+        });
+    }
+
+    @Override
+    public void startTaskExecution() {
+        withState(() -> {
+            expectInState(State.ReadyToRun);
+            state = State.Running;
+            includedBuilds.startTaskExecution();
+            return null;
+        });
+    }
+
+    @Override
+    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+        withState(() -> {
+            expectInState(State.Running);
+            try {
+                includedBuilds.awaitTaskCompletion(taskFailures);
+            } finally {
+                state = State.Finished;
+            }
+            return null;
+        });
     }
 
     @Override
     public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
-        // Start task execution if necessary: this is required for building plugin artifacts,
-        // since these are built on-demand prior to the regular start signal for included builds.
-        includedBuilds.populateTaskGraphs();
-        includedBuilds.startTaskExecution();
-        includedBuilds.awaitTaskCompletion(taskFailures);
+        populateTaskGraphs();
+        startTaskExecution();
+        awaitTaskCompletion(taskFailures);
     }
 
     @Override
-    public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            TaskInternal task = getTask(targetBuild, taskPath);
-            if (task.getState().getFailure() != null) {
-                return IncludedBuildTaskResource.State.FAILED;
-            } else if (task.getState().getExecuted()) {
-                return IncludedBuildTaskResource.State.SUCCESS;
-            } else {
-                return IncludedBuildTaskResource.State.WAITING;
-            }
-        } else {
-            return buildControllerFor(targetBuild).getTaskState(taskPath);
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(includedBuilds, executorService);
+    }
+
+    private void expectQueuingTasks() {
+        if (state != State.QueuingTasks && state != State.ReadyToRun) {
+            throw new IllegalStateException("Work graph is in unexpected state: " + state);
         }
     }
 
-    @Override
-    public TaskInternal getTask(BuildIdentifier targetBuild, String taskPath) {
-        if (isRoot(targetBuild)) {
-            TaskInternal task = findTaskInRootBuild(taskPath);
-            if (task == null) {
-                throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");
-            }
-            return task;
-        } else {
-            return buildControllerFor(targetBuild).getTask(taskPath);
+    private void expectInState(State expectedState) {
+        if (state != expectedState) {
+            throw new IllegalStateException("Work graph is in unexpected state: " + state);
         }
     }
 
-    private IncludedBuildController buildControllerFor(BuildIdentifier buildId) {
-        return includedBuilds.getBuildController(buildId);
-    }
-
-    private TaskInternal findTaskInRootBuild(String taskPath) {
-        for (Task task : buildRegistry.getRootBuild().getBuild().getTaskGraph().getAllTasks()) {
-            if (task.getPath().equals(taskPath)) {
-                return (TaskInternal) task;
+    private <T> T withState(Supplier<T> action) {
+        Thread currentOwner;
+        synchronized (this) {
+            currentOwner = owner;
+            if (owner == null) {
+                owner = Thread.currentThread();
+            } else if (owner != Thread.currentThread()) {
+                // Currently, only a single thread should work with the task graph at a time
+                throw new IllegalStateException("This task graph is already in use.");
             }
         }
-        return null;
+        try {
+            return action.get();
+        } finally {
+            synchronized (this) {
+                if (owner != Thread.currentThread()) {
+                    throw new IllegalStateException("This task graph is in use by another thread.");
+                }
+                owner = currentOwner;
+            }
+        }
     }
-
 }

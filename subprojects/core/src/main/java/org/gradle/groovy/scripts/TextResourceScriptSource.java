@@ -101,7 +101,7 @@ public class TextResourceScriptSource implements ScriptSource {
             className.append(
                 isJavaIdentifierPart(ch) ? ch : '_');
         }
-        if (!isJavaIdentifierStart(className.charAt(0))) {
+        if (className.length() > 0 && !isJavaIdentifierStart(className.charAt(0))) {
             className.insert(0, '_');
         }
         className.setLength(Math.min(className.length(), 30));

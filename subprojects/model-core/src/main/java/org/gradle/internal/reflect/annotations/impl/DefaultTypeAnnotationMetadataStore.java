@@ -17,14 +17,13 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.base.Equivalence;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
@@ -48,7 +47,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -59,6 +57,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
@@ -239,7 +238,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
         Method[] methods = type.getDeclaredMethods();
         // Make sure getters end up before the setters
-        Arrays.sort(methods, Comparator.comparing(Method::getName));
+        Arrays.sort(methods, comparing(Method::getName));
         for (Method method : methods) {
             processMethodAnnotations(method, methodBuilders, validationContext);
         }
@@ -252,7 +251,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
-            Comparator.comparing(metadataBuilder -> metadataBuilder.getMethod().getName()))
+            comparing(metadataBuilder -> metadataBuilder.getMethod().getName()))
             .sortedCopy(methodBuilders.values());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
             String propertyName = metadataBuilder.getPropertyName();
@@ -513,9 +512,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private class PropertyAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
         private final String propertyName;
         private Method method;
-        private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = ArrayListMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = HashMultimap.create();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = HashMultimap.create();
+        private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = MultimapBuilder
+            .treeKeys(comparing(AnnotationCategory::getDisplayName))
+            .arrayListValues()
+            .build();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = MultimapBuilder
+            .treeKeys(comparing(AnnotationCategory::getDisplayName))
+            .linkedHashSetValues()
+            .build();
+        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = MultimapBuilder
+            .treeKeys(comparing(AnnotationCategory::getDisplayName))
+            .linkedHashSetValues()
+            .build();
         private final TypeValidationContext validationContext;
 
         public PropertyAnnotationMetadataBuilder(String propertyName, Method method, TypeValidationContext validationContext) {

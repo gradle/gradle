@@ -417,3 +417,11 @@ tasks.withType<KotlinCompile>().configureEach {
 ```
 
 For the case where Gradle cannot track the implementation because it was loaded by a classloader unknown to Gradle, you can use Gradle's built-in ways to load the class.
+
+[[disable_caching_by_default]]
+== Missing reason for not caching
+
+This warning indicates that the task or artifact transform action has not been marked as cacheable, though there also is no reason why it is not cacheable.
+Task or artifact transform authors should always provide a reason why something is not cacheable by using the link:{javadocPath}/org/gradle/work/DisableCachingByDefault.html[`@DisableCachingByDefault`] annotation.
+
+To fix the problem either annotate the work type with `@CacheableTask`/`@CacheableTransform` or `@DisableCachingByDefault(because = "...")`.

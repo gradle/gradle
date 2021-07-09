@@ -22,10 +22,16 @@ import java.util.function.Consumer;
 
 public interface IncludedBuildController {
     /**
-     * Queues a task for execution, but does not schedule it. Should call {@link #populateTaskGraph()} to actually schedule
-     * the queued tasks for execution.
+     * Locates a task node in this build's work graph for use in another build's work graph.
+     * Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
      */
-    void queueForExecution(String taskPath);
+    IncludedBuildTaskResource locateTask(TaskInternal task);
+
+    /**
+     * Locates a task node in this build's work graph for use in another build's work graph.
+     * Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
+     */
+    IncludedBuildTaskResource locateTask(String taskPath);
 
     /**
      * Schedules any queued tasks. When this method returns true, then some tasks where scheduled for this build and
@@ -36,6 +42,11 @@ public interface IncludedBuildController {
     boolean populateTaskGraph();
 
     /**
+     * Prepares the work graph, once all tasks have been scheduled.
+     */
+    void prepareForExecution();
+
+    /**
      * Must call {@link #populateTaskGraph()} prior to calling this method.
      */
     void startTaskExecution(ExecutorService executorService);
@@ -44,8 +55,4 @@ public interface IncludedBuildController {
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
     void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
-
-    IncludedBuildTaskResource.State getTaskState(String taskPath);
-
-    TaskInternal getTask(String taskPath);
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.plugin.use.PluginDependency;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -58,6 +59,11 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         }
 
         @Override
+        public Optional<Provider<PluginDependency>> findPlugin(String alias) {
+            return owner.findPlugin(alias);
+        }
+
+        @Override
         public String getName() {
             return owner.getName();
         }
@@ -75,6 +81,11 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         @Override
         public List<String> getVersionAliases() {
             return owner.getVersionAliases();
+        }
+
+        @Override
+        public List<String> getPluginAliases() {
+            return owner.getPluginAliases();
         }
     }
 
@@ -116,6 +127,14 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     }
 
     @Override
+    public Optional<Provider<PluginDependency>> findPlugin(String alias) {
+        if (config.getPluginAliases().contains(alias)) {
+            return Optional.of(new PluginFactory(providers, config).createPlugin(alias));
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public final String getName() {
         return config.getName();
     }
@@ -133,6 +152,11 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     @Override
     public List<String> getVersionAliases() {
         return config.getVersionAliases();
+    }
+
+    @Override
+    public List<String> getPluginAliases() {
+        return config.getPluginAliases();
     }
 
     public static class VersionFactory {
@@ -187,6 +211,25 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getBundleName().set(name);
+                }))
+                .forUseAtConfigurationTime();
+        }
+    }
+
+    public static class PluginFactory {
+        protected final ProviderFactory providers;
+        protected final DefaultVersionCatalog config;
+
+        public PluginFactory(ProviderFactory providers, DefaultVersionCatalog config) {
+            this.providers = providers;
+            this.config = config;
+        }
+
+        protected Provider<PluginDependency> createPlugin(String name) {
+            return providers.of(PluginDependencyValueSource.class,
+                spec -> spec.parameters(params -> {
+                    params.getConfig().set(config);
+                    params.getPluginName().set(name);
                 }))
                 .forUseAtConfigurationTime();
         }

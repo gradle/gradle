@@ -46,17 +46,23 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class TomlCatalogFileParser {
-    public static final String CURRENT_VERSION = "1.0";
+    public static final String CURRENT_VERSION = "1.1";
     private static final Splitter SPLITTER = Splitter.on(":").trimResults();
     private static final String METADATA_KEY = "metadata";
     private static final String LIBRARIES_KEY = "libraries";
     private static final String BUNDLES_KEY = "bundles";
     private static final String VERSIONS_KEY = "versions";
+    private static final String PLUGINS_KEY = "plugins";
     private static final Set<String> TOP_LEVEL_ELEMENTS = ImmutableSet.of(
         METADATA_KEY,
         LIBRARIES_KEY,
         BUNDLES_KEY,
-        VERSIONS_KEY
+        VERSIONS_KEY,
+        PLUGINS_KEY
+    );
+    private static final Set<String> PLUGIN_COORDINATES = ImmutableSet.of(
+        "id",
+        "version"
     );
     private static final Set<String> LIBRARY_COORDINATES = ImmutableSet.of(
         "group",
@@ -82,6 +88,7 @@ public class TomlCatalogFileParser {
         TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
         TomlTable versionsTable = result.getTable(VERSIONS_KEY);
+        TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
         Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
         if (!unknownTle.isEmpty()) {
             throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
@@ -91,6 +98,7 @@ public class TomlCatalogFileParser {
                     .documented());
         }
         parseLibraries(librariesTable, builder, strictVersionParser);
+        parsePlugins(pluginsTable, builder, strictVersionParser);
         parseBundles(bundlesTable, builder);
         parseVersions(versionsTable, builder, strictVersionParser);
     }
@@ -144,6 +152,19 @@ public class TomlCatalogFileParser {
             .collect(Collectors.toList());
         for (String alias : keys) {
             parseLibrary(alias, librariesTable, builder, strictVersionParser);
+        }
+    }
+
+    private static void parsePlugins(@Nullable TomlTable pluginsTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+        if (pluginsTable == null) {
+            return;
+        }
+        List<String> keys = pluginsTable.keySet()
+            .stream()
+            .sorted(Comparator.comparing(String::length))
+            .collect(Collectors.toList());
+        for (String alias : keys) {
+            parsePlugin(alias, pluginsTable, builder, strictVersionParser);
         }
     }
 
@@ -307,6 +328,67 @@ public class TomlCatalogFileParser {
         registerDependency(builder, alias, group, name, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
     }
 
+    private static void parsePlugin(String alias, TomlTable librariesTable, VersionCatalogBuilder builder, StrictVersionParser strictVersionParser) {
+        Object coordinates = librariesTable.get(alias);
+        if (coordinates instanceof String) {
+            List<String> splitted = SPLITTER.splitToList((String) coordinates);
+            if (splitted.size() == 2) {
+                String id = notEmpty(builder, splitted.get(0), "id", alias);
+                String version = notEmpty(builder, splitted.get(1), "version", alias);
+                StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
+                registerPlugin(builder, alias, id, null, rich.require, rich.strictly, rich.prefer, null, null);
+                return;
+            } else {
+                throwVersionCatalogProblem(builder, VersionCatalogProblemId.INVALID_PLUGIN_NOTATION, spec ->
+                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation")
+                        .happensBecause(() -> "When using a string to declare plugin coordinates, you must use a valid plugin notation")
+                        .addSolution("Make sure that the coordinates consist of 2 parts separated by colons, eg: my.plugin.id:1.2")
+                        .documented());
+            }
+        }
+        if (coordinates instanceof TomlTable) {
+            expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'");
+        }
+        String id = expectString(builder, "alias", alias, librariesTable, "id");
+        Object version = librariesTable.get(alias + ".version");
+        String versionRef = null;
+        String require = null;
+        String strictly = null;
+        String prefer = null;
+        List<String> rejectedVersions = null;
+        Boolean rejectAll = null;
+        if (version instanceof String) {
+            require = (String) version;
+            StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(require);
+            require = richVersion.require;
+            prefer = richVersion.prefer;
+            strictly = richVersion.strictly;
+        } else if (version instanceof TomlTable) {
+            TomlTable versionTable = (TomlTable) version;
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
+            versionRef = notEmpty(builder, versionTable.getString("ref"), "version reference", alias);
+            require = notEmpty(builder, versionTable.getString("require"), "required version", alias);
+            prefer = notEmpty(builder, versionTable.getString("prefer"), "preferred version", alias);
+            strictly = notEmpty(builder, versionTable.getString("strictly"), "strict version", alias);
+            TomlArray rejectedArray = expectArray(builder, "alias", alias, versionTable, "reject");
+            rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream()
+                .map(String::valueOf)
+                .map(v -> notEmpty(builder, v, "rejected version", alias))
+                .collect(Collectors.toList()) : null;
+            rejectAll = expectBoolean(builder, "alias", alias, versionTable, "rejectAll");
+        } else if (version != null) {
+            throwUnexpectedVersionSyntax(alias, builder, version);
+        }
+        if (id == null) {
+            throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
+                spec.withShortDescription(() -> "Alias definition '" + alias + "' is invalid")
+                    .happensBecause(() -> "Id for plugin alias '" + alias + "' wasn't set")
+                    .addSolution("Add the 'id' element on alias '" + alias + "'")
+                    .documented());
+        }
+        registerPlugin(builder, alias, id, versionRef, require, strictly, prefer, rejectedVersions, rejectAll);
+    }
+
     private static void throwUnexpectedVersionSyntax(String alias, VersionCatalogBuilder builder, Object version) {
         throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
             spec.withShortDescription(() -> "Alias definition '" + alias + "' is invalid")
@@ -373,6 +455,39 @@ public class TomlCatalogFileParser {
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
         VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
+        if (versionRef != null) {
+            aliasBuilder.versionRef(versionRef);
+            return;
+        }
+        aliasBuilder.version(v -> {
+            if (require != null) {
+                v.require(require);
+            }
+            if (strictly != null) {
+                v.strictly(strictly);
+            }
+            if (prefer != null) {
+                v.prefer(prefer);
+            }
+            if (rejectedVersions != null) {
+                v.reject(rejectedVersions.toArray(new String[0]));
+            }
+            if (rejectAll != null && rejectAll) {
+                v.rejectAll();
+            }
+        });
+    }
+
+    private static void registerPlugin(VersionCatalogBuilder builder,
+                                           String alias,
+                                           String id,
+                                           @Nullable String versionRef,
+                                           @Nullable String require,
+                                           @Nullable String strictly,
+                                           @Nullable String prefer,
+                                           @Nullable List<String> rejectedVersions,
+                                           @Nullable Boolean rejectAll) {
+        VersionCatalogBuilder.PluginAliasBuilder aliasBuilder = builder.alias(alias).toPluginId(id);
         if (versionRef != null) {
             aliasBuilder.versionRef(versionRef);
             return;

@@ -16,10 +16,8 @@
 
 package org.gradle.api.plugins.scala;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -59,43 +57,24 @@ public class ScalaPlugin implements Plugin<Project> {
         String compileTaskName = main.getCompileTaskName("scala");
         final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
         final Provider<RegularFile> compileScalaMapping = project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
-        compileScala.configure(new Action<AbstractScalaCompile>() {
-            @Override
-            public void execute(AbstractScalaCompile task) {
-                task.getAnalysisMappingFile().set(compileScalaMapping);
-            }
-        });
+        compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
         incrementalAnalysisElements.getOutgoing().artifact(
-            compileScalaMapping, new Action<ConfigurablePublishArtifact>() {
-            @Override
-            public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
-                configurablePublishArtifact.builtBy(compileScala);
-            }
-        });
+            compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
     }
 
     private static void configureScaladoc(final Project project, final SourceSet main) {
-        project.getTasks().withType(ScalaDoc.class).configureEach(new Action<ScalaDoc>() {
-            @Override
-            public void execute(ScalaDoc scalaDoc) {
-                scalaDoc.getConventionMapping().map("classpath", new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        ConfigurableFileCollection files = project.files();
-                        files.from(main.getOutput());
-                        files.from(main.getCompileClasspath());
-                        return files;
-                    }
-                });
-                scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
-            }
+        project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
+            scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
+                ConfigurableFileCollection files = project.files();
+                files.from(main.getOutput());
+                files.from(main.getCompileClasspath());
+                return files;
+            });
+            scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
         });
-        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, new Action<ScalaDoc>() {
-            @Override
-            public void execute(ScalaDoc scalaDoc) {
-                scalaDoc.setDescription("Generates Scaladoc for the main source code.");
-                scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-            }
+        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
+            scalaDoc.setDescription("Generates Scaladoc for the main source code.");
+            scalaDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         });
     }
 }

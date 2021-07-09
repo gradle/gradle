@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.nio.charset.Charset;
@@ -34,6 +35,7 @@ import java.nio.charset.Charset;
  *
  * The default is to compress the contents of the zip.
  */
+@DisableCachingByDefault(because = "Not worth caching")
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;

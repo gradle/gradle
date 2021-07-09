@@ -34,17 +34,17 @@ class PerformanceReportScenario {
     /**
      * The execution read from performance database, excluding current executions
      */
-    final List<PerformanceReportScenarioHistoryExecution> recentExecutions
+    final List<PerformanceReportScenarioHistoryExecution> historyExecutions
 
     final boolean crossBuild
 
     final boolean fromCache
 
     PerformanceReportScenario(
-            List<PerformanceTestExecutionResult> teamCityExecutions,
-            List<PerformanceReportScenarioHistoryExecution> historyExecutions,
-            boolean crossBuild,
-            boolean fromCache
+        List<PerformanceTestExecutionResult> teamCityExecutions,
+        List<PerformanceReportScenarioHistoryExecution> historyExecutions,
+        boolean crossBuild,
+        boolean fromCache
     ) {
         if (teamCityExecutions.empty) {
             throw new IllegalArgumentException("teamCity executions must not be empty!")
@@ -58,9 +58,7 @@ class PerformanceReportScenario {
         this.currentExecutions = historyExecutions.findAll {
             teamCityBuildIds.contains(it.teamCityBuildId)
         }
-        this.recentExecutions = historyExecutions.findAll {
-            !teamCityBuildIds.contains(it.teamCityBuildId)
-        }
+        this.historyExecutions = historyExecutions
     }
 
     String getName() {

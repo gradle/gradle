@@ -19,6 +19,9 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
+import org.gradle.internal.fingerprint.hashing.ResourceHasher
+import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -336,7 +339,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
                 return bytes.length
             }
         }
-        return new ZipEntryContext(zipEntry, path, "foo.zip")
+        return new DefaultZipEntryContext(zipEntry, path, "foo.zip")
     }
 
     RegularFileSnapshotContext fileSnapshot(String path, Map<String, String> attributes, String comments = "") {

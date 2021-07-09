@@ -207,7 +207,7 @@ Therefore, incremental builds can re-use most of the Virtual File System from th
 Gradle uses native operating system features for watching the file system.
 It supports the feature on these operating systems:
 
-- Windows 10 (earlier versions likely work, but are not tested),
+- Windows 10, version 1709 and later,
 - Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2 are tested),
 - macOS 10.14 (Mojave) or later (Intel and ARM Macs included).
 
