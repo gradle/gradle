@@ -25,8 +25,10 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.work.DisableCachingByDefault
 
 @CompileStatic
+@DisableCachingByDefault(because = "Only filters the input artifact")
 abstract class FindGradleClasspath implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)

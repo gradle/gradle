@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
 
@@ -36,6 +37,7 @@ const val forceDefaultBaseline = "force-defaults"
 const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
 
 
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class DetermineBaselines @Inject constructor(@get:Internal val distributed: Boolean) : DefaultTask() {
 
     @get:Internal

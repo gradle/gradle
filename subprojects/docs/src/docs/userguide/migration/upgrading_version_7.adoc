@@ -387,14 +387,14 @@ link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConv
 [[ear_convention_deprecation]]
 ==== Deprecated `ear` plugin conventions
 
-link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the `ear` task directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `Ear`.
+link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention] is now deprecated and scheduled for removal in Gradle 8.0. Clients should configure the `ear` task directly. Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
 
 [[custom_source_set_deprecation]]
 ==== Deprecated custom source set interfaces
 The following source set interfaces are now deprecated and scheduled for removal in Gradle 8.0:
 
 - link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
-- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]
+- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceVirtualDirectory.html[AntlrSourceVirtualDirectory]
 - link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:

@@ -23,11 +23,13 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.io.File
 
 
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class AbstractExtractCodeQualityBuildScanData : DefaultTask() {
 
     @get:Internal
@@ -66,6 +68,7 @@ abstract class AbstractExtractCodeQualityBuildScanData : DefaultTask() {
 }
 
 
+@DisableCachingByDefault(because = "Does not produce cacheable outputs")
 abstract class ExtractCheckstyleBuildScanData : AbstractExtractCodeQualityBuildScanData() {
 
     override val buildScanValueName: String = "Checkstyle Issue"
@@ -82,6 +85,7 @@ abstract class ExtractCheckstyleBuildScanData : AbstractExtractCodeQualityBuildS
 }
 
 
+@DisableCachingByDefault(because = "Does not produce cacheable outputs")
 abstract class ExtractCodeNarcBuildScanData : AbstractExtractCodeQualityBuildScanData() {
 
     override val buildScanValueName: String = "CodeNarc Issue"

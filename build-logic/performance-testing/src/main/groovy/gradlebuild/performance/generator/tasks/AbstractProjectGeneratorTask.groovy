@@ -30,10 +30,12 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Original tangled mess of a project generator.
  */
+@DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask {
 
     @Input

@@ -26,5 +26,5 @@ tasks.register<ValidatePlugins>(validateTaskName) {
     classes.from(main.output)
     classpath.from(main.runtimeClasspath)
     outputFile.set(project.reporting.baseDirectory.file(reportFileName))
-    enableStricterValidation.set(false)
+    enableStricterValidation.set(true)
 }
