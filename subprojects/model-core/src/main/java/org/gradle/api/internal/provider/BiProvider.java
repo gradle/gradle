@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -46,16 +45,15 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> lv = assertHasValue(left.calculateValue(consumer), left);
-        Value<? extends B> rv = assertHasValue(right.calculateValue(consumer), right);
-        return Value.of(combiner.apply(lv.get(), rv.get()));
-    }
-
-    private <T> Value<? extends T> assertHasValue(Value<? extends T> value, ProviderInternal<?> provider) {
-        if (value.isMissing()) {
-            throw new InvalidUserDataException("Provider has no value: " + provider);
+        Value<? extends A> lv = left.calculateValue(consumer);
+        if (lv.isMissing()) {
+            return lv.asType();
         }
-        return value;
+        Value<? extends B> rv = right.calculateValue(consumer);
+        if (rv.isMissing()) {
+            return rv.asType();
+        }
+        return Value.of(combiner.apply(lv.get(), rv.get()));
     }
 
     @Nullable
