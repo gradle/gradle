@@ -83,10 +83,12 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 if (next != SENTINEL_START_STOP) {
                     throw new IllegalArgumentException("Expected sentinel value, not " + next.getTestClassName());
                 }
+                Thread.currentThread().setName("Test worker");
                 processor.startProcessing(resultProcessor);
 
                 while ((next = toRun.take()) != SENTINEL_START_STOP) {
                     try {
+                        Thread.currentThread().setName("Test worker");
                         processor.processTestClass(next);
                     } catch (AccessControlException e) {
                         throw e;
@@ -99,6 +101,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 throw UncheckedException.throwAsUncheckedException(e);
             }
             try {
+                Thread.currentThread().setName("Test worker");
                 processor.stop();
             } finally {
                 // Clean the interrupted status
