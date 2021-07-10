@@ -39,7 +39,7 @@ performanceTest.registerTestProject<gradlebuild.performance.generator.tasks.JvmP
         "manyPlugins" to true,
         "manyScripts" to true
     )
-    daemonMemory = "4096m"
+    daemonMemory = "6144m"
     maxWorkers = 4
     doLast {
         File(destDir, "build.gradle").appendText("""
