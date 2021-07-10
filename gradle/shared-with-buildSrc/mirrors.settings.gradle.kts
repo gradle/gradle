@@ -50,7 +50,7 @@ fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
 fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").forUseAtConfigurationTime().orNull?.toBoolean() == true
 
 fun withMirrors(handler: RepositoryHandler) {
-    if (!providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent() || isEc2Agent()) {
+    if (!providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()) {
         return
     }
     handler.all {
