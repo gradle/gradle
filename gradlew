@@ -42,11 +42,15 @@ done
 
 APP_HOME=$( cd "${APP_HOME:-./}" && pwd -P ) || exit
 
-APP_NAME="Gradle"
+APP_NAME=$( cat ) <<EndOfGroovySubstitution
+Gradle
+EndOfGroovySubstitution
 APP_BASE_NAME=${0##*/}
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS='-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS=$( cat ) <<EndOfGroovySubstitution
+-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"
+EndOfGroovySubstitution
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
@@ -74,8 +78,9 @@ case "$( uname )" in                #(
   NONSTOP* )        nonstop=true ;;
 esac
 
-CLASSPATH="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"
-
+CLASSPATH=$( cat ) <<EndOfGroovySubstitution
+$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+EndOfGroovySubstitution
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
