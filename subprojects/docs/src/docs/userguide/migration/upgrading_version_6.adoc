@@ -122,7 +122,7 @@ You can pull these dependencies into your build like any other external dependen
 
 Plugins built with Gradle 7.0 will now have Groovy 3 on their classpath when using `gradleApi()` or `localGroovy()`.
 
-NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you will need to use Spock 2.x. There are no compatible versions of Spock 1.x and Groovy 3. At the time of writing, Spock 2.0 Milestone 4 was the most recent version.
+NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you will need to use Spock 2.x. There are no compatible versions of Spock 1.x and Groovy 3.
 
 ```
 dependencies {
@@ -241,7 +241,7 @@ If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
 The file system watching implementation on Windows adds a lock to the root project directory in order to watch for changes.
 This may cause errors when you try to delete the root project directory after running a build with TestKit.
 For example, tests that use TestKit together with JUnit's `@TempDir` extension, or the `TemporaryFolder` rule can run into this problem.
-To avoid problems with these file locks, `<<test_kit#test_kit,TestKit>> disables file system watching for builds executed on Windows via `GradleRunner`.
+To avoid problems with these file locks, `<<test_kit#test_kit,TestKit>>` disables file system watching for builds executed on Windows via `GradleRunner`.
 If you'd like to override the default behavior, you can enable file system watching by passing `--watch-fs` to `GradleRunner.withArguments()`.
 
 ==== Removal of the legacy `maven` plugin
@@ -298,6 +298,8 @@ Without a settings file, a Gradle build is undefined and Gradle produces an erro
 
 To fix this error, <<build_lifecycle.adoc#sec:settings_file,create a `settings.gradle(.kts)` file>> for the build.
 
+Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
+
 ==== Calling Project.afterEvaluate() after project evaluation is now an error
 
 Gradle 6.x warns users about the wrong behavior and ignores the target action in this scenario.
@@ -309,8 +311,6 @@ If `afterEvaluate` is declared in a plugin then report the issue to the plugin m
 
 Calling any mutator methods (i.e. `clear()`, `add()`, `remove()`, etc.) on `ConfigurableFileCollection` after the stored value calculated throws an exception.
 Users and plugin authors should adjust their code such that all configuration on `ConfigurableFileCollection` happens during configuration time, before the values are read.
-
-Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
 ==== Removal of `ProjectLayout#configurableFiles`
 

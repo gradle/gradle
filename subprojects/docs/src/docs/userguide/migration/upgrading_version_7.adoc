@@ -303,7 +303,7 @@ base {
 [[application_convention_deprecation]]
 ==== Deprecated `ApplicationPluginConvention`
 
-link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#application_convention_properties, documentation>.
+link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention] was already listed as deprecated in the <<application_plugin.adoc#sec:application_convention_properties, documentation>>.
 Now, it is officially annotated as deprecated and scheduled for removal in Gradle 8.0.
 
 [[java_convention_deprecation]]
