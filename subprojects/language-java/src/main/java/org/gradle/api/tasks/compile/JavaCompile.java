@@ -69,6 +69,7 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
+import org.gradle.work.NormalizeLineEndings;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -408,6 +409,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
+    @NormalizeLineEndings
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     protected FileCollection getStableSources() {
