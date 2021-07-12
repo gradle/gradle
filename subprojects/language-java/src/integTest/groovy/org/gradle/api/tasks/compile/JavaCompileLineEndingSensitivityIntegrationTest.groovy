@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.util.TextUtil
 
 class JavaCompileLineEndingSensitivityIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     private static String compileTask = ':compileJava'
