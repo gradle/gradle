@@ -536,7 +536,7 @@ class Interpreter(val host: Host) {
                 compiledScript.program
             } catch (e: Exception) {
                 throw LocationAwareException(
-                    GradleScriptException("Failed to load compiled script from classpath '${compiledScript.classPath}'.", e),
+                    GradleScriptException("Failed to load compiled script from classpath ${compiledScript.classPath}.", e),
                     scriptHost.scriptSource,
                     1
                 )
