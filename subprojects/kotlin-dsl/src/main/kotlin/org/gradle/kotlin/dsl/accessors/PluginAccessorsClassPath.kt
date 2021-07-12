@@ -333,7 +333,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                     format(
                         """
                         /**
-                         * The `$id` plugin implemented by [$implementationClass].
+                         * The `$id` plugin implemented by [${implementationClass.replace('$', '.')}].
                          */
                         val `$extendedType`.`${extension.name}`: PluginDependencySpec
                             get() = $pluginsRef.id("$id")
