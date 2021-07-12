@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.Resolver;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
@@ -48,6 +50,7 @@ import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.resolvers.ResolverSpec;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -84,6 +87,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+
+    private final ObjectFactory objectFactory;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
                                          Instantiator instantiator,
@@ -131,6 +136,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, dependencyCapabilityNotationParser);
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, localComponentMetadataBuilder, this, projectStateRegistry, dependencyLockingProvider);
+
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -201,6 +208,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
 
         return reply.toString();
+    }
+
+    public Resolver resolver(String name, Class<? extends ResolverSpec> resolverSpec, Action<? super ResolverSpec> configurer) {
+        ResolverSpec spec = instantiator.newInstance(resolverSpec, objectFactory);
+        configurer.execute(spec);
+        return new DefaultResolver(create(name, spec::configure), spec.isLenient());
     }
 
 }

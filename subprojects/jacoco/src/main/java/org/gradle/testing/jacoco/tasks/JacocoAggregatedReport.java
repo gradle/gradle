@@ -160,7 +160,7 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
         };
     }
 
-    private interface TestCategory extends Named {
+    public interface TestCategory extends Named {
         Attribute<TestCategory> ATTRIBUTE = Attribute.of("org.gradle.test-category", TestCategory.class);
     }
 }

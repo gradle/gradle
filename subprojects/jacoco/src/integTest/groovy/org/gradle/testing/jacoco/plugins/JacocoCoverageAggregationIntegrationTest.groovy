@@ -406,17 +406,12 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
             abstract class CustomAggregation extends DefaultTask {
                 @TaskAction
                 void aggregate() {
-                    Configuration resolver = getProject().getConfigurations().create("jacocoResolver")
-                    resolver.visible = false
-                    resolver.canBeConsumed = false
-                    resolver.canBeResolved = true
-                    resolver.extendsFrom(getProject().getConfigurations().getByName("implementation"))
-                    resolver.attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
-                        attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.DOCUMENTATION));
-                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.getObjects().named(DocsType.class, "jacoco-coverage-data"));
+                    def resolver = project.configurations.resolver("jacocoResolver", JacocoCoverage) {
+                        from(project.configurations.implementation)
+                        forTestTasksNamed("test")
+                        lenient()
                     }
-                    println(resolver.getIncoming().artifactView{ lenient(true) }.getFiles().getFiles())
+                    println(resolver.resolve())
                 }
             }
 
