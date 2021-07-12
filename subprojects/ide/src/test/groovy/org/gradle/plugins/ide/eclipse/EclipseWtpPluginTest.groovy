@@ -261,7 +261,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
                 new Facet(FacetType.installed, 'someFancyFacet', '2.0')])
     }
 
-    @Issue('GRADLE-1377')
+    @Issue('https://github.com/gradle/gradle/issues/945')
     def "can overwrite ear default 'jst.ear' facet"() {
         when:
         project.apply(plugin: 'ear')
@@ -279,7 +279,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
                 new Facet(FacetType.installed, "jst.ear", "8.0")])
     }
 
-    @Issue('GRADLE-1377')
+    @Issue('https://github.com/gradle/gradle/issues/945')
     def "can overwrite war default 'jst.web' facet"() {
         when:
         project.apply(plugin: 'war')
