@@ -45,7 +45,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * eclipse {
  *   wtp {
  *     facet {
- *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       //you can add some extra wtp facets or update existing ones; mandatory keys: 'name', 'version':
  *       facet name: 'someCoolFacet', version: '1.3'
  *
  *       file {
@@ -134,6 +134,8 @@ public class EclipseWtpFacet {
 
     /**
      * Adds a facet.
+     * <p>
+     * If a facet already exists with the given name then its version will be updated.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      *
