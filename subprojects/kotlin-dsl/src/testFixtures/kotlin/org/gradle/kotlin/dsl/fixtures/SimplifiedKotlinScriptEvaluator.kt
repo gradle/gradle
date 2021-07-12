@@ -203,6 +203,10 @@ class SimplifiedKotlinScriptEvaluator(
 
 
 class DummyCompiledScript(override val program: Class<*>) : CompiledScript {
+
+    override val classPath: ClassPath
+        get() = ClassPath.EMPTY
+
     override fun onReuse() {
     }
 
