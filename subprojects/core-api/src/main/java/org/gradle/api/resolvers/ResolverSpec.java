@@ -16,7 +16,9 @@
 
 package org.gradle.api.resolvers;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.model.ObjectFactory;
 
 import java.util.ArrayList;
@@ -36,20 +38,19 @@ public abstract class ResolverSpec {
         extendsFrom.add(configuration);
     }
 
+    public Configuration[] getFrom() {
+        return extendsFrom.toArray(new Configuration[0]);
+    }
+
     public void lenient() {
         this.lenient = true;
     }
 
-    // TODO: this should not be public API - figure a better way
     public boolean isLenient() {
         return lenient;
     }
 
-    // TODO: this should not be public API - figure a better way
-    public void configure(Configuration resolver) {
-        resolver.setVisible(false);
-        resolver.setCanBeConsumed(false);
-        resolver.setCanBeResolved(true);
-        resolver.extendsFrom(extendsFrom.toArray(new Configuration[0]));
+    public Action<? super AttributeContainer> getAttributes() {
+        return a -> {};
     }
 }

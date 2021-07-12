@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Resolver;
+import org.gradle.api.resolvers.ResolverSpec;
 
 import java.io.File;
 import java.util.Set;
@@ -25,16 +26,22 @@ import java.util.Set;
 public class DefaultResolver implements Resolver {
 
     private final Configuration configuration;
-    private final boolean lenient;
+    private final ResolverSpec resolverSpec;
 
-    public DefaultResolver(Configuration configuration, boolean lenient) {
+    public DefaultResolver(Configuration configuration, ResolverSpec resolverSpec) {
         this.configuration = configuration;
-        this.lenient = lenient;
+        this.resolverSpec = resolverSpec;
+
+        this.configuration.setVisible(false);
+        this.configuration.setCanBeConsumed(false);
+        this.configuration.setCanBeResolved(true);
+        this.configuration.extendsFrom(resolverSpec.getFrom());
+        this.configuration.attributes(resolverSpec.getAttributes());
     }
 
     @Override
     public Set<File> resolve() {
-        if (lenient) {
+        if (resolverSpec.isLenient()) {
             return configuration.getIncoming().artifactView(a -> a.lenient(true)).getFiles().getFiles();
         }
         return configuration.resolve();

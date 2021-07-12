@@ -213,7 +213,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public Resolver resolver(String name, Class<? extends ResolverSpec> resolverSpec, Action<? super ResolverSpec> configurer) {
         ResolverSpec spec = instantiator.newInstance(resolverSpec, objectFactory);
         configurer.execute(spec);
-        return new DefaultResolver(create(name, spec::configure), spec.isLenient());
+        return new DefaultResolver(create(name), spec);
     }
 
 }

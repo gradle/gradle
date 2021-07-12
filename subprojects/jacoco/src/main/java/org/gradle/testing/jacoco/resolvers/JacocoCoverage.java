@@ -16,7 +16,8 @@
 
 package org.gradle.testing.jacoco.resolvers;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.Action;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
@@ -36,13 +37,12 @@ public abstract class JacocoCoverage extends ResolverSpec {
     }
 
     @Override
-    public void configure(Configuration resolver) {
-        super.configure(resolver);
-        resolver.attributes(a -> {
+    public Action<? super AttributeContainer> getAttributes() {
+        return a -> {
             a.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
             a.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
             a.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, "jacoco-coverage-data"));
             a.attribute(JacocoAggregatedReport.TestCategory.ATTRIBUTE, objectFactory.named(JacocoAggregatedReport.TestCategory.class, testTaskName));
-        });
+        };
     }
 }
