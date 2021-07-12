@@ -41,7 +41,7 @@ public class LocaleDependencyTest {
     @ArchTest
     static final ArchRule toUpperCase_not_called_without_locale = noClasses()
         .should(call("java.lang.String.toUpperCase()", "org.gradle.util.internal.TextUtil.toUpperCaseUserLocale(java.lang.String)"))
-        .as("toUpperCase() must be called with a locale parameter or TextUtil.toLowerCaseUserLocale() should be used");
+        .as("toUpperCase() must be called with a locale parameter or TextUtil.toUpperCaseUserLocale() should be used");
 
     private static ArchCondition<JavaClass> call(String name, String replacement) {
         return new ArchCondition<JavaClass>(name + " must be called with a locale parameter or " + replacement + " should be used") {
@@ -49,7 +49,7 @@ public class LocaleDependencyTest {
             public void check(JavaClass javaClass, ConditionEvents events) {
                 for (JavaMethodCall call : javaClass.getMethodCallsFromSelf()) {
                     if (name.equals(call.getTarget().getFullName())) {
-                        if (!isReplacementCall(call, replacement)) {
+                        if (!call.getOrigin().getFullName().equals(replacement)) {
                             events.add(new SimpleConditionEvent(call, true, call.getDescription()));
                         }
                     }
@@ -57,9 +57,4 @@ public class LocaleDependencyTest {
             }
         };
     }
-
-    private static boolean isReplacementCall(JavaMethodCall call, String fallback) {
-        return call.getOrigin().getFullName().equals(fallback);
-    }
-
 }
