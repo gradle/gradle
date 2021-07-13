@@ -210,10 +210,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
-    public Resolver resolver(String name, Class<? extends ResolverSpec> resolverSpec, Action<? super ResolverSpec> configurer) {
+    public Resolver resolver(Class<? extends ResolverSpec> resolverSpec, Action<? super ResolverSpec> configurer) {
         ResolverSpec spec = instantiator.newInstance(resolverSpec, objectFactory);
         configurer.execute(spec);
-        return new DefaultResolver(create(name), spec);
+        return new DefaultResolver(create(spec.getName()), spec);
     }
 
 }

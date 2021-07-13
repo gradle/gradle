@@ -45,4 +45,9 @@ public abstract class JacocoCoverage extends ResolverSpec {
             a.attribute(JacocoAggregatedReport.TestCategory.ATTRIBUTE, objectFactory.named(JacocoAggregatedReport.TestCategory.class, testTaskName));
         };
     }
+
+    @Override
+    public String getName() {
+        return testTaskName + "JacocoResolver";
+    }
 }

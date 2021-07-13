@@ -406,7 +406,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
             abstract class CustomAggregation extends DefaultTask {
                 @TaskAction
                 void aggregate() {
-                    def resolver = project.configurations.resolver("jacocoResolver", JacocoCoverage) {
+                    def resolver = project.configurations.resolver(JacocoCoverage) {
                         from(project.configurations.implementation)
                         forTestTasksNamed("test")
                         ignoreMissing()

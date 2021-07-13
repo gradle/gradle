@@ -53,4 +53,6 @@ public abstract class ResolverSpec {
     public Action<? super AttributeContainer> getAttributes() {
         return a -> {};
     }
+
+    public abstract String getName();
 }
