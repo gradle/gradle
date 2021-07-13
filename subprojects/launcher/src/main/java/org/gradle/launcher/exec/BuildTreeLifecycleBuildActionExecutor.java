@@ -20,11 +20,13 @@ import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
-import org.gradle.internal.buildtree.QueryModelRequirements;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
+import org.gradle.tooling.internal.provider.action.BuildModelAction;
+import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
+import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
@@ -39,8 +41,13 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         BuildActionModelRequirements actionRequirements;
-        if (action.isCreateModel()) {
-            actionRequirements = new QueryModelRequirements(action.getStartParameter(), action.isRunTasks());
+        if (action instanceof BuildModelAction && action.isCreateModel()) {
+            BuildModelAction buildModelAction = (BuildModelAction) action;
+            actionRequirements = new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), buildModelAction.getModelName());
+        } else if (action instanceof ClientProvidedBuildAction) {
+            actionRequirements = new RunActionRequirements(action.getStartParameter(), action.isRunTasks());
+        } else if (action instanceof ClientProvidedPhasedAction) {
+            actionRequirements = new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks());
         } else {
             actionRequirements = new RunTasksRequirements(action.getStartParameter());
         }
