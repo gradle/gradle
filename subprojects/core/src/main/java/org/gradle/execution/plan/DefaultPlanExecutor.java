@@ -69,7 +69,6 @@ public class DefaultPlanExecutor implements PlanExecutor {
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(executionPlan, nodeExecutor, executor, parentWorkerLease);
-            new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService).run();
             awaitCompletion(executionPlan, failures);
         } finally {
             executor.stop();
@@ -93,7 +92,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
     private void startAdditionalWorkers(ExecutionPlan executionPlan, Action<? super Node> nodeExecutor, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
-        for (int i = 1; i < executorCount; i++) {
+        for (int i = 0; i < executorCount; i++) {
             executor.execute(new ExecutorWorker(executionPlan, nodeExecutor, parentWorkerLease, cancellationToken, coordinationService));
         }
     }
