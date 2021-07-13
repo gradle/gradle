@@ -36,3 +36,9 @@ abstract class QueryAndMutateFromAllDomainObjectContainerIntegrationTest extends
         method << getQueryMethods() + getMutationMethods()
     }
 }
+
+class QueryAndMutateFromAllNamedDomainObjectContainerIntegrationTest extends QueryAndMutateFromAllDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
+}
+
+class QueryAndMutateFromAllTaskContainerIntegrationTest extends QueryAndMutateFromAllDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}

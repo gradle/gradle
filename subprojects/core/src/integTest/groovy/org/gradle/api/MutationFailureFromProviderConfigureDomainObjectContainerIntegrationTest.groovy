@@ -36,3 +36,9 @@ abstract class MutationFailureFromProviderConfigureDomainObjectContainerIntegrat
         mutationMethod << getMutationMethods()
     }
 }
+
+class MutationFailureFromProviderConfigureNamedDomainObjectContainerIntegrationTest extends MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
+}
+
+class MutationFailureFromProviderConfigureTaskContainerIntegrationTest extends MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}

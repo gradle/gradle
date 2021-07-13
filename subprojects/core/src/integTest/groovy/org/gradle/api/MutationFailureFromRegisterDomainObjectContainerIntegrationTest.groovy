@@ -35,3 +35,9 @@ abstract class MutationFailureFromRegisterDomainObjectContainerIntegrationTest e
         mutationMethod << getMutationMethods()
     }
 }
+
+class MutationFailureFromRegisterNamedDomainObjectContainerIntegrationTest extends MutationFailureFromRegisterDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
+}
+
+class MutationFailureFromRegisterTaskContainerIntegrationTest extends MutationFailureFromRegisterDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
+}
