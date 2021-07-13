@@ -28,7 +28,7 @@ public abstract class ResolverSpec {
     protected final ObjectFactory objectFactory;
 
     private final List<Configuration> extendsFrom = new ArrayList<>();
-    private boolean lenient = false;
+    private boolean ignoreMissing = false;
 
     protected ResolverSpec(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
@@ -42,12 +42,12 @@ public abstract class ResolverSpec {
         return extendsFrom.toArray(new Configuration[0]);
     }
 
-    public void lenient() {
-        this.lenient = true;
+    public void ignoreMissing() {
+        this.ignoreMissing = true;
     }
 
-    public boolean isLenient() {
-        return lenient;
+    public boolean isIgnoreMissing() {
+        return ignoreMissing;
     }
 
     public Action<? super AttributeContainer> getAttributes() {

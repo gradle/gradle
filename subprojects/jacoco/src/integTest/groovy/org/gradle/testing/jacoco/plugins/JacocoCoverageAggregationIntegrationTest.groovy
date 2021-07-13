@@ -409,7 +409,7 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
                     def resolver = project.configurations.resolver("jacocoResolver", JacocoCoverage) {
                         from(project.configurations.implementation)
                         forTestTasksNamed("test")
-                        lenient()
+                        ignoreMissing()
                     }
                     println(resolver.resolve())
                 }

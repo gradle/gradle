@@ -41,7 +41,7 @@ public class DefaultResolver implements Resolver {
 
     @Override
     public Set<File> resolve() {
-        if (resolverSpec.isLenient()) {
+        if (resolverSpec.isIgnoreMissing()) {
             return configuration.getIncoming().artifactView(a -> a.lenient(true)).getFiles().getFiles();
         }
         return configuration.resolve();
