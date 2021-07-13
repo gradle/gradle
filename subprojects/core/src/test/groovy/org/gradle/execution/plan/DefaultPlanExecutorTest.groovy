@@ -34,6 +34,7 @@ class DefaultPlanExecutorTest extends Specification {
     def executionPlan = Mock(ExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
+    def managedExecutor = Mock(ManagedExecutor)
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = Stub(ResourceLockCoordinationService) {
         withStateLock(_) >> { transformer ->
@@ -56,7 +57,8 @@ class DefaultPlanExecutorTest extends Specification {
         executor.process(executionPlan, [], worker)
 
         then:
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * executorFactory.create(_) >> managedExecutor
+        1 * managedExecutor.execute(_) >> { args -> args[0].run() }
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * executionPlan.hasNodesRemaining() >> true
         1 * executionPlan.selectNext(_, _) >> node
@@ -84,7 +86,8 @@ class DefaultPlanExecutorTest extends Specification {
 
         then:
         1 * executionPlan.getDisplayName() >> "task plan"
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * executorFactory.create(_) >> managedExecutor
+        1 * managedExecutor.execute(_) >> { args -> args[0].run() }
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * executionPlan.hasNodesRemaining() >> true
         1 * executionPlan.selectNext(_, _) >> node
