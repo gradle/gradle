@@ -9,7 +9,8 @@ val asmVersion = "9.2"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .forUseAtConfigurationTime()
-    .getOrElse(embeddedKotlinVersion)
+    .getOrElse("1.5.21")
+    // .getOrElse(embeddedKotlinVersion)
 
 dependencies {
     constraints {
