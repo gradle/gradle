@@ -59,7 +59,7 @@ class JavaTestProject implements IncrementalTestProject {
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.invocation {
-            gradleOpts(memoryOptions)
+            jvmArgs(memoryOptions)
         }
     }
 

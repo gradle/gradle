@@ -44,6 +44,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocationCount INVOCATIONS
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
+                // Increase client VM heap memory because of a huge amount of output events
+                clientJvmArgs("-Xmx256m", "-Xms256m")
                 args(*jobArgs)
                 tasksToRun(*tasks)
                 if (withFailure) {
