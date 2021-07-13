@@ -222,10 +222,10 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == treeGraphOps[1].id
         notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == treeGraphOps[0].id
 
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == treeGraphOps[2].id
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == treeGraphOps[2].id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':buildSrc']).id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':a:buildSrc']).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == treeGraphOps[1].id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == treeGraphOps[0].id
 
         notifications.op(RunRootBuildWorkBuildOperationType.Details).parentId == notifications.op(RunBuildBuildOperationType.Details).id
     }

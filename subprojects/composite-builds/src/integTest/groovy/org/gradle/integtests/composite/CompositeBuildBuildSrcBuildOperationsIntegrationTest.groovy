@@ -126,12 +126,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps.size() == 3
         graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildB:buildSrc)'
         graphNotifyOps[0].details.buildPath == ':buildB:buildSrc'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
-        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
-        graphNotifyOps[1].details.buildPath == ":"
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
-        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
-        graphNotifyOps[2].details.buildPath == ":buildB"
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[1].details.buildPath == ":buildB"
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[2].details.buildPath == ":"
         graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
 
         where:
@@ -241,15 +241,15 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps.size() == 4
         graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:buildB:buildSrc)"
         graphNotifyOps[0].details.buildPath == ":buildB:buildSrc"
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
         graphNotifyOps[1].details.buildPath == ':buildSrc'
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
-        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
-        graphNotifyOps[2].details.buildPath == ":"
-        graphNotifyOps[2].parentId == taskGraphOps[2].id
-        graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
-        graphNotifyOps[3].details.buildPath == ":buildB"
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[2].details.buildPath == ":buildB"
+        graphNotifyOps[2].parentId == treeTaskGraphOps[2].id
+        graphNotifyOps[3].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[3].details.buildPath == ":"
         graphNotifyOps[3].parentId == treeTaskGraphOps[2].id
 
         where:

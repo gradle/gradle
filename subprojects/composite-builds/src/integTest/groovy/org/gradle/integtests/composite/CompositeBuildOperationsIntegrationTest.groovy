@@ -124,11 +124,11 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2
-        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners'
-        graphNotifyOps[0].details.buildPath == ':'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
-        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:${buildName})"
-        graphNotifyOps[1].details.buildPath == ":${buildName}"
+        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:${buildName})"
+        graphNotifyOps[0].details.buildPath == ":${buildName}"
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
+        graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners'
+        graphNotifyOps[1].details.buildPath == ':'
         graphNotifyOps[1].parentId == treeTaskGraphOps[0].id
 
         where:
@@ -179,14 +179,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 3
-        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners'
-        graphNotifyOps[0].details.buildPath == ':'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
-        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:buildC)"
-        graphNotifyOps[1].details.buildPath == ":buildC"
+        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:buildC)"
+        graphNotifyOps[0].details.buildPath == ":buildC"
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[1].details.buildPath == ":buildB"
         graphNotifyOps[1].parentId == treeTaskGraphOps[0].id
-        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
-        graphNotifyOps[2].details.buildPath == ":buildB"
+        graphNotifyOps[2].displayName == 'Notify task graph whenReady listeners'
+        graphNotifyOps[2].details.buildPath == ':'
         graphNotifyOps[2].parentId == treeTaskGraphOps[0].id
     }
 
@@ -250,7 +250,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[1].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[2].displayName == 'Notify task graph whenReady listeners'
         graphNotifyOps[2].details.buildPath == ':'
-        graphNotifyOps[2].parentId == taskGraphOps[2].id
+        graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
     }
 
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
@@ -334,7 +334,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[1].details.buildPath == ":"
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

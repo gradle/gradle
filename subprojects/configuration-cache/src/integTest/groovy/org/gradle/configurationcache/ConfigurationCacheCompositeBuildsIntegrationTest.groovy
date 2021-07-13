@@ -62,9 +62,9 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             "Run build / Configure build / Configure project :",
             "Run build / Calculate build tree task graph",
             "Run build / Calculate build tree task graph / Calculate task graph",
-            "Run build / Calculate build tree task graph / Calculate task graph / Notify task graph whenReady listeners",
             "Run build / Calculate build tree task graph / Calculate task graph (:lib)",
-            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners (:lib)"
+            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners (:lib)",
+            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners"
         ]
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()

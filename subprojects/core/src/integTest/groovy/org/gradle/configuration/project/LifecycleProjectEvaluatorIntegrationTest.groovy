@@ -123,15 +123,15 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             parentId == configOp.id
         }
 
+        def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeGraphOps.size() == 2
+
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
             displayName == 'Notify task graph whenReady listeners (:buildSrc)'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
             children.first().children*.displayName == ["Apply script '${relativePath('buildSrc/buildSrcWhenReady.gradle')}' to project ':buildSrc'"]
-            parentId == operations.first("Calculate task graph (:buildSrc)").id
+            parentId == treeGraphOps[0].id
         }
-
-        def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
-        treeGraphOps.size() == 2
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
             displayName == 'Notify task graph whenReady listeners (:included-build)'
@@ -144,7 +144,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             displayName == 'Notify task graph whenReady listeners'
             children*.displayName == ["Execute TaskExecutionGraph.whenReady listener"]
             children.first().children*.displayName == ["Apply script '${relativePath('foo/whenReady.gradle')}' to project ':foo'"]
-            parentId == operations.first("Calculate task graph").id
+            parentId == treeGraphOps[1].id
         }
 
         def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, { it.details.buildPath == ':included-build' })

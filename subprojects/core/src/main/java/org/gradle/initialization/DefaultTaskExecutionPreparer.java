@@ -17,24 +17,19 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
 public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
-    private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter,
-                                        IncludedBuildTaskGraph includedBuildTaskGraph,
                                         BuildOperationExecutor buildOperationExecutor,
                                         BuildModelParameters buildModelParameters) {
         this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
-        this.includedBuildTaskGraph = includedBuildTaskGraph;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildModelParameters = buildModelParameters;
     }
@@ -42,10 +37,6 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     @Override
     public void prepareForTaskExecution(GradleInternal gradle) {
         buildConfigurationActionExecuter.select(gradle);
-
-        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        // TODO - This happens too early and may miss incoming dependencies from other builds in the tree
-        taskGraph.populate();
 
         if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
             new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);

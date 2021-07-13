@@ -34,6 +34,7 @@ public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
         includedBuildTaskGraph.prepareTaskGraph(() -> {
             buildController.scheduleRequestedTasks();
             includedBuildTaskGraph.populateTaskGraphs();
+            buildController.getGradle().getTaskGraph().populate();
         });
     }
 }

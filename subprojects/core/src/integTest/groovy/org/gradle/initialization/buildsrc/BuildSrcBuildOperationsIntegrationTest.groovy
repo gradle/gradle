@@ -99,10 +99,10 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         graphNotifyOps.size() == 2
         graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
         graphNotifyOps[0].details.buildPath == ':buildSrc'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[1].details.buildPath == ":"
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
 
         def taskOps = ops.all(ExecuteTaskBuildOperationType)
         taskOps.size() > 1
