@@ -42,15 +42,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.AccessControlException;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
+    private static final int TO_RUN_QUEUE_SIZE = 128; // estimated via: 1KiB allocator block divided by 8 byte pointer
 
     private final WorkerTestClassProcessorFactory factory;
-    private LinkedBlockingQueue<TestClassRunInfo> toRun;
+    private ArrayBlockingQueue<TestClassRunInfo> toRun;
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
 
@@ -70,7 +71,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         SecurityManager securityManager = System.getSecurityManager();
-        toRun = new LinkedBlockingQueue<TestClassRunInfo>();
+        toRun = new ArrayBlockingQueue<>(TO_RUN_QUEUE_SIZE);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
