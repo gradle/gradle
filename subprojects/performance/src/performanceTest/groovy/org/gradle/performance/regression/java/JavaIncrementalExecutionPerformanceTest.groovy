@@ -41,7 +41,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
     boolean isGroovyProject
 
     def setup() {
-        runner.targetVersions = ["7.2-branch-gh_normalization_line_ending_java-20210712154445+0000"]
+        runner.targetVersions = ["7.2-20210713113638+0000"]
         testProject = JavaTestProject.findProjectFor(runner.testProject)
         isGroovyProject = testProject?.name()?.contains("GROOVY")
         if (isGroovyProject) {
