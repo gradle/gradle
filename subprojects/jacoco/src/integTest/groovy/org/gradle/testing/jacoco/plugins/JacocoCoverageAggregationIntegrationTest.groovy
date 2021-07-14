@@ -404,14 +404,21 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("app/build.gradle") << """
             abstract class CustomAggregation extends DefaultTask {
-                @TaskAction
-                void aggregate() {
+
+                private final Set<File> resolvedArtifacts
+
+                CustomAggregation() {
                     def resolver = project.configurations.resolver(JacocoCoverage) {
                         from(project.configurations.implementation)
                         forTestTasksNamed("test")
                         ignoreMissing()
                     }
-                    println(resolver.resolve())
+                    this.resolvedArtifacts = resolver.resolve()
+                }
+
+                @TaskAction
+                void aggregate() {
+                    println(resolvedArtifacts)
                 }
             }
 
