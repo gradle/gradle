@@ -149,11 +149,10 @@ class Main {
     }
 
     def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
-        //even in single-quoted multi-line strings, backslashes must still be quoted
         file("build.gradle") << '''
 applicationDefaultJvmArgs = ['-DtestValue=value',
-                             /-DtestValue2=s\\o"me val'ue/ + '$PATH',
-                             /-DtestValue3=so\\"me value%PATH%/,
+                             '-DtestValue2=some value$PATH',
+                             '-DtestValue3=some value%PATH%',
                             ]
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
@@ -162,13 +161,13 @@ package org.gradle.test;
 class Main {
     public static void main(String[] args) {
         if (!"value".equals(System.getProperty("testValue"))) {
-            throw new RuntimeException("Expected system property not specified (testValue)");
+            throw new RuntimeException("Expected system property not specified: testValue=" + System.getProperty("testValue"));
         }
-        if (!"s\\\\o\\"me val'ue$PATH".equals(System.getProperty("testValue2"))) {
-            throw new RuntimeException("Expected system property not specified (testValue2)");
+        if (!"some value\\\\$PATH".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Expected system property not specified: testValue2=" + System.getProperty("testValue2"));
         }
-        if (!"so\\\\\\"me value%PATH%".equals(System.getProperty("testValue3"))) {
-            throw new RuntimeException("Expected system property not specified (testValue3)");
+        if (!"some value%PATH%".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Expected system property not specified: testValue3=" + System.getProperty("testValue3"));
         }
     }
 }
@@ -181,9 +180,8 @@ class Main {
         builder.workingDir file('build/install/application/bin')
         builder.executable "application"
 
-        def result = builder.run()
-
         then:
+        def result = builder.run()
         result.assertNormalExitValue()
     }
 
@@ -305,16 +303,8 @@ installDist.destinationDir = buildDir
         run 'startScripts'
 
         then:
-        File generatedWindowsStartScript = file("build/scripts/application.bat")
-        generatedWindowsStartScript.exists()
-        assertLineSeparators(generatedWindowsStartScript, TextUtil.windowsLineSeparator, 89)
-
-        File generatedLinuxStartScript = file("build/scripts/application")
-        generatedLinuxStartScript.exists()
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.unixLineSeparator, 183)
-        assertLineSeparators(generatedLinuxStartScript, TextUtil.windowsLineSeparator, 1)
-
-        file("build/scripts/application").exists()
+        file("build/scripts/application.bat").assertExists()
+        file("build/scripts/application").assertExists()
     }
 
     def "application packages are built when running the assemble task"() {
