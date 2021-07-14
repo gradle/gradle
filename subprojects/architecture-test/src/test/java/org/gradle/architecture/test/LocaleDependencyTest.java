@@ -37,7 +37,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 @AnalyzeClasses(packages = { "org.gradle", "org.gradleinternal" })
 public class LocaleDependencyTest {
 
-    // TODO replace toLowerCase() calls with TextUtil.toLowerCaseXXX() in the methods below
+    // TODO replace toLowerCase() calls in the methods below with TextUtil.toLowerCaseLocaleSafe() or with TextUtil.toLowerCaseUserLocale()
     private static final Set<String> ignoredMethodsWithToLowerCaseCalls = Sets.newHashSet(
         "org.gradle.util.GUtil.toWords(java.lang.CharSequence, char)",
         "org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.reportSuppressedDeprecations()",
@@ -105,7 +105,7 @@ public class LocaleDependencyTest {
         "org.gradle.plugins.ide.idea.model.PathFactory.path(java.lang.String, java.lang.String)"
     );
 
-    // TODO replace toUpperCase() calls with TextUtil.toLowerCaseXXX() in the methods below
+    // TODO replace toLowerCase() calls in the methods below with TextUtil.toUpperCaseLocaleSafe() or with TextUtil.toUpperCaseUserLocale()
     private static final Set<String> ignoredMethodsWithToUpperCaseCalls = Sets.newHashSet(
         "org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.configureEndpoint(java.lang.String)",
         "org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties.getProxy()",
