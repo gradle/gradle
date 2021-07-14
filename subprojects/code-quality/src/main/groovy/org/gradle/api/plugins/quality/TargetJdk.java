@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins.quality;
 
-import org.gradle.util.internal.TextUtil;
-
 import javax.annotation.Nullable;
 
 /**
@@ -71,6 +69,6 @@ public enum TargetJdk {
     }
 
     public String getName() {
-        return TextUtil.toLowerCaseUserLocale(name().substring("VERSION_".length()).replace('_', '.'));
+        return name().substring("VERSION_".length()).replace('_', '.').toLowerCase();
     }
 }

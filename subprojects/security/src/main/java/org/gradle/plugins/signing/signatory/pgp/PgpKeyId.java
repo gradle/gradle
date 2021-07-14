@@ -17,7 +17,6 @@ package org.gradle.plugins.signing.signatory.pgp;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignature;
-import org.gradle.util.internal.TextUtil;
 
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
@@ -94,7 +93,7 @@ public class PgpKeyId implements Comparable<PgpKeyId> {
     }
 
     private static String normaliseKeyId(String keyId) {
-        String keyIdUpped = TextUtil.toUpperCaseUserLocale(keyId);
+        String keyIdUpped = keyId.toUpperCase();
         switch (keyIdUpped.length()) {
             case 10:
                 if (!keyIdUpped.startsWith("0X")) {

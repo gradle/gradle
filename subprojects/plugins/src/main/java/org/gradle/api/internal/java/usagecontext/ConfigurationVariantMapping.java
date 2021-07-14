@@ -32,7 +32,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.internal.TextUtil;
 
 import java.util.Set;
 
@@ -157,7 +156,7 @@ public class ConfigurationVariantMapping {
         }
 
         private static String assertValidScope(String scope) {
-            scope = TextUtil.toLowerCaseUserLocale(scope);
+            scope = scope.toLowerCase();
             if ("compile".equals(scope) || "runtime".equals(scope)) {
                 return scope;
             }

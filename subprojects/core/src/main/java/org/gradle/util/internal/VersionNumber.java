@@ -152,7 +152,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Nullable
     private String toLowerCase(@Nullable String string) {
-        return string == null ? null : TextUtil.toLowerCaseUserLocale(string);
+        return string == null ? null : string.toLowerCase();
     }
 
     public interface Scheme {

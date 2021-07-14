@@ -16,8 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-import org.gradle.util.internal.TextUtil;
-
 public class Language {
     public static final Language NONE = Language.withName("none");
     public static final Language JAVA = Language.withName("Java");
@@ -32,7 +30,7 @@ public class Language {
     private final String extension;
 
     public static Language withName(String displayName) {
-        return new Language(TextUtil.toLowerCaseUserLocale(displayName), displayName, TextUtil.toLowerCaseUserLocale(displayName));
+        return new Language(displayName.toLowerCase(), displayName, displayName.toLowerCase());
     }
 
     public static Language withName(String displayName, String name) {
@@ -40,7 +38,7 @@ public class Language {
     }
 
     public static Language withNameAndExtension(String displayName, String extension) {
-        return new Language(TextUtil.toLowerCaseUserLocale(displayName), displayName, extension);
+        return new Language(displayName.toLowerCase(), displayName, extension);
     }
 
     private Language(String name, String displayName, String extension) {

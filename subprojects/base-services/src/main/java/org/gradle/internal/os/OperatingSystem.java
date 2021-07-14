@@ -16,7 +16,6 @@
 package org.gradle.internal.os;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -59,7 +58,7 @@ public abstract class OperatingSystem {
     }
 
     public static OperatingSystem forName(String os) {
-        String osName = TextUtil.toLowerCaseUserLocale(os);
+        String osName = os.toLowerCase();
         if (osName.contains("windows")) {
             return WINDOWS;
         } else if (osName.contains("mac os x") || osName.contains("darwin") || osName.contains("osx")) {
@@ -363,7 +362,7 @@ public abstract class OperatingSystem {
         }
 
         protected String getOsPrefix() {
-            String osPrefix = TextUtil.toLowerCaseUserLocale(getName());
+            String osPrefix = getName().toLowerCase();
             int space = osPrefix.indexOf(" ");
             if (space != -1) {
                 osPrefix = osPrefix.substring(0, space);

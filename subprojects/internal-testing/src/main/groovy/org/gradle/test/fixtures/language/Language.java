@@ -16,14 +16,12 @@
 
 package org.gradle.test.fixtures.language;
 
-import org.gradle.util.internal.TextUtil;
-
 public enum Language {
     GROOVY,
     JAVA,
     KOTLIN;
 
     public String getName() {
-        return TextUtil.toLowerCaseUserLocale(name());
+        return name().toLowerCase();
     }
 }

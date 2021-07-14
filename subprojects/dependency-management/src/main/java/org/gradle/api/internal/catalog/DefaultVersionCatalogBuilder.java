@@ -47,7 +47,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -290,7 +289,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private void validateAlias(String alias) {
         for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
-            String sl = TextUtil.toLowerCaseUserLocale(alias);
+            String sl = alias.toLowerCase();
             if (sl.endsWith(suffix)) {
                 throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
                     spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")

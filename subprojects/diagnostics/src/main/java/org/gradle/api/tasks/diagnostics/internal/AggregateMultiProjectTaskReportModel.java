@@ -19,7 +19,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.util.Path;
-import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,7 +35,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
-        this.group = Strings.isNullOrEmpty(group) ? null : TextUtil.toLowerCaseUserLocale(group);
+        this.group = Strings.isNullOrEmpty(group) ? null : group.toLowerCase();
     }
 
     public void add(TaskReportModel project) {
@@ -67,7 +66,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         if (Strings.isNullOrEmpty(group)) {
             return detail;
         } else {
-            return this.group == null || TextUtil.toLowerCaseUserLocale(group).equals(this.group);
+            return this.group == null || group.toLowerCase().equals(this.group);
         }
     }
 

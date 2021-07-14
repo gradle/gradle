@@ -16,8 +16,6 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.util.internal.TextUtil;
-
 public interface JvmVendor {
 
     enum KnownJvmVendor {
@@ -49,7 +47,7 @@ public interface JvmVendor {
             if (rawVendor == null) {
                 return UNKNOWN;
             }
-            rawVendor = TextUtil.toLowerCaseUserLocale(rawVendor);
+            rawVendor = rawVendor.toLowerCase();
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
                 if (rawVendor.contains(jvmVendor.indicatorString)) {
                     return jvmVendor;

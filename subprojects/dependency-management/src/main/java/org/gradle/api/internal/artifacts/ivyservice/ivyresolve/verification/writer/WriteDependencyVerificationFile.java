@@ -63,7 +63,6 @@ import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
 import org.gradle.security.internal.SecuritySupport;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -521,7 +520,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     boolean hasUid = false;
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
-                    out.write((keyType + "    " + TextUtil.toUpperCaseUserLocale(SecuritySupport.toLongIdHexString(pk.getKeyID())) + "\n").getBytes(StandardCharsets.US_ASCII));
+                    out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
                     Iterator<String> userIDs = pk.getUserIDs();
                     while (userIDs.hasNext()) {
                         hasUid = true;

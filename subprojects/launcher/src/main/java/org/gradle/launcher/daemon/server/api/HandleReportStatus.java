@@ -20,14 +20,13 @@ import org.gradle.launcher.daemon.protocol.ReportStatus;
 import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.protocol.Success;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.TextUtil;
 
 public class HandleReportStatus implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof ReportStatus) {
             String version = GradleVersion.current().getVersion();
-            String status = TextUtil.toUpperCaseUserLocale(execution.getDaemonStateControl().getState().toString());
+            String status = execution.getDaemonStateControl().getState().toString().toUpperCase();
             Status message = new Status(execution.getDaemonContext().getPid(), version, status);
             execution.getConnection().completed(new Success(message));
         } else {

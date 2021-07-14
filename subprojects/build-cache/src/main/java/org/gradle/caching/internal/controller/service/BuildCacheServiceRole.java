@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller.service;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.internal.TextUtil;
 
 @UsedByScanPlugin("values are expected (type is not linked), see BuildCacheStoreBuildOperationType and friends")
 public enum BuildCacheServiceRole {
@@ -27,7 +26,7 @@ public enum BuildCacheServiceRole {
     private final String displayName;
 
     BuildCacheServiceRole() {
-        this.displayName = TextUtil.toLowerCaseUserLocale(name());
+        this.displayName = name().toLowerCase();
     }
 
     public String getDisplayName() {

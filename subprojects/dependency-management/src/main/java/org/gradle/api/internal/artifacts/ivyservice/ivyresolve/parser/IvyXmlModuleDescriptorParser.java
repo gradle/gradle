@@ -659,7 +659,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String parentRevision = attributes.getValue("revision");
             String location = elvis(attributes.getValue("location"), "../ivy.xml");
 
-            String extendType = TextUtil.toLowerCaseUserLocale(elvis(attributes.getValue("extendType"), "all"));
+            String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase();
             List<String> extendTypes = Arrays.asList(extendType.split(","));
 
             ModuleDescriptor parent;

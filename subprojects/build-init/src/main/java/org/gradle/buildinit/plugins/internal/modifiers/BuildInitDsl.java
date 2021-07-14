@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -73,6 +72,6 @@ public enum BuildInitDsl implements WithIdentifier {
 
     @Override
     public String toString() {
-        return StringUtils.capitalize(TextUtil.toLowerCaseUserLocale(name()));
+        return StringUtils.capitalize(name().toLowerCase());
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transport.http.ntlm;
 import org.gradle.api.credentials.PasswordCredentials;
 
 import com.google.common.base.Preconditions;
-import org.gradle.util.internal.TextUtil;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -43,7 +42,7 @@ public class NTLMCredentials {
         } else {
             domain = System.getProperty("http.auth.ntlm.domain", DEFAULT_DOMAIN);
         }
-        this.domain = domain == null ? null : TextUtil.toUpperCaseUserLocale(domain);
+        this.domain = domain == null ? null : domain.toUpperCase();
         this.username = username;
         this.password = credentials.getPassword();
         this.workstation = determineWorkstationName();
@@ -57,7 +56,7 @@ public class NTLMCredentials {
         }
 
         try {
-            return TextUtil.toUpperCaseUserLocale(removeDotSuffix(getHostName()));
+            return removeDotSuffix(getHostName()).toUpperCase();
         } catch (UnknownHostException e) {
             return DEFAULT_WORKSTATION;
         }

@@ -31,7 +31,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -130,7 +129,7 @@ public class SecuritySupport {
     }
 
     public static File asciiArmoredFileFor(File keyringsFile) {
-        String baseName = keyringsFile.getName().substring(0, TextUtil.toLowerCaseUserLocale(keyringsFile.getName()).lastIndexOf(".gpg"));
+        String baseName = keyringsFile.getName().substring(0, keyringsFile.getName().toLowerCase().lastIndexOf(".gpg"));
         return new File(keyringsFile.getParentFile(), baseName + KEYS_FILE_EXT);
     }
 }

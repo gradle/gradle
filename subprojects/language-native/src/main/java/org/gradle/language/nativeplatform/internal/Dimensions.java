@@ -35,7 +35,6 @@ import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -58,7 +57,7 @@ public class Dimensions {
 
     public static String createDimensionSuffix(String dimensionValue, Collection<?> multivalueProperty) {
         if (isDimensionVisible(multivalueProperty)) {
-            return StringUtils.capitalize(TextUtil.toLowerCaseUserLocale(dimensionValue));
+            return StringUtils.capitalize(dimensionValue.toLowerCase());
         }
         return "";
     }

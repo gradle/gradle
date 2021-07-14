@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -174,7 +173,7 @@ public class FileUtils {
      * @return the transformed path
      */
     public static String withExtension(String filePath, String extension) {
-        if (TextUtil.toLowerCaseUserLocale(filePath).endsWith(extension)) {
+        if (filePath.toLowerCase().endsWith(extension)) {
             return filePath;
         }
         return removeExtension(filePath) + extension;

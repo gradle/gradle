@@ -42,7 +42,6 @@ import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -297,7 +296,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private LockState lock(LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", TextUtil.toLowerCaseUserLocale(lockMode.toString()), displayName);
+            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);
