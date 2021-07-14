@@ -22,7 +22,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-@Ignore("Application plugin start scripts require bash shell and are not compatible with busybox and dash")
 class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         createSampleProjectSetup()
