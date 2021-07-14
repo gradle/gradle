@@ -16,11 +16,7 @@
 
 package org.gradle.api.tasks
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
-import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractDeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
