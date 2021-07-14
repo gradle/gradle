@@ -112,8 +112,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         ]
     }
 
-    private List<String> trimmedOutput(BuildResult result) {
-        result.output.split('\n').findAll { !it.empty && !it.contains('warning') }
+    private static List<String> trimmedOutput(BuildResult result) {
+        result.output.split('\n').findAll { !it.empty && !it.toLowerCase().contains('warning') }
     }
 
     private BuildResult publish() {
