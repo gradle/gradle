@@ -29,6 +29,11 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {
+        smokeTest.runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
+            .forwardOutput()
+    }
+
     public static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
@@ -200,8 +205,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     }
 
     private SmokeTestGradleRunner runner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-            .forwardOutput()
+        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
 
     @Override

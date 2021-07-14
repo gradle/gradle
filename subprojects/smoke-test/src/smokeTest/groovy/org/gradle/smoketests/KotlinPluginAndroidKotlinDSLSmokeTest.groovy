@@ -78,7 +78,6 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
     }
 
     private GradleRunner createRunner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-                .forwardOutput()
+        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
 }
