@@ -134,6 +134,10 @@
             <trusting group="org.codehaus.groovy"/>
             <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
+         <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
+            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.codehaus.groovy" name="groovy"/>
+         </trusted-key>
          <trusted-key id="0cb5871fb7bf3b351614bbf6ca85ffe638d4407a" group="it.unimi.dsi" name="fastutil"/>
          <trusted-key id="829d279ba9a3c503eb98a0e53c48f45a0e97af7e" group="org.gebish"/>
          <trusted-key id="8446b9e902a3f3ddee711fdb8e26ff248bc7aead">
@@ -2026,81 +2030,6 @@
       <component group="org.codehaus.groovy" name="groovy" version="2.5.12">
          <artifact name="groovy-2.5.12.jar">
             <pgp value="7faa0f2206de228f0db01ad741321490758aad6f"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy" version="3.0.8">
-         <artifact name="groovy-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-json" version="3.0.8">
-         <artifact name="groovy-json-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-xml" version="3.0.8">
-         <artifact name="groovy-xml-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-ant" version="3.0.8">
-         <artifact name="groovy-ant-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-astbuilder" version="3.0.8">
-         <artifact name="groovy-astbuilder-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-console" version="3.0.8">
-         <artifact name="groovy-console-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-datetime" version="3.0.8">
-         <artifact name="groovy-datetime-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-dateutil" version="3.0.8">
-         <artifact name="groovy-dateutil-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-docgenerator" version="3.0.8">
-         <artifact name="groovy-docgenerator-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-groovydoc" version="3.0.8">
-         <artifact name="groovy-groovydoc-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-nio" version="3.0.8">
-         <artifact name="groovy-nio-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-sql" version="3.0.8">
-         <artifact name="groovy-sql-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-swing" version="3.0.8">
-         <artifact name="groovy-swing-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-templates" version="3.0.8">
-         <artifact name="groovy-templates-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy" name="groovy-test" version="3.0.8">
-         <artifact name="groovy-test-3.0.8.jar">
-            <pgp value="34441e504a937f43eb0daef96a65176a0fb1cd0b"/>
          </artifact>
       </component>
       <component group="org.codehaus.groovy.modules" name="http-builder-ng-core" version="0.11.1">
