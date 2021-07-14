@@ -178,7 +178,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         run "compileJava"
 
         then:
-        outputs.recompiledFiles('com/foo/$Configuration')
+        outputs.recompiledFiles('A', 'B', '$Configuration', 'package-info')
     }
 
     File annotatedPackageInfo(String packageName, String annotation) {
