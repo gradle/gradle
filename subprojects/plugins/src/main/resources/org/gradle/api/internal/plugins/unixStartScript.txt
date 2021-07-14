@@ -252,12 +252,6 @@ set -- \\
 <% } %>        ${mainClassName} \\
         "\$@"
 
-# For Darwin, add options to specify how the application appears in the dock
-if \$darwin; then
-    set -- "-Xdock:name=\$APP_NAME" \\
-           "-Xdock:icon=\$APP_HOME/media/gradle.icns" "\$@"
-fi
-
 # Use "xargs" to parse quoted args.
 #
 # With -n1 it outputs one arg per line, with the quotes and backslashes removed.
