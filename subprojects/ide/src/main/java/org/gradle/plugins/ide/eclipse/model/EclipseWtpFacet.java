@@ -26,6 +26,8 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -43,7 +45,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * eclipse {
  *   wtp {
  *     facet {
- *       //you can add some extra wtp facets; mandatory keys: 'name', 'version':
+ *       //you can add some extra wtp facets or update existing ones; mandatory keys: 'name', 'version':
  *       facet name: 'someCoolFacet', version: '1.3'
  *
  *       file {
@@ -133,15 +135,19 @@ public class EclipseWtpFacet {
     /**
      * Adds a facet.
      * <p>
+     * If a facet already exists with the given name then its version will be updated.
+     * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
      */
     public void facet(Map<String, ?> args) {
+        Facet newFacet = ConfigureUtil.configureByMap(args, new Facet());
         facets = Lists.newArrayList(Iterables.concat(
-            getFacets(),
-            Collections.singleton(ConfigureUtil.configureByMap(args, new Facet()))
-        ));
+            getFacets().stream()
+                       .filter(f -> f.getType() != newFacet.getType() || !Objects.equals(f.getName(), newFacet.getName()))
+                       .collect(Collectors.toList()),
+            Collections.singleton(newFacet)));
     }
 
     @SuppressWarnings("unchecked")

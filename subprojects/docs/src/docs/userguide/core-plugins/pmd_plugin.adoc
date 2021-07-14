@@ -68,6 +68,7 @@ The PMD plugin adds the following dependency configurations:
 |===
 | Name | Meaning
 | `pmd` | The PMD libraries to use
+| `pmdAux` | The additional libraries that are available for type resolution during analysis. This might be useful if PMD complains about missing classes.
 |===
 
 [[sec:pmd_configuration]]
