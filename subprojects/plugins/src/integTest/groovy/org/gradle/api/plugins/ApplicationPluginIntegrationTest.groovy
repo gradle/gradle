@@ -39,21 +39,8 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript()
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
-        unixStartScriptContent.contains('APP_NAME="sample"')
-        unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        !unixStartScriptContent.contains('MODULE_PATH=')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript()
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
-        windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        !windowsStartScriptContentText.contains('set MODULE_PATH=')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript()
+        assertGeneratedWindowsStartScript()
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -65,21 +52,13 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript()
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
-        unixStartScriptContent.contains('APP_NAME="sample"')
-        unixStartScriptContent.contains('CLASSPATH="\\\\\\"\\\\\\""')
-        unixStartScriptContent.contains('MODULE_PATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript()
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
-        windowsStartScriptContentText.contains('set CLASSPATH=')
-        windowsStartScriptContentText.contains('set MODULE_PATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript()
+        assertGeneratedWindowsStartScript()
+
+        when:
+        succeeds('installDist')
+        then:
+        runViaStartScript()
     }
 
     def "can generate starts script generation with custom user configuration"() {
@@ -93,19 +72,8 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript('myApp')
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  myApp start up script for UN*X')
-        unixStartScriptContent.contains('APP_NAME="myApp"')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
-        unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS="-Dgreeting.language=en" "-DappId=sample"')
-        windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript('myApp')
+        assertGeneratedWindowsStartScript('myApp')
     }
 
     def "can change template file for default start script generators"() {
