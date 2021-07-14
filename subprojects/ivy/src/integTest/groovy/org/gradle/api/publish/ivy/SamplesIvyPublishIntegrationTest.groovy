@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
@@ -50,7 +49,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Ignore("wip: remove once a new `kotlin-dsl` version is published")
     @Unroll
     @UsesSample("ivy-publish/java-multi-project")
     @ToBeFixedForConfigurationCache

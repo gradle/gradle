@@ -21,7 +21,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -40,7 +39,6 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         }
     }
 
-    @Ignore("wip: remove once a new `kotlin-dsl` version is published")
     @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin build scripts", because = "Kotlin Gradle Plugin")
     def "creates multi-project application sample"() {
