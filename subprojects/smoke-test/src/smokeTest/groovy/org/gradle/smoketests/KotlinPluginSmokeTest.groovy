@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -55,15 +56,18 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         given:
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
         def result = runner(workers, 'run')
-            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
+            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
+                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
+            )
             .build()
 
         then:
@@ -72,7 +76,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         result = runner(workers, 'run')
-            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
+                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
+            )
             .build()
 
 
@@ -94,16 +100,27 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
         def result = runner(workers, 'compileKotlin2Js')
-            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
+            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) >= VersionNumber.parse('1.4.0'),
-                "The `kotlin2js` Gradle plugin has been deprecated.")
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
+                "The `kotlin2js` Gradle plugin has been deprecated."
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+                "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+                "The AbstractCompile.destinationDir property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
+            )
             .build()
 
         then:
