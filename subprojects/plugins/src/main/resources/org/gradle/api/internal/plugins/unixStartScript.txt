@@ -27,7 +27,7 @@
 #       bash, then to run this script, type that shell name before the whole
 #       command line, like:
 #
-#           ksh gradlew
+#           ksh ${applicationName}
 #
 #       Busybox and similar reduced shells will NOT work, because this script
 #       requires all of these POSIX shell features:
@@ -202,7 +202,6 @@ fi
 #   * -classpath
 #   * -D...appname settings
 #   * --module-path (only if needed)
-#   * -Xdock:... settings (for Darwin)
 #   * DEFAULT_JVM_OPTS, JAVA_OPTS, and ${optsEnvironmentVar} environment variables.
 
 # For Cygwin or MSYS, switch paths to Windows format before running java
