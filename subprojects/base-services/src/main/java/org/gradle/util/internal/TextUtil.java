@@ -212,10 +212,9 @@ public class TextUtil {
     /**
      * Replacement for locale-dependent {@code String.toLowerCase()}.
      *
-     * <p>In most cases, making a string lowercase should be independent from the current locale (i.e. {@link #toLowerCaseUserLocale(String)} should be used). If an implementation does need to be
-     * locale-dependent then this method should be used.
+     * <p>This method should be used when if the the way the result string is used needs to be the user's locale.
      *
-     * <p>There's an architecture test in place that will fail if a method tries to call {@code String.toLowerCase()} without an argument.
+     * <p>There's an architecture test in place that will fail if a method tries to call {@code String.toLowerCase()} instead of this one.
      *
      * @param s string to be made lowercase
      * @return a lowercase string
@@ -227,10 +226,9 @@ public class TextUtil {
     /**
      * Replacement for locale-dependent {@code String.toUpperCase()}.
      *
-     *  <p>In most cases, making a string uppercase should be independent from the current locale (i.e. {@link #toUpperCaseUserLocale(String)}} should be used). If an implementation does need to be
-     *  locale-dependent then this method should be used.
+     * <p>This method should be used when if the the way the result string is used needs to be the user's locale.
      *
-     *  <p>There's an architecture test in place that will fail if a method tries to call {@code String.toUpperCase()} without an argument.
+     * <p>There's an architecture test in place that will fail if a method tries to call {@code String.toUpperCase()} instead of this one.
      *
      *  @param s string to be made uppercase
      *  @return an uppercase string
