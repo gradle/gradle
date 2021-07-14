@@ -26,7 +26,7 @@ interface BuildTreeConfigurationCache {
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
      * writes the result to cache.
      */
-    fun loadOrScheduledRequestedTasks(scheduler: () -> Unit)
+    fun loadOrScheduleRequestedTasks(scheduler: () -> Unit)
 
     /**
      * Loads the cached model, if available, or else runs the given function to create it and then writes the result to cache.

@@ -19,31 +19,43 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
     private enum State {
-        QueuingTasks, ReadyToRun, Running, Finished
+        NotCreated, NotPrepared, QueuingTasks, Populated, ReadyToRun, Running, Finished
     }
 
+    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
     private Thread owner;
-    private State state = State.QueuingTasks;
+    private State state = State.NotCreated;
     private IncludedBuildControllers includedBuilds;
 
-    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory,
+                                         BuildOperationExecutor buildOperationExecutor,
+                                         BuildStateRegistry buildRegistry,
+                                         ProjectStateRegistry projectStateRegistry,
+                                         WorkerLeaseService workerLeaseService) {
+        this.buildOperationExecutor = buildOperationExecutor;
         this.buildRegistry = buildRegistry;
         this.projectStateRegistry = projectStateRegistry;
         this.executorService = executorFactory.create("included builds");
@@ -56,15 +68,13 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
-    public <T> T withNestedTaskGraph(Supplier<T> action) {
+    public <T> T withNewTaskGraph(Supplier<T> action) {
         Thread currentOwner;
         State currentState;
         IncludedBuildControllers currentControllers;
         synchronized (this) {
             if (state != State.Running) {
-                if (owner == null || owner == Thread.currentThread()) {
-                    expectQueuingTasks();
-                } else {
+                if (owner != null && owner != Thread.currentThread()) {
                     throw new IllegalStateException("This task graph is already in use.");
                 }
             }
@@ -76,7 +86,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             currentState = state;
             currentControllers = includedBuilds;
             owner = Thread.currentThread();
-            state = State.QueuingTasks;
+            state = State.NotPrepared;
             includedBuilds = createControllers();
         }
 
@@ -93,29 +103,63 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
+    public void prepareTaskGraph(Runnable action) {
+        withState(() -> {
+            expectInState(State.NotPrepared);
+            state = State.QueuingTasks;
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    action.run();
+                    context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
+                    });
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Calculate build tree task graph")
+                        .details(new CalculateTreeTaskGraphBuildOperationType.Details() {
+                        });
+                }
+            });
+            expectInState(State.Populated);
+            state = State.ReadyToRun;
+            return null;
+        });
+    }
+
+    @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
         return withState(() -> {
-            expectQueuingTasks();
-            state = State.QueuingTasks;
-            return includedBuilds.getBuildController(targetBuild).locateTask(task);
+            assertCanLocateTask();
+            IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+            return new TaskBackedResource(buildController, buildController.locateTask(task));
         });
     }
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
         return withState(() -> {
-            expectQueuingTasks();
-            state = State.QueuingTasks;
-            return includedBuilds.getBuildController(targetBuild).locateTask(taskPath);
+            assertCanLocateTask();
+            IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+            return new TaskBackedResource(buildController, buildController.locateTask(taskPath));
+        });
+    }
+
+    private void queueForExecution(IncludedBuildController buildController, ExportedTaskNode taskNode) {
+        withState(() -> {
+            assertCanQueueTask();
+            buildController.queueForExecution(taskNode);
+            return null;
         });
     }
 
     @Override
     public void populateTaskGraphs() {
         withState(() -> {
-            expectQueuingTasks();
+            assertCanQueueTask();
             includedBuilds.populateTaskGraphs();
-            state = State.ReadyToRun;
+            state = State.Populated;
             return null;
         });
     }
@@ -131,23 +175,22 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
-        withState(() -> {
+    public ExecutionResult<Void> awaitTaskCompletion() {
+        return withState(() -> {
             expectInState(State.Running);
             try {
-                includedBuilds.awaitTaskCompletion(taskFailures);
+                return includedBuilds.awaitTaskCompletion();
             } finally {
                 state = State.Finished;
             }
-            return null;
         });
     }
 
     @Override
-    public void runScheduledTasks(Consumer<? super Throwable> taskFailures) {
-        populateTaskGraphs();
+    public void runScheduledTasks() {
         startTaskExecution();
-        awaitTaskCompletion(taskFailures);
+        ExecutionResult<Void> result = awaitTaskCompletion();
+        result.rethrow();
     }
 
     @Override
@@ -155,16 +198,27 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         CompositeStoppable.stoppable(includedBuilds, executorService);
     }
 
-    private void expectQueuingTasks() {
-        if (state != State.QueuingTasks && state != State.ReadyToRun) {
-            throw new IllegalStateException("Work graph is in unexpected state: " + state);
+    private void assertCanLocateTask() {
+        if (state == State.NotPrepared) {
+            return;
+        }
+        assertCanQueueTask();
+    }
+
+    private void assertCanQueueTask() {
+        if (state != State.QueuingTasks && state != State.Populated) {
+            throw unexpectedState();
         }
     }
 
     private void expectInState(State expectedState) {
         if (state != expectedState) {
-            throw new IllegalStateException("Work graph is in unexpected state: " + state);
+            throw unexpectedState();
         }
+    }
+
+    private IllegalStateException unexpectedState() {
+        return new IllegalStateException("Work graph is in an unexpected state: " + state);
     }
 
     private <T> T withState(Supplier<T> action) {
@@ -189,4 +243,30 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             }
         }
     }
+
+    private class TaskBackedResource implements IncludedBuildTaskResource {
+        private final IncludedBuildController buildController;
+        private final ExportedTaskNode taskNode;
+
+        public TaskBackedResource(IncludedBuildController buildController, ExportedTaskNode taskNode) {
+            this.buildController = buildController;
+            this.taskNode = taskNode;
+        }
+
+        @Override
+        public void queueForExecution() {
+            DefaultIncludedBuildTaskGraph.this.queueForExecution(buildController, taskNode);
+        }
+
+        @Override
+        public TaskInternal getTask() {
+            return taskNode.getTask();
+        }
+
+        @Override
+        public State getTaskState() {
+            return taskNode.getTaskState();
+        }
+    }
+
 }

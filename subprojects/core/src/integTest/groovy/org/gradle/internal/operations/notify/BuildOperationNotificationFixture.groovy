@@ -36,7 +36,14 @@ class BuildOperationNotificationFixture {
             return op.detailsType == detailsClass.name && op.details.subMap(details.keySet()) == details
         }
         assert found.size() == 1
-        found.first()
+        return found.first()
+    }
+
+    def ops(Class<?> detailsClass, Map<String, String> details = [:]) {
+        def found = recordedOps.findAll { op ->
+            return op.detailsType == detailsClass.name && op.details.subMap(details.keySet()) == details
+        }
+        return found
     }
 
     void started(Class<?> type, Predicate<? super Map<String, ?>> payloadTest) {
@@ -117,10 +124,10 @@ class BuildOperationNotificationFixture {
             def listener = new ${BuildOperationNotificationListener.name}() {
 
                 def ops = [:]
-            
+
                 @Override
                 synchronized void started(${BuildOperationStartedNotification.name} startedNotification) {
-            
+
                     def details = ${BuildOperationTrace.name}.toSerializableModel(startedNotification.notificationOperationDetails)
                     def detailsType = startedNotification.notificationOperationDetails.getClass()
                     if (detailsType.interfaces.length > 0) {
@@ -130,15 +137,15 @@ class BuildOperationNotificationFixture {
                     ops.put(startedNotification.notificationOperationId, new BuildOpsEntry(id: startedNotification.notificationOperationId?.id,
                             parentId: startedNotification.notificationOperationParentId?.id,
                             detailsType: detailsType.name,
-                            details: details, 
+                            details: details,
                             started: startedNotification.notificationOperationStartedTimestamp))
                 }
-                
+
                 @Override
                 synchronized void progress(${BuildOperationProgressNotification.name} progressNotification){
                     // Do nothing
                 }
-            
+
                 @Override
                 synchronized void finished(${BuildOperationFinishedNotification.name} finishedNotification) {
                     def result = ${BuildOperationTrace.name}.toSerializableModel(finishedNotification.getNotificationOperationResult())
@@ -150,14 +157,14 @@ class BuildOperationNotificationFixture {
                         store(file('${jsonFile().toURI()}'))
                     }
                 }
-            
+
                 synchronized void store(File target){
                     target.withPrintWriter { pw ->
                         String json = groovy.json.JsonOutput.toJson(ops.values())
                         pw.append(json)
                     }
                 }
-            
+
                 static class BuildOpsEntry {
                     Object id
                     Object parentId

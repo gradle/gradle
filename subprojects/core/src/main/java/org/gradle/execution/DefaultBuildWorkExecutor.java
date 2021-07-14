@@ -17,7 +17,9 @@ package org.gradle.execution;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.build.ExecutionResult;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,8 +31,10 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
+    public ExecutionResult<Void> execute(GradleInternal gradle) {
+        List<Throwable> failures = new ArrayList<>();
         execute(gradle, 0, failures);
+        return ExecutionResult.maybeFailed(failures);
     }
 
     private void execute(final GradleInternal gradle, final int index, final Collection<? super Throwable> taskFailures) {

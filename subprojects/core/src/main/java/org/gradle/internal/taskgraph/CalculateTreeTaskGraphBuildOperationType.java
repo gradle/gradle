@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.ExecutionResult;
+package org.gradle.internal.taskgraph;
+
+import org.gradle.internal.operations.BuildOperationType;
 
 /**
- * Executes the work scheduled for a build. Prior to execution, the work will be prepared by a {@link org.gradle.initialization.TaskExecutionPreparer}.
+ * Computing the task graph for the build tree based on the inputs and build configuration.
  */
-public interface BuildWorkExecutor {
-    /**
-     * Executes the scheduled work and collects the failures.
-     */
-    ExecutionResult<Void> execute(GradleInternal gradle);
+public final class CalculateTreeTaskGraphBuildOperationType implements BuildOperationType<CalculateTreeTaskGraphBuildOperationType.Details, CalculateTreeTaskGraphBuildOperationType.Result> {
+    public interface Details {
+    }
+
+    public interface Result {
+    }
+
+    private CalculateTreeTaskGraphBuildOperationType() {
+    }
 }
