@@ -404,19 +404,24 @@ class JacocoCoverageAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("app/build.gradle") << """
             abstract class CustomAggregation extends DefaultTask {
-                @TaskAction
-                void aggregate() {
-                    Configuration resolver = getProject().getConfigurations().create("jacocoResolver")
+
+                private final Set<File> resolvedArtifacts
+
+                CustomAggregation() {
+                    Configuration resolver = project.configurations.create("jacocoResolver")
                     resolver.visible = false
                     resolver.canBeConsumed = false
                     resolver.canBeResolved = true
-                    resolver.extendsFrom(getProject().getConfigurations().getByName("implementation"))
-                    resolver.attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.JAVA_RUNTIME));
-                        attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.DOCUMENTATION));
-                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.getObjects().named(DocsType.class, "jacoco-coverage-data"));
-                    }
-                    println(resolver.getIncoming().artifactView{ lenient(true) }.getFiles().getFiles())
+                    resolver.extendsFrom(project.configurations.getByName("implementation"))
+                    resolver.attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.class, Usage.JAVA_RUNTIME));
+                    resolver.attributes.attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category.class, Category.DOCUMENTATION));
+                    resolver.attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, project.objects.named(DocsType.class, "jacoco-coverage-data"));
+                    this.resolvedArtifacts = resolver.getIncoming().artifactView{ lenient(true) }.getFiles().getFiles()
+                }
+
+                @TaskAction
+                void aggregate() {
+                    println(resolvedArtifacts)
                 }
             }
 
