@@ -21,19 +21,16 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import org.junit.runner.RunWith;
 
 import java.util.Collection;
 import java.util.Set;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-@RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = { "org.gradle", "org.gradleinternal" })
 public class LocaleDependencyTest {
 
@@ -46,19 +43,15 @@ public class LocaleDependencyTest {
         "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getReportName()",
         "org.gradle.internal.deprecation.ConfigurationDeprecationType.displayName()",
         "org.gradle.api.internal.provider.AbstractCollectionProperty.describeContents()",
-        "org.gradle.internal.os.OperatingSystem.forName(java.lang.String)",
         "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin$3.execute(org.gradle.api.Task)",
         "org.gradleinternal.buildinit.plugins.internal.maven.Maven2Gradle.convert()",
-        "org.gradle.caching.internal.controller.service.BuildCacheServiceRole.<init>(java.lang.String, int)",
         "org.gradle.language.nativeplatform.internal.Dimensions.createDimensionSuffix(java.lang.String, java.util.Collection)",
         "org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter.createHeaderForDependency(org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge, java.util.Set)",
         "org.gradle.util.TextUtil$1.apply(java.lang.String)",
-        "org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.toString()",
         "org.gradle.internal.logging.console.DefaultColorMap.getColorSpecForStyle(org.gradle.internal.logging.text.StyledTextOutput$Style)",
         "org.gradle.internal.logging.console.DefaultColorMap.addDefault(org.gradle.internal.logging.text.StyledTextOutput$Style, [Lorg.gradle.internal.logging.text.StyledTextOutput$Style;)",
         "org.gradle.internal.logging.console.DefaultColorMap.addDefault(org.gradle.internal.logging.text.StyledTextOutput$Style, java.lang.String)",
         "org.gradle.internal.logging.console.DefaultColorMap.getColourFor(org.gradle.internal.logging.text.StyledTextOutput$Style)",
-        "org.gradle.internal.os.OperatingSystem$Unix.getOsPrefix()",
         "org.gradle.internal.buildoption.EnumBuildOption.getValue(java.lang.String)",
         "org.gradle.util.internal.GUtil.toWords(java.lang.CharSequence, char)",
         "org.gradle.util.internal.NameMatcher.getKebabCasePatternForName(java.lang.String)",
@@ -67,10 +60,8 @@ public class LocaleDependencyTest {
         "org.gradle.api.publish.maven.internal.publisher.MavenRemotePublisher.publish(org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication, org.gradle.api.artifacts.repositories.MavenArtifactRepository)",
         "org.gradle.internal.FileUtils.withExtension(java.lang.String, java.lang.String)",
         "org.gradle.plugins.ide.eclipse.model.internal.SourceFoldersCreator.addSourceSetAttribute(org.gradle.api.tasks.SourceSet, org.gradle.plugins.ide.eclipse.model.SourceFolder)",
-        "org.gradle.buildinit.plugins.internal.modifiers.Language.withName(java.lang.String)",
         "org.gradle.buildinit.plugins.internal.modifiers.Language.withNameAndExtension(java.lang.String, java.lang.String)",
         "org.gradle.internal.nativeintegration.jansi.DefaultJansiRuntimeResolver.getOperatingSystem()",
-        "org.gradle.buildinit.plugins.internal.LanguageSpecificAdaptor.conventionPluginScriptBuilder(java.lang.String, org.gradle.buildinit.plugins.internal.InitSettings)",
         "org.gradle.configurationcache.ConfigurationCacheRepository.stateFile(java.io.File, org.gradle.configurationcache.StateType)",
         "org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.documented()",
         "org.gradle.internal.nativeintegration.services.NativeServices.initializeNativeIntegrations(java.io.File)",
@@ -84,8 +75,6 @@ public class LocaleDependencyTest {
         "org.gradle.process.internal.util.MergeOptionsUtil.getHeapSizeMb(java.lang.String)",
         "org.gradle.util.VersionNumber.toLowerCase(java.lang.String)",
         "org.gradle.util.NameMatcher.getKebabCasePatternForName(java.lang.String)",
-        "org.gradle.internal.jvm.Jvm.createCurrent()",
-        "org.gradle.internal.jvm.Jvm.createCurrent()",
         "org.gradle.cache.internal.DefaultFileLockManager$DefaultFileLock.lock(org.gradle.cache.FileLockManager$LockMode)",
         "org.gradle.nativeplatform.platform.internal.Architectures.forInput(java.lang.String)",
         "org.gradle.api.internal.artifacts.repositories.layout.ResolvedPattern.<init>(java.lang.String, org.gradle.api.internal.file.FileResolver)",
@@ -101,7 +90,6 @@ public class LocaleDependencyTest {
         "org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel.isVisible(java.lang.String)",
         "org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel.<init>(boolean, boolean, java.lang.String)",
         "org.gradle.api.plugins.quality.TargetJdk.getName()",
-        "org.gradle.plugins.ide.idea.model.PathFactory.path(java.lang.String, java.lang.String)",
         "org.gradle.plugins.ide.idea.model.PathFactory.path(java.lang.String, java.lang.String)"
     );
 
@@ -113,13 +101,11 @@ public class LocaleDependencyTest {
         "org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials.determineWorkstationName()",
         "org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials.<init>(org.gradle.api.credentials.PasswordCredentials)",
         "org.gradle.internal.typeconversion.TimeUnitsParser.parseNotation(java.lang.CharSequence, int)",
-        "org.gradle.internal.logging.console.DefaultColorMap.createColorFromSpec(java.lang.String)",
         "org.gradle.internal.logging.console.DefaultColorMap.getColourFor(org.gradle.internal.logging.text.Style)",
+        "org.gradle.internal.logging.console.DefaultColorMap.createColorFromSpec(java.lang.String)",
         "org.gradle.util.internal.GUtil.toConstant(java.lang.CharSequence)",
         "org.gradle.util.internal.NameMatcher.find(java.lang.String, java.util.Collection)",
-        "org.gradle.util.internal.NameMatcher.find(java.lang.String, java.util.Collection)",
         "org.gradle.internal.buildevents.BuildResultLogger.buildFinished(org.gradle.BuildResult)",
-        "org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker.execute(org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation, org.gradle.internal.operations.BuildOperationContext)",
         "org.gradle.nativeplatform.toolchain.internal.DefaultCommandLineToolInvocationWorker.execute(org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation, org.gradle.internal.operations.BuildOperationContext)",
         "org.gradle.internal.logging.LoggingConfigurationBuildOptions$LogLevelOption.parseLogLevel(java.lang.String)",
         "org.gradle.plugins.signing.signatory.pgp.PgpKeyId.normaliseKeyId(java.lang.String)",
@@ -130,7 +116,6 @@ public class LocaleDependencyTest {
         "org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPluginKt$kebabCaseToCamelCase$1.invoke(kotlin.text.MatchResult)",
         "org.gradle.internal.logging.console.BuildStatusRenderer.phaseStarted(org.gradle.internal.logging.events.ProgressStartEvent, org.gradle.internal.logging.console.BuildStatusRenderer$Phase)",
         "org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver.publishChecksum(org.gradle.internal.resource.ExternalResourceName, java.io.File, java.lang.String, int)",
-        "org.gradle.util.NameMatcher.find(java.lang.String, java.util.Collection)",
         "org.gradle.util.NameMatcher.find(java.lang.String, java.util.Collection)",
         "org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile.writeAsciiArmoredKeyRingFile(java.io.File, com.google.common.collect.ImmutableList)",
         "org.gradle.internal.nativeintegration.filesystem.services.GenericFileSystem.probeCaseSensitive(java.io.File, java.lang.String)",
