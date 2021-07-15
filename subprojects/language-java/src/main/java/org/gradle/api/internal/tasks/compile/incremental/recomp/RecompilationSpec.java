@@ -76,7 +76,13 @@ public class RecompilationSpec {
     }
 
     public void addClassesToProcess(Collection<String> classes) {
-        classesToProcess.addAll(classes);
+        classes.forEach(classToReprocess -> {
+            if (classToReprocess.endsWith("package-info")) {
+                classesToCompile.add(classToReprocess);
+            } else {
+                classesToProcess.add(classToReprocess);
+            }
+        });
     }
 
     public Collection<String> getClassesToProcess() {

@@ -160,12 +160,7 @@ public class ClassSetAnalysis {
         if (!constants.isEmpty() && !compilerApiData.isSupportsConstantsMapping()) {
             return DependentsSet.dependencyToAll("an inlineable constant in '" + className + "' has changed");
         }
-        Set<String> classesDependingOnAllOthers = new HashSet<>(annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet());
-        annotationProcessingData.getAggregatedTypes()
-            .stream()
-            .map(annotationProcessingData::getOriginOf)
-            .filter(ClassSetAnalysis::isPackageInfo)
-            .forEach(classesDependingOnAllOthers::add);
+        Set<String> classesDependingOnAllOthers = annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.participatesInResourceGeneration(className) ? annotationProcessingData.getGeneratedResourcesDependingOnAllOthers() : Collections.emptySet();
 
         DependentsSet constantDeps = getConstantDependents(className);
@@ -200,7 +195,6 @@ public class ClassSetAnalysis {
         return annotationProcessingData.getAggregatedTypes()
             .stream()
             .map(annotationProcessingData::getOriginOf)
-            .filter(name -> !isPackageInfo(name))
             .collect(Collectors.toSet());
     }
 
@@ -299,10 +293,6 @@ public class ClassSetAnalysis {
 
     public IntSet getConstants(String className) {
         return classAnalysis.getConstants(className);
-    }
-
-    private static boolean isPackageInfo(String className) {
-        return className.endsWith("package-info");
     }
 
     /**
