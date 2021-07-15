@@ -31,6 +31,8 @@ import spock.lang.Unroll
 
 @Unroll
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
+    private static final String REMOVED_CONTENT_UNDER_WATCHABLE_HIERARCHY_MESSAGE = "Removed existing content under new watchable hierarchy"
+
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
@@ -53,6 +55,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "run", "--info"
         then:
         assertWatchableHierarchies([ImmutableSet.of(testDirectory)])
+        assertNoContentRemovedUnderNewWatchableHierarchies()
     }
 
     def "watches the project directory when buildSrc is present"() {
@@ -68,6 +71,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         then:
         outputContains "Hello from original task!"
         assertWatchableHierarchies([ImmutableSet.of(testDirectory), ImmutableSet.of(testDirectory, file("buildSrc"))])
+        assertNoContentRemovedUnderNewWatchableHierarchies()
     }
 
     def "works with composite build"() {
@@ -102,6 +106,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         then:
         executedAndNotSkipped(":includedBuild:jar")
         assertWatchableHierarchies(expectedWatchableHierarchies)
+        assertNoContentRemovedUnderNewWatchableHierarchies()
 
         when:
         withWatchFs().run("assemble", "--info")
@@ -110,6 +115,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         // configuration cache registers all build directories at startup so the cache fingerprint can be checked
         def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 3 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
+        assertNoContentRemovedUnderNewWatchableHierarchies()
 
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
@@ -146,14 +152,20 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
             """
         }
 
-        when:
         executer.inDirectory(includedPluginBuild)
         withoutWatchFs().run('jar')
-        executer.inDirectory(consumer)
 
+        when:
+        executer.inDirectory(consumer)
+        withWatchFs().run("assemble", "--info")
         then:
-        withWatchFs().succeeds("assemble", "--info")
-        outputContains("Removed existing content under new watchable hierarchy ${includedPluginBuild.absolutePath}")
+        outputContains("${REMOVED_CONTENT_UNDER_WATCHABLE_HIERARCHY_MESSAGE} ${includedPluginBuild.absolutePath}")
+
+        when:
+        executer.inDirectory(consumer)
+        withWatchFs().run("assemble", "--info")
+        then:
+        assertNoContentRemovedUnderNewWatchableHierarchies()
     }
 
     def "works with GradleBuild task"() {
@@ -184,11 +196,13 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "buildInBuild", "--info"
         then:
         assertWatchableHierarchies(expectedWatchableHierarchies)
+        assertNoContentRemovedUnderNewWatchableHierarchies()
 
         when:
         withWatchFs().run "buildInBuild", "--info"
         then:
         assertWatchableHierarchies(expectedWatchableHierarchies)
+        assertNoContentRemovedUnderNewWatchableHierarchies()
     }
 
     def "gracefully handle the root project directory not being available"() {
@@ -316,6 +330,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "retrieve", "--info"
         then:
         assertWatchedHierarchies([projectDir])
+        assertNoContentRemovedUnderNewWatchableHierarchies()
 
         where:
         repositoryType | artifactFileProperty
@@ -361,6 +376,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         then:
         projectDir.file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
         assertWatchedHierarchies([projectDir])
+        assertNoContentRemovedUnderNewWatchableHierarchies()
     }
 
     def "stops watching hierarchies when the limit has been reached"() {
@@ -434,6 +450,10 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
             }
 
         assert watchedHierarchies == (expected as Set)
+    }
+
+    void assertNoContentRemovedUnderNewWatchableHierarchies() {
+        outputDoesNotContain(REMOVED_CONTENT_UNDER_WATCHABLE_HIERARCHY_MESSAGE)
     }
 
     private static boolean isHierarchicalWatcher() {
