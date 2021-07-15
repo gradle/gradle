@@ -141,7 +141,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
         withKotlinBuildSrc()
@@ -868,7 +867,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `given generic extension types they can be accessed and configured`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -943,14 +941,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     fun `can use kotlin java8 inline-only methods`() {
 
         withBuildScript(
             """
             task("test") {
+                val v = project.properties.getOrDefault("non-existent-property", "default-value")
                 doLast {
-                    println(project.properties.getOrDefault("non-existent-property", "default-value"))
+                    println(v)
                 }
             }
             """
