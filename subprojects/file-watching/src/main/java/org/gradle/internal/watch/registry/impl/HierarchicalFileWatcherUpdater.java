@@ -87,9 +87,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        updateWatchedHierarchies(root);
+    public SnapshotHierarchy registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        SnapshotHierarchy newRoot = watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+        updateWatchedHierarchies(newRoot);
+        return newRoot;
     }
 
     @Override

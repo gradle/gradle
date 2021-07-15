@@ -53,7 +53,8 @@ public class WatchableHierarchies {
         this.watchFilter = watchFilter;
     }
 
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    @CheckReturnValue
+    public SnapshotHierarchy registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
         String watchableHierarchyPathString = watchableHierarchyPath.toString();
         if (!watchFilter.test(watchableHierarchyPathString)) {
@@ -62,15 +63,18 @@ public class WatchableHierarchies {
                 watchableHierarchyPathString
             ));
         }
+        SnapshotHierarchy newRoot;
         if (!watchableHierarchies.contains(watchableHierarchyPathString)) {
-            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPathString, root);
+            newRoot = removeUnwatchedContentAtNewWatchableHierarchy(watchableHierarchyPathString, root);
             recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
             watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
         } else {
+            newRoot = root;
             recentlyUsedHierarchies.remove(watchableHierarchyPath);
             recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
         }
         LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
+        return newRoot;
     }
 
     @CheckReturnValue
@@ -138,16 +142,34 @@ public class WatchableHierarchies {
         return recentlyUsedHierarchies;
     }
 
-    private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
-        vfsRoot.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
+    @CheckReturnValue
+    private SnapshotHierarchy removeUnwatchedContentAtNewWatchableHierarchy(String unwatchedLocation, SnapshotHierarchy vfsRoot) {
+        RemoveUnwatchedContentVisitor removeUnwatchedContentVisitor = new RemoveUnwatchedContentVisitor(vfsRoot);
+        vfsRoot.visitSnapshotRoots(unwatchedLocation, removeUnwatchedContentVisitor);
+        SnapshotHierarchy newRoot = removeUnwatchedContentVisitor.getVfsRoot();
+        if (newRoot != vfsRoot) {
+            LOGGER.info("Removed existing content under new watchable hierarchy {}", unwatchedLocation);
+        }
+        return newRoot;
+    }
+
+    private class RemoveUnwatchedContentVisitor implements SnapshotHierarchy.SnapshotVisitor {
+        private SnapshotHierarchy vfsRoot;
+
+        public RemoveUnwatchedContentVisitor(SnapshotHierarchy vfsRoot) {
+            this.vfsRoot = vfsRoot;
+        }
+
+        @Override
+        public void visitSnapshotRoot(FileSystemLocationSnapshot snapshotRoot) {
             if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
-                throw new IllegalStateException(String.format(
-                    "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
-                    snapshotRoot.getAbsolutePath(),
-                    watchableHierarchy
-                ));
+                vfsRoot = vfsRoot.invalidate(snapshotRoot.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
             }
-        });
+        }
+
+        public SnapshotHierarchy getVfsRoot() {
+            return vfsRoot;
+        }
     }
 
     public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {

@@ -84,8 +84,8 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+    public SnapshotHierarchy registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        return watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
     }
 
     @Override

@@ -31,7 +31,8 @@ public interface FileWatcherUpdater {
      *
      * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    @CheckReturnValue
+    SnapshotHierarchy registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
 
     /**
      * Updates the watchers after changes to the root.

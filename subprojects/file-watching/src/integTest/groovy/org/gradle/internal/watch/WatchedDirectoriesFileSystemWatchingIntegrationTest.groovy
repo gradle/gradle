@@ -152,7 +152,8 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executer.inDirectory(consumer)
 
         then:
-        withWatchFs().succeeds("assemble")
+        withWatchFs().succeeds("assemble", "--info")
+        outputContains("Removed existing content under new watchable hierarchy ${includedPluginBuild.absolutePath}")
     }
 
     def "works with GradleBuild task"() {

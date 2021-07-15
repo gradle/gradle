@@ -126,7 +126,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
     }
 
-    def "fails when discovering a hierarchy to watch and there is already something in the VFS"() {
+    def "removes existing snapshots when registering a new hierarchy to watch"() {
         def watchableHierarchy = file("watchable").createDir()
         def fileInWatchableHierarchy = watchableHierarchy.file("some/dir/file.txt").createFile()
 
@@ -138,8 +138,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         registerWatchableHierarchies([watchableHierarchy])
         then:
-        def exception = thrown(IllegalStateException)
-        exception.message == "Found existing snapshot at '${fileInWatchableHierarchy.absolutePath}' for unwatched hierarchy '${watchableHierarchy.absolutePath}'"
+        0 * _
+        !vfsHasSnapshotsAt(watchableHierarchy)
     }
 
     def "does not watch symlinks and removes symlinks at the end of the build"() {
@@ -279,7 +279,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
         watchableHierarchies.each { watchableHierarchy ->
-            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root)
+            virtualFileSystem.root = updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root)
         }
     }
 

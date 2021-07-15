@@ -134,24 +134,24 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.setDebugLoggingEnabled(false)
-        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _) >> rootReference.root
         0 * _
 
         when:
         watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _) >> rootReference.root
 
         when:
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.root
         0 * _
 
         when:
         watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _) >> rootReference.root
     }
 }
