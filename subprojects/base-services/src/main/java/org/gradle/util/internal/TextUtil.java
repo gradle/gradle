@@ -208,6 +208,20 @@ public class TextUtil {
         return s.toLowerCase(Locale.ENGLISH);
     }
 
+    /**
+     * This method should be used when making strings uppercase that
+     * could be affected by locale differences. This method always uses an
+     * English locale.
+     *
+     * @param s string to be made uppercase
+     * @return an uppercase string that ignores locale
+     *
+     * @see <a href="https://issues.gradle.org/browse/GRADLE-3470">GRADLE-3470</a>
+     * @see <a href="https://haacked.com/archive/2012/07/05/turkish-i-problem-and-why-you-should-care.aspx/">Turkish i problem</a>
+     */
+    public static String toUpperCaseLocaleSafe(String s) {
+        return s.toUpperCase(Locale.ENGLISH);
+    }
 
     /**
      * Replacement for locale-dependent {@code String.toLowerCase()}.
