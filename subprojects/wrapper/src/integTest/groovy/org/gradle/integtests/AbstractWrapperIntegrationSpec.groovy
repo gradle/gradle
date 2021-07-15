@@ -17,9 +17,11 @@
 package org.gradle.integtests
 
 import org.apache.commons.io.FilenameUtils
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
+import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
 
 class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
@@ -29,8 +31,9 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         distDir.listFiles()[0].file("gradle-${distribution.version.baseVersion.version}").assertIsDir()
     }
 
-    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI()) {
+    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), Action<GradleExecuter> action = Actions.doNothing()) {
         def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
+        executer.beforeExecute(action)
         executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString()).run()
     }
 

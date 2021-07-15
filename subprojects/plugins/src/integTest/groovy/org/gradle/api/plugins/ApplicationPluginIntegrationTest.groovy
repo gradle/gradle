@@ -40,21 +40,8 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript()
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
-        unixStartScriptContent.contains('APP_NAME="sample"')
-        unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        !unixStartScriptContent.contains('MODULE_PATH=')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript()
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
-        windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        !windowsStartScriptContentText.contains('set MODULE_PATH=')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript()
+        assertGeneratedWindowsStartScript()
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -66,21 +53,13 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript()
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  sample start up script for UN*X')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
-        unixStartScriptContent.contains('APP_NAME="sample"')
-        unixStartScriptContent.contains('CLASSPATH="\\\\\\"\\\\\\""')
-        unixStartScriptContent.contains('MODULE_PATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript()
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
-        windowsStartScriptContentText.contains('set CLASSPATH=')
-        windowsStartScriptContentText.contains('set MODULE_PATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript()
+        assertGeneratedWindowsStartScript()
+
+        when:
+        succeeds('installDist')
+        then:
+        runViaStartScript()
     }
 
     def "can generate starts script generation with custom user configuration"() {
@@ -94,19 +73,8 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         succeeds('startScripts')
 
         then:
-        File unixStartScript = assertGeneratedUnixStartScript('myApp')
-        String unixStartScriptContent = unixStartScript.text
-        unixStartScriptContent.contains('##  myApp start up script for UN*X')
-        unixStartScriptContent.contains('APP_NAME="myApp"')
-        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dgreeting.language=en" "-DappId=sample"\'')
-        unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
-        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
-        File windowsStartScript = assertGeneratedWindowsStartScript('myApp.bat')
-        String windowsStartScriptContentText = windowsStartScript.text
-        windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
-        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS="-Dgreeting.language=en" "-DappId=sample"')
-        windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
+        assertGeneratedUnixStartScript('myApp')
+        assertGeneratedWindowsStartScript('myApp')
     }
 
     def "can change template file for default start script generators"() {
@@ -204,7 +172,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         given:
         succeeds('installDist')
         def binFile = file('build/install/sample/bin/sample')
-        binFile.text = """#!/usr/bin/env bash
+        binFile.text = """#!/usr/bin/env sh
 echo Script PID: \$\$
 
 $binFile.text
@@ -566,6 +534,7 @@ startScripts {
         generateMainClass """
             System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
             System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+            System.out.println("FOO: " + System.getProperty("FOO"));
             System.out.println("Hello World!");
         """
     }
@@ -723,8 +692,108 @@ rootProject.name = 'sample'
         fails('execStartScript')
 
         then:
-        errorOutput.contains("Could not find or load main class `\$(touch")
+        result.assertTaskExecuted(":execStartScript")
         !exploit.exists()
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables can have spaces in their values"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DFOO="with a space"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: with a space")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables can have spaces in their values that should be treated as separate tokens"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DNOTFOO "-DFOO=with a space"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: with a space")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables that do not have spaces in their values that should be treated as separate tokens"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DNOTFOO -DFOO="withoutspaces"'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: withoutspaces")
+
+        where:
+        envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "environment variables that do not have spaces in their values that should be treated as one token"() {
+        when:
+        succeeds('installDist')
+
+        then:
+        file('build/install/sample').exists()
+
+        when:
+        buildFile << """
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine './sample'
+                environment ${envVar}: '-DFOO=withoutspaces'
+            }
+        """
+        succeeds('execStartScript')
+
+        then:
+        outputContains("FOO: withoutspaces")
 
         where:
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
