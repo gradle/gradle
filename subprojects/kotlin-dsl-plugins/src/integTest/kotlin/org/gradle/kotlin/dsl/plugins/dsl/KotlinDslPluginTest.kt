@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -263,7 +262,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use SAM conversions for Kotlin functions without warnings`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
@@ -289,7 +287,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `nags user about experimentalWarning deprecation`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(
