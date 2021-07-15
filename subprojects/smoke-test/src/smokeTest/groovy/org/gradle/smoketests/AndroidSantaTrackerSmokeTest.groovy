@@ -127,6 +127,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, String agpVersion, String task, List<String> artifacts) {
         SmokeTestGradleRunner runner = runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task)
+        runner.ignoreDeprecationWarnings()
         artifacts.each { artifact ->
             runner.expectLegacyDeprecationWarningIf(
                 agpVersion.startsWith("4.1"),
