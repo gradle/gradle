@@ -20,11 +20,11 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
 
-import java.util.Collection;
 import static org.gradle.api.internal.StartParameterInternal.useLocationAsProjectRoot;
 
 public class UndefinedBuildWorkExecutor implements BuildWorkExecutor {
@@ -37,15 +37,15 @@ public class UndefinedBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     @Override
-    public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
+    public ExecutionResult<Void> execute(GradleInternal gradle) {
         if (!useLocationAsProjectRoot(gradle.getRootProject().getRootDir(), gradle.getStartParameter().getTaskNames()) && isUndefinedBuild(gradle)) {
             projectCacheDir.delete();
             throw new InvalidUserCodeException(
                 "Executing Gradle tasks as part of a build without a settings file is not supported. " +
-                "Make sure that you are executing Gradle from a directory within your Gradle project. " +
-                "Your project should have a 'settings.gradle(.kts)' file in the root directory.");
+                    "Make sure that you are executing Gradle from a directory within your Gradle project. " +
+                    "Your project should have a 'settings.gradle(.kts)' file in the root directory.");
         }
-        delegate.execute(gradle, failures);
+        return delegate.execute(gradle);
     }
 
     private static boolean isUndefinedBuild(GradleInternal gradle) {

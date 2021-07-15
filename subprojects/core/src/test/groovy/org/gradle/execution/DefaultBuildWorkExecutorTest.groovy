@@ -30,9 +30,10 @@ class DefaultBuildWorkExecutorTest extends Specification {
         def buildExecution = new DefaultBuildWorkExecutor([action1, action2])
 
         when:
-        buildExecution.execute(gradleInternal, failures)
+        def result = buildExecution.execute(gradleInternal)
 
         then:
+        result.failures.empty
         1 * action1.execute(!null, failures)
         0 * _._
     }
@@ -46,13 +47,34 @@ class DefaultBuildWorkExecutorTest extends Specification {
         def buildExecution = new DefaultBuildWorkExecutor([action1, action2])
 
         when:
-        buildExecution.execute(gradleInternal, failures)
+        def result = buildExecution.execute(gradleInternal)
 
         then:
+        result.failures.empty
         1 * action1.execute(!null, failures) >> { it[0].proceed() }
 
         and:
         1 * action2.execute(!null, failures)
+    }
+
+    def "collects failure from action"() {
+        def failure = new RuntimeException()
+        BuildExecutionAction action1 = Mock()
+        BuildExecutionAction action2 = Mock()
+        def failures = []
+
+        given:
+        def buildExecution = new DefaultBuildWorkExecutor([action1, action2])
+
+        when:
+        def result = buildExecution.execute(gradleInternal)
+
+        then:
+        result.failures == [failure]
+        1 * action1.execute(!null, failures) >> { it[0].proceed() }
+
+        and:
+        1 * action2.execute(!null, failures) >> { a, b -> b.add(failure) }
     }
 
     def "does nothing when last execution action calls proceed"() {
@@ -63,9 +85,10 @@ class DefaultBuildWorkExecutorTest extends Specification {
         def buildExecution = new DefaultBuildWorkExecutor([action1])
 
         when:
-        buildExecution.execute(gradleInternal, failures)
+        def result = buildExecution.execute(gradleInternal)
 
         then:
+        result.failures.empty
         1 * action1.execute(!null, failures) >> { it[0].proceed() }
         0 * _._
     }
@@ -78,11 +101,12 @@ class DefaultBuildWorkExecutorTest extends Specification {
         def buildExecution = new DefaultBuildWorkExecutor([executionAction])
 
         when:
-        buildExecution.execute(gradleInternal, failures)
+        def result = buildExecution.execute(gradleInternal)
 
         then:
+        result.failures.empty
         1 * executionAction.execute(!null, failures) >> {
-            assert it[0].gradle ==gradleInternal
+            assert it[0].gradle == gradleInternal
         }
     }
 }

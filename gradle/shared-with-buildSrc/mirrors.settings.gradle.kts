@@ -34,7 +34,7 @@ val originalUrls: Map<String, String> = mapOf(
 )
 
 val mirrorUrls: Map<String, String> =
-    providers.environmentVariable("REPO_MIRROR_URLS").forUseAtConfigurationTime().orNull
+    providers.environmentVariable("REPO_MIRROR_GRDEV_URLS").forUseAtConfigurationTime().orNull
         ?.ifBlank { null }
         ?.split(',')
         ?.associate { nameToUrl ->
@@ -74,7 +74,7 @@ fun overridesPluginPortalUrl() = providers.systemProperty(PLUGIN_PORTAL_OVERRIDE
 if (!overridesPluginPortalUrl() && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
     // https://github.com/gradle/gradle-private/issues/2725
     // https://github.com/gradle/gradle-private/issues/2951
-    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
+    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://repo.grdev.net/artifactory/gradle-plugin-portal-prod/")
 
     abstract class ClearPortalOverride : BuildService<BuildServiceParameters.None>, OperationCompletionListener, AutoCloseable {
         override fun onFinish(event: FinishEvent) = Unit

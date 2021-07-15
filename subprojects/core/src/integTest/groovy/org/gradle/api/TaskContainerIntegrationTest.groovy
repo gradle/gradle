@@ -34,18 +34,6 @@ trait AbstractTaskContainerIntegrationTest {
     }
 }
 
-class QueryAndMutationTaskContainerIntegrationTest extends AbstractQueryAndMutationDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}
-
-class QueryTaskContainerIntegrationTest extends AbstractQueryDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}
-
-class MutationFailureTaskContainerIntegrationTest extends AbstractMutationFailureDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}
-
-class MutatingTaskContainerInHookIntegrationTest extends AbstractMutatingDomainObjectContainerInHookIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}
-
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 
     def "chained lookup of tasks.withType.matching"() {

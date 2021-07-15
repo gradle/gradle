@@ -17,8 +17,8 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -43,7 +43,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     private final Lock lock = new ReentrantLock();
     private final Condition stateChange = lock.newCondition();
     private boolean finished;
-    private final List<Throwable> taskFailures = new ArrayList<>();
+    private final List<Throwable> executionFailures = new ArrayList<>();
 
     public DefaultIncludedBuildController(IncludedBuildState includedBuild, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         super(includedBuild);
@@ -59,7 +59,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     }
 
     @Override
-    protected void doAwaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    protected void doAwaitTaskCompletion(Consumer<? super Throwable> executionFailures) {
         // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
         projectStateRegistry.blocking(() -> {
             lock.lock();
@@ -67,10 +67,10 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
                 while (!finished) {
                     awaitStateChange();
                 }
-                for (Throwable taskFailure : this.taskFailures) {
-                    taskFailures.accept(taskFailure);
+                for (Throwable taskFailure : this.executionFailures) {
+                    executionFailures.accept(taskFailure);
                 }
-                this.taskFailures.clear();
+                this.executionFailures.clear();
             } finally {
                 lock.unlock();
             }
@@ -80,6 +80,8 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     private void run() {
         try {
             workerLeaseService.withSharedLease(parentLease, this::doBuild);
+        } catch (Throwable t) {
+            executionFailed(t);
         } finally {
             markFinished();
         }
@@ -104,23 +106,23 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     }
 
     private void doBuild() {
+        ExecutionResult<Void> result = includedBuild.getWorkGraph().execute();
+        executionFinished(result);
+    }
+
+    private void executionFinished(ExecutionResult<Void> result) {
+        lock.lock();
         try {
-            includedBuild.getWorkGraph().execute();
-        } catch (RuntimeException failure) {
-            executionFailed(failure);
+            executionFailures.addAll(result.getFailures());
+        } finally {
+            lock.unlock();
         }
     }
 
-    private void executionFailed(RuntimeException failure) {
+    private void executionFailed(Throwable failure) {
         lock.lock();
         try {
-            if (failure != null) {
-                if (failure instanceof MultipleBuildFailures) {
-                    taskFailures.addAll(((MultipleBuildFailures) failure).getCauses());
-                } else {
-                    taskFailures.add(failure);
-                }
-            }
+            executionFailures.add(failure);
         } finally {
             lock.unlock();
         }

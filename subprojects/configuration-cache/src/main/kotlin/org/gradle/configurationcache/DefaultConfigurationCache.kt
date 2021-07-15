@@ -109,7 +109,7 @@ class DefaultConfigurationCache internal constructor(
         rootBuild = host
     }
 
-    override fun loadOrScheduledRequestedTasks(scheduler: () -> Unit) {
+    override fun loadOrScheduleRequestedTasks(scheduler: () -> Unit) {
         if (canLoad) {
             loadWorkGraph()
         } else {

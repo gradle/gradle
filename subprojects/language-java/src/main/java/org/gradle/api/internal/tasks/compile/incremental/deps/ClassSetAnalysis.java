@@ -25,8 +25,8 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;

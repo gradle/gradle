@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -28,7 +29,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new LinkedHashMap<>();
@@ -86,10 +86,12 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    public ExecutionResult<Void> awaitTaskCompletion() {
+        ExecutionResult<Void> result = ExecutionResult.succeeded();
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.awaitTaskCompletion(taskFailures);
+            result = result.withFailures(buildController.awaitTaskCompletion());
         }
+        return result;
     }
 
     @Override

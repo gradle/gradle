@@ -24,8 +24,8 @@ import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
-import org.gradle.util.internal.GUtil
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.GUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
