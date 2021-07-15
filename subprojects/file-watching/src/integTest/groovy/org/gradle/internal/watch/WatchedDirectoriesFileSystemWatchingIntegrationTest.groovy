@@ -118,6 +118,43 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executedAndNotSkipped(":includedBuild:jar")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17621")
+    def "works when build logic is referenced by a file and then the the composite build is included"() {
+        buildTestFixture.withBuildInSubDir()
+        def includedPluginBuild = singleProjectBuild("includedBuild") {
+            buildFile << """
+                apply plugin: 'java-library'
+            """
+        }
+        def consumer = singleProjectBuild("consumer") {
+            buildFile << """
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation "org.test:includedBuild:1.0"
+                }
+            """
+            settingsFile << """
+                buildscript {
+                    def libraries = fileTree('../includedBuild/build/libs').include('*.jar').files
+                    assert !libraries.empty
+                    dependencies {
+                        classpath files(libraries)
+                    }
+                }
+                includeBuild("../includedBuild")
+            """
+        }
+
+        when:
+        executer.inDirectory(includedPluginBuild)
+        withoutWatchFs().run('jar')
+        executer.inDirectory(consumer)
+
+        then:
+        withWatchFs().succeeds("assemble")
+    }
+
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
         def buildInBuild = singleProjectBuild("buildInBuild") {
