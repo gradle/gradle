@@ -1,18 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="30px" height="30px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <defs></defs>
-    <g id="adjacent-scans-button-Broad-changes___2" stroke="currentColor" stroke-width="1" fill="none" fill-rule="evenodd"
-       stroke-linecap="round">
-        <g id="adjacent-scans-button-adjacent-scans___2" stroke="currentColor">
-            <g id="adjacent-scans-button-Stroke-3566-+-Stroke-3567-+-Stroke-3568___2"
-               transform="translate(1.000000, 3.000000)">
-                <polyline id="adjacent-scans-button-Stroke-3566___2" stroke-linejoin="round"
-                          points="0.145874023 7.39477539 2.90768353 11.3947754 6.14587402 7.84977484"></polyline>
-                <path
-                    d="M3.07806918,10.9856081 C2.33700985,4.89929168 6.98506545,0.189386019 12.2078405,0.00583123723 C17.4306155,-0.176223096 21.8127264,3.9270015 21.994007,9.17206688 C22.1782758,14.4171323 18.0904969,18.8179457 12.8677219,19"
-                    id="adjacent-scans-button-Stroke-3567___2" stroke-linejoin="round"></path>
-                <polyline id="adjacent-scans-button-Stroke-3568___2" points="12.5 4 12.5 10.5 17 10.5"></polyline>
-            </g>
-        </g>
-    </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" version="1.1" viewBox="0 0 24 24"><g id="adjacent-scans-button-Broad-changes___2" fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-width="1"><g id="adjacent-scans-button-adjacent-scans___2" stroke="currentColor"><g id="adjacent-scans-button-Stroke-3566-+-Stroke-3567-+-Stroke-3568___2" transform="translate(1.000000, 3.000000)"><polyline id="adjacent-scans-button-Stroke-3566___2" stroke-linejoin="round" points=".146 7.395 2.908 11.395 6.146 7.85"/><path id="adjacent-scans-button-Stroke-3567___2" stroke-linejoin="round" d="M3.07806918,10.9856081 C2.33700985,4.89929168 6.98506545,0.189386019 12.2078405,0.00583123723 C17.4306155,-0.176223096 21.8127264,3.9270015 21.994007,9.17206688 C22.1782758,14.4171323 18.0904969,18.8179457 12.8677219,19"/><polyline id="adjacent-scans-button-Stroke-3568___2" points="12.5 4 12.5 10.5 17 10.5"/></g></g></g></svg>
