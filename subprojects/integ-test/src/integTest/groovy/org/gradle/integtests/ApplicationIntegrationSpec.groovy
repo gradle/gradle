@@ -148,29 +148,34 @@ class Main {
     }
 
     def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
+        def testValue = "value"
+        // $'s are not escaped on Windows
+        def testValue2 = OperatingSystem.current().windows ? 'some value$PATH' : 'some value\\\\$PATH'
+        def testValue3 = 'some value%PATH%'
         file("build.gradle") << '''
-applicationDefaultJvmArgs = ['-DtestValue=value',
-                             '-DtestValue2=some value$PATH',
-                             '-DtestValue3=some value%PATH%',
-                            ]
-'''
-        file('src/main/java/org/gradle/test/Main.java') << '''
+            applicationDefaultJvmArgs = [
+                '-DtestValue=value',
+                '-DtestValue2=some value$PATH',
+                '-DtestValue3=some value%PATH%',
+            ]
+        '''
+        file('src/main/java/org/gradle/test/Main.java') << """
 package org.gradle.test;
 
 class Main {
     public static void main(String[] args) {
-        if (!"value".equals(System.getProperty("testValue"))) {
-            throw new RuntimeException("Expected system property not specified: testValue=" + System.getProperty("testValue"));
+        if (!"${testValue}".equals(System.getProperty("testValue"))) {
+            throw new RuntimeException("Unexpected value: testValue=" + System.getProperty("testValue"));
         }
-        if (!"some value\\\\$PATH".equals(System.getProperty("testValue2"))) {
-            throw new RuntimeException("Expected system property not specified: testValue2=" + System.getProperty("testValue2"));
+        if (!"${testValue2}".equals(System.getProperty("testValue2"))) {
+            throw new RuntimeException("Unexpected value: testValue2=" + System.getProperty("testValue2"));
         }
-        if (!"some value%PATH%".equals(System.getProperty("testValue3"))) {
-            throw new RuntimeException("Expected system property not specified: testValue3=" + System.getProperty("testValue3"));
+        if (!"${testValue3}".equals(System.getProperty("testValue3"))) {
+            throw new RuntimeException("Unexpected value: testValue3=" + System.getProperty("testValue3"));
         }
     }
 }
-'''
+"""
 
         when:
         run 'installDist'
