@@ -28,6 +28,8 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import javax.annotation.Nullable;
+
 /**
  * Responsible for calculating a {@link FileCollectionFingerprint} for a particular {@link FileCollection}.
  */
@@ -43,9 +45,9 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, @Nullable FileCollectionFingerprint previousFingerprint) {
         FileSystemSnapshot roots = fileCollectionSnapshotter.snapshot(files);
-        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy);
+        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy, previousFingerprint);
     }
 
     @Override

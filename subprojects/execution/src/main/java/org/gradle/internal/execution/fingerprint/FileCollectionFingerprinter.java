@@ -19,9 +19,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import javax.annotation.Nullable;
 
 public interface FileCollectionFingerprinter {
     /**
@@ -32,7 +35,14 @@ public interface FileCollectionFingerprinter {
     /**
      * Creates a fingerprint of the contents of the given collection.
      */
-    CurrentFileCollectionFingerprint fingerprint(FileCollection files);
+    default CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
+        return fingerprint(files, null);
+    }
+
+    /**
+     * Creates a fingerprint of the contents of the given collection.
+     */
+    CurrentFileCollectionFingerprint fingerprint(FileCollection files, @Nullable FileCollectionFingerprint previousFingerprint);
 
     /**
      * Creates a fingerprint of the contents of the given roots.
