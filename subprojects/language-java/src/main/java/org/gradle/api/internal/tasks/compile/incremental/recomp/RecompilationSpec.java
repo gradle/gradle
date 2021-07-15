@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.compile.incremental.recomp.WellKnownSourceFileClassNameConverter.isModuleInfo;
+import static org.gradle.api.internal.tasks.compile.incremental.recomp.WellKnownSourceFileClassNameConverter.isPackageInfo;
+
 public class RecompilationSpec {
     private final Set<String> classesToCompile = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
@@ -77,7 +80,7 @@ public class RecompilationSpec {
 
     public void addClassesToProcess(Collection<String> classes) {
         classes.forEach(classToReprocess -> {
-            if (classToReprocess.endsWith("package-info")) {
+            if (isPackageInfo(classToReprocess) || isModuleInfo(classToReprocess)) {
                 classesToCompile.add(classToReprocess);
             } else {
                 classesToProcess.add(classToReprocess);
