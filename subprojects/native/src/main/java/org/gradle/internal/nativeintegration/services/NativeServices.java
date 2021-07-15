@@ -150,14 +150,14 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
     private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
-        try {
-            if (!initialized) {
+        if (!initialized) {
+            try {
                 initializeNativeIntegrations(userHomeDir);
                 initialized = true;
+                initializeFeatures(requestedFeatures);
+            } catch (RuntimeException e) {
+                throw new ServiceCreationException("Could not initialize native services.", e);
             }
-            initializeFeatures(requestedFeatures);
-        } catch (RuntimeException e) {
-            throw new ServiceCreationException("Could not initialize native services.", e);
         }
     }
 
@@ -191,8 +191,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
         if (isNativeIntegrationsEnabled()) {
             for (NativeFeatures requestedFeature : requestedFeatures) {
-                if (!initializedFeatures.contains(requestedFeature)) {
-                    initializedFeatures.add(requestedFeature);
+                if (initializedFeatures.add(requestedFeature)) {
                     if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
                         enabledFeatures.add(requestedFeature);
                     }
