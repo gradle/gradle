@@ -59,7 +59,7 @@ dependencies {
         api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.2.0")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0")
         api("org.jsoup:jsoup:1.13.1")
         api("org.junit.jupiter:junit-jupiter:5.7.1")
         api("org.junit.vintage:junit-vintage-engine:5.7.1")
