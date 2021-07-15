@@ -43,6 +43,10 @@ tasks {
         kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
     }
 
+    compileKotlin {
+        dependsOn(generateExtensions)
+    }
+
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
         outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
