@@ -36,6 +36,12 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.2]]
 == Upgrading from 7.1 and earlier
 
+=== Potential breaking changes
+
+==== Updates to bundled Gradle dependencies
+
+- Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.8].
+
 === Deprecations
 
 [[java_lamdba_action]]
