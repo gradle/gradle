@@ -142,7 +142,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (watchedDirectories.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+        LOGGER.debug("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         try {
             if (!directoriesToStopWatching.isEmpty()) {
                 fileWatcher.stopWatching(directoriesToStopWatching);
