@@ -917,6 +917,51 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
+    def "reports problems from various callbacks on Configuration"() {
+        file("script.gradle") << """
+            configurations.whenObjectAdded {
+                dependencies.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                dependencies.matching {
+                    gradle.buildFinished { }
+                    true
+                }.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                incoming.beforeResolve {
+                    gradle.buildFinished { }
+                }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            repositories {
+                mavenCentral()
+            }
+            configurations {
+                thing
+            }
+            dependencies {
+                thing "junit:junit:4.12"
+            }
+            task ok {
+                inputs.files configurations.thing
+                doFirst { }
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        outputContains("Configuration cache entry discarded with 4 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withTotalProblemsCount(4)
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+    }
+
     def "reports problems in project build scripts"() {
         settingsFile << """
             include 'a'
