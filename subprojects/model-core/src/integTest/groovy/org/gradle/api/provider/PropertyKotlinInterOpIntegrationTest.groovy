@@ -21,7 +21,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
+
 import javax.inject.Inject
 
 @LeaksFileHandles
