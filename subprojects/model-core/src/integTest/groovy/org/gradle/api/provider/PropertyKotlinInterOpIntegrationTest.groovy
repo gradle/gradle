@@ -25,7 +25,6 @@ import spock.lang.Ignore
 import javax.inject.Inject
 
 @LeaksFileHandles
-@Ignore("https://github.com/gradle/gradle-private/issues/3406")
 class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOpIntegrationTest {
     def setup() {
         pluginDir.file("src/main/kotlin/SomeTask.kt") << """
