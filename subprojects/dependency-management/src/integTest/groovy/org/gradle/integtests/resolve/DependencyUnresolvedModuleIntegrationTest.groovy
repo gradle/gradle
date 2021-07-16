@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.HttpResource
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
@@ -209,7 +208,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
     }
 
-    @Ignore
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
