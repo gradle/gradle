@@ -45,12 +45,6 @@ class FunctionalTest(
         preSteps = preBuildSteps
     )
 
-    params {
-        if (enableTestDistribution) {
-            param("maxParallelForks", "16")
-        }
-    }
-
     if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
         failureConditions {
             // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
