@@ -35,6 +35,13 @@ This limitation is now lifted.
 It is now possible to provide credentials for HTTP header-based authentication [via properties](userguide/declaring_repositories.html#sec:handling_credentials) without additional configuration in the
 build script.
 
+### Configuration of the property expansion for Copy, Sync and archive tasks
+
+Previously it was impossible to configure `SimpleTemplateEngine` powering [Copy.expand](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)) method. Now it is
+[possible](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) to disable the automatic conversion of escape sequences (`\n`, `\t`, `\\` and so
+on) to the corresponding symbols. The default behavior might be undesirable in some cases when processed files contain escape sequences that should be preserved as-is. This also applies to all other
+tasks implementing [ContentFilterable](javadoc/org/gradle/api/file/ContentFilterable.html).
+
 ## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
 
 When selecting configuration name using `--configuration` parameter from command line you can use camelCase notation like in subproject and task selection. This way `gradle dependencies --configuration tRC` could be used instead of `gradle dependencies --configuration testRuntimeClasspath` if `tRC` resolves to unique configuration within project where task is running.
