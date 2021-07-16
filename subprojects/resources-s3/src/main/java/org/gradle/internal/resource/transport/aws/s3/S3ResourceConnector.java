@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.io.ByteStreams;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ReadableContent;
@@ -81,15 +82,20 @@ public class S3ResourceConnector implements ExternalResourceConnector {
     private static void discardEmptyContentAndClose(S3Object s3Object) {
         // Consume the content stream to avoid warning from S3 SDK. The response should have only 1 byte there because Range header was specified.
         try {
-            long downloadedContentLength = ByteStreams.exhaust(s3Object.getObjectContent());
+            S3ObjectInputStream objectContent = s3Object.getObjectContent();
+            if (objectContent == null) {
+                return;
+            }
+            long downloadedContentLength = ByteStreams.exhaust(objectContent);
             if (downloadedContentLength > 1L) {
                 // This may happen if the endpoint ignores Range HTTP header for whatever reason.
-                LOGGER.info("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
+                LOGGER.debug("Downloaded {} bytes of the object content for metadata request which is too much.", downloadedContentLength);
             }
         } catch (IOException e) {
             // Don't complain loudly to the user about the error there because we were discarding the response anyway.
             LOGGER.debug("Exception while consuming empty object content from metadata request", e);
         } finally {
+            // This also closes objectContent, no need to close it explicitly.
             IoActions.closeQuietly(s3Object);
         }
     }
