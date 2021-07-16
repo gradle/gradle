@@ -117,9 +117,9 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
         runTasksOps[0].parentId == buildSrcOps[0].id
-        runTasksOps[1].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort()  == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == runMainTasks.id
-        runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
@@ -232,9 +232,9 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[0].parentId == buildSrcOps[0].id
         runTasksOps[1].displayName == "Run tasks (:buildSrc)"
         runTasksOps[1].parentId == buildSrcOps[1].id
-        runTasksOps[2].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[2].displayName, runTasksOps[3].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[2].parentId == runMainTasks.id
-        runTasksOps[3].displayName == "Run tasks (:buildB)"
         runTasksOps[3].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
