@@ -21,11 +21,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.Matchers.containsText
 import static org.gradle.util.Matchers.matchesRegexp
 
+@Requires(TestPrecondition.JDK16_OR_EARLIER) // SecurityManager is deprecated in Java 17: https://openjdk.java.net/jeps/411
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
 
     @IntegrationTestTimeout(120)
