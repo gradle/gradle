@@ -207,9 +207,10 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         when:
         succeeds("runTask",
-                "-PclientJdk=" + clientJdkVersion.majorVersion,
-                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PgradleVersion=" + gradleVersion)
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+            "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
@@ -242,9 +243,10 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         when:
         succeeds("buildAction",
-                "-PclientJdk=" + clientJdkVersion.majorVersion,
-                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PgradleVersion=" + gradleVersion)
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+            "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
