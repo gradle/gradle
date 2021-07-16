@@ -35,16 +35,8 @@ tasks {
         kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
-    val generateExtensions by registering {
-        dependsOn(generateKotlinDependencyExtensions)
-    }
-
     sourceSets.main {
-        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
-    }
-
-    compileKotlin {
-        dependsOn(generateExtensions)
+        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions))
     }
 
 // -- Version manifest properties --------------------------------------
