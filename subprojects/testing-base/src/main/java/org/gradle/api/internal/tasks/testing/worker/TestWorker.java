@@ -71,7 +71,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         SecurityManager securityManager = System.getSecurityManager();
-        toRun = new ArrayBlockingQueue<>(TO_RUN_QUEUE_SIZE);
+        toRun = new ArrayBlockingQueue<TestClassRunInfo>(TO_RUN_QUEUE_SIZE);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
