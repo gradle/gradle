@@ -328,7 +328,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.abort()
     }
 
-    @Ignore //not yet implemented
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build()
@@ -347,7 +346,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.state == ExecHandleState.SUCCEEDED
     }
 
-    @Ignore //not yet implemented
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
         def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build()
