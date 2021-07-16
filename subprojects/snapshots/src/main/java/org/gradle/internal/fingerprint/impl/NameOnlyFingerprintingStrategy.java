@@ -44,7 +44,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
     public NameOnlyFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
+        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity, normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 

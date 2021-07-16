@@ -93,9 +93,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        return copyOfSorted(transformValues(fingerprints, value -> {
-            //noinspection ConstantConditions
-            return new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes());
-        }));
+        return copyOfSorted(transformValues(
+            fingerprints,
+            value -> new SerializableFileCollectionFingerprint(value.getFingerprints(), value.getRootHashes(), value.getStrategyConfigurationHash())
+        ));
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
@@ -45,7 +44,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
     public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity);
+        super(IDENTIFIER, directorySensitivity, lineEndingSensitivity, normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 

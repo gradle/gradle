@@ -46,12 +46,13 @@ class FileCollectionFingerprintSerializerTest extends SerializerSpec {
                 "/1", FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE,
                 "/2", HashCode.fromInt(5678),
                 "/3", HashCode.fromInt(1234))
+        def strategyConfigurationHash = HashCode.fromInt(6543)
         when:
         def out = serialize(new SerializableFileCollectionFingerprint(
                 '/1': new DefaultFileSystemLocationFingerprint("1", FileType.Directory, FileSystemLocationFingerprint.DIR_SIGNATURE),
                 '/2': IgnoredPathFileSystemLocationFingerprint.create(FileType.RegularFile, hash),
                 '/3': new DefaultFileSystemLocationFingerprint("/3", FileType.Missing, FileSystemLocationFingerprint.DIR_SIGNATURE),
-                rootHashes
+                rootHashes, strategyConfigurationHash
         ), serializer)
 
         then:
@@ -83,7 +84,7 @@ class FileCollectionFingerprintSerializerTest extends SerializerSpec {
                 ImmutableMultimap.of(
                         "/3", HashCode.fromInt(1234),
                         "/2", HashCode.fromInt(5678),
-                        "/1", FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE)
+                        "/1", FileSystemLocationFingerprint.MISSING_FILE_SIGNATURE), HashCode.fromInt(5432)
         ), serializer)
 
         then:

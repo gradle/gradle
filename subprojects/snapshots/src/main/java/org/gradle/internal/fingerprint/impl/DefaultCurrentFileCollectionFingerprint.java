@@ -39,6 +39,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final String identifier;
     private final FileSystemSnapshot roots;
     private final ImmutableMultimap<String, HashCode> rootHashes;
+    private final HashCode strategyConfigurationHash;
     private HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy) {
@@ -52,7 +53,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
         ImmutableMultimap<String, HashCode> rootHashes = SnapshotUtil.getRootHashes(roots);
         Map<String, FileSystemLocationFingerprint> fingerprints;
-        if (candidate != null && Iterables.elementsEqual(candidate.getRootHashes().entries(), rootHashes.entries())) {
+        if (candidate != null && candidate.getStrategyConfigurationHash().equals(strategy.getConfigurationHash()) && Iterables.elementsEqual(candidate.getRootHashes().entries(), rootHashes.entries())) {
             fingerprints = candidate.getFingerprints();
         } else {
             fingerprints = strategy.collectFingerprints(roots);
@@ -60,15 +61,23 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         if (fingerprints.isEmpty()) {
             return strategy.getEmptyFingerprint();
         }
-        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getHashingStrategy(), strategy.getIdentifier(), roots, rootHashes);
+        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getHashingStrategy(), strategy.getIdentifier(), roots, rootHashes, strategy.getConfigurationHash());
     }
 
-    private DefaultCurrentFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, FingerprintHashingStrategy hashingStrategy, String identifier, FileSystemSnapshot roots, ImmutableMultimap<String, HashCode> rootHashes) {
+    private DefaultCurrentFileCollectionFingerprint(
+        Map<String, FileSystemLocationFingerprint> fingerprints,
+        FingerprintHashingStrategy hashingStrategy,
+        String identifier,
+        FileSystemSnapshot roots,
+        ImmutableMultimap<String, HashCode> rootHashes,
+        HashCode strategyConfigurationHash
+    ) {
         this.fingerprints = fingerprints;
         this.hashingStrategy = hashingStrategy;
         this.identifier = identifier;
         this.roots = roots;
         this.rootHashes = rootHashes;
+        this.strategyConfigurationHash = strategyConfigurationHash;
     }
 
     @Override
@@ -105,6 +114,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public FileSystemSnapshot getSnapshot() {
         return roots;
+    }
+
+    @Override
+    public HashCode getStrategyConfigurationHash() {
+        return strategyConfigurationHash;
     }
 
     @Override

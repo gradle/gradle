@@ -24,10 +24,8 @@ import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
 import org.gradle.api.internal.changedetection.state.LineEndingNormalizingResourceHasher;
 import org.gradle.api.internal.changedetection.state.MetaInfAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
-import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
@@ -37,6 +35,8 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint;
@@ -88,7 +88,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
                                             ResourceSnapshotterCacheService cacheService,
                                             Interner<String> stringInterner,
                                             LineEndingSensitivity lineEndingSensitivity) {
-        super(identifier, DirectorySensitivity.DEFAULT, lineEndingSensitivity);
+        super(identifier, DirectorySensitivity.DEFAULT, lineEndingSensitivity, zipHasher);
         this.nonZipFingerprintingStrategy = nonZipFingerprintingStrategy;
         this.classpathResourceHasher = classpathResourceHasher;
         this.cacheService = cacheService;
