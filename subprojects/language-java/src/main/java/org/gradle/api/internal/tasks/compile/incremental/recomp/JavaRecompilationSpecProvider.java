@@ -138,9 +138,9 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
             if (hasExtension(changedFile, ".java")) {
                 String relativeFilePath = fileChange.getNormalizedPath();
 
-                Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+                Set<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
                 spec.addRelativeSourcePathToCompile(relativeFilePath);
-                sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
+                sourceFileChangeProcessor.processChange(changedClasses, spec);
             } else {
                 if (emptyAnnotationProcessorPath) {
                     continue;

@@ -24,7 +24,6 @@ import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
-import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -306,40 +305,43 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
     def "processors cannot provide multiple originating elements for types"() {
         given:
-        withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        def a = java "@Service class A {}"
-        java "@Service class B {}"
+        helperProcessor.withMultipleOriginatingElements = true
+        helperProcessor.writeResources = false
+        withProcessor(helperProcessor)
+        def a = java "@Helper class A {}"
+        java "@Helper class B {}"
 
         outputs.snapshot { succeeds "compileJava" }
 
         when:
-        a.text = "@Service class A { void foo() {} }"
+        a.text = "@Helper class A { void foo() {} }"
 
         then:
         succeeds "compileJava", "--info"
 
         and:
-        outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+        outputContains("Full recompilation is required because the generated type")
+        outputContains(" must have exactly one originating element, but had 2.")
     }
 
     def "processors cannot provide multiple originating elements for resources"() {
         given:
-        def proc = new ServiceRegistryProcessorFixture()
-        proc.writeResources = true
-        withProcessor(proc.withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        def a = java "@Service class A {}"
-        java "@Service class B {}"
+        helperProcessor.withMultipleOriginatingElements = true
+        withProcessor(helperProcessor)
+        def a = java "@Helper class A {}"
+        java "@Helper class B {}"
 
         outputs.snapshot { succeeds "compileJava" }
 
         when:
-        a.text = "@Service class A { void foo() {} }"
+        a.text = "@Helper class A { void foo() {} }"
 
         then:
         succeeds "compileJava", "--info"
 
         and:
-        outputContains("Full recompilation is required because the generated resource 'ServiceRegistryResource.txt in CLASS_OUTPUT' must have exactly one originating element, but had 2.")
+        outputContains("Full recompilation is required because the generated resource")
+        outputContains(" must have exactly one originating element, but had 2.")
     }
 
     def "processors can generate identical resources in different locations"() {

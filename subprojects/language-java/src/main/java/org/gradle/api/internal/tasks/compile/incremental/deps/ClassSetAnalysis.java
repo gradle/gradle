@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -25,8 +26,8 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -37,10 +38,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData.MODULE_INFO;
-
 
 /**
  * An extension of {@link ClassSetAnalysisData}, which can also handle annotation processing.
@@ -114,17 +111,20 @@ public class ClassSetAnalysis {
         return result;
     }
 
+
     /**
-     * An efficient version of {@link #findTransitiveDependents(String, IntSet)} when several classes have changed.
+     * Computes the transitive dependents of a set of changed classes.
+     * If the classes had any changes to inlineable constants, these need to be provided as the second parameter.
      */
     public DependentsSet findTransitiveDependents(Collection<String> classes, Map<String, IntSet> constants) {
-        if (classes.isEmpty()) {
-            return DependentsSet.empty();
+        String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
+        if (fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(fullRebuildCause);
         }
         final Set<String> accessibleResultClasses = new HashSet<>();
-        final Set<String> privateResultClasses = new HashSet<>();
-        final Set<GeneratedResource> resultResources = new HashSet<>();
-        for (String cls : classes) {
+        final Set<String> privateResultClasses = new HashSet<>(annotationProcessingData.getGeneratedTypesDependingOnAllOthers());
+        final Set<GeneratedResource> resultResources = new HashSet<>(annotationProcessingData.getGeneratedResourcesDependingOnAllOthers());
+        for (String cls : Iterables.concat(classes, annotationProcessingData.getGeneratedTypesDependingOnAllOthers())) {
             DependentsSet d = findTransitiveDependents(cls, constants.getOrDefault(cls, IntSets.emptySet()));
             if (d.isDependencyToAll()) {
                 return d;
@@ -143,16 +143,7 @@ public class ClassSetAnalysis {
         return DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
     }
 
-    /**
-     * Computes the transitive dependents of a changed class.
-     * If the class had any changes to inlineable constants, these need to be provided as the second parameter.
-     */
-    public DependentsSet findTransitiveDependents(String className, IntSet constants) {
-        String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
-        if (fullRebuildCause != null) {
-            return DependentsSet.dependencyToAll(fullRebuildCause);
-        }
-
+    private DependentsSet findTransitiveDependents(String className, IntSet constants) {
         DependentsSet deps = getDependents(className);
         if (deps.isDependencyToAll()) {
             return deps;
@@ -160,15 +151,12 @@ public class ClassSetAnalysis {
         if (!constants.isEmpty() && !compilerApiData.isSupportsConstantsMapping()) {
             return DependentsSet.dependencyToAll("an inlineable constant in '" + className + "' has changed");
         }
-        Set<String> classesDependingOnAllOthers = annotationProcessingData.participatesInClassGeneration(className) ? annotationProcessingData.getGeneratedTypesDependingOnAllOthers() : Collections.emptySet();
-        Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.participatesInResourceGeneration(className) ? annotationProcessingData.getGeneratedResourcesDependingOnAllOthers() : Collections.emptySet();
-
         DependentsSet constantDeps = getConstantDependents(className);
         if (constantDeps.isDependencyToAll()) {
             return constantDeps;
         }
 
-        if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty() && !constantDeps.hasDependentClasses()) {
+        if (!deps.hasDependentClasses() && !constantDeps.hasDependentClasses()) {
             return deps;
         }
 
@@ -176,9 +164,8 @@ public class ClassSetAnalysis {
 
         Set<String> privateResultClasses = new HashSet<>();
         Set<String> accessibleResultClasses = new HashSet<>();
-        Set<GeneratedResource> resultResources = new HashSet<>(resourcesDependingOnAllOthers);
+        Set<GeneratedResource> resultResources = new HashSet<>();
         processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, deps.getPrivateDependentClasses(), dependents);
-        processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), classesDependingOnAllOthers);
         processDependentClasses(new HashSet<>(), privateResultClasses, accessibleResultClasses, resultResources, constantDeps.getPrivateDependentClasses(), constantDeps.getAccessibleDependentClasses());
         accessibleResultClasses.remove(className);
         privateResultClasses.remove(className);
@@ -187,15 +174,7 @@ public class ClassSetAnalysis {
     }
 
     public Set<String> getTypesToReprocess() {
-        // Because of https://github.com/gradle/gradle/issues/13767 and
-        // https://github.com/gradle/gradle/issues/15009 it is possible
-        // that the types to reprocess are actually generated types
-        // so when we see a type to reprocess we need to track what
-        // actually generated this type, not use it directly!
-        return annotationProcessingData.getAggregatedTypes()
-            .stream()
-            .map(annotationProcessingData::getOriginOf)
-            .collect(Collectors.toSet());
+        return annotationProcessingData.getAggregatedTypes();
     }
 
     public boolean isDependencyToAll(String className) {
@@ -271,7 +250,7 @@ public class ClassSetAnalysis {
         Set<String> accessibleConstantDependents = new ObjectOpenHashSet<>(compilerApiData.getConstantDependentsForClass(className).getAccessibleDependentClasses());
         Set<String> privateConstantDependents = new ObjectOpenHashSet<>(compilerApiData.getConstantDependentsForClass(className).getPrivateDependentClasses());
         processTransitiveConstantDependentClasses(new ObjectOpenHashSet<>(Collections.singleton(className)), privateConstantDependents, accessibleConstantDependents);
-        if (accessibleConstantDependents.contains(MODULE_INFO)) {
+        if (accessibleConstantDependents.contains(ClassSetAnalysisData.MODULE_INFO)) {
             return DependentsSet.dependencyToAll("module-info has changed");
         }
         return DependentsSet.dependents(privateConstantDependents, accessibleConstantDependents, Collections.emptySet());

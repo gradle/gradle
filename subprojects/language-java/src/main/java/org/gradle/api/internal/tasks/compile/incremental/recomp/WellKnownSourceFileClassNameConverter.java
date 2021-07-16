@@ -18,16 +18,13 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 /**
  * Handles classes which can affect other classes simply by being newly added to a source set.
  */
 public class WellKnownSourceFileClassNameConverter implements SourceFileClassNameConverter {
-    private static final String MODULE_INFO = "module-info";
-    private static final String PACKAGE_INFO = "package-info";
-
     private final SourceFileClassNameConverter delegate;
     private final String fileExtension;
 
@@ -36,21 +33,13 @@ public class WellKnownSourceFileClassNameConverter implements SourceFileClassNam
         this.fileExtension = fileExtension;
     }
 
-    public static boolean isPackageInfo(String className) {
-        return className.endsWith(PACKAGE_INFO);
-    }
-
-    public static boolean isModuleInfo(String className) {
-        return className.equals(MODULE_INFO);
-    }
-
     @Override
-    public Collection<String> getClassNames(String sourceFileRelativePath) {
+    public Set<String> getClassNames(String sourceFileRelativePath) {
         String withoutExtension = StringUtils.removeEnd(sourceFileRelativePath, fileExtension);
-        if (isModuleInfo(withoutExtension)) {
-            return Collections.singleton(MODULE_INFO);
+        if (withoutExtension.endsWith("module-info")) {
+            return Collections.singleton("module-info");
         }
-        if (isPackageInfo(withoutExtension)) {
+        if (withoutExtension.endsWith("package-info")) {
             String packageName = withoutExtension.replace('/', '.');
             return Collections.singleton(packageName);
         }
@@ -58,8 +47,8 @@ public class WellKnownSourceFileClassNameConverter implements SourceFileClassNam
     }
 
     @Override
-    public Collection<String> getRelativeSourcePaths(String className) {
-        if (isModuleInfo(className) || isPackageInfo(className)) {
+    public Set<String> getRelativeSourcePaths(String className) {
+        if (className.equals("module-info") || className.endsWith("package-info")) {
             return Collections.singleton(className.replace('.', '/') + fileExtension);
         }
         return delegate.getRelativeSourcePaths(className);

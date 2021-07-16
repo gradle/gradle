@@ -15,24 +15,24 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 /**
  * A converter which infers the class names from the file name.
  */
 public class FileNameDerivingClassNameConverter implements SourceFileClassNameConverter {
     @Override
-    public Collection<String> getClassNames(String sourceFileRelativePath) {
+    public Set<String> getClassNames(String sourceFileRelativePath) {
         if (sourceFileRelativePath.endsWith(".java")) {
             return Collections.singleton(findClassNameForRelativePath(sourceFileRelativePath));
         } else {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
     }
 
     @Override
-    public Collection<String> getRelativeSourcePaths(String className) {
+    public Set<String> getRelativeSourcePaths(String className) {
         int innerClassIdx = className.indexOf("$");
         String baseName = innerClassIdx>0 ? className.substring(0, innerClassIdx) : className;
         return Collections.singleton(baseName.replace('.', '/') + ".java");

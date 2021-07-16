@@ -122,9 +122,9 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
 
             String relativeFilePath = fileChange.getNormalizedPath();
 
-            Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+            Set<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
             spec.addRelativeSourcePathToCompile(relativeFilePath);
-            sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
+            sourceFileChangeProcessor.processChange(changedClasses, spec);
         }
 
         for (String className : spec.getClassesToCompile()) {

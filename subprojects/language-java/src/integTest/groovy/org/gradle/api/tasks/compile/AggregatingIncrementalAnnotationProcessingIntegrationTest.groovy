@@ -33,7 +33,6 @@ import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationTyp
 class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private static ServiceRegistryProcessorFixture writingResourcesTo(String location) {
         def serviceRegistryProcessor = new ServiceRegistryProcessorFixture()
-        serviceRegistryProcessor.writeResources = true
         serviceRegistryProcessor.resourceLocation = location
         return serviceRegistryProcessor
     }
@@ -146,7 +145,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("AHelper", "B", "BHelper", "ServiceRegistry", "ServiceRegistryResource.txt")
+        outputs.recompiledFiles("B", "BHelper", "ServiceRegistry", "ServiceRegistryResource.txt")
         serviceRegistryReferences("AHelper", "BHelper")
 
         where:
@@ -229,7 +228,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         then:
         outputs.deletedClasses("A", "AHelper")
-        outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt", "BHelper")
+        outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt")
         serviceRegistryReferences("BHelper")
         !serviceRegistryReferences("AHelper")
 
@@ -254,7 +253,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
+        outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt", "Dependent")
     }
 
     def "classes files of generated sources are deleted when annotated file is deleted"() {
@@ -425,9 +424,9 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     private boolean serviceRegistryReferences(String... services) {
-        def registry = file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").text
+        def registry = file("build/classes/java/main/ServiceRegistryResource.txt").text
         services.every() {
-            registry.contains("get$it")
+            registry.contains("$it")
         }
     }
 }
