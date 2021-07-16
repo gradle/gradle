@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.language.fixtures.AnnotationProcessorFixture
@@ -60,6 +59,73 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
         then:
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
+    }
+
+    def "generated files are recompiled when annotated file is affected by a change"() {
+        given:
+        def util = java "class Util {}"
+        java """
+            @Helper class A {
+                private Util util = new Util();
+            }
+        """
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        util.text = "class Util { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
+    }
+
+    def "classes depending on generated files are recompiled when annotated file's ABI is affected by a change"() {
+        given:
+        def util = java "class Util {}"
+        java """
+            @Helper class A {
+                public Util util = new Util();
+            }
+        """
+        java """
+            class Dependent {
+                private AHelper helper = new AHelper();
+            }
+       """
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        util.text = "class Util { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt", "Dependent")
+    }
+
+    def "classes depending on generated files are not recompiled when annotated file's implementation is affected by a change"() {
+        given:
+        def util = java "class Util {}"
+        java """
+            @Helper class A {
+                private Util util = new Util();
+            }
+        """
+        java """
+            class Dependent {
+                private AHelper helper = new AHelper();
+            }
+       """
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        util.text = "class Util { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
     }
 
     def "incremental processing works on subsequent incremental compilations"() {
@@ -108,13 +174,14 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt", "Dependent")
     }
 
-    def "source file is recompiled when dependency of generated file changes"() {
+    def "source file is reprocessed when dependency of generated file changes"() {
         given:
         withProcessor(new OpaqueDependencyProcessor())
         java "@Thingy class A {}"
+        java "class Unrelated {}"
         def dependency = java "class Dependency {}"
 
         outputs.snapshot { run "compileJava" }
@@ -124,7 +191,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "AThingy", "Dependency")
+        outputs.recompiledClasses("AThingy", "Dependency")
     }
 
     def "classes files of generated sources are deleted when annotated file is deleted"() {
@@ -398,7 +465,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         succeeds "compileJava"
 
         then:
-        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<Object>) {
             size() == 1
             first().className == 'HelperProcessor'
             first().type == ISOLATING.name()
@@ -413,6 +480,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
     private static class OpaqueDependencyProcessor extends AnnotationProcessorFixture {
         OpaqueDependencyProcessor() {
             super("Thingy")
+            declaredType = IncrementalAnnotationProcessorType.ISOLATING
         }
 
         @Override

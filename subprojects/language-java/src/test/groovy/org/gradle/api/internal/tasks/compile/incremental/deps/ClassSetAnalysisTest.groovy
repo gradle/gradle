@@ -103,7 +103,7 @@ class ClassSetAnalysisTest extends Specification {
         deps = a.findTransitiveDependents(["b"], [:])
         then:
         deps.accessibleDependentClasses == ['d'] as Set
-        deps.privateDependentClasses == ['c'] as Set
+        deps.privateDependentClasses == ['c', 'e'] as Set
 
         when:
         deps = a.findTransitiveDependents(["c"], [:])
@@ -135,7 +135,7 @@ class ClassSetAnalysisTest extends Specification {
         then: thrown(UnsupportedOperationException)
     }
 
-    def "marks as dependency to all only if root class is a dependency to all"() {
+    def "marks as dependency to all if transitive dependency is a dependency to all"() {
         def a = analysis([
             "a": dependentSet(false, [], ['b']),
             'b': dependentSet(true, [], []),
@@ -144,8 +144,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["a"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ['b'] as Set
-        !deps.dependencyToAll
+        deps.dependencyToAll
     }
 
     def "recurses nested dependencies"() {
@@ -275,9 +274,9 @@ class ClassSetAnalysisTest extends Specification {
             "C": dependentSet(true, [], []),
         ])
         expect:
-        !a.isDependencyToAll("A")
-        a.isDependencyToAll("C")
-        !a.isDependencyToAll("Unknown")
+        !a.findTransitiveDependents(["A"], [:]).isDependencyToAll()
+        a.findTransitiveDependents(["C"], [:]).isDependencyToAll()
+        !a.findTransitiveDependents(["Unknown"], [:]).isDependencyToAll()
     }
 
     def "all classes are dependencies to all if a full rebuild cause is given"() {
@@ -286,7 +285,7 @@ class ClassSetAnalysisTest extends Specification {
         )
 
         expect:
-        a.isDependencyToAll("DoesNotMatter")
+        a.findTransitiveDependents(["DoesNotMatter"], [:]).isDependencyToAll()
     }
 
     def "marks as dependency to all if constants has change and compilerApi is not available"() {

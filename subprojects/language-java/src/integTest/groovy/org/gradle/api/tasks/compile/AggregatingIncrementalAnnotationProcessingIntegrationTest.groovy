@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
@@ -391,7 +390,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
 
         then:
-        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<Object>) {
             size() == 1
             first().className == 'ServiceProcessor'
             first().type == AGGREGATING.name()
@@ -401,7 +400,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     def "updating an unrelated file doesn't delete generated resources built by an aggregating processor"() {
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
         withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
-        def a = java "@Thing class A {}"
+        java "@Thing class A {}"
         def unrelated = java "class Unrelated {}"
 
         when:

@@ -49,8 +49,8 @@ public class PreviousCompilation {
         return classAnalysis.findTransitiveDependents(classNames, classNames.stream().collect(Collectors.toMap(Function.identity(), classAnalysis::getConstants)));
     }
 
-    public Set<String> getTypesToReprocess() {
-        return classAnalysis.getTypesToReprocess();
+    public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
+        return classAnalysis.getTypesToReprocess(compiledClasses);
     }
 
     public SourceFileClassNameConverter getSourceToClassConverter() {

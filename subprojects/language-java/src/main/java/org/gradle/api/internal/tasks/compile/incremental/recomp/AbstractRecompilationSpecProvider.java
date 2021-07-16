@@ -65,7 +65,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec, sourceFileClassNameConverter);
-        spec.addClassesToProcess(previous.getTypesToReprocess());
+        spec.addClassesToProcess(previous.getTypesToReprocess(spec.getClassesToCompile()));
         return spec;
     }
 
