@@ -202,10 +202,10 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
 
         when:
         succeeds("runTask",
-                "-PclientJdk=" + clientJdkVersion.majorVersion,
-                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-Porg.gradle.java.installations.paths=" + AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(","),
-                "-PgradleVersion=" + gradleVersion)
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+            "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
@@ -241,9 +241,10 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
 
         when:
         succeeds("buildAction",
-                "-PclientJdk=" + clientJdkVersion.majorVersion,
-                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PgradleVersion=" + gradleVersion)
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+            "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
