@@ -117,6 +117,9 @@ public class ClassSetAnalysis {
      * If the classes had any changes to inlineable constants, these need to be provided as the second parameter.
      */
     public DependentsSet findTransitiveDependents(Collection<String> classes, Map<String, IntSet> constants) {
+        if (classes.isEmpty()) {
+            return DependentsSet.empty();
+        }
         String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
         if (fullRebuildCause != null) {
             return DependentsSet.dependencyToAll(fullRebuildCause);

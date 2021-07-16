@@ -54,10 +54,6 @@ public class PreviousCompilation {
     }
 
     public SourceFileClassNameConverter getSourceToClassConverter() {
-        if (data.getCompilerApiData().isAvailable()) {
-            return new DefaultSourceFileClassNameConverter(data.getCompilerApiData().getSourceToClassMapping());
-        } else {
-            return new FileNameDerivingClassNameConverter();
-        }
+        return new DefaultSourceFileClassNameConverter(data.getCompilerApiData().getSourceToClassMapping());
     }
 }

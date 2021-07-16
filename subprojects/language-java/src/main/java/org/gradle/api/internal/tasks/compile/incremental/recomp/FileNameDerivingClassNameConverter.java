@@ -15,30 +15,50 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A converter which infers the class names from the file name.
  */
 public class FileNameDerivingClassNameConverter implements SourceFileClassNameConverter {
+    private final SourceFileClassNameConverter delegate;
+    private final Set<String> fileExtensions;
+
+    public FileNameDerivingClassNameConverter(SourceFileClassNameConverter delegate, Set<String> fileExtensions) {
+        this.delegate = delegate;
+        this.fileExtensions = fileExtensions;
+    }
+
     @Override
     public Set<String> getClassNames(String sourceFileRelativePath) {
-        if (sourceFileRelativePath.endsWith(".java")) {
-            return Collections.singleton(findClassNameForRelativePath(sourceFileRelativePath));
-        } else {
-            return Collections.emptySet();
+        Set<String> classNames = delegate.getClassNames(sourceFileRelativePath);
+        if (!classNames.isEmpty()) {
+            return classNames;
         }
+
+        for (String fileExtension : fileExtensions) {
+            if (sourceFileRelativePath.endsWith(fileExtension)) {
+                return Collections.singleton(StringUtils.removeEnd(sourceFileRelativePath.replace('/', '.'), fileExtension));
+            }
+        }
+
+        return Collections.emptySet();
     }
 
     @Override
     public Set<String> getRelativeSourcePaths(String className) {
+        Set<String> sourcePaths = delegate.getRelativeSourcePaths(className);
+        if(!sourcePaths.isEmpty()) {
+            return sourcePaths;
+        }
+
         int innerClassIdx = className.indexOf("$");
-        String baseName = innerClassIdx>0 ? className.substring(0, innerClassIdx) : className;
-        return Collections.singleton(baseName.replace('.', '/') + ".java");
+        String baseName = innerClassIdx > 0 ? className.substring(0, innerClassIdx) : className;
+        return fileExtensions.stream().map(fileExtension -> baseName.replace('.', '/') + fileExtension).collect(Collectors.toSet());
     }
 
-    private static String findClassNameForRelativePath(String relativePath) {
-        return relativePath.replace('/', '.').replaceAll("\\.java$", "");
-    }
 }
