@@ -92,7 +92,7 @@ public interface ContentFilterable {
      * they represent, so, for example, {@code \n} becomes newline. If this is undesirable then {@link #expand(Map, Action)}
      * should be used to disable this behavior.
      *
-     * @param properties to implement line based filtering
+     * @param properties reference-to-value map for substitution
      * @return this
      */
     ContentFilterable expand(Map<String, ?> properties);
@@ -114,7 +114,7 @@ public interface ContentFilterable {
      *  }
      * </pre>
      *
-     * @param properties to implement line based filtering
+     * @param properties reference-to-value map for substitution
      * @param action action to perform additional configuration of the underlying template engine
      * @return this
      * @since 7.2
