@@ -62,7 +62,7 @@ public class OkTest {
 
         // check other environmental stuff
         assertEquals("Test worker", Thread.currentThread().getName());
-        assertNull(System.getSecurityManager());
+        assertNull(System.console());
 
         final PrintStream out = System.out;
         // logging from a shutdown hook
