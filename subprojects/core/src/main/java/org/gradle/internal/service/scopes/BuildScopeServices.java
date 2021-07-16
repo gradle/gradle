@@ -569,9 +569,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                                                                        ProjectStateRegistry projectStateRegistry,
                                                                                        UserCodeApplicationContext userCodeApplicationContext) {
         DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, userCodeApplicationContext);
-        for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
-            registryAction.execute(registry);
-        }
+        // Services are created on demand, and this may happen while applying a plugin
+        userCodeApplicationContext.gradleRuntime(() -> {
+            for (BuildScopeToolingModelBuilderRegistryAction registryAction : registryActions) {
+                registryAction.execute(registry);
+            }
+        });
         return registry;
     }
 
