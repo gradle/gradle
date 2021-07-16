@@ -52,13 +52,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    def setup() {
-        executer.beforeExecute {
-            // Don't let the incubating message interfere with logging
-            withPartialVfsInvalidation(false)
-        }
-    }
-
     @ToBeFixedForConfigurationCache(because = "different build operation tree")
     def "captures output sources with context"() {
         given:
