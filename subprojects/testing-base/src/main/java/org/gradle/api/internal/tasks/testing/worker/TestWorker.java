@@ -55,12 +55,21 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
 
-    private static final TestClassRunInfo SENTINEL_START_STOP = new TestClassRunInfo() {
+    private static class StateChangeCommandSentinel implements TestClassRunInfo {
         @Override
         public String getTestClassName() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(toString());
         }
-    };
+
+        @Override
+        public String toString() {
+            String kind = this == START_PROCESSING ? "START" : "STOP";
+            return "StateChangeCommandSentinel{" + kind + "_PROCESSING}";
+        }
+    }
+
+    private static final StateChangeCommandSentinel START_PROCESSING = new StateChangeCommandSentinel();
+    private static final StateChangeCommandSentinel STOP_PROCESSING = new StateChangeCommandSentinel();
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -81,13 +90,13 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         try {
             try {
                 TestClassRunInfo next = toRun.take();
-                if (next != SENTINEL_START_STOP) {
-                    throw new IllegalArgumentException("Expected sentinel value, not " + next.getTestClassName());
+                if (next != START_PROCESSING) {
+                    throw new IllegalArgumentException("Expected START_PROCESSING, not " + next);
                 }
                 Thread.currentThread().setName("Test worker");
                 processor.startProcessing(resultProcessor);
 
-                while ((next = toRun.take()) != SENTINEL_START_STOP) {
+                while ((next = toRun.take()) != STOP_PROCESSING) {
                     try {
                         Thread.currentThread().setName("Test worker");
                         processor.processTestClass(next);
@@ -143,7 +152,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void startProcessing() {
-        submitToRun(SENTINEL_START_STOP);
+        submitToRun(START_PROCESSING);
     }
 
     @Override
@@ -153,7 +162,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void stop() {
-        submitToRun(SENTINEL_START_STOP);
+        submitToRun(STOP_PROCESSING);
     }
 
     private void submitToRun(TestClassRunInfo classToRun) {
