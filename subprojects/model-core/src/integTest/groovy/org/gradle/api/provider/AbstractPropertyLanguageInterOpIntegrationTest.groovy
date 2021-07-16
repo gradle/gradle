@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Ignore
 
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
@@ -35,6 +36,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
+    @Ignore("https://github.com/gradle/gradle-private/issues/3418")
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
 
@@ -289,6 +291,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
     }
 
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3418")
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 
