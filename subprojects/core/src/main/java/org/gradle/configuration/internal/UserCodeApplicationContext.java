@@ -38,6 +38,11 @@ public interface UserCodeApplicationContext {
     void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
 
     /**
+     * Runs some Gradle runtime code.
+     */
+    void gradleRuntime(Runnable runnable);
+
+    /**
      * Returns an action that represents some deferred execution of the current user code. While the returned action is running, the details of the current application are restored.
      * Returns the given action when there is no current application.
      */
