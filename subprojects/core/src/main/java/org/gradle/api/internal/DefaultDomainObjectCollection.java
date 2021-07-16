@@ -83,15 +83,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected CollectionFilter<T> createFilter(Spec<? super T> filter) {
-        return createFilter(getType(), filter);
+        return new CollectionFilter<>(type, eventRegister.getDecorator().decorateSpec(filter));
     }
 
     protected <S extends T> CollectionFilter<S> createFilter(Class<S> type) {
-        return new CollectionFilter<S>(type);
-    }
-
-    protected <S extends T> CollectionFilter<S> createFilter(Class<? extends S> type, Spec<? super S> spec) {
-        return new CollectionFilter<S>(type, spec);
+        return new CollectionFilter<>(type);
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
@@ -117,7 +113,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public DomainObjectCollection<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
     @Override

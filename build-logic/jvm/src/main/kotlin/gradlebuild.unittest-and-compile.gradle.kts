@@ -280,11 +280,7 @@ val isExperimentalTestFilteringEnabled
     get() = System.getProperty("gradle.internal.testselection.enabled").toBoolean()
 
 val Project.maxParallelForks: Int
-    get() = if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") {
-        8
-    } else {
-        findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
-    }
+    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
