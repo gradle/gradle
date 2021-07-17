@@ -42,7 +42,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.AccessControlException;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Processes tests in a remote process with the given {@link TestClassProcessor} until a stop command is received.  Requires that
@@ -64,7 +65,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
 
     private final WorkerTestClassProcessorFactory factory;
-    private final SynchronousQueue<Runnable> runQueue = new SynchronousQueue<Runnable>(true);
+    private final BlockingQueue<Runnable> runQueue = new LinkedBlockingQueue<Runnable>();
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
     private State state = State.INITIALIZING;
