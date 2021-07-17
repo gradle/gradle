@@ -88,12 +88,6 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         try {
             try {
-                // First command must be a command to start processing
-                runQueue.take().run();
-                if (state != State.STARTED) {
-                    throw new IllegalArgumentException("Expected start processing command");
-                }
-
                 while (state != State.STOPPED) {
                     runQueue.take().run();
                 }
@@ -137,6 +131,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         submitToRun(new Runnable() {
             @Override
             public void run() {
+                if (state != State.INITIALIZING) {
+                    throw new IllegalStateException("A command to start processing has already been received");
+                }
                 processor.startProcessing(resultProcessor);
                 state = State.STARTED;
             }
@@ -145,13 +142,12 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void processTestClass(final TestClassRunInfo testClass) {
-        if (state == State.STOPPED) {
-            throw new IllegalStateException("Test classes cannot be submitted after stop() has been called.");
-        }
-
         submitToRun(new Runnable() {
             @Override
             public void run() {
+                if (state != State.STARTED) {
+                    throw new IllegalStateException("Test classes cannot be processed until a command to start processing has been received");
+                }
                 try {
                     processor.processTestClass(testClass);
                 } catch (AccessControlException e) {
