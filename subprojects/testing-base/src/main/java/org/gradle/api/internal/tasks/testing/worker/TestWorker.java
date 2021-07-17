@@ -42,34 +42,32 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.AccessControlException;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
+/**
+ * Processes tests in a remote process with the given {@link TestClassProcessor} until a stop command is received.  Requires that
+ * methods willed be called sequentially in the following order:
+ *
+ * - {@link RemoteTestClassProcessor#startProcessing()}
+ * - 0 or more calls to {@link RemoteTestClassProcessor#processTestClass(TestClassRunInfo)}
+ * - {@link RemoteTestClassProcessor#stop()}
+ *
+ * Commands are received on communication threads and then processed sequentially on the main thread.  Although concurrent calls to
+ * any of the methods from {@link RemoteTestClassProcessor} are supported, the commands will still be executed sequentially in the
+ * main thread in order of arrival.
+ */
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
+    private enum State { INITIALIZING, STARTED, STOPPED }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
-    private static final int TO_RUN_QUEUE_SIZE = 128; // estimated via: 1KiB allocator block divided by 8 byte pointer
 
     private final WorkerTestClassProcessorFactory factory;
-    private ArrayBlockingQueue<TestClassRunInfo> toRun;
+    private final SynchronousQueue<Runnable> runQueue = new SynchronousQueue<Runnable>(true);
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
-
-    private static class StateChangeCommandSentinel implements TestClassRunInfo {
-        @Override
-        public String getTestClassName() {
-            throw new UnsupportedOperationException(toString());
-        }
-
-        @Override
-        public String toString() {
-            String kind = this == START_PROCESSING ? "START" : "STOP";
-            return "StateChangeCommandSentinel{" + kind + "_PROCESSING}";
-        }
-    }
-
-    private static final StateChangeCommandSentinel START_PROCESSING = new StateChangeCommandSentinel();
-    private static final StateChangeCommandSentinel STOP_PROCESSING = new StateChangeCommandSentinel();
+    private State state = State.INITIALIZING;
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -77,10 +75,11 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void execute(final WorkerProcessContext workerProcessContext) {
+        Thread.currentThread().setName("Test worker");
+
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
         SecurityManager securityManager = System.getSecurityManager();
-        toRun = new ArrayBlockingQueue<TestClassRunInfo>(TO_RUN_QUEUE_SIZE);
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
@@ -89,34 +88,17 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         try {
             try {
-                TestClassRunInfo next = toRun.take();
-                if (next != START_PROCESSING) {
-                    throw new IllegalArgumentException("Expected START_PROCESSING, not " + next);
+                // First command must be a command to start processing
+                runQueue.take().run();
+                if (state != State.STARTED) {
+                    throw new IllegalArgumentException("Expected start processing command");
                 }
-                Thread.currentThread().setName("Test worker");
-                processor.startProcessing(resultProcessor);
 
-                while ((next = toRun.take()) != STOP_PROCESSING) {
-                    try {
-                        Thread.currentThread().setName("Test worker");
-                        processor.processTestClass(next);
-                    } catch (AccessControlException e) {
-                        throw e;
-                    } finally {
-                        // Clean the interrupted status
-                        Thread.interrupted();
-                    }
+                while (state != State.STOPPED) {
+                    runQueue.take().run();
                 }
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
-            }
-            try {
-                Thread.currentThread().setName("Test worker");
-                processor.stop();
-            } finally {
-                // Clean the interrupted status
-                // because some test class processors do work here, e.g. JUnitPlatform
-                Thread.interrupted();
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
@@ -152,22 +134,56 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void startProcessing() {
-        submitToRun(START_PROCESSING);
+        submitToRun(new Runnable() {
+            @Override
+            public void run() {
+                processor.startProcessing(resultProcessor);
+                state = State.STARTED;
+            }
+        });
     }
 
     @Override
     public void processTestClass(final TestClassRunInfo testClass) {
-        submitToRun(testClass);
+        if (state == State.STOPPED) {
+            throw new IllegalStateException("Test classes cannot be submitted after stop() has been called.");
+        }
+
+        submitToRun(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    processor.processTestClass(testClass);
+                } catch (AccessControlException e) {
+                    throw e;
+                } finally {
+                    // Clean the interrupted status
+                    Thread.interrupted();
+                }
+            }
+        });
     }
 
     @Override
     public void stop() {
-        submitToRun(STOP_PROCESSING);
+        submitToRun(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    processor.stop();
+                } finally {
+                    state = State.STOPPED;
+                    // Clean the interrupted status
+                    // because some test class processors do work here, e.g. JUnitPlatform
+                    Thread.interrupted();
+                }
+            }
+        });
     }
 
-    private void submitToRun(TestClassRunInfo classToRun) {
+    private void submitToRun(Runnable command) {
         try {
-            toRun.put(classToRun);
+            runQueue.put(command);
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
