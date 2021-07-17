@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as content
 
 class LineEndingNormalizingInputStreamHasherTest extends Specification {
-    @Rule
-    TemporaryFolder tempDir = new TemporaryFolder()
+    @TempDir
+    File tempDir
 
     def hasher = new LineEndingNormalizingInputStreamHasher()
 
@@ -88,7 +87,7 @@ class LineEndingNormalizingInputStreamHasherTest extends Specification {
     }
 
     File file(String path) {
-        return tempDir.newFile(path)
+        return new File(tempDir, path)
     }
 
     static InputStream inputStream(String content) {

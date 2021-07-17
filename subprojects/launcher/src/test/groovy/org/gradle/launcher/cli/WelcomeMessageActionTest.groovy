@@ -26,8 +26,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
@@ -36,8 +36,8 @@ class WelcomeMessageActionTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     BuildLayoutResult buildLayout
     File gradleUserHomeDir
@@ -46,7 +46,7 @@ class WelcomeMessageActionTest extends Specification {
     ExecutionListener listener
 
     def setup() {
-        gradleUserHomeDir = temporaryFolder.root
+        gradleUserHomeDir = temporaryFolder
         buildLayout = Mock(BuildLayoutResult) {
             getGradleUserHomeDir() >> gradleUserHomeDir
         }

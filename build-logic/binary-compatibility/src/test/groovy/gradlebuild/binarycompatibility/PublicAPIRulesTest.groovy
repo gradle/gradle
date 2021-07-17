@@ -30,10 +30,9 @@ import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Severity
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import org.gradle.api.Incubating
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.lang.TempDir
 
 import javax.inject.Inject
 
@@ -41,8 +40,8 @@ class PublicAPIRulesTest extends Specification {
     private final static String TEST_INTERFACE_NAME = 'org.gradle.api.ApiTest'
     private final static String TEST_INTERFACE_SIMPLE_NAME = 'ApiTest'
 
-    @Rule
-    TemporaryFolder tmp = new TemporaryFolder()
+    @TempDir
+    File tmp
     File sourceFile
 
     BinaryCompatibilityRepository repository
@@ -57,8 +56,8 @@ class PublicAPIRulesTest extends Specification {
     def injectAnnotation = Stub(JApiAnnotation)
 
     def setup() {
-        new File(tmp.root, "org/gradle/api").mkdirs()
-        sourceFile = tmp.newFile("${TEST_INTERFACE_NAME.replace('.', '/')}.java")
+        new File(tmp, "org/gradle/api").mkdirs()
+        sourceFile = new File(tmp, "${TEST_INTERFACE_NAME.replace('.', '/')}.java").tap { text = "" }
 
         jApiClassifier.fullyQualifiedName >> TEST_INTERFACE_NAME
         jApiField.name >> 'field'
@@ -73,7 +72,7 @@ class PublicAPIRulesTest extends Specification {
         overrideAnnotation.fullyQualifiedName >> Override.name
         injectAnnotation.fullyQualifiedName >> Inject.name
 
-        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.root.absolutePath)], [])
+        repository = BinaryCompatibilityRepository.openRepositoryFor([new File(tmp.absolutePath)], [])
     }
 
     def cleanup() {

@@ -36,8 +36,6 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             dependencies {
                 testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
                 testImplementation("org.spockframework:spock-core")
-                testImplementation("org.spockframework:spock-junit4")
-                testImplementation 'junit:junit:4.13.1'
             }
             test.useJUnitPlatform()
         """
@@ -47,22 +45,21 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         file("src/test/groovy/Test.groovy") << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class Test extends Specification {
 
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
 
                 def "execute helloWorld task"() {
                     given:
-                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'plugin-test'"
-                    testProjectDir.newFile('build.gradle') << '''$plugin.useDeclaration'''
+                    new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'plugin-test'"
+                    new File(testProjectDir, 'build.gradle') << '''$plugin.useDeclaration'''
 
                     when:
                     def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
+                        .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withPluginClasspath()
                         .withDebug($debug)
