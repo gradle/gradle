@@ -16,8 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
-
-import java.util.Collection;
+import org.gradle.internal.build.ExecutionResult;
 
 /**
  * Executes the work scheduled for a build. Prior to execution, the work will be prepared by a {@link org.gradle.initialization.TaskExecutionPreparer}.
@@ -26,5 +25,5 @@ public interface BuildWorkExecutor {
     /**
      * Executes the scheduled work and collects the failures.
      */
-    void execute(GradleInternal gradle, Collection<? super Throwable> failures);
+    ExecutionResult<Void> execute(GradleInternal gradle);
 }

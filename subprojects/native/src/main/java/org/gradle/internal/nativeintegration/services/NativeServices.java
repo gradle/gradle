@@ -150,22 +150,22 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
     private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures) {
-        try {
-            if (!initialized) {
+        if (!initialized) {
+            try {
                 initializeNativeIntegrations(userHomeDir);
                 initialized = true;
+                initializeFeatures(requestedFeatures);
+            } catch (RuntimeException e) {
+                throw new ServiceCreationException("Could not initialize native services.", e);
             }
-            initializeFeatures(requestedFeatures);
-        } catch (RuntimeException e) {
-            throw new ServiceCreationException("Could not initialize native services.", e);
         }
     }
 
     private void initializeNativeIntegrations(File userHomeDir) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
+        useNativeIntegrations = isNativeIntegrationsEnabled();
+        nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
-            nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
             try {
                 net.rubygrapefruit.platform.Native.init(nativeBaseDir);
             } catch (NativeIntegrationUnavailableException ex) {
@@ -189,14 +189,19 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
-        for (NativeFeatures requestedFeature : requestedFeatures) {
-            if (!initializedFeatures.contains(requestedFeature)) {
-                initializedFeatures.add(requestedFeature);
-                if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
-                    enabledFeatures.add(requestedFeature);
+        if (isNativeIntegrationsEnabled()) {
+            for (NativeFeatures requestedFeature : requestedFeatures) {
+                if (initializedFeatures.add(requestedFeature)) {
+                    if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
+                        enabledFeatures.add(requestedFeature);
+                    }
                 }
             }
         }
+    }
+
+    private static boolean isNativeIntegrationsEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     }
 
     private boolean isFeatureEnabled(NativeFeatures feature) {

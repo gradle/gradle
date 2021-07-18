@@ -16,14 +16,16 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.build.ExecutionResult;
+
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface BuildTreeFinishExecutor {
     /**
-     * Finishes any work and runs any pending user clean up code such as build finished hooks.
+     * Finishes any work and runs any pending user clean up code such as build finished hooks, build service cleanup and so on.
+     *
      * @param failures The failures to report to the build finished hooks.
-     * @param finishFailures Collects any failures that happen during finishing.
+     * @return A result containing any failures that happened finishing the build tree.
      */
-    void finishBuildTree(List<Throwable> failures, Consumer<? super Throwable> finishFailures);
+    ExecutionResult<Void> finishBuildTree(List<Throwable> failures);
 }

@@ -71,13 +71,20 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
     }
 
     protected final File java(String... classBodies) {
+        javaInPackage('', classBodies)
+    }
+
+    protected final File javaInPackage(String packageName, String... classBodies) {
         File out
+        def packageStatement = packageName.empty ? "" : "package ${packageName};\n"
+        def packagePathPrefix = packageName.empty ? '' : "${packageName.replace('.', '/')}/"
         for (String body : classBodies) {
             def className = (body =~ /(?s).*?class (\w+) .*/)[0][1]
             assert className: "unable to find class name"
-            def f = file("src/main/java/${className}.java")
+            def f = file("src/main/java/${packagePathPrefix}${className}.java")
             f.createFile()
-            f.text = body
+            f.text = packageStatement
+            f << body
             out = f
         }
         out

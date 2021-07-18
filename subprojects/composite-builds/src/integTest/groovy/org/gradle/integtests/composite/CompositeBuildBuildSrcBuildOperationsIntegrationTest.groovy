@@ -22,6 +22,7 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import spock.lang.Unroll
 
@@ -90,17 +91,24 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[2].details.buildPath == ":buildB:buildSrc"
         configureOps[2].parentId == buildSrcOps[0].id
 
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeTaskGraphOps.size() == 2
+        treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[0].parentId == buildSrcOps[0].id
+        treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[1].parentId == root.id
+
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
         taskGraphOps[0].displayName == "Calculate task graph (:buildB:buildSrc)"
         taskGraphOps[0].details.buildPath == ":buildB:buildSrc"
-        taskGraphOps[0].parentId == buildSrcOps[0].id
+        taskGraphOps[0].parentId == treeTaskGraphOps[0].id
         taskGraphOps[1].displayName == "Calculate task graph"
         taskGraphOps[1].details.buildPath == ":"
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].parentId == treeTaskGraphOps[1].id
         taskGraphOps[2].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[2].details.buildPath == ":buildB"
-        taskGraphOps[2].parentId == taskGraphOps[1].id
+        taskGraphOps[2].parentId == treeTaskGraphOps[1].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id
@@ -109,22 +117,22 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
         runTasksOps[0].parentId == buildSrcOps[0].id
-        runTasksOps[1].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort()  == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == runMainTasks.id
-        runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 3
         graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners (:buildB:buildSrc)'
         graphNotifyOps[0].details.buildPath == ':buildB:buildSrc'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
-        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners"
-        graphNotifyOps[1].details.buildPath == ":"
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
-        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
-        graphNotifyOps[2].details.buildPath == ":buildB"
-        graphNotifyOps[2].parentId == taskGraphOps[1].id
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
+        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[1].details.buildPath == ":buildB"
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[2].details.buildPath == ":"
+        graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
 
         where:
         settings                     | display
@@ -191,20 +199,29 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[3].details.buildPath == ":buildSrc"
         configureOps[3].parentId == buildSrcOps[1].id
 
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeTaskGraphOps.size() == 3
+        treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[0].parentId == buildSrcOps[0].id
+        treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[1].parentId == buildSrcOps[1].id
+        treeTaskGraphOps[2].displayName == "Calculate build tree task graph"
+        treeTaskGraphOps[2].parentId == root.id
+
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 4
         taskGraphOps[0].displayName == "Calculate task graph (:buildB:buildSrc)"
         taskGraphOps[0].details.buildPath == ":buildB:buildSrc"
-        taskGraphOps[0].parentId == buildSrcOps[0].id
+        taskGraphOps[0].parentId == treeTaskGraphOps[0].id
         taskGraphOps[1].displayName == "Calculate task graph (:buildSrc)"
         taskGraphOps[1].details.buildPath == ":buildSrc"
-        taskGraphOps[1].parentId == buildSrcOps[1].id
+        taskGraphOps[1].parentId == treeTaskGraphOps[1].id
         taskGraphOps[2].displayName == "Calculate task graph"
         taskGraphOps[2].details.buildPath == ":"
-        taskGraphOps[2].parentId == root.id
+        taskGraphOps[2].parentId == treeTaskGraphOps[2].id
         taskGraphOps[3].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[3].details.buildPath == ":buildB"
-        taskGraphOps[3].parentId == taskGraphOps[2].id
+        taskGraphOps[3].parentId == treeTaskGraphOps[2].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id
@@ -215,25 +232,25 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[0].parentId == buildSrcOps[0].id
         runTasksOps[1].displayName == "Run tasks (:buildSrc)"
         runTasksOps[1].parentId == buildSrcOps[1].id
-        runTasksOps[2].displayName == "Run tasks"
+        // Build operations are run in parallel, so can appear in either order
+        [runTasksOps[2].displayName, runTasksOps[3].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[2].parentId == runMainTasks.id
-        runTasksOps[3].displayName == "Run tasks (:buildB)"
         runTasksOps[3].parentId == runMainTasks.id
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 4
         graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:buildB:buildSrc)"
         graphNotifyOps[0].details.buildPath == ":buildB:buildSrc"
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
+        graphNotifyOps[0].parentId == treeTaskGraphOps[0].id
         graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
         graphNotifyOps[1].details.buildPath == ':buildSrc'
-        graphNotifyOps[1].parentId == taskGraphOps[1].id
-        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
-        graphNotifyOps[2].details.buildPath == ":"
-        graphNotifyOps[2].parentId == taskGraphOps[2].id
-        graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
-        graphNotifyOps[3].details.buildPath == ":buildB"
-        graphNotifyOps[3].parentId == taskGraphOps[2].id
+        graphNotifyOps[1].parentId == treeTaskGraphOps[1].id
+        graphNotifyOps[2].displayName == "Notify task graph whenReady listeners (:buildB)"
+        graphNotifyOps[2].details.buildPath == ":buildB"
+        graphNotifyOps[2].parentId == treeTaskGraphOps[2].id
+        graphNotifyOps[3].displayName == "Notify task graph whenReady listeners"
+        graphNotifyOps[3].details.buildPath == ":"
+        graphNotifyOps[3].parentId == treeTaskGraphOps[2].id
 
         where:
         settings                     | display

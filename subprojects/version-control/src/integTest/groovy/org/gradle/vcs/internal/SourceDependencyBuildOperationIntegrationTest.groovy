@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -94,15 +95,20 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         configureOps[1].details.buildPath == ":${buildName}"
         configureOps[1].parentId == resolve.id
 
+        def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        treeGraphOps.size() == 1
+        treeGraphOps[0].displayName == "Calculate build tree task graph"
+        treeGraphOps[0].parentId == root.id
+
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
         taskGraphOps[0].displayName == "Calculate task graph"
         taskGraphOps[0].details.buildPath == ":"
-        taskGraphOps[0].parentId == root.id
+        taskGraphOps[0].parentId == treeGraphOps[0].id
         taskGraphOps[0].children.contains(resolve)
         taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
         taskGraphOps[1].details.buildPath == ":${buildName}"
-        taskGraphOps[1].parentId == taskGraphOps[0].id
+        taskGraphOps[1].parentId == treeGraphOps[0].id
 
         def runMainTasks = operations.first(Pattern.compile("Run main tasks"))
         runMainTasks.parentId == root.id
@@ -116,12 +122,12 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps.size() == 2
-        graphNotifyOps[0].displayName == 'Notify task graph whenReady listeners'
-        graphNotifyOps[0].details.buildPath == ':'
-        graphNotifyOps[0].parentId == taskGraphOps[0].id
-        graphNotifyOps[1].displayName == "Notify task graph whenReady listeners (:${buildName})"
-        graphNotifyOps[1].details.buildPath == ":${buildName}"
-        graphNotifyOps[1].parentId == taskGraphOps[0].id
+        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:${buildName})"
+        graphNotifyOps[0].details.buildPath == ":${buildName}"
+        graphNotifyOps[0].parentId == treeGraphOps[0].id
+        graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners'
+        graphNotifyOps[1].details.buildPath == ':'
+        graphNotifyOps[1].parentId == treeGraphOps[0].id
 
         where:
         settings                     | buildName | dependencyName | display

@@ -60,10 +60,11 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             "Run build / Configure build / Configure build (:lib) / Load projects",
             "Run build / Configure build / Configure build (:lib) / Configure project :lib",
             "Run build / Configure build / Configure project :",
-            "Run build / Calculate task graph",
-            "Run build / Calculate task graph / Notify task graph whenReady listeners",
-            "Run build / Calculate task graph / Calculate task graph (:lib)",
-            "Run build / Calculate task graph / Notify task graph whenReady listeners (:lib)"
+            "Run build / Calculate build tree task graph",
+            "Run build / Calculate build tree task graph / Calculate task graph",
+            "Run build / Calculate build tree task graph / Calculate task graph (:lib)",
+            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners (:lib)",
+            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners"
         ]
         def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
@@ -106,7 +107,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
     private static List<BuildOperationRecord> scanRelevantOperationsIn(BuildOperationTreeQueries operations) {
         operations.all(
             Pattern.compile(
-                /(Load build|Evaluate settings|Load projects|Configure project|Calculate task graph|Notify task graph whenReady listeners).*/
+                /(Load build|Evaluate settings|Load projects|Configure project|Calculate build tree task graph|Calculate task graph|Notify task graph whenReady listeners).*/
             )
         )
     }

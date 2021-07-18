@@ -58,10 +58,10 @@ import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
@@ -1224,11 +1224,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withBuildCacheEnabled() {
         return withArgument("--build-cache");
-    }
-
-    @Override
-    public GradleExecuter withPartialVfsInvalidation(boolean enabled) {
-        return this;
     }
 
     protected Action<ExecutionResult> getResultAssertion() {

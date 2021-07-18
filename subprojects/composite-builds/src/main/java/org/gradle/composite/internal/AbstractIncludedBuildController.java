@@ -23,6 +23,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -30,6 +31,7 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -52,18 +54,19 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(TaskInternal task) {
+    public ExportedTaskNode locateTask(TaskInternal task) {
         assertInState(State.DiscoveringTasks);
-        return new TaskBackedResource(this, build.getWorkGraph().locateTask(task));
+        return build.getWorkGraph().locateTask(task);
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(String taskPath) {
+    public ExportedTaskNode locateTask(String taskPath) {
         assertInState(State.DiscoveringTasks);
-        return new TaskBackedResource(this, build.getWorkGraph().locateTask(taskPath));
+        return build.getWorkGraph().locateTask(taskPath);
     }
 
-    private void queueForExecution(ExportedTaskNode taskNode) {
+    @Override
+    public void queueForExecution(ExportedTaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
         queuedForExecution.add(taskNode);
     }
@@ -119,13 +122,19 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     }
 
     @Override
-    public void awaitTaskCompletion(Consumer<? super Throwable> taskFailures) {
+    public ExecutionResult<Void> awaitTaskCompletion() {
         assertInState(State.RunningTasks);
+        ExecutionResult<Void> result;
         if (!scheduled.isEmpty()) {
-            doAwaitTaskCompletion(taskFailures);
+            List<Throwable> failures = new ArrayList<>();
+            doAwaitTaskCompletion(failures::add);
+            result = ExecutionResult.maybeFailed(failures);
+        } else {
+            result = ExecutionResult.succeeded();
         }
         scheduled.clear();
         state = State.Finished;
+        return result;
     }
 
     @Override
@@ -184,28 +193,4 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         }
     }
 
-    private static class TaskBackedResource implements IncludedBuildTaskResource {
-        private final AbstractIncludedBuildController buildController;
-        private final ExportedTaskNode taskNode;
-
-        public TaskBackedResource(AbstractIncludedBuildController buildController, ExportedTaskNode taskNode) {
-            this.buildController = buildController;
-            this.taskNode = taskNode;
-        }
-
-        @Override
-        public void queueForExecution() {
-            buildController.queueForExecution(taskNode);
-        }
-
-        @Override
-        public TaskInternal getTask() {
-            return taskNode.getTask();
-        }
-
-        @Override
-        public State getTaskState() {
-            return taskNode.getTaskState();
-        }
-    }
 }

@@ -40,6 +40,7 @@ import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
+import org.gradle.kotlin.dsl.codegen.sourceNameOfBinaryName
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
@@ -333,7 +334,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                     format(
                         """
                         /**
-                         * The `$id` plugin implemented by [$implementationClass].
+                         * The `$id` plugin implemented by [${sourceNameOfBinaryName(implementationClass)}].
                          */
                         val `$extendedType`.`${extension.name}`: PluginDependencySpec
                             get() = $pluginsRef.id("$id")
