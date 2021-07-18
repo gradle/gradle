@@ -16,28 +16,31 @@
 
 package org.gradle.configurationcache.isolated
 
-class IsolatedProjectsJavaIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    def "can build library with dependency on another library"() {
+class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+    def "can build libraries composed from multiple builds"() {
         settingsFile << """
+            includeBuild("libs")
+        """
+        file("libs/settings.gradle") << """
             include("a")
-            include("b")
         """
-        file("a/build.gradle") << """
+        file("libs/a/build.gradle") << """
             plugins { id('java-library') }
+            group = 'libs'
         """
-        file("b/build.gradle") << """
+        file("build.gradle") << """
             plugins { id('java-library') }
-            dependencies { implementation project(':a') }
+            dependencies { implementation 'libs:a:' }
         """
 
         when:
-        configurationCacheRun("b:assemble")
+        configurationCacheRun(":assemble")
 
         then:
         noExceptionThrown()
 
         when:
-        configurationCacheRun("b:assemble")
+        configurationCacheRun(":assemble")
 
         then:
         noExceptionThrown()

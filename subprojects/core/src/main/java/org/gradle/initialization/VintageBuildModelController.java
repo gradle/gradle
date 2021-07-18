@@ -27,7 +27,7 @@ public class VintageBuildModelController implements BuildModelController {
 
     private final ProjectsPreparer projectsPreparer;
     private final GradleInternal gradle;
-    private final ProjectsPreparer taskGraphPreparer;
+    private final TaskSchedulingPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
 
@@ -36,13 +36,13 @@ public class VintageBuildModelController implements BuildModelController {
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
-        ProjectsPreparer taskGraphPreparer,
+        TaskSchedulingPreparer taskSchedulingPreparer,
         SettingsPreparer settingsPreparer,
         TaskExecutionPreparer taskExecutionPreparer
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
-        this.taskGraphPreparer = taskGraphPreparer;
+        this.taskGraphPreparer = taskSchedulingPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
     }
@@ -101,7 +101,7 @@ public class VintageBuildModelController implements BuildModelController {
 
     private void prepareTaskGraph() {
         if (stage == Stage.Configure) {
-            taskGraphPreparer.prepareProjects(gradle);
+            taskGraphPreparer.prepareForTaskScheduling(gradle);
             stage = Stage.ScheduleTasks;
         }
     }
