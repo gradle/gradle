@@ -9,6 +9,7 @@ We would like to thank the following community members for their contributions t
  [Stefan Oehme](https://github.com/oehme)
  [KotlinIsland](https://github.com/KotlinIsland)
  [Herbert von Broeuschmeul](https://github.com/HvB)
+ [Ned Twigg](https://github.com/nedtwigg)
 
 ## Upgrade instructions
 Switch your build to use Gradle @version@ by updating your wrapper:
