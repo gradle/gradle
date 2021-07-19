@@ -443,6 +443,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         noExceptionThrown()
     }
 
+    @Requires(TestPrecondition.JDK16_OR_EARLIER) // SecurityManager is deprecated in Java 17: https://openjdk.java.net/jeps/411
     @Issue("https://github.com/gradle/gradle/issues/5305")
     def "test can install an irreplaceable SecurityManager"() {
         given:
