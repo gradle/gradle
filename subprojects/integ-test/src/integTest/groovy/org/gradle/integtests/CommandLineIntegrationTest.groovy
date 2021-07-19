@@ -88,7 +88,11 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
 
         def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
-        assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        if (OperatingSystem.current().isWindows()) {
+            assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        } else {
+            assert failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
+        }
     }
 
     @Test
