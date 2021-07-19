@@ -41,12 +41,12 @@ import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable GradleInternal parentModel, BuildScopeServices buildScopeServices) {
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild, BuildScopeServices buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         buildScopeServices.add(BuildDefinition.class, buildDefinition);
         buildScopeServices.add(BuildState.class, owner);
-        buildScopeServices.addProvider(new GradleModelProvider(parentModel, startParameter));
+        buildScopeServices.addProvider(new GradleModelProvider(parentBuild, startParameter));
 
         final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
         for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
@@ -103,18 +103,18 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
 
     private static class GradleModelProvider {
         @Nullable
-        private final GradleInternal parentModel;
+        private final BuildState parentBuild;
         private final StartParameter startParameter;
 
-        private GradleModelProvider(@Nullable GradleInternal parentModel, StartParameter startParameter) {
-            this.parentModel = parentModel;
+        private GradleModelProvider(@Nullable BuildState parentBuild, StartParameter startParameter) {
+            this.parentBuild = parentBuild;
             this.startParameter = startParameter;
         }
 
         GradleInternal createGradleModel(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
             return instantiator.newInstance(
                 DefaultGradle.class,
-                parentModel,
+                parentBuild,
                 startParameter,
                 serviceRegistryFactory
             );

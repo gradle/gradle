@@ -19,9 +19,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.build.StateTransitionController;
 
 public class VintageBuildModelController implements BuildModelController {
-    private enum Stage {
+    private enum Stage implements StateTransitionController.State {
         Created, LoadSettings, Configure, ScheduleTasks, TaskGraph
     }
 
@@ -30,8 +31,7 @@ public class VintageBuildModelController implements BuildModelController {
     private final TaskSchedulingPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
-
-    private Stage stage = Stage.Created;
+    private final StateTransitionController<Stage> controller = new StateTransitionController<>(Stage.Created);
 
     public VintageBuildModelController(
         GradleInternal gradle,
@@ -86,30 +86,18 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     private void prepareSettings() {
-        if (stage == Stage.Created) {
-            settingsPreparer.prepareSettings(gradle);
-            stage = Stage.LoadSettings;
-        }
+        controller.transitionIfNotPreviously(Stage.Created, Stage.LoadSettings, () -> settingsPreparer.prepareSettings(gradle));
     }
 
     private void prepareProjects() {
-        if (stage == Stage.LoadSettings) {
-            projectsPreparer.prepareProjects(gradle);
-            stage = Stage.Configure;
-        }
+        controller.transitionIfNotPreviously(Stage.LoadSettings, Stage.Configure, () -> projectsPreparer.prepareProjects(gradle));
     }
 
     private void prepareTaskGraph() {
-        if (stage == Stage.Configure) {
-            taskGraphPreparer.prepareForTaskScheduling(gradle);
-            stage = Stage.ScheduleTasks;
-        }
+        controller.transitionIfNotPreviously(Stage.Configure, Stage.ScheduleTasks, () -> taskGraphPreparer.prepareForTaskScheduling(gradle));
     }
 
     private void prepareTaskExecution() {
-        if (stage == Stage.ScheduleTasks) {
-            taskExecutionPreparer.prepareForTaskExecution(gradle);
-            stage = Stage.TaskGraph;
-        }
+        controller.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle));
     }
 }

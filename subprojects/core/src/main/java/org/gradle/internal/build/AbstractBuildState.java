@@ -66,6 +66,8 @@ public abstract class AbstractBuildState implements BuildState {
 
     @Override
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        getBuildController().populateWorkGraph(action);
+        BuildLifecycleController buildController = getBuildController();
+        buildController.prepareToScheduleTasks();
+        buildController.populateWorkGraph(action);
     }
 }
