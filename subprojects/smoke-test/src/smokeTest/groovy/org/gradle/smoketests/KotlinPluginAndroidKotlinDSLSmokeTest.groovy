@@ -44,10 +44,10 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         def buildFileName = "build.gradle.kts"
         [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
             replaceVariablesInFile(
-                    file(sampleBuildFileName),
-                    kotlinVersion: kotlinPluginVersion,
-                    androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: TestedVersions.androidTools)
+                file(sampleBuildFileName),
+                kotlinVersion: kotlinPluginVersion,
+                androidPluginVersion: androidPluginVersion,
+                androidBuildToolsVersion: TestedVersions.androidTools)
         }
 
         when:
@@ -58,7 +58,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
 
         if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-                && androidPluginVersion == TestedVersions.androidGradle.latest()) {
+            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
             // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
             // expectNoDeprecationWarnings(result)
         }
@@ -71,14 +71,13 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
 //        workers = false
 
         [kotlinPluginVersion, androidPluginVersion, workers] << [
-                TestedVersions.kotlin.versions,
-                TestedVersions.androidGradle.versions,
-                [true, false],
+            TestedVersions.kotlin.versions,
+            TestedVersions.androidGradle.versions,
+            [true, false],
         ].combinations()
     }
 
     private GradleRunner createRunner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-                .forwardOutput()
+        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
 }

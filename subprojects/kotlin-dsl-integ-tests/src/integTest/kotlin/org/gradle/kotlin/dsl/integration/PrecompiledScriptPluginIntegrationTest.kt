@@ -130,7 +130,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "generateScriptPluginAdapters")
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
         withBuildScript(
@@ -152,7 +152,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can apply precompiled script plugin from groovy script`() {
 
         withKotlinBuildSrc()
@@ -177,7 +176,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `accessors are available after script body change`() {
 
         withKotlinBuildSrc()
@@ -221,7 +219,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after re-running tasks`() {
 
         withKotlinBuildSrc()
@@ -472,7 +469,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     """
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `applied precompiled script plugin is reloaded upon change`() {
         // given:
         withFolders {
@@ -557,7 +553,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     // https://github.com/gradle/gradle/issues/15416
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use an empty plugins block in precompiled settings plugin`() {
         withFolders {
             "build-logic" {
@@ -599,7 +594,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     // https://github.com/gradle/gradle/issues/15416
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can apply a plugin from the same project in precompiled settings plugin`() {
         withFolders {
             "build-logic" {

@@ -129,7 +129,6 @@ private
 fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
         visit("mv", header.metadataVersion)
-        visit("bv", header.bytecodeVersion)
         visit("k", header.kind)
         visitArray("d1").run {
             header.data1.forEach { visit(null, it) }

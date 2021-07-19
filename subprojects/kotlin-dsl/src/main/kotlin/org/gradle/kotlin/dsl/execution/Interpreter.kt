@@ -359,7 +359,6 @@ class Interpreter(val host: Host) {
 
         logClassLoadingOf(scriptTemplateId, scriptSource)
 
-        require(classesDir.exists())
         return host.loadClassInChildScopeOf(
             baseScope,
             childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),

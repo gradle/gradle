@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     id("gradlebuild.java-library")
-    id("org.gradle.kotlin-dsl.ktlint-convention")
+    id("gradlebuild.ktlint")
 }
 
 configurations.transitiveSourcesElements {

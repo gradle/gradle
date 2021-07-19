@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.versions
+plugins {
+    id("org.gradle.kotlin-dsl.ktlint-convention")
+}
 
-/**
- * Kotlin Gradle Plugin Versions.
- */
-class KotlinGradlePluginVersions {
-
-    // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = [
-        '1.4.0', '1.4.10', '1.4.21', '1.4.31',
-        '1.5.0', '1.5.21'
-    ]
-
-    List<String> getLatests() {
-        return LATEST_VERSIONS
-    }
+ktlint {
+    version.set("0.41.0")
 }

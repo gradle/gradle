@@ -19,7 +19,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -47,7 +46,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "tasks stay cached after buildSrc with custom Kotlin task is rebuilt"() {
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
@@ -75,7 +73,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     @LeaksFileHandles
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "changing custom Kotlin task implementation in buildSrc invalidates cached result"() {
         withKotlinBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")

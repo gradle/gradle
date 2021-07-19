@@ -21,11 +21,10 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
+
 import javax.inject.Inject
 
 @LeaksFileHandles
-@Ignore("https://github.com/gradle/gradle-private/issues/3406")
 class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOpIntegrationTest {
     def setup() {
         pluginDir.file("src/main/kotlin/SomeTask.kt") << """
