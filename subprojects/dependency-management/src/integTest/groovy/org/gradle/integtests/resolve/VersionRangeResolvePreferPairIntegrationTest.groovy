@@ -16,9 +16,17 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+@IgnoreIf({
+    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
+    // infrastructure to simulate everything done here, so we're only going to execute this test in
+    // embedded mode
+    !GradleContextualExecuter.embedded
+})
 class VersionRangeResolvePreferPairIntegrationTest extends AbstractVersionRangeResolveIntegrationTest {
     @Unroll
     def "resolve prefer pair #permutation"() {
