@@ -21,6 +21,7 @@ import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSour
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
+import org.gradle.internal.Describables
 
 import static org.gradle.util.internal.WrapUtil.toList
 
@@ -34,6 +35,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     boolean directElementAdditionAllowed = true
     boolean elementRemovalAllowed = true
     boolean supportsBuildOperations = true
+
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
             boolean isSatisfiedBy(CharSequence element) {
@@ -173,6 +175,28 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
 
         expect:
         toList(collection) == ["a"]
+    }
+
+    def restoresUserCodeApplicationWhenFilterSpecIsEvaluated() {
+        def spec = Mock(Spec)
+        def displayName = Describables.of("plugin")
+        def collection = null
+
+        given:
+        userCodeApplicationContext.apply(displayName) {
+            collection = container.matching(spec)
+        }
+        assert userCodeApplicationContext.current() == null
+        container.add("a")
+
+        when:
+        collection.toList()
+
+        then:
+        1 * spec.isSatisfiedBy("a") >> {
+            assert userCodeApplicationContext.current().displayName == displayName
+            true
+        }
     }
 
     def findAllRetainsIterationOrder() {

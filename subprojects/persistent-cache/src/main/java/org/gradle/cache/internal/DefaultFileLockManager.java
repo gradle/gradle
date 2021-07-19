@@ -339,12 +339,14 @@ public class DefaultFileLockManager implements FileLockManager {
         }
 
         private LockTimeoutException timeoutException(String lockDisplayName, String thisOperation, File lockFile, String thisProcessPid, FileLockOutcome fileLockOutcome, LockInfo lockInfo) {
-            if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS) {
+            if (fileLockOutcome == FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
-            } else {
+            } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS){
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by this Gradle process.Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
+            } else {
+                throw new IllegalArgumentException("Unexpected lock outcome: " + fileLockOutcome);
             }
         }
 

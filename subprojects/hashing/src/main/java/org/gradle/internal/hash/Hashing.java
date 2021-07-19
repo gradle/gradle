@@ -21,24 +21,21 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 
 import java.io.File;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Some popular hash functions. Replacement for Guava's hashing utilities.
  * Inspired by the Google Guava project – https://github.com/google/guava.
  */
 public class Hashing {
-    private Hashing() {}
+    private Hashing() {
+    }
 
     private static final HashFunction MD5 = MessageDigestHashFunction.of("MD5");
 
@@ -428,40 +425,6 @@ public class Hashing {
         @Override
         public HashCode hash() {
             return hasher.hash();
-        }
-    }
-
-    /**
-     * Output stream decorator that hashes data written to the stream.
-     * Inspired by the Google Guava project.
-     */
-    private static final class HashingOutputStream extends FilterOutputStream {
-        private final PrimitiveHasher hasher;
-
-        public HashingOutputStream(HashFunction hashFunction, OutputStream out) {
-            super(checkNotNull(out));
-            this.hasher = checkNotNull(hashFunction.newPrimitiveHasher());
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            hasher.putByte((byte) b);
-            out.write(b);
-        }
-
-        @Override
-        public void write(byte[] bytes, int off, int len) throws IOException {
-            hasher.putBytes(bytes, off, len);
-            out.write(bytes, off, len);
-        }
-
-        public HashCode hash() {
-            return hasher.hash();
-        }
-
-        @Override
-        public void close() throws IOException {
-            out.close();
         }
     }
 }
