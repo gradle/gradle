@@ -14,7 +14,8 @@ plugins {
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
     id("com.gradle.enterprise.test-distribution").version("2.1.1") // Sync with `build-logic/build-platform/build.gradle.kts`
-    id("com.gradle.internal.test-selection").version("0.6.0-rc-1")
+    id("gradlebuild.internal.testfiltering")
+    id("com.gradle.internal.test-selection").version("0.6.4-rc-1")
 }
 
 includeBuild("build-logic-commons")
