@@ -110,6 +110,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
         "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                                      | "[a:1, b:2]"
         "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap({ x, y -> y.compareTo(x) }).tap { putAll([a: 1, b: 2]) }" | "[b:2, a:1]"
         "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                                  | "[a:1, b:2]"
         "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])"          | "[One:one, Two:two]"
         "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"                                     | "[-128, 127]"
