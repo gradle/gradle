@@ -23,4 +23,5 @@ dependencyResolutionManagement {
 }
 
 include("allprojects-plugin")
+include("testfiltering-plugin")
 
