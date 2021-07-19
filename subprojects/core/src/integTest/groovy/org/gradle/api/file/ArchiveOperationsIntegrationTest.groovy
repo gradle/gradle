@@ -17,13 +17,10 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreRest
 import spock.lang.Unroll
-
 
 class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreRest
     @Unroll
     def "can read #archiveType resources in task action"() {
 
@@ -60,7 +57,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         archiveType << ['gzip', 'bzip2']
     }
 
-    @IgnoreRest
     @Unroll
     def "can read #archiveType resources in #isolation isolation worker action"() {
 

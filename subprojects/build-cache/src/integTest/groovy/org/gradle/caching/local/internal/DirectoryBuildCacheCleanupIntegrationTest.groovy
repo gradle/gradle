@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.hash.Hashing
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
@@ -172,7 +171,6 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
-    @Ignore("Looks like GradleBuild doesn't work with build operations, see https://github.com/gradle/gradle/issues/3983")
     def "GradleBuild tasks do not try to clean build cache"() {
         file("included/build.gradle") << """
             apply plugin: 'java'
