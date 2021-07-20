@@ -215,10 +215,8 @@ The feature supports the following file system types:
 
 - APFS
 - btrfs
-- exFAT
 - ext3
 - ext4
-- FAT32
 - HFS+
 - NTFS
 
