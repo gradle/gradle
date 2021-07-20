@@ -458,7 +458,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9904')
-    def "directory with broken symlink and @SkipWhenEmpty fails"() {
+    def "directory with broken symlink and @SkipWhenEmpty executes the task action"() {
         def root = file('root').createDir()
         def brokenInputFile = root.file('BrokenInputFile').createLink("BrokenInputFileTarget")
 
@@ -475,8 +475,8 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         assert !brokenInputFile.exists()
 
         when:
-        fails 'brokenDirectoryWithSkipWhenEmpty'
+        run 'brokenDirectoryWithSkipWhenEmpty'
         then:
-        failure.assertHasCause("Couldn't follow symbolic link '${brokenInputFile}'.")
+        executedAndNotSkipped(':brokenDirectoryWithSkipWhenEmpty')
     }
 }

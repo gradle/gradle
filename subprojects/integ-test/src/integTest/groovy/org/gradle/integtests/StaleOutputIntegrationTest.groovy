@@ -371,7 +371,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
 
                 task ${taskName} {
                     def sources = file("src")
-                    inputs.dir sources skipWhenEmpty()
+                    inputs.dir sources skipWhenEmpty() ignoreEmptyDirectories()
                     outputs.dir "${outputDir}"
                     doLast {
                         file("${outputDir}").mkdirs()
@@ -564,7 +564,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
 
                 task ${taskName} {
                     def sources = file("src")
-                    inputs.dir sources skipWhenEmpty()
+                    inputs.dir sources skipWhenEmpty() ignoreEmptyDirectories()
                     outputs.file "$outputFile"
                     localState.register "$localStateDir"
                     doLast {

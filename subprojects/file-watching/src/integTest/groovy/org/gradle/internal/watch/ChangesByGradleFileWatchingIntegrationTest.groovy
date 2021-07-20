@@ -27,6 +27,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
             abstract class Producer extends DefaultTask {
                 @InputDirectory
                 @SkipWhenEmpty
+                @IgnoreEmptyDirectories
                 abstract DirectoryProperty getSources()
 
                 @OutputDirectory
