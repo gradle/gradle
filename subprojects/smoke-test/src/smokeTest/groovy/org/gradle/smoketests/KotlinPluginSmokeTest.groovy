@@ -26,6 +26,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -179,6 +180,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        assumeTrue(kotlinVersion != '1.3.72')
+
         given:
         buildFile << """
             plugins {
@@ -267,7 +271,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 """
             }
             alwaysPasses()
-            if (testedPluginId == 'org.jetbrains.kotlin.js') {
+            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
                 buildFile << """
                     kotlin { js { browser() } }
                 """
