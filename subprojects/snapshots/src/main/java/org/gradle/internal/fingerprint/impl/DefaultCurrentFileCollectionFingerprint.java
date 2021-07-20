@@ -42,10 +42,6 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final HashCode strategyConfigurationHash;
     private HashCode hash;
 
-    public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy) {
-        return from(roots, strategy, null);
-    }
-
     public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable  FileCollectionFingerprint candidate) {
         if (roots == FileSystemSnapshot.EMPTY) {
             return strategy.getEmptyFingerprint();
@@ -61,23 +57,21 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         if (fingerprints.isEmpty()) {
             return strategy.getEmptyFingerprint();
         }
-        return new DefaultCurrentFileCollectionFingerprint(fingerprints, strategy.getHashingStrategy(), strategy.getIdentifier(), roots, rootHashes, strategy.getConfigurationHash());
+        return new DefaultCurrentFileCollectionFingerprint(fingerprints, roots, rootHashes, strategy);
     }
 
     private DefaultCurrentFileCollectionFingerprint(
         Map<String, FileSystemLocationFingerprint> fingerprints,
-        FingerprintHashingStrategy hashingStrategy,
-        String identifier,
         FileSystemSnapshot roots,
         ImmutableMultimap<String, HashCode> rootHashes,
-        HashCode strategyConfigurationHash
+        FingerprintingStrategy strategy
     ) {
         this.fingerprints = fingerprints;
-        this.hashingStrategy = hashingStrategy;
-        this.identifier = identifier;
+        this.identifier = strategy.getIdentifier();
+        this.hashingStrategy = strategy.getHashingStrategy();
+        this.strategyConfigurationHash = strategy.getConfigurationHash();
         this.roots = roots;
         this.rootHashes = rootHashes;
-        this.strategyConfigurationHash = strategyConfigurationHash;
     }
 
     @Override
