@@ -177,6 +177,16 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
+    def 'expand with action'() {
+        when:
+        spec.expand(version: '1.2', skip: 2) {details ->
+            details.escapeBackslash = true
+        }
+
+        then:
+        spec.copyActions.size() == 1
+    }
+
     def 'two filters'() {
         when:
         spec.filter(StripJavaComments)

@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
@@ -88,6 +89,7 @@ public class DefaultFileOperations implements FileOperations {
         FileHasher fileHasher,
         DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
+        ObjectFactory objectFactory,
         FileSystem fileSystem,
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
@@ -109,6 +111,7 @@ public class DefaultFileOperations implements FileOperations {
             fileCollectionFactory,
             fileResolver,
             patternSetFactory,
+            objectFactory,
             fileSystem,
             instantiator,
             documentationRegistry
@@ -280,6 +283,7 @@ public class DefaultFileOperations implements FileOperations {
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
+        ObjectFactory objectFactory = services.get(ObjectFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
@@ -306,6 +310,7 @@ public class DefaultFileOperations implements FileOperations {
             fileHasher,
             resourceHandlerFactory,
             fileTreeFactory,
+            objectFactory,
             fileSystem,
             patternSetFactory,
             deleter,
