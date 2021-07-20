@@ -88,9 +88,13 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
 import spock.lang.Specification
 
-import java.util.function.Supplier
-
 import static java.util.Collections.emptyList
+import static org.gradle.api.internal.file.TestFiles.deleter
+import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
+import static org.gradle.api.internal.file.TestFiles.fileSystem
+import static org.gradle.api.internal.file.TestFiles.fileSystemAccess
+import static org.gradle.api.internal.file.TestFiles.genericFileTreeSnapshotter
+import static org.gradle.api.internal.file.TestFiles.virtualFileSystem
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
@@ -106,8 +110,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
-        getInputPropertyValues() >> { { -> ImmutableSortedMap.of() } as Supplier }
+        getInputProperties() >> ImmutableSortedSet.of()
         getInputFileProperties() >> ImmutableSortedSet.of()
+        getInputFiles() >> TestFiles.empty()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
     def previousState = Stub(PreviousExecutionState) {
@@ -124,9 +129,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
-    def virtualFileSystem = TestFiles.virtualFileSystem()
-    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def virtualFileSystem = virtualFileSystem()
+    def fileSystemAccess = fileSystemAccess(virtualFileSystem)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter(), fileSystem())
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
@@ -152,9 +157,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
-    def fileCollectionFactory = TestFiles.fileCollectionFactory()
+    def fileCollectionFactory = fileCollectionFactory()
     def fileOperations = Stub(FileOperations)
-    def deleter = TestFiles.deleter()
+    def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
     def taskInputsListeners = Stub(TaskInputsListeners)
