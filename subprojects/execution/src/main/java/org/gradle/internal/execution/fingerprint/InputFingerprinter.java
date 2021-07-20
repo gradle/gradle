@@ -178,7 +178,7 @@ public interface InputFingerprinter {
         private final String propertyName;
 
         public InputFileFingerprintingException(String propertyName, Throwable cause) {
-            super(String.format("Cannot fingerprint input file property '%s'.", propertyName), cause);
+            super(String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()), cause);
             this.propertyName = propertyName;
         }
 

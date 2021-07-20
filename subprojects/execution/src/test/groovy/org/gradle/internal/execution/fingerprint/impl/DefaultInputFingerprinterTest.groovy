@@ -147,7 +147,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         def ex = thrown InputFingerprinter.InputFileFingerprintingException
-        ex.message == "Cannot fingerprint input file property 'file'."
+        ex.message == "Cannot fingerprint input file property 'file': java.io.IOException: Error"
         ex.propertyName == "file"
         ex.cause == failure
     }

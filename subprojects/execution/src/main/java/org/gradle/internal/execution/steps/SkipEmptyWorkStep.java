@@ -28,12 +28,12 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputsCleaner;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.execution.history.AfterExecutionState;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -73,7 +73,25 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
-        InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
+        InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
+
+        if (!newInputs.getFileFingerprints().isEmpty()) {
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, newInputs.getFileFingerprints());
+
+            if (newInputs.getFileFingerprints().values().stream()
+                .allMatch(CurrentFileCollectionFingerprint::isEmpty)
+            ) {
+                return skipExecutionWithEmptySources(work, context);
+            } else {
+                return executeWithNoEmptySources(work, withSources(context, knownValueSnapshots, inputFileProperties));
+            }
+        } else {
+            return executeWithNoEmptySources(work, context);
+        }
+    }
+
+    private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
+        return work.getInputFingerprinter().fingerprintInputProperties(
             context.getPreviousExecutionState()
                 .map(PreviousExecutionState::getInputProperties)
                 .orElse(ImmutableSortedMap.of()),
@@ -90,21 +108,6 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
                     }
                 }
             }));
-
-
-        if (!newInputs.getFileFingerprints().isEmpty()) {
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, newInputs.getFileFingerprints());
-
-            if (newInputs.getFileFingerprints().values().stream()
-                .allMatch(CurrentFileCollectionFingerprint::isEmpty)
-            ) {
-                return skipExecutionWithEmptySources(work, context);
-            } else {
-                return executeWithNoEmptySources(work, withSources(context, knownValueSnapshots, inputFileProperties));
-            }
-        } else {
-            return executeWithNoEmptySources(work, context);
-        }
     }
 
     @Nonnull
