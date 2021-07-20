@@ -16,7 +16,6 @@
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.filterEnvironmentVariables
@@ -140,11 +139,18 @@ fun addDependencies() {
 fun addCompileAllTask() {
     tasks.register("compileAll") {
         val compileTasks = project.tasks.matching {
-            it is JavaCompile || it is GroovyCompile
+            (it is JavaCompile || it is GroovyCompile) && !it.isTestCompile()
         }
         dependsOn(compileTasks)
     }
 }
+
+fun Task.isTestCompile() =
+    listOf(
+        "compileCrossVersionTest",
+        "compileTest",
+        "compileIntegTest"
+    ).any { name.startsWith(it) }
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
