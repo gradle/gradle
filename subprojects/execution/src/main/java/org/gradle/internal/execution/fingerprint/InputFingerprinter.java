@@ -32,9 +32,9 @@ import java.util.function.Supplier;
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints,
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
+        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
+        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
     );
 

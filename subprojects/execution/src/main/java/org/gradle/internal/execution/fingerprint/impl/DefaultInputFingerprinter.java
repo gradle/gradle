@@ -45,12 +45,12 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
     @Override
     public Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints,
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints,
+        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
+        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
     ) {
-        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousInputFileFingerprints, fingerprinterRegistry, valueSnapshotter, knownValueSnapshots, knownFingerprints);
+        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints);
         inputs.accept(visitor);
         return visitor.complete();
     }
@@ -62,34 +62,34 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
     private static class InputCollectingVisitor implements InputVisitor {
         private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
-        private final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints;
+        private final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ValueSnapshotter valueSnapshotter;
-        private final ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots;
-        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints;
+        private final ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints;
 
         private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
 
         public InputCollectingVisitor(
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
-            ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints,
+            ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter,
-            ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints
+            ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints
         ) {
             this.previousValueSnapshots = previousValueSnapshots;
-            this.previousInputFileFingerprints = previousInputFileFingerprints;
+            this.previousFingerprints = previousFingerprints;
             this.fingerprinterRegistry = fingerprinterRegistry;
             this.valueSnapshotter = valueSnapshotter;
-            this.knownValueSnapshots = knownValueSnapshots;
-            this.knownFingerprints = knownFingerprints;
+            this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
+            this.knownCurrentFingerprints = knownCurrentFingerprints;
         }
 
         @Override
         public void visitInputProperty(String propertyName, ValueSupplier value) {
-            if (knownValueSnapshots.containsKey(propertyName)) {
+            if (knownCurrentValueSnapshots.containsKey(propertyName)) {
                 return;
             }
             Object actualValue = value.getValue();
@@ -108,11 +108,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         @Override
         public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier value) {
-            if (knownFingerprints.containsKey(propertyName)) {
+            if (knownCurrentFingerprints.containsKey(propertyName)) {
                 return;
             }
 
-            FileCollectionFingerprint previousFingerprint = previousInputFileFingerprints.get(propertyName);
+            FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity(), value.getLineEndingNormalization());
             CurrentFileCollectionFingerprint fingerprint = fingerprinterRegistry.getFingerprinter(normalizationSpec)
                 .fingerprint(value.getFiles(), previousFingerprint);

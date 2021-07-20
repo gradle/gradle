@@ -28,6 +28,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -113,11 +114,11 @@ class DefaultInputFingerprinterTest extends Specification {
 
     private Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, ValueSnapshot> previousFingerprints = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, FileCollectionFingerprint> previousFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownValueSnapshots, knownFingerprints, inputs)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs)
     }
 }
