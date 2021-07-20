@@ -18,9 +18,7 @@ package org.gradle.internal.execution.fingerprint;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -52,14 +50,4 @@ public interface FileCollectionFingerprinter {
      * Returns the normalized path to use for the given root
      */
     String normalizePath(FileSystemLocationSnapshot root);
-
-    /**
-     * Returns the directory sensitivity associated with this fingerprinter.
-     */
-    DirectorySensitivity getDirectorySensitivity();
-
-    /**
-     * Returns the line ending normalization associated with this fingerprinter.
-     */
-    LineEndingSensitivity getLineEndingNormalization();
 }
