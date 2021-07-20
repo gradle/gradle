@@ -153,6 +153,16 @@ public class WatchableHierarchies {
         return newRoot;
     }
 
+    /**
+     * Removes all content which is not watched under an existing snapshot hierarchy.
+     *
+     * When Gradle starts watching a hierarchy, it may be that there is already some existing content in the VFS.
+     * For example this happens when Gradle references a file in an included build directly by path,
+     * even before the included build is declared.
+     *
+     * This visitor then removes that existing content, so when we later start watching the hierarchy,
+     * we can be sure that the VFS and the file system is in sync.
+     */
     private class RemoveUnwatchedContentVisitor implements SnapshotHierarchy.SnapshotVisitor {
         private SnapshotHierarchy vfsRoot;
 
@@ -163,6 +173,7 @@ public class WatchableHierarchies {
         @Override
         public void visitSnapshotRoot(FileSystemLocationSnapshot snapshotRoot) {
             if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
+                LOGGER.debug("Removing existing content under new watchable hierarchy: '{}'", snapshotRoot.getAbsolutePath());
                 vfsRoot = vfsRoot.invalidate(snapshotRoot.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
             }
         }

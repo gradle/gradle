@@ -50,8 +50,7 @@ public interface FileWatcherRegistry extends Closeable {
      *
      * The watcher registry will only watch for changes in watchable hierarchies.
      *
-     * All existing content for newly watched hierarchies will be removed from the root by this method.
-     *
+     * @return the snapshot hierarchy without the existing content for newly watched hierarchies.
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
     @CheckReturnValue
