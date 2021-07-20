@@ -51,11 +51,6 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots) {
-        return DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy, null);
-    }
-
-    @Override
     public String normalizePath(FileSystemLocationSnapshot root) {
         return fingerprintingStrategy.normalizePath(root);
     }

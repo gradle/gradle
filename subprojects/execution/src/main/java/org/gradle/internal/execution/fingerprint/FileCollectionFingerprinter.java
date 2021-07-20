@@ -22,7 +22,6 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -43,11 +42,6 @@ public interface FileCollectionFingerprinter {
      * Creates a fingerprint of the contents of the given collection.
      */
     CurrentFileCollectionFingerprint fingerprint(FileCollection files, @Nullable FileCollectionFingerprint previousFingerprint);
-
-    /**
-     * Creates a fingerprint of the contents of the given roots.
-     */
-    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot roots);
 
     /**
      * Returns an empty fingerprint.
