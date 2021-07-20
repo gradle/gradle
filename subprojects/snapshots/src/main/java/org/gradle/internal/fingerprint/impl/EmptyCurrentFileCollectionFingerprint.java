@@ -68,6 +68,11 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
+    public HashCode getStrategyConfigurationHash() {
+        return SIGNATURE;
+    }
+
+    @Override
     public String getStrategyIdentifier() {
         return identifier;
     }

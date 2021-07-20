@@ -100,7 +100,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
 
@@ -120,7 +120,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         isGeneratedByGradle() >> true
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
-    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(fingerprinter)])
+    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fingerprinter)])
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)

@@ -48,6 +48,7 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of("input", inputSnapshot),
