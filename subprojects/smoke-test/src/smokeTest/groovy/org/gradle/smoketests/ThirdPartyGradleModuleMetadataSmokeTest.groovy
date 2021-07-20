@@ -118,10 +118,13 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult publish() {
-        runner('publish')
-            .withProjectDir(new File(testProjectDir.root, 'producer'))
+        def r = runner('publish')
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            r = runner('publish', '-Dkotlin.daemon.jvm.options=--illegal-access=permit')
+        }
+        r.withProjectDir(new File(testProjectDir.root, 'producer'))
             .forwardOutput()
-        // this deprecation is coming from the Kotlin plugin
+            // this deprecation is coming from the Kotlin plugin
             .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
@@ -135,7 +138,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             new File(testProjectDir.root, 'consumer')).forwardOutput().build()
     }
 
-    // Reevaluate if this is still needed when upgrading android plugin. Currently required with version 4.1.2
+    // Reevaluate if this is still needed when upgrading android plugin. Currently required with version 4.2.2
     private BuildResult consumerWithJdk16WorkaroundForAndroidManifest(String runTask) {
         def runner = runner(runTask, '-q')
             .withProjectDir(new File(testProjectDir.root, 'consumer'))
