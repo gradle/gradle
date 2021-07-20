@@ -49,7 +49,10 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
 
         ImmutableMultimap<String, HashCode> rootHashes = SnapshotUtil.getRootHashes(roots);
         Map<String, FileSystemLocationFingerprint> fingerprints;
-        if (candidate != null && candidate.getStrategyConfigurationHash().equals(strategy.getConfigurationHash()) && Iterables.elementsEqual(candidate.getRootHashes().entries(), rootHashes.entries())) {
+        if (candidate != null
+            && candidate.getStrategyConfigurationHash().equals(strategy.getConfigurationHash())
+            && equalRootHashes(candidate.getRootHashes(), rootHashes)
+        ) {
             fingerprints = candidate.getFingerprints();
         } else {
             fingerprints = strategy.collectFingerprints(roots);
@@ -58,6 +61,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             return strategy.getEmptyFingerprint();
         }
         return new DefaultCurrentFileCollectionFingerprint(fingerprints, roots, rootHashes, strategy);
+    }
+
+    private static boolean equalRootHashes(ImmutableMultimap<String, HashCode> first, ImmutableMultimap<String, HashCode> second) {
+        // We cannot use `first.equals(second)`, since the order of the root hashes matters
+        return Iterables.elementsEqual(first.entries(), second.entries());
     }
 
     private DefaultCurrentFileCollectionFingerprint(
