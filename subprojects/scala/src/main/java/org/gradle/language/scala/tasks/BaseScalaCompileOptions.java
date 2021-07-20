@@ -58,7 +58,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private ScalaForkOptions forkOptions = new ScalaForkOptions();
 
-    private transient IncrementalCompileOptions incrementalOptions;
+    private IncrementalCompileOptions incrementalOptions;
 
     /**
      * Fail the build on compilation errors.
