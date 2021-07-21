@@ -1,20 +1,22 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release adds [several usability improvements](#usability), such as toolchain support for Scala projects, and [improves build cache hits](#performance) between operating systems. 
+
+There are also several [bug fixes](#fixed-issues) and changes to make the [remote HTTP build cache more resilient](#http-build-cache) when encountering problems.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-    [Ned Twigg](https://github.com/nedtwigg)
-    [Oliver Kopp](https://github.com/koppor)
-    [Björn Kautler](https://github.com/Vampire)
-    [naftalmm](https://github.com/naftalmm)
-    [Peter Runge](https://github.com/causalnet)
-    [Konstantin Gribov](https://github.com/grossws)
-    [Zoroark](https://github.com/utybo)
-    [Stefan Oehme](https://github.com/oehme)
-    [Martin Kealey](https://github.com/kurahaupo)
-    [KotlinIsland](https://github.com/KotlinIsland)
-    [Herbert von Broeuschmeul](https://github.com/HvB)
+[Ned Twigg](https://github.com/nedtwigg)
+[Oliver Kopp](https://github.com/koppor)
+[Björn Kautler](https://github.com/Vampire)
+[naftalmm](https://github.com/naftalmm)
+[Peter Runge](https://github.com/causalnet)
+[Konstantin Gribov](https://github.com/grossws)
+[Zoroark](https://github.com/utybo)
+[Stefan Oehme](https://github.com/oehme)
+[Martin Kealey](https://github.com/kurahaupo)
+[KotlinIsland](https://github.com/KotlinIsland)
+[Herbert von Broeuschmeul](https://github.com/HvB)
 
 ## Upgrade instructions
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -25,40 +27,85 @@ See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<a name="new-features-and-usability-improvements"></a>
+<a name="usability"></a>
 ## New features and usability improvements
 
-<a name="VERSION-CATALOG-IMPROVEMENTS"></a>
-### Version catalog improvements
+### Java toolchain support for Scala projects
 
-In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
-For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
-This limitation is now lifted.
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with. By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically provision new toolchain versions.
+
+With this release, toolchain support has been added to the Scala plugin.
+
+### Preserving escape sequences when copying files 
+
+Previously, it was impossible to configure the `SimpleTemplateEngine` used by [`Copy.expand(Map)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)). When copying files with escape sequences (`\n`, `\t`, `\\` and so on), the default behavior is to convert each escape sequence into the corresponding character. This might be undesirable when processed files should be preserved as-is. 
+
+This release adds [`Copy.expand(Map,Action)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) that allows you to disable the automatic conversion of escape sequences. 
+
+```groovy
+processResources {
+    expand([myProp: "myValue"]) {
+        // Do not replace \n or \t with characters
+        escapeBackslash = true
+    }
+}
+```
+
+This method is available to all tasks and specs of type [`ContentFilterable`](javadoc/org/gradle/api/file/ContentFilterable.html).
 
 ### Improved credentials handling for HTTP Header-based authentication
 
-It is now possible to provide credentials for HTTP header-based authentication [via properties](userguide/declaring_repositories.html#sec:handling_credentials) without additional configuration in the
-build script.
+Gradle now looks for credentials for [HTTP header-based authentication via properties](userguide/declaring_repositories.html#sec:handling_credentials).
 
-### Configuration of the property expansion for Copy, Sync and archive tasks
+### `dependencies` and `dependencyInsight` support configuration name abbreviation
 
-Previously it was impossible to configure `SimpleTemplateEngine` powering [Copy.expand](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)) method. Now it is
-[possible](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) to disable the automatic conversion of escape sequences (`\n`, `\t`, `\\` and so
-on) to the corresponding symbols. The default behavior might be undesirable in some cases when processed files contain escape sequences that should be preserved as-is. This also applies to all other
-tasks implementing [ContentFilterable](javadoc/org/gradle/api/file/ContentFilterable.html).
+When selecting a configuration using the `--configuration` parameter from the command-line, you can now use an abbreviated camelCase notation in the same way as subproject and task names. 
 
-### Java toolchain improvements
+This way `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
 
-[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with. By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as a toolchain.
+### Version catalog alias improvements
 
-With this release, toolchain support has been added to the relevant Scala plugin tasks.
+In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
 
-## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
+For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+This limitation is now lifted.
 
-When selecting configuration name using `--configuration` parameter from command line you can use camelCase notation like in subproject and task selection. This way `gradle dependencies --configuration tRC` could be used instead of `gradle dependencies --configuration testRuntimeClasspath` if `tRC` resolves to unique configuration within project where task is running.
+<a name="performance"></a>
+## Performance improvements
 
-<a name="http-build-cache-improvements"></a>
-## HTTP build cache usage improvements
+### More cache hits between operating systems
+
+For [up-to-date](userguide/more_about_tasks.html#sec:up_to_date_checks) checks and the [build cache](userguide/build_cache.html), Gradle needs to determine if two directory structures contain the same contents.  When line endings in text files differ (e.g. when checking out source code on different operating systems) this can appear like the inputs of a task are different, even though the task may not actually produce different outputs.  This difference can cause tasks to re-execute unnecessarily, producing identical outputs that could otherwise have been retrieved from the build cache.
+
+A new annotation has been introduced that allows task authors to specify that an input should not be sensitive to differences in line endings.  Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html), [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) or [@Classpath](javadoc/org/gradle/api/tasks/Classpath.html) can additionally be annotated with [@NormalizeLineEndings](javadoc/org/gradle/work/NormalizeLineEndings.html) to specify that line endings in text files should be normalized during build cache and up-to-date checks so that files that only differ by line endings will be considered identical.  Binary files, on the other hand, will not be affected by this annotation.  Note that line ending normalization only applies to text files encoded with the ASCII character set or one of its supersets (e.g. UTF-8).  Text files encoded in a non-ASCII character set (e.g. UTF-16) will be treated as binary files and will not be subject to line ending normalization.
+
+```groovy
+abstract class MyTask extends DefaultTask {
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @NormalizeLineEndings
+    ConfigurableFileCollection getInputFiles();
+}
+```
+
+Similarly, there is a corresponding runtime API equivalent:
+
+```groovy
+tasks.register("myTask") {
+    // inputFiles is a ConfigurableFileCollection
+    inputs.files(inputFiles)
+          .withPropertyName("inputFiles")
+          .withPathSensitivity(PathSensitivity.RELATIVE)
+          .normalizeLineEndings()
+}
+```
+
+The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task has been updated to normalize line endings in source files when doing up-to-date checks and build cache key calculations.
+
+See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
+
+<a name="http-build-cache"></a>
+## Remote build cache changes
 
 ### Automatic retry of uploads on temporary network error
 
@@ -85,38 +132,6 @@ This is useful when build cache upload requests are regularly rejected or redire
 as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
 
 Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue.
-
-## Performance Improvements
-
-### More cache hits when switching platforms
-For [up-to-date](userguide/more_about_tasks.html#sec:up_to_date_checks) checks and the [build cache](userguide/build_cache.html), Gradle needs to determine if two directory structures contain the same contents.  When line endings in text files differ (e.g. when checking out source code on different platforms) this can appear like the inputs of a task are different, even though the task may not actually produce different outputs.  This difference can cause tasks to re-execute unnecessarily, producing identical outputs that could otherwise have been retrieved from the build cache.
-
-A new annotation has been introduced that allows task authors to specify that an input should not be sensitive to differences in line endings.  Inputs annotated with [@InputFiles](javadoc/org/gradle/api/tasks/InputFiles.html), [@InputDirectory](javadoc/org/gradle/api/tasks/InputDirectory.html) or [@Classpath](javadoc/org/gradle/api/tasks/Classpath.html) can additionally be annotated with [@NormalizeLineEndings](javadoc/org/gradle/work/NormalizeLineEndings.html) to specify that line endings in text files should be normalized during build cache and up-to-date checks so that files that only differ by line endings will be considered identical.  Binary files, on the other hand, will not be affected by this annotation.  Note that line ending normalization only applies to text files encoded with the ASCII character set or one of its supersets (e.g. UTF-8).  Text files encoded in a non-ASCII character set (e.g. UTF-16) will be treated as binary files and will not be subject to line ending normalization.
-
-```groovy
-class MyTask extends DefaultTask {
-    @InputFiles
-    @PathSensitive(@PathSensitivity.RELATIVE)
-    @NormalizeLineEndings
-    FileCollection inputFiles;
-}
-```
-
-Similarly, there is a corresponding runtime API equivalent:
-
-```groovy
-tasks.register("myTask") {
-    ext.inputFiles = files()
-    inputs.files(inputFiles)
-          .withPropertyName('inputFiles')
-          .withPathSensitivity(PathSensitivity.RELATIVE)
-          .normalizeLineEndings()
-}
-```
-
-The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task has been updated to now normalize line endings in source files when doing up-to-date checks and build cache key calculations.
-
-See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
