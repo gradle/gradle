@@ -50,7 +50,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         ImmutableMultimap<String, HashCode> rootHashes = SnapshotUtil.getRootHashes(roots);
         Map<String, FileSystemLocationFingerprint> fingerprints;
         if (candidate != null
-            && candidate.getStrategyConfigurationHash().equals(strategy.getConfigurationHash())
+            && candidate.wasCreatedWithStrategy(strategy)
             && equalRootHashes(candidate.getRootHashes(), rootHashes)
         ) {
             fingerprints = candidate.getFingerprints();
@@ -106,6 +106,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public ImmutableMultimap<String, HashCode> getRootHashes() {
         return rootHashes;
+    }
+
+    @Override
+    public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+        return strategy.getConfigurationHash().equals(strategyConfigurationHash);
     }
 
     @Override

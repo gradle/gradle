@@ -30,6 +30,8 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
 
     String getStrategyIdentifier();
 
+    HashCode getStrategyConfigurationHash();
+
     /**
      * Returns the snapshot used to capture these fingerprints.
      */

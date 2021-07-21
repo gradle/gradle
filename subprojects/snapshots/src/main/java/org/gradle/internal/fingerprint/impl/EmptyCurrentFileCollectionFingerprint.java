@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -60,6 +61,11 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     @Override
     public ImmutableMultimap<String, HashCode> getRootHashes() {
         return ImmutableMultimap.of();
+    }
+
+    @Override
+    public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+        return false;
     }
 
     @Override

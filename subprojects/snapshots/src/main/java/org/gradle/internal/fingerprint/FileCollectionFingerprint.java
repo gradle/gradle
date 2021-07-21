@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 
 import java.util.Map;
 
@@ -39,6 +38,8 @@ public interface FileCollectionFingerprint {
      */
     ImmutableMultimap<String, HashCode> getRootHashes();
 
+    boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
+
     /**
      * The absolute paths for the roots of this file collection fingerprint.
      */
@@ -47,8 +48,6 @@ public interface FileCollectionFingerprint {
     }
 
     FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
-        private final HashCode strategyConfigurationHash = Hashing.signature(getClass());
-
         @Override
         public Map<String, FileSystemLocationFingerprint> getFingerprints() {
             return ImmutableSortedMap.of();
@@ -60,13 +59,13 @@ public interface FileCollectionFingerprint {
         }
 
         @Override
-        public ImmutableSet<String> getRootPaths() {
-            return ImmutableSet.of();
+        public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+            return false;
         }
 
         @Override
-        public HashCode getStrategyConfigurationHash() {
-            return strategyConfigurationHash;
+        public ImmutableSet<String> getRootPaths() {
+            return ImmutableSet.of();
         }
 
         @Override
@@ -74,6 +73,4 @@ public interface FileCollectionFingerprint {
             return "EMPTY";
         }
     };
-
-    HashCode getStrategyConfigurationHash();
 }

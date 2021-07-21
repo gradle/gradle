@@ -72,7 +72,7 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
         fingerprintMapSerializer.write(encoder, value.getFingerprints());
         if (!value.getFingerprints().isEmpty()) {
             writeRootHashes(encoder, value.getRootHashes());
-            hashCodeSerializer.write(encoder, value.getStrategyConfigurationHash());
+            hashCodeSerializer.write(encoder, ((SerializableFileCollectionFingerprint) value).getStrategyConfigurationHash());
         }
     }
 
