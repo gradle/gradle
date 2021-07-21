@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -50,7 +52,7 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
         }
         ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
         HashCode strategyConfigurationHash = hashCodeSerializer.read(decoder);
-        return new SerializableFileCollectionFingerprint(fingerprints, rootHashes, strategyConfigurationHash);
+        return new DefaultSerializableFileCollectionFingerprint(fingerprints, rootHashes, strategyConfigurationHash);
     }
 
     private ImmutableMultimap<String, HashCode> readRootHashes(Decoder decoder) throws IOException {

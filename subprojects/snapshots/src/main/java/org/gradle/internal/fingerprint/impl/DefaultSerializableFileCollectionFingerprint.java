@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history.impl;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
 
-public class SerializableFileCollectionFingerprint implements FileCollectionFingerprint {
+public class DefaultSerializableFileCollectionFingerprint implements SerializableFileCollectionFingerprint {
 
     private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final ImmutableMultimap<String, HashCode> rootHashes;
     private final HashCode strategyConfigurationHash;
 
-    public SerializableFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash) {
+    public DefaultSerializableFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash) {
         this.fingerprints = fingerprints;
         this.rootHashes = rootHashes;
         this.strategyConfigurationHash = strategyConfigurationHash;
@@ -51,6 +51,7 @@ public class SerializableFileCollectionFingerprint implements FileCollectionFing
         return strategy.getConfigurationHash().equals(strategyConfigurationHash);
     }
 
+    @Override
     public HashCode getStrategyConfigurationHash() {
         return strategyConfigurationHash;
     }

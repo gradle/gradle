@@ -19,11 +19,11 @@ package org.gradle.internal.execution.history.changes
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
-import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
@@ -300,8 +300,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def changes(FingerprintCompareStrategy strategy, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def strategyConfigurationHash = HashCode.fromInt(5432)
-        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
-        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
+        def currentFingerprint = new DefaultSerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
+        def previousFingerprint = new DefaultSerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
         changes(strategy, currentFingerprint, previousFingerprint)
     }
 

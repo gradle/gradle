@@ -22,9 +22,9 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultAfterPreviousExecutionState;
-import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -75,7 +75,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
         return copyOfSorted(transformValues(
             fingerprints,
-            value -> value.archive(SerializableFileCollectionFingerprint::new)
+            value -> value.archive(DefaultSerializableFileCollectionFingerprint::new)
         ));
     }
 
