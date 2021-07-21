@@ -38,15 +38,4 @@ public interface FileCollectionFingerprint {
 
     boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
 
-
-    /**
-     * Archive the file collection fingerprint.
-     *
-     * @return a file collection fingerprint which can be archived.
-     */
-    PreviousFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory);
-
-    interface ArchivedFileCollectionFingerprintFactory {
-        PreviousFileCollectionFingerprint createArchivedFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash);
-    }
 }

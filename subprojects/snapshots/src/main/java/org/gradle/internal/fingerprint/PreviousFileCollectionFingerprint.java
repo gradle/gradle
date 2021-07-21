@@ -53,10 +53,5 @@ public interface PreviousFileCollectionFingerprint extends FileCollectionFingerp
         }
     };
 
-    @Override
-    default PreviousFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
-        return this;
-    }
-
     HashCode getStrategyConfigurationHash();
 }
