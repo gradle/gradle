@@ -20,7 +20,6 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -32,7 +31,6 @@ import org.junit.Rule
 import spock.lang.Issue
 
 abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
-    private static final String KOTLIN_DSL_SUBCLASS_NAME = "KotlinDslMavenConversionIntegrationTest"
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -58,7 +56,6 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         using m2
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME)
     def "multiModule"() {
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
@@ -110,7 +107,6 @@ Root project 'webinar-parent'
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME) // Kotlin compilation is used for the pre-compiled script plugin
     def "multiModuleWithNestedParent"() {
         def dsl = dslFixtureFor(scriptDsl)
 
@@ -132,7 +128,6 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME)
     def "flatmultimodule"() {
         def dsl = dslFixtureFor(scriptDsl)
         executer.beforeExecute {
@@ -441,7 +436,6 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     }
 
     @Issue("GRADLE-2819")
-    @ToBeFixedForConfigurationCache(because = ":projects", bottomSpecs = KOTLIN_DSL_SUBCLASS_NAME)
     def "multiModuleWithRemoteParent"() {
         def dsl = dslFixtureFor(scriptDsl)
 

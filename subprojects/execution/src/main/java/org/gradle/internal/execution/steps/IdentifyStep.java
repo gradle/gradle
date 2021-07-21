@@ -55,6 +55,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
             work::visitIdentityInputs
         );
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();

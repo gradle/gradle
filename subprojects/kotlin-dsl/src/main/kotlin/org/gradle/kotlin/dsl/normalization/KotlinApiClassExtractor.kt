@@ -125,7 +125,6 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
     fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
         var kind: Int? = null
         var metadataVersion: IntArray? = null
-        var bytecodeVersion: IntArray? = null
         var data1: Array<String>? = null
         var data2: Array<String>? = null
         var extraString: String? = null
@@ -138,7 +137,6 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     when (it.name) {
                         "k" -> kind = it.value as Int
                         "mv" -> metadataVersion = it.value as IntArray
-                        "bv" -> bytecodeVersion = it.value as IntArray
                         "xs" -> extraString = it.value as String
                         "pn" -> packageName = it.value as String
                         "xi" -> extraInt = it.value as Int
@@ -150,7 +148,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                     }
             }
         }
-        return KotlinClassHeader(kind, metadataVersion, bytecodeVersion, data1, data2, extraString, packageName, extraInt)
+        return KotlinClassHeader(kind, metadataVersion, data1, data2, extraString, packageName, extraInt)
     }
 
     private

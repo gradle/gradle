@@ -16,15 +16,16 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
-    @Rule public final Sample sampleProject = new Sample(temporaryFolder)
+    @Rule
+    public final Sample sampleProject = new Sample(temporaryFolder)
 
     @Unroll
     @UsesSample("ivy-publish/quickstart")
@@ -104,7 +105,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         module.assertPublished()
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             licenses[0].@name == 'The Apache License, Version 2.0'
             licenses[0].@url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
             authors[0].@name == 'Jane Doe'

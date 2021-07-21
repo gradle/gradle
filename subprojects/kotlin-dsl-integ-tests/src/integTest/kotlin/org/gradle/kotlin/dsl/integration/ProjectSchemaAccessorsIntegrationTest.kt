@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -35,7 +34,6 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access sub-project specific task`() {
 
         withDefaultSettings().appendText(
@@ -100,7 +98,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can access extension of internal type made public`() {
 
         lateinit var extensionSourceFile: File
@@ -172,7 +169,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access extension of default package type`() {
 
         withBuildSrc {
@@ -221,7 +217,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access task of default package type`() {
 
         withBuildSrc {
@@ -267,7 +262,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access extension of nested type`() {
 
         withBuildSrc {
@@ -333,7 +327,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `multiple generic extension targets`() {
 
         withBuildSrc {
@@ -364,9 +357,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     extensions.add("longs", longs)
 
                     tasks.register("printStringsAndLongs") {
+                        val stringList = strings.toList()
+                        val longList = longs.toList()
                         doLast {
-                            strings.forEach { println("string: " + it) }
-                            longs.forEach { println("long: " + it) }
+                            stringList.forEach { println("string: " + it) }
+                            longList.forEach { println("long: " + it) }
                         }
                     }
                     """
@@ -396,7 +391,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `conflicting extensions across build scripts with same body`() {
 
         withFolders {
@@ -458,7 +452,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `conflicting extensions across build runs`() {
 
         withFolders {
@@ -553,7 +546,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
         withBuildSrc {
@@ -607,7 +599,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             tasks {
                 register("books") {
-                    doLast { println(`the books`.joinToString { it.name }) }
+                    val books = `the books`.toList()
+                    doLast { println(books.joinToString { it.name }) }
                 }
             }
 
@@ -621,7 +614,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
         withBuildScript(
@@ -631,7 +623,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             application { mainClass.set("App") }
 
             task("mainClassName") {
-                doLast { println("*" + application.mainClass.get() + "*") }
+                val mainClass = application.mainClass
+                doLast { println("*" + mainClass.get() + "*") }
             }
             """
         )
@@ -713,7 +706,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can add artifacts using generated accessors for configurations`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -850,7 +842,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -912,7 +903,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -1008,7 +998,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `convention accessors honor HasPublicType`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -1221,7 +1210,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to extensions of the dependency handler`() {
 
         withKotlinBuildSrc()
@@ -1326,7 +1314,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
 
         withDefaultSettings()

@@ -289,6 +289,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
             visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputProperty(

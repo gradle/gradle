@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.security.AccessControlException;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Processes tests in a remote process with the given {@link TestClassProcessor} until a stop command is received.  Requires that
@@ -63,12 +63,19 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
+    private static final String WORK_THREAD_NAME = "Test worker";
 
     private final WorkerTestClassProcessorFactory factory;
-    private final BlockingQueue<Runnable> runQueue = new LinkedBlockingQueue<Runnable>();
+    private final BlockingQueue<Runnable> runQueue = new ArrayBlockingQueue<Runnable>(1);
     private TestClassProcessor processor;
     private TestResultProcessor resultProcessor;
-    private State state = State.INITIALIZING;
+
+    /**
+     * Note that the state object is not synchronized and not thread-safe.  Any modifications to the
+     * the state should ONLY be made inside the main thread or inside a command passed to the run queue
+     * (which will execute on the main thread).
+     */
+    private volatile State state = State.INITIALIZING;
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -76,7 +83,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     @Override
     public void execute(final WorkerProcessContext workerProcessContext) {
-        Thread.currentThread().setName("Test worker");
+        Thread.currentThread().setName(WORK_THREAD_NAME);
 
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
@@ -90,13 +97,20 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         try {
             try {
                 while (state != State.STOPPED) {
-                    runQueue.take().run();
+                    executeAndMaintainThreadName(runQueue.take());
                 }
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
+
+            // In the event that the main thread exits with an uncaught exception, stop processing
+            // and clear out the run queue to unblock any running communication threads
+            synchronized(this) {
+                state = State.STOPPED;
+                runQueue.clear();
+            }
 
             if (System.getSecurityManager() != securityManager) {
                 try {
@@ -107,6 +121,15 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 }
             }
             testServices.close();
+        }
+    }
+
+    private static void executeAndMaintainThreadName(Runnable action) {
+        try {
+            action.run();
+        } finally {
+            // Reset the thread name if the action changes it (e.g. if a test sets the thread name without resetting it afterwards)
+            Thread.currentThread().setName(WORK_THREAD_NAME);
         }
     }
 
@@ -178,11 +201,13 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         });
     }
 
-    private void submitToRun(Runnable command) {
-        try {
-            runQueue.put(command);
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+    private synchronized void submitToRun(Runnable command) {
+        if (state != State.STOPPED) {
+            try {
+                runQueue.put(command);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 
