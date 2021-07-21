@@ -3,13 +3,18 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
- [Peter Runge](https://github.com/causalnet)
- [Konstantin Gribov](https://github.com/grossws)
- [Zoroark](https://github.com/utybo)
- [Stefan Oehme](https://github.com/oehme)
- [KotlinIsland](https://github.com/KotlinIsland)
- [Herbert von Broeuschmeul](https://github.com/HvB)
- [Ned Twigg](https://github.com/nedtwigg)
+
+    [Ned Twigg](https://github.com/nedtwigg)
+    [Oliver Kopp](https://github.com/koppor)
+    [Björn Kautler](https://github.com/Vampire)
+    [naftalmm](https://github.com/naftalmm)
+    [Peter Runge](https://github.com/causalnet)
+    [Konstantin Gribov](https://github.com/grossws)
+    [Zoroark](https://github.com/utybo)
+    [Stefan Oehme](https://github.com/oehme)
+    [Martin Kealey](https://github.com/kurahaupo)
+    [KotlinIsland](https://github.com/KotlinIsland)
+    [Herbert von Broeuschmeul](https://github.com/HvB)
 
 ## Upgrade instructions
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -41,6 +46,12 @@ Previously it was impossible to configure `SimpleTemplateEngine` powering [Copy.
 [possible](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) to disable the automatic conversion of escape sequences (`\n`, `\t`, `\\` and so
 on) to the corresponding symbols. The default behavior might be undesirable in some cases when processed files contain escape sequences that should be preserved as-is. This also applies to all other
 tasks implementing [ContentFilterable](javadoc/org/gradle/api/file/ContentFilterable.html).
+
+### Java toolchain improvements
+
+[Java toolchain support](userguide/toolchains.html) provides an easy way to declare what Java version the project should be built with. By default, Gradle will [auto-detect installed JDKs](userguide/toolchains.html#sec:auto_detection) that can be used as a toolchain.
+
+With this release, toolchain support has been added to the relevant Scala plugin tasks.
 
 ## Support name abbreviation when specifying configuration for `dependencies` and `dependencyInsight`
 
