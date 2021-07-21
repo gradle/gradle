@@ -134,6 +134,7 @@ The TestKit uses dedicated daemon processes that are automatically shut down aft
 
 The dedicated working directory is not deleted by the runner after the build.
 The TestKit provides two ways to specify a location that is regularly cleaned, such as the project's build folder:
+
 * The `org.gradle.testkit.dir` system property;
 * The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
 

@@ -25,45 +25,45 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
-public class DefaultGradleDistribution implements GradleDistribution {
+class DefaultGradleDistribution implements GradleDistribution {
     private static final String DISABLE_HIGHEST_JAVA_VERSION = "org.gradle.java.version.disableHighest";
     private final GradleVersion version;
     private final TestFile gradleHomeDir;
     private final TestFile binDistribution;
 
-    public DefaultGradleDistribution(GradleVersion gradleVersion, TestFile gradleHomeDir, TestFile binDistribution) {
+    DefaultGradleDistribution(GradleVersion gradleVersion, TestFile gradleHomeDir, TestFile binDistribution) {
         this.version = gradleVersion;
         this.gradleHomeDir = gradleHomeDir;
         this.binDistribution = binDistribution;
     }
 
     @Override
-    public String toString() {
+    String toString() {
         return version.toString();
     }
 
     @Override
-    public TestFile getGradleHomeDir() {
+    TestFile getGradleHomeDir() {
         return gradleHomeDir;
     }
 
     @Override
-    public TestFile getBinDistribution() {
+    TestFile getBinDistribution() {
         return binDistribution;
     }
 
     @Override
-    public GradleVersion getVersion() {
+    GradleVersion getVersion() {
         return version;
     }
 
     @Override
-    public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
         return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext).withWarningMode(null);
     }
 
     @Override
-    public boolean worksWith(Jvm jvm) {
+    boolean worksWith(Jvm jvm) {
         // Milestone 4 was broken on the IBM jvm
         if (jvm.isIbmJvm() && isVersion("1.0-milestone-4")) {
             return false;
@@ -74,10 +74,10 @@ public class DefaultGradleDistribution implements GradleDistribution {
             throw new IllegalArgumentException();
         }
 
-        return worksWith(javaVersion);
+        return doesWorkWith(javaVersion);
     }
 
-    private boolean worksWith(JavaVersion javaVersion) {
+    private boolean doesWorkWith(JavaVersion javaVersion) {
         // 0.9-rc-1 was broken for Java 5
         if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
             return false;
@@ -131,7 +131,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean worksWith(OperatingSystem os) {
+    boolean worksWith(OperatingSystem os) {
         // 1.0-milestone-5 was broken where jna was not available
         //noinspection SimplifiableIfStatement
         if (isVersion("1.0-milestone-5")) {
@@ -151,37 +151,37 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean isDaemonIdleTimeoutConfigurable() {
+    boolean isDaemonIdleTimeoutConfigurable() {
         return isSameOrNewer("1.0-milestone-7");
     }
 
     @Override
-    public boolean isToolingApiSupported() {
+    boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
     }
 
     @Override
-    public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
-        return worksWith(javaVersion);
+    boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
+        return doesWorkWith(javaVersion);
     }
 
     @Override
-    public boolean isToolingApiLocksBuildActionClasses() {
+    boolean isToolingApiLocksBuildActionClasses() {
         return isSameOrOlder("3.0");
     }
 
     @Override
-    public boolean isToolingApiLoggingInEmbeddedModeSupported() {
+    boolean isToolingApiLoggingInEmbeddedModeSupported() {
         return isSameOrNewer("2.9-rc-1");
     }
 
     @Override
-    public boolean isToolingApiStdinInEmbeddedModeSupported() {
+    boolean isToolingApiStdinInEmbeddedModeSupported() {
         return isSameOrNewer("5.6-rc-1");
     }
 
     @Override
-    public CacheVersion getArtifactCacheLayoutVersion() {
+    CacheVersion getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("1.9-rc-2")) {
             return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get();
         } else if (isSameOrNewer("1.9-rc-1")) {
@@ -200,7 +200,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean wrapperCanExecute(GradleVersion version) {
+    boolean wrapperCanExecute(GradleVersion version) {
         if (version.equals(GradleVersion.version("0.8")) || isVersion("0.8")) {
             // There was a breaking change after 0.8
             return false;
@@ -219,77 +219,77 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
-    public boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
+    boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
         return isSameOrNewer("1.7");
     }
 
     @Override
-    public boolean isSupportsSpacesInGradleAndJavaOpts() {
+    boolean isSupportsSpacesInGradleAndJavaOpts() {
         return isSameOrNewer("1.0-milestone-5");
     }
 
     @Override
-    public boolean isFullySupportsIvyRepository() {
+    boolean isFullySupportsIvyRepository() {
         return isSameOrNewer("1.0-milestone-7");
     }
 
     @Override
-    public boolean isAddsTaskExecutionExceptionAroundAllTaskFailures() {
+    boolean isAddsTaskExecutionExceptionAroundAllTaskFailures() {
         return isSameOrNewer("5.0");
     }
 
     @Override
-    public boolean isToolingApiRetainsOriginalFailureOnCancel() {
+    boolean isToolingApiRetainsOriginalFailureOnCancel() {
         // Versions before 5.1 would unpack the exception and throw part of it, losing some context
         return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
-    public boolean isToolingApiDoesNotAddCausesOnTaskCancel() {
+    boolean isToolingApiDoesNotAddCausesOnTaskCancel() {
         // Versions before 5.1 would sometimes add some additional 'build cancelled' exceptions
         return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
-    public boolean isToolingApiHasCauseOnCancel() {
+    boolean isToolingApiHasCauseOnCancel() {
         // Versions before 3.2 would throw away the cause. There was also a regression in 4.0.x
         return isSameOrNewer("3.2") && !(isSameOrNewer("4.0") && isSameOrOlder("4.0.2"));
     }
 
     @Override
-    public boolean isToolingApiHasCauseOnForcedCancel() {
+    boolean isToolingApiHasCauseOnForcedCancel() {
         // Versions before 5.1 would discard context on forced cancel
         return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
-    public boolean isToolingApiLogsFailureOnCancel() {
+    boolean isToolingApiLogsFailureOnCancel() {
         // Versions before 4.1 would log "CONFIGURE SUCCESSFUL" for model/action execution (but "BUILD FAILED" for task/test execution)
         return isSameOrNewer("4.1");
     }
 
     @Override
-    public boolean isToolingApiHasCauseOnPhasedActionFail() {
+    boolean isToolingApiHasCauseOnPhasedActionFail() {
         return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
-    public boolean isToolingApiMergesStderrIntoStdout() {
+    boolean isToolingApiMergesStderrIntoStdout() {
         return isSameOrNewer("4.7") && isSameOrOlder("5.0");
     }
 
     @Override
-    public boolean isToolingApiLogsConfigureSummary() {
+    boolean isToolingApiLogsConfigureSummary() {
         return isSameOrNewer("2.14");
     }
 
     @Override
-    public boolean isToolingApiHasExecutionPhaseBuildOperation() {
+    boolean isToolingApiHasExecutionPhaseBuildOperation() {
         return isSameOrNewer("7.1-rc-1");
     }
 
     @Override
-    public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
+    <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
         if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1-rc-1")) {
             return stderr;
         }

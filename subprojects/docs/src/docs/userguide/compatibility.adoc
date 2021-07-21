@@ -41,10 +41,10 @@ For older Gradle versions, please see the table below which Java version is supp
 |===
 
 == Kotlin
-Gradle is tested with Kotlin 1.3.72 through 1.5.10.
+Gradle is tested with Kotlin 1.3.72 through 1.5.21.
 
 == Groovy
-Gradle is tested with Groovy 1.5.8 through 3.0.7.
+Gradle is tested with Groovy 1.5.8 through 3.0.8.
 
 == Android
 Gradle is tested with Android Gradle Plugin 4.1, 4.2, 7.0 and 7.1. Alpha and beta versions may or may not work.

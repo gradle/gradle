@@ -19,13 +19,14 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -33,13 +34,20 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
     private final DirectorySensitivity directorySensitivity;
-    private final LineEndingSensitivity lineEndingSensitivity;
+    private final HashCode configurationHash;
 
-    public AbstractFingerprintingStrategy(String identifier, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
+    public AbstractFingerprintingStrategy(
+        String identifier,
+        DirectorySensitivity directorySensitivity,
+        ConfigurableNormalizer contentNormalizer
+    ) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
         this.directorySensitivity = directorySensitivity;
-        this.lineEndingSensitivity = lineEndingSensitivity;
+        Hasher hasher = Hashing.newHasher();
+        hasher.putString(getClass().getName());
+        contentNormalizer.appendConfigurationToHasher(hasher);
+        this.configurationHash = hasher.hash();
     }
 
     @Override
@@ -67,13 +75,12 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
         return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
     }
 
-    @Override
-    public LineEndingSensitivity getLineEndingNormalization() {
-        return lineEndingSensitivity;
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
     }
 
     @Override
-    public DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
+    public HashCode getConfigurationHash() {
+        return configurationHash;
     }
 }

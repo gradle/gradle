@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -180,7 +181,7 @@ class Interpreter(val host: Host) {
             programHostFor(options)
 
         if (cachedProgram != null) {
-            programHost.eval(cachedProgram.program, scriptHost)
+            programHost.eval(cachedProgram, scriptHost)
             return
         }
 
@@ -201,7 +202,7 @@ class Interpreter(val host: Host) {
             programId
         )
 
-        programHost.eval(specializedProgram.program, scriptHost)
+        programHost.eval(specializedProgram, scriptHost)
     }
 
     private
@@ -430,7 +431,7 @@ class Interpreter(val host: Host) {
 
             val cachedProgram = host.cachedClassFor(programId)
             if (cachedProgram != null) {
-                eval(cachedProgram.program, scriptHost)
+                eval(cachedProgram, scriptHost)
                 return
             }
 
@@ -448,7 +449,7 @@ class Interpreter(val host: Host) {
                 programId
             )
 
-            eval(specializedProgram.program, scriptHost)
+            eval(specializedProgram, scriptHost)
         }
 
         override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
@@ -520,12 +521,25 @@ class Interpreter(val host: Host) {
             )
         }
 
-        open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
-            withContextClassLoader(specializedProgram.classLoader) {
-                host.onScriptClassLoaded(scriptHost.scriptSource, specializedProgram)
-                instantiate(specializedProgram).execute(this, scriptHost)
+        fun eval(compiledScript: CompiledScript, scriptHost: KotlinScriptHost<*>) {
+            val program = load(compiledScript, scriptHost)
+            withContextClassLoader(program.classLoader) {
+                host.onScriptClassLoaded(scriptHost.scriptSource, program)
+                instantiate(program).execute(this, scriptHost)
             }
         }
+
+        private
+        fun load(compiledScript: CompiledScript, scriptHost: KotlinScriptHost<*>) =
+            try {
+                compiledScript.program
+            } catch (e: Exception) {
+                throw LocationAwareException(
+                    GradleScriptException("Failed to load compiled script from classpath ${compiledScript.classPath}.", e),
+                    scriptHost.scriptSource,
+                    1
+                )
+            }
 
         private
         fun instantiate(specializedProgram: Class<*>) =

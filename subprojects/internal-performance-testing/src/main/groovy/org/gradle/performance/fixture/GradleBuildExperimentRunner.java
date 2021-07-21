@@ -183,13 +183,13 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
         final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()
             .add(jvmOptsFromGradleProperties)
-            .addAll(invocationSpec.getJvmOpts())
+            .addAll(invocationSpec.getJvmArguments())
             .build();
         return new GradleScenarioDefinition(
             OutputDirSelector.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
-            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false),
+            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
             experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP

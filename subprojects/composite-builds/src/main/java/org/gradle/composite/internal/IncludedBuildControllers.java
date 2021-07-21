@@ -16,9 +16,9 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.internal.build.ExecutionResult;
 
 import java.io.Closeable;
-import java.util.function.Consumer;
 
 interface IncludedBuildControllers extends Closeable {
     /**
@@ -34,7 +34,7 @@ interface IncludedBuildControllers extends Closeable {
     /**
      * Blocks until all scheduled tasks have completed.
      */
-    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    ExecutionResult<Void> awaitTaskCompletion();
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.buildtree.BuildActionModelRequirements;
 
-public class QueryModelRequirements implements BuildActionModelRequirements {
+public abstract class AbstractToolingModelRequirements implements BuildActionModelRequirements {
     private final StartParameterInternal startParameter;
     private final boolean runsTasks;
 
-    public QueryModelRequirements(StartParameterInternal startParameter, boolean runsTasks) {
+    public AbstractToolingModelRequirements(StartParameterInternal startParameter,
+                                            boolean runsTasks) {
         this.startParameter = startParameter;
         this.runsTasks = runsTasks;
     }
@@ -53,11 +54,5 @@ public class QueryModelRequirements implements BuildActionModelRequirements {
     @Override
     public DisplayName getConfigurationCacheKeyDisplayName() {
         return Describables.of("the requested model");
-    }
-
-    @Override
-    public void appendKeyTo(Hasher hasher) {
-        // Identify the type of action
-        hasher.putByte((byte) 2);
     }
 }

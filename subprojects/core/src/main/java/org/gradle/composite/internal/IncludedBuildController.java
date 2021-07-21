@@ -16,22 +16,23 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.build.ExportedTaskNode;
 
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 public interface IncludedBuildController {
     /**
      * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
+     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
      */
-    IncludedBuildTaskResource locateTask(TaskInternal task);
+    ExportedTaskNode locateTask(TaskInternal task);
 
     /**
      * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
+     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
      */
-    IncludedBuildTaskResource locateTask(String taskPath);
+    ExportedTaskNode locateTask(String taskPath);
 
     /**
      * Schedules any queued tasks. When this method returns true, then some tasks where scheduled for this build and
@@ -54,5 +55,7 @@ public interface IncludedBuildController {
     /**
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
-    void awaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    ExecutionResult<Void> awaitTaskCompletion();
+
+    void queueForExecution(ExportedTaskNode taskNode);
 }

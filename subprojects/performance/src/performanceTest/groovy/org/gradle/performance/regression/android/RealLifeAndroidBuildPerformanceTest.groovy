@@ -34,7 +34,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["7.2-20210526220136+0000"]
+        runner.targetVersions = ["7.2-20210713113638+0000"]
         AndroidTestProject.useStableAgpVersion(runner)
         // AGP 4.1 requires 6.5+
         // forUseAtConfigurationTime API used in this scenario

@@ -47,6 +47,11 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
+     * Prepares this build to schedule tasks. May configure the build, if required to later schedule the requested tasks.
+     */
+    void prepareToScheduleTasks();
+
+    /**
      * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build. Configures the build, if necessary.
      */
     void scheduleRequestedTasks();
@@ -59,15 +64,16 @@ public interface BuildLifecycleController extends Stoppable {
     /**
      * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
      */
-    void executeTasks();
+    ExecutionResult<Void> executeTasks();
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.
      * Failures to finish the build are passed to the given consumer rather than thrown.
      *
      * @param failure The build failure that should be reported to the buildFinished hooks. When null, this launcher may use whatever failure it has already collected.
+     * @return a result containing any failures that happen while finishing the build.
      */
-    void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector);
+    ExecutionResult<Void> finishBuild(@Nullable Throwable failure);
 
     /**
      * <p>Adds a listener to this build instance. Receives events for this build only.

@@ -27,10 +27,12 @@ public class SerializableFileCollectionFingerprint implements FileCollectionFing
 
     private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final ImmutableMultimap<String, HashCode> rootHashes;
+    private final HashCode strategyConfigurationHash;
 
-    public SerializableFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes) {
+    public SerializableFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash) {
         this.fingerprints = fingerprints;
         this.rootHashes = rootHashes;
+        this.strategyConfigurationHash = strategyConfigurationHash;
     }
 
     @Override
@@ -43,4 +45,8 @@ public class SerializableFileCollectionFingerprint implements FileCollectionFing
         return rootHashes;
     }
 
+    @Override
+    public HashCode getStrategyConfigurationHash() {
+        return strategyConfigurationHash;
+    }
 }

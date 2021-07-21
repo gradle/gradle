@@ -43,12 +43,8 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
         "NTFS",
         // FAT32 on macOS
         "msdos",
-        // FAT32 on Windows
-        "FAT32",
         // exFAT on macOS
         "exfat",
-        // exFAT on Windows
-        "exFAT",
         // VirtualBox FS
         "vboxsf"
     );

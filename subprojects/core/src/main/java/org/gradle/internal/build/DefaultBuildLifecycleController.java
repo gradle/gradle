@@ -20,7 +20,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -29,8 +28,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -58,7 +55,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildModelController modelController;
     private State state = State.Created;
     @Nullable
-    private RuntimeException stageFailure;
+    private ExecutionResult<?> stageFailures;
 
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
@@ -92,17 +89,26 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return withModel(modelController::getLoadedSettings);
+        return withModelOrThrow(modelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return withModel(modelController::getConfiguredModel);
+        return withModelOrThrow(modelController::getConfiguredModel);
+    }
+
+    @Override
+    public void prepareToScheduleTasks() {
+        withModelOrThrow(() -> {
+            state = State.TaskGraph;
+            modelController.prepareToScheduleTasks();
+            return null;
+        });
     }
 
     @Override
     public void scheduleRequestedTasks() {
-        withModel(() -> {
+        withModelOrThrow(() -> {
             state = State.TaskGraph;
             modelController.prepareToScheduleTasks();
             workPreparer.populateWorkGraph(gradle, taskGraph -> modelController.scheduleRequestedTasks());
@@ -112,7 +118,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        withModel(() -> {
+        withModelOrThrow(() -> {
             state = State.TaskGraph;
             modelController.prepareToScheduleTasks();
             workPreparer.populateWorkGraph(gradle, action);
@@ -121,63 +127,68 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void executeTasks() {
-        withModel(() -> {
+    public ExecutionResult<Void> executeTasks() {
+        return withModel(() -> {
             if (state != State.TaskGraph) {
                 throw new IllegalStateException("Cannot execute tasks as none have been scheduled for this build yet.");
             }
-            List<Throwable> taskFailures = new ArrayList<>();
-            workExecutor.execute(gradle, taskFailures);
-            if (!taskFailures.isEmpty()) {
-                throw new MultipleBuildFailures(taskFailures);
-            }
-            return null;
+            return workExecutor.execute(gradle);
         });
     }
 
-    private <T> T withModel(Supplier<T> action) {
-        if (stageFailure != null) {
-            throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailure);
+    private <T> T withModelOrThrow(Supplier<T> action) {
+        return withModel(() -> {
+            try {
+                T result = action.get();
+                return ExecutionResult.succeeded(result);
+            } catch (Throwable t) {
+                return ExecutionResult.failed(exceptionAnalyser.transform(t));
+            }
+        }).getValueOrRethrow();
+    }
+
+    private <T> ExecutionResult<T> withModel(Supplier<ExecutionResult<T>> action) {
+        if (stageFailures != null) {
+            throw new IllegalStateException("Cannot do further work as this build has failed.", stageFailures.getFailure());
         }
         if (state == State.Finished) {
             throw new IllegalStateException("Cannot do further work as this build has finished.");
         }
-        try {
-            try {
-                return action.get();
-            } finally {
-                if (state == State.Created) {
-                    state = State.Configure;
-                }
-            }
-        } catch (Throwable t) {
-            stageFailure = exceptionAnalyser.transform(t);
-            throw stageFailure;
+        ExecutionResult<T> result = action.get();
+        if (state == State.Created) {
+            state = State.Configure;
         }
+        if (!result.getFailures().isEmpty()) {
+            stageFailures = result;
+        }
+        return result;
     }
 
     @Override
-    public void finishBuild(@Nullable Throwable failure, Consumer<? super Throwable> collector) {
+    public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
         if (state == State.Finished) {
-            return;
+            return ExecutionResult.succeeded();
         }
         // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
         // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
         // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
 
         Throwable reportableFailure = failure;
-        if (reportableFailure == null && stageFailure != null) {
-            reportableFailure = stageFailure;
+        if (reportableFailure == null && stageFailures != null) {
+            reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
         }
         BuildResult buildResult = new BuildResult(state.getDisplayName(), gradle, reportableFailure);
+        ExecutionResult<Void> finishResult;
         try {
             buildListener.buildFinished(buildResult);
             buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
+            finishResult = ExecutionResult.succeeded();
         } catch (Throwable t) {
-            collector.accept(t);
+            finishResult = ExecutionResult.failed(t);
         }
         state = State.Finished;
-        stageFailure = null;
+        stageFailures = null;
+        return finishResult;
     }
 
     /**

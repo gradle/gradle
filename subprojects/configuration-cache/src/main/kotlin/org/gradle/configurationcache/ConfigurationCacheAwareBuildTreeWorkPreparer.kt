@@ -24,7 +24,7 @@ class ConfigurationCacheAwareBuildTreeWorkPreparer(
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeWorkPreparer {
     override fun scheduleRequestedTasks() {
-        cache.loadOrScheduledRequestedTasks {
+        cache.loadOrScheduleRequestedTasks {
             delegate.scheduleRequestedTasks()
         }
     }

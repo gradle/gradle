@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -29,6 +30,56 @@ import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCac
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Ignore("wip: Currently failing on CI for unknown reason")
+    def "report file is content addressable"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'car'
+        """
+
+        file("build.gradle") << """
+            buildDir = 'out'
+            tasks.register('broken') {
+                doFirst { println(project.name) }
+            }
+            tasks.register('alsoBroken') {
+                doFirst { println(project.name) }
+            }
+        """
+        def reportDir = {
+            resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+        }
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir1 = reportDir()
+        reportDir1?.isDirectory()
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir2 = reportDir()
+        reportDir2?.isDirectory()
+        reportDir2 != reportDir1
+
+        when:
+        configurationCacheFails 'broken'
+
+        then:
+        def reportDir3 = reportDir()
+        reportDir3 == reportDir1
+
+        when:
+        configurationCacheFails 'alsoBroken'
+
+        then:
+        def reportDir4 = reportDir()
+        reportDir4 == reportDir2
+    }
 
     def "report is written to root project's buildDir"() {
         file("build.gradle") << """
@@ -913,6 +964,51 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Script 'script.gradle': read system property 'PROP'")
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        }
+    }
+
+    def "reports problems from various callbacks on Configuration"() {
+        file("script.gradle") << """
+            configurations.whenObjectAdded {
+                dependencies.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                dependencies.matching {
+                    gradle.buildFinished { }
+                    true
+                }.whenObjectAdded {
+                    gradle.buildFinished { }
+                }
+                incoming.beforeResolve {
+                    gradle.buildFinished { }
+                }
+            }
+        """
+        buildFile << """
+            apply from: 'script.gradle'
+            repositories {
+                mavenCentral()
+            }
+            configurations {
+                thing
+            }
+            dependencies {
+                thing "junit:junit:4.12"
+            }
+            task ok {
+                inputs.files configurations.thing
+                doFirst { }
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        outputContains("Configuration cache entry discarded with 4 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withTotalProblemsCount(4)
             withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }

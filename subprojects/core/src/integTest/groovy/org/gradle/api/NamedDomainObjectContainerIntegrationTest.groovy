@@ -46,17 +46,6 @@ trait AbstractNamedDomainObjectContainerIntegrationTest {
     }
 }
 
-class QueryAndMutationNamedDomainObjectContainerIntegrationTest extends AbstractQueryAndMutationDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class QueryNamedDomainObjectContainerIntegrationTest extends AbstractQueryDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class MutationFailureNamedDomainObjectContainerIntegrationTest extends AbstractMutationFailureDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class MutatingNamedDomainObjectContainerInHookIntegrationTest extends AbstractMutatingDomainObjectContainerInHookIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
     def "can mutate the task container from named container"() {

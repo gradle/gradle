@@ -54,6 +54,27 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         failure.assertThatDescription(CoreMatchers.startsWith("Task 'unknown' not found in root project"))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16055")
+    def "can run in project with a \$ in the path"() {
+        given:
+        def projectDir = file('foo$bar-baz')
+        projectDir.mkdirs()
+        prepareWrapper(distribution.binDistribution.toURI()) {
+            it.inDirectory(projectDir)
+        }
+        projectDir.file("build.gradle") << """
+            task assertProjectDirHasMeta {
+                doLast {
+                    assert projectDir.name == 'foo\$bar-baz'
+                }
+            }
+        """
+        when:
+        def result = wrapperExecuter.inDirectory(projectDir).withTasks('assertProjectDirHasMeta').run()
+        then:
+        result.assertTaskExecuted(":assertProjectDirHasMeta")
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-1871")
     void "can specify project properties containing D"() {
         given:

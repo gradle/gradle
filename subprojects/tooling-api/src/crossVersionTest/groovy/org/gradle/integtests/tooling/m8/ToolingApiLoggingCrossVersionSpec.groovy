@@ -149,7 +149,6 @@ project.logger.debug("debug logging");
 
     private ExecutionResult runUsingCommandLine() {
         def executer = targetDist.executer(temporaryFolder, getBuildContext())
-            .withPartialVfsInvalidation(false) // Don't show incubating message for logging tests
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
 
         if (targetDist.toolingApiMergesStderrIntoStdout) {

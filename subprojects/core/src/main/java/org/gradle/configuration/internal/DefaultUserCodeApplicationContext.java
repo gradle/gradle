@@ -48,6 +48,17 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
+    public void gradleRuntime(Runnable runnable) {
+        CurrentApplication current = currentApplication.get();
+        currentApplication.set(null);
+        try {
+            runnable.run();
+        } finally {
+            currentApplication.set(current);
+        }
+    }
+
+    @Override
     public <T> Action<T> reapplyCurrentLater(final Action<T> action) {
         final CurrentApplication current = currentApplication.get();
         if (current == null) {

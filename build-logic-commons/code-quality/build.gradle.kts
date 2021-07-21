@@ -10,6 +10,6 @@ java {
 group = "gradlebuild"
 
 dependencies {
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:1.4.4")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.1.6")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
 }

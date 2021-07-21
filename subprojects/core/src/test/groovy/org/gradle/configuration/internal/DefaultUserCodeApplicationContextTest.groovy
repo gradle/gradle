@@ -72,6 +72,30 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         context.current() == null
     }
 
+    def "can nest Gradle code inside application"() {
+        def displayName = Describables.of("thing 1")
+        def action = Mock(Action)
+        def action2 = Mock(Runnable)
+        def id1
+
+        when:
+        context.apply(displayName, action)
+
+        then:
+        1 * action.execute(_) >> { UserCodeApplicationId id ->
+            id1 = id
+            context.gradleRuntime(action2)
+            assert context.current().id == id
+            assert context.current().displayName == displayName
+        }
+        1 * action2.run() >> {
+            assert context.current() == null
+        }
+
+        and:
+        context.current() == null
+    }
+
     def "can run actions registered by previous application"() {
         def displayName = Describables.of("thing 1")
         def displayName2 = Describables.of("thing 2")

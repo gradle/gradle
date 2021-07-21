@@ -190,7 +190,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 tasksToRun(this.tasksToRun as String[])
                 cleanTasks(this.cleanTasks as String[])
                 args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
-                gradleOpts(gradleOptsInUse as String[])
+                jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)
                 buildAction(this.buildAction)

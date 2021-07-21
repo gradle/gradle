@@ -20,7 +20,6 @@ import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
-import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildCompletionListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
@@ -29,8 +28,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
 import java.util.function.Consumer
-
-import static org.gradle.util.Path.path
 
 class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
@@ -45,7 +42,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildCompletionListener = Mock(BuildCompletionListener.class)
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
-    def consumer = Mock(Consumer)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -66,39 +62,28 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expect:
         expectBuildFinished("Configure")
 
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
     }
 
     void testScheduleAndRunRequestedTasks() {
         expect:
-        isRootBuild()
         expectTaskGraphBuilt()
         expectTasksRun()
         expectBuildFinished()
 
         def controller = controller()
+
         controller.scheduleRequestedTasks()
-        controller.executeTasks()
-        controller.finishBuild(null, consumer)
-    }
+        def executionResult = controller.executeTasks()
+        executionResult.failures.empty
 
-    void testScheduleAndRunAsNestedBuild() {
-        expect:
-        isNestedBuild()
-
-        expectTaskGraphBuilt()
-        expectTasksRun()
-        expectBuildFinished()
-
-        def controller = controller()
-        controller.scheduleRequestedTasks()
-        controller.executeTasks()
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
     }
 
     void testGetLoadedSettings() {
         when:
-        isRootBuild()
         expectSettingsBuilt()
 
         def controller = controller()
@@ -109,18 +94,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         expect:
         expectBuildFinished("Configure")
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
     }
 
     void testNotifiesListenerOnLoadSettingsFailure() {
         def failure = new RuntimeException()
 
         when:
-        isRootBuild()
-
-        and:
-        1 * buildModelController.loadedSettings >> { throw failure }
-        1 * exceptionAnalyser.transform({ it == failure }) >> transformedException
+        expectSettingsBuiltWithFailure(failure)
 
         def controller = this.controller()
         controller.getLoadedSettings()
@@ -129,19 +111,20 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def t = thrown RuntimeException
         t == transformedException
 
+        and:
+        1 * exceptionAnalyser.transform(failure) >> transformedException
+
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([transformedException]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-        0 * consumer._
+        finishResult.failures.empty
     }
 
     void testGetConfiguredBuild() {
         when:
-        isRootBuild()
-
-        and:
         1 * buildModelController.configuredModel >> gradleMock
 
         def controller = controller()
@@ -152,18 +135,15 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         expect:
         expectBuildFinished("Configure")
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
     }
 
     void testNotifiesListenerOnConfigureBuildFailure() {
         def failure = new RuntimeException()
 
         when:
-        isRootBuild()
-
-        and:
         1 * buildModelController.configuredModel >> { throw failure }
-        1 * exceptionAnalyser.transform({ it == failure }) >> transformedException
 
         def controller = this.controller()
         controller.getConfiguredBuild()
@@ -172,42 +152,36 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def t = thrown RuntimeException
         t == transformedException
 
+        and:
+        1 * exceptionAnalyser.transform(failure) >> transformedException
+
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([transformedException]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-        0 * consumer._
+        finishResult.failures.empty
     }
 
     void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
-        given:
-        isRootBuild()
-
         when:
         def controller = controller()
         controller.executeTasks()
 
         then:
-        def t = thrown RuntimeException
-        t == transformedException
-
-        and:
-        1 * exceptionAnalyser.transform({ it instanceof IllegalStateException }) >> transformedException
+        def t = thrown IllegalStateException
 
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-        0 * consumer._
+        1 * buildBroadcaster.buildFinished({ it.failure == null })
+        finishResult.failures.empty
     }
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
         given:
-        isRootBuild()
-
-        and:
         1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
         1 * buildModelController.scheduleRequestedTasks() >> { throw failure }
 
@@ -219,73 +193,66 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def t = thrown RuntimeException
         t == transformedException
 
+        and:
+        1 * exceptionAnalyser.transform(failure) >> transformedException
+
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([transformedException]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException && it.action == "Build" })
-        0 * consumer._
+        finishResult.failures.empty
     }
 
     void testNotifiesListenerOnTaskExecutionFailure() {
         given:
-        isRootBuild()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure)
-
-        and:
-        1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
 
         when:
         def controller = this.controller()
         controller.scheduleRequestedTasks()
-        controller.executeTasks()
+        def executionResult = controller.executeTasks()
 
         then:
-        def t = thrown RuntimeException
-        t == transformedException
+        executionResult.failures == [failure]
 
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([failure]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-        0 * consumer._
+        finishResult.failures.empty
     }
 
     void testNotifiesListenerOnBuildCompleteWithMultipleFailures() {
         def failure2 = new RuntimeException()
 
         given:
-        isRootBuild()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
-
-        and:
-        1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
 
         when:
         def controller = this.controller()
         controller.scheduleRequestedTasks()
-        controller.executeTasks()
+        def executionResult = controller.executeTasks()
 
         then:
-        def t = thrown RuntimeException
-        t == transformedException
+        executionResult.failures == [failure, failure2]
 
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
-        0 * consumer._
+        finishResult.failures.empty
     }
 
     void testTransformsBuildFinishedListenerFailure() {
-        def consumer = Mock(Consumer)
-
         given:
-        isRootBuild()
         expectTaskGraphBuilt()
         expectTasksRun()
 
@@ -295,12 +262,11 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         controller.executeTasks()
 
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
         1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
-        1 * consumer.accept(failure)
-        0 * consumer._
+        finishResult.failures == [failure]
     }
 
     void testNotifiesListenersOnMultipleBuildFailuresAndBuildListenerFailure() {
@@ -308,31 +274,26 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def failure3 = new RuntimeException()
 
         given:
-        isRootBuild()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
-
-        and:
-        1 * exceptionAnalyser.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
 
         and:
         def controller = controller()
         controller.scheduleRequestedTasks()
 
         when:
-        controller.executeTasks()
+        def executionResult = controller.executeTasks()
 
         then:
-        def t = thrown RuntimeException
-        t == transformedException
+        executionResult.failures == [failure, failure2]
 
         when:
-        controller.finishBuild(null, consumer)
+        def finishResult = controller.finishBuild(null)
 
         then:
+        1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
-        1 * consumer.accept(failure3)
-        0 * consumer._
+        finishResult.failures == [failure3]
     }
 
     void testCleansUpOnStop() {
@@ -348,7 +309,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     void testCannotGetModelAfterFinished() {
         given:
         def controller = controller()
-        controller.finishBuild(null, {})
+        controller.finishBuild(null)
 
         when:
         controller.gradle
@@ -360,7 +321,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     void testCannotRunMoreWorkAfterFinished() {
         given:
         def controller = controller()
-        controller.finishBuild(null, {})
+        controller.finishBuild(null)
 
         when:
         controller.scheduleRequestedTasks()
@@ -369,42 +330,31 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         thrown IllegalStateException
     }
 
-    private void isNestedBuild() {
-        _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.getIdentityPath() >> path(":nested")
-        _ * gradleMock.contextualize(_) >> { "${it[0]} (:nested)" }
-    }
-
-    private void isRootBuild() {
-        _ * gradleMock.parent >> null
-        _ * gradleMock.contextualize(_) >> { it[0] }
-    }
-
     private void expectSettingsBuilt() {
         1 * buildModelController.loadedSettings >> settingsMock
     }
 
+    private void expectSettingsBuiltWithFailure(Throwable failure) {
+        1 * buildModelController.loadedSettings >> { throw failure }
+    }
+
     private void expectTaskGraphBuilt() {
         1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
+        1 * buildModelController.prepareToScheduleTasks()
         1 * buildModelController.scheduleRequestedTasks()
     }
 
     private void expectTasksRun() {
-        1 * workExecutor.execute(gradleMock, _)
+        1 * workExecutor.execute(gradleMock) >> ExecutionResult.succeeded()
     }
 
     private void expectTasksRunWithFailure(Throwable failure, Throwable other = null) {
-        1 * workExecutor.execute(gradleMock, _) >> { GradleInternal g, List failures ->
-            failures.add(failure)
-            if (other != null) {
-                failures.add(other)
-            }
-        }
+        def failures = other == null ? [failure] : [failure, other]
+        1 * workExecutor.execute(gradleMock) >> ExecutionResult.maybeFailed(failures)
     }
 
     private void expectBuildFinished(String action = "Build") {
         1 * buildBroadcaster.buildFinished({ it.failure == null && it.action == action })
         1 * buildFinishedListener.buildFinished(_, false)
-        0 * consumer._
     }
 }

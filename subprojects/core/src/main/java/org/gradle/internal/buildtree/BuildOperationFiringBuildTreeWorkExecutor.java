@@ -16,13 +16,12 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.util.function.Consumer;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
     private final BuildTreeWorkExecutor delegate;
@@ -34,11 +33,11 @@ public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkE
     }
 
     @Override
-    public void execute(Consumer<? super Throwable> consumer) {
-        executor.run(new RunnableBuildOperation() {
+    public ExecutionResult<Void> execute() {
+        return executor.call(new CallableBuildOperation<ExecutionResult<Void>>() {
             @Override
-            public void run(BuildOperationContext context) {
-                delegate.execute(consumer);
+            public ExecutionResult<Void> call(BuildOperationContext context) throws Exception {
+                return delegate.execute();
             }
 
             @Override

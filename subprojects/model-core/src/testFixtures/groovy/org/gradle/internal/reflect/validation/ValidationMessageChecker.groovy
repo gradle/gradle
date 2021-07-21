@@ -16,7 +16,6 @@
 
 package org.gradle.internal.reflect.validation
 
-import groovy.transform.CompileStatic
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -24,7 +23,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
-@CompileStatic
+// https://issues.apache.org/jira/browse/GROOVY-10055
+//@CompileStatic
 trait ValidationMessageChecker {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 

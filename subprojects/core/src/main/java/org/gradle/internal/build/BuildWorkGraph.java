@@ -48,5 +48,5 @@ public interface BuildWorkGraph {
     /**
      * Runs all currently scheduled tasks.
      */
-    void execute();
+    ExecutionResult<Void> execute();
 }

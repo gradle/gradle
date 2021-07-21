@@ -17,18 +17,18 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.ExecutionResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleController {
     private boolean completed;
     private final BuildLifecycleController buildLifecycleController;
+    private final IncludedBuildTaskGraph taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
@@ -36,12 +36,14 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultBuildTreeLifecycleController(BuildLifecycleController buildLifecycleController,
+                                               IncludedBuildTaskGraph taskGraph,
                                                BuildTreeWorkPreparer workPreparer,
                                                BuildTreeWorkExecutor workExecutor,
                                                BuildTreeModelCreator modelCreator,
                                                BuildTreeFinishExecutor finishExecutor,
                                                ExceptionAnalyser exceptionAnalyser) {
         this.buildLifecycleController = buildLifecycleController;
+        this.taskGraph = taskGraph;
         this.workPreparer = workPreparer;
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
@@ -59,63 +61,59 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks() {
-        doBuild(failures -> {
-            workPreparer.scheduleRequestedTasks();
-            workExecutor.execute(failures);
-            return null;
-        });
+        runBuild(this::doScheduleAndRunTasks);
     }
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
-        return doBuild(failureCollector -> {
+        return runBuild(() -> {
             if (runTasks) {
-                workPreparer.scheduleRequestedTasks();
-                List<Throwable> failures = new ArrayList<>();
-                workExecutor.execute(throwable -> {
-                    failures.add(throwable);
-                    failureCollector.accept(throwable);
-                });
-                if (!failures.isEmpty()) {
-                    return null;
+                ExecutionResult<Void> result = doScheduleAndRunTasks();
+                if (!result.getFailures().isEmpty()) {
+                    return result.asFailure();
                 }
             }
-            return modelCreator.fromBuildModel(action);
+            T model = modelCreator.fromBuildModel(action);
+            return ExecutionResult.succeeded(model);
+        });
+    }
+
+    private ExecutionResult<Void> doScheduleAndRunTasks() {
+        return taskGraph.withNewTaskGraph(() -> {
+            workPreparer.scheduleRequestedTasks();
+            return workExecutor.execute();
         });
     }
 
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
-        return doBuild(failures -> action.apply(buildLifecycleController.getLoadedSettings()));
+        return runBuild(() -> {
+            T result = action.apply(buildLifecycleController.getLoadedSettings());
+            return ExecutionResult.succeeded(result);
+        });
     }
 
-    private <T> T doBuild(final BuildAction<T> build) {
+    private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
         if (completed) {
             throw new IllegalStateException("Cannot run more than one action for this build.");
         }
         completed = true;
-        List<Throwable> failures = new ArrayList<>();
-        Consumer<Throwable> collector = failures::add;
 
-        T result;
+        ExecutionResult<? extends T> result;
         try {
-            result = build.run(collector);
+            result = action.get();
         } catch (Throwable t) {
-            result = null;
-            failures.add(t);
+            result = ExecutionResult.failed(t);
         }
 
-        finishExecutor.finishBuildTree(Collections.unmodifiableList(failures), collector);
+        ExecutionResult<Void> finishResult = finishExecutor.finishBuildTree(result.getFailures());
+        result = result.withFailures(finishResult);
 
-        RuntimeException finalReportableFailure = exceptionAnalyser.transform(failures);
+        RuntimeException finalReportableFailure = exceptionAnalyser.transform(result.getFailures());
         if (finalReportableFailure != null) {
             throw finalReportableFailure;
         }
 
-        return result;
-    }
-
-    private interface BuildAction<T> {
-        T run(Consumer<Throwable> failures);
+        return result.getValue();
     }
 }

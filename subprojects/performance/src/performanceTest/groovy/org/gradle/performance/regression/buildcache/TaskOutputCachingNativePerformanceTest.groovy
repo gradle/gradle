@@ -30,7 +30,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
 
     def setup() {
         runner.minimumBaseVersion = "4.3"
-        runner.targetVersions = ["7.1-20210427170827+0000"]
+        runner.targetVersions = ["7.2-20210713113638+0000"]
         runner.args += ["-Dorg.gradle.caching.native=true"]
     }
 

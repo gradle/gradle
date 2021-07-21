@@ -20,8 +20,7 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-
+import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 
@@ -387,7 +386,7 @@ private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     return SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
         "true"
     ) {
         KotlinCoreEnvironment.createForProduction(

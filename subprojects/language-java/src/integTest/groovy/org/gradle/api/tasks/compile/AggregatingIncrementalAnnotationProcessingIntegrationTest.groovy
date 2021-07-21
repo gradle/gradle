@@ -21,10 +21,10 @@ import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
+import org.gradle.language.fixtures.PackageInfoGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import javax.tools.StandardLocation
 
@@ -121,7 +121,6 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13767")
-    @Unroll
     def "generated files with annotations are not reprocessed when a file is added (#label)"() {
         def fixture = new AnnotatedGeneratedClassProcessorFixture()
         if (generateClass) {
@@ -156,6 +155,39 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         true          | "generate class files"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17572")
+    def "can have an aggregating annotation processor for package info"() {
+        def fixture = new PackageInfoGeneratedClassProcessorFixture()
+        withProcessor(fixture)
+        buildFile << """
+            repositories {
+                ${fixture.repositoriesBlock}
+            }
+        """
+
+        def processedPackage = 'com.foo'
+        def a = javaInPackage processedPackage, "class A {}"
+        javaInPackage processedPackage, "class B {}"
+        annotatedPackageInfo(processedPackage, 'com.my.processor.Configuration')
+        javaInPackage 'com.unprocessed', "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "class A { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles('A', '$Configuration', 'package-info')
+    }
+
+    File annotatedPackageInfo(String packageName, String annotation) {
+        file("src/main/java/${packageName.replace('.', '/')}/package-info.java") << """
+            @${annotation}
+            package ${packageName};
+        """
+    }
+
     private void makeGeneratedClassFilesAccessible() {
         // On Java 8 and earlier, generated classes are not automatically
         // available to the compile classpath so we need to expose them
@@ -170,7 +202,6 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
 
-    @Unroll
     def "generated files with annotations are reprocessed when a file is deleted (#label)"() {
         def fixture = new AnnotatedGeneratedClassProcessorFixture()
         if (generateClass) {

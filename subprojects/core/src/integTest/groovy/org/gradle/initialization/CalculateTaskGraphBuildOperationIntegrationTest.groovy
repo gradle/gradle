@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
+import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -316,11 +317,19 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     private List<BuildOperationRecord> operations() {
-        buildOperations.all(CalculateTaskGraphBuildOperationType)
+        def treeOperations = buildOperations.all(CalculateTreeTaskGraphBuildOperationType)
+        assert treeOperations.size() == 1
+
+        def buildOperations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        buildOperations.each {
+            assert it.parentId == treeOperations.first().id
+        }
+        return buildOperations
     }
 
     private BuildOperationRecord operation() {
-        buildOperations.first(CalculateTaskGraphBuildOperationType)
+        def operations = operations()
+        assert operations.size() == 1
+        return operations[0]
     }
-
 }

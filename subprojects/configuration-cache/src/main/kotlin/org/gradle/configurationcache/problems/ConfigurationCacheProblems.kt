@@ -146,12 +146,7 @@ class ConfigurationCacheProblems(
 
     private
     fun outputDirectoryFor(buildDir: File): File =
-        buildDir.resolve("reports/configuration-cache/$cacheKey").let { base ->
-            if (!base.exists()) base
-            else generateSequence(1) { it + 1 }
-                .map { base.resolveSibling("${base.name}-$it") }
-                .first { !it.exists() }
-        }
+        buildDir.resolve("reports/configuration-cache/$cacheKey")
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
@@ -50,15 +49,14 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             }
         }
         if (!localArtifacts.isEmpty()) {
-            includedBuildTaskGraph.withNestedTaskGraph(() -> {
-                for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
-                    scheduleTasks(currentBuild, artifact);
-                }
-                List<Throwable> taskFailures = new ArrayList<>();
-                includedBuildTaskGraph.runScheduledTasks(taskFailures::add);
-                if (!taskFailures.isEmpty()) {
-                    throw new MultipleBuildFailures(taskFailures);
-                }
+            includedBuildTaskGraph.withNewTaskGraph(() -> {
+                includedBuildTaskGraph.prepareTaskGraph(() -> {
+                    for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
+                        scheduleTasks(currentBuild, artifact);
+                    }
+                    includedBuildTaskGraph.populateTaskGraphs();
+                });
+                includedBuildTaskGraph.runScheduledTasks();
                 return null;
             });
         }

@@ -40,7 +40,6 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -150,8 +149,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
     }
 
-    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildTaskGraph includedBuildTaskGraph, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
-        return new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildTaskGraph, buildOperationExecutor, buildModelParameters);
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
+        return new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, buildOperationExecutor, buildModelParameters);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
