@@ -106,7 +106,8 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    SmokeTestGradleRunner ignoreDeprecationWarnings() {
+    @SuppressWarnings('unused')
+    SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
         ignoreDeprecationWarnings = true
         return this
     }

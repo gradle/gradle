@@ -23,7 +23,7 @@ class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
     def "can build Gradle distribution"() {
         when:
         result = runner(':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace')
-            .ignoreDeprecationWarnings()
+            .ignoreDeprecationWarnings("Gradleception builds don't expect deprecations")
             .build()
 
         then:
