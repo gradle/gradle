@@ -30,6 +30,7 @@ class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     @IntegrationTestTimeout(120)

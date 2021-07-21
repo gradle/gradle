@@ -276,7 +276,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
 
         when:
-        executer.withToolchainDetectionEnabled()
+        executer.withToolchainDetectionEnabled().withToolchainDownloadEnabled()
         buildScript """
             plugins {
                 id("java")
@@ -450,6 +450,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         given:
         executer.withStackTraceChecksDisabled()
             .withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
         buildFile << """
             plugins {
                 id("java")
