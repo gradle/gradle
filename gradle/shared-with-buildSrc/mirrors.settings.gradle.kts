@@ -43,14 +43,12 @@ val mirrorUrls: Map<String, String> =
         }
         ?: emptyMap()
 
-fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
-
-fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
-
 fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").forUseAtConfigurationTime().orNull?.toBoolean() == true
 
+fun isCI() = providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()
+
 fun withMirrors(handler: RepositoryHandler) {
-    if (!providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()) {
+    if (!isCI()) {
         return
     }
     handler.all {
@@ -71,7 +69,7 @@ fun normalizeUrl(url: String): String {
 
 fun overridesPluginPortalUrl() = providers.systemProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY).forUseAtConfigurationTime().orNull != null
 
-if (!overridesPluginPortalUrl() && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
+if (isCI() && !overridesPluginPortalUrl() && !ignoreMirrors()) {
     // https://github.com/gradle/gradle-private/issues/2725
     // https://github.com/gradle/gradle-private/issues/2951
     System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://repo.grdev.net/artifactory/gradle-plugin-portal-prod/")
