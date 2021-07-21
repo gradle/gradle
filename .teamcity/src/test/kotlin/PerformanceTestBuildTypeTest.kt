@@ -87,6 +87,7 @@ class PerformanceTestBuildTypeTest {
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
+            "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
             "-s",
             "--daemon",
             "--continue",
