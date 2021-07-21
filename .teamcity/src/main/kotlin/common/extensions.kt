@@ -140,6 +140,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
         "-Dorg.gradle.workers.max=%maxParallelForks%",
         "-PmaxParallelForks=%maxParallelForks%",
+        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
