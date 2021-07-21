@@ -124,8 +124,8 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     }
 
     @Override
-    public HashCode getStrategyConfigurationHash() {
-        return strategyConfigurationHash;
+    public FileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
+        return factory.createArchivedFileCollectionFingerprint(fingerprints, rootHashes, strategyConfigurationHash);
     }
 
     @Override

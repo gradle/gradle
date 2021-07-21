@@ -16,8 +16,11 @@
 
 package org.gradle.internal.fingerprint;
 
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.util.Map;
 
 /**
  * A file collection fingerprint taken during this build.
@@ -28,9 +31,12 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
      */
     HashCode getHash();
 
+    /**
+     * An identifier for the strategy.
+     *
+     * Used to select a compare strategy.
+     */
     String getStrategyIdentifier();
-
-    HashCode getStrategyConfigurationHash();
 
     /**
      * Returns the snapshot used to capture these fingerprints.
@@ -38,4 +44,15 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
     FileSystemSnapshot getSnapshot();
 
     boolean isEmpty();
+
+    /**
+     * Archive the file collection fingerprint.
+     *
+     * @return a file collection fingerprint which can be archived.
+     */
+    FileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory);
+
+    interface ArchivedFileCollectionFingerprintFactory {
+        FileCollectionFingerprint createArchivedFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash);
+    }
 }
