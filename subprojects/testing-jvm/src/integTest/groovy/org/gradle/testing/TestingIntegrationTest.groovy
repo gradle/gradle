@@ -281,7 +281,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             plugins {
                 id("java")
             }
-            ${withJava8Toolchain()}
+            ${withJava11Toolchain()}
             ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
@@ -454,7 +454,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             plugins {
                 id("java")
             }
-            ${withJava8Toolchain()}
+            ${withJava11Toolchain()}
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
         """
@@ -587,11 +587,11 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """
     }
 
-    private static String withJava8Toolchain() {
+    private static String withJava11Toolchain() {
         return """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(8)
+                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """
