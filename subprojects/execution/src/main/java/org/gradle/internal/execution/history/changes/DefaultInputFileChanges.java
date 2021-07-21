@@ -18,14 +18,14 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
 
 import java.util.SortedMap;
 
 public class DefaultInputFileChanges extends AbstractFingerprintChanges implements InputFileChanges {
     private static final String TITLE = "Input";
 
-    public DefaultInputFileChanges(SortedMap<String, SerializableFileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current) {
+    public DefaultInputFileChanges(SortedMap<String, PreviousFileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current) {
         super(previous, current, TITLE);
     }
 

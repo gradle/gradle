@@ -23,10 +23,10 @@ import org.gradle.internal.hash.Hashing;
 
 import java.util.Map;
 
-public interface SerializableFileCollectionFingerprint extends FileCollectionFingerprint {
-    HashCode SIGNATURE = Hashing.signature(SerializableFileCollectionFingerprint.class);
+public interface PreviousFileCollectionFingerprint extends FileCollectionFingerprint {
+    HashCode SIGNATURE = Hashing.signature(PreviousFileCollectionFingerprint.class);
 
-    SerializableFileCollectionFingerprint EMPTY = new SerializableFileCollectionFingerprint() {
+    PreviousFileCollectionFingerprint EMPTY = new PreviousFileCollectionFingerprint() {
         @Override
         public Map<String, FileSystemLocationFingerprint> getFingerprints() {
             return ImmutableSortedMap.of();
@@ -54,7 +54,7 @@ public interface SerializableFileCollectionFingerprint extends FileCollectionFin
     };
 
     @Override
-    default SerializableFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
+    default PreviousFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
         return this;
     }
 

@@ -19,18 +19,18 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
 
-public class DefaultSerializableFileCollectionFingerprint implements SerializableFileCollectionFingerprint {
+public class DefaultPreviousFileCollectionFingerprint implements PreviousFileCollectionFingerprint {
 
     private final Map<String, FileSystemLocationFingerprint> fingerprints;
     private final ImmutableMultimap<String, HashCode> rootHashes;
     private final HashCode strategyConfigurationHash;
 
-    public DefaultSerializableFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash) {
+    public DefaultPreviousFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash) {
         this.fingerprints = fingerprints;
         this.rootHashes = rootHashes;
         this.strategyConfigurationHash = strategyConfigurationHash;

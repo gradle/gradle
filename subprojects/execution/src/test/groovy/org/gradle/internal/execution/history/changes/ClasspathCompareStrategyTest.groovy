@@ -21,7 +21,7 @@ import com.google.common.collect.Iterables
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
-import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint
+import org.gradle.internal.fingerprint.impl.DefaultPreviousFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 
@@ -172,8 +172,8 @@ class ClasspathCompareStrategyTest extends Specification {
     def changes(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
         def strategyConfigurationHash = HashCode.fromInt(1234)
-        def currentFingerprint = new DefaultSerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
-        def previousFingerprint = new DefaultSerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
+        def currentFingerprint = new DefaultPreviousFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
+        def previousFingerprint = new DefaultPreviousFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
         CLASSPATH.visitChangesSince(previousFingerprint, currentFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }

@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
@@ -37,7 +37,7 @@ public interface AfterPreviousExecutionState extends ExecutionState {
     boolean isSuccessful();
 
     @Override
-    ImmutableSortedMap<String, SerializableFileCollectionFingerprint> getInputFileProperties();
+    ImmutableSortedMap<String, PreviousFileCollectionFingerprint> getInputFileProperties();
 
     /**
      * Snapshots of the roots of output properties.

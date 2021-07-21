@@ -44,9 +44,9 @@ public interface FileCollectionFingerprint {
      *
      * @return a file collection fingerprint which can be archived.
      */
-    SerializableFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory);
+    PreviousFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory);
 
     interface ArchivedFileCollectionFingerprintFactory {
-        SerializableFileCollectionFingerprint createArchivedFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash);
+        PreviousFileCollectionFingerprint createArchivedFileCollectionFingerprint(Map<String, FileSystemLocationFingerprint> fingerprints, ImmutableMultimap<String, HashCode> rootHashes, HashCode strategyConfigurationHash);
     }
 }

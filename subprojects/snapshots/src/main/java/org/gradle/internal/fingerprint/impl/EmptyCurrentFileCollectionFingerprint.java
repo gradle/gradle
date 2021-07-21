@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -74,8 +74,8 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
-    public SerializableFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
-        return SerializableFileCollectionFingerprint.EMPTY;
+    public PreviousFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
+        return PreviousFileCollectionFingerprint.EMPTY;
     }
 
     @Override

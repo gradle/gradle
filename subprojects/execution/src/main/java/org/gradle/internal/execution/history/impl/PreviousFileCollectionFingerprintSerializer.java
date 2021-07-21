@@ -20,8 +20,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultPreviousFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -31,27 +31,27 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class FileCollectionFingerprintSerializer implements Serializer<SerializableFileCollectionFingerprint> {
+public class PreviousFileCollectionFingerprintSerializer implements Serializer<PreviousFileCollectionFingerprint> {
 
     private final FingerprintMapSerializer fingerprintMapSerializer;
     private final Interner<String> stringInterner;
     private final HashCodeSerializer hashCodeSerializer;
 
-    public FileCollectionFingerprintSerializer(Interner<String> stringInterner) {
+    public PreviousFileCollectionFingerprintSerializer(Interner<String> stringInterner) {
         this.fingerprintMapSerializer = new FingerprintMapSerializer(stringInterner);
         this.stringInterner = stringInterner;
         this.hashCodeSerializer = new HashCodeSerializer();
     }
 
     @Override
-    public SerializableFileCollectionFingerprint read(Decoder decoder) throws IOException {
+    public PreviousFileCollectionFingerprint read(Decoder decoder) throws IOException {
         Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
         if (fingerprints.isEmpty()) {
-            return SerializableFileCollectionFingerprint.EMPTY;
+            return PreviousFileCollectionFingerprint.EMPTY;
         }
         ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
         HashCode strategyConfigurationHash = hashCodeSerializer.read(decoder);
-        return new DefaultSerializableFileCollectionFingerprint(fingerprints, rootHashes, strategyConfigurationHash);
+        return new DefaultPreviousFileCollectionFingerprint(fingerprints, rootHashes, strategyConfigurationHash);
     }
 
     private ImmutableMultimap<String, HashCode> readRootHashes(Decoder decoder) throws IOException {
@@ -69,7 +69,7 @@ public class FileCollectionFingerprintSerializer implements Serializer<Serializa
     }
 
     @Override
-    public void write(Encoder encoder, SerializableFileCollectionFingerprint value) throws Exception {
+    public void write(Encoder encoder, PreviousFileCollectionFingerprint value) throws Exception {
         fingerprintMapSerializer.write(encoder, value.getFingerprints());
         if (!value.getFingerprints().isEmpty()) {
             writeRootHashes(encoder, value.getRootHashes());
@@ -91,7 +91,7 @@ public class FileCollectionFingerprintSerializer implements Serializer<Serializa
             return false;
         }
 
-        FileCollectionFingerprintSerializer rhs = (FileCollectionFingerprintSerializer) obj;
+        PreviousFileCollectionFingerprintSerializer rhs = (PreviousFileCollectionFingerprintSerializer) obj;
         return Objects.equal(fingerprintMapSerializer, rhs.fingerprintMapSerializer)
             && Objects.equal(hashCodeSerializer, rhs.hashCodeSerializer);
     }

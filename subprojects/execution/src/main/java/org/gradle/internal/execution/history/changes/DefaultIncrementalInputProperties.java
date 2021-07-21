@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.PreviousFileCollectionFingerprint;
 
 public class DefaultIncrementalInputProperties implements IncrementalInputProperties {
     private final ImmutableBiMap<String, Object> incrementalInputProperties;
@@ -41,7 +41,7 @@ public class DefaultIncrementalInputProperties implements IncrementalInputProper
     }
 
     @Override
-    public InputFileChanges nonIncrementalChanges(ImmutableSortedMap<String, SerializableFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    public InputFileChanges nonIncrementalChanges(ImmutableSortedMap<String, PreviousFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         return new DefaultInputFileChanges(
             Maps.filterKeys(previous, propertyName -> !incrementalInputProperties.containsKey(propertyName)),
             Maps.filterKeys(current, propertyName -> !incrementalInputProperties.containsKey(propertyName))
@@ -50,7 +50,7 @@ public class DefaultIncrementalInputProperties implements IncrementalInputProper
     }
 
     @Override
-    public InputFileChanges incrementalChanges(ImmutableSortedMap<String, SerializableFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    public InputFileChanges incrementalChanges(ImmutableSortedMap<String, PreviousFileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         return new DefaultInputFileChanges(
             ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, propertyName -> incrementalInputProperties.containsKey(propertyName))),
             ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, propertyName -> incrementalInputProperties.containsKey(propertyName)))
