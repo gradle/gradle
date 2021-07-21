@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
@@ -92,9 +93,11 @@ public abstract class JacocoAggregatedReport extends JacocoReport {
     private void resolveClassesVariantsFrom(Configuration aggregationConfiguration, JvmEcosystemUtilities jvmEcosystemUtilities) {
         Configuration coverageClassesDirs = createResolver("coverageClassesDirs");
         coverageClassesDirs.extendsFrom(aggregationConfiguration);
-        coverageClassesDirs.getResolutionStrategy().getComponentSelection().all(s -> s.reject("external dependencies are excluded from code coverage report"));
         jvmEcosystemUtilities.configureAsRuntimeClasspath(coverageClassesDirs);
-        additionalClassDirs(coverageClassesDirs.getIncoming().artifactView(it -> it.lenient(true)).getFiles());
+        additionalClassDirs(coverageClassesDirs.getIncoming().artifactView(it -> {
+            it.lenient(true);
+            it.componentFilter(element -> element instanceof ProjectComponentIdentifier);
+        }).getFiles());
     }
 
     private void resolveSourcesVariantsFrom(Configuration aggregationConfiguration) {
