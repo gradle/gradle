@@ -20,10 +20,13 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
 
 class SmokeTestGradleRunner extends GradleRunner {
+    private static LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
+
     private final DefaultGradleRunner delegate
     private final List<String> expectedDeprecationWarnings = []
     private boolean ignoreDeprecationWarnings
@@ -55,7 +58,6 @@ class SmokeTestGradleRunner extends GradleRunner {
      *      is ignored, the parameter is only present to remind us that a followup is necessary, and
      *      to record how it will happen.
      */
-    @SuppressWarnings('unused')
     SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
         expectedDeprecationWarnings.add(warning)
         return this
@@ -106,8 +108,8 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    @SuppressWarnings('unused')
     SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
+        LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true
         return this
     }
