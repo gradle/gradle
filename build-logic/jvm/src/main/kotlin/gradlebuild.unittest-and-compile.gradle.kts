@@ -18,6 +18,7 @@ import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistribu
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testing.TestType
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -145,12 +146,10 @@ fun addCompileAllTask() {
     }
 }
 
-fun Task.isTestCompile() =
-    listOf(
-        "compileCrossVersionTest",
-        "compileTest",
-        "compileIntegTest"
-    ).any { name.startsWith(it) }
+val testCompileTasks
+    get() = TestType.values().map { "compile${it.prefix.toUpperCase()}Test" } + "compileTest"
+
+fun Task.isTestCompile() = testCompileTasks.any { name.startsWith(it) }
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
