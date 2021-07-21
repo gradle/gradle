@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
@@ -37,11 +38,11 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
         .put(FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER, ClasspathCompareStrategy.INSTANCE)
         .build();
 
-    protected final SortedMap<String, FileCollectionFingerprint> previous;
+    protected final SortedMap<String, SerializableFileCollectionFingerprint> previous;
     protected final SortedMap<String, CurrentFileCollectionFingerprint> current;
     private final String title;
 
-    protected AbstractFingerprintChanges(SortedMap<String, FileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
+    protected AbstractFingerprintChanges(SortedMap<String, SerializableFileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;

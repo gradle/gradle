@@ -19,8 +19,8 @@ package org.gradle.internal.execution.history.impl
 import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileType
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileSystemLocationFingerprint
@@ -34,10 +34,10 @@ class FileCollectionFingerprintSerializerTest extends SerializerSpec {
 
     def "reads and writes empty fingerprints"() {
         when:
-        def out = serialize(FileCollectionFingerprint.EMPTY, serializer)
+        def out = serialize(SerializableFileCollectionFingerprint.EMPTY, serializer)
 
         then:
-        out == FileCollectionFingerprint.EMPTY
+        out == SerializableFileCollectionFingerprint.EMPTY
     }
 
     def "reads and writes fingerprints"() {

@@ -16,8 +16,47 @@
 
 package org.gradle.internal.fingerprint;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
+
+import java.util.Map;
 
 public interface SerializableFileCollectionFingerprint extends FileCollectionFingerprint {
+    HashCode SIGNATURE = Hashing.signature(SerializableFileCollectionFingerprint.class);
+
+    SerializableFileCollectionFingerprint EMPTY = new SerializableFileCollectionFingerprint() {
+        @Override
+        public Map<String, FileSystemLocationFingerprint> getFingerprints() {
+            return ImmutableSortedMap.of();
+        }
+
+        @Override
+        public ImmutableMultimap<String, HashCode> getRootHashes() {
+            return ImmutableMultimap.of();
+        }
+
+        @Override
+        public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "EMPTY";
+        }
+
+        @Override
+        public HashCode getStrategyConfigurationHash() {
+            return SIGNATURE;
+        }
+    };
+
+    @Override
+    default SerializableFileCollectionFingerprint archive(ArchivedFileCollectionFingerprintFactory factory) {
+        return this;
+    }
+
     HashCode getStrategyConfigurationHash();
 }

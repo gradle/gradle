@@ -19,7 +19,6 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultSerializableFileCollectionFingerprint;
@@ -32,7 +31,7 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 import java.util.Map;
 
-public class FileCollectionFingerprintSerializer implements Serializer<FileCollectionFingerprint> {
+public class FileCollectionFingerprintSerializer implements Serializer<SerializableFileCollectionFingerprint> {
 
     private final FingerprintMapSerializer fingerprintMapSerializer;
     private final Interner<String> stringInterner;
@@ -45,10 +44,10 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     }
 
     @Override
-    public FileCollectionFingerprint read(Decoder decoder) throws IOException {
+    public SerializableFileCollectionFingerprint read(Decoder decoder) throws IOException {
         Map<String, FileSystemLocationFingerprint> fingerprints = fingerprintMapSerializer.read(decoder);
         if (fingerprints.isEmpty()) {
-            return FileCollectionFingerprint.EMPTY;
+            return SerializableFileCollectionFingerprint.EMPTY;
         }
         ImmutableMultimap<String, HashCode> rootHashes = readRootHashes(decoder);
         HashCode strategyConfigurationHash = hashCodeSerializer.read(decoder);
@@ -70,11 +69,11 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     }
 
     @Override
-    public void write(Encoder encoder, FileCollectionFingerprint value) throws Exception {
+    public void write(Encoder encoder, SerializableFileCollectionFingerprint value) throws Exception {
         fingerprintMapSerializer.write(encoder, value.getFingerprints());
         if (!value.getFingerprints().isEmpty()) {
             writeRootHashes(encoder, value.getRootHashes());
-            hashCodeSerializer.write(encoder, ((SerializableFileCollectionFingerprint) value).getStrategyConfigurationHash());
+            hashCodeSerializer.write(encoder, value.getStrategyConfigurationHash());
         }
     }
 
