@@ -126,7 +126,7 @@ class SmokeTestGradleRunner extends GradleRunner {
             }
             assert !line.contains("has been deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
-        assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
+        assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings. Did not match the following:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
         expectedDeprecationWarnings.clear()
     }
 
