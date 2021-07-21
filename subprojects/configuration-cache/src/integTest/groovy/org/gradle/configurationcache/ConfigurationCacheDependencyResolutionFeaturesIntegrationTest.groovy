@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
@@ -35,6 +34,13 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     def setup() {
         // So that dependency resolution results from previous tests do not interfere
         executer.requireOwnGradleUserHomeDir()
+        System.out.println("\$M2_HOME = " + System.getenv("M2_HOME"))
+        System.out.println("maven.repo.local = " + System.getProperty("maven.repo.local"))
+    }
+
+    def cleanup() {
+        System.out.println("\$M2_HOME = " + System.getenv("M2_HOME"))
+        System.out.println("maven.repo.local = " + System.getProperty("maven.repo.local"))
     }
 
     def "does not invalidate configuration cache entry when dynamic version information has not expired"() {
@@ -296,7 +302,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
     // This documents current behaviour, rather than desired behaviour. The contents of the artifact does not affect the contents of the task graph and so should not be treated as an input
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3416")
     def "reports changes to artifact in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -357,7 +362,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     }
 
     @Unroll
-    @Ignore("https://github.com/gradle/gradle-private/issues/3416")
     def "reports changes to metadata in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
