@@ -39,7 +39,7 @@ class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("java")
             }
-            ${withJava8Toolchain()}
+            ${withJava11Toolchain()}
             ${mavenCentralRepository()}
 
             dependencies {
@@ -84,7 +84,7 @@ class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
             }
 
             ${mavenCentralRepository()}
-            ${withJava8Toolchain()}
+            ${withJava11Toolchain()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -134,11 +134,11 @@ class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
         testClassExecutionResult.assertStderr(containsNormalizedString('access: access allowed ("java.lang.RuntimePermission" "setSecurityManager")'))
     }
 
-    private static String withJava8Toolchain() {
+    private static String withJava11Toolchain() {
         return """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(8)
+                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """
