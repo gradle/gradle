@@ -51,6 +51,7 @@ Contact us if you suspect something has broken your build and you cannot find a 
 ==== Updates to bundled Gradle dependencies
 
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.8].
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.21[Kotlin 1.5.21].
 
 ==== Updates to default tool integration versions
 
