@@ -120,7 +120,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private BuildResult publish() {
         def r = runner('publish')
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            r = runner('publish', '-Dkotlin.daemon.jvm.options=--illegal-access=permit')
+            r = runner(
+                'publish',
+                '-Dorg.gradle.jvmargs=--add-opens java.base/java.util=ALL-UNNAMED',
+                '-Dkotlin.daemon.jvm.options=--illegal-access=permit'
+            )
         }
         r.withProjectDir(new File(testProjectDir.root, 'producer'))
             .forwardOutput()
