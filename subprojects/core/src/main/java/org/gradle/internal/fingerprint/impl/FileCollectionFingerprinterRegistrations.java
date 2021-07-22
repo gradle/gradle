@@ -76,7 +76,6 @@ public class FileCollectionFingerprinterRegistrations {
                         directorySensitivity,
                         Stream.of(
                             fullySensitiveFingerprinters(
-                                lineEndingSensitivity,
                                 directorySensitivity,
                                 stringInterner,
                                 fileCollectionSnapshotter,
@@ -94,16 +93,15 @@ public class FileCollectionFingerprinterRegistrations {
      * These fingerprinters are fully sensitive to both line endings and empty directories
      */
     private static List<? extends FileCollectionFingerprinter> fullySensitiveFingerprinters(
-        LineEndingSensitivity lineEndingSensitivity,
         DirectorySensitivity directorySensitivity,
         StringInterner stringInterner,
         FileCollectionSnapshotter fileCollectionSnapshotter,
         FileSystemLocationSnapshotHasher normalizedContentHasher
     ) {
         return Lists.newArrayList(
-            new AbsolutePathFileCollectionFingerprinter(directorySensitivity, lineEndingSensitivity, fileCollectionSnapshotter, normalizedContentHasher),
-            new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, lineEndingSensitivity, fileCollectionSnapshotter, normalizedContentHasher),
-            new NameOnlyFileCollectionFingerprinter(directorySensitivity, lineEndingSensitivity, fileCollectionSnapshotter, normalizedContentHasher)
+            new AbsolutePathFileCollectionFingerprinter(directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher),
+            new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher),
+            new NameOnlyFileCollectionFingerprinter(directorySensitivity, fileCollectionSnapshotter, normalizedContentHasher)
         );
     }
 
@@ -121,7 +119,7 @@ public class FileCollectionFingerprinterRegistrations {
         StringInterner stringInterner
     ) {
         return Lists.newArrayList(
-            new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, lineEndingSensitivity, normalizedContentHasher),
+            new IgnoredPathFileCollectionFingerprinter(fileCollectionSnapshotter, normalizedContentHasher),
             new DefaultClasspathFingerprinter(
                 resourceSnapshotterCacheService,
                 fileCollectionSnapshotter,

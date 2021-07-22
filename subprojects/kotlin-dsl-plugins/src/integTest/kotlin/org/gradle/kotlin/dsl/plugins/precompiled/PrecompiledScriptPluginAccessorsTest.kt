@@ -218,7 +218,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `can use type-safe accessors for plugin relying on gradleProperty provider`() {
 

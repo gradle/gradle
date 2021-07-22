@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class CompositeAwareTaskSelector extends TaskSelector {
@@ -75,7 +76,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
     @Override
-    public TaskSelection getSelection(String projectPath, File root, String path) {
+    public TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path) {
         if (gradle.isRootBuild()) {
             Path taskPath = Path.path(path);
             if (taskPath.isAbsolute()) {
@@ -93,6 +94,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         return getUnqualifiedBuildSelector().getSelection(projectPath, root, path);
     }
 
+    @Nullable
     private BuildState findIncludedBuild(Path taskPath) {
         if (buildStateRegistry.getIncludedBuilds().isEmpty() || taskPath.segmentCount() <= 1) {
             return null;
@@ -108,7 +110,8 @@ public class CompositeAwareTaskSelector extends TaskSelector {
         return null;
     }
 
-    private BuildState findIncludedBuild(File root) {
+    @Nullable
+    private BuildState findIncludedBuild(@Nullable File root) {
         if (root == null) {
             return null;
         }

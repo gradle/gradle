@@ -20,10 +20,13 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
 
 class SmokeTestGradleRunner extends GradleRunner {
+    private static final LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
+
     private final DefaultGradleRunner delegate
     private final List<String> expectedDeprecationWarnings = []
     private boolean ignoreDeprecationWarnings
@@ -55,7 +58,6 @@ class SmokeTestGradleRunner extends GradleRunner {
      *      is ignored, the parameter is only present to remind us that a followup is necessary, and
      *      to record how it will happen.
      */
-    @SuppressWarnings('unused')
     SmokeTestGradleRunner expectDeprecationWarning(String warning, String followup) {
         expectedDeprecationWarnings.add(warning)
         return this
@@ -106,7 +108,8 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
-    SmokeTestGradleRunner ignoreDeprecationWarnings() {
+    SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
+        LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true
         return this
     }
@@ -126,7 +129,7 @@ class SmokeTestGradleRunner extends GradleRunner {
             }
             assert !line.contains("has been deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
-        assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
+        assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings. Did not match the following:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
         expectedDeprecationWarnings.clear()
     }
 

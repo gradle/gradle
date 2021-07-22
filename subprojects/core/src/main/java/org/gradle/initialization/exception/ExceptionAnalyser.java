@@ -15,12 +15,10 @@
  */
 package org.gradle.initialization.exception;
 
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
 @ServiceScope(Scopes.BuildTree.class)
@@ -37,23 +35,6 @@ public interface ExceptionAnalyser {
      *
      * @return null if the list of exceptions is empty.
      */
-    default @Nullable
-    RuntimeException transform(List<Throwable> failures) {
-        if (failures.isEmpty()) {
-            return null;
-        }
-        List<Throwable> unpacked = new ArrayList<>(failures.size());
-        for (Throwable failure : failures) {
-            if (failure instanceof MultipleBuildFailures) {
-                unpacked.addAll(((MultipleBuildFailures) failure).getCauses());
-            } else {
-                unpacked.add(failure);
-            }
-        }
-        if (unpacked.size() == 1) {
-            return transform(unpacked.get(0));
-        } else {
-            return transform(new MultipleBuildFailures(unpacked));
-        }
-    }
+    @Nullable
+    RuntimeException transform(List<Throwable> failures);
 }

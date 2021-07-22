@@ -39,7 +39,7 @@ class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
         _ * startParameter.excludedTaskNames >> []
 
         when:
-        action.prepareProjects(gradle)
+        action.prepareForTaskScheduling(gradle)
 
         then:
         0 * taskGraph._
@@ -52,7 +52,7 @@ class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
         _ * startParameter.excludedTaskNames >> ['a']
 
         when:
-        action.prepareProjects(gradle)
+        action.prepareForTaskScheduling(gradle)
 
         then:
         1 * selector.getFilter('a') >> filter

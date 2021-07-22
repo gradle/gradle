@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Assert
@@ -65,7 +64,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to __untyped__ kotlin lambda extensions are typed Any`() {
 
         withDefaultSettings()
@@ -200,7 +198,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/10772")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to __typed__ kotlin lambda extensions are typed`() {
 
         withDefaultSettings()
@@ -209,7 +206,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             "buildSrc/src/main/kotlin/my.gradle.kts",
             """
             val typeToken = typeOf<(String) -> String>()
-            val lambda = { name: String ->  name.toUpperCase() }
+            val lambda = { name: String -> name.toUpperCase() }
             extensions.add(typeToken, "lambdaExtension", lambda)
             """
         )

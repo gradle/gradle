@@ -20,7 +20,6 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -40,7 +39,6 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*Kotlin build scripts", because = "Kotlin Gradle Plugin")
     def "creates multi-project application sample"() {
         given:
         def dsl = scriptDsl as BuildInitDsl

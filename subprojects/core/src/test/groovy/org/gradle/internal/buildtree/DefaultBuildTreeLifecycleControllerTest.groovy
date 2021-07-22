@@ -18,7 +18,6 @@ package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.IncludedBuildTaskGraph
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.ExecutionResult
 import spock.lang.Specification
@@ -34,8 +33,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
-    def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor, exceptionAnalyzer)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -54,7 +52,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * workExecutor.execute() >> ExecutionResult.succeeded()
 
         and:
-        1 * finishExecutor.finishBuildTree([]) >> ExecutionResult.succeeded()
+        1 * finishExecutor.finishBuildTree([]) >> null
     }
 
     def "runs tasks and collects failure to schedule tasks"() {
@@ -74,8 +72,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * workPreparer.scheduleRequestedTasks() >> { throw failure }
 
         and:
-        1 * exceptionAnalyzer.transform([failure]) >> reportableFailure
-        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.succeeded()
+        1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
     }
 
     def "runs tasks and collects failure to execute tasks"() {
@@ -96,8 +93,26 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * workExecutor.execute() >> ExecutionResult.failed(failure)
 
         and:
-        1 * exceptionAnalyzer.transform([failure]) >> reportableFailure
-        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.succeeded()
+        1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
+    }
+
+    def "runs tasks and throws failure to finish build"() {
+        when:
+        controller.scheduleAndRunTasks()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == reportableFailure
+
+        and:
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+
+        and:
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.succeeded()
+
+        and:
+        1 * finishExecutor.finishBuildTree([]) >> reportableFailure
     }
 
     def "runs action after running tasks when task execution is requested"() {
@@ -118,7 +133,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * modelCreator.fromBuildModel(action) >> "result"
 
         and:
-        1 * finishExecutor.finishBuildTree([]) >> ExecutionResult.succeeded()
+        1 * finishExecutor.finishBuildTree([]) >> null
     }
 
     def "does not run action if task execution fails"() {
@@ -139,8 +154,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         0 * action._
 
         and:
-        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.succeeded()
-        _ * exceptionAnalyzer.transform([failure]) >> reportableFailure
+        1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
     }
 
     def "runs action when tasks are not requested"() {
@@ -156,12 +170,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * modelCreator.fromBuildModel(action) >> "result"
 
         and:
-        1 * finishExecutor.finishBuildTree([]) >> ExecutionResult.succeeded()
+        1 * finishExecutor.finishBuildTree([]) >> null
     }
 
-    def "collects configuration and build finish failures"() {
+    def "collects failure to create model"() {
         def failure = new RuntimeException()
-        def failure2 = new RuntimeException()
 
         when:
         controller.fromBuildModel(false, Stub(Function))
@@ -174,7 +187,6 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * modelCreator.fromBuildModel(_) >> { throw failure }
 
         and:
-        1 * finishExecutor.finishBuildTree([failure]) >> ExecutionResult.failed(failure2)
-        _ * exceptionAnalyzer.transform([failure, failure2]) >> reportableFailure
+        1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
     }
 }

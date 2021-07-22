@@ -77,7 +77,17 @@ val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { Co
 
 
 internal
-val treeMapCodec: Codec<TreeMap<Any?, Any?>> = mapCodec { TreeMap<Any?, Any?>() }
+val treeMapCodec: Codec<TreeMap<Any?, Any?>> = codec(
+    {
+        write(it.comparator())
+        writeMap(it)
+    },
+    {
+        @Suppress("unchecked_cast")
+        val comparator = read() as Comparator<Any?>?
+        readMapInto { TreeMap(comparator) }
+    }
+)
 
 
 internal

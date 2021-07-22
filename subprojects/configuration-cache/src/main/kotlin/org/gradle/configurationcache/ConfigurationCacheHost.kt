@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.execution.plan.Node
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -134,10 +133,6 @@ class ConfigurationCacheHost internal constructor(
 
         override fun getProject(path: String): ProjectInternal =
             gradle.owner.projects.getProject(Path.path(path)).mutableModel
-
-        override fun scheduleNodes(action: (TaskExecutionGraphInternal) -> Unit) {
-            gradle.owner.populateWorkGraph(action)
-        }
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState {
             return service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition)

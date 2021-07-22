@@ -212,7 +212,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo = 4")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation on non ABI change in precompiled script plugin`() {
         val pluginId = "my-plugin"
@@ -240,7 +239,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript when new task is registered in precompiled script plugin`() {
         val pluginId = "my-plugin"
@@ -269,7 +267,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
         val pluginId = "my-plugin"
@@ -298,7 +295,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {
         val pluginId = "my-plugin"
@@ -332,7 +328,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript on inline function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
@@ -357,7 +352,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/Foo: inline fun foo(): compile avoidance is not supported with public inline functions")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript on inline lambda function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
@@ -406,7 +400,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation on public function change in buildSrc script`() {
         val packageName = givenKotlinScriptInBuildSrcContains(
@@ -431,7 +424,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript on inline function change in buildSrc script`() {
         val packageName = givenKotlinScriptInBuildSrcContains(
@@ -458,7 +450,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation on internal inline function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
@@ -483,7 +474,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript on const val field change in buildSrc script`() {
         val packageName = givenKotlinScriptInBuildSrcContains(
@@ -504,7 +494,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript when plugin extension registration name changes from a precompiled plugin`() {
         val pluginId = "my-plugin"
@@ -542,7 +531,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProjectAndExpectCompileFailure("Unresolved reference: foo")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation on non ABI changes to multifile class in buildSrc`() {
         val multifileAnnotations = """
@@ -583,7 +571,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("barfoo")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `recompiles buildscript when inline function changes in multifile class in buildSrc`() {
         val multifileAnnotations = """
@@ -624,7 +611,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("barfoo")
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `avoids buildscript recompilation on internal inline function changes in multifile class in buildSrc`() {
         val multifileAnnotations = """
