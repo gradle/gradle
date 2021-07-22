@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
@@ -215,6 +216,11 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopySpec expand(Map<String, ?> properties) {
         return getDelegateCopySpec().expand(properties);
+    }
+
+    @Override
+    public CopySpec expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
+        return getDelegateCopySpec().expand(properties, action);
     }
 
     @Override

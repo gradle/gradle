@@ -171,8 +171,9 @@ class ClasspathCompareStrategyTest extends Specification {
 
     def changes(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
-        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)))
-        def previousFingerprint = new SerializableFileCollectionFingerprint(previous,  ImmutableMultimap.of("some", HashCode.fromInt(4321)))
+        def strategyConfigurationHash = HashCode.fromInt(1234)
+        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
+        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
         CLASSPATH.visitChangesSince(previousFingerprint, currentFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }

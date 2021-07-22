@@ -17,7 +17,6 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -67,7 +66,6 @@ class Person(name: String) {
     }
 
     @Issue("gradle/gradle#13224")
-    @ToBeFixedForConfigurationCache
     def 'changing one file only produces valid compilation output'() {
         given:
         buildFile << """

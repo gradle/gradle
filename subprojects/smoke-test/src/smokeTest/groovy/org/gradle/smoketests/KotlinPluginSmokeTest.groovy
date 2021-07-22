@@ -16,16 +16,17 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -58,7 +59,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, 'run')
+        def result = runner(workers, versionNumber, 'run')
             .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
@@ -74,7 +75,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, 'run')
+        result = runner(workers, versionNumber, 'run')
             .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
                 ARTIFACT_TRANSFORM_DEPRECATION_WARNING
             )
@@ -102,7 +103,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, 'compileKotlin2Js')
+        def result = runner(workers, versionNumber, 'compileKotlin2Js')
             .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
@@ -161,10 +162,11 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, 'compileJava')
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+        def result = runner(false, versionNumber, 'compileJava')
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
 
@@ -179,6 +181,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        assumeTrue(kotlinVersion != '1.3.72')
+
         given:
         buildFile << """
             plugins {
@@ -195,17 +200,18 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             }
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, 'build')
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+        def result = runner(false, versionNumber, 'build')
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, 'build')
+        result = runner(false, versionNumber, 'build')
             .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
@@ -216,11 +222,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    private BuildResult build(boolean workers, String... tasks) {
-        return runner(workers, *tasks).build()
-    }
-
-    private SmokeTestGradleRunner runner(boolean workers, String... tasks) {
+    private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
+        if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=--illegal-access=permit", *tasks)
+        }
         return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
 
@@ -267,7 +272,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 """
             }
             alwaysPasses()
-            if (testedPluginId == 'org.jetbrains.kotlin.js') {
+            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
                 buildFile << """
                     kotlin { js { browser() } }
                 """

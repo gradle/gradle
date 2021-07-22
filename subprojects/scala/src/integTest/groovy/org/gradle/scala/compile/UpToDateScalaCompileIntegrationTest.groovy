@@ -19,7 +19,6 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -33,7 +32,6 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
     }
 
-    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the #changedVersion version"() {
         buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -66,7 +64,6 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
-    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_11)

@@ -18,7 +18,6 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -79,7 +78,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -99,7 +97,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -119,7 +116,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -141,7 +137,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")

@@ -18,12 +18,10 @@ package org.gradle.scala.compile
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class ScalaIncrementalCompileIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#8421")
-    @ToBeFixedForConfigurationCache
     def "incremental compiler detects change in package"() {
         settingsFile << """
             include 'lib'
@@ -80,7 +78,7 @@ dependencies {
 
     @NotYetImplemented
     def "incremental compiler gracefully handles classes being deleted"() {
-        settingsFile << """            
+        settingsFile << """
             dependencyResolutionManagement {
                 ${mavenCentralRepository()}
             }
@@ -93,7 +91,7 @@ dependencies {
             }
             application {
                 mainClass = "HelloWorld"
-            }         
+            }
             dependencies {
                implementation 'org.scala-lang:scala-library:2.11.12'
             }
