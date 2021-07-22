@@ -35,6 +35,8 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
+    String kotlinVersion = TestedVersions.kotlin.latest()
+
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
     }
@@ -73,7 +75,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=${TestedVersions.kotlin.latest()}", "--stacktrace"], tasks].flatten())
+        def runner = runner(*[["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten())
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
