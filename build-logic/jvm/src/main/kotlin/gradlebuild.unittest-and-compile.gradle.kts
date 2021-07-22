@@ -281,12 +281,12 @@ fun removeTeamcityTempProperty() {
 
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 
-val isExperimentalTestFilteringEnabled
-    get() = System.getProperty("gradle.internal.testselection.enabled").toBoolean()
+val Project.isExperimentalTestFilteringEnabled
+    get() = providers.systemProperty("gradle.internal.testselection.enabled").forUseAtConfigurationTime().getOrElse("false").toBoolean()
 
 // Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"
 val Project.maxTestDistributionPartitionSecond: Long?
-    get() = System.getProperty("maxTestDistributionPartitionSecond")?.toLong()
+    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
 
 val Project.maxParallelForks: Int
     get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
