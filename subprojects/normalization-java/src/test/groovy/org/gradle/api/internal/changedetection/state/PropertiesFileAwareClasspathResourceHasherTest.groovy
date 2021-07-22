@@ -19,17 +19,22 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.SystemProperties
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.util.PropertiesUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
 import java.util.function.Supplier
 
 @Unroll
@@ -308,7 +313,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        properties.store(bos, comments)
+        PropertiesUtils.store(properties, bos, comments, Charset.defaultCharset(), SystemProperties.getInstance().lineSeparator)
         return zipEntry(path, bos.toByteArray())
     }
 
@@ -346,7 +351,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         Properties properties = new Properties()
         properties.putAll(attributes)
         ByteArrayOutputStream bos = new ByteArrayOutputStream()
-        properties.store(bos, comments)
+        PropertiesUtils.store(properties, bos, comments, Charset.defaultCharset(), SystemProperties.getInstance().lineSeparator)
         return fileSnapshot(path, bos.toByteArray())
     }
 
@@ -355,18 +360,20 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         def file = new File(dir, path)
         file.parentFile.mkdirs()
         file << bytes
-        return Mock(RegularFileSnapshotContext) {
-            _ * getSnapshot() >> Mock(RegularFileSnapshot) {
-                _ * getAbsolutePath() >> file.absolutePath
-                _ * getHash() >> {
-                    return Hashing.hashBytes(bytes)
+        return new RegularFileSnapshotContext() {
+            @Override
+            Supplier<String[]> getRelativePathSegments() {
+                return new Supplier<String[]>() {
+                    @Override
+                    String[] get() {
+                        return path.split('/')
+                    }
                 }
             }
-            _ * getRelativePathSegments() >> new Supplier<String[]>() {
-                @Override
-                String[] get() {
-                    return path.split('/')
-                }
+
+            @Override
+            RegularFileSnapshot getSnapshot() {
+                return new RegularFileSnapshot(file.absolutePath, file.name, Hashing.hashBytes(bytes), DefaultFileMetadata.file(0L, bytes.size(), FileMetadata.AccessType.DIRECT))
             }
         }
     }
