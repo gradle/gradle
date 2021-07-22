@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import javax.annotation.Nullable
 
 class SmokeTestGradleRunner extends GradleRunner {
-    private static LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
+    private static final LOGGER = LoggerFactory.getLogger(SmokeTestGradleRunner)
 
     private final DefaultGradleRunner delegate
     private final List<String> expectedDeprecationWarnings = []
