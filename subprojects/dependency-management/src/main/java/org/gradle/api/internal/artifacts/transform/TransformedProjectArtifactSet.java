@@ -34,6 +34,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * An artifact set containing transformed project artifacts.
@@ -101,7 +102,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
             Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
-                    visitor.visitArtifact(displayName, targetAttributes, node.getInputArtifact().transformedTo(file));
+                    visitor.visitArtifact(displayName, targetAttributes, Collections.emptyList(), node.getInputArtifact().transformedTo(file));
                 }
             } else {
                 Throwable failure = transformedSubject.getFailure().get();

@@ -240,6 +240,31 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
 
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
+
+            tasks.register("dumpCapabilitiesFromArtifactView") {
+                doFirst {
+                    def artifactCollection = configurations.conf.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of("artifactType", String), "jar")
+                        }
+                    }.artifacts
+
+                    artifactCollection.artifacts.each {
+                        println "Artifact: \${it.id.componentIdentifier.displayName}"
+                        println "  - artifact: \${it.file}"
+
+                        def capabilities = it.variant.capabilities
+                        if (capabilities.isEmpty()) {
+                            println "  - capabilities: None"
+                        } else {
+                            println "  - capabilities: " + capabilities.collect {
+                                "\${it.group}:\${it.name}:\${it.version}"
+                            }
+                        }
+                        println("---------")
+                    }
+                }
+            }
         """
 
         when:
@@ -260,7 +285,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 expectGetMetadata()
             }
         }
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ':dumpCapabilitiesFromArtifactView'
 
         then:
         resolve.expectGraph {
@@ -278,6 +303,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
+        outputContains('capabilities: [org:testB:1.0, org:cap:4]')
 
     }
 

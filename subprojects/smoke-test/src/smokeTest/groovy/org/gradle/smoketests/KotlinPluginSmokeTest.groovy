@@ -42,6 +42,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
             "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
             "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
+    private static final ARCHIVE_NAME_DEPRECATION_WARNING = "The AbstractArchiveTask.archiveName property has been deprecated. " +
+        "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
+        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
 
 
     // TODO:configuration-cache remove once fixed upstream
@@ -68,6 +71,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
                 ARTIFACT_TRANSFORM_DEPRECATION_WARNING
             )
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
         then:
@@ -121,6 +125,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     "Please use the destinationDirectory property instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
             )
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
         then:
@@ -167,6 +172,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         when:
         def result = runner(false, versionNumber, 'compileJava')
             .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
 

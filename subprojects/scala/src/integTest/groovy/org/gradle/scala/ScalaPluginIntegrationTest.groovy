@@ -18,6 +18,7 @@ package org.gradle.scala
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -184,7 +185,6 @@ task someTask
         file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("implementationScala.mapping")))
     }
 
-    @ToBeFixedForConfigurationCache
     def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """
             rootProject.name = "scala"
@@ -207,8 +207,17 @@ task someTask
         fails("assemble")
 
         then:
-        failureHasCause("The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION)
+        def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+        if (GradleContextualExecuter.isConfigCache()) {
+            // Nested in the CC problems report
+            failure.assertHasFailures(2)
+            failure.assertHasFailure("Configuration cache problems found in this build.") { fail ->
+                fail.assertHasCause(expectedMessage)
+            }
+        } else {
+            failureHasCause(expectedMessage)
+        }
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
