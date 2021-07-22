@@ -47,22 +47,25 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getConfiguredBuild();
 
     /**
-     * Prepares this build to schedule tasks. May configure the build, if required to later schedule the requested tasks.
+     * Prepares this build to schedule tasks. May configure the build, if required to later schedule the requested tasks. Can be called multiple times.
      */
     void prepareToScheduleTasks();
 
     /**
-     * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build. Configures the build, if necessary.
+     * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
      */
     void scheduleRequestedTasks();
 
     /**
      * Populates the work graph of this build.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
      */
     void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
 
     /**
      * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
+     * Must call {@link #prepareToScheduleTasks()} and optionally any of {@link #scheduleRequestedTasks()} or {@link #populateWorkGraph(Consumer)} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks();
 

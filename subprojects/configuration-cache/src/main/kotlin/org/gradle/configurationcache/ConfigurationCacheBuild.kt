@@ -19,7 +19,6 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.IncludedBuildState
 import java.io.File
 
@@ -33,8 +32,6 @@ interface ConfigurationCacheBuild {
     fun getProject(path: String): ProjectInternal
 
     fun registerProjects()
-
-    fun scheduleNodes(action: (TaskExecutionGraphInternal) -> Unit)
 
     fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState
 }

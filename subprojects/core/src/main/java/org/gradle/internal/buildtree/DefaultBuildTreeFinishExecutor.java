@@ -22,6 +22,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.NestedBuildState;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,28 +31,28 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
 
-    public DefaultBuildTreeFinishExecutor(BuildStateRegistry buildStateRegistry,
-                                          ExceptionAnalyser exceptionAnalyser,
-                                          BuildLifecycleController buildLifecycleController) {
+    public DefaultBuildTreeFinishExecutor(
+        BuildStateRegistry buildStateRegistry,
+        ExceptionAnalyser exceptionAnalyser,
+        BuildLifecycleController buildLifecycleController
+    ) {
         this.buildStateRegistry = buildStateRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildLifecycleController = buildLifecycleController;
     }
 
     @Override
-    public ExecutionResult<Void> finishBuildTree(List<Throwable> failures) {
-        List<Throwable> finishFailures = new ArrayList<>();
+    @Nullable
+    public RuntimeException finishBuildTree(List<Throwable> failures) {
+        List<Throwable> allFailures = new ArrayList<>(failures);
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
                 ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
-                finishFailures.addAll(result.getFailures());
+                allFailures.addAll(result.getFailures());
             }
         });
-        List<Throwable> allFailures = new ArrayList<>(failures);
-        allFailures.addAll(finishFailures);
         RuntimeException reportableFailure = exceptionAnalyser.transform(allFailures);
-        ExecutionResult<Void> result = buildLifecycleController.finishBuild(reportableFailure);
-        finishFailures.addAll(result.getFailures());
-        return ExecutionResult.maybeFailed(finishFailures);
+        ExecutionResult<Void> finishResult = buildLifecycleController.finishBuild(reportableFailure);
+        return exceptionAnalyser.transform(ExecutionResult.maybeFailed(reportableFailure).withFailures(finishResult).getFailures());
     }
 }
