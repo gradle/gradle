@@ -104,6 +104,12 @@ The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task ha
 
 See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 
+### The `groovy` and `scala` plugins support configuration caching
+
+It is now possible to enable the [Configuration Cache]((userguide/configuration_cache.html)) on builds that use the `groovy` and `scala` plugins.
+
+Also see the set of [supported plugins](userguide/configuration_cache.html#config_cache:plugins).
+
 <a name="http-build-cache"></a>
 ## Remote build cache changes
 
