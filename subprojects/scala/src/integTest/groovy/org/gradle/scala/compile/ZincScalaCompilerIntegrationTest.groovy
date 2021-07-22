@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
@@ -32,7 +31,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         def differentJvm = AvailableJavaHomes.differentJdk
         Assume.assumeThat(differentJvm, notNullValue())
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javaExecutable.absolutePath)
-        def differentJavaExecutableCanonicalPath = escapeString(differentJvm.javaExecutable.canonicalPath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
