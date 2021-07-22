@@ -139,6 +139,15 @@ fun addDependencies() {
 
 fun addCompileAllTask() {
     tasks.register("compileAll") {
+        description = "Compile all source code, including main, test, integTest, crossVersionTest, testFixtures, etc."
+        val compileTasks = project.tasks.matching {
+            it is JavaCompile || it is GroovyCompile
+        }
+        dependsOn(compileTasks)
+    }
+
+    tasks.register("compileAllProduction") {
+        description = "Compile all production source code, usually only main and testFixtures."
         val compileTasks = project.tasks.matching {
             (it is JavaCompile || it is GroovyCompile) && !it.isTestCompile()
         }
