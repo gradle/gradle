@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release adds [several usability improvements](#usability), such as toolchain support for Scala projects, and [improves build cache hits](#performance) between operating systems. 
+
+There are also several [bug fixes](#fixed-issues) and changes to make the [remote HTTP build cache more resilient](#http-build-cache) when encountering problems.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 <!-- 
@@ -53,6 +55,35 @@ ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+<a name="http-build-cache"></a>
+## Remote build cache changes
+
+### Automatic retry of uploads on temporary network error
+
+Previously, only load (i.e. GET) requests that failed during request transmission, after having established a TCP connection, would be automatically retried.
+Now, store (i.e. PUT) requests are also retried.
+
+This prevents temporary problems, such as connection drops, read or write timeouts, or low-level network failures, to cause cache operations to fail and disable the remote cache for the remainder of the build.
+
+Requests will be retried up to 3 times. If the problem persists, the cache operation will fail and the remote cache will be disabled for the remainder of the build.
+
+### Follow redirects by default
+
+Redirect responses are now followed by default with no additional configuration needed.
+
+This can be leveraged to gracefully migrate to new cache locations, utilize some form of request signing to read to and write from other systems, or reroute requests from certain users or geographies to other locations.
+
+For more information on the effect of different types of redirects, consult the [User manual](userguide/build_cache.html#sec:build_cache_redirects).
+
+### Use Expect-Continue to avoid redundant uploads
+
+It is now possible to opt-in to the use of [Expect-Continue](https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3) for upload requests.
+
+This is useful when build cache upload requests are regularly rejected or redirected by the server,
+as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
+
+Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
