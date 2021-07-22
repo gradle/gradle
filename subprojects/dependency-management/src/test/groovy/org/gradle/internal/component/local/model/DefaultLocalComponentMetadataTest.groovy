@@ -226,8 +226,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         when:
         addConfiguration("conf1")
         addConfiguration("conf2", ["conf1"])
-        metadata.addVariant("conf1", "variant1", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant1Attrs, variant1Artifacts)
-        metadata.addVariant("conf2", "variant2", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant2Attrs, variant2Artifacts)
+        metadata.addVariant("conf1", "variant1", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant1Attrs, ImmutableCapabilities.EMPTY, variant1Artifacts)
+        metadata.addVariant("conf2", "variant2", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant2Attrs, ImmutableCapabilities.EMPTY, variant2Artifacts)
 
         then:
         def config1 = metadata.getConfiguration("conf1")

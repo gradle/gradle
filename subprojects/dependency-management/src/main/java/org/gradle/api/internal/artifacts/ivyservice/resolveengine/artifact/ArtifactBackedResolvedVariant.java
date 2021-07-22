@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -50,16 +51,16 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         this.artifacts = artifacts;
     }
 
-    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvableArtifact> artifacts) {
+    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Collection<? extends ResolvableArtifact> artifacts) {
         if (artifacts.isEmpty()) {
             return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, new SingleArtifactSet(displayName, attributes, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, new SingleArtifactSet(displayName, attributes, capabilities, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<>(artifacts.size());
         for (ResolvableArtifact artifact : artifacts) {
-            artifactSets.add(new SingleArtifactSet(displayName, attributes, artifact));
+            artifactSets.add(new SingleArtifactSet(displayName, attributes, capabilities, artifact));
         }
         return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
     }
@@ -92,11 +93,13 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
+        private final CapabilitiesMetadata capabilities;
         private final ResolvableArtifact artifact;
 
-        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+        SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, CapabilitiesMetadata capabilities, ResolvableArtifact artifact) {
             this.variantName = variantName;
             this.variantAttributes = variantAttributes;
+            this.capabilities = capabilities;
             this.artifact = artifact;
         }
 
@@ -130,7 +133,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
                 visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
             } else {
-                visitor.visitArtifact(variantName, variantAttributes, artifact);
+                visitor.visitArtifact(variantName, variantAttributes, capabilities.getCapabilities(), artifact);
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
             }
         }
