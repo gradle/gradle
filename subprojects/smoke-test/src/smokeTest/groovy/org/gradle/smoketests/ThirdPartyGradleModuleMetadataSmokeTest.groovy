@@ -20,6 +20,8 @@ import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.GradleVersion
+import org.gradle.testkit.runner.GradleRunner
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -116,14 +118,32 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         result.output.split('\n').findAll { !it.empty && !it.contains('warning') }
     }
 
+    private GradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(GradleRunner runner) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
+            runner.withJvmArguments("--illegal-access=permit", "-Dkotlin.daemon.jvm.options=--illegal-access=permit")
+        }
+        return runner
+    }
+
     private BuildResult publish() {
-        runner('publish').withProjectDir(
-            new File(testProjectDir.root, 'producer')).forwardOutput().build()
+        setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+            .withProjectDir(new File(testProjectDir.root, 'producer'))
+            .forwardOutput()
+            // this deprecation is coming from the Kotlin plugin
+            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. " +
+                "Please use the destinationDirectory property instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
+                "https://youtrack.jetbrains.com/issue/KT-46019")
+            .build()
     }
 
     private BuildResult consumer(String runTask) {
-        runner(runTask, '-q').withProjectDir(
-            new File(testProjectDir.root, 'consumer')).forwardOutput().build()
+        setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner(runTask, '-q'))
+            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .forwardOutput()
+            .build()
     }
 
 
