@@ -18,21 +18,15 @@ package org.gradle.caching.internal.services;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.internal.BuildCacheEntryInternal;
-import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
 import org.gradle.caching.internal.BuildCacheServiceFactoryInternal;
 import org.gradle.caching.internal.BuildCacheServiceInternal;
-import org.gradle.caching.internal.BuildCacheStoreOutcomeInternal;
+import org.gradle.caching.internal.BuildCacheServiceInternalAdapter;
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
@@ -53,10 +47,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -380,59 +370,4 @@ public final class BuildCacheControllerFactory {
 
     }
 
-    private static class BuildCacheServiceInternalAdapter implements BuildCacheServiceInternal {
-        private final BuildCacheService buildCacheService;
-
-        public BuildCacheServiceInternalAdapter(BuildCacheService buildCacheService) {
-            this.buildCacheService = buildCacheService;
-        }
-
-        @Override
-        public BuildCacheStoreOutcomeInternal store(BuildCacheKey key, BuildCacheEntryInternal entry) {
-            class Writer implements BuildCacheEntryWriter {
-                boolean opened;
-
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    opened = true;
-                    try (
-                        OutputStream out = output;
-                        InputStream input = Files.newInputStream(entry.getFile().toPath())
-                    ) {
-                        ByteStreams.copy(input, out);
-                    }
-                }
-
-                @Override
-                public long getSize() {
-                    return entry.getFile().length();
-                }
-            }
-
-            Writer writer = new Writer();
-            buildCacheService.store(key, writer);
-            return writer.opened ? BuildCacheStoreOutcomeInternal.STORED : BuildCacheStoreOutcomeInternal.NOT_STORED;
-        }
-
-        @Override
-        public BuildCacheLoadOutcomeInternal load(BuildCacheKey key, BuildCacheEntryInternal entry) {
-            boolean loaded = buildCacheService.load(key, new BuildCacheEntryReader() {
-                @Override
-                public void readFrom(InputStream input) throws IOException {
-                    try (
-                        InputStream in = input;
-                        OutputStream out = Files.newOutputStream(entry.getFile().toPath())
-                    ) {
-                        ByteStreams.copy(in, out);
-                    }
-                }
-            });
-            return loaded ? BuildCacheLoadOutcomeInternal.LOADED : BuildCacheLoadOutcomeInternal.NOT_LOADED;
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
-    }
 }
