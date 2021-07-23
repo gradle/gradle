@@ -46,21 +46,126 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "fails when attempting to execute #task task in undefined build"() {
+    def "fails when attempting to execute tasks #tasks in directory with no settings or build file"() {
         when:
-        fails(task)
+        fails(*tasks)
 
         then:
-        file(".gradle").assertDoesNotExist()
-        failure.assertHasDescription "Executing Gradle tasks as part of a build without a settings file is not supported. " +
-            "Make sure that you are executing Gradle from a directory within your Gradle project. " +
-            "Your project should have a 'settings.gradle(.kts)' file in the root directory."
+        isEmpty(testDirectory)
+        failure.assertHasDescription("The project directory '$testDirectory' does not contain a Gradle build.")
 
         where:
-        task << [ProjectInternal.HELP_TASK, ProjectInternal.TASKS_TASK]
+        tasks << [[], [ProjectInternal.HELP_TASK], [ProjectInternal.TASKS_TASK]]
     }
 
-    def "does not treat buildSrc as undefined build"() {
+    // Documents existing behaviour
+    def "allows an included build with no settings or build file"() {
+        given:
+        settingsFile << """
+            includeBuild("empty")
+            includeBuild("lib")
+        """
+        def dir = file("empty")
+        dir.createDir()
+        file("lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            group = "lib"
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            dependencies { implementation "lib:lib:1.2" }
+        """
+
+        when:
+        succeeds("build")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "fails when target of GradleBuild task has no settings or build file"() {
+        given:
+        buildFile << """
+            task build(type: GradleBuild) {
+                dir = 'empty'
+            }
+        """
+        def dir = file("empty")
+        dir.createDir()
+
+        when:
+        fails("build")
+
+        then:
+        isEmpty(dir)
+        failure.assertHasDescription("Execution failed for task ':build'.")
+        failure.assertHasCause("The project directory '$dir' does not contain a Gradle build.")
+    }
+
+    def "fails when user home directory is used and Gradle has not been run before"() {
+        when:
+        // the default, if running from user home dir
+        def gradleUserHomeDir = file(".gradle")
+        executer.withGradleUserHomeDir(gradleUserHomeDir)
+        fails()
+
+        then:
+        isEmpty(testDirectory)
+        failure.assertHasDescription("The project directory '$testDirectory' does not contain a Gradle build.")
+    }
+
+    def "does not delete an existing .gradle directory"() {
+        given:
+        def textFile = file(".gradle/thing.txt")
+        textFile << "content"
+
+        when:
+        fails()
+
+        then:
+        testDirectory.assertHasDescendants(".gradle/thing.txt")
+        textFile.assertIsFile()
+        textFile.text == "content"
+    }
+
+    @Unroll
+    def "does not treat build as undefined when root #fileName is present but settings file is not"() {
+        when:
+        file(fileName) << """
+            tasks.register("build")
+        """
+        succeeds("build")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        fileName << ["build.gradle", "build.gradle.kts"]
+    }
+
+    @Unroll
+    def "does not treat build as undefined when root build file is not present but #fileName is"() {
+        when:
+        settingsFile << """
+            include("child")
+        """
+        file("child/build.gradle") << """
+            task build
+        """
+        succeeds()
+
+        then:
+        noExceptionThrown()
+
+        where:
+        fileName << ["settings.gradle", "settings.gradle.kts"]
+    }
+
+    def "does not treat buildSrc with no build or settings file as undefined build"() {
         given:
         settingsFile.touch()
         file("buildSrc/src/main/groovy/Dummy.groovy") << "class Dummy {}"
@@ -71,16 +176,21 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "does not shows deprecation warning when executing #flag in undefined build"() {
+    def "does not fail when executing #flag in undefined build"() {
         when:
         executer.requireDaemon().requireIsolatedDaemons()
         succeeds(flag)
 
         then:
-        file(".gradle").assertDoesNotExist()
+        isEmpty(testDirectory)
 
         where:
         flag << ["--version", "--help", "-h", "-?", "--help"]
+    }
+
+    void isEmpty(TestFile dir) {
+        dir.assertIsDir()
+        assert dir.listFiles().size() == 0
     }
 
     @Override

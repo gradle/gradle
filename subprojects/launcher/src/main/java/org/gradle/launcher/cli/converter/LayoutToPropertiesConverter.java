@@ -34,7 +34,6 @@ import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.util.internal.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -93,8 +92,8 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
-    private void maybeConfigureFrom(@Nullable File propertiesFile, Map<String, String> result) {
-        if (propertiesFile != null && !propertiesFile.isFile()) {
+    private void maybeConfigureFrom(File propertiesFile, Map<String, String> result) {
+        if (!propertiesFile.isFile()) {
             return;
         }
 

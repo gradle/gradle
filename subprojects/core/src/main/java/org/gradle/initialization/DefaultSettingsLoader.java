@@ -75,11 +75,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
             return false;
         }
         // Use an empty settings for a target build file located in the same directory as the settings file.
-        if (startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir())) {
-            return true;
-        }
-
-        return false;
+        return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
     }
 
     @SuppressWarnings("deprecation") // StartParameter.setSettingsFile() and StartParameter.getBuildFile()

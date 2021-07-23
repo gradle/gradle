@@ -51,6 +51,7 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -117,6 +118,7 @@ public class BuildSessionScopeServices {
         registration.add(BuildClientMetaData.class, buildClientMetaData);
         registration.add(BuildEventConsumer.class, buildEventConsumer);
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(BuildLayoutValidator.class);
         registration.addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
