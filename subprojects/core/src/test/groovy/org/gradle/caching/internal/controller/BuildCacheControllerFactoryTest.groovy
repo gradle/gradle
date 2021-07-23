@@ -28,6 +28,7 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandle
+import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
@@ -117,7 +118,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local.service instanceof NullBuildCacheServiceHandle
+        c.local instanceof NullLocalBuildCacheServiceHandle
         with(buildOpResult()) {
             local == null
             remote.type == "remote"
@@ -132,7 +133,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        !(c.local instanceof NullBuildCacheServiceHandle)
+        !(c.local instanceof NullLocalBuildCacheServiceHandle)
         !(c.remote instanceof NullBuildCacheServiceHandle)
         with(buildOpResult()) {
             local.type == "directory"

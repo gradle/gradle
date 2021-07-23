@@ -34,7 +34,6 @@ import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -97,7 +96,7 @@ public final class BuildCacheControllerFactory {
                 }
 
                 DescribedBuildCacheService<DirectoryBuildCache, LocalBuildCacheService> localDescribedService = localEnabled
-                    ? createLocalBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, instantiator)
+                    ? createLocalBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
                 DescribedBuildCacheService<BuildCache, BuildCacheServiceInternal> remoteDescribedService = remoteEnabled
@@ -185,9 +184,13 @@ public final class BuildCacheControllerFactory {
         DirectoryBuildCache configuration,
         BuildCacheServiceRole role,
         Path buildIdentityPath,
+        BuildCacheConfigurationInternal buildCacheConfiguration,
         Instantiator instantiator
     ) {
-        BuildCacheServiceFactory<DirectoryBuildCache> factory = instantiator.newInstance(DirectoryBuildCacheServiceFactory.class);
+        Class<?> buildCacheServiceFactoryType = buildCacheConfiguration.getBuildCacheServiceFactoryType(DirectoryBuildCache.class);
+        Class<? extends BuildCacheServiceFactory<DirectoryBuildCache>> castFactoryType = Cast.uncheckedNonnullCast(buildCacheServiceFactoryType);
+
+        BuildCacheServiceFactory<DirectoryBuildCache> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
         BuildCacheService rawService = factory.createBuildCacheService(configuration, describer);
         if (!(rawService instanceof LocalBuildCacheService)) {

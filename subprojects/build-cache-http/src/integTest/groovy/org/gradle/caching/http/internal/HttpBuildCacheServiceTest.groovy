@@ -19,7 +19,6 @@ package org.gradle.caching.http.internal
 import com.google.common.io.ByteStreams
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
-import org.eclipse.jetty.server.Response
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey

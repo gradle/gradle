@@ -21,13 +21,15 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.BuildCacheService
+import org.gradle.caching.internal.BuildCacheEntryInternal
+import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal
+import org.gradle.caching.internal.BuildCacheServiceInternal
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
 
 class DefaultBuildCacheControllerTest extends Specification {
 
@@ -42,7 +44,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
     }
     def localPush = true
-    def remote = Mock(BuildCacheService)
+    def remote = Mock(BuildCacheServiceInternal)
     def remotePush = true
     def loadmetadata = Mock(Object)
 
@@ -82,7 +84,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    interface Local extends BuildCacheService, LocalBuildCacheService {}
+    interface Local extends LocalBuildCacheService {}
 
     BuildCacheController getController(boolean disableRemoteOnError = true) {
         new DefaultBuildCacheController(
@@ -166,9 +168,9 @@ class DefaultBuildCacheControllerTest extends Specification {
     def "remote load also stores to local"() {
         given:
         1 * local.loadLocally(key, _) // miss
-        1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryReader reader ->
-            reader.readFrom(new ByteArrayInputStream("foo".bytes))
-            true
+        1 * remote.load(key, _) >> { BuildCacheKey key, BuildCacheEntryInternal entry ->
+            entry.file.text = "foo"
+            BuildCacheLoadOutcomeInternal.LOADED
         }
 
         when:

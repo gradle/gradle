@@ -321,7 +321,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile.text = ""
-        remote("reader.readFrom(new File('${TextUtil.normaliseFileSeparators(artifactFileCopy.absolutePath)}').newInputStream())", "writer.writeTo(new ${NullOutputStream.name}())")
+        remote("reader.readFrom(new File('${TextUtil.normaliseFileSeparators(artifactFileCopy.absolutePath)}').newInputStream()); true", "writer.writeTo(new ${NullOutputStream.name}())")
         settingsFile << """
             buildCache {
                 ${buildCache.localCacheConfiguration()}
@@ -350,7 +350,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         config << [
-            "remote($remoteCacheClass)",
+            "buildCache.remote($remoteCacheClass)",
             "local.push = false; remote($remoteCacheClass)",
             "local.enabled = false; remote($remoteCacheClass)",
         ]
