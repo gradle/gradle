@@ -24,7 +24,6 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -62,7 +61,7 @@ public class BuildLayoutValidator {
             message.append("The project directory '");
             message.append(startParameter.getCurrentDir());
             message.append("' does not contain a Gradle build.\n\n");
-            message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file. ");
+            message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ");
             message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n");
             message.append("For more details on creating a Gradle build see ");
             message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
@@ -82,10 +81,13 @@ public class BuildLayoutValidator {
         }
 
         @Override
-        public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
-            output.text("> Run ");
-            clientMetaData.describeCommand(output.withStyle(UserInput), "init");
-            output.text(" to create a new Gradle build.");
+        public void appendResolutions(Context context) {
+            context.doNotSuggestResolutionsThatRequireBuildDefinition();
+            context.appendResolution(output -> {
+                output.text("Run ");
+                context.getClientMetaData().describeCommand(output.withStyle(UserInput), "init");
+                output.text(" to create a new Gradle build.");
+            });
         }
     }
 }

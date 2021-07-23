@@ -147,18 +147,30 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         then:
         failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
-        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
+        failure.assertHasResolutions(
+            "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
 
         when:
         fails ":someTest"
         then:
         failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
-        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
+        failure.assertHasResolutions(
+            "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
 
         when:
         fails "a:someTest"
         then:
         failure.assertHasDescription("Task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
-        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
+        failure.assertHasResolutions(
+            "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
     }
 }
