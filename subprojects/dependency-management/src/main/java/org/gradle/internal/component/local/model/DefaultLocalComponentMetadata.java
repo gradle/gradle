@@ -151,7 +151,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> publishArtifacts) {
+    public void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> publishArtifacts) {
         ImmutableList<LocalComponentArtifactMetadata> artifacts;
         if (publishArtifacts.isEmpty()) {
             artifacts = ImmutableList.of();
@@ -162,7 +162,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             }
             artifacts = builder.build();
         }
-        allVariants.put(configuration, new DefaultVariantMetadata(name, identifier, displayName, attributes, artifacts, null));
+        allVariants.put(configuration, new DefaultVariantMetadata(name, identifier, displayName, attributes, artifacts, capabilities));
     }
 
     @Override

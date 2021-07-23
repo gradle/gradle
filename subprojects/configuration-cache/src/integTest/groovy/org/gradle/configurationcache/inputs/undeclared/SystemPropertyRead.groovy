@@ -27,6 +27,11 @@ abstract class SystemPropertyRead {
 
     abstract String getKotlinExpression()
 
+    @Override
+    String toString() {
+        return getJavaExpression()
+    }
+
     static SystemPropertyRead systemGetProperty(String name) {
         return new SystemPropertyRead() {
             @Override

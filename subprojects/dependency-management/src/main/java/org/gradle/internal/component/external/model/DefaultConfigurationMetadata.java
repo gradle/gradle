@@ -144,6 +144,11 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         return computedCapabilities;
     }
 
+    private CapabilitiesMetadata getRawCapabilities() {
+        // We need the raw capabilities when deriving a variant since we pass down the component metadata rules as well
+        return super.getCapabilities();
+    }
+
     @Override
     public boolean requiresMavenArtifactDiscovery() {
         // If artifacts are computed, we opt-out of artifact discovery
@@ -299,7 +304,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
                     lazyConfigDependencies(),
                     dependencyFilter,
-                    capabilities == null ? DefaultConfigurationMetadata.this.getCapabilities() : capabilities,
+                    capabilities == null ? DefaultConfigurationMetadata.this.getRawCapabilities() : capabilities,
                     DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery(),
                     isExternalVariant()
             );

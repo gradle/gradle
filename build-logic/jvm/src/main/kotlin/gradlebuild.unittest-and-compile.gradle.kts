@@ -16,13 +16,14 @@
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.basics.testing.TestType
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
+import java.time.Duration
 import java.util.jar.Attributes
 
 plugins {
@@ -139,12 +140,26 @@ fun addDependencies() {
 
 fun addCompileAllTask() {
     tasks.register("compileAll") {
+        description = "Compile all source code, including main, test, integTest, crossVersionTest, testFixtures, etc."
         val compileTasks = project.tasks.matching {
             it is JavaCompile || it is GroovyCompile
         }
         dependsOn(compileTasks)
     }
+
+    tasks.register("compileAllProduction") {
+        description = "Compile all production source code, usually only main and testFixtures."
+        val compileTasks = project.tasks.matching {
+            (it is JavaCompile || it is GroovyCompile) && !it.isTestCompile()
+        }
+        dependsOn(compileTasks)
+    }
 }
+
+val testCompileTasks
+    get() = TestType.values().map { "compile${it.prefix.toUpperCase()}Test" } + listOf("compileTestGroovy", "compileTestKotlin")
+
+fun Task.isTestCompile() = testCompileTasks.any { name.startsWith(it) }
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
@@ -245,11 +260,15 @@ fun configureTests() {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
+                this as TestDistributionExtensionInternal
                 enabled.set(true)
+                project.maxTestDistributionPartitionSecond?.apply {
+                    preferredMaxDuration.set(Duration.ofSeconds(this))
+                }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(null)
                 // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
-                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-experiment.grdev.net"))
+                server.set(uri("https://ge-experiment.grdev.net"))
 
                 if (BuildEnvironment.isCiServer) {
                     when {
@@ -276,8 +295,12 @@ fun removeTeamcityTempProperty() {
 
 fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
 
-val isExperimentalTestFilteringEnabled
-    get() = System.getProperty("gradle.internal.testselection.enabled").toBoolean()
+val Project.isExperimentalTestFilteringEnabled
+    get() = providers.systemProperty("gradle.internal.testselection.enabled").forUseAtConfigurationTime().getOrElse("false").toBoolean()
+
+// Controls the test distribution partition size. The test classes smaller than this value will be merged into a "partition"
+val Project.maxTestDistributionPartitionSecond: Long?
+    get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
 
 val Project.maxParallelForks: Int
     get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)

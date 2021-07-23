@@ -470,7 +470,7 @@ class DefaultConfigurationSpec extends Specification {
                 files.each {
                     def artifact = Stub(ResolvableArtifact)
                     _ * artifact.file >> it
-                    visitor.visitArtifact(null, null, artifact)
+                    visitor.visitArtifact(null, null, [], artifact)
                 }
                 visitor.endVisitCollection(null)
             }

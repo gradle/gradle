@@ -131,11 +131,9 @@ class ConfigurationCacheState(
     fun calculateRootTaskGraph(state: CachedBuildState) {
         val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
         taskGraph.prepareTaskGraph {
-            state.build.scheduleNodes {
+            state.build.gradle.owner.populateWorkGraph {
                 it.addNodes(state.workGraph)
                 state.children.forEach(::addNodesForChildBuilds)
-                // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
-                // TODO - It would be better to have the load() method signal this instead
             }
             taskGraph.populateTaskGraphs()
             state.build.gradle.taskGraph.populate()

@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.Artifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
@@ -110,7 +111,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         failures.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, artifact: ResolvableArtifact) {
+    override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: MutableList<out Capability>, artifact: ResolvableArtifact) {
         elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, variantName, artifact.file))
     }
 
@@ -162,6 +163,7 @@ class FixedArtifactCollection(
                         DefaultResolvedArtifactResult(
                             element.id,
                             element.variantAttributes,
+                            emptyList(),
                             element.variantDisplayName,
                             Artifact::class.java,
                             element.file

@@ -43,14 +43,12 @@ val mirrorUrls: Map<String, String> =
         }
         ?: emptyMap()
 
-fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
-
-fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
-
 fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").forUseAtConfigurationTime().orNull?.toBoolean() == true
 
+fun isCI() = providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()
+
 fun withMirrors(handler: RepositoryHandler) {
-    if (!providers.environmentVariable("CI").forUseAtConfigurationTime().isPresent()) {
+    if (!isCI()) {
         return
     }
     handler.all {
@@ -67,24 +65,6 @@ fun withMirrors(handler: RepositoryHandler) {
 fun normalizeUrl(url: String): String {
     val result = url.replace("https://", "http://")
     return if (result.endsWith("/")) result else "$result/"
-}
-
-fun overridesPluginPortalUrl() = providers.systemProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY).forUseAtConfigurationTime().orNull != null
-
-if (!overridesPluginPortalUrl() && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
-    // https://github.com/gradle/gradle-private/issues/2725
-    // https://github.com/gradle/gradle-private/issues/2951
-    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://repo.grdev.net/artifactory/gradle-plugin-portal-prod/")
-
-    abstract class ClearPortalOverride : BuildService<BuildServiceParameters.None>, OperationCompletionListener, AutoCloseable {
-        override fun onFinish(event: FinishEvent) = Unit
-        override fun close() {
-            System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
-        }
-    }
-
-    val serviceProvider = gradle.sharedServices.registerIfAbsent("clearPortalOverride", ClearPortalOverride::class) {}
-    (gradle as GradleInternal).services.get(BuildEventsListenerRegistry::class.java).onTaskCompletion(serviceProvider)
 }
 
 gradle.allprojects {

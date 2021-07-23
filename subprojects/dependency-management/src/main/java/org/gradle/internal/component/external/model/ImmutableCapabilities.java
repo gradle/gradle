@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableCapabilities implements CapabilitiesMetadata {
@@ -33,12 +35,12 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         return of(capabilities.getCapabilities());
     }
 
-    public static ImmutableCapabilities of(List<? extends Capability> capabilities) {
-        if (capabilities.isEmpty()) {
+    public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
             return EMPTY;
         }
         if (capabilities.size() == 1) {
-            Capability single = capabilities.get(0);
+            Capability single = capabilities.stream().findAny().get();
             if (single instanceof ShadowedCapability) {
                 return new ShadowedSingleImmutableCapabilities(single);
             }
