@@ -240,8 +240,7 @@ class HttpBuildCacheServiceTest extends Specification {
             res.setHeader("Content-Length", "0")
             res.setHeader("Connection", "Close")
             res.sendError(413)
-            res.outputStream.close()
-            (res as Response).httpChannel.connection.close()
+            res.outputStream.close() // send
         }
 
         when:
@@ -252,16 +251,13 @@ class HttpBuildCacheServiceTest extends Specification {
                 int read() throws IOException {
                     return 1
                 }
-            }, 1024 * 1024 * 4)
+            }, 1024 * 1024 * 10)
         }
 
         def result = cache.store(key, new DefaultBuildCacheEntryInternal(file))
 
         then:
         result == NOT_STORED
-
-        where:
-        i << (1..100)
     }
 
     def "does transmit body when using expect continue that continues"() {
