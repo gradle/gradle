@@ -27,7 +27,7 @@ import spock.lang.Specification
 import javax.net.ssl.SSLHandshakeException
 
 class DeprecatedTLSVersionTest extends Specification {
-    private static final String SUPPORTED_TLS_VERSION_STRING = String.join(", ", HttpClientConfigurer.supportedTlsVersions())
+    private static final String SUPPORTED_TLS_VERSION_STRING = String.join(", ", HttpClientUtil.supportedTlsVersions())
     private static final List<String> DEPRECATED_TLS_VERSIONS = ["TLSv1", "TLSv1.1"]
     private static final List<String> MODERN_TLS_VERSIONS = ["TLSv1.2", "TLSv1.3"]
     @Rule

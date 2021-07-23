@@ -75,7 +75,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         // We see connection refused because the first partial request is retried,
         // then the subsequent is flat refused because we stopped the server.
-        String errorPattern = /(Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused|127\.0\.0\.1:\d+ failed to respond|Connection reset)/
+        String errorPattern = /(Connection refused|failed to respond|Connection reset)/
 
         when:
         executer.withStackTraceChecksDisabled()
@@ -83,7 +83,10 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run "customTask"
 
         then:
-        output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
+        output =~ /(?m)Could not store entry .* in remote build cache: org\.gradle\.internal\.resource\.transport\.http\.HttpRequestException: Could not PUT '\/.+'.\nCaused by:.+${errorPattern}/
+
+        cleanup:
+        httpBuildCacheServer.start()
     }
 
     def "build does not fail if connection repeatedly drops during store"() {
@@ -98,7 +101,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
             }
         }
         settingsFile << withHttpBuildCacheServer()
-        String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond)/
+        String errorPattern = /(Broken pipe|Connection reset|Connection reset by peer|Connection closed|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond)/
 
         when:
         executer.withStackTraceChecksDisabled()
@@ -106,7 +109,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run "customTask"
 
         then:
-        output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
+        output =~ /(?m)Could not store entry .* in remote build cache: org\.gradle\.internal\.resource\.transport\.http\.HttpRequestException: Could not PUT '\/.+'.\nCaused by:.+${errorPattern}/
     }
 
     def "dropped connection during write is retried and can subsequently succeed"() {
@@ -167,7 +170,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run("customTask")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Read timed out/
+        output =~ /(?m)Could not load entry .* from remote build cache: org\.gradle\.internal\.resource\.transport\.http\.HttpRequestException: Could not GET '.*'.\nCaused by: java\.net\.SocketTimeoutException: 1,000 milliseconds timeout on connection .+ \[ACTIVE]/
     }
 
     def "build cache is deactivated if response is not successful"() {
@@ -184,7 +187,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run("customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+        output =~ /Could not load entry .* from remote build cache: org.gradle.caching.BuildCacheException: Loading entry from '.+' response status 500: Server Error/
 
         and:
         requestCounter.get() == 1
@@ -204,7 +207,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+        output =~ /Could not load entry .* from remote build cache: org.gradle.caching.BuildCacheException: Loading entry from '.+' response status 500: Server Error/
 
         and:
         requestCounter.get() == 4 // {MISS,STORE} * 2

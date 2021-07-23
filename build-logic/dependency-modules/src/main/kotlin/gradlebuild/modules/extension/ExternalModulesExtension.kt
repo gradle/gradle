@@ -44,6 +44,7 @@ abstract class ExternalModulesExtension {
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
+    val commonsHttpclientAsync = "org.apache.httpcomponents:httpasyncclient"
     val commonsIo = "commons-io:commons-io"
     val commonsLang = "commons-lang:commons-lang"
     val commonsMath = "org.apache.commons:commons-math3"

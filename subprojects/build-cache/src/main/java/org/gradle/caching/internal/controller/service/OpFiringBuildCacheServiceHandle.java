@@ -16,42 +16,52 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheEntryInternal;
+import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
+import org.gradle.caching.internal.BuildCacheServiceInternal;
+import org.gradle.caching.internal.BuildCacheStoreOutcomeInternal;
 import org.gradle.caching.internal.controller.operations.LoadOperationDetails;
 import org.gradle.caching.internal.controller.operations.LoadOperationHitResult;
 import org.gradle.caching.internal.controller.operations.LoadOperationMissResult;
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.File;
 
 public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public OpFiringBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    public OpFiringBuildCacheServiceHandle(BuildCacheServiceInternal service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
         super(service, push, role, logStackTraces, disableOnError);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    protected void loadInner(final String description, final BuildCacheKey key, final LoadTarget loadTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+    protected BuildCacheLoadOutcomeInternal loadInner(final String description, final BuildCacheKey key, final BuildCacheEntryInternal entry) {
+        return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadOutcomeInternal>() {
             @Override
-            public void run(BuildOperationContext context) {
-                loadInner(key, new OpFiringEntryReader(loadTarget));
+            public BuildCacheLoadOutcomeInternal call(BuildOperationContext context) {
+                OpFiringBuildCacheEntry opFiringEntry = new OpFiringBuildCacheEntry(entry);
+                BuildCacheLoadOutcomeInternal loadOutcome;
+                try {
+                    loadOutcome = OpFiringBuildCacheServiceHandle.super.loadInner(key, opFiringEntry);
+                } finally {
+                    if (opFiringEntry.downloadingOperationContext != null) {
+                        opFiringEntry.downloadingOperationContext.setResult(null);
+                    }
+                }
                 context.setResult(
-                    loadTarget.isLoaded()
-                        ? new LoadOperationHitResult(loadTarget.getLoadedSize())
+                    loadOutcome == BuildCacheLoadOutcomeInternal.LOADED
+                        ? new LoadOperationHitResult(entry.getFile().length())
                         : LoadOperationMissResult.INSTANCE
                 );
+                return loadOutcome;
             }
 
             @Override
@@ -64,68 +74,50 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
     }
 
     @Override
-    protected void storeInner(final String description, final BuildCacheKey key, final StoreTarget storeTarget) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+    protected BuildCacheStoreOutcomeInternal storeInner(final String description, final BuildCacheKey key, final BuildCacheEntryInternal entry) {
+        return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheStoreOutcomeInternal>() {
             @Override
-            public void run(BuildOperationContext context) {
-                OpFiringBuildCacheServiceHandle.super.storeInner(description, key, storeTarget);
-                context.setResult(storeTarget.isStored() ? StoreOperationResult.STORED : StoreOperationResult.NOT_STORED);
+            public BuildCacheStoreOutcomeInternal call(BuildOperationContext context) {
+                BuildCacheStoreOutcomeInternal storeOutcome = OpFiringBuildCacheServiceHandle.super.storeInner(description, key, entry);
+                context.setResult(
+                    storeOutcome == BuildCacheStoreOutcomeInternal.STORED
+                        ? StoreOperationResult.STORED
+                        : StoreOperationResult.NOT_STORED
+                );
+                return storeOutcome;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(description)
-                    .details(new StoreOperationDetails(key, storeTarget.getSize()))
+                    .details(new StoreOperationDetails(key, entry.getFile().length()))
                     .progressDisplayName("Uploading to remote build cache");
             }
         });
     }
 
-    private class OpFiringEntryReader implements BuildCacheEntryReader {
+    private class OpFiringBuildCacheEntry implements BuildCacheEntryInternal {
 
-        private final BuildCacheEntryReader delegate;
+        private final BuildCacheEntryInternal delegate;
+        private BuildOperationContext downloadingOperationContext;
 
-        OpFiringEntryReader(BuildCacheEntryReader delegate) {
+        OpFiringBuildCacheEntry(BuildCacheEntryInternal delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public void readFrom(final InputStream input) throws IOException {
-            try {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        try {
-                            delegate.readFrom(input);
-                        } catch (IOException e) {
-                            throw new UncheckedWrapper(e);
-                        }
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Download from remote build cache")
-                            .progressDisplayName("Downloading");
-                    }
-                });
-            } catch (UncheckedWrapper uncheckedWrapper) {
-                throw uncheckedWrapper.getIOException();
-            }
-        }
-    }
-
-    private static class UncheckedWrapper extends RuntimeException {
-        UncheckedWrapper(IOException cause) {
-            super(cause);
+        public File getFile() {
+            return delegate.getFile();
         }
 
         @Override
-        public synchronized Throwable fillInStackTrace() {
-            return this;
+        public void markDownloading() {
+            if (downloadingOperationContext != null) {
+                downloadingOperationContext = buildOperationExecutor.start(BuildOperationDescriptor.displayName("Download from remote build cache")
+                    .progressDisplayName("Downloading"));
+            }
         }
 
-        IOException getIOException() {
-            return (IOException) getCause();
-        }
     }
+
 }

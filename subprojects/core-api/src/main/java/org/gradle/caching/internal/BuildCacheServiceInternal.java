@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.service;
+package org.gradle.caching.internal;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.BuildCacheEntryInternal;
-import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
-import org.gradle.caching.internal.BuildCacheStoreOutcomeInternal;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.IOException;
 
-public interface BuildCacheServiceHandle extends Closeable {
+public interface BuildCacheServiceInternal extends Closeable {
 
-    boolean canLoad();
+    BuildCacheStoreOutcomeInternal store(BuildCacheKey key, BuildCacheEntryInternal entry);
 
     BuildCacheLoadOutcomeInternal load(BuildCacheKey key, BuildCacheEntryInternal entry);
 
-    boolean canStore();
-
-    @Nullable
-    BuildCacheStoreOutcomeInternal store(BuildCacheKey key, BuildCacheEntryInternal entry);
-
     @Override
-    void close();
+    void close() throws IOException;
 }

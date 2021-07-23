@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.service;
+package org.gradle.caching.internal;
 
-import org.gradle.caching.internal.BuildCacheEntryInternal;
+public enum BuildCacheStoreOutcomeInternal {
 
-import java.io.File;
+    STORED,
 
-public class LoadTarget implements BuildCacheEntryInternal {
-
-    private final File file;
-
-    public LoadTarget(File file) {
-        this.file = file;
-    }
-
-    @Override
-    public File getFile() {
-        return file;
-    }
-
-    @Override
-    public void markDownloading() {
-
-    }
+    NOT_STORED
 }

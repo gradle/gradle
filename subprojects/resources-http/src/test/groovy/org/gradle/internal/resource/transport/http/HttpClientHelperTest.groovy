@@ -80,7 +80,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         def uri = new URI("https", "admin:password", "foo.example", 80, null, null, null)
 
         when:
-        def strippedUri = HttpClientHelper.stripUserCredentials(uri)
+        def strippedUri = HttpClientUtil.stripUserCredentials(uri)
 
         then:
         strippedUri.userInfo == null

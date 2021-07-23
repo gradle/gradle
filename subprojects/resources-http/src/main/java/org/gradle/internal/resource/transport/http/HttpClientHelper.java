@@ -23,29 +23,24 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.net.ssl.SSLHandshakeException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
+import static org.gradle.internal.resource.transport.http.HttpClientUtil.stripUserCredentials;
 
 /**
  * Provides some convenience and unified logging.
@@ -106,28 +101,7 @@ public class HttpClientHelper implements Closeable {
         } catch (FailureFromRedirectLocation e) {
             throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(e.getLastRedirectLocation())), e.getCause());
         } catch (IOException e) {
-            Exception cause = e;
-            if (e instanceof SSLHandshakeException) {
-                SSLHandshakeException sslException = (SSLHandshakeException) e;
-                final String confidence;
-                if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
-                    // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
-                    confidence = "The server does not";
-                } else {
-                    // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
-                    // Tell the user this but with less confidence.
-                    confidence = "The server may not";
-                }
-                String message = String.format(
-                    confidence + " support the client's requested TLS protocol versions: (%s). " +
-                        "You may need to configure the client to allow other protocols to be used. " +
-                        "See: %s",
-                    String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
-                    documentationRegistry.getDocumentationFor("build_environment", "gradle_system_properties")
-                );
-                cause = new HttpRequestException(message, cause);
-            }
-            throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(request.getURI())), cause);
+            throw HttpClientUtil.toHttpRequestException(request, stripUserCredentials(request.getURI()), e, documentationRegistry);
         }
     }
 
@@ -171,8 +145,10 @@ public class HttpClientHelper implements Closeable {
             return toHttpClientResponse(request, httpContext, response);
         } catch (IOException e) {
             validateRedirectChain(httpContext);
-            URI lastRedirectLocation = stripUserCredentials(getLastRedirectLocation(httpContext));
-            throw (lastRedirectLocation == null) ? e : new FailureFromRedirectLocation(lastRedirectLocation, e);
+            URI lastRedirectLocation = getLastRedirectLocation(httpContext);
+            throw lastRedirectLocation == null
+                ? e
+                : new FailureFromRedirectLocation(stripUserCredentials(lastRedirectLocation), e);
         }
     }
 
@@ -234,23 +210,6 @@ public class HttpClientHelper implements Closeable {
             if (sharedContext != null) {
                 sharedContext.clear();
             }
-        }
-    }
-
-    /**
-     * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
-     * safe to appear in log messages.
-     */
-    @Nullable
-    @VisibleForTesting
-    static URI stripUserCredentials(@CheckForNull URI uri) {
-        if (uri == null) {
-            return null;
-        }
-        try {
-            return new URIBuilder(uri).setUserInfo(null).build();
-        } catch (URISyntaxException e) {
-            throw UncheckedException.throwAsUncheckedException(e, true);
         }
     }
 

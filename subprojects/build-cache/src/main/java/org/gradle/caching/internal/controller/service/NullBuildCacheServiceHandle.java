@@ -17,19 +17,13 @@
 package org.gradle.caching.internal.controller.service;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
-
-import javax.annotation.Nullable;
+import org.gradle.caching.internal.BuildCacheEntryInternal;
+import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
+import org.gradle.caching.internal.BuildCacheStoreOutcomeInternal;
 
 public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
     public static final BuildCacheServiceHandle INSTANCE = new NullBuildCacheServiceHandle();
-
-    @Nullable
-    @Override
-    public BuildCacheService getService() {
-        return null;
-    }
 
     @Override
     public boolean canLoad() {
@@ -37,7 +31,7 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void load(BuildCacheKey key, LoadTarget loadTarget) {
+    public BuildCacheLoadOutcomeInternal load(BuildCacheKey key, BuildCacheEntryInternal entry) {
         throw new UnsupportedOperationException();
     }
 
@@ -47,7 +41,7 @@ public class NullBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     @Override
-    public void store(BuildCacheKey key, StoreTarget storeTarget) {
+    public BuildCacheStoreOutcomeInternal store(BuildCacheKey key, BuildCacheEntryInternal entry) {
         throw new UnsupportedOperationException();
     }
 

@@ -27,6 +27,7 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
+import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandle
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
@@ -81,8 +82,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.remote.service == null
-        c.local.service != null
+        c.remote instanceof NullBuildCacheServiceHandle
+        !(c.local.service instanceof NullBuildCacheServiceHandle)
 
         and:
         with(buildOpResult()) {
@@ -99,8 +100,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local.service != null
-        c.remote.service == null
+        !(c.local.service instanceof NullBuildCacheServiceHandle)
+        c.remote instanceof NullBuildCacheServiceHandle
         with(buildOpResult()) {
             local.type == "directory"
             local.className == DirectoryBuildCache.name
@@ -116,8 +117,7 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local.service == null
-        c.remote.service instanceof TestRemoteBuildCacheService
+        c.local.service instanceof NullBuildCacheServiceHandle
         with(buildOpResult()) {
             local == null
             remote.type == "remote"
@@ -132,8 +132,8 @@ class BuildCacheControllerFactoryTest extends Specification {
         def c = createController()
 
         then:
-        c.local.service != null
-        c.remote.service != null
+        !(c.local instanceof NullBuildCacheServiceHandle)
+        !(c.remote instanceof NullBuildCacheServiceHandle)
         with(buildOpResult()) {
             local.type == "directory"
             remote.type == "remote"

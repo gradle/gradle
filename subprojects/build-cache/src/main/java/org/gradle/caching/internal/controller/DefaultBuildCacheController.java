@@ -22,7 +22,9 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.BuildCacheEntryInternal;
+import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
+import org.gradle.caching.internal.BuildCacheServiceInternal;
 import org.gradle.caching.internal.controller.operations.PackOperationDetails;
 import org.gradle.caching.internal.controller.operations.PackOperationResult;
 import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
@@ -30,13 +32,12 @@ import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
+import org.gradle.caching.internal.controller.service.DefaultBuildCacheEntryInternal;
 import org.gradle.caching.internal.controller.service.DefaultLocalBuildCacheServiceHandle;
-import org.gradle.caching.internal.controller.service.LoadTarget;
 import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.OpFiringBuildCacheServiceHandle;
-import org.gradle.caching.internal.controller.service.StoreTarget;
 import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
@@ -110,10 +111,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
         if (remote.canLoad()) {
             tmp.withTempFile(command.getKey(), file -> {
-                LoadTarget loadTarget = new LoadTarget(file);
-                remote.load(command.getKey(), loadTarget);
+                BuildCacheEntryInternal entry = new DefaultBuildCacheEntryInternal(file);
+                BuildCacheLoadOutcomeInternal outcome = remote.load(command.getKey(), entry);
 
-                if (loadTarget.isLoaded()) {
+                if (outcome == BuildCacheLoadOutcomeInternal.LOADED) {
                     try {
                         unpack.execute(file);
                     } catch (Exception e) {
@@ -177,7 +178,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             pack.execute(file);
 
             if (remote.canStore()) {
-                remote.store(key, new StoreTarget(file));
+                remote.store(key, new DefaultBuildCacheEntryInternal(file));
             }
 
             if (local.canStore()) {
@@ -229,7 +230,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheServiceInternal service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
         return service == null
             ? NullBuildCacheServiceHandle.INSTANCE
             : new OpFiringBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);

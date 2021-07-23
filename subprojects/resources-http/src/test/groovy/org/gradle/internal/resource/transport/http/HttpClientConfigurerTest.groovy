@@ -106,7 +106,7 @@ class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.workstation != ''
 
         and:
-        httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+        httpClientBuilder.requestFirst[0] instanceof HttpClientUtil.PreemptiveAuth
     }
 
     def "configures http client with http header auth credentials"() {
@@ -128,7 +128,7 @@ class HttpClientConfigurerTest extends Specification {
         actualHttpHeaderCredentials.header.value == 'TestHttpHeaderValue'
 
         and:
-        httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+        httpClientBuilder.requestFirst[0] instanceof HttpClientUtil.PreemptiveAuth
     }
 
     def "configures http client with user agent"() {

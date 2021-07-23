@@ -19,15 +19,18 @@ package org.gradle.caching.http.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.authentication.Authentication;
-import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
+import org.gradle.caching.http.internal.httpclient.HttpAsyncClientHelper;
+import org.gradle.caching.internal.BuildCacheServiceFactoryInternal;
+import org.gradle.caching.internal.BuildCacheServiceInternal;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpSettings;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
@@ -42,23 +45,23 @@ import java.util.Collections;
 /**
  * Build cache factory for HTTP backend.
  */
-public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactory<HttpBuildCache> {
+public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFactoryInternal<HttpBuildCache> {
 
     private static final int MAX_REDIRECTS = Integer.getInteger("org.gradle.cache.http.max-redirects", 10);
 
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
-    private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final DocumentationRegistry documentationRegistry;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, DocumentationRegistry documentationRegistry) {
         this.sslContextFactory = sslContextFactory;
         this.requestCustomizer = requestCustomizer;
-        this.httpClientHelperFactory = httpClientHelperFactory;
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
+    public BuildCacheServiceInternal createBuildCacheServiceInternal(HttpBuildCache configuration, BuildCacheServiceFactory.Describer describer) {
         URI url = configuration.getUrl();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
@@ -75,7 +78,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(credentials);
             basicAuthentication.addHost(url.getHost(), url.getPort());
-            authentications = Collections.<Authentication>singleton(basicAuthentication);
+            authentications = Collections.singleton(basicAuthentication);
         }
 
         boolean authenticated = !authentications.isEmpty();
@@ -96,7 +99,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         } else {
             builder.withSslContextFactory(sslContextFactory);
         }
-        HttpClientHelper httpClientHelper = httpClientHelperFactory.create(builder.build());
+        HttpAsyncClientHelper httpClientHelper = new HttpAsyncClientHelper(documentationRegistry, builder.build());
 
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
@@ -121,7 +124,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                     throw new InvalidUserCodeException(message);
                 },
                 redirect -> {
-                    throw new IllegalStateException("Redirects are unsupported by the the build cache.");
+                    String message =
+                        "Using insecure protocols with remote build cache redirects, without explicit opt-in, is unsupported. " +
+                            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
+                            String.format("'%s' redirects to insecure '%s'. ", redirect, redirect) +
+                            Documentation
+                                .dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
+                                .consultDocumentationMessage();
+                    throw new InvalidUserCodeException(message);
                 });
     }
 

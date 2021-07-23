@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.controller.service;
+package org.gradle.caching.internal;
 
-import org.gradle.caching.internal.BuildCacheEntryInternal;
+import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.BuildCacheServiceFactory;
+import org.gradle.caching.configuration.BuildCache;
 
-import java.io.File;
+public interface BuildCacheServiceFactoryInternal<T extends BuildCache> extends BuildCacheServiceFactory<T> {
 
-public class LoadTarget implements BuildCacheEntryInternal {
-
-    private final File file;
-
-    public LoadTarget(File file) {
-        this.file = file;
-    }
+    BuildCacheServiceInternal createBuildCacheServiceInternal(T configuration, BuildCacheServiceFactory.Describer describer);
 
     @Override
-    public File getFile() {
-        return file;
-    }
-
-    @Override
-    public void markDownloading() {
-
+    default BuildCacheService createBuildCacheService(T configuration, Describer describer) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -18,12 +18,21 @@ package org.gradle.caching.internal.services;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.caching.BuildCacheEntryReader;
+import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
+import org.gradle.caching.internal.BuildCacheEntryInternal;
+import org.gradle.caching.internal.BuildCacheLoadOutcomeInternal;
+import org.gradle.caching.internal.BuildCacheServiceFactoryInternal;
+import org.gradle.caching.internal.BuildCacheServiceInternal;
+import org.gradle.caching.internal.BuildCacheStoreOutcomeInternal;
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
@@ -31,7 +40,8 @@ import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.DirectoryBuildCacheService;
+import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -43,6 +53,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -92,11 +106,11 @@ public final class BuildCacheControllerFactory {
                     LOGGER.warn("Remote build cache is disabled when running with --offline.");
                 }
 
-                DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService = localEnabled
-                    ? createBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, buildCacheConfiguration, instantiator)
+                DescribedBuildCacheService<DirectoryBuildCache, LocalBuildCacheService> localDescribedService = localEnabled
+                    ? createLocalBuildCacheService(local, BuildCacheServiceRole.LOCAL, buildIdentityPath, instantiator)
                     : null;
 
-                DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService = remoteEnabled
+                DescribedBuildCacheService<BuildCache, BuildCacheServiceInternal> remoteDescribedService = remoteEnabled
                     ? createBuildCacheService(remote, BuildCacheServiceRole.REMOTE, buildIdentityPath, buildCacheConfiguration, instantiator)
                     : null;
 
@@ -137,36 +151,63 @@ public final class BuildCacheControllerFactory {
     }
 
     private static BuildCacheServicesConfiguration toConfiguration(
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, LocalBuildCacheService> local,
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheServiceInternal> remote
     ) {
         boolean localPush = local != null && local.config.isPush();
         boolean remotePush = remote != null && remote.config.isPush();
         return new BuildCacheServicesConfiguration(
             local != null ? local.service : null, localPush,
-            remote != null ? remote.service : null, remotePush);
+            remote != null ? remote.service : null, remotePush
+        );
     }
 
-    private static <C extends BuildCache, S> DescribedBuildCacheService<C, S> createBuildCacheService(
+    private static <C extends BuildCache> DescribedBuildCacheService<C, BuildCacheServiceInternal> createBuildCacheService(
         C configuration,
         BuildCacheServiceRole role,
         Path buildIdentityPath,
         BuildCacheConfigurationInternal buildCacheConfiguration,
         Instantiator instantiator
     ) {
-        Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedNonnullCast(
-            buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
-        );
-
-        BuildCacheServiceFactory<C> factory = instantiator.newInstance(castFactoryType);
+        Class<?> buildCacheServiceFactoryType = buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass());
+        Class<? extends BuildCacheServiceFactory<C>> castFactoryType = Cast.uncheckedNonnullCast(buildCacheServiceFactoryType);
         Describer describer = new Describer();
-        S service = Cast.uncheckedNonnullCast(factory.createBuildCacheService(configuration, describer));
+
+        BuildCacheServiceInternal service;
+        if (BuildCacheServiceFactoryInternal.class.isAssignableFrom(buildCacheServiceFactoryType)) {
+            Class<? extends BuildCacheServiceFactoryInternal<C>> castInternalFactoryType = Cast.uncheckedNonnullCast(castFactoryType);
+            BuildCacheServiceFactoryInternal<C> factory = instantiator.newInstance(castInternalFactoryType);
+            service = factory.createBuildCacheServiceInternal(configuration, describer);
+        } else {
+            BuildCacheServiceFactory<C> factory = instantiator.newInstance(castFactoryType);
+            service = new BuildCacheServiceInternalAdapter(factory.createBuildCacheService(configuration, describer));
+        }
+
         ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
         BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
 
         logConfig(buildIdentityPath, role, description);
 
         return new DescribedBuildCacheService<>(configuration, service, description);
+    }
+
+    private static DescribedBuildCacheService<DirectoryBuildCache, LocalBuildCacheService> createLocalBuildCacheService(
+        DirectoryBuildCache configuration,
+        BuildCacheServiceRole role,
+        Path buildIdentityPath,
+        Instantiator instantiator
+    ) {
+        BuildCacheServiceFactory<DirectoryBuildCache> factory = instantiator.newInstance(DirectoryBuildCacheServiceFactory.class);
+        Describer describer = new Describer();
+        BuildCacheService rawService = factory.createBuildCacheService(configuration, describer);
+        if (!(rawService instanceof LocalBuildCacheService)) {
+            throw new IllegalStateException("local build cache is not LocalBuildCacheService");
+        }
+        LocalBuildCacheService localService = (LocalBuildCacheService) rawService;
+        ImmutableSortedMap<String, String> config = ImmutableSortedMap.copyOf(describer.configParams);
+        BuildCacheDescription description = new BuildCacheDescription(configuration, describer.type, config);
+        logConfig(buildIdentityPath, role, description);
+        return new DescribedBuildCacheService<>(configuration, localService, description);
     }
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
@@ -248,7 +289,7 @@ public final class BuildCacheControllerFactory {
     private static class Describer implements BuildCacheServiceFactory.Describer {
 
         private String type;
-        private Map<String, String> configParams = new HashMap<>();
+        private final Map<String, String> configParams = new HashMap<>();
 
         @Override
         public BuildCacheServiceFactory.Describer type(String type) {
@@ -337,5 +378,61 @@ public final class BuildCacheControllerFactory {
             return remote;
         }
 
+    }
+
+    private static class BuildCacheServiceInternalAdapter implements BuildCacheServiceInternal {
+        private final BuildCacheService buildCacheService;
+
+        public BuildCacheServiceInternalAdapter(BuildCacheService buildCacheService) {
+            this.buildCacheService = buildCacheService;
+        }
+
+        @Override
+        public BuildCacheStoreOutcomeInternal store(BuildCacheKey key, BuildCacheEntryInternal entry) {
+            class Writer implements BuildCacheEntryWriter {
+                boolean opened;
+
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    opened = true;
+                    try (
+                        OutputStream out = output;
+                        InputStream input = Files.newInputStream(entry.getFile().toPath())
+                    ) {
+                        ByteStreams.copy(input, out);
+                    }
+                }
+
+                @Override
+                public long getSize() {
+                    return entry.getFile().length();
+                }
+            }
+
+            Writer writer = new Writer();
+            buildCacheService.store(key, writer);
+            return writer.opened ? BuildCacheStoreOutcomeInternal.STORED : BuildCacheStoreOutcomeInternal.NOT_STORED;
+        }
+
+        @Override
+        public BuildCacheLoadOutcomeInternal load(BuildCacheKey key, BuildCacheEntryInternal entry) {
+            boolean loaded = buildCacheService.load(key, new BuildCacheEntryReader() {
+                @Override
+                public void readFrom(InputStream input) throws IOException {
+                    try (
+                        InputStream in = input;
+                        OutputStream out = Files.newOutputStream(entry.getFile().toPath())
+                    ) {
+                        ByteStreams.copy(in, out);
+                    }
+                }
+            });
+            return loaded ? BuildCacheLoadOutcomeInternal.LOADED : BuildCacheLoadOutcomeInternal.NOT_LOADED;
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
     }
 }
