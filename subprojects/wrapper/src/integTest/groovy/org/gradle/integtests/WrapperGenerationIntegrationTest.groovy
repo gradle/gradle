@@ -135,6 +135,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
     }
 
+    def "generated wrapper scripts for given network timeout from command-line"() {
+        when:
+        run "wrapper", "--network-timeout", "7000"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=7000")
+    }
+
     def "wrapper JAR does not contain version in manifest"() {
         when:
         run "wrapper"
