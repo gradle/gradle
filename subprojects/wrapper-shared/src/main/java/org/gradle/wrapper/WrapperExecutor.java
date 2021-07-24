@@ -30,6 +30,7 @@ public class WrapperExecutor {
     public static final String DISTRIBUTION_SHA_256_SUM = "distributionSha256Sum";
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
+    public static final String NETWORK_TIMEOUT_PROPERTY = "networkTimeout";
     private final Properties properties;
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
@@ -57,6 +58,7 @@ public class WrapperExecutor {
                 config.setDistributionSha256Sum(getProperty(DISTRIBUTION_SHA_256_SUM, config.getDistributionSha256Sum(), false));
                 config.setZipBase(getProperty(ZIP_STORE_BASE_PROPERTY, config.getZipBase()));
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
+                config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
@@ -114,6 +116,10 @@ public class WrapperExecutor {
 
     private String getProperty(String propertyName, String defaultValue) {
         return getProperty(propertyName, defaultValue, true);
+    }
+
+    private int getProperty(String propertyName, int defaultValue) {
+        return Integer.parseInt(getProperty(propertyName, String.valueOf(defaultValue)));
     }
 
     private String getProperty(String propertyName, String defaultValue, boolean required) {
