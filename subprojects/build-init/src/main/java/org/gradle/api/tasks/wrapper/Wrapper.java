@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
@@ -100,6 +101,7 @@ public class Wrapper extends DefaultTask {
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
+    private Integer networkTimeout;
     private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
@@ -160,6 +162,9 @@ public class Wrapper extends DefaultTask {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
+        if (networkTimeout != null) {
+            wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, networkTimeout.toString());
+        }
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
@@ -426,5 +431,31 @@ public class Wrapper extends DefaultTask {
      */
     public void setArchiveBase(PathBase archiveBase) {
         this.archiveBase = archiveBase;
+    }
+
+    /**
+     * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
+     * as downloading the wrapper jar.
+     *
+     * @since 7.3
+     */
+    @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
+    @Incubating
+    public void setNetworkTimeout(@Nullable String networkTimeout) {
+        this.networkTimeout = networkTimeout == null ? null : Integer.parseInt(networkTimeout);
+    }
+
+    /**
+     * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such
+     * as downloading the wrapper jar.
+     *
+     * @since 7.3
+     */
+    @Nullable
+    @Optional
+    @Input
+    @Incubating
+    public String getNetworkTimeout() {
+        return networkTimeout == null ? null : String.valueOf(networkTimeout);
     }
 }

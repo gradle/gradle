@@ -107,7 +107,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout")
+        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout (10000ms)")
         failure.assertHasErrorOutput('Read timed out')
     }
 
@@ -122,10 +122,26 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout")
+        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout (10000ms)")
         failure.assertHasErrorOutput('Read timed out')
         failure.assertNotOutput("username")
         failure.assertNotOutput("password")
+    }
+
+    def "reads timeout from wrapper properties"() {
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+        server.expectAndBlock(server.get("/gradlew/dist"))
+
+        and:
+        file('gradle/wrapper/gradle-wrapper.properties') << "networkTimeout=5000"
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout (5000ms)")
     }
 
     def "downloads wrapper via proxy"() {
