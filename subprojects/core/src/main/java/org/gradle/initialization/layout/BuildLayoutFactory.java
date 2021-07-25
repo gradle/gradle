@@ -18,7 +18,6 @@ package org.gradle.initialization.layout;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -26,7 +25,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 import java.io.File;
 
-@UsedByScanPlugin
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
 
