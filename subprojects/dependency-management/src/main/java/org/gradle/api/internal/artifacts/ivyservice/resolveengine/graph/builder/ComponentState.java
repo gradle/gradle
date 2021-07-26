@@ -78,7 +78,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.implicitCapability = new ImmutableCapability(id.getGroup(), id.getName(), id.getVersion());
+        this.implicitCapability = ImmutableCapability.defaultCapabilityForComponent(id);
         this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }
 

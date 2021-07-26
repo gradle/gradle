@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -55,6 +57,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -152,7 +155,16 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             identifier = null;
         }
 
-        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, variant.getCapabilities(), resolvedArtifacts.build());
+        return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), resolvedArtifacts.build());
+    }
+
+    private static CapabilitiesMetadata withImplicitCapability(VariantResolveMetadata variant, ModuleVersionIdentifier identifier) {
+        CapabilitiesMetadata capabilities = variant.getCapabilities();
+        if (capabilities.getCapabilities().isEmpty()) {
+            return ImmutableCapabilities.of(Collections.singleton(ImmutableCapability.defaultCapabilityForComponent(identifier)));
+        } else {
+            return capabilities;
+        }
     }
 
     @Override
