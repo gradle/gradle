@@ -163,16 +163,14 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
-        if (getOptions().getForkOptions().getExecutable() == null) {
-            configureExecutable(spec.getCompileOptions().getForkOptions());
-        }
+        configureExecutable(spec.getCompileOptions().getForkOptions());
         return spec;
     }
 
     private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
         if (javaLauncher.isPresent()) {
             forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-        } else {
+        } else if (getOptions().getForkOptions().getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
         }
     }
