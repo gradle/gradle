@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.caching.internal.operations.BuildCacheRemoteLoadBuildOperationType
 import org.gradle.caching.internal.operations.BuildCacheRemoteStoreBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -63,6 +64,12 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         withBuildCache().run "jar"
         then:
         noneSkipped()
+        def missOp = buildOperations.only(BuildCacheRemoteLoadBuildOperationType) {
+            buildOperations.parentsOf(it).any {
+                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
+            }
+        }
+        missOp.children.empty
 
         expect:
         withBuildCache().run "clean"
@@ -71,6 +78,17 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         withBuildCache().run "jar"
         then:
         skipped ":compileJava"
+
+        and:
+        def hitOp = buildOperations.only(BuildCacheRemoteLoadBuildOperationType) {
+            buildOperations.parentsOf(it).any {
+                it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
+            }
+        }
+        hitOp.children.size() == 1
+        with(hitOp.children.first()) {
+            it.displayName == "Download from remote build cache"
+        }
     }
 
     def "outputs are correctly loaded from cache"() {

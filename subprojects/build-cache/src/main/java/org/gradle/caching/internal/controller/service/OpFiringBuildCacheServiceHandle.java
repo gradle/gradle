@@ -29,6 +29,7 @@ import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheLoadOutcomeInternal>() {
             @Override
             public BuildCacheLoadOutcomeInternal call(BuildOperationContext context) {
-                OpFiringBuildCacheEntry opFiringEntry = new OpFiringBuildCacheEntry(entry);
+                OpFiringBuildCacheEntry opFiringEntry = new OpFiringBuildCacheEntry(entry, buildOperationExecutor.getCurrentOperation());
                 BuildCacheLoadOutcomeInternal loadOutcome;
                 try {
                     loadOutcome = OpFiringBuildCacheServiceHandle.super.loadInner(key, opFiringEntry);
@@ -99,10 +100,12 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
     private class OpFiringBuildCacheEntry implements BuildCacheEntryInternal {
 
         private final BuildCacheEntryInternal delegate;
+        private final BuildOperationRef parentOperation;
         private BuildOperationContext downloadingOperationContext;
 
-        OpFiringBuildCacheEntry(BuildCacheEntryInternal delegate) {
+        OpFiringBuildCacheEntry(BuildCacheEntryInternal delegate, BuildOperationRef parentOperation) {
             this.delegate = delegate;
+            this.parentOperation = parentOperation;
         }
 
         @Override
@@ -111,10 +114,13 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
         }
 
         @Override
-        public void markDownloading() {
-            if (downloadingOperationContext != null) {
-                downloadingOperationContext = buildOperationExecutor.start(BuildOperationDescriptor.displayName("Download from remote build cache")
-                    .progressDisplayName("Downloading"));
+        public synchronized void markDownloading() {
+            if (downloadingOperationContext == null) {
+                downloadingOperationContext = buildOperationExecutor.start(
+                    BuildOperationDescriptor.displayName("Download from remote build cache")
+                        .parent(parentOperation)
+                        .progressDisplayName("Downloading")
+                );
             }
         }
 
