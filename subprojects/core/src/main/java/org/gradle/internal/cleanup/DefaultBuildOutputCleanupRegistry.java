@@ -17,6 +17,7 @@
 package org.gradle.internal.cleanup;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -36,9 +37,9 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public synchronized void registerOutputs(Object files) {
+    public void registerOutputs(Object files) {
         if (resolvedPaths != null) {
-            resolvedPaths = null;
+            throw new GradleException("Build output cleanup registry has already been finalized - cannot register more outputs. Output: " + files);
         }
         this.outputs.add(fileCollectionFactory.resolving(files));
     }
@@ -57,20 +58,9 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     @Override
-    public Set<FileCollection> getRegisteredOutputs() {
-        return outputs;
-    }
-
-    private Set<String> getResolvedPaths() {
+    public void resolveOutputs() {
         if (resolvedPaths == null) {
-            doResolvePaths();
-        }
-        return resolvedPaths;
-    }
-
-    private synchronized void doResolvePaths() {
-        if (resolvedPaths == null) {
-            Set<String> result = new LinkedHashSet<String>();
+            Set<String> result = new LinkedHashSet<>();
             for (FileCollection output : outputs) {
                 for (File file : output) {
                     result.add(file.getAbsolutePath());
@@ -78,5 +68,17 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
             }
             resolvedPaths = result;
         }
+    }
+
+    @Override
+    public Set<FileCollection> getRegisteredOutputs() {
+        return outputs;
+    }
+
+    private Set<String> getResolvedPaths() {
+        if (resolvedPaths == null) {
+            throw new GradleException("Build outputs have not been resolved yet");
+        }
+        return resolvedPaths;
     }
 }

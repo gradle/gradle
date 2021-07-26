@@ -52,6 +52,7 @@ import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
+import org.gradle.execution.FinalizeBuildOutputCleanupRegistry;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
@@ -143,6 +144,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
         taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer, builtInCommands));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
+        taskSelectionActions.add(new FinalizeBuildOutputCleanupRegistry());
         return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
     }
 

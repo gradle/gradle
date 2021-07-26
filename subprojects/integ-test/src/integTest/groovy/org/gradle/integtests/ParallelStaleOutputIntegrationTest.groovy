@@ -17,20 +17,18 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
-@Ignore("this causes a deadlock currently")
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
     def "does not deadlock when executing tasks with dependency resolution in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
-                
+
                 @Internal
-                FileCollection classpath = project.configurations["myconf"].files
+                Set<File> classpath = project.configurations["myconf"].files
                 BadTask() {
                     println("creating bad task")
                 }
@@ -40,15 +38,15 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
                     outputFile.text = "bad"
                 }
             }
-            
+
             abstract class GoodTask extends DefaultTask {
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
-                 
+
                 @TaskAction
                 void printIt() {
                     def outputFile = getOutputFile().get().asFile
-                    outputFile.text = "good" 
+                    outputFile.text = "good"
                 }
             }
             subprojects {
