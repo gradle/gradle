@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.action;
+package org.gradle.api.plugins.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 
 import java.util.List;
 
-public class InitBuiltInCommand implements BuiltInCommand {
+public class HelpBuiltInCommand implements BuiltInCommand {
     @Override
     public boolean commandLineMatches(List<String> taskNames) {
-        return taskNames.size() > 0 && taskNames.get(0).equals("init");
+        return taskNames.isEmpty() || taskNames.get(0).equals(ProjectInternal.HELP_TASK) || taskNames.get(0).equals(":" + ProjectInternal.HELP_TASK);
     }
 }

@@ -19,6 +19,8 @@ package org.gradle.configuration.project;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.List;
+
 /**
  * Provides metadata about a build-in command, which is a task-like action (usually backed by an actual task)
  * that can be invoked from the command-line, such as `gradle init ...` or `gradle help ...`
@@ -27,5 +29,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Global.class)
 public interface BuiltInCommand {
-    String getTaskName();
+    boolean commandLineMatches(List<String> taskNames);
 }

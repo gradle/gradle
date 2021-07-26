@@ -16,7 +16,7 @@
 
 package org.gradle.api
 
-import org.gradle.api.internal.project.ProjectInternal
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -39,10 +39,10 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
 
         where:
-        tasks << [[], [ProjectInternal.HELP_TASK], [ProjectInternal.TASKS_TASK]]
+        tasks << [["tasks"], ["unknown"]]
     }
 
-    // Documents existing behaviour
+    // Documents existing behaviour, not desired behaviour
     def "allows an included build with no settings or build file"() {
         given:
         settingsFile << """
@@ -76,6 +76,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task build(type: GradleBuild) {
                 dir = 'empty'
+                tasks = ['tasks']
             }
         """
         def dir = file("empty")
@@ -95,7 +96,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         // the default, if running from user home dir
         def gradleUserHomeDir = file(".gradle")
         executer.withGradleUserHomeDir(gradleUserHomeDir)
-        fails()
+        fails("tasks")
 
         then:
         isEmpty(testDirectory)
@@ -108,7 +109,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         textFile << "content"
 
         when:
-        fails()
+        fails("tasks")
 
         then:
         testDirectory.assertHasDescendants(".gradle/thing.txt")
@@ -140,7 +141,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("child/build.gradle") << """
             task build
         """
-        succeeds()
+        succeeds("tasks")
 
         then:
         noExceptionThrown()
@@ -155,11 +156,11 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/groovy/Dummy.groovy") << "class Dummy {}"
 
         expect:
-        succeeds("help") // without deprecation warning
+        succeeds("tasks") // without deprecation warning
         result.assertTaskExecuted(":buildSrc:jar")
 
         executer.withArguments("-p", "buildSrc")
-        succeeds("help")
+        succeeds("tasks")
     }
 
     def "treats empty buildSrc as undefined build"() {
@@ -168,10 +169,10 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc").createDir()
 
         expect:
-        succeeds("help")
+        succeeds("tasks")
 
         executer.withArguments("-p", "buildSrc")
-        fails("help")
+        fails("tasks")
     }
 
     @Unroll

@@ -83,12 +83,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
         }
 
         // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
-        if (!startParameter.getTaskNames().isEmpty()) {
-            for (BuiltInCommand command : builtInCommands) {
-                if (command.getTaskName().equals(startParameter.getTaskNames().get(0))) {
-                    // Allow built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
-                    return true;
-                }
+        for (BuiltInCommand command : builtInCommands) {
+            if (command.commandLineMatches(startParameter.getTaskNames())) {
+                // Allow built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
+                return true;
             }
         }
 

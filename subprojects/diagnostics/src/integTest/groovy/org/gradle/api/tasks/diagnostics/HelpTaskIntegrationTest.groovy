@@ -19,11 +19,47 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Unroll
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
+
+    @Unroll
+    def "shows help message when tasks #tasks run in a directory with no build definition present"() {
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+
+        when:
+        run(*tasks)
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${GradleVersion.current().version}.
+"""
+
+        where:
+        tasks << [["help"], [], [":help"]]
+    }
+
+    def "shows help message when run in a directory under the root directory of another build"() {
+        given:
+        settingsFile.createFile()
+        def sub = file("sub").createDir()
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${GradleVersion.current().version}.
+"""
+    }
 
     def "shows basic welcome message for current project only"() {
         given:

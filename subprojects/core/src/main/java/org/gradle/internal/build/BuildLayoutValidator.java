@@ -58,31 +58,34 @@ public class BuildLayoutValidator {
 
     public void validate(StartParameterInternal startParameter) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        if (!startParameter.getTaskNames().isEmpty()) {
-            for (BuiltInCommand command : builtInCommands) {
-                if (command.getTaskName().equals(startParameter.getTaskNames().get(0))) {
-                    // Allow missing settings and build scripts when running a built-in command
-                    return;
-                }
+        boolean missingBuildDefinition = buildLayout.getSettingsFile() != null && !buildLayout.getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(buildLayout.getRootDirectory(), BUILD_SCRIPT_BASENAME) == null;
+        if (!missingBuildDefinition) {
+            // All good
+            return;
+        }
+
+        for (BuiltInCommand command : builtInCommands) {
+            if (command.commandLineMatches(startParameter.getTaskNames())) {
+                // Allow missing settings and build scripts when running a built-in command
+                return;
             }
         }
-        if (buildLayout.getSettingsFile() != null && !buildLayout.getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(buildLayout.getRootDirectory(), BUILD_SCRIPT_BASENAME) == null) {
-            StringBuilder message = new StringBuilder();
-            message.append("The project directory '");
-            message.append(startParameter.getCurrentDir());
-            message.append("' does not contain a Gradle build.\n\n");
-            message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ");
-            message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n");
-            message.append("For more details on creating a Gradle build see ");
-            message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
-            message.append("\n\n");
-            message.append("You can run '");
-            clientMetaData.describeCommand(message, "init");
-            message.append("' to create a new Gradle build.\n");
-            message.append("For more details on the `init` task see ");
-            message.append(documentationRegistry.getDocumentationFor("build_init_plugin"));
-            throw new BuildLayoutException(message.toString());
-        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("The project directory '");
+        message.append(startParameter.getCurrentDir());
+        message.append("' does not contain a Gradle build.\n\n");
+        message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ");
+        message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n");
+        message.append("For more details on creating a Gradle build see ");
+        message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
+        message.append("\n\n");
+        message.append("You can run '");
+        clientMetaData.describeCommand(message, "init");
+        message.append("' to create a new Gradle build.\n");
+        message.append("For more details on the `init` task see ");
+        message.append(documentationRegistry.getDocumentationFor("build_init_plugin"));
+        throw new BuildLayoutException(message.toString());
     }
 
     private static class BuildLayoutException extends GradleException implements FailureResolutionAware {
