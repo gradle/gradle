@@ -36,11 +36,9 @@ import sbt.internal.inc.Locate;
 import sbt.internal.inc.LoggedReporter;
 import sbt.internal.inc.ScalaInstance;
 import sbt.internal.inc.Stamper;
-import scala.None$;
 import scala.Option;
 import scala.Some;
 import scala.collection.JavaConverters;
-import scala.collection.immutable.HashSet;
 import scala.collection.immutable.Set;
 import xsbti.T2;
 import xsbti.compile.AnalysisContents;
@@ -123,8 +121,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             classFileManagerType = Optional.of(TransactionalManagerType.of(spec.getClassfileBackupDir(), new SbtLoggerAdapter()));
         }
 
-        PreviousResult previousResult;
-        previousResult = analysisStore.flatMap(store -> store.get()
+        PreviousResult previousResult = analysisStore.flatMap(store -> store.get()
             .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup()))))
             .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
 
@@ -198,16 +195,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
     private static class ExternalBinariesLookup implements ExternalLookup {
 
-        @SuppressWarnings("unchecked")
-        public <T> Option<T> none() {
-            return (Option<T>) None$.MODULE$;
-        }
-
         @Override
         public Option<Changes<File>> changedSources(CompileAnalysis previousAnalysis) {
-            return none();
+            return Option.empty();
         }
-
 
         @Override
         public Option<Set<File>> changedBinaries(CompileAnalysis previousAnalysis) {
@@ -218,10 +209,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                     result.add(e.getKey());
                 }
             }
-            //return new Some<Set<File>>(new HashSet<>());
-            //return Option.empty();
             if (result.isEmpty()) {
-                return new Some<>(new HashSet<>());
+                return Option.empty();
             } else {
                 return new Some<>(JavaConverters.asScalaBuffer(result).toSet());
             }
@@ -230,7 +219,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public Option<Set<File>> removedProducts(CompileAnalysis previousAnalysis) {
-            return new Some<>(new HashSet<>()); //return none();
+            return Option.empty();
         }
 
         @Override

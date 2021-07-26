@@ -16,7 +16,6 @@
 
 package org.gradle.scala.compile
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -76,7 +75,6 @@ dependencies {
         failure.assertHasCause("Compilation failed")
     }
 
-    @NotYetImplemented
     def "incremental compiler gracefully handles classes being deleted"() {
         settingsFile << """
             dependencyResolutionManagement {
