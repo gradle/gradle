@@ -57,7 +57,6 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -161,9 +160,9 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     private static CapabilitiesMetadata withImplicitCapability(VariantResolveMetadata variant, ModuleVersionIdentifier identifier) {
         CapabilitiesMetadata capabilities = variant.getCapabilities();
         if (capabilities.getCapabilities().isEmpty()) {
-            return ImmutableCapabilities.of(Collections.singleton(ImmutableCapability.defaultCapabilityForComponent(identifier)));
+            return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(identifier));
         } else {
-            return capabilities;
+            return ImmutableCapabilities.copyAsImmutable(capabilities.getCapabilities());
         }
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -25,10 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
@@ -77,7 +73,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         ImmutableSet<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
         ImmutableCapabilities capabilities =
-            asImmutable(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
+            ImmutableCapabilities.copyAsImmutable(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -90,24 +86,6 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isCanBeResolved(),
             capabilities,
             configuration.getConsistentResolutionConstraints());
-    }
-
-    private static ImmutableCapabilities asImmutable(Collection<? extends Capability> descriptors) {
-        if (descriptors.isEmpty()) {
-            return ImmutableCapabilities.EMPTY;
-        }
-
-        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
-        for (Capability descriptor : descriptors) {
-            if (descriptor instanceof ImmutableCapability) {
-                builder.add((ImmutableCapability) descriptor);
-            } else if (descriptor instanceof ShadowedCapability) {
-                builder.add((ShadowedCapability) descriptor);
-            } else {
-                builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
-            }
-        }
-        return ImmutableCapabilities.of(builder.build());
     }
 
     private static class NestedVariantIdentifier implements VariantResolveMetadata.Identifier {
