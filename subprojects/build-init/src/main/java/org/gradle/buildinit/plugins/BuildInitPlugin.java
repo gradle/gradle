@@ -41,6 +41,8 @@ public class BuildInitPlugin implements Plugin<Project> {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
 
+                checkForGradleUserHomeConflict(project);
+
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
@@ -53,6 +55,13 @@ public class BuildInitPlugin implements Plugin<Project> {
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
             });
+        }
+    }
+
+    private void checkForGradleUserHomeConflict(Project project) {
+        File gradleUserHome = project.getGradle().getGradleUserHomeDir();
+        if (new File(project.getProjectDir(), ".gradle").equals(gradleUserHome)) {
+            throw new RuntimeException("Not cool");
         }
     }
 
