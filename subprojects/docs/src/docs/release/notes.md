@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release adds [several usability improvements](#usability), such as toolchain support for Scala projects, and [improves build cache hits](#performance) between operating systems. 
 
-There are also several [bug fixes](#fixed-issues) and changes to make the [remote HTTP build cache more resilient](#http-build-cache) when encountering problems.
+There are also changes to make the [remote HTTP build cache more resilient](#http-build-cache) when encountering problems and several [bug fixes](#fixed-issues) .
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -32,13 +32,13 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ### Java toolchain support for Scala projects
 
-[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with. By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically provision new toolchain versions.
+[Java toolchains](userguide/toolchains.html) provide an easy way to declare which Java version your project should be built with. By default, Gradle will [detect installed JDKs](userguide/toolchains.html#sec:auto_detection) or automatically download new toolchain versions.
 
-With this release, toolchain support has been added to the Scala plugin.
+With this release, toolchain support has been added to the [Scala plugin](userguide/scala_plugin.html).
 
 ### Preserving escape sequences when copying files 
 
-Previously, it was impossible to configure the `SimpleTemplateEngine` used by [`Copy.expand(Map)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)). When copying files with escape sequences (`\n`, `\t`, `\\` and so on), the default behavior is to convert each escape sequence into the corresponding character. This might be undesirable when processed files should be preserved as-is. 
+Previously, it was impossible to prevent Gradle from expanding escape sequences in a copied file when a `Copy` task also used [`expand(Map)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map)). The default behavior is to convert each escape sequence into the corresponding character in the destination file. For example, the literal string `\t` becomes a tab character. This might be undesirable when escape sequences in processed files should be preserved as-is. 
 
 This release adds [`Copy.expand(Map,Action)`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:expand(java.util.Map,%20org.gradle.api.Action)) that allows you to disable the automatic conversion of escape sequences. 
 
@@ -53,21 +53,38 @@ processResources {
 
 This method is available to all tasks and specs of type [`ContentFilterable`](javadoc/org/gradle/api/file/ContentFilterable.html).
 
-### Improved credentials handling for HTTP Header-based authentication
+### Improved credentials handling for HTTP header-based authentication
 
-Gradle now looks for credentials for [HTTP header-based authentication via properties](userguide/declaring_repositories.html#sec:handling_credentials).
+Like for password credentials and AWS credentials for repositories, Gradle now looks for credentials for repositories that use [HTTP header-based authentication](userguide/declaring_repositories.html#sec:handling_credentials) in Gradle properties.
+
+If the name of your project's repository is `mySecureRepository`, Gradle will search for properties with the names `mySecureRepositoryAuthHeaderName` and `mySecureRepositoryAuthHeaderValue` once you've configured the repository to use [`HttpHeaderCredentials`](dsl/org.gradle.api.credentials.HttpHeaderCredentials.html#org.gradle.api.credentials.HttpHeaderCredentials):
+
+```
+repositories {
+    maven {
+        name = 'mySecureRepository'
+        credentials(HttpHeaderCredentials)
+        // url = uri(<<some repository url>>)
+    }
+}
+```
 
 ### `dependencies` and `dependencyInsight` support configuration name abbreviation
 
-When selecting a configuration using the `--configuration` parameter from the command-line, you can now use an abbreviated camelCase notation in the same way as subproject and task names. 
+The [dependencies task](userguide/viewing_debugging_dependencies.html#sec:listing_dependencies) can be used to list the dependencies used by your project.
 
-This way `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
+The [depedencyInsight task](userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection) can be used to identify why a particular version of a dependency was selected.
+
+When selecting a configuration using the `--configuration` parameter from the command-line, you can now use an abbreviated camelCase notation in the [same way as subproject and task names](userguide/command_line_interface.html#sec:name_abbreviation). A configuration is a group of dependencies that are used for a particular purpose. For example, `compileClasspath` is used to compile Java code and `testRuntimeClasspath` is used to execute Java tests.
+
+With this release, the command-line `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
 
 ### Version catalog alias improvements
 
-In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.
+[Version catalogs](​​userguide/platforms.html#sub:version-catalog-declaration) are in [feature preview](userguide/feature_lifecycle.html#feature_preview) and may change. Version catalogs provide a convenient API for referencing dependencies and their versions.
 
-For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
+
 This limitation is now lifted.
 
 <a name="performance"></a>
@@ -88,25 +105,13 @@ abstract class MyTask extends DefaultTask {
 }
 ```
 
-Similarly, there is a corresponding runtime API equivalent:
-
-```groovy
-tasks.register("myTask") {
-    // inputFiles is a ConfigurableFileCollection
-    inputs.files(inputFiles)
-          .withPropertyName("inputFiles")
-          .withPathSensitivity(PathSensitivity.RELATIVE)
-          .normalizeLineEndings()
-}
-```
-
 The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task has been updated to normalize line endings in source files when doing up-to-date checks and build cache key calculations.
 
 See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 
 ### The `groovy` and `scala` plugins support configuration caching
 
-It is now possible to enable the [Configuration Cache]((userguide/configuration_cache.html)) on builds that use the `groovy` and `scala` plugins.
+It is now possible to enable the experimental [configuration cache]((userguide/configuration_cache.html)) on builds that use the `groovy` and `scala` plugins.
 
 Also see the set of [supported plugins](userguide/configuration_cache.html#config_cache:plugins).
 
@@ -137,7 +142,7 @@ It is now possible to opt-in to the use of [Expect-Continue](https://www.w3.org/
 This is useful when build cache upload requests are regularly rejected or redirected by the server,
 as it avoids the overhead of transmitting the large file just to have it rejected or redirected.
 
-Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on use of expect-continue.
+Consult the [User manual](userguide/build_cache.html#sec:build_cache_expect_continue) for more on the use of expect-continue.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
