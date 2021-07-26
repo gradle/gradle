@@ -21,15 +21,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.ContentDecoder;
 import org.apache.http.nio.IOControl;
-import org.apache.http.nio.client.methods.AsyncByteConsumer;
 import org.apache.http.nio.client.methods.ZeroCopyConsumer;
 import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.caching.http.internal.httpclient.BodyIgnoringResponseConsumer;
 import org.gradle.caching.internal.BuildCacheEntryInternal;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class LoadResponseConsumer implements HttpAsyncResponseConsumer<HttpResponse> {
@@ -50,12 +49,12 @@ class LoadResponseConsumer implements HttpAsyncResponseConsumer<HttpResponse> {
         this.response = response;
         this.delegate = HttpBuildCacheService.isHttpSuccess(response.getStatusLine().getStatusCode())
             ? createFileWritingDelegate()
-            : createDiscardConsumer();
+            : new BodyIgnoringResponseConsumer();
 
         delegate.responseReceived(response);
     }
 
-    private HttpAsyncResponseConsumer<Void> createFileWritingDelegate() throws java.io.FileNotFoundException {
+    private HttpAsyncResponseConsumer<?> createFileWritingDelegate() throws java.io.FileNotFoundException {
         entry.markDownloading();
         return new ZeroCopyConsumer<Void>(entry.getFile()) {
             @Override
@@ -63,25 +62,6 @@ class LoadResponseConsumer implements HttpAsyncResponseConsumer<HttpResponse> {
                 return null;
             }
 
-        };
-    }
-
-    private HttpAsyncResponseConsumer<Void> createDiscardConsumer() {
-        return new AsyncByteConsumer<Void>() {
-            @Override
-            protected void onByteReceived(ByteBuffer buf, IOControl ioctrl) {
-
-            }
-
-            @Override
-            protected void onResponseReceived(HttpResponse response) {
-
-            }
-
-            @Override
-            protected Void buildResult(HttpContext context) {
-                return null;
-            }
         };
     }
 
