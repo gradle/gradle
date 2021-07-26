@@ -344,7 +344,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds "init"
         result.assertTaskSkipped ":init"
         result.assertTaskNotExecuted":wrapper"
-        result.assertOutputContains("Gradle user home directory ($dotGradleDir) overlaps with the project cache directory")
+        outputContains("Gradle user home directory ($dotGradleDir) overlaps with the project cache directory")
     }
 
     def "does not skip init task if user home directory has custom name"() {
