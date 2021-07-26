@@ -86,7 +86,7 @@ public class StartParameterInternal extends StartParameter {
     }
 
     public boolean isSearchUpwards() {
-        return searchUpwards && !useLocationAsProjectRoot(getProjectDir(), getTaskNames());
+        return searchUpwards;
     }
 
     public void doNotSearchUpwards() {

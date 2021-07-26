@@ -45,6 +45,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
 
         when:
@@ -158,7 +159,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         result.assertTasksExecuted(":init")
-        outputContains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+        outputContains("The settings file '${customSettings.name}' already exists. Skipping build initialization.")
 
         and:
         !targetDslFixture.buildFile.exists()
@@ -264,6 +265,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "displays all build types and modifiers in help command output"() {
         when:
+        targetDir.file("settings.gradle").touch()
         run('help', '--task', 'init')
 
         then:
@@ -307,28 +309,62 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                      scala-library""")
     }
 
-    def "does not warn or fail when initializing inside another build"() {
-        given:
-        def sub = file("sub")
-        sub.mkdirs()
-        executer.inDirectory(sub)
-
+    def "can initialize in a directory that is inside another build's root directory"() {
         when:
-        file("settings.gradle") << "rootProject.name = 'root'"
+        containerDir.file("settings.gradle") << "rootProject.name = 'root'"
 
         then:
         succeeds "init"
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
+    }
+
+    def "fails when initializing in a project directory of another build that contains a build script"() {
+        when:
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            include('${targetDir.name}')
+        """
+        targetDir.file("build.gradle") << """
+            // empty
+        """
+
+        then:
+        fails "init"
+        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        targetDir.assertHasDescendants("build.gradle")
+    }
+
+    def "fails when initializing in a project directory of another build that does not contain a build script"() {
+        when:
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            include('${targetDir.name}')
+        """
+
+        then:
+        fails "init"
+        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        targetDir.listFiles().size() == 0 // Is still empty
+    }
+
+    def "warns when initializing in root project directory of another single project build that does not contain a build script"() {
+        when:
+        containerDir.file("settings.gradle") << """
+            rootProject.name = 'root'
+            rootProject.projectDir = file('${targetDir.name}')
+        """
+
+        then:
+        succeeds "init"
+        outputContains("The settings file '..${File.separatorChar}settings.gradle' already exists. Skipping build initialization.")
+        targetDir.list().toList() == [".gradle"] // ensure nothing generated
     }
 
     def "ignores gradle properties for existing build when initializing inside another project"() {
-        given:
-        def sub = file("sub")
-        sub.mkdirs()
-        executer.inDirectory(sub)
-
         when:
-        file("settings.gradle") << "rootProject.name = 'root'"
-        file("gradle.properties") << "org.gradle.jvmargs=-Xmx=BAD"
+        containerDir.file("settings.gradle") << "rootProject.name = 'root'"
+        containerDir.file("gradle.properties") << "org.gradle.jvmargs=-Xmx=BAD"
 
         then:
         succeeds "init"

@@ -45,8 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.gradle.api.internal.StartParameterInternal.useLocationAsProjectRoot;
-
 public class LayoutToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<>();
@@ -61,12 +59,12 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
     }
 
-    public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout, List<String> buildArguments) {
+    public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         layout.applyTo(layoutParameters);
         Map<String, String> properties = new HashMap<>();
         configureFromHomeDir(layoutParameters.getGradleInstallationHomeDir(), properties);
-        configureFromBuildDir(layoutParameters.getSearchDir(), properties, buildArguments);
+        configureFromBuildDir(layoutParameters.getSearchDir(), properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
         configureFromSystemPropertiesOfThisJvm(Cast.uncheckedNonnullCast(properties));
         properties.putAll(initialProperties.getRequestedSystemProperties());
@@ -87,8 +85,8 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromBuildDir(File currentDir, Map<String, String> result, List<String> buildArguments) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, !useLocationAsProjectRoot(currentDir, buildArguments));
+    private void configureFromBuildDir(File currentDir, Map<String, String> result) {
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(currentDir, true);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 

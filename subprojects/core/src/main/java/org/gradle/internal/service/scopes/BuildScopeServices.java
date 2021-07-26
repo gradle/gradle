@@ -209,6 +209,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(DefaultArchiveOperations.class);
             registration.add(TaskPathProjectEvaluator.class);
             registration.add(ProjectFactory.class);
+            registration.add(DefaultSettingsLoaderFactory.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }
@@ -359,9 +360,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new TaskFactory());
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(FileCacheBackedScriptClassCompiler scriptCompiler,
-                                                               CrossBuildInMemoryCachingScriptClassCache cache,
-                                                               ScriptRunnerFactory scriptRunnerFactory) {
+    protected ScriptCompilerFactory createScriptCompileFactory(
+        FileCacheBackedScriptClassCompiler scriptCompiler,
+        CrossBuildInMemoryCachingScriptClassCache cache,
+        ScriptRunnerFactory scriptRunnerFactory
+    ) {
         return new DefaultScriptCompilerFactory(
             new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
             scriptRunnerFactory
@@ -400,26 +403,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(AutoAppliedPluginHandler.class),
             get(PluginRequestApplicator.class),
             get(CompileOperationFactory.class));
-    }
-
-    protected SettingsLoaderFactory createSettingsLoaderFactory(
-        SettingsProcessor settingsProcessor,
-        BuildStateRegistry buildRegistry,
-        ProjectStateRegistry projectRegistry,
-        BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController,
-        BuildIncluder buildIncluder,
-        InitScriptHandler initScriptHandler
-    ) {
-        return new DefaultSettingsLoaderFactory(
-            settingsProcessor,
-            buildRegistry,
-            projectRegistry,
-            buildLayoutFactory,
-            gradlePropertiesController,
-            buildIncluder,
-            initScriptHandler
-        );
     }
 
     protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
@@ -564,10 +547,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
-                                                                                       BuildOperationExecutor buildOperationExecutor,
-                                                                                       ProjectStateRegistry projectStateRegistry,
-                                                                                       UserCodeApplicationContext userCodeApplicationContext) {
+    protected DefaultToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(
+        List<BuildScopeToolingModelBuilderRegistryAction> registryActions,
+        BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
         DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, userCodeApplicationContext);
         // Services are created on demand, and this may happen while applying a plugin
         userCodeApplicationContext.gradleRuntime(() -> {

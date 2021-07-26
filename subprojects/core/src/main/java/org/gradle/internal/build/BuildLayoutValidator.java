@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
@@ -27,6 +28,8 @@ import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import java.util.List;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
@@ -37,24 +40,31 @@ public class BuildLayoutValidator {
     private final ScriptFileResolver scriptFileResolver;
     private final DocumentationRegistry documentationRegistry;
     private final BuildClientMetaData clientMetaData;
+    private final List<BuiltInCommand> builtInCommands;
 
     public BuildLayoutValidator(
         BuildLayoutFactory buildLayoutFactory,
         ScriptFileResolver scriptFileResolver,
         DocumentationRegistry documentationRegistry,
-        BuildClientMetaData clientMetaData
+        BuildClientMetaData clientMetaData,
+        List<BuiltInCommand> builtInCommands
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.scriptFileResolver = scriptFileResolver;
         this.documentationRegistry = documentationRegistry;
         this.clientMetaData = clientMetaData;
+        this.builtInCommands = builtInCommands;
     }
 
     public void validate(StartParameterInternal startParameter) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        if (StartParameterInternal.useLocationAsProjectRoot(buildLayout.getRootDirectory(), startParameter.getTaskNames())) {
-            // Skip the check for special cases
-            return;
+        if (!startParameter.getTaskNames().isEmpty()) {
+            for (BuiltInCommand command : builtInCommands) {
+                if (command.getTaskName().equals(startParameter.getTaskNames().get(0))) {
+                    // Allow missing settings and build scripts when running a built-in command
+                    return;
+                }
+            }
         }
         if (buildLayout.getSettingsFile() != null && !buildLayout.getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(buildLayout.getRootDirectory(), BUILD_SCRIPT_BASENAME) == null) {
             StringBuilder message = new StringBuilder();

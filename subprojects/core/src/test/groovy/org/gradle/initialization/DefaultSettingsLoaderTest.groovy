@@ -21,6 +21,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
@@ -39,8 +40,8 @@ class DefaultSettingsLoaderTest extends Specification {
     def startParameter = new StartParameterInternal()
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsProcessor = Mock(SettingsProcessor)
-    def gradlePropertiesController = Mock(GradlePropertiesController)
-    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory)
+    def buildInCommand = Mock(BuiltInCommand)
+    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory, [buildInCommand])
 
     void findAndLoadSettingsWithExistingSettings() {
         when:
