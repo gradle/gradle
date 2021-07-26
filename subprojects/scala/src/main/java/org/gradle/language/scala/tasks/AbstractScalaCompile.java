@@ -170,7 +170,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
         if (javaLauncher.isPresent()) {
             forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-        } else if (getOptions().getForkOptions().getExecutable() == null) {
+        } else {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
         }
     }
