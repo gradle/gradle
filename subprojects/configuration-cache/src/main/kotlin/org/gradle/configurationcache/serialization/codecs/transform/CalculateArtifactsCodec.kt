@@ -88,7 +88,7 @@ class CalculateArtifactsCodec(
         override fun visit(visitor: ArtifactVisitor) {
             val displayName = Describables.of(ownerId)
             for (artifact in artifacts) {
-                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
+                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, emptyList(), artifact)
             }
         }
 

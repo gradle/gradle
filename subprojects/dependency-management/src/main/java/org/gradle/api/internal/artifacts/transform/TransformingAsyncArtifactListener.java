@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -34,6 +35,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
@@ -54,7 +56,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
     public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact) {
                 TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact, transformationSteps);
                 result.add(transformedArtifact);
             }
@@ -214,7 +216,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 subject -> {
                     for (File output : subject.getFiles()) {
                         ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
-                        visitor.visitArtifact(variantName, target, resolvedArtifact);
+                        visitor.visitArtifact(variantName, target, Collections.emptyList(), resolvedArtifact);
                     }
                 },
                 failure -> visitor.visitFailure(
