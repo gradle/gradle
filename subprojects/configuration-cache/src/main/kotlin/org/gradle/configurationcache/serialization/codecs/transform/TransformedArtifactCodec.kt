@@ -23,10 +23,13 @@ import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformingAsyncArtifactListener
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
@@ -41,7 +44,7 @@ class TransformedArtifactCodec(
     override suspend fun WriteContext.encode(value: TransformingAsyncArtifactListener.TransformedArtifact) {
         write(value.variantName)
         write(value.target)
-//        write(value.capabilities)
+        writeCollection(value.capabilities)
         write(value.artifact.id.componentIdentifier)
         write(value.artifact.file)
         write(unpackTransformationSteps(value.transformationSteps))
@@ -50,7 +53,7 @@ class TransformedArtifactCodec(
     override suspend fun ReadContext.decode(): TransformingAsyncArtifactListener.TransformedArtifact? {
         val variantName = readNonNull<DisplayName>()
         val target = readNonNull<ImmutableAttributes>()
-        val capabilities: List<Capability> = emptyList()
+        val capabilities: List<Capability> = readList().uncheckedCast()
         val ownerId = readNonNull<ComponentIdentifier>()
         val file = readNonNull<File>()
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)

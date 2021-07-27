@@ -37,7 +37,7 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
         encodePreservingSharedIdentityOf(value) {
             write(value.ownerId)
             write(value.targetAttributes)
-//            write(value.capabilities)
+            writeCollection(value.capabilities)
             writeCollection(value.transformedArtifacts)
         }
     }
@@ -46,7 +46,7 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
         return decodePreservingSharedIdentity {
             val ownerId = readNonNull<ComponentIdentifier>()
             val targetAttributes = readNonNull<ImmutableAttributes>()
-            val capabilities: List<Capability> = emptyList()
+            val capabilities: List<Capability> = readList().uncheckedCast()
             val nodes: List<TransformationNode> = readList().uncheckedCast()
             TransformedProjectArtifactSet(ownerId, targetAttributes, capabilities, nodes)
         }

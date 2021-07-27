@@ -51,7 +51,7 @@ class CalculateArtifactsCodec(
     override suspend fun WriteContext.encode(value: AbstractTransformedArtifactSet.CalculateArtifacts) {
         write(value.ownerId)
         write(value.targetVariantAttributes)
-//        write(value.capabilities)
+        writeCollection(value.capabilities)
         val files = mutableListOf<File>()
         value.delegate.visitExternalArtifacts { files.add(file) }
         write(files)
@@ -62,7 +62,7 @@ class CalculateArtifactsCodec(
     override suspend fun ReadContext.decode(): AbstractTransformedArtifactSet.CalculateArtifacts {
         val ownerId = readNonNull<ComponentIdentifier>()
         val targetAttributes = readNonNull<ImmutableAttributes>()
-        val capabilities: List<Capability> = emptyList()
+        val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<File>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
         return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
