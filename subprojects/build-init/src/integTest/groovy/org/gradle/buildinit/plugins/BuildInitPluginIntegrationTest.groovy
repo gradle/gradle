@@ -334,6 +334,31 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds "init"
     }
 
+    def "skips init task if user home directory overlaps with project cache directory"() {
+        when:
+        def dotGradleDir = targetDir.file('.gradle')
+        dotGradleDir.mkdirs()
+        executer.withGradleUserHomeDir(dotGradleDir)
+
+        then:
+        succeeds "init"
+        result.assertTaskSkipped ":init"
+        result.assertTaskNotExecuted":wrapper"
+        outputContains("Gradle user home directory '$dotGradleDir' overlaps with the project cache directory")
+    }
+
+    def "does not skip init task if user home directory has custom name"() {
+        when:
+        def dotGradleDir = targetDir.file('.guh')
+        dotGradleDir.mkdirs()
+        executer.withGradleUserHomeDir(dotGradleDir)
+
+        then:
+        succeeds "init"
+        result.assertTaskExecuted ":init"
+        result.assertTaskExecuted ":wrapper"
+    }
+
     private ExecutionResult runInitWith(BuildInitDsl dsl) {
         run 'init', '--dsl', dsl.id
     }

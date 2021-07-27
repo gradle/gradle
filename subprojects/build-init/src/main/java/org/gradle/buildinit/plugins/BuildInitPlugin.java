@@ -25,7 +25,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.tasks.InitBuild;
+import org.gradle.cache.internal.CacheScopeMapping;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -36,19 +38,25 @@ import java.util.concurrent.Callable;
  */
 public class BuildInitPlugin implements Plugin<Project> {
 
+    @Inject
+    protected CacheScopeMapping getCacheScopeMapping() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
-
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
                 File buildFile = project.getBuildFile();
                 boolean hasSubProjects = !project.getSubprojects().isEmpty();
+                File userHome = project.getGradle().getGradleUserHomeDir();
+                File projectRoot = getCacheScopeMapping().getRootDirectory(project);
 
-                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFile, hasSubProjects, project.getLayout(), initBuild.getLogger()));
-                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFile, hasSubProjects, project.getLayout()));
+                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFile, project.getLayout(), hasSubProjects, userHome, projectRoot, initBuild.getLogger()));
+                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFile, project.getLayout(), hasSubProjects, userHome, projectRoot));
 
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
@@ -59,20 +67,24 @@ public class BuildInitPlugin implements Plugin<Project> {
     private static class InitBuildOnlyIfSpec implements Spec<Task> {
 
         private final File buildFile;
-        private final boolean hasSubProjects;
         private final ProjectLayout layout;
+        private final boolean hasSubProjects;
+        private final File userHome;
+        private final File projectRoot;
         private final Logger logger;
 
-        private InitBuildOnlyIfSpec(File buildFile, boolean hasSubProjects, ProjectLayout layout, Logger logger) {
+        private InitBuildOnlyIfSpec(File buildFile, ProjectLayout layout, boolean hasSubProjects, File userHome, File projectRoot, Logger logger) {
             this.buildFile = buildFile;
-            this.hasSubProjects = hasSubProjects;
             this.layout = layout;
+            this.hasSubProjects = hasSubProjects;
+            this.userHome = userHome;
+            this.projectRoot = projectRoot;
             this.logger = logger;
         }
 
         @Override
         public boolean isSatisfiedBy(Task element) {
-            String skippedMsg = reasonToSkip(buildFile, layout, hasSubProjects);
+            String skippedMsg = reasonToSkip(buildFile, layout, hasSubProjects, userHome, projectRoot);
             if (skippedMsg != null) {
                 logger.warn(skippedMsg);
                 return false;
@@ -84,18 +96,22 @@ public class BuildInitPlugin implements Plugin<Project> {
     private static class InitBuildDependsOnCallable implements Callable<String> {
 
         private final File buildFile;
-        private final boolean hasSubProjects;
         private final ProjectLayout layout;
+        private final boolean hasSubProjects;
+        private final File userHome;
+        private final File projectRoot;
 
-        private InitBuildDependsOnCallable(File buildFile, boolean hasSubProjects, ProjectLayout layout) {
+        private InitBuildDependsOnCallable(File buildFile, ProjectLayout layout, boolean hasSubProjects, File userHome, File projectRoot) {
             this.buildFile = buildFile;
-            this.hasSubProjects = hasSubProjects;
             this.layout = layout;
+            this.hasSubProjects = hasSubProjects;
+            this.userHome = userHome;
+            this.projectRoot = projectRoot;
         }
 
         @Override
         public String call() {
-            if (reasonToSkip(buildFile, layout, hasSubProjects) == null) {
+            if (reasonToSkip(buildFile, layout, hasSubProjects, userHome, projectRoot) == null) {
                 return "wrapper";
             } else {
                 return null;
@@ -103,7 +119,11 @@ public class BuildInitPlugin implements Plugin<Project> {
         }
     }
 
-    private static String reasonToSkip(File buildFile, ProjectLayout layout, boolean hasSubProjects) {
+    private static String reasonToSkip(File buildFile, ProjectLayout layout, boolean hasSubProjects, File userHome, File projectRoot) {
+        if (projectRoot.equals(userHome)) {
+            return "Gradle user home directory '" + userHome + "' overlaps with the project cache directory";
+        }
+
         for (BuildInitDsl dsl : BuildInitDsl.values()) {
             String buildFileName = dsl.fileNameFor("build");
             if (layout.getProjectDirectory().file(buildFileName).getAsFile().exists()) {
