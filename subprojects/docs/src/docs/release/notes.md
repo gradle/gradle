@@ -71,17 +71,15 @@ repositories {
 
 ### `dependencies` and `dependencyInsight` support configuration name abbreviation
 
-The [dependencies task](userguide/viewing_debugging_dependencies.html#sec:listing_dependencies) can be used to list the dependencies used by your project.
+The [dependencies task](userguide/viewing_debugging_dependencies.html#sec:listing_dependencies) and [depedencyInsight task](userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection) reports can be used to list the dependencies used by your project and to identify why a particular version of a dependency was selected.
 
-The [depedencyInsight task](userguide/viewing_debugging_dependencies.html#sec:identifying_reason_dependency_selection) can be used to identify why a particular version of a dependency was selected.
+When using those reports from the command line and selecting a configuration using the `--configuration` parameter, you can now use an abbreviated camelCase notation in the [same way as subproject and task names](userguide/command_line_interface.html#sec:name_abbreviation).
 
-When selecting a configuration using the `--configuration` parameter from the command-line, you can now use an abbreviated camelCase notation in the [same way as subproject and task names](userguide/command_line_interface.html#sec:name_abbreviation). A configuration is a group of dependencies that are used for a particular purpose. For example, `compileClasspath` is used to compile Java code and `testRuntimeClasspath` is used to execute Java tests.
-
-With this release, the command-line `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
+For example, the command-line `gradle dependencies --configuration tRC` can be used instead of `gradle dependencies --configuration testRuntimeClasspath` as long as the abbreviation `tRC` is unambiguous.
 
 ### Version catalog alias improvements
 
-[Version catalogs](​​userguide/platforms.html#sub:version-catalog-declaration) are in [feature preview](userguide/feature_lifecycle.html#feature_preview) and may change. Version catalogs provide a convenient API for referencing dependencies and their versions.
+[Version catalog](userguide/platforms.html#sub:version-catalog-declaration) is a [feature preview](userguide/feature_lifecycle.html#feature_preview) that provides a convenient API for referencing dependencies and their versions.
 
 In previous Gradle releases, it wasn't possible to declare a [version catalog](userguide/platforms.html#sub:version-catalog) where an alias would also contain sub-aliases.For example, it wasn't possible to declare both an alias `jackson` and `jackson.xml`, you would have had to create aliases `jackson.core` and `jackson.xml`.
 
@@ -109,19 +107,22 @@ The [JavaCompile](javadoc/org/gradle/api/tasks/compile/JavaCompile.html) task ha
 
 See the [User manual](userguide/more_about_tasks.html#sec:up_to_date_checks) for more information.
 
-### The `groovy` and `scala` plugins support configuration caching
+### Configuration cache support for Groovy and Scala projects
 
-It is now possible to enable the experimental [configuration cache]((userguide/configuration_cache.html)) on builds that use the `groovy` and `scala` plugins.
+Projects that are written in Groovy or Scala can enable the experimental [configuration cache](userguide/configuration_cache.html) without generating errors from the built-in `groovy` and `scala` plugins. Configuration caching is a feature that reduces build times by caching the result of the configuration phase and reusing the result for subsequent builds.
 
-Also see the set of [supported plugins](userguide/configuration_cache.html#config_cache:plugins).
+See the full set of [supported plugins](userguide/configuration_cache.html#config_cache:plugins).
 
 <a name="http-build-cache"></a>
-## Remote build cache changes
+## Remote build cache reliability improvements
+
+The [Gradle build cache](userguide/build_cache.html) is a cache mechanism that aims to save time by reusing outputs produced by other builds. A remote build cache works by storing build outputs and allowing builds to fetch these outputs from the cache when it is determined that inputs have not changed, avoiding the expensive work of regenerating them.
+
+This release improves the reliability of interactions with a remote build cache.
 
 ### Automatic retry of uploads on temporary network error
 
-Previously, only load (i.e. GET) requests that failed during request transmission, after having established a TCP connection, would be automatically retried.
-Now, store (i.e. PUT) requests are also retried.
+Previously, only load (i.e. GET) requests that failed during request transmission would be automatically retried. Now, store (i.e. PUT) requests are also retried.
 
 This prevents temporary problems, such as connection drops, read or write timeouts, or low-level network failures, to cause cache operations to fail and disable the remote cache for the remainder of the build.
 
