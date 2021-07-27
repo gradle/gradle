@@ -17,11 +17,13 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
@@ -498,18 +500,29 @@ task execStartScript(type: Exec) {
         succeeds("execStartScript")
     }
 
+    // Paths to cygpath are only available when running under the embedded executor
     @Requires(TestPrecondition.WINDOWS)
-    def "can run under posix sh environment on Windows with POSIX path arguments"() {
+    @IgnoreIf({ !GradleContextualExecuter.embedded })
+    def "can pass absolute Unix-like paths to script on Windows"() {
+        file("run.sh") << '''#!/bin/sh
+# convert paths into absolute Unix-like paths 
+BUILD_FILE=$(cygpath --absolute --unix build.gradle)
+SRC_DIR=$(cygpath --absolute --unix src)
+# pass them to the generated start script
+build/install/sample/bin/sample "$BUILD_FILE" "$SRC_DIR"
+'''
         buildFile << """
 task execStartScript(type: Exec) {
-    workingDir 'build/install/sample/bin'
-    commandLine 'sh', 'sample', '/sample'
+    commandLine 'cmd', '/c', 'sh', 'run.sh'
 }
 """
         when:
         succeeds('installDist')
         then:
         succeeds("execStartScript")
+        and:
+        // confirm that the arguments were converted back to Windows-like paths (using forward slashes instead of backslashes)
+        outputContains("Args: [${buildFile.absolutePath.replace('\\', '/')}, ${file("src").absolutePath.replace('\\', '/')}]")
     }
 
     private void createSampleProjectSetup() {
