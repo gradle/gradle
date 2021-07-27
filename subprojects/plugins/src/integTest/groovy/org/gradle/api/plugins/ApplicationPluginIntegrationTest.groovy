@@ -524,6 +524,33 @@ startScripts {
         succeeds("startScripts")
     }
 
+    def "can run under posix sh environment"() {
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir 'build/install/sample/bin'
+    commandLine 'sh', 'sample'
+}
+"""
+        when:
+        succeeds('installDist')
+        then:
+        succeeds("execStartScript")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "can run under posix sh environment on Windows with POSIX path arguments"() {
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir 'build/install/sample/bin'
+    commandLine 'sh', 'sample', '/sample'
+}
+"""
+        when:
+        succeeds('installDist')
+        then:
+        succeeds("execStartScript")
+    }
+
     private void createSampleProjectSetup() {
         createMainClass()
         populateBuildFile()
@@ -532,6 +559,7 @@ startScripts {
 
     private void createMainClass() {
         generateMainClass """
+            System.out.println("Args: " + java.util.Arrays.asList(args));
             System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
             System.out.println("App PID: " + java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
             System.out.println("FOO: " + System.getProperty("FOO"));
