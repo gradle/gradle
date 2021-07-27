@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -36,6 +37,7 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
         encodePreservingSharedIdentityOf(value) {
             write(value.ownerId)
             write(value.targetAttributes)
+//            write(value.capabilities)
             writeCollection(value.transformedArtifacts)
         }
     }
@@ -44,8 +46,9 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
         return decodePreservingSharedIdentity {
             val ownerId = readNonNull<ComponentIdentifier>()
             val targetAttributes = readNonNull<ImmutableAttributes>()
+            val capabilities: List<Capability> = emptyList()
             val nodes: List<TransformationNode> = readList().uncheckedCast()
-            TransformedProjectArtifactSet(ownerId, targetAttributes, nodes)
+            TransformedProjectArtifactSet(ownerId, targetAttributes, capabilities, nodes)
         }
     }
 }

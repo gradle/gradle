@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformingAsyncArtifactListener
@@ -40,6 +41,7 @@ class TransformedArtifactCodec(
     override suspend fun WriteContext.encode(value: TransformingAsyncArtifactListener.TransformedArtifact) {
         write(value.variantName)
         write(value.target)
+//        write(value.capabilities)
         write(value.artifact.id.componentIdentifier)
         write(value.artifact.file)
         write(unpackTransformationSteps(value.transformationSteps))
@@ -48,11 +50,12 @@ class TransformedArtifactCodec(
     override suspend fun ReadContext.decode(): TransformingAsyncArtifactListener.TransformedArtifact? {
         val variantName = readNonNull<DisplayName>()
         val target = readNonNull<ImmutableAttributes>()
+        val capabilities: List<Capability> = emptyList()
         val ownerId = readNonNull<ComponentIdentifier>()
         val file = readNonNull<File>()
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
         val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformationStep(it.transformation, it.recreate()) }
-        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, artifact, steps)
+        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, capabilities, artifact, steps)
     }
 }

@@ -269,7 +269,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                                                Transformation transformation,
                                                ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
+            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
 

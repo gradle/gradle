@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -50,6 +51,7 @@ class CalculateArtifactsCodec(
     override suspend fun WriteContext.encode(value: AbstractTransformedArtifactSet.CalculateArtifacts) {
         write(value.ownerId)
         write(value.targetVariantAttributes)
+//        write(value.capabilities)
         val files = mutableListOf<File>()
         value.delegate.visitExternalArtifacts { files.add(file) }
         write(files)
@@ -60,9 +62,10 @@ class CalculateArtifactsCodec(
     override suspend fun ReadContext.decode(): AbstractTransformedArtifactSet.CalculateArtifacts {
         val ownerId = readNonNull<ComponentIdentifier>()
         val targetAttributes = readNonNull<ImmutableAttributes>()
+        val capabilities: List<Capability> = emptyList()
         val files = readNonNull<List<File>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
-        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
+        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
     }
 
     private
