@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.tasks.InitBuild;
-import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
@@ -37,9 +37,8 @@ import java.util.concurrent.Callable;
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
 public class BuildInitPlugin implements Plugin<Project> {
-
     @Inject
-    protected CacheScopeMapping getCacheScopeMapping() {
+    protected ResolvedBuildLayout getResolvedBuildLayout() {
         throw new UnsupportedOperationException();
     }
 
@@ -55,8 +54,8 @@ public class BuildInitPlugin implements Plugin<Project> {
                 FileDetails buildFileDetails = FileDetails.of(buildFile, resolver);
                 File settingsFile = ((ProjectInternal) project).getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
                 FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
-                File userHome = project.getGradle().getGradleUserHomeDir();
-                File projectRoot = getCacheScopeMapping().getRootDirectory(project);
+                File userHome = getResolvedBuildLayout().getGlobalScopeCacheDirectory();
+                File projectRoot = getResolvedBuildLayout().getBuildScopeCacheDirectory();
 
                 initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, userHome, projectRoot, initBuild.getLogger()));
                 initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails, userHome, projectRoot));

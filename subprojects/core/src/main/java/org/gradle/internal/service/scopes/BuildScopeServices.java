@@ -144,6 +144,7 @@ import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -210,6 +211,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(TaskPathProjectEvaluator.class);
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
+            registration.add(ResolvedBuildLayout.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }

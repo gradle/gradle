@@ -33,9 +33,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         isEmpty(testDirectory)
-        failure.assertHasDescription("The project directory '$testDirectory' does not contain a Gradle build.")
+        failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
-            "Run gradle init to create a new Gradle build.",
+            "Run gradle init to create a new Gradle build in this directory.",
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
 
         where:
@@ -88,7 +88,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         isEmpty(dir)
         failure.assertHasDescription("Execution failed for task ':build'.")
-        failure.assertHasCause("The project directory '$dir' does not contain a Gradle build.")
+        failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
     }
 
     def "fails when user home directory is used and Gradle has not been run before"() {
@@ -100,7 +100,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         isEmpty(testDirectory)
-        failure.assertHasDescription("The project directory '$testDirectory' does not contain a Gradle build.")
+         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
     }
 
     def "does not delete an existing .gradle directory"() {

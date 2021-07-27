@@ -31,7 +31,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
-import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @ServiceScope(Scopes.BuildSession.class)
@@ -58,8 +57,7 @@ public class BuildLayoutValidator {
 
     public void validate(StartParameterInternal startParameter) {
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        boolean missingBuildDefinition = buildLayout.getSettingsFile() != null && !buildLayout.getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(buildLayout.getRootDirectory(), BUILD_SCRIPT_BASENAME) == null;
-        if (!missingBuildDefinition) {
+        if (!buildLayout.isBuildDefinitionMissing()) {
             // All good
             return;
         }
@@ -72,19 +70,19 @@ public class BuildLayoutValidator {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append("The project directory '");
+        message.append("Directory '");
         message.append(startParameter.getCurrentDir());
         message.append("' does not contain a Gradle build.\n\n");
         message.append("A Gradle build should contain a 'settings.gradle' or 'settings.gradle.kts' file in its root directory. ");
-        message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n");
-        message.append("For more details on creating a Gradle build see ");
-        message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
-        message.append("\n\n");
-        message.append("You can run '");
+        message.append("It may also contain a 'build.gradle' or 'build.gradle.kts' file.\n\n");
+        message.append("To create a new Gradle build in this directory run '");
         clientMetaData.describeCommand(message, "init");
-        message.append("' to create a new Gradle build.\n");
-        message.append("For more details on the `init` task see ");
+        message.append("'\n\n");
+        message.append("For more detail on the 'init' task see ");
         message.append(documentationRegistry.getDocumentationFor("build_init_plugin"));
+        message.append("\n\n");
+        message.append("For more detail on creating a Gradle build see ");
+        message.append(documentationRegistry.getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
         throw new BuildLayoutException(message.toString());
     }
 
@@ -99,7 +97,7 @@ public class BuildLayoutValidator {
             context.appendResolution(output -> {
                 output.text("Run ");
                 context.getClientMetaData().describeCommand(output.withStyle(UserInput), "init");
-                output.text(" to create a new Gradle build.");
+                output.text(" to create a new Gradle build in this directory.");
             });
         }
     }

@@ -19,9 +19,15 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 
+import java.util.Collections;
 import java.util.List;
 
 public class HelpBuiltInCommand implements BuiltInCommand {
+    @Override
+    public List<String> asDefaultTask() {
+        return Collections.singletonList(ProjectInternal.HELP_TASK);
+    }
+
     @Override
     public boolean commandLineMatches(List<String> taskNames) {
         return taskNames.isEmpty() || taskNames.get(0).equals(ProjectInternal.HELP_TASK) || taskNames.get(0).equals(":" + ProjectInternal.HELP_TASK);

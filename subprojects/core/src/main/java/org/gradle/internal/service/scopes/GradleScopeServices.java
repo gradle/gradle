@@ -43,6 +43,7 @@ import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
@@ -138,9 +139,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry, List<BuiltInCommand> builtInCommands) {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
-        taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
+        taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer, builtInCommands));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
     }

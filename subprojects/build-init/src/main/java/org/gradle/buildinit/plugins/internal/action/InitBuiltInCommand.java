@@ -18,9 +18,15 @@ package org.gradle.buildinit.plugins.internal.action;
 
 import org.gradle.configuration.project.BuiltInCommand;
 
+import java.util.Collections;
 import java.util.List;
 
 public class InitBuiltInCommand implements BuiltInCommand {
+    @Override
+    public List<String> asDefaultTask() {
+        return Collections.emptyList();
+    }
+
     @Override
     public boolean commandLineMatches(List<String> taskNames) {
         return taskNames.size() > 0 && taskNames.get(0).equals("init");

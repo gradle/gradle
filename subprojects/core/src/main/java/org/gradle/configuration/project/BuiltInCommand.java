@@ -29,5 +29,13 @@ import java.util.List;
  */
 @ServiceScope(Scope.Global.class)
 public interface BuiltInCommand {
+    /**
+     * Returns the list of task paths that should be used when none are specified by the user. Returns an empty list if this command should not be used as a default.
+     */
+    List<String> asDefaultTask();
+
+    /**
+     * Does the given list of task paths reference this command?
+     */
     boolean commandLineMatches(List<String> taskNames);
 }
