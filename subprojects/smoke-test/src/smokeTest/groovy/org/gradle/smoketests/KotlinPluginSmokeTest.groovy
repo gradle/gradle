@@ -231,7 +231,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
             // Below Kotlin versions use illegal reflective accesses and those can't be amended by specifying
-            // --add-opens in kotlin.daemon.jvm.options, while --illegla-access=permit no longer works on Java 17
+            // --add-opens in kotlin.daemon.jvm.options, while --illegal-access=permit no longer works on Java 17
             assumeTrue(kotlinVersion != VersionNumber.parse("1.4.21"))
             assumeTrue(kotlinVersion != VersionNumber.parse("1.4.31"))
         }
