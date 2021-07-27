@@ -17,8 +17,6 @@
 
 TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-cache[Register here] for our Build Cache Training.
 
-NOTE: The build cache feature described here is different from the https://developer.android.com/studio/build/build-cache.html[Android plugin build cache].
-
 [[sec:build_cache_intro]]
 == Overview
 
