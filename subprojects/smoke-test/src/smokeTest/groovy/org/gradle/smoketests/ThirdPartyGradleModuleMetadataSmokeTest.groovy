@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
-import org.gradle.testkit.runner.GradleRunner
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
@@ -118,10 +117,12 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         result.output.split('\n').findAll { !it.empty && !it.toLowerCase().contains('warning') }
     }
 
-    private GradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(GradleRunner runner) {
+    private static SmokeTestGradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(SmokeTestGradleRunner runner) {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
-            runner.withJvmArguments("--illegal-access=permit", "-Dkotlin.daemon.jvm.options=--illegal-access=permit")
+            runner.withJvmArguments("-Dkotlin.daemon.jvm.options=" +
+                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                "--add-opens=java.base/java.util=ALL-UNNAMED")
         }
         return runner
     }
@@ -130,7 +131,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir.root, 'producer'))
             .forwardOutput()
-            // this deprecation is coming from the Kotlin plugin
+        // this deprecation is coming from the Kotlin plugin
             .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 8.0. " +
                 "Please use the destinationDirectory property instead. " +
