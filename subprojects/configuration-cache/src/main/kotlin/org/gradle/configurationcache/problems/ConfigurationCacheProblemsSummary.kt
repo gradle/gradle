@@ -17,12 +17,12 @@
 package org.gradle.configurationcache.problems
 
 import com.google.common.collect.Ordering
-import com.google.common.collect.Sets.newConcurrentHashSet
+import io.usethesource.capsule.Set
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 import java.util.Comparator.comparing
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 
 private
@@ -41,47 +41,68 @@ internal
 class ConfigurationCacheProblemsSummary {
 
     private
-    val uniqueProblems = newConcurrentHashSet<UniquePropertyProblem>()
+    val summary = AtomicReference(Summary.empty)
+
+    fun get(): Summary =
+        summary.get()
+
+    fun onProblem(problem: PropertyProblem): Boolean =
+        summary
+            .updateAndGet { it.insert(problem) }
+            .overflowed.not()
+}
+
+
+internal
+class Summary private constructor(
+    val problemCount: Int,
 
     private
-    val problemCountSummary = AtomicInteger()
+    val uniqueProblems: Set.Immutable<UniquePropertyProblem>,
 
-    private
-    val causesSummary = ArrayList<Throwable>(maxCauses)
+    val causes: List<Throwable>,
 
-    val problemCount: Int
-        get() = problemCountSummary.get()
+    val overflowed: Boolean
+) {
+    companion object {
+        val empty = Summary(
+            0,
+            Set.Immutable.of(),
+            emptyList(),
+            false
+        )
+    }
 
-    val causes: List<Throwable>
-        get() = synchronized(causesSummary) {
-            causesSummary.toList()
+    fun insert(problem: PropertyProblem): Summary {
+        val newProblemCount = problemCount + 1
+        if (overflowed || newProblemCount > maxReportedProblems) {
+            return Summary(
+                newProblemCount,
+                uniqueProblems,
+                causes,
+                true
+            )
         }
-
-    fun onProblem(problem: PropertyProblem): Boolean {
-        val problemCount = problemCountSummary.incrementAndGet()
-        val isReported = problemCount <= maxReportedProblems
-        if (isReported) {
-            val uniqueProblem = UniquePropertyProblem.of(problem)
-            if (uniqueProblems.add(uniqueProblem)) {
-                problem.exception?.let { cause ->
-                    synchronized(causesSummary) {
-                        if (causesSummary.size < maxCauses) {
-                            causesSummary.add(cause)
-                        }
-                    }
-                }
-            }
-        }
-        return isReported
+        val uniqueProblem = UniquePropertyProblem.of(problem)
+        val newUniqueProblems = uniqueProblems.__insert(uniqueProblem)
+        val newCauses = problem
+            .takeIf { newUniqueProblems !== uniqueProblems && causes.size < maxCauses }
+            ?.exception?.let { causes + it }
+            ?: causes
+        return Summary(
+            newProblemCount,
+            newUniqueProblems,
+            newCauses,
+            false
+        )
     }
 
     fun textForConsole(cacheActionText: String, htmlReportFile: File): String {
         val documentationRegistry = DocumentationRegistry()
-        val totalProblemCount = problemCount
         val uniqueProblemCount = uniqueProblems.size
         return StringBuilder().apply {
             appendLine()
-            appendSummaryHeader(cacheActionText, totalProblemCount, uniqueProblemCount)
+            appendSummaryHeader(cacheActionText, problemCount, uniqueProblemCount)
             appendLine()
             Ordering.from(consoleComparator()).leastOf(uniqueProblems, maxConsoleProblems).forEach { problem ->
                 append("- ")
@@ -110,7 +131,7 @@ class ConfigurationCacheProblemsSummary {
         append(if (totalProblemCount == 1) " problem was found " else " problems were found ")
         append(cacheAction)
         append(" the configuration cache")
-        if (totalProblemCount > maxReportedProblems) {
+        if (overflowed) {
             append(", only the first ")
             append(maxReportedProblems)
             append(" were considered")
