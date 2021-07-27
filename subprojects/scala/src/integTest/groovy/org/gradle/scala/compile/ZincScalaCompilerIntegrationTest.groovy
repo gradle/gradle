@@ -21,18 +21,16 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
 @TargetCoverage({ ScalaCoverage.DEFAULT })
 class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegrationTest {
 
-    def "respects fork options settings and executable"() {
+    def "respects fork options settings and ignores executable"() {
         def differentJvm = AvailableJavaHomes.differentJdk
         Assume.assumeThat(differentJvm, notNullValue())
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javaExecutable.absolutePath)
-        def differentJavaExecutableCanonicalPath = escapeString(differentJvm.javaExecutable.canonicalPath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
@@ -46,11 +44,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
 
-            java {
-                sourceCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
-                targetCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
-            }
-
             tasks.withType(ScalaCompile) {
                 options.forkOptions.executable = "${differentJavaExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
@@ -59,6 +52,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
                         it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
                         it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
                         it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"

@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
+    implementation(project(":persistent-cache"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
