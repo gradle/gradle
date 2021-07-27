@@ -121,7 +121,7 @@ public class BuildInitPlugin implements Plugin<Project> {
 
     private static String reasonToSkip(File buildFile, ProjectLayout layout, boolean hasSubProjects, File userHome, File projectRoot) {
         if (projectRoot.equals(userHome)) {
-            return "Gradle user home directory (" + userHome + ") overlaps with the project cache directory";
+            return "Gradle user home directory '" + userHome + "' overlaps with the project cache directory";
         }
 
         for (BuildInitDsl dsl : BuildInitDsl.values()) {
