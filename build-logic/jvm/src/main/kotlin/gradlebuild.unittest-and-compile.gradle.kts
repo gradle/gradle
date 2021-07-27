@@ -157,7 +157,7 @@ fun addCompileAllTask() {
 }
 
 val testCompileTasks
-    get() = TestType.values().map { "compile${it.prefix.toUpperCase()}Test" } + listOf("compileTestGroovy", "compileTestKotlin")
+    get() = TestType.values().map { "compile${it.prefix.capitalize()}Test" } + listOf("compileTestGroovy", "compileTestKotlin")
 
 fun Task.isTestCompile() = testCompileTasks.any { name.startsWith(it) }
 
