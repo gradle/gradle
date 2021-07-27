@@ -229,14 +229,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     }
 
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            // Below Kotlin versions use illegal reflective accesses and those can't be amended by specifying
-            // --add-opens in kotlin.daemon.jvm.options, while --illegal-access=permit no longer works on Java 17
-            assumeTrue(kotlinVersion != VersionNumber.parse("1.4.21"))
-            assumeTrue(kotlinVersion != VersionNumber.parse("1.4.31"))
-        }
         if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=--illegal-access=permit", *tasks)
+            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=" +
+                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                "--add-opens=java.base/java.util=ALL-UNNAMED", *tasks)
         }
         return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
