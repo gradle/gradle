@@ -43,6 +43,7 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -169,6 +170,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         } else if (!graphListeners.isEmpty()) {
             LOGGER.info("Ignoring listeners of task graph ready event, as this build ({}) has already executed work.", gradleInternal.getIdentityPath());
         }
+        finalizeGradleServices();
+    }
+
+    private void finalizeGradleServices() {
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradleInternal.getServices().get(BuildOutputCleanupRegistry.class);
+        buildOutputCleanupRegistry.resolveOutputs();
     }
 
     @Override
