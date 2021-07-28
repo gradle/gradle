@@ -34,7 +34,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     def result = ImmutableList.builder()
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, result)
+    def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)

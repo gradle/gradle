@@ -200,10 +200,13 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
                         def capabilities = it.variant.capabilities
                         if (capabilities.isEmpty()) {
-                            println "  - capabilities: None"
+                            throw new IllegalStateException("Expected default capability to be explicit")
                         } else {
                             println "  - capabilities: " + capabilities.collect {
-                                "\${it.group}:\${it.name}:\${it.version}"
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
                             }
                         }
                         println("---------")
@@ -231,7 +234,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 module('cglib:cglib:3.2.5')
             }
         }
-        outputContains('- capabilities: [cglib:cglib:3.2.5, cglib:random:3.2.5]')
+        outputContains('- capabilities: [capability group=\'cglib\', name=\'cglib\', version=\'3.2.5\', capability group=\'cglib\', name=\'random\', version=\'3.2.5\']')
 
         where:
         rule                                                                                  | reason
