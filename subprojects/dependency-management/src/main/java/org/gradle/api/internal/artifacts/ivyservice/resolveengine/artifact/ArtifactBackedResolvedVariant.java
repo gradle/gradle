@@ -42,27 +42,29 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
+    private final CapabilitiesMetadata capabilities;
     private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, ResolvedArtifactSet artifacts) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
+        this.capabilities = capabilities;
         this.artifacts = artifacts;
     }
 
     public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Collection<? extends ResolvableArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, EMPTY);
+            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, new SingleArtifactSet(displayName, attributes, capabilities, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, new SingleArtifactSet(displayName, attributes, capabilities, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<>(artifacts.size());
         for (ResolvableArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(displayName, attributes, capabilities, artifact));
         }
-        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
+        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, CompositeResolvedArtifactSet.of(artifactSets));
     }
 
     @Override
@@ -88,6 +90,11 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     @Override
     public AttributeContainerInternal getAttributes() {
         return attributes;
+    }
+
+    @Override
+    public CapabilitiesMetadata getCapabilities() {
+        return capabilities;
     }
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {

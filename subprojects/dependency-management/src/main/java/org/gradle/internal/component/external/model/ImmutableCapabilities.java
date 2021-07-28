@@ -41,15 +41,41 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         }
         if (capabilities.size() == 1) {
             Capability single = capabilities.stream().findAny().get();
-            if (single instanceof ShadowedCapability) {
-                return new ShadowedSingleImmutableCapabilities(single);
-            }
+            return of(single);
         }
         return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
     }
 
+    public static ImmutableCapabilities of(@Nullable Capability capability) {
+        if (capability == null) {
+            return EMPTY;
+        }
+        if (capability instanceof ShadowedCapability) {
+            return new ShadowedSingleImmutableCapabilities(capability);
+        }
+        return new ImmutableCapabilities(ImmutableList.of(capability));
+    }
+
     public ImmutableCapabilities(ImmutableList<? extends Capability> capabilities) {
         this.capabilities = capabilities;
+    }
+
+    public static ImmutableCapabilities copyAsImmutable(Collection<? extends Capability> capabilities) {
+        if (capabilities.isEmpty()) {
+            return ImmutableCapabilities.EMPTY;
+        }
+
+        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
+        for (Capability descriptor : capabilities) {
+            if (descriptor instanceof ImmutableCapability) {
+                builder.add((ImmutableCapability) descriptor);
+            } else if (descriptor instanceof ShadowedCapability) {
+                builder.add((ShadowedCapability) descriptor);
+            } else {
+                builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+            }
+        }
+        return ImmutableCapabilities.of(builder.build());
     }
 
     @Override
