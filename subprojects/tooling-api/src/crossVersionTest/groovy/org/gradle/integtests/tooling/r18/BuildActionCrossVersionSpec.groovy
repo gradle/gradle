@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r18
 
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildActionFailureException
@@ -78,7 +77,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof BrokenAction.CustomException
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('this is a custom exception')
         assertHasConfigureFailedLogging()
     }
@@ -112,7 +110,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof UnknownModelException
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("No model of type 'CustomModel' is available in this build.")
         assertHasConfigureFailedLogging()
     }
@@ -148,7 +145,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
         assertHasConfigureFailedLogging()
     }
