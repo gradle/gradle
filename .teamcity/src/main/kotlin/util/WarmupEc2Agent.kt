@@ -39,8 +39,4 @@ object WarmupEc2Agent : BuildType({
                 ).joinToString(separator = " ")
         }
     }
-
-    requirements {
-        requirement(Requirement(RequirementType.EQUALS, "teamcity.agent.name", "ec2-agent1"))
-    }
 })
