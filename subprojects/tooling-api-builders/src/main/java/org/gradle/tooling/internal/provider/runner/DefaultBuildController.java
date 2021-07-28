@@ -23,10 +23,10 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
@@ -52,21 +52,19 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
 class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
-    private final GradleInternal gradle;
+    private final BuildToolingModelController controller;
     private final BuildCancellationToken cancellationToken;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final BuildStateRegistry buildStateRegistry;
-    private final boolean parallelActions = !"false".equalsIgnoreCase(System.getProperty("org.gradle.internal.tooling.parallel"));
 
-    public DefaultBuildController(GradleInternal gradle,
-                                  BuildCancellationToken cancellationToken,
-                                  BuildOperationExecutor buildOperationExecutor,
-                                  ProjectLeaseRegistry projectLeaseRegistry,
-                                  BuildStateRegistry buildStateRegistry) {
-        this.gradle = gradle;
+    public DefaultBuildController(
+        BuildToolingModelController controller,
+        BuildCancellationToken cancellationToken,
+        ProjectLeaseRegistry projectLeaseRegistry,
+        BuildStateRegistry buildStateRegistry
+    ) {
+        this.controller = controller;
         this.cancellationToken = cancellationToken;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.projectLeaseRegistry = projectLeaseRegistry;
         this.buildStateRegistry = buildStateRegistry;
     }
@@ -78,7 +76,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Deprecated
     public BuildResult<?> getBuildModel() throws BuildExceptionVersion1 {
         assertCanQuery();
-        return new ProviderBuildResult<Object>(gradle);
+        return new ProviderBuildResult<Object>(controller.getConfiguredModel());
     }
 
     /**
@@ -115,7 +113,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     @Override
     public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
-        return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
+        return projectLeaseRegistry.getAllowsParallelExecution() && controller.queryModelActionsRunInParallel();
     }
 
     @Override
@@ -125,17 +123,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         for (Supplier<T> action : actions) {
             wrappers.add(new NestedAction<>(action));
         }
-        if (parallelActions) {
-            buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
-                for (NestedAction<T> wrapper : wrappers) {
-                    buildOperationQueue.add(wrapper);
-                }
-            });
-        } else {
-            for (NestedAction<T> wrapper : wrappers) {
-                wrapper.run(null);
-            }
-        }
+        controller.runQueryModelActions(wrappers);
 
         List<T> results = new ArrayList<>(actions.size());
         List<Throwable> failures = new ArrayList<>();
@@ -164,7 +152,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
     private ModelTarget getTarget(Object target) {
         if (target == null) {
-            return new BuildScopedModel(gradle);
+            return new BuildScopedModel(controller.getConfiguredModel());
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
             BuildState build = findBuild(projectIdentity);
@@ -200,7 +188,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         try {
             return modelTarget.locate(modelBuilderRegistry, parameter, modelIdentifier);
         } catch (UnknownModelException e) {
-            throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
     }
 

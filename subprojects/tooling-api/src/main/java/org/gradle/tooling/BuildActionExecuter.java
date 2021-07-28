@@ -38,7 +38,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          *
          * <p>Action will be executed after projects are loaded and Gradle will configure projects as necessary for the models requested.
          *
-         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
+         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
          *
          * @param buildAction The action to run in the specified build phase.
          * @param handler The handler to supply the result of the given action to.
@@ -51,7 +51,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
         /**
          * Executes the given action after tasks are run and sends its result to the given result handler.
          *
-         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
+         * <p>If the operation fails, build will fail with the appropriate exception. The handler won't be notified in case of failure.
          *
          * @param buildAction The action to run in the specified build phase.
          * @param handler The handler to supply the result of the given action to.

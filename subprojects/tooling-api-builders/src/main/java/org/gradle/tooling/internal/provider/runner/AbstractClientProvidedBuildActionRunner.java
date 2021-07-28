@@ -16,15 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.ProjectConfigurer;
-import org.gradle.internal.InternalBuildAdapter;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.BuildToolingModelAction;
+import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -32,9 +27,6 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
 
 public abstract class AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final BuildControllerFactory buildControllerFactory;
@@ -46,37 +38,18 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
     }
 
     protected Result runClientAction(ClientAction action, BuildTreeLifecycleController buildController) {
-
-        GradleInternal gradle = buildController.getGradle();
-
-        ActionRunningListener listener = new ActionRunningListener(action, payloadSerializer);
-
+        ActionAdapter adapter = new ActionAdapter(action, payloadSerializer);
         try {
-            gradle.addBuildListener(listener);
-            ActionResults actionResults = buildController.fromBuildModel(action.isRunTasks(), listener);
+            ActionResults actionResults = buildController.fromBuildModel(action.isRunTasks(), adapter);
             // The result may have been cached and the actions not executed; push the results to the client if required
-            listener.maybeApplyResult(actionResults);
+            adapter.maybeApplyResult(actionResults);
             return Result.of(action.getResult());
         } catch (RuntimeException e) {
             RuntimeException clientFailure = e;
-            if (listener.actionFailure != null) {
-                clientFailure = new InternalBuildActionFailureException(listener.actionFailure);
+            if (adapter.actionFailure != null) {
+                clientFailure = new InternalBuildActionFailureException(adapter.actionFailure);
             }
             return Result.failed(e, clientFailure);
-        }
-    }
-
-    private void forceFullConfiguration(GradleInternal gradle, Set<GradleInternal> alreadyConfigured) {
-        gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
-        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
-                if (!alreadyConfigured.contains(build)) {
-                    alreadyConfigured.add(build);
-                    forceFullConfiguration(build, alreadyConfigured);
-                }
-            }
         }
     }
 
@@ -108,7 +81,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         }
     }
 
-    private class ActionRunningListener extends InternalBuildAdapter implements Function<GradleInternal, ActionResults> {
+    private class ActionAdapter implements BuildToolingModelAction<ActionResults> {
         private final ClientAction clientAction;
         private final PayloadSerializer payloadSerializer;
         SerializedPayload projectsEvaluatedResult;
@@ -116,21 +89,19 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         RuntimeException actionFailure;
         boolean executed;
 
-        ActionRunningListener(ClientAction clientAction, PayloadSerializer payloadSerializer) {
+        ActionAdapter(ClientAction clientAction, PayloadSerializer payloadSerializer) {
             this.clientAction = clientAction;
             this.payloadSerializer = payloadSerializer;
         }
 
         @Override
-        public void projectsEvaluated(Gradle gradle) {
-            GradleInternal gradleInternal = (GradleInternal) gradle;
-            forceFullConfiguration(gradleInternal, new HashSet<>());
-            projectsEvaluatedResult = runAction(gradleInternal, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
+        public void beforeTasks(BuildToolingModelController controller) {
+            projectsEvaluatedResult = runAction(controller, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
         }
 
         @Override
-        public ActionResults apply(GradleInternal gradle) {
-            buildFinishedResult = runAction(gradle, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
+        public ActionResults fromBuildModel(BuildToolingModelController controller) {
+            buildFinishedResult = runAction(controller, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
             executed = true;
             return new ActionResults(projectsEvaluatedResult, buildFinishedResult);
         }
@@ -149,11 +120,11 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         }
 
         @SuppressWarnings("deprecation")
-        private SerializedPayload runAction(GradleInternal gradle, @Nullable Object action, PhasedActionResult.Phase phase) {
+        private SerializedPayload runAction(BuildToolingModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
             if (action == null || actionFailure != null) {
                 return null;
             }
-            DefaultBuildController internalBuildController = buildControllerFactory.controllerFor(gradle);
+            DefaultBuildController internalBuildController = buildControllerFactory.controllerFor(controller);
             try {
                 Object result;
                 if (action instanceof InternalBuildActionVersion2<?>) {

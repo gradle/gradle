@@ -69,7 +69,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     abstract class WritingState {
 
-        open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
+        open fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
 
         open fun stop(): WritingState =
@@ -88,7 +88,7 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
             val outputStream = ByteArrayOutputStream()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintComponentHost(),
@@ -109,6 +109,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+            return this
+        }
+
         override fun stop(): WritingState {
             // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
             fingerprintWriter.stopCollectingValueSources()
@@ -124,6 +128,10 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+            return this
+        }
+
         override fun commit(outputStream: OutputStream): WritingState {
             dispose()
             this.outputStream.writeTo(outputStream)
@@ -140,8 +148,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     var writingState: WritingState = Idle()
 
-    fun startCollectingFingerprint(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
-        writingState = writingState.start(writeContextForOutputStream)
+    // Start fingerprinting if not already started and not already committed
+    // This should be strict but currently this method may be called multiple times when a
+    // build invocation both runs tasks and queries models
+    fun maybeStartCollectingFingerprint(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
+        writingState = writingState.maybeStart(writeContextForOutputStream)
     }
 
     fun stopCollectingFingerprint() {

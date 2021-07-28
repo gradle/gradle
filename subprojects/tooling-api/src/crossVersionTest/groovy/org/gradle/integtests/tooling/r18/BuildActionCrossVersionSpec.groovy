@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ActionForwardsFailure
+import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnknownModelException
@@ -128,13 +130,14 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof UnknownModelException
     }
 
-    def "client receives the exception thrown when build fails"() {
+    @TargetGradleVersion(">=2.6 <7.3")
+    def "does not run action when configuration fails"() {
         given:
         buildFile << 'throw new RuntimeException("broken")'
 
         when:
         withConnection {
-            def action = it.action(new FetchCustomModel())
+            def action = it.action(new ActionShouldNotBeCalled())
             collectOutputs(action)
             action.run()
         }
@@ -143,6 +146,28 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         BuildException e = thrown()
         e.message.startsWith('Could not run build action using')
         e.cause.message.contains('A problem occurred evaluating root project')
+
+        and:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "action receives failure when configuration fails"() {
+        given:
+        buildFile << 'throw new RuntimeException("broken")'
+
+        when:
+        withConnection {
+            def action = it.action(new ActionForwardsFailure())
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith('The supplied build action failed with an exception.')
+        e.cause.message.contains('A problem occurred configuring root project')
 
         and:
         failure.assertHasDescription('A problem occurred evaluating root project')

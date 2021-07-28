@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r48;
+package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-public class BrokenAction implements BuildAction<String> {
+public class ActionForwardsFailure implements BuildAction<String> {
     @Override
     public String execute(BuildController controller) {
-        throw new IllegalStateException("should not be called");
+        controller.getBuildModel();
+        return "result";
     }
 }

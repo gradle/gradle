@@ -77,7 +77,7 @@ public class StateTransitionController<T extends StateTransitionController.State
      */
     public <S> S notInStateIgnoreOtherThreads(T forbidden, Supplier<S> supplier) {
         synchronized (this) {
-            assertNotFailed();
+            rethrowFailure();
             if (currentTarget == forbidden) {
                 throw new IllegalStateException("Should not be in state " + forbidden + " but is in state " + this.state + " and transitioning to " + currentTarget + ".");
             }
@@ -214,7 +214,11 @@ public class StateTransitionController<T extends StateTransitionController.State
     private ExecutionResult<Void> doTransition(T fromState, T toState, Supplier<ExecutionResult<Void>> action) {
         assertNotFailed();
         if (currentTarget != null) {
-            throw new IllegalStateException("Cannot transition to state " + toState + " as already transitioning to state " + currentTarget + ".");
+            if (currentTarget == toState) {
+                throw new IllegalStateException("Cannot transition to state " + toState + " as already transitioning to this state.");
+            } else {
+                throw new IllegalStateException("Cannot transition to state " + toState + " as already transitioning to state " + currentTarget + ".");
+            }
         }
         if (state != fromState) {
             throw new IllegalStateException("Can only transition to state " + toState + " from state " + fromState + " however currently in state " + state + ".");
@@ -242,6 +246,12 @@ public class StateTransitionController<T extends StateTransitionController.State
     private void assertNotFailed() {
         if (failure != null) {
             throw new IllegalStateException("Cannot use this object as a previous transition failed.");
+        }
+    }
+
+    private void rethrowFailure() {
+        if (failure != null) {
+            failure.rethrow();
         }
     }
 
