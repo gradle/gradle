@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
@@ -67,6 +68,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.Try
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -188,6 +190,10 @@ class RecordingVariantSet(
 
     override fun getAttributes(): AttributeContainerInternal {
         return attributes
+    }
+
+    override fun getCapabilities(): CapabilitiesMetadata {
+        return ImmutableCapabilities.EMPTY
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {

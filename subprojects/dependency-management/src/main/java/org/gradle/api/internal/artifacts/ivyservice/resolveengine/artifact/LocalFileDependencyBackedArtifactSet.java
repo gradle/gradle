@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
@@ -249,6 +251,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public AttributeContainerInternal getAttributes() {
             return variantAttributes;
         }
+
+        @Override
+        public CapabilitiesMetadata getCapabilities() {
+            return ImmutableCapabilities.EMPTY;
+        }
     }
 
     /**
@@ -262,7 +269,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
                                                Transformation transformation,
                                                ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, transformation, dependenciesResolver, calculatedValueContainerFactory);
+            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
 
