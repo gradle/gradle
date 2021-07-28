@@ -118,13 +118,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void finalizeWorkGraph(boolean workScheduled) {
-        controller.inState(State.TaskSchedule, () -> {
-            if (workScheduled) {
-                TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-                taskGraph.populate();
-            }
-            finalizeGradleServices(gradle);
-        });
+        if (workScheduled) {
+            TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+            taskGraph.populate();
+        }
+        finalizeGradleServices(gradle);
     }
 
     private void finalizeGradleServices(GradleInternal gradle) {
