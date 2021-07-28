@@ -45,6 +45,10 @@ public interface ManifestMergeDetails {
      */
     String getValue();
 
+    //todo: document
+    //todo: incubating & since annotation
+    Object getRawValue();
+
     /**
      * Set's the value for the key of the manifest after the merge takes place.
      */

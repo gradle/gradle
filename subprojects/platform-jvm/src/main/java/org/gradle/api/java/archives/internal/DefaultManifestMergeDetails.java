@@ -22,10 +22,10 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
     private String key;
     private String baseValue;
     private String mergeValue;
-    private String value;
+    private Object value;
     private boolean excluded;
 
-    public DefaultManifestMergeDetails(String section, String key, String baseValue, String mergeValue, String value) {
+    public DefaultManifestMergeDetails(String section, String key, String baseValue, String mergeValue, Object value) {
         this.section = section;
         this.key = key;
         this.baseValue = baseValue;
@@ -55,6 +55,13 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
 
     @Override
     public String getValue() {
+        //todo: issue warning
+        //todo: remove usages from test
+        return value.toString();
+    }
+
+    @Override
+    public Object getRawValue() {
         return value;
     }
 
