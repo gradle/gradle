@@ -113,6 +113,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("variants: [{artifactType=size, org.gradle.status=release}, {artifactType=size, org.gradle.status=release}]")
+        outputContains("capabilities: [[capability group='test', name='test', version='1.3'], [capability group='test', name='test2', version='2.3']]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [test-1.3.jar.txt (test:test:1.3), test2-2.3.jar.txt (test:test2:2.3)]")
         outputContains("components: [test:test:1.3, test:test2:2.3]")
@@ -196,6 +197,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size}, {artifactType=size}]")
+        outputContains("capabilities: [[], []]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [a.jar.txt (a.jar), b.jar.txt (b.jar)]")
         outputContains("components: [a.jar, b.jar]")
@@ -254,6 +256,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
+        outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified']]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
         outputContains("components: [project :lib, project :lib]")
@@ -444,6 +447,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size, org.gradle.status=release}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size, org.gradle.status=release}]")
+        outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified'], [], [capability group='test', name='test', version='1.3'], [capability group='root', name='common', version='unspecified'], [capability group='root', name='common', version='unspecified'], [capability group='test', name='test-dependency', version='1.3']]")
         // transformed outputs should belong to same component as original
         outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
         outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
@@ -2695,6 +2699,7 @@ Found the following transforms:
                     println "ids: " + artifacts.collect { it.id }
                     println "components: " + artifacts.collect { it.id.componentIdentifier }
                     println "variants: " + artifacts.collect { it.variant.attributes }
+                    println "capabilities: " + artifacts.collect { it.variant.capabilities }
                 }
             }
 """
