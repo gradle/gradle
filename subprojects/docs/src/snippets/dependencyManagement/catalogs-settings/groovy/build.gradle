@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+// tag::use-plugin[]
 plugins {
     id 'java-library'
     id 'checkstyle'
+    // Use the plugin `jmh` as declared in the `libs` version catalog
+    alias(libs.plugins.jmh)
 }
+// end::use-plugin[]
 
 // tag::simple_dependency_use[]
 dependencies {
