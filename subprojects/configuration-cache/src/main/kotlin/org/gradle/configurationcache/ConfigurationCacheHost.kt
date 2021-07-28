@@ -34,6 +34,7 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.CompositeBuildParticipantBuildState
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.file.PathToFileResolver
@@ -80,6 +81,7 @@ class ConfigurationCacheHost internal constructor(
         val buildDirs = mutableMapOf<Path, File>()
 
         init {
+            require(gradle.owner is CompositeBuildParticipantBuildState)
             gradle.run {
                 settings = createSettings()
                 setBaseProjectClassLoaderScope(coreScope)
@@ -120,7 +122,7 @@ class ConfigurationCacheHost internal constructor(
 
         private
         fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
-            val projectState = gradle.owner.projects.getProject(descriptor.path())
+            val projectState = state.projects.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
             val project = projectState.mutableModel
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
@@ -134,7 +136,7 @@ class ConfigurationCacheHost internal constructor(
         }
 
         override fun getProject(path: String): ProjectInternal =
-            gradle.owner.projects.getProject(Path.path(path)).mutableModel
+            state.projects.getProject(Path.path(path)).mutableModel
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState {
             return service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition)
@@ -186,6 +188,9 @@ class ConfigurationCacheHost internal constructor(
         private
         fun settingsDir() =
             service<BuildLayout>().settingsDir
+
+        override
+        val state: CompositeBuildParticipantBuildState = gradle.owner as CompositeBuildParticipantBuildState
     }
 
     private

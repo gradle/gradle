@@ -131,12 +131,12 @@ class ConfigurationCacheState(
     fun calculateRootTaskGraph(state: CachedBuildState) {
         val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
         taskGraph.prepareTaskGraph {
-            state.build.gradle.owner.populateWorkGraph {
+            state.build.state.populateWorkGraph {
                 it.addNodes(state.workGraph)
                 state.children.forEach(::addNodesForChildBuilds)
             }
             taskGraph.populateTaskGraphs()
-            state.build.gradle.taskGraph.populate()
+            state.build.state.workGraph.prepareForExecution(true)
         }
     }
 
