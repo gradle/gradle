@@ -23,7 +23,7 @@ repositories {
         name = "CHAMP libs"
         url = uri("https://releases.usethesource.io/maven/")
         mavenContent {
-            includeModule("io.usethesource", "capsule")
+            includeGroup("io.usethesource")
         }
     }
 }
