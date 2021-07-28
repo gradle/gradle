@@ -37,7 +37,7 @@ public class SettingsLocation {
     }
 
     /**
-     * Returns the settings file. May be null.
+     * Returns the settings file. May be null, which mean "no settings file" rather than "use default settings".
      */
     @Nullable
     public File getSettingsFile() {

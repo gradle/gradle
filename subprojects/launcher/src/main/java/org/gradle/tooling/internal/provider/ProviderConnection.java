@@ -291,7 +291,7 @@ public class ProviderConnection {
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
-        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult, parsedCommandLine.getExtraArguments());
+        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
         DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult, fileCollectionFactory);
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);

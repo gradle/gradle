@@ -63,11 +63,13 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final BuildWorkGraph workGraph;
     private boolean completed;
 
-    DefaultRootBuildState(BuildDefinition buildDefinition,
-                          BuildTreeState buildTree,
-                          BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                          ListenerManager listenerManager,
-                          ProjectStateRegistry projectStateRegistry) {
+    DefaultRootBuildState(
+        BuildDefinition buildDefinition,
+        BuildTreeState buildTree,
+        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        ListenerManager listenerManager,
+        ProjectStateRegistry projectStateRegistry
+    ) {
         this.listenerManager = listenerManager;
         this.projectStateRegistry = projectStateRegistry;
 
