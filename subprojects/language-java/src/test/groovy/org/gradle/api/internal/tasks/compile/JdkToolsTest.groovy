@@ -31,7 +31,6 @@ class JdkToolsTest extends Specification {
     @Subject
     JdkTools current = new JdkTools(Jvm.current(), [])
 
-    @Requires(JDK)
     def "can get java compiler"() {
         def compiler = current.systemJavaCompiler
 

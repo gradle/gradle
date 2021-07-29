@@ -124,9 +124,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
-    JDK({
-        ToolProvider.systemJavaCompiler != null
-    }),
+
     ONLINE({
         try {
             new URL("http://google.com").openConnection().getInputStream().close()
