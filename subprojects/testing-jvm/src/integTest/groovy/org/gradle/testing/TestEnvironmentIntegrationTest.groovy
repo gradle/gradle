@@ -109,15 +109,4 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
     }
-
-    @Requires(TestPrecondition.JDK7_OR_EARLIER)
-    def canRunTestsWithJMockitLoadedWithJavaAgent() {
-        when:
-        run 'test'
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.JMockitTest')
-        result.testClass('org.gradle.JMockitTest').assertTestPassed('testOk')
-    }
 }

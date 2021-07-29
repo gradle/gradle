@@ -27,9 +27,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
     because = "The Gretty plugin does not support configuration caching"
 )
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
-
-    // Jetty 9 only works with Java 8
-    @Requires(TestPrecondition.JDK8)
     def 'run with jetty'() {
         given:
         useSample('gretty-example')
@@ -50,8 +47,8 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
                 httpPort = 0
                 integrationTestTask = 'checkContainerUp'
-                servletContainer = 'jetty9'
-                logDir = '${testProjectDir.absolutePath}/jetty-logs'
+                servletContainer = 'jetty9.4'
+                logDir = '${testProjectDir.root.absolutePath}/jetty-logs'
                 logFileName = project.name
             }
 

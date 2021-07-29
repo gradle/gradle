@@ -79,12 +79,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    JDK7_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_1_7
-    }),
-    JDK8({
-        JavaVersion.current() == JavaVersion.VERSION_1_8
-    }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
     }),
