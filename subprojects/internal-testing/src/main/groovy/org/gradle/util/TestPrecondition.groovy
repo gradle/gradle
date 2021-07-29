@@ -62,14 +62,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     LINUX({
         OperatingSystem.current().linux
     }),
-    HAS_DOCKER({
-        try {
-            DockerClientFactory.instance().client()
-        } catch (Exception ex) {
-            return false
-        }
-        return true
-    }),
     NOT_LINUX({
         !LINUX.fulfilled
     }),
@@ -78,6 +70,14 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
+    }),
+    HAS_DOCKER({
+        try {
+            DockerClientFactory.instance().client()
+        } catch (Exception ex) {
+            return false
+        }
+        return true
     }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
@@ -138,18 +138,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
-    }),
-    PULL_REQUEST_BUILD({
-        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        return false
-    }),
-    NOT_PULL_REQUEST_BUILD({
-        !PULL_REQUEST_BUILD.fulfilled
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
