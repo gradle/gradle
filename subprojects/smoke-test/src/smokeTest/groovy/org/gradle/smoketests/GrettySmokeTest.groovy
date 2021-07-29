@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 

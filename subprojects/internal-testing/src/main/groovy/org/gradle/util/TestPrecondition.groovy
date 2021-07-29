@@ -19,8 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
-import javax.tools.ToolProvider
-
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
