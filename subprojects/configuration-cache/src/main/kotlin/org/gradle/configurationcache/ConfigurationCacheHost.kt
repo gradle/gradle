@@ -39,6 +39,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
+import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
@@ -52,8 +53,8 @@ class ConfigurationCacheHost internal constructor(
     override val currentBuild: VintageGradleBuild =
         DefaultVintageGradleBuild(gradle)
 
-    override fun createBuild(rootProjectName: String): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, service(), rootProjectName)
+    override fun createBuild(settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild =
+        DefaultConfigurationCacheBuild(gradle, service(), settingsFile, rootProjectName)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -71,6 +72,7 @@ class ConfigurationCacheHost internal constructor(
     inner class DefaultConfigurationCacheBuild(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
+        private val settingsFile: File?,
         private val rootProjectName: String
     ) : ConfigurationCacheBuild, IncludedBuildFactory {
 
@@ -163,19 +165,22 @@ class ConfigurationCacheHost internal constructor(
         fun createSettings(): SettingsInternal {
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings")
-            return TextResourceScriptSource(StringTextResource("settings", "")).let { settingsSource ->
-                service<Instantiator>().newInstance(
-                    DefaultSettings::class.java,
-                    service<BuildScopeServiceRegistryFactory>(),
-                    gradle,
-                    classLoaderScope,
-                    baseClassLoaderScope,
-                    service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
-                    settingsDir(),
-                    settingsSource,
-                    gradle.startParameter
-                )
+            val settingsSource = if (settingsFile == null) {
+                TextResourceScriptSource(StringTextResource("settings", ""))
+            } else {
+                TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
             }
+            return service<Instantiator>().newInstance(
+                DefaultSettings::class.java,
+                service<BuildScopeServiceRegistryFactory>(),
+                gradle,
+                classLoaderScope,
+                baseClassLoaderScope,
+                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
+                settingsDir(),
+                settingsSource,
+                gradle.startParameter
+            )
         }
 
         private

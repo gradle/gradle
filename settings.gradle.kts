@@ -13,7 +13,7 @@ plugins {
     id("com.gradle.enterprise").version("3.6.3")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise.test-distribution").version("2.1.1") // Sync with `build-logic/build-platform/build.gradle.kts`
 }
 
 includeBuild("build-logic-commons")

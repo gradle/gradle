@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -35,6 +36,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultVariant implements ConfigurationVariantInternal {
@@ -68,8 +70,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
         return new LeafOutgoingVariant(getAsDescribable(), attributes, getArtifacts());
     }
 
-    public void visit(ConfigurationInternal.VariantVisitor visitor) {
-        visitor.visitChildVariant(name, getAsDescribable(), attributes.asImmutable(), getArtifacts());
+    public void visit(ConfigurationInternal.VariantVisitor visitor, Collection<? extends Capability> capabilities) {
+        visitor.visitChildVariant(name, getAsDescribable(), attributes.asImmutable(), capabilities, getArtifacts());
     }
 
     private DisplayName getAsDescribable() {

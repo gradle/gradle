@@ -19,11 +19,104 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Unroll
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
-
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
+    def version = GradleVersion.current().version
+
+    @Unroll
+    def "shows help message when tasks #tasks run in a directory with no build definition present"() {
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+
+        when:
+        run(*tasks)
+
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$testDirectory' does not contain a Gradle build.
+
+To create a new build in this directory, run gradle init
+
+For more detail on the 'init' task, see https://docs.gradle.org/$version/userguide/build_init_plugin.html
+
+For more detail on creating a Gradle build, see https://docs.gradle.org/$version/userguide/tutorial_using_tasks.html
+
+To see a list of command-line options, run gradle --help
+
+For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
+
+For troubleshooting, visit https://help.gradle.org
+
+BUILD SUCCESSFUL"""
+
+        where:
+        tasks << [["help"], [], [":help"]]
+    }
+
+    def "shows help message when run in a directory under the root directory of another build"() {
+        given:
+        settingsFile.createFile()
+        def sub = file("sub").createDir()
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$sub' does not contain a Gradle build.
+"""
+    }
+
+    def "shows help message when build is defined using build script only"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        buildFile.createFile()
+
+        when:
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+To run a build, run gradle <task> ...
+"""
+    }
+
+    def "shows help message when run from subproject directory"() {
+        given:
+        settingsFile << """
+            include("sub")
+        """
+        def sub = file("sub").createDir()
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        output.contains """
+> Task :sub:help
+
+Welcome to Gradle ${version}.
+
+To run a build, run gradle <task> ...
+"""
+    }
 
     def "shows basic welcome message for current project only"() {
         given:
@@ -33,18 +126,21 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
+        result.groupedOutput.taskCount == 1
         output.contains """
 > Task :help
 
-Welcome to Gradle ${GradleVersion.current().version}.
+Welcome to Gradle ${version}.
 
 To run a build, run gradle <task> ...
 
 To see a list of available tasks, run gradle tasks
 
+To see more detail about a task, run gradle help --task <task>
+
 To see a list of command-line options, run gradle --help
 
-To see more detail about a task, run gradle help --task <task>
+For more detail on using Gradle, see https://docs.gradle.org/$version/userguide/command_line_interface.html
 
 For troubleshooting, visit https://help.gradle.org
 
@@ -318,7 +414,11 @@ BUILD SUCCESSFUL"""
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
-        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output. Run with --scan to get full insights.")
+        failure.assertHasResolutions(
+            "Run gradle help --task :help to get task usage details.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {

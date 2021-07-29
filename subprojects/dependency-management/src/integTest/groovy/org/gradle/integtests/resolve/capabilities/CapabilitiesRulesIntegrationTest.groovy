@@ -139,6 +139,8 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Unroll
     def "can detect conflict with capability in different versions (#rule)"() {
         given:
@@ -153,11 +155,19 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 @Override
                 void execute(ComponentMetadataContext context) {
                     def details = context.details
-                    details.allVariants {
-                         withCapabilities {
-                             addCapability('cglib', 'cglib', details.id.version)
+                    if (details.id.name == 'cglib') {
+                         details.allVariants {
+                             withCapabilities {
+                                 addCapability('cglib', 'random', details.id.version)
+                             }
                          }
-                     }
+                    } else {
+                        details.allVariants {
+                             withCapabilities {
+                                 addCapability('cglib', 'cglib', details.id.version)
+                             }
+                         }
+                    }
                 }
             }
 
@@ -167,11 +177,41 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
                components {
                   withModule('cglib:cglib-nodep', CapabilityRule)
+                  withModule('cglib:cglib', CapabilityRule)
                }
             }
 
             configurations.conf.resolutionStrategy.capabilitiesResolution {
                 $rule
+            }
+
+
+            tasks.register("dumpCapabilitiesFromArtifactView") {
+                doFirst {
+                    def artifactCollection = configurations.conf.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of("artifactType", String), "jar")
+                        }
+                    }.artifacts
+
+                    artifactCollection.artifacts.each {
+                        println "Artifact: \${it.id.componentIdentifier.displayName}"
+                        println "  - artifact: \${it.file}"
+
+                        def capabilities = it.variant.capabilities
+                        if (capabilities.isEmpty()) {
+                            throw new IllegalStateException("Expected default capability to be explicit")
+                        } else {
+                            println "  - capabilities: " + capabilities.collect {
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
+                            }
+                        }
+                        println("---------")
+                    }
+                }
             }
         """
 
@@ -184,7 +224,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 expectResolve()
             }
         }
-        run ':checkDeps'
+        run ':checkDeps', ':dumpCapabilitiesFromArtifactView'
 
         then:
         resolve.expectGraph {
@@ -194,6 +234,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                 module('cglib:cglib:3.2.5')
             }
         }
+        outputContains('- capabilities: [capability group=\'cglib\', name=\'cglib\', version=\'3.2.5\', capability group=\'cglib\', name=\'random\', version=\'3.2.5\']')
 
         where:
         rule                                                                                  | reason

@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValue
@@ -76,7 +77,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER) // each artifact is treated as a separate collection, the entire variant could instead be treated as a collection
 
         then:
@@ -85,7 +86,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -98,7 +99,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> false
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
@@ -127,7 +128,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
 
         then:
@@ -141,7 +142,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact2)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact2)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
 
@@ -159,7 +160,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
             artifacts.visit(artifactVisitor)
         }
         1 * artifactVisitor.requireArtifactFiles() >> true
-        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, artifact1)
+        1 * artifactVisitor.visitArtifact(variantDisplayName, variant, [], artifact1)
         1 * artifactVisitor.endVisitCollection(FileCollectionInternal.OTHER)
         0 * _
     }
@@ -209,7 +210,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     ResolvedVariant of(artifacts) {
-        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, artifacts)
+        return ArtifactBackedResolvedVariant.create(id, variantDisplayName, variant, ImmutableCapabilities.EMPTY, artifacts)
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable {}

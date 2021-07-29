@@ -240,6 +240,34 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
 
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
+
+            tasks.register("dumpCapabilitiesFromArtifactView") {
+                doFirst {
+                    def artifactCollection = configurations.conf.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of("artifactType", String), "jar")
+                        }
+                    }.artifacts
+
+                    artifactCollection.artifacts.each {
+                        println "Artifact: \${it.id.componentIdentifier.displayName}"
+                        println "  - artifact: \${it.file}"
+
+                        def capabilities = it.variant.capabilities
+                        if (capabilities.isEmpty()) {
+                            throw new IllegalStateException("Expected default capability to be explicit")
+                        } else {
+                            println "  - capabilities: " + capabilities.collect {
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
+                            }
+                        }
+                        println("---------")
+                    }
+                }
+            }
         """
 
         when:
@@ -260,7 +288,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 expectGetMetadata()
             }
         }
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ':dumpCapabilitiesFromArtifactView'
 
         then:
         resolve.expectGraph {
@@ -278,6 +306,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
+        outputContains('capabilities: [capability group=\'org\', name=\'testB\', version=\'1.0\', capability group=\'org\', name=\'cap\', version=\'4\']')
 
     }
 

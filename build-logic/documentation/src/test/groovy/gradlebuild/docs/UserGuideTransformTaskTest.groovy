@@ -15,7 +15,7 @@
  */
 package gradlebuild.docs
 
-import org.gradle.util.TextUtil
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class UserGuideTransformTaskTest extends Specification {

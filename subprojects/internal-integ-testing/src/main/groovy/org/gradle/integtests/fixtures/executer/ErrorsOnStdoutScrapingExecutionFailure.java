@@ -82,6 +82,12 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure assertHasResolutions(String... resolutions) {
+        delegate.assertHasResolutions(resolutions);
+        return this;
+    }
+
+    @Override
     public ExecutionFailure assertHasResolution(String resolution) {
         delegate.assertHasResolution(resolution);
         return this;

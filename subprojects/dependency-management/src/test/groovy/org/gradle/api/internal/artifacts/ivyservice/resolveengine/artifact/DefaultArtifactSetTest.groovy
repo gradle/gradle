@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
@@ -38,11 +39,16 @@ class DefaultArtifactSetTest extends Specification {
     def "returns empty set when component id does not match spec"() {
         def variant1 = Stub(VariantResolveMetadata)
         def variant2 = Stub(VariantResolveMetadata)
+        def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+
+        ownerId.group >> "group"
+        ownerId.name >> "name"
+        ownerId.version >> "1.0"
 
         expect:
         artifacts1.select({ false }, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -55,13 +61,17 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = Stub(VariantResolveMetadata)
         def resolvedVariant1 = Stub(ResolvedArtifactSet)
         def selector = Stub(VariantSelector)
+        def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
-        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, null, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts1 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts2 = DefaultArtifactSet.createFromVariantMetadata(componentId, ownerId, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
+        def artifacts3 = DefaultArtifactSet.adHocVariant(componentId, ownerId, [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, calculatedValueContainerFactory)
 
         selector.select(_, _) >> resolvedVariant1
+        ownerId.group >> "group"
+        ownerId.name >> "name"
+        ownerId.version >> "1.0"
 
         expect:
         artifacts1.select({ true }, selector) == resolvedVariant1

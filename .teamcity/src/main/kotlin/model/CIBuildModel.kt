@@ -8,7 +8,7 @@ import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
-import configurations.CompileAll
+import configurations.CompileAllProduction
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -385,7 +385,7 @@ const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAll(model, stage)
+            return CompileAllProduction(model, stage)
         }
     },
     SanityCheck {

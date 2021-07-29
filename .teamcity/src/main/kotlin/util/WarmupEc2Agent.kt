@@ -6,8 +6,6 @@ import common.buildToolGradleParameters
 import common.gradleWrapper
 import common.javaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.Requirement
-import jetbrains.buildServer.configs.kotlin.v2019_2.RequirementType
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.freeDiskSpace
 import vcsroots.gradleMasterVersionedSettings
 import vcsroots.useAbsoluteVcs
@@ -38,9 +36,5 @@ object WarmupEc2Agent : BuildType({
                 buildToolGradleParameters(isContinue = false) + listOf("--dependency-verification", "lenient")
                 ).joinToString(separator = " ")
         }
-    }
-
-    requirements {
-        requirement(Requirement(RequirementType.EQUALS, "teamcity.agent.name", "ec2-agent1"))
     }
 })

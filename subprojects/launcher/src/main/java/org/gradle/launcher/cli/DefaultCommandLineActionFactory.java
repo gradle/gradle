@@ -220,7 +220,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 buildLayout = buildLayoutConverter.convert(initialProperties, parsedCommandLine, null);
 
                 // Read *.properties files
-                AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout, parsedCommandLine.getExtraArguments());
+                AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties, loggingConfiguration);
