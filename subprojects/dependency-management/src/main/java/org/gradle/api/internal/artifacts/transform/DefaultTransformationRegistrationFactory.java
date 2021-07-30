@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -228,7 +229,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,
-            InputFilePropertyType filePropertyType
+            InputFilePropertyType filePropertyType,
+            ContentTracking contentTracking
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
