@@ -281,7 +281,8 @@ public class DefaultTaskProperties implements TaskProperties {
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,
-            InputFilePropertyType filePropertyType
+            InputFilePropertyType filePropertyType,
+            ContentTracking contentTracking
         ) {
             taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }

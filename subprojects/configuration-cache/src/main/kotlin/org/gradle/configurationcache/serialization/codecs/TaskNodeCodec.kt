@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -334,15 +335,16 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
     (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
         override fun visitInputFileProperty(
-            propertyName: String,
-            optional: Boolean,
-            skipWhenEmpty: Boolean,
-            directorySensitivity: DirectorySensitivity,
-            lineEndingSensitivity: LineEndingSensitivity,
-            incremental: Boolean,
-            fileNormalizer: Class<out FileNormalizer>?,
-            propertyValue: PropertyValue,
-            filePropertyType: InputFilePropertyType
+                propertyName: String,
+                optional: Boolean,
+                skipWhenEmpty: Boolean,
+                directorySensitivity: DirectorySensitivity,
+                lineEndingSensitivity: LineEndingSensitivity,
+                incremental: Boolean,
+                fileNormalizer: Class<out FileNormalizer>?,
+                propertyValue: PropertyValue,
+                filePropertyType: InputFilePropertyType,
+                contentTracking: ContentTracking
         ) {
             properties.add(
                 RegisteredProperty.InputFile(
