@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.beans
 
+import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.configurationcache.ConfigurationCacheError
@@ -62,15 +63,29 @@ class BeanPropertyWriter(
 
     private
     fun conventionValueOf(bean: Any, fieldName: String, field: Field, isExplicitValue: Field) =
-        bean.uncheckedCast<IConventionAware>().conventionMapping.getConventionValue(
-            field.get(bean),
-            fieldName,
-            isExplicitValue.get(bean).uncheckedCast()
-        )
+        field.get(bean).let { fieldValue ->
+            if (isExplicitValue.get(bean).uncheckedCast()) {
+                fieldValue
+            } else {
+                bean.uncheckedCast<IConventionAware>()
+                    .conventionMapping
+                    .getConventionValue<Any?>(fieldValue, fieldName, false)
+                    ?.takeIf { conventionValue ->
+                        // Prevent convention value to be assigned to a field of incompatible type
+                        // A common cause is a regular field type being promoted to a Property/Provider type.
+                        conventionValue.isAssignableTo(field.type)
+                    }
+            }
+        }
 
     private
     fun Field.debugFrameName() =
         "${declaringClass.typeName}.$name"
+
+    private
+    fun Any?.isAssignableTo(type: Class<*>) =
+        (if (type.isPrimitive) wrap(type) else type)
+            .isInstance(this)
 }
 
 

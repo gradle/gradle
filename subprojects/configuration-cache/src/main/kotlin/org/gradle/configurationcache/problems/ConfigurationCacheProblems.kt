@@ -51,7 +51,7 @@ class ConfigurationCacheProblems(
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
 
     private
-    val summary = ConfigurationCacheProblemsSummary()
+    val summarizer = ConfigurationCacheProblemsSummary()
 
     private
     val postBuildHandler = PostBuildProblemsHandler()
@@ -91,7 +91,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        if (summary.onProblem(problem)) {
+        if (summarizer.onProblem(problem)) {
             report.onProblem(problem)
         }
     }
@@ -101,6 +101,7 @@ class ConfigurationCacheProblems(
     }
 
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
+        val summary = summarizer.get()
         val problemCount = summary.problemCount
         if (problemCount == 0) {
             return
@@ -154,7 +155,7 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problemCount = summary.problemCount
+            val problemCount = summarizer.get().problemCount
             val hasProblems = problemCount > 0
             val hasTooManyProblems = problemCount > startParameter.maxProblems
             val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
