@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-plugins {
-    `java-library`
-    alias(deps.plugins.jmh)
-}
+package org.gradle.buildinit.plugins.internal.action;
 
-dependencies {
-    api(deps.bundles.groovy)
+import org.gradle.configuration.project.BuiltInCommand;
+
+import java.util.Collections;
+import java.util.List;
+
+public class InitBuiltInCommand implements BuiltInCommand {
+    @Override
+    public List<String> asDefaultTask() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean commandLineMatches(List<String> taskNames) {
+        return taskNames.size() > 0 && taskNames.get(0).equals("init");
+    }
 }

@@ -22,9 +22,39 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Unroll
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "doesn't restore convention value to incompatible field type"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+            tasks.withType(Jar.class).named('jar') { javaJar ->
+                // The Jar.archiveName field is of type Property<String>
+                javaJar.conventionMapping('archiveName') { 'some_name' }
+            }
+        """
+
+        when:
+        configurationCacheRun 'jar'
+
+        then: 'convention mapping is ignored'
+        new JarTestFixture(file('build/libs/test.jar'))
+
+        when:
+        configurationCacheRun 'jar'
+
+        then: 'convention mapping is ignored just the same'
+        new JarTestFixture(file('build/libs/test.jar'))
+    }
 
     def "restores convention mapped task input property explicitly set to null"() {
         given:

@@ -43,6 +43,7 @@ import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
@@ -55,7 +56,6 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
-import org.gradle.execution.UndefinedBuildWorkExecutor;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.DefaultExecutionPlan;
@@ -76,7 +76,6 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
-import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -132,19 +131,17 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor, ProjectCacheDir projectCacheDir) {
+    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new UndefinedBuildWorkExecutor(
-                new DefaultBuildWorkExecutor(
-                    asList(new DryRunBuildExecutionAction(textOutputFactory),
-                        new SelectedTaskExecutionAction())),
-                projectCacheDir),
+            new DefaultBuildWorkExecutor(
+                asList(new DryRunBuildExecutionAction(textOutputFactory),
+                    new SelectedTaskExecutionAction())),
             buildOperationExecutor);
     }
 
-    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry) {
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, ProjectStateRegistry projectStateRegistry, List<BuiltInCommand> builtInCommands) {
         List<BuildConfigurationAction> taskSelectionActions = new LinkedList<>();
-        taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
+        taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer, builtInCommands));
         taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
         return new DefaultBuildConfigurationActionExecuter(taskSelectionActions, projectStateRegistry);
     }

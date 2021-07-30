@@ -16,12 +16,14 @@
 package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
@@ -55,6 +57,16 @@ public class Help extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ResolvedBuildLayout getResolvedBuildLayout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DocumentationRegistry getDocumentationRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void displayHelp() {
         StyledTextOutput output = getTextOutputFactory().create(Help.class);
@@ -78,20 +90,43 @@ public class Help extends DefaultTask {
         output.println();
         output.formatln("Welcome to Gradle %s.", GradleVersion.current().getVersion());
         output.println();
-        output.text("To run a build, run ");
-        metaData.describeCommand(output.withStyle(UserInput), "<task> ...");
-        output.println();
-        output.println();
-        output.text("To see a list of available tasks, run ");
-        metaData.describeCommand(output.withStyle(UserInput), "tasks");
-        output.println();
+
+        if (getResolvedBuildLayout().isBuildDefinitionMissing()) {
+            output.append("Directory '");
+            output.append(getResolvedBuildLayout().getCurrentDirectory().getAbsolutePath());
+            output.println("' does not contain a Gradle build.");
+            output.println();
+            output.text("To create a new build in this directory, run ");
+            metaData.describeCommand(output.withStyle(UserInput), "init");
+            output.println();
+            output.println();
+            output.append("For more detail on the 'init' task, see ");
+            output.withStyle(UserInput).append(getDocumentationRegistry().getDocumentationFor("build_init_plugin"));
+            output.println();
+            output.println();
+            output.append("For more detail on creating a Gradle build, see ");
+            output.withStyle(UserInput).append(getDocumentationRegistry().getDocumentationFor("tutorial_using_tasks")); // this is the "build script basics" chapter, we're missing some kind of "how to write a Gradle build chapter"
+            output.println();
+        } else {
+            output.text("To run a build, run ");
+            metaData.describeCommand(output.withStyle(UserInput), "<task> ...");
+            output.println();
+            output.println();
+            output.text("To see a list of available tasks, run ");
+            metaData.describeCommand(output.withStyle(UserInput), "tasks");
+            output.println();
+            output.println();
+            output.text("To see more detail about a task, run ");
+            metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+            output.println();
+        }
         output.println();
         output.text("To see a list of command-line options, run ");
         metaData.describeCommand(output.withStyle(UserInput), "--help");
         output.println();
         output.println();
-        output.text("To see more detail about a task, run ");
-        metaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+        output.append("For more detail on using Gradle, see ");
+        output.withStyle(UserInput).append(getDocumentationRegistry().getDocumentationFor("command_line_interface"));
         output.println();
         output.println();
         output.text("For troubleshooting, visit ");

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -33,6 +34,8 @@ import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 
+import java.util.List;
+
 /**
  * Transformed artifact set that performs the transformation itself when visited.
  */
@@ -43,6 +46,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         ImmutableAttributes targetVariantAttributes,
+        List<? extends Capability> capabilities,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
@@ -51,7 +55,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
         transformation.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
         ImmutableList<BoundTransformationStep> steps = builder.build();
-        this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, steps));
+        this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
     }
 
     public AbstractTransformedArtifactSet(CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result) {
@@ -101,12 +105,14 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         private final ResolvedArtifactSet delegate;
         private final ImmutableList<BoundTransformationStep> steps;
         private final ImmutableAttributes targetVariantAttributes;
+        private final List<? extends Capability> capabilities;
 
-        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, ImmutableList<BoundTransformationStep> steps) {
+        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformationStep> steps) {
             this.ownerId = ownerId;
             this.delegate = delegate;
             this.steps = steps;
             this.targetVariantAttributes = targetVariantAttributes;
+            this.capabilities = capabilities;
         }
 
         public ComponentIdentifier getOwnerId() {
@@ -123,6 +129,10 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
 
         public ImmutableAttributes getTargetVariantAttributes() {
             return targetVariantAttributes;
+        }
+
+        public List<? extends Capability> getCapabilities() {
+            return capabilities;
         }
 
         @Override
@@ -151,7 +161,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
             }
 
             ImmutableList.Builder<Artifacts> builder = ImmutableList.builderWithExpectedSize(1);
-            delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, builder));
+            delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, capabilities, builder));
             return builder.build();
         }
     }

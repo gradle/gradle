@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -33,13 +34,17 @@ import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
  */
 public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
+    private final BuildLayoutValidator buildLayoutValidator;
 
-    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices) {
+    public BuildTreeLifecycleBuildActionExecutor(BuildTreeModelControllerServices buildTreeModelControllerServices, BuildLayoutValidator buildLayoutValidator) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
+        this.buildLayoutValidator = buildLayoutValidator;
     }
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
+        buildLayoutValidator.validate(action.getStartParameter());
+
         BuildActionModelRequirements actionRequirements;
         if (action instanceof BuildModelAction && action.isCreateModel()) {
             BuildModelAction buildModelAction = (BuildModelAction) action;

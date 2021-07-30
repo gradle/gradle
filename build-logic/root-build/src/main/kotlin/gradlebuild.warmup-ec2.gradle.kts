@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-tasks.register("resolveAllDependencies") {
-    doLast {
-        allprojects {
-            configurations.forEach { c ->
-                if (c.isCanBeResolved) {
-                    println("Downloading dependencies for '$path' - ${c.name}")
-                    val result = c.incoming.artifactView { lenient(true) }.artifacts
-                    result.failures.forEach {
-                        println("- Ignoring Error: ${it.message}")
+// It might be injected by init scripts in ~/.gradle/init.d
+// https://github.com/gradle/dev-infrastructure/blob/ce8651f39f370ebe5c0c3413b5ab40a05421cfb7/salt/ami-baker/ec2-build-vm-baker/provision_by_salt.sh#L172
+if (tasks.findByName("resolveAllDependencies") == null) {
+    tasks.register("resolveAllDependencies") {
+        doLast {
+            allprojects {
+                configurations.forEach { c ->
+                    if (c.isCanBeResolved) {
+                        println("Downloading dependencies for '$path' - ${c.name}")
+                        val result = c.incoming.artifactView { lenient(true) }.artifacts
+                        result.failures.forEach {
+                            println("- Ignoring Error: ${it.message}")
+                        }
                     }
                 }
             }

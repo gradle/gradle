@@ -209,7 +209,22 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, containsString(resolution));
+        assertThat(this.resolution, containsString("> " + resolution));
+        return this;
+    }
+
+    @Override
+    public ExecutionFailure assertHasResolutions(String... resolutions) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < resolutions.length; i++) {
+            String expected = resolutions[i];
+            if (i > 0) {
+                builder.append("\n");
+            }
+            builder.append("> ");
+            builder.append(expected);
+        }
+        assertThat(this.resolution, equalTo(builder.toString()));
         return this;
     }
 

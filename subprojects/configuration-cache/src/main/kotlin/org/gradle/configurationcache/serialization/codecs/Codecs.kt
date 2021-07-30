@@ -157,6 +157,7 @@ class Codecs(
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
         bind(WorkNodeActionCodec)
+        bind(CapabilitiesCodec)
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

@@ -84,6 +84,7 @@ import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -137,6 +138,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
+        registration.add(BuildLayoutFactory.class);
+        registration.add(DefaultScriptFileResolver.class);
     }
 
     ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
@@ -246,9 +249,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
-                                      DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
+    ObjectFactory createObjectFactory(
+        InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
+    ) {
         return new DefaultObjectFactory(
             instantiatorFactory.decorate(services),
             instantiator,
@@ -262,10 +267,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
-    }
-
-    BuildLayoutFactory createBuildLayoutFactory() {
-        return new BuildLayoutFactory();
     }
 
     TaskInputsListeners createTaskInputsListener(ListenerManager listenerManager) {

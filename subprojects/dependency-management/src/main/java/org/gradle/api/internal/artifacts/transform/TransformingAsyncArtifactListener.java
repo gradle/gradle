@@ -35,20 +35,23 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformationStep> transformationSteps;
     private final ImmutableAttributes target;
+    private final List<? extends Capability> capabilities;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
         ImmutableAttributes target,
-        ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result) {
+        List<? extends Capability> capabilities,
+        ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
+    ) {
         this.transformationSteps = transformationSteps;
         this.target = target;
+        this.capabilities = capabilities;
         this.result = result;
     }
 
@@ -56,8 +59,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
     public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact) {
-                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, artifact, transformationSteps);
+            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities, ResolvableArtifact artifact) {
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformationSteps);
                 result.add(transformedArtifact);
             }
 
@@ -81,16 +84,18 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
     public static class TransformedArtifact implements ResolvedArtifactSet.Artifacts, RunnableBuildOperation {
         private final DisplayName variantName;
+        private final List<? extends Capability> capabilities;
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformationStep> transformationSteps;
         private Try<TransformationSubject> transformedSubject;
         private CacheableInvocation<TransformationSubject> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
+        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
+            this.capabilities = capabilities;
             this.transformationSteps = transformationSteps;
         }
 
@@ -104,6 +109,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         public ImmutableAttributes getTarget() {
             return target;
+        }
+
+        public List<? extends Capability> getCapabilities() {
+            return capabilities;
         }
 
         public List<BoundTransformationStep> getTransformationSteps() {
@@ -216,7 +225,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 subject -> {
                     for (File output : subject.getFiles()) {
                         ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
-                        visitor.visitArtifact(variantName, target, Collections.emptyList(), resolvedArtifact);
+                        visitor.visitArtifact(variantName, target, capabilities, resolvedArtifact);
                     }
                 },
                 failure -> visitor.visitFailure(

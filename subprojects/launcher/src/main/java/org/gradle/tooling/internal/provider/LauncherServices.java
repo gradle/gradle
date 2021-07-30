@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -156,14 +157,31 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                         LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
                                                         BuildOperationNotificationValve buildOperationNotificationValve,
                                                         BuildTreeModelControllerServices buildModelServices,
-                                                        WorkerLeaseService workerLeaseService
+                                                        WorkerLeaseService workerLeaseService,
+                                                        BuildLayoutValidator buildLayoutValidator
         ) {
-            return new SubscribableBuildActionExecutor(listenerManager, buildOperationListenerManager, listenerFactory, eventConsumer,
-                new ContinuousBuildActionExecutor(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory, requestMetaData, cancellationToken, deploymentRegistry, listenerManager, buildStartedTime, clock,
+            return new SubscribableBuildActionExecutor(
+                listenerManager,
+                buildOperationListenerManager,
+                listenerFactory, eventConsumer,
+                new ContinuousBuildActionExecutor(
+                    fileSystemChangeWaiterFactory,
+                    inputsListeners,
+                    styledTextOutputFactory,
+                    executorFactory,
+                    requestMetaData,
+                    cancellationToken,
+                    deploymentRegistry,
+                    listenerManager,
+                    buildStartedTime,
+                    clock,
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices), buildOperationExecutor, loggingBuildOperationProgressBroadcaster, buildOperationNotificationValve))));
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator),
+                            buildOperationExecutor,
+                            loggingBuildOperationProgressBroadcaster,
+                            buildOperationNotificationValve))));
         }
     }
 

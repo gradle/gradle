@@ -19,4 +19,11 @@ repositories {
         name = "Gradle libs"
         url = uri("https://repo.gradle.org/gradle/libs")
     }
+    maven {
+        name = "CHAMP libs"
+        url = uri("https://releases.usethesource.io/maven/")
+        mavenContent {
+            includeGroup("io.usethesource")
+        }
+    }
 }

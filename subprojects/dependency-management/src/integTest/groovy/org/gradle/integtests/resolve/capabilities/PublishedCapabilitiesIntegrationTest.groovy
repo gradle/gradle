@@ -255,10 +255,13 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
                         def capabilities = it.variant.capabilities
                         if (capabilities.isEmpty()) {
-                            println "  - capabilities: None"
+                            throw new IllegalStateException("Expected default capability to be explicit")
                         } else {
                             println "  - capabilities: " + capabilities.collect {
-                                "\${it.group}:\${it.name}:\${it.version}"
+                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                    throw new IllegalStateException("Unexpected capability type: \$it")
+                                }
+                                "\${it}"
                             }
                         }
                         println("---------")
@@ -303,7 +306,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 }
             }
         }
-        outputContains('capabilities: [org:testB:1.0, org:cap:4]')
+        outputContains('capabilities: [capability group=\'org\', name=\'testB\', version=\'1.0\', capability group=\'org\', name=\'cap\', version=\'4\']')
 
     }
 
