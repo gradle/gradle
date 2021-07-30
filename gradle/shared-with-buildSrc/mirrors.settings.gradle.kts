@@ -70,24 +70,6 @@ fun normalizeUrl(url: String): String {
     return if (result.endsWith("/")) result else "$result/"
 }
 
-fun overridesPluginPortalUrl() = providers.systemProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY).forUseAtConfigurationTime().orNull != null
-
-if (isCI() && !overridesPluginPortalUrl() && !ignoreMirrors()) {
-    // https://github.com/gradle/gradle-private/issues/2725
-    // https://github.com/gradle/gradle-private/issues/2951
-    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://repo.grdev.net/artifactory/gradle-plugin-portal-prod/")
-
-    abstract class ClearPortalOverride : BuildService<BuildServiceParameters.None>, OperationCompletionListener, AutoCloseable {
-        override fun onFinish(event: FinishEvent) = Unit
-        override fun close() {
-            System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
-        }
-    }
-
-    val serviceProvider = gradle.sharedServices.registerIfAbsent("clearPortalOverride", ClearPortalOverride::class) {}
-    (gradle as GradleInternal).services.get(BuildEventsListenerRegistry::class.java).onTaskCompletion(serviceProvider)
-}
-
 gradle.allprojects {
     buildscript.configurations["classpath"].incoming.beforeResolve {
         withMirrors(buildscript.repositories)
