@@ -574,9 +574,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             Node node = iterator.next();
             if (node.isReady() && node.allDependenciesComplete()) {
                 foundReadyNode = true;
-                MutationInfo mutations = getResolvedMutationInfo(node);
-
-                if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
+                if (!tryAcquireLocksForNode(node)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -589,7 +587,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.allDependenciesSuccessful()) {
                     node.startExecution(this::recordNodeExecutionStarted);
-                    if (mutations.hasValidationProblem) {
+                    if (node.getMutationInfo().hasValidationProblem) {
                         invalidNodeRunning = true;
                     }
                 } else {
@@ -604,17 +602,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
+    private boolean tryAcquireLocksForNode(Node node) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;
-        } else if (!tryLockSharedResourceFor(node)) {
+        }
+        if (!tryLockSharedResourceFor(node)) {
             LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
             return false;
-        } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
+        }
+        MutationInfo mutations = getResolvedMutationInfo(node);
+        if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             return false;
-        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+        }
+        if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             return false;
         }
         return true;
