@@ -1085,7 +1085,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
             properties.put(REUSE_USER_HOME_SERVICES, "false");
         }
-        if (!noExplicitTmpDir) {
+        if (!noExplicitTmpDir && buildJvmOpts.stream().noneMatch(arg -> arg.startsWith("-Djava.io.tmpdir="))) {
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
             }
