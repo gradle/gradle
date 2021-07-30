@@ -38,8 +38,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+import org.gradle.internal.reflect.validation.TypeValidationContext
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -62,10 +62,10 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty('myProperty', { it.call() == 'myValue' }, false)
         1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, _, _, _, InputFilePropertyType.FILE)
-        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, _, _, _, InputFilePropertyType.FILES)
+        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, _, _, _, InputFilePropertyType.FILES, org.gradle.api.internal.tasks.properties.ContentTracking.TRACKED)
         1 * visitor.visitInputProperty('bean', { it.call() == NestedBean }, false)
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
-        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _, _, _, InputFilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _, _, _, InputFilePropertyType.DIRECTORY, org.gradle.api.internal.tasks.properties.ContentTracking.TRACKED)
 
         1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
         1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
