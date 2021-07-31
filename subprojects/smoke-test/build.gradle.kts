@@ -66,8 +66,8 @@ tasks {
 
     val santaTrackerKotlin by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
-        // Pinned from branch agp-3.6.0
-        ref.set("3122343674246eaa56a5dd6365ea137edb021780")
+        // Pinned from branch main
+        ref.set("c26e2b8aa5c34758934009f1d5b0334f7fc2db5a")
     }
 
     val santaTrackerJava by registering(RemoteProject::class) {
