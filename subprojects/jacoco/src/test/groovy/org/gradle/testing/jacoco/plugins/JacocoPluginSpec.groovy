@@ -52,7 +52,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         project.apply plugin: 'java'
-        RepoScriptBlockUtil.configureJcenter(project.repositories)
+        RepoScriptBlockUtil.configureMavenCentral(project.repositories)
         def testTask = project.tasks.getByName('test')
         JacocoTaskExtension extension = testTask.extensions.getByType(JacocoTaskExtension)
 
