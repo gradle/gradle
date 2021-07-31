@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cleanup
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.file.TestFiles
 import spock.lang.Specification
 
@@ -36,6 +37,7 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(dir1)
         registry.registerOutputs(file1)
         registry.registerOutputs(outputFiles)
+        registry.resolveOutputs()
 
         then:
         registry.isOutputOwnedByBuild(dir1)
@@ -47,6 +49,7 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         registry.registerOutputs(file('build/outputs'))
         registry.registerOutputs(file('build/outputs/other'))
         registry.registerOutputs(file('outputs'))
+        registry.resolveOutputs()
 
         expect:
         registry.isOutputOwnedByBuild(file('build/outputs'))
@@ -58,6 +61,26 @@ class DefaultBuildOutputCleanupRegistryTest extends Specification {
         !registry.isOutputOwnedByBuild(file('output'))
         !registry.isOutputOwnedByBuild(file('build/output'))
         !registry.isOutputOwnedByBuild(file('different-file/build/outputs'))
+    }
+
+    def "cannot register files after the outputs have been resolved"() {
+        given:
+        registry.resolveOutputs()
+
+        when:
+        registry.registerOutputs(file('build'))
+        then:
+        thrown(GradleException)
+    }
+
+    def "cannot query outputs when they have not been resolved"() {
+        given:
+        registry.registerOutputs(file('build'))
+
+        when:
+        registry.isOutputOwnedByBuild(file('build'))
+        then:
+        thrown(GradleException)
     }
 
     File file(String fileName) {

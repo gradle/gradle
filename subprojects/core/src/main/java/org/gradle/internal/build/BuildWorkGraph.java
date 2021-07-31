@@ -43,7 +43,7 @@ public interface BuildWorkGraph {
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
      */
-    void prepareForExecution();
+    void prepareForExecution(boolean alwaysPopulateWorkGraph);
 
     /**
      * Runs all currently scheduled tasks.
