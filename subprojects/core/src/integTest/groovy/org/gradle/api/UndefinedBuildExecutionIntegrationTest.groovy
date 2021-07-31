@@ -18,7 +18,10 @@ package org.gradle.api
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -71,6 +74,8 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @Issue("https://github.com/gradle/gradle-private/issues/3420")
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "fails when target of GradleBuild task has no settings or build file"() {
         given:
         buildFile << """

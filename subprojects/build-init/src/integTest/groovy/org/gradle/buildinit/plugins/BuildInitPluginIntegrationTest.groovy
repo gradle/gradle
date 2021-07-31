@@ -18,7 +18,10 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matcher
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -361,6 +364,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.list().toList() == [".gradle"] // ensure nothing generated
     }
 
+    @Issue("https://github.com/gradle/gradle-private/issues/3420")
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "ignores gradle properties for existing build when initializing inside another project"() {
         when:
         containerDir.file("settings.gradle") << "rootProject.name = 'root'"
