@@ -24,6 +24,7 @@ import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -39,6 +40,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @Ignore("https://github.com/gradle/gradle-private/issues/3421")
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
 
         given:
@@ -66,6 +68,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @Ignore("https://github.com/gradle/gradle-private/issues/3421")
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
 
         given:

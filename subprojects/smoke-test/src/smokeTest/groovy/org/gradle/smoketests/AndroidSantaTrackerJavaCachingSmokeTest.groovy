@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -42,6 +43,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @Ignore("https://github.com/gradle/gradle-private/issues/3421")
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
         // TODO remove after next 4.2 release
