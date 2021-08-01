@@ -13,15 +13,15 @@ When on a transitive dependency, it will cause dependency resolution to fail if 
 See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for details.
 This term supports dynamic versions.
 +
-When defined, overrides previous `require` declaration and clears previous `reject`.
+When defined, this overrides any previous `require` declaration and clears previous `reject`.
 
 [[sec:required-version]]
 `require`::
 Implies that the selected version cannot be lower than what `require` accepts but could be higher through conflict resolution, even if higher has an exclusive higher bound.
-This is what a direct version on a dependency translates to.
+This is what a direct dependency translates to.
 This term supports dynamic versions.
 +
-When defined, overrides previous `strictly` declaration and clears previous `reject`.
+When defined, this overrides any previous `strictly` declaration and clears previous `reject`.
 
 [[sec:preferred-version]]
 `prefer`::
@@ -30,6 +30,8 @@ It applies only if there is no stronger non dynamic opinion on a version for the
 This term does not support dynamic versions.
 +
 Definition can complement `strictly` or `require`.
+
+When defined, this overrides any previous `prefer` declaration and clears previous `reject`.
 
 There is also an additional term outside of the level hierarchy:
 
