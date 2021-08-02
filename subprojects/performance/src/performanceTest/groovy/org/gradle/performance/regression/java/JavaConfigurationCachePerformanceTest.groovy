@@ -46,7 +46,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
-        runner.targetVersions = ["6.8.2-20210218002439+0000"]
+        runner.targetVersions = ["6.9-20210608103230+0000"]
         runner.minimumBaseVersion = "6.6"
         runner.tasksToRun = ["assemble"]
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]

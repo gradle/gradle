@@ -44,7 +44,7 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
 
     def setup() {
         runner.minimumBaseVersion = "6.7"
-        runner.targetVersions = ["6.8.2-20210218002439+0000"]
+        runner.targetVersions = ["6.9-20210608103230+0000"]
         runner.useToolingApi = true
         runner.args = ["--no-build-cache", "--no-scan"]
         if (OperatingSystem.current().windows) {
