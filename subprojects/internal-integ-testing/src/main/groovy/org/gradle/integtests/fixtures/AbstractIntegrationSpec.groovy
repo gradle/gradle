@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.eclipse.jgit.api.Git
 import org.gradle.api.Action
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -98,6 +99,9 @@ class AbstractIntegrationSpec extends Specification {
     protected Integer maxUploadAttempts
 
     def setup() {
+        // Verify that the previous test (or fixtures) has cleaned up state correctly
+        m2.assertNoLeftoverState()
+
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
@@ -109,6 +113,10 @@ class AbstractIntegrationSpec extends Specification {
 
     def cleanup() {
         executer.cleanup()
+        m2.cleanupState()
+
+        // Verify that the test (or fixtures) has cleaned up state correctly
+        m2.assertNoLeftoverState()
     }
 
     private void recreateExecuter() {

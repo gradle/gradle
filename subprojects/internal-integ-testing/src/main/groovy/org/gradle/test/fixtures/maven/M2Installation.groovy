@@ -32,7 +32,7 @@ class M2Installation implements Action<GradleExecuter> {
     private TestFile isolatedMavenRepoForLeakageChecks
     private boolean isolateMavenLocal = true
 
-    public M2Installation(TestDirectoryProvider temporaryFolder) {
+    M2Installation(TestDirectoryProvider temporaryFolder) {
         this.temporaryFolder = temporaryFolder
     }
 
@@ -47,6 +47,15 @@ class M2Installation implements Action<GradleExecuter> {
 
             initialized = true
         }
+    }
+
+    void assertNoLeftoverState() {
+        assert System.getenv("M2_HOME") == null
+        assert System.getProperty("maven.repo.local") == null
+    }
+
+    void cleanupState() {
+        System.clearProperty("maven.repo.local")
     }
 
     TestFile getUserHomeDir() {
