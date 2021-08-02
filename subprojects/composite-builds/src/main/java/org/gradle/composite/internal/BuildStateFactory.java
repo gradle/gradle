@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -66,10 +67,10 @@ public class BuildStateFactory {
         return new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState, buildLifecycleControllerFactory, projectStateRegistry);
     }
 
-    public RootOfNestedBuildTree createNestedTree(BuildDefinition buildDefinition,
-                                                  BuildIdentifier buildIdentifier,
-                                                  Path identityPath,
-                                                  BuildState owner) {
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+    public NestedBuildTree createNestedTree(BuildDefinition buildDefinition,
+                                            BuildIdentifier buildIdentifier,
+                                            Path identityPath,
+                                            BuildState owner) {
+        return new DefaultNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 }
