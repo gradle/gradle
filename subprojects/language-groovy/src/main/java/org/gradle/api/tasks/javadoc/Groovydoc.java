@@ -93,6 +93,18 @@ public class Groovydoc extends SourceTask {
 
     boolean includePrivate;
 
+    boolean includeProtected;
+
+    boolean includePublic;
+
+    boolean includePackage;
+
+    boolean includeAuthor;
+
+    boolean processScripts;
+
+    boolean includeMainForScripts;
+
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
     }
@@ -110,7 +122,9 @@ public class Groovydoc extends SourceTask {
             getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
             getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
             getLinks(), getGroovyClasspath(), getClasspath(),
-            getTemporaryDir(), getServices().get(FileSystemOperations.class)
+            getTemporaryDir(), getServices().get(FileSystemOperations.class),
+            isIncludeProtected(), isIncludePublic(), isIncludePackage(),
+            isIncludeAuthor(), isProcessScripts(), isIncludeMainForScripts()
         );
     }
 
@@ -344,7 +358,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include all classes and members (i.e. including private ones).
+     * Returns whether to include classes with private scope.
      */
     @Input
     public boolean isIncludePrivate() {
@@ -352,10 +366,98 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Sets whether to include all classes and members (i.e. including private ones) if set to true.
+     * Sets whether to include classes and members with private scope if set to true.
      */
     public void setIncludePrivate(boolean includePrivate) {
         this.includePrivate = includePrivate;
+    }
+
+    /**
+     * Returns whether to include classes and members with protected scope.
+     */
+    @Input
+    public boolean isIncludeProtected() {
+        return includeProtected;
+    }
+
+    /**
+     * Sets whether to include classes and members with protected scope if set to true.
+     */
+    public void setIncludeProtected(boolean includeProtected) {
+        this.includeProtected = includeProtected;
+    }
+
+    /**
+     * Returns whether to include classes and members with public scope.
+     */
+    @Input
+    public boolean isIncludePublic() {
+        return includePublic;
+    }
+
+    /**
+     * Sets whether to include classes and members with public scope if set to true.
+     */
+    public void setIncludePublic(boolean includePublic) {
+        this.includePublic = includePublic;
+    }
+
+    /**
+     * Returns whether to include classes and members with package scope.
+     */
+    @Input
+    public boolean isIncludePackage() {
+        return includePackage;
+    }
+
+    /**
+     * Sets whether to include classes and members with package scope if set to true.
+     */
+    public void setIncludePackage(boolean includePackage) {
+        this.includePackage = includePackage;
+    }
+
+    /**
+     * Returns whether to include author paragraphs.
+     */
+    @Input
+    public boolean isIncludeAuthor() {
+        return includeAuthor;
+    }
+
+    /**
+     * Sets whether to include author paragraphs.
+     */
+    public void setIncludeAuthor(boolean includeAuthor) {
+        this.includeAuthor = includeAuthor;
+    }
+
+    /**
+     * Returns whether to process scripts.
+     */
+    @Input
+    public boolean isProcessScripts() {
+        return processScripts;
+    }
+
+    /**
+     * Sets whether to process scripts.
+     */
+    public void setProcessScripts(boolean processScripts) { this.processScripts = processScripts; }
+
+    /**
+     * Returns whether to include main method for scripts.
+     */
+    @Input
+    public boolean isIncludeMainForScripts() {
+        return includeMainForScripts;
+    }
+
+    /**
+     * Sets whether to include main method for scripts.
+     */
+    public void setIncludeMainForScripts(boolean includeMainForScripts) {
+        this.includeMainForScripts = includeMainForScripts;
     }
 
     /**

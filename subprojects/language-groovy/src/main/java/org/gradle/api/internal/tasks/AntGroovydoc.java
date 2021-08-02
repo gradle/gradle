@@ -58,8 +58,10 @@ public final class AntGroovydoc {
         final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp,
         String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate,
         final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath,
-        File tmpDir, FileSystemOperations fsOperations
-    ) {
+        File tmpDir, FileSystemOperations fsOperations,
+        boolean includeProtected, boolean includePublic, boolean includePackage,
+        boolean includeAuthor, boolean processScripts, boolean includeMainForScripts
+        ) {
 
         fsOperations.delete(spec -> spec.delete(tmpDir));
         fsOperations.copy(spec -> spec.from(source).into(tmpDir));
@@ -80,6 +82,12 @@ public final class AntGroovydoc {
             args.put("noVersionStamp", noVersionStamp);
         }
         args.put("private", includePrivate);
+        args.put("protected", includeProtected);
+        args.put("public", includePublic);
+        args.put("package", includePackage);
+        args.put("author", includeAuthor);
+        args.put("processScripts", processScripts);
+        args.put("includeMainForScripts", includeMainForScripts);
         putIfNotNull(args, "windowtitle", windowTitle);
         putIfNotNull(args, "doctitle", docTitle);
         putIfNotNull(args, "header", header);
@@ -145,10 +153,10 @@ public final class AntGroovydoc {
                     public Object doCall(Object ignore) {
                         for (Groovydoc.Link link : links) {
                             antBuilder.invokeMethod("link", new Object[]{
-                                    ImmutableMap.of(
-                                            "packages", Joiner.on(",").join(link.getPackages()),
-                                            "href", link.getUrl()
-                                    )
+                                ImmutableMap.of(
+                                    "packages", Joiner.on(",").join(link.getPackages()),
+                                    "href", link.getUrl()
+                                )
                             });
                         }
 
