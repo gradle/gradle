@@ -110,7 +110,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = currentRoot;
+                            newRoot = watchRegistry.buildStarted(currentRoot);
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
