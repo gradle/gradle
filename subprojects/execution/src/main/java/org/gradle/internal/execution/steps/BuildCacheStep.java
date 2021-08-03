@@ -153,6 +153,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     private CurrentSnapshotResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Did not find cache entry for {} with cache key {}, executing instead",
+                cacheableWork.getDisplayName(), cacheKey.getHashCode());
+        }
         CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> store(cacheableWork, cacheKey, result),
