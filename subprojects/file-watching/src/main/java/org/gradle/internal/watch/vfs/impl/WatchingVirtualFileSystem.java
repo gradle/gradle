@@ -381,6 +381,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void close() {
+        LOGGER.debug("Closing VFS, dropping state");
         rootReference.update(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
