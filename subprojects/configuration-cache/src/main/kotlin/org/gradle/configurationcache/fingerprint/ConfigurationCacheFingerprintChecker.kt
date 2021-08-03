@@ -76,7 +76,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                     if (host.buildStartTime >= expireAt) {
-                        return input.reason
+                        return reason
                     }
                 }
                 is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
@@ -140,9 +140,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun isDefined(key: String): Boolean {
-        return System.getProperty(key) != null
-    }
+    fun isDefined(key: String): Boolean =
+        System.getProperty(key) != null
 
     private
     fun hasFileChanged(file: File, originalHash: HashCode?) =
