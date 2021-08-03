@@ -131,7 +131,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         repositories.ivy(configure)
 
     private
-    fun minimumGradleVersion(): String? {
+    fun minimumGradleVersion(): String {
         val baseVersionString = GradleVersion.version(gradleVersion).baseVersion.version
         val (major, minor) = baseVersionString.split('.')
         return when (minor) {
