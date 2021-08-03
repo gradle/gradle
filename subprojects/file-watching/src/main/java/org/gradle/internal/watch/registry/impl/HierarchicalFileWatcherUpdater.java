@@ -64,7 +64,12 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final MovedHierarchyHandler movedHierarchyHandler;
     private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
 
-    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, WatchableHierarchies watchableHierarchies, MovedHierarchyHandler movedHierarchyHandler) {
+    public HierarchicalFileWatcherUpdater(
+        FileWatcher fileWatcher,
+        FileSystemLocationToWatchValidator locationToWatchValidator,
+        WatchableHierarchies watchableHierarchies,
+        MovedHierarchyHandler movedHierarchyHandler
+    ) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
         this.watchableHierarchies = watchableHierarchies;
