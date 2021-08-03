@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures
 
 import org.eclipse.jgit.api.Git
 import org.gradle.api.Action
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture

@@ -18,22 +18,18 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-
-import java.io.File;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
@@ -52,18 +48,16 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final File cacheDir;
     private final UsedGradleVersions usedGradleVersions;
 
-    public DefaultClasspathTransformerCacheFactory(CacheScopeMapping cacheScopeMapping, UsedGradleVersions usedGradleVersions) {
-        this.cacheDir = cacheScopeMapping.getBaseDirectory(null, CACHE_KEY, VersionStrategy.SharedCache);
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions) {
         this.usedGradleVersions = usedGradleVersions;
     }
 
     @Override
-    public PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+    public PersistentCache createCache(GlobalScopedCache cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheRepository
-            .cache(cacheDir)
+            .crossVersionCache(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
@@ -81,7 +75,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     }
 
     @Override
-    public FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal) {
-        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheDir, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+    public FileAccessTracker createFileAccessTracker(PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal) {
+        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, persistentCache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 }

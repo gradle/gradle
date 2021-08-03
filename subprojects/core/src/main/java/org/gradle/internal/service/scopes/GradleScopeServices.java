@@ -31,15 +31,14 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
+import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -268,9 +267,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     FileContentCacheFactory createFileContentCacheFactory(
         GlobalCacheLocations globalCacheLocations,
-        CacheRepository cacheRepository,
+        BuildScopedCache cacheRepository,
         FileContentCacheFactory globalCacheFactory,
-        Gradle gradle,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         ListenerManager listenerManager,
         FileSystemAccess fileSystemAccess
@@ -279,8 +277,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             listenerManager,
             fileSystemAccess,
             cacheRepository,
-            inMemoryCacheDecoratorFactory,
-            gradle
+            inMemoryCacheDecoratorFactory
         );
         return new SplitFileContentCacheFactory(
             globalCacheFactory,

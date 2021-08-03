@@ -358,32 +358,50 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         outputContains("The settings file '..${File.separatorChar}settings.gradle' already exists. Skipping build initialization.")
-        targetDir.list().toList() == [".gradle"] // ensure nothing generated
+        targetDir.list().size() == 0 // ensure nothing generated
     }
 
-    def "skips init task if user home directory overlaps with project cache directory"() {
+    def "can create build in user home directory"() {
         when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dotGradleDir = targetDir.file('.gradle')
+        executer.withGradleUserHomeDir(dotGradleDir)
+
+        then:
+        succeeds "init"
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
+    }
+
+    def "skips init task if user home directory and project cache directory are the same"() {
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dotGradleDir = targetDir.file('.gradle')
         dotGradleDir.mkdirs()
         executer.withGradleUserHomeDir(dotGradleDir)
+        executer.withArguments("--project-cache-dir", dotGradleDir.path)
 
         then:
         succeeds "init"
         result.assertTaskSkipped ":init"
         result.assertTaskNotExecuted ":wrapper"
         outputContains("Gradle user home directory '$dotGradleDir' overlaps with the project cache directory")
+        targetDir.list().toList() == ['.gradle']
     }
 
-    def "does not skip init task if user home directory has custom name"() {
+    def "can create build in user home directory when user home directory has custom name"() {
         when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dotGradleDir = targetDir.file('.guh')
         dotGradleDir.mkdirs()
         executer.withGradleUserHomeDir(dotGradleDir)
 
         then:
         succeeds "init"
-        result.assertTaskExecuted ":init"
-        result.assertTaskExecuted ":wrapper"
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {

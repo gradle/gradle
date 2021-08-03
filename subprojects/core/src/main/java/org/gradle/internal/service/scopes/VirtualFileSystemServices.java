@@ -40,15 +40,13 @@ import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCac
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
@@ -99,7 +97,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -168,8 +165,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     @VisibleForTesting
     static class GradleUserHomeServices {
 
-        CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-            return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
+        CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+            return new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
         FileHasher createCachingFileHasher(
@@ -323,9 +320,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     @VisibleForTesting
     static class BuildSessionServices {
-        CrossBuildFileHashCache createCrossBuildFileHashCache(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-            File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileHashes", VersionStrategy.CachePerVersion);
-            return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
+        CrossBuildFileHashCache createCrossBuildFileHashCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+            return new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
         FileHasher createFileHasher(

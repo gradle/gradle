@@ -16,11 +16,13 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.invocation.Gradle
+
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
@@ -40,7 +42,10 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def fileSystemAccess = Mock(FileSystemAccess)
-    def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new TestInMemoryCacheFactory())
+    def cachesDir = tmpDir.file("caches")
+    def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
+    def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def globalScopedCache = new DefaultGlobalScopedCache(cachesDir, cacheRepository)
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
@@ -52,7 +57,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
             }
         }
     }
-    def factory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+    def factory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, globalScopedCache, inMemoryTaskArtifactCache)
     def calculator = Mock(FileContentCacheFactory.Calculator)
 
     def "calculates entry value for file when not seen before and reuses result"() {
@@ -148,7 +153,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, globalScopedCache, inMemoryTaskArtifactCache)
         result = otherFactory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER).get(file)
 
         then:

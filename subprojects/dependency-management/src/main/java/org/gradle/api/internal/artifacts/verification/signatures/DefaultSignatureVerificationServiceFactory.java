@@ -21,10 +21,9 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -53,22 +52,20 @@ import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
     private final HttpConnectorFactory httpConnectorFactory;
-    private final CacheRepository cacheRepository;
+    private final GlobalScopedCache cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final FileHasher fileHasher;
-    private final CacheScopeMapping scopeCacheMapping;
-    private final ProjectCacheDir projectCacheDir;
+    private final BuildScopedCache buildScopedCache;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
 
     public DefaultSignatureVerificationServiceFactory(HttpConnectorFactory httpConnectorFactory,
-                                                      CacheRepository cacheRepository,
+                                                      GlobalScopedCache cacheRepository,
                                                       InMemoryCacheDecoratorFactory decoratorFactory,
                                                       BuildOperationExecutor buildOperationExecutor,
                                                       FileHasher fileHasher,
-                                                      CacheScopeMapping scopeCacheMapping,
-                                                      ProjectCacheDir projectCacheDir,
+                                                      BuildScopedCache buildScopedCache,
                                                       BuildCommencedTimeProvider timeProvider,
                                                       boolean refreshKeys) {
         this.httpConnectorFactory = httpConnectorFactory;
@@ -76,8 +73,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.fileHasher = fileHasher;
-        this.scopeCacheMapping = scopeCacheMapping;
-        this.projectCacheDir = projectCacheDir;
+        this.buildScopedCache = buildScopedCache;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
     }
@@ -105,9 +101,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         return new CrossBuildSignatureVerificationService(
             delegate,
             fileHasher,
-            scopeCacheMapping,
-            projectCacheDir,
-            cacheRepository,
+            buildScopedCache,
             decoratorFactory,
             timeProvider,
             refreshKeys
