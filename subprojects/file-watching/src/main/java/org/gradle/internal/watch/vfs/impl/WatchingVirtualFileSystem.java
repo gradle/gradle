@@ -38,7 +38,6 @@ import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
 import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchMode;
-import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final Set<File> watchableHierarchies = new HashSet<>();
-    private final WatchableFileSystemDetector watchableFileSystemDetector;
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
@@ -68,14 +66,12 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         FileWatcherRegistryFactory watcherRegistryFactory,
         VfsRootReference rootReference,
         DaemonDocumentationIndex daemonDocumentationIndex,
-        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
-        WatchableFileSystemDetector watchableFileSystemDetector
+        LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
         super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
-        this.watchableFileSystemDetector = watchableFileSystemDetector;
     }
 
     @Override
