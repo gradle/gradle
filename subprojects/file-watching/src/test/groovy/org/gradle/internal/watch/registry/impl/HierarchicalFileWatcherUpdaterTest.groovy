@@ -30,9 +30,16 @@ import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpd
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
+    List<File> movedPaths = []
+
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies, { SnapshotHierarchy root -> root })
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies, { SnapshotHierarchy root ->
+            movedPaths.forEach { movedPath ->
+                root = root.invalidate(movedPath.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP)
+            }
+            return root
+        })
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {
@@ -338,6 +345,36 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         then:
         vfsHasSnapshotsAt(watchableContent)
         !vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
+    def "watchers are stopped when watched hierarchy is moved"() {
+        def sourceDir = file("to-be-moved").createDir()
+        def targetDir = file("target").createDir()
+        def notMovedDir = file("normal").createDir()
+
+        def watchableHierarchies = [sourceDir, notMovedDir]
+        when:
+        registerWatchableHierarchies(watchableHierarchies)
+        addSnapshotsInWatchableHierarchies(watchableHierarchies)
+        then:
+        watchableHierarchies.each { watchableHierarchy ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        }
+        vfsHasSnapshotsAt(sourceDir)
+        !vfsHasSnapshotsAt(targetDir)
+        vfsHasSnapshotsAt(notMovedDir)
+        0 * _
+
+        when:
+        sourceDir.renameTo(targetDir)
+        movedPaths << sourceDir
+        buildStarted()
+        then:
+        !vfsHasSnapshotsAt(sourceDir)
+        !vfsHasSnapshotsAt(targetDir)
+        vfsHasSnapshotsAt(notMovedDir)
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [sourceDir]) })
         0 * _
     }
 
