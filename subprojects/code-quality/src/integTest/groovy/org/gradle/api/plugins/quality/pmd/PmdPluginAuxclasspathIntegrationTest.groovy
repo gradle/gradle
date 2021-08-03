@@ -24,17 +24,14 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
-    private static final String JUNIT_STR = "'junit:junit:3.8.1'"
-    private static final String JUNIT_IMPL_DEPENDENCY = "implementation $JUNIT_STR"
-    private static final String JUNIT_COMPILE_ONLY_DEPENDENCY = "compileOnly $JUNIT_STR"
-    private static final String JUNIT_PMDAUX_DEPENDENCY = "pmdAux $JUNIT_STR"
 
     static boolean supportsAuxclasspath() {
         return VersionNumber.parse("5.2.0") < versionNumber
     }
 
     def setup() {
-        includeProject("pmd-rule")
+        settingsFile << 'include "pmd-rule", "rule-using"'
+
         buildFile << """
             allprojects {
                 ${mavenCentralRepository()}
@@ -49,22 +46,12 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                     implementation "${calculateDefaultDependencyNotation()}"
                 }
             }
-        """.stripIndent()
 
-        file("pmd-rule/src/main/resources/rulesets/java/auxclasspath.xml") << rulesetXml()
-        file("pmd-rule/src/main/java/org/gradle/pmd/rules/AuxclasspathRule.java") << ruleCode()
-    }
-
-    private void setupRuleUsingProject(String analyzedCode, String... dependencies) {
-        includeProject("rule-using")
-
-        String dependenciesString = dependencies.join('\n')
-        buildFile << """
             project("rule-using") {
                 apply plugin: 'pmd'
 
                 dependencies {
-                    $dependenciesString
+                    implementation "junit:junit:3.8.1"
 
                     pmd project(":pmd-rule")
                 }
@@ -76,33 +63,14 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             }
         """.stripIndent()
 
-        file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << analyzedCode
-    }
+        file("pmd-rule/src/main/resources/rulesets/java/auxclasspath.xml") << rulesetXml()
+        file("pmd-rule/src/main/java/org/gradle/pmd/rules/AuxclasspathRule.java") << ruleCode()
 
-    private void setupIntermediateProject(String dependency) {
-        includeProject("intermediate")
-        buildFile << """
-            project("intermediate") {
-                dependencies {
-                    $dependency
-                }
-            }
-        """.stripIndent()
-
-        file("intermediate/src/main/java/org/gradle/intermediate/IntermediateClass.java") << """
-        package org.gradle.intermediate;
-
-        public class IntermediateClass {
-            private static junit.framework.TestCase sTestCase = null;
-        }
-        """.stripIndent()
+        file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << analyzedCode()
     }
 
     def "auxclasspath configured for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
-
-        given:
-        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
 
         expect:
         fails ":rule-using:pmdMain"
@@ -116,8 +84,6 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         given:
-        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
-
         buildFile << """
 project("rule-using") {
     tasks.withType(Pmd) {
@@ -134,53 +100,11 @@ project("rule-using") {
             assertContents(containsText("auxclasspath not configured"))
     }
 
-    def "auxclasspath contains transitive implementation dependencies"() {
-        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
-
-        setupIntermediateProject(JUNIT_IMPL_DEPENDENCY)
-        setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
-
-        expect:
-        fails ":rule-using:pmdMain"
-
-        file("rule-using/build/reports/pmd/main.xml").
-            assertContents(containsClass("org.gradle.ruleusing.Class1")).
-            assertContents(containsText("auxclasspath configured"))
-    }
-
-    def "auxclasspath does not contain transitive compileOnly dependencies"() {
-        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
-
-        setupIntermediateProject(JUNIT_COMPILE_ONLY_DEPENDENCY)
-        setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
-
-        expect:
-        fails ":rule-using:pmdMain"
-
-        file("rule-using/build/reports/pmd/main.xml").
-            assertContents(containsClass("org.gradle.ruleusing.Class1")).
-            assertContents(containsText("auxclasspath not configured"))
-    }
-
-    def "auxclasspath contains pmdAux dependencies"() {
-        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
-
-        setupIntermediateProject(JUNIT_COMPILE_ONLY_DEPENDENCY)
-        setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')", JUNIT_PMDAUX_DEPENDENCY)
-
-        expect:
-        fails ":rule-using:pmdMain"
-
-        file("rule-using/build/reports/pmd/main.xml").
-            assertContents(containsClass("org.gradle.ruleusing.Class1")).
-            assertContents(containsText("auxclasspath configured"))
-    }
-
     private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
 
-    private static ruleCode() {
+    private ruleCode() {
         """
             package org.gradle.pmd.rules;
 
@@ -206,7 +130,7 @@ project("rule-using") {
         """
     }
 
-    private static rulesetXml() {
+    private rulesetXml() {
         """
             <ruleset name="auxclasspath"
                 xmlns="http://pmd.sf.net/ruleset/2.0.0"
@@ -222,23 +146,10 @@ project("rule-using") {
         """
     }
 
-    private static classExtendingJunit() {
+    private analyzedCode() {
         """
             package org.gradle.ruleusing;
             public class Class1 extends junit.framework.TestCase { }
         """
-    }
-
-    private static classReferencingIntermediate() {
-        """
-        package org.gradle.ruleusing;
-        public class Class1 {
-            private org.gradle.intermediate.IntermediateClass mClass = null;
-        }
-       """
-    }
-
-    private void includeProject(String projectName) {
-        settingsFile << "include '$projectName'\n"
     }
 }
