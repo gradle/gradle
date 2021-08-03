@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -329,25 +330,29 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 @InputFile abstract RegularFileProperty getInDir()
                 @TaskAction void bar() {}
             }
-            def foo = tasks.register("foo", Foo) {
+            def task = tasks.register("foo", Foo) {
                 outDir.set(layout.buildDirectory.dir("bam"))
             }
             tasks.register("bar", Bar) {
-                inDir.set(
-                    foo.${provider}.zip(provider { "baz" }) { dir, fileName -> dir.file(fileName) }
-                )
+                inDir.set($zipExpression)
             }
         """
 
         when:
         run 'bar'
+        if (GradleContextualExecuter.isConfigCache()) {
+            file('build').forceDeleteDir()
+            run 'bar'
+        }
 
         then:
         file('build/bam/baz').exists()
 
         where:
-        provider                | _
-        'flatMap { it.outDir }' | _
-        'get().outDir'          | _
+        zipExpression                                                              | _
+        'task.flatMap { it.outDir }.zip(provider { "baz" }) { d, f -> d.file(f) }' | _
+        'task.get().outDir.zip(provider { "baz" }) { d, f -> d.file(f) }'          | _
+        'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
+        'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
 }
