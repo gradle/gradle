@@ -159,4 +159,8 @@ public class InetAddressFactory {
             communicationAddresses.addAll(inetAddresses.getLoopback());
         }
     }
+
+    public InetAddresses getInetAddresses() {
+        return inetAddresses;
+    }
 }

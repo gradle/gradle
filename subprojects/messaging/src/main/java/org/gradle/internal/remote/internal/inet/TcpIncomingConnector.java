@@ -34,7 +34,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,7 +62,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         }
 
         UUID id = idGenerator.generateId();
-        List<InetAddress> addresses = Collections.singletonList(addressFactory.getLocalBindingAddress());
+        List<InetAddress> addresses = addressFactory.getInetAddresses().getLoopback();
         final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
