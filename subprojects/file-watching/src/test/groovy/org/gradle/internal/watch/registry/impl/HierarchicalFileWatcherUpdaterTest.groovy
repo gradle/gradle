@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
 
@@ -31,7 +32,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies)
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies, { SnapshotHierarchy root -> root })
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {

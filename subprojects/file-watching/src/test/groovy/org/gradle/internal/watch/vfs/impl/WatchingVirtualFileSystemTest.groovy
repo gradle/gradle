@@ -112,6 +112,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
+        1 * watcherRegistry.buildStarted(_ as SnapshotHierarchy) >> { SnapshotHierarchy root -> root }
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.setDebugLoggingEnabled(false)
         0 * _
