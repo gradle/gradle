@@ -201,15 +201,15 @@ include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",f
 include::sample[dir="snippets/maven-publish/specify-relocation/kotlin/library",files="build.gradle.kts[tags=specify-relocation]"]
 ====
 
-[TIP]
-====
 Only the property which has changed needs to be specified under `relocation`, that is `artifactId` and / or `groupId`. All other properties are optional.
 
+[TIP]
+====
 Specifying the `version` can be useful when the new artifact has a different version, for example because version numbering has started at 1.0.0 again.
 A custom `message` allows explaining why the artifact coordinates have changed.
 ====
 
-The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:**2.0.0**` to `**com.new-example**:lib:2.0.0`.
+The relocation POM should be created for what would be the next version of the old artifact. For example when the artifact coordinates of `com.example:lib:1.0.0` are changed and the artifact with the new coordinates continues version numbering and is published as `com.new-example:lib:2.0.0`, then the relocation POM should specify a relocation from `com.example:lib:2.0.0` to `com.new-example:lib:2.0.0`.
 
 A relocation POM only has to be published once, the build file configuration for it should be removed again once it has been published.
 
@@ -220,7 +220,7 @@ Note that a relocation POM is not suitable for all situations; when an artifact 
 
 It is possible to publish relocation information retroactively after the coordinates of an artifact have changed in the past, and no relocation information was published back then.
 
-The same recommendations as described above apply. To ease migration for users, it is important to pay attention to the `version` specified in the relocation POM. The relocation POM should allow the user to move to the new artifact in one step, and then allow them to update to the latest version in a separate step. For example when for the coordinates of `com.new-example:lib:5.0.0` were changed in version 2.0.0, then ideally the relocation POM should be published for the old coordinates `com.example:lib:**2.0.0**` relocating to `com.new-example:lib:**2.0.0**`. The user can then switch from `com.example:lib` to `com.new-example` and then separately update from version 2.0.0 to 5.0.0, handling breaking changes (if any) step by step.
+The same recommendations as described above apply. To ease migration for users, it is important to pay attention to the `version` specified in the relocation POM. The relocation POM should allow the user to move to the new artifact in one step, and then allow them to update to the latest version in a separate step. For example when for the coordinates of `com.new-example:lib:5.0.0` were changed in version 2.0.0, then ideally the relocation POM should be published for the old coordinates `com.example:lib:2.0.0` relocating to `com.new-example:lib:2.0.0`. The user can then switch from `com.example:lib` to `com.new-example` and then separately update from version 2.0.0 to 5.0.0, handling breaking changes (if any) step by step.
 
 When relocation information is published retroactively, it is not necessary to wait for next regular release of the project, it can be published in the meantime. As mentioned above, the relocation information should then be removed again from the build file once the relocation POM has been published.
 
@@ -229,7 +229,7 @@ When relocation information is published retroactively, it is not necessary to w
 
 When only the coordinates of the artifact have changed, but package names of the classes inside the artifact have remained the same, dependency conflicts can occur. A project might (transitively) depend on the old artifact but at the same time also have a dependency on the new artifact which both contain the same classes, potentially with incompatible changes.
 
-To detect such conflicting duplicate dependencies, <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
+To detect such conflicting duplicate dependencies, <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#sec:declaring-additional-capabilities-for-a-local-component,declaring additional capabilities for a local component>>.
 
 [[publishing_maven:relocation_dry_run]]
 === Performing a dry run
