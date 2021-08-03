@@ -181,7 +181,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
             @CacheableTask
             abstract class CustomTask extends DefaultTask {
                 @InputFile
-                @PathSensitive(PathSensitivity.RELATIVE)
+                @PathSensitive(PathSensitivity.NONE)
                 abstract RegularFileProperty getSource()
 
                 @OutputFile
@@ -189,9 +189,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
 
                 @TaskAction
                 def execute() {
-                    def content = source.get().asFile.text
-                    println content
-                    target.get().asFile.text = content
+                    target.get().asFile.text = source.get().asFile.text
                 }
             }
 
