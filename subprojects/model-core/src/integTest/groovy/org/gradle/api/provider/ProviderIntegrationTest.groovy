@@ -313,4 +313,41 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("isPresent = false")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/17534")
+    def "zipping against non-task provider doesn't lose task dependencies"() {
+        given:
+        buildFile """
+            abstract class Foo extends DefaultTask {
+                @OutputDirectory abstract DirectoryProperty getOutDir()
+                @TaskAction void foo() {
+                    def dir = outDir.get().asFile
+                    assert new File(dir, 'baz').createNewFile()
+                }
+            }
+            abstract class Bar extends DefaultTask {
+                @InputFile abstract RegularFileProperty getInDir()
+                @TaskAction void bar() {}
+            }
+            def foo = tasks.register("foo", Foo) {
+                outDir.set(layout.buildDirectory.dir("bam"))
+            }
+            tasks.register("bar", Bar) {
+                inDir.set(
+                    foo.${provider}.zip(provider { "baz" }) { dir, fileName -> dir.file(fileName) }
+                )
+            }
+        """
+
+        when:
+        run 'bar'
+
+        then:
+        file('build/bam/baz').exists()
+
+        where:
+        provider                | _
+        'flatMap { it.outDir }' | _
+        'get().outDir'          | _
+    }
 }
