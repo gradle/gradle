@@ -244,7 +244,7 @@ fun removeTeamcityTempProperty() {
 }
 
 val Project.maxParallelForks: Int
-    get() = findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
+    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
 
 fun failOnEmptySourceFolder() {
     // Empty source dirs produce cache misses, and are not caught by `git status`.

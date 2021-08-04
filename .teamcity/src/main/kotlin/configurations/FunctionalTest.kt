@@ -64,10 +64,6 @@ class FunctionalTest(
             // Use fewer parallel forks on macOs, since the agents are not very powerful.
             param("maxParallelForks", "2")
         }
-
-        if (testCoverage.testDistribution) {
-            param("maxParallelForks", "16")
-        }
     }
 
     if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
