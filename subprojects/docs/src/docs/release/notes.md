@@ -7,7 +7,7 @@ We would like to thank the following community members for their contributions t
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Shou Kakerigawa(翳河翔)](https://github.com/anatawa12)
+[anatawa12](https://github.com/anatawa12)
 
 ## Upgrade instructions
 
