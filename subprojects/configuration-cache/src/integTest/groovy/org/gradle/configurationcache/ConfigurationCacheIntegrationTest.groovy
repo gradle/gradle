@@ -22,6 +22,36 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "can copy zipTree"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            def jar = tasks.register("jar", org.gradle.jvm.tasks.Jar) {
+                it.from("a.file")
+                it.destinationDirectory.set(layout.buildDirectory)
+                it.archiveFileName.set("output.jar")
+            }
+
+            tasks.register("copy", org.gradle.api.tasks.Copy) {
+                it.from(zipTree(${provider}))
+                it.destinationDir(new File(project.buildDir, "copied"))
+            }
+        """
+        file("a.file") << "42"
+
+        when:
+        configurationCacheRun "copy"
+        configurationCacheRun "copy"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        provider                         | _
+        "jar.flatMap { it.archiveFile }" | _
+        "jar.get().archiveFile"          | _
+    }
+
     def "configuration cache for help on empty project"() {
         given:
         configurationCacheRun "help"
