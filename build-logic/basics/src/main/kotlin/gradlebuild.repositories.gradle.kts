@@ -18,5 +18,10 @@ repositories {
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
+        content {
+            includeGroup("net.rubygrapefruit")
+            includeModuleByRegex("org.gradle", "sample-(check|discovery)")
+        }
     }
+    mavenCentral()
 }

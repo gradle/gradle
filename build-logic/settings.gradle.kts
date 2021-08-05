@@ -23,14 +23,16 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
-        }
-        gradlePluginPortal()
-        maven {
             name = "ge-release-candidates"
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
+            content {
+                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
+            }
         }
+        gradlePluginPortal()
+        mavenCentral()
     }
 }
 
