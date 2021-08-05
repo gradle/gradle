@@ -30,7 +30,7 @@ val originalUrls: Map<String, String> = mapOf(
     "gradle-libs" to "https://repo.gradle.org/gradle/libs",
     "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
     "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
-    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local"
+    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates"
 )
 
 val mirrorUrls: Map<String, String> =

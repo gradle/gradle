@@ -41,7 +41,7 @@ dependencyResolutionManagement {
         }
         maven {
             name = "ge-release-candidates"
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
         }
     }
 }

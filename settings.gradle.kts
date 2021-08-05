@@ -5,7 +5,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
+        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates") }
     }
 }
 
