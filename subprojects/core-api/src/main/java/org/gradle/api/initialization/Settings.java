@@ -303,9 +303,8 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @param feature the feature to enable
      * @since 7.3
      */
-    default void enableFeaturePreview(Feature feature) {
-        enableFeaturePreview(feature.name());
-    }
+    @Incubating
+    void enableFeaturePreview(Feature feature);
 
     /**
      * Configures the cross-project dependency resolution aspects

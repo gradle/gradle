@@ -75,14 +75,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
-    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
-                           GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope,
-                           ClassLoaderScope baseClassLoaderScope,
-                           ScriptHandler settingsScriptHandler,
-                           File settingsDir,
-                           ScriptSource settingsScript,
-                           StartParameter startParameter) {
+    public DefaultSettings(
+        ServiceRegistryFactory serviceRegistryFactory,
+        GradleInternal gradle,
+        ClassLoaderScope classLoaderScope,
+        ClassLoaderScope baseClassLoaderScope,
+        ScriptHandler settingsScriptHandler,
+        File settingsDir,
+        ScriptSource settingsScript,
+        StartParameter startParameter
+    ) {
         this.gradle = gradle;
         this.classLoaderScope = classLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -358,17 +360,22 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public void enableFeaturePreview(String name) {
-        Feature feature = Feature.withName(name);
-        if (feature.isActive()) {
-            services.get(FeaturePreviews.class).enableFeature(feature);
-        } else {
+        enableFeaturePreview(Feature.withName(name));
+    }
+
+    @Override
+    public void enableFeaturePreview(Feature feature) {
+        if (!feature.isActive()) {
             DeprecationLogger
                 .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
                 .willBeRemovedInGradle8()
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
+            return;
         }
+
+        services.get(FeaturePreviews.class).enableFeature(feature);
     }
 
     @Override
