@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 
+import java.nio.file.Files
+
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -111,6 +113,39 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}')
             .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def 'toolchain selection that requires downloading works with custom auto-download-location'() {
+        File tmpdir = Files.createTempDirectory("jdks").toFile()
+        String tmpdirPath = tmpdir.getAbsolutePath()
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(14)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        result = executer
+            .withTasks("compileJava")
+            .withArguments("-Porg.gradle.java.installations.auto-download=true", "-Porg.gradle.java.installations.auto-download-location=$tmpdirPath")
+            .requireOwnGradleUserHomeDir()
+            .run()
+
+        then:
+        result.assertTaskExecuted(":compileJava")
+        tmpdir.listFiles(new FilenameFilter() {
+            @Override
+            boolean accept(File dir, String name) {
+                return name.startsWith("adoptopenjdk")
+            }
+        }).size() > 0
     }
 
 }

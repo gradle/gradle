@@ -20,6 +20,8 @@ import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
@@ -28,6 +30,8 @@ import org.gradle.util.internal.Resources
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+
+import java.nio.file.Files
 
 class JdkCacheDirectoryTest extends Specification {
 
@@ -39,7 +43,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "handles non-exisiting jdk directory when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), createProviderFactory())
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
@@ -50,7 +54,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "lists jdk directories when listing java homes"() {
         given:
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager(), createProviderFactory())
         def install1 = temporaryFolder.newFolder("jdks/jdk-123")
         new File(install1, "provisioned.ok").createNewFile()
 
@@ -71,7 +75,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from tar.gz archive"() {
         def jdkArchive = resources.getResource("jdk.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager(), createProviderFactory())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
@@ -84,7 +88,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from zip archive"() {
         def jdkArchive = resources.getResource("jdk.zip")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager(), createProviderFactory())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
@@ -92,6 +96,24 @@ class JdkCacheDirectoryTest extends Specification {
         then:
         installedJdk.exists()
         println installedJdk
+        new File(installedJdk, "file").exists()
+        new File(installedJdk, "provisioned.ok").exists()
+    }
+
+    def "provisions jdk using custom auto-download-location"() {
+        def jdkArchive = resources.getResource("jdk.zip")
+        String tmpdir = Files.createTempDirectory("jdks").toFile().getAbsolutePath()
+        GradleUserHomeDirProvider gradleUserHomeDirProvider = newHomeDirProvider()
+
+        def jdkCacheDirectory = new JdkCacheDirectory(gradleUserHomeDirProvider, TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager(), createProviderFactory(tmpdir))
+
+        when:
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
+
+        then:
+        def parent = installedJdk.parentFile
+        parent.absolutePath == tmpdir
+        parent.absolutePath != new File(gradleUserHomeDirProvider.getGradleUserHomeDirectory(), "jdks").absolutePath
         new File(installedJdk, "file").exists()
         new File(installedJdk, "provisioned.ok").exists()
     }
@@ -115,5 +137,11 @@ class JdkCacheDirectoryTest extends Specification {
         def lock = Mock(FileLock)
         lockManager.lock(_ as File, _ as LockOptions, _ as String, _ as String) >> lock
         lockManager
+    }
+
+    ProviderFactory createProviderFactory(String autoDownloadLocation = null) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download-location") >> Providers.ofNullable(autoDownloadLocation)
+        providerFactory
     }
 }

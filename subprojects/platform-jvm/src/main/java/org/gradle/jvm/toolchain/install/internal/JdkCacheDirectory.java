@@ -22,6 +22,8 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
@@ -29,6 +31,7 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -43,16 +46,23 @@ public class JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkCacheDirectory.class);
     private static final String MARKER_FILE = "provisioned.ok";
+    private static final String AUTO_DOWNLOAD_LOCATION = "org.gradle.java.installations.auto-download-location";
 
     private final FileOperations operations;
     private final File jdkDirectory;
     private final FileLockManager lockManager;
 
-    public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager) {
+    @Inject
+    public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, ProviderFactory factory) {
         this.operations = operations;
-        this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
+        this.jdkDirectory = findJdkDirectory(homeDirProvider, factory);
         this.lockManager = lockManager;
         jdkDirectory.mkdir();
+    }
+
+    private File findJdkDirectory(GradleUserHomeDirProvider homeDirProvider,  ProviderFactory factory) {
+        Provider<String> customDownloadLocation = factory.gradleProperty(AUTO_DOWNLOAD_LOCATION).forUseAtConfigurationTime();
+        return customDownloadLocation.isPresent() ? new File(customDownloadLocation.get()) : new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
     }
 
     public Set<File> listJavaHomes() {

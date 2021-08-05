@@ -132,7 +132,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
     }
 
     private JdkCacheDirectory newCacheDirProvider(javaHomes) {
-        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager)) {
+        new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager), createProviderFactory()) {
             @Override
             Set<File> listJavaHomes() {
                 return javaHomes
@@ -144,6 +144,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(null)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download-location") >> Providers.ofNullable(null)
         providerFactory
     }
 

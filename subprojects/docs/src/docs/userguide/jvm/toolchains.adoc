@@ -253,6 +253,16 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 * Either start gradle using `-Porg.gradle.java.installations.auto-download=false`
 * Or put `org.gradle.java.installations.auto-download=false` into a `gradle.properties` file.
 
+[[sub:configure_auto_provision_location]]
+=== How to configure auto provisioning location
+
+By default, Gradle will auto provision JDKs inside `$GRADLE_HOME/jdks` directory. There might be scenarios where this is not desired.
+
+In order to configure a custom auto-provisioning location, you can use the `org.gradle.java.installations.auto-download-location` Gradle property:
+
+* Either start gradle using `-Porg.gradle.java.installations.auto-download-location=/custom/path/jdks`
+* Or put `org.gradle.java.installations.auto-download-location=/custom/path/jdks` into a `gradle.properties` file.
+
 [[sec:custom_loc]]
 == Custom Toolchain locations
 
