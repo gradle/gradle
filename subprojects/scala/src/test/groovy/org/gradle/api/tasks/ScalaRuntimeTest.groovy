@@ -76,6 +76,42 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         }
     }
 
+    def "inferred Scala class path contains 'scala3-compiler_3' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path"() {
+        project.repositories {
+            mavenCentral()
+        }
+        when:
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala3-library_3-3.0.1.jar")])
+        then:
+        assertHasCorrectScala3Dependencies(classpath)
+    }
+
+
+    private void assertHasCorrectScala3Dependencies(classpath) {
+        assert classpath instanceof LazilyInitializedFileCollection
+        assert classpath.sourceCollections.size() == 1
+        with(classpath.sourceCollections[0]) {
+            assert it instanceof Configuration
+            assert it.state == Configuration.State.UNRESOLVED
+            assert it.dependencies.size() == 3
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-compiler_3" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-sbt-bridge" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scala3-interfaces" &&
+                    d.version == "3.0.1"
+            }
+        }
+    }
+
     def "inference fails if 'scalaTools' configuration is empty and no repository declared"() {
         when:
         def scalaClasspath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
