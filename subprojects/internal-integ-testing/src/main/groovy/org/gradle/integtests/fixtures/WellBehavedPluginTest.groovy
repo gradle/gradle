@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.plugins.DefaultPluginManager
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.GUtil
 import org.junit.Assume
 
@@ -130,7 +129,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'ivy-publish', 'maven-publish', 'publishing',
             'eclipse', 'idea', 'version-catalog'
         ])
-        if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
+        if (appliesBasePlugin) {
             assert output.count("configuring :") == 2
             outputContains("configuring :help")
             // because capturing registered outputs for stale output cleanup forces configuring clean

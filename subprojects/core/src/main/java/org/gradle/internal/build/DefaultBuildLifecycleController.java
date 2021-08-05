@@ -25,6 +25,7 @@ import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
@@ -113,6 +114,20 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
         controller.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
+    }
+
+    @Override
+    public void finalizeWorkGraph(boolean workScheduled) {
+        if (workScheduled) {
+            TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+            taskGraph.populate();
+        }
+        finalizeGradleServices(gradle);
+    }
+
+    private void finalizeGradleServices(GradleInternal gradle) {
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
+        buildOutputCleanupRegistry.resolveOutputs();
     }
 
     @Override

@@ -16,7 +16,6 @@ Accessors for org.gradle.ide.xcode.internal.xcodeproj.PBXShellScriptBuildPhase.s
 Accessors for org.gradle.ide.xcode.internal.xcodeproj.PBXShellScriptBuildPhase.shellScript don't use symmetrical @Nullable
 Accessors for org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.productName don't use symmetrical @Nullable
 Accessors for org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.productReference don't use symmetrical @Nullable
-Accessors for org.gradle.initialization.BuildLayoutParameters.projectDir don't use symmetrical @Nullable
 Accessors for org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata.branch don't use symmetrical @Nullable
 Accessors for org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher.arguments don't use symmetrical @Nullable
 Accessors for org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector.description don't use symmetrical @Nullable

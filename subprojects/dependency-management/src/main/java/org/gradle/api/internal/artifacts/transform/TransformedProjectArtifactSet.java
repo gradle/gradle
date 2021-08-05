@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -34,7 +35,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 /**
  * An artifact set containing transformed project artifacts.
@@ -42,24 +43,28 @@ import java.util.Collections;
 public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
     private final ComponentIdentifier componentIdentifier;
     private final ImmutableAttributes targetAttributes;
+    private final List<? extends Capability> capabilities;
     private final Collection<TransformationNode> transformedArtifacts;
 
     public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
         ResolvedArtifactSet delegate,
         VariantDefinition variantDefinition,
+        List<? extends Capability> capabilities,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeFactory transformationNodeFactory
     ) {
         this.componentIdentifier = componentIdentifier;
         this.targetAttributes = variantDefinition.getTargetAttributes();
+        this.capabilities = capabilities;
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, variantDefinition.getTransformation());
         this.transformedArtifacts = transformationNodeFactory.create(delegate, variantDefinition.getTransformationStep(), dependenciesResolver);
     }
 
-    public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, Collection<TransformationNode> transformedArtifacts) {
+    public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, List<? extends Capability> capabilities, Collection<TransformationNode> transformedArtifacts) {
         this.componentIdentifier = componentIdentifier;
         this.targetAttributes = targetAttributes;
+        this.capabilities = capabilities;
         this.transformedArtifacts = transformedArtifacts;
     }
 
@@ -69,6 +74,10 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
 
     public ImmutableAttributes getTargetAttributes() {
         return targetAttributes;
+    }
+
+    public List<? extends Capability> getCapabilities() {
+        return capabilities;
     }
 
     public Collection<TransformationNode> getTransformedArtifacts() {
@@ -102,7 +111,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
             Try<TransformationSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
-                    visitor.visitArtifact(displayName, targetAttributes, Collections.emptyList(), node.getInputArtifact().transformedTo(file));
+                    visitor.visitArtifact(displayName, targetAttributes, capabilities, node.getInputArtifact().transformedTo(file));
                 }
             } else {
                 Throwable failure = transformedSubject.getFailure().get();

@@ -8,6 +8,7 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 [anatawa12](https://github.com/anatawa12)
+[Marcono1234](https://github.com/Marcono1234)
 
 ## Upgrade instructions
 

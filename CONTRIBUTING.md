@@ -74,11 +74,11 @@ The full distribution will be created at `subprojects/distributions-full/build/d
 
 In order to make changes to Gradle, you'll need:
 
-* A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).
+* A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).  IntelliJ Ultimate will also work.
 * A [Java Development Kit](http://jdk.java.net/) (JDK) version 11.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
-Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with
+Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with:
 
     git config user.name 'First Last'
     git config user.email user@example.com

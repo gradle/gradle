@@ -16,6 +16,7 @@
 
 plugins {
     `java-library`
+    alias(deps.plugins.jmh)
 }
 
 dependencies {

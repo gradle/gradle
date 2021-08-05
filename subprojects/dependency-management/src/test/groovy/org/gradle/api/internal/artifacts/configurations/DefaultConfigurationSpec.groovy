@@ -43,6 +43,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
+import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
@@ -68,9 +69,11 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
+import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -1709,6 +1712,21 @@ All Artifacts:
         config.getAllExcludeRules() == [firstRule, secondRule, thirdRule] as Set
         parentConfig.getAllExcludeRules() == [secondRule, thirdRule] as Set
         rootConfig.getAllExcludeRules() == [thirdRule] as Set
+    }
+
+    void 'gives informative error message when settings is not available'() {
+        when:
+        DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
+        resolutionServices.resolveRepositoryHandler.mavenCentral()
+
+        Dependency dep = resolutionServices.dependencyHandler.create("dummyGroupId:dummyArtifactId:dummyVersion")
+        resolutionServices.configurationContainer.detachedConfiguration(dep).files
+
+        then:
+        ResolveException e = thrown()
+        def stacktrace = ExceptionUtil.printStackTrace(e)
+        stacktrace.contains("Could not find dummyGroupId:dummyArtifactId:dummyVersion")
+        stacktrace.contains("The settings are not yet available for build")
     }
 
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {

@@ -24,6 +24,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "configuration cache for help on empty project"() {
         given:
+        settingsFile.createFile()
         configurationCacheRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')

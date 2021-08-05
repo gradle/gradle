@@ -724,6 +724,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public ExecutionFailure assertHasResolutions(String... resolutions) {
+            outputFailure.assertHasResolutions(resolutions);
+            return this;
+        }
+
+        @Override
         public ExecutionFailure assertHasResolution(String resolution) {
             outputFailure.assertHasResolution(resolution);
             return this;

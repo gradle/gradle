@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -115,9 +116,10 @@ public class Assemble extends DefaultTask {
         setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public ConfigurableFileCollection getSource() {
         return source;
     }

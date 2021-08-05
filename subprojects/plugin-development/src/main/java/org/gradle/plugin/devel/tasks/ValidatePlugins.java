@@ -24,6 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -128,9 +129,10 @@ public abstract class ValidatePlugins extends DefaultTask {
     /**
      * The classes to validate.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getClasses();
 
     /**

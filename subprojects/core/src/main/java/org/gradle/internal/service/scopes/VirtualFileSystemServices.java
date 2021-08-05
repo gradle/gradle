@@ -67,9 +67,9 @@ import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
+import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
@@ -225,8 +225,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     watcherRegistryFactory,
                     rootReference,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
-                    locationsWrittenByCurrentBuild,
-                    watchableFileSystemDetector
+                    locationsWrittenByCurrentBuild
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState ->

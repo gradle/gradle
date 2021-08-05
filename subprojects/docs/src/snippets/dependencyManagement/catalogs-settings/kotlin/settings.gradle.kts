@@ -82,3 +82,31 @@ if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() 
     }
     // end::catalog_with_bundle[]
 }
+
+if (providers.systemProperty("create4").forUseAtConfigurationTime().getOrNull() != null) {
+    // tag::catalog_with_plugin[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            create("libs") {
+                alias("jmh").toPluginId("me.champeau.jmh").version("0.6.5")
+            }
+        }
+    }
+    // end::catalog_with_plugin[]
+    dependencyResolutionManagement {
+        versionCatalogs {
+            named("libs") {
+                version("groovy", "3.0.5")
+                version("checkstyle", "8.37")
+                alias("groovy-core").to("org.codehaus.groovy", "groovy").versionRef("groovy")
+                alias("groovy-json").to("org.codehaus.groovy", "groovy-json").versionRef("groovy")
+                alias("groovy-nio").to("org.codehaus.groovy", "groovy-nio").versionRef("groovy")
+                alias("commons-lang3").to("org.apache.commons", "commons-lang3").version {
+                    strictly("[3.8, 4.0[")
+                    prefer("3.9")
+                }
+                bundle("groovy", listOf("groovy-core", "groovy-json", "groovy-nio"))
+            }
+        }
+    }
+}

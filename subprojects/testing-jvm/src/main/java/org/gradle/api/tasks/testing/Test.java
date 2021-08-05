@@ -45,6 +45,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -1126,9 +1127,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The candidate class files.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }

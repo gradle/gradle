@@ -18,7 +18,6 @@ import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistribu
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
-import gradlebuild.basics.testing.TestType
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
@@ -150,16 +149,12 @@ fun addCompileAllTask() {
     tasks.register("compileAllProduction") {
         description = "Compile all production source code, usually only main and testFixtures."
         val compileTasks = project.tasks.matching {
-            (it is JavaCompile || it is GroovyCompile) && !it.isTestCompile()
+            // Currently, we compile everything since the Groovy compiler is not deterministic enough.
+            (it is JavaCompile || it is GroovyCompile)
         }
         dependsOn(compileTasks)
     }
 }
-
-val testCompileTasks
-    get() = TestType.values().map { "compile${it.prefix.toUpperCase()}Test" } + listOf("compileTestGroovy", "compileTestKotlin")
-
-fun Task.isTestCompile() = testCompileTasks.any { name.startsWith(it) }
 
 fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {

@@ -21,10 +21,12 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.FileUtils
+import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -33,14 +35,14 @@ class DefaultSettingsLoaderTest extends Specification {
 
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
-    def buildLayout = new BuildLayout(null, FileUtils.canonicalize(new File("someDir")), null)
+    def buildLayout = new BuildLayout(null, FileUtils.canonicalize(new File("someDir")), null, Stub(ScriptFileResolver))
     def buildLayoutFactory = Mock(BuildLayoutFactory)
     def settingsScript = Mock(ScriptSource)
     def startParameter = new StartParameterInternal()
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsProcessor = Mock(SettingsProcessor)
-    def gradlePropertiesController = Mock(GradlePropertiesController)
-    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory)
+    def buildInCommand = Mock(BuiltInCommand)
+    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory, [buildInCommand])
 
     void findAndLoadSettingsWithExistingSettings() {
         when:

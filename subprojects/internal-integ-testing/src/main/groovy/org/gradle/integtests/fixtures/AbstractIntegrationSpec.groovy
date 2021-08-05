@@ -47,6 +47,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.annotation.Nullable
+import java.nio.file.Files
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
@@ -64,6 +65,7 @@ class AbstractIntegrationSpec extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    private TestFile testDirOverride = null
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     private GradleExecuter executor
@@ -205,6 +207,9 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     TestFile getTestDirectory() {
+        if (testDirOverride != null) {
+            return testDirOverride
+        }
         temporaryFolder.testDirectory
     }
 
@@ -287,6 +292,33 @@ class AbstractIntegrationSpec extends Specification {
         recreateExecuter()
         executer.requireIsolatedDaemons() //otherwise we might connect to a running daemon from the original installation location
         executer
+    }
+
+    /**
+     * Configure the test directory so that there is no settings.gradle(.kts) anywhere in its hierarchy.
+     * By default, tests will run under the `build` directory and so a settings.gradle will be present. Most tests do not care but some are sensitive to this.
+     */
+    void useTestDirectoryThatIsNotEmbeddedInAnotherBuild() {
+        def undefinedBuildDirectory = Files.createTempDirectory("gradle").toFile()
+        testDirOverride = new TestFile(undefinedBuildDirectory)
+        assertNoDefinedBuild(testDirectory)
+        executer.beforeExecute {
+            executer.inDirectory(testDirectory)
+            executer.ignoreMissingSettingsFile()
+        }
+    }
+
+    void assertNoDefinedBuild(TestFile testDirectory) {
+        testDirectory.file(".gradle").assertDoesNotExist()
+        def currentDirectory = testDirectory
+        for (; ;) {
+            currentDirectory.file(settingsFileName).assertDoesNotExist()
+            currentDirectory.file(settingsKotlinFileName).assertDoesNotExist()
+            currentDirectory = currentDirectory.parentFile
+            if (currentDirectory == null) {
+                break
+            }
+        }
     }
 
     AbstractIntegrationSpec withBuildCache() {

@@ -450,8 +450,8 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 | Use: _OK_, with issues.
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching(groovy.lang.Closure)]
-.2+| This is OK to use because it does not require tasks to be created immediately.
-| Use: _OK_
+.2+| `matching(Spec)` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType(java.lang.Class).matching(Spec)`.
+| Use: _OK_, with issues.
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getAt-java.lang.String-[TaskCollection.getAt(java.lang.String)]
 .2+| Avoid calling this directly as it's a Groovy convenience method. The alternative returns a `TaskProvider` instead of a `Task`.
