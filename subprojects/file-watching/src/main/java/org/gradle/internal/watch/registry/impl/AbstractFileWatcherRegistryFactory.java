@@ -27,7 +27,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
-public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions> implements FileWatcherRegistryFactory {
+public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions<W>, W extends FileWatcher> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;
@@ -42,7 +42,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
-            FileWatcher watcher = createFileWatcher(fileEvents);
+            W watcher = createFileWatcher(fileEvents);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter);
             return new DefaultFileWatcherRegistry(
                 fileEventFunctions,
@@ -57,7 +57,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
         }
     }
 
-    protected abstract FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
+    protected abstract W createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
-    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter);
+    protected abstract FileWatcherUpdater createFileWatcherUpdater(W watcher, Predicate<String> watchFilter);
 }
