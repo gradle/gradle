@@ -41,6 +41,14 @@ public interface FileWatcherUpdater {
     void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
+     * Remove watched hierarchies that have been moved.
+     *
+     * @see FileWatcherRegistry#buildStarted(SnapshotHierarchy)
+     */
+    @CheckReturnValue
+    SnapshotHierarchy buildStarted(SnapshotHierarchy root);
+
+    /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
      * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, WatchMode, int)

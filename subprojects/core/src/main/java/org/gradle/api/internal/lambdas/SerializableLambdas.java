@@ -17,6 +17,7 @@
 package org.gradle.api.internal.lambdas;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 
@@ -41,6 +42,10 @@ public class SerializableLambdas {
         return factory;
     }
 
+    public static <OUT, IN> Transformer<OUT, IN> transformer(SerializableTransformer<OUT, IN> transformer) {
+        return transformer;
+    }
+
     /**
      * A {@link Serializable} version of {@link Spec}.
      */
@@ -57,6 +62,12 @@ public class SerializableLambdas {
      * A {@link Serializable} version of {@link Factory}.
      */
     public interface SerializableFactory<T> extends Factory<T>, Serializable {
+    }
+
+    /**
+     * A {@link Serializable} version of {@link org.gradle.api.Transformer}.
+     */
+    public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
     }
 
     private SerializableLambdas() {
