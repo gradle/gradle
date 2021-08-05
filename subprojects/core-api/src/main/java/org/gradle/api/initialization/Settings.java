@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
+import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
@@ -145,7 +146,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * script for settings, and manage the classpath used to compile and execute the settings script.
      *
      * @return the classpath handler. Never returns null.
-     *
      * @since 4.4
      */
     ScriptHandler getBuildscript();
@@ -232,17 +232,17 @@ public interface Settings extends PluginAware, ExtensionAware {
 
     /**
      * Includes a build at the specified path to the composite build.
-     * @param rootProject The path to the root project directory for the build.
      *
+     * @param rootProject The path to the root project directory for the build.
      * @since 3.1
      */
     void includeBuild(Object rootProject);
 
     /**
      * Includes a build at the specified path to the composite build, with the supplied configuration.
+     *
      * @param rootProject The path to the root project directory for the build.
      * @param configuration An action to configure the included build.
-     *
      * @since 3.1
      */
     void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration);
@@ -293,15 +293,24 @@ public interface Settings extends PluginAware, ExtensionAware {
      * Enables a feature preview by name.
      *
      * @param name the name of the feature to enable
-     *
      * @since 4.6
      */
     void enableFeaturePreview(String name);
 
     /**
-     * Configures the cross-project dependency resolution aspects
-     * @param dependencyResolutionConfiguration the configuration
+     * Enables a feature preview by name.
      *
+     * @param feature the feature to enable
+     * @since 7.3
+     */
+    default void enableFeaturePreview(Feature feature) {
+        enableFeaturePreview(feature.name());
+    }
+
+    /**
+     * Configures the cross-project dependency resolution aspects
+     *
+     * @param dependencyResolutionConfiguration the configuration
      * @since 6.8
      */
     @Incubating

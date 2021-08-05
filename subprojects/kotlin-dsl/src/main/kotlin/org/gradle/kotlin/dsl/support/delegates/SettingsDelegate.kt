@@ -17,14 +17,14 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.ConfigurableIncludedBuild
-import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
+import org.gradle.api.internal.FeaturePreviews.Feature
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -34,7 +34,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
-
 import java.io.File
 
 
@@ -84,6 +83,9 @@ abstract class SettingsDelegate : Settings {
 
     override fun enableFeaturePreview(name: String) =
         delegate.enableFeaturePreview(name)
+
+    override fun enableFeaturePreview(feature: Feature) =
+        delegate.enableFeaturePreview(feature)
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
