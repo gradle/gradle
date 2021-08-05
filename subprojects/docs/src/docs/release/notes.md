@@ -6,16 +6,16 @@ There are also changes to make the [remote HTTP build cache more resilient](#htt
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Ned Twigg](https://github.com/nedtwigg)
-[Oliver Kopp](https://github.com/koppor)
-[Björn Kautler](https://github.com/Vampire)
-[naftalmm](https://github.com/naftalmm)
-[Peter Runge](https://github.com/causalnet)
-[Konstantin Gribov](https://github.com/grossws)
-[Zoroark](https://github.com/utybo)
-[Stefan Oehme](https://github.com/oehme)
-[Martin Kealey](https://github.com/kurahaupo)
-[KotlinIsland](https://github.com/KotlinIsland)
+[Ned Twigg](https://github.com/nedtwigg),
+[Oliver Kopp](https://github.com/koppor),
+[Björn Kautler](https://github.com/Vampire),
+[naftalmm](https://github.com/naftalmm),
+[Peter Runge](https://github.com/causalnet),
+[Konstantin Gribov](https://github.com/grossws),
+[Zoroark](https://github.com/utybo),
+[Stefan Oehme](https://github.com/oehme),
+[Martin Kealey](https://github.com/kurahaupo),
+[KotlinIsland](https://github.com/KotlinIsland),
 [Herbert von Broeuschmeul](https://github.com/HvB)
 
 ## Upgrade instructions
