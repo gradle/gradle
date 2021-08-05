@@ -82,7 +82,7 @@ abstract class ExternalModulesExtension {
     val jatl = "com.googlecode.jatl:jatl"
     val jaxbCore = "com.sun.xml.bind:jaxb-core"
     val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
-    val jcifs = "org.samba.jcifs:jcifs"
+    val jcifs = "jcifs:jcifs"
     val jclToSlf4j = "org.slf4j:jcl-over-slf4j"
     val jcommander = "com.beust:jcommander"
     val jetbrainsAnnotations = "org.jetbrains:annotations"
