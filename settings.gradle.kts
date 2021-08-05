@@ -4,7 +4,7 @@ pluginManagement {
     includeBuild("build-logic-settings")
     repositories {
         gradlePluginPortal()
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+        maven { url = uri("https://repo.gradle.org/gradle/public") }
         maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates") }
     }
 }

@@ -16,7 +16,7 @@
 
 repositories {
     maven {
-        name = "Gradle libs"
-        url = uri("https://repo.gradle.org/gradle/libs")
+        name = "Gradle public repository"
+        url = uri("https://repo.gradle.org/gradle/public")
     }
 }
