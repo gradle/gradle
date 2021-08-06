@@ -151,7 +151,7 @@ abstract class ExternalModulesExtension {
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
-    val littleproxy = "org.gradle.org.littleshoot:littleproxy"
+    val littleproxy = "xyz.rogfam:littleproxy"
     val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"

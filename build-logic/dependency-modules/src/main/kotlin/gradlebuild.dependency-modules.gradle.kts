@@ -56,7 +56,7 @@ dependencies {
 
         // Test dependencies - minify: remove unused transitive dependencies
         withLibraryDependencies<DependencyRemovalByNameRule>(
-            "org.gradle.org.littleshoot:littleproxy",
+            "xyz.rogfam:littleproxy",
             setOf("barchart-udt-bundle", "guava", "commons-cli")
         )
 

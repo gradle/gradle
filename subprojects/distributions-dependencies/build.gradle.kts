@@ -156,7 +156,7 @@ dependencies {
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.4.1") }}
         api(libs.kotlinCoroutinesDebug) { version { strictly("1.4.1") }}
-        api(libs.littleproxy)           { version { strictly("1.1.3"); because("latest officially released version is incompatible with Guava >= 20") }}
+        api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
