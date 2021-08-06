@@ -58,7 +58,7 @@ dependencies {
         api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.gradleProfiler)        { version { strictly("0.17.0-alpha07") }}
+        api(libs.gradleProfiler)        { version { strictly("0.17.0-alpha10") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
@@ -144,7 +144,6 @@ dependencies {
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
-        api(libs.flightrecorder)        { version { strictly("7.0.0-alpha01") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}

@@ -137,7 +137,6 @@ abstract class ExternalModulesExtension {
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
-    val flightrecorder = "org.gradle.org.openjdk.jmc:flightrecorder"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
     val httpmime = "org.apache.httpcomponents:httpmime"
