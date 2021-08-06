@@ -30,8 +30,8 @@ import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter
 import org.gradle.api.specs.Specs
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
@@ -45,9 +45,9 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -74,7 +74,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     private static boolean rule2Executed
 
     MetadataResolutionContext context = Mock()
-    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
+    def executor = new ComponentMetadataRuleExecutor(Stub(GlobalScopedCache), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()

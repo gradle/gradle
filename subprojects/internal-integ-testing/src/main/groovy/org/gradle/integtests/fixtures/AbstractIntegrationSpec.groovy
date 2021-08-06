@@ -98,6 +98,9 @@ class AbstractIntegrationSpec extends Specification {
     protected Integer maxUploadAttempts
 
     def setup() {
+        // Verify that the previous test (or fixtures) has cleaned up state correctly
+        m2.assertNoLeftoverState()
+
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
             withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
@@ -109,6 +112,10 @@ class AbstractIntegrationSpec extends Specification {
 
     def cleanup() {
         executer.cleanup()
+        m2.cleanupState()
+
+        // Verify that the test (or fixtures) has cleaned up state correctly
+        m2.assertNoLeftoverState()
     }
 
     private void recreateExecuter() {

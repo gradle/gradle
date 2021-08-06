@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.internal.BiAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion

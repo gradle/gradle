@@ -22,12 +22,15 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 
+@ServiceScope(Scopes.BuildSession.class)
 public class ProjectCacheDir implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectCacheDir.class);
 

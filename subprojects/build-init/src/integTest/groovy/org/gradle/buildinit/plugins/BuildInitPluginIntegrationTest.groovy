@@ -18,10 +18,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matcher
-import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -157,7 +154,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:
@@ -312,7 +309,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                      scala-library""")
     }
 
-    def "can initialize in a directory that is inside another build's root directory"() {
+    def "can initialize in a directory that is under another build's root directory"() {
         when:
         containerDir.file("settings.gradle") << "rootProject.name = 'root'"
 
@@ -361,43 +358,50 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         outputContains("The settings file '..${File.separatorChar}settings.gradle' already exists. Skipping build initialization.")
-        targetDir.list().toList() == [".gradle"] // ensure nothing generated
+        targetDir.list().size() == 0 // ensure nothing generated
     }
 
-    @Issue("https://github.com/gradle/gradle-private/issues/3420")
-    @IgnoreIf({ GradleContextualExecuter.noDaemon })
-    def "ignores gradle properties for existing build when initializing inside another project"() {
+    def "can create build in user home directory"() {
         when:
-        containerDir.file("settings.gradle") << "rootProject.name = 'root'"
-        containerDir.file("gradle.properties") << "org.gradle.jvmargs=-Xmx=BAD"
-
-        then:
-        succeeds "init"
-    }
-
-    def "skips init task if user home directory overlaps with project cache directory"() {
-        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dotGradleDir = targetDir.file('.gradle')
-        dotGradleDir.mkdirs()
         executer.withGradleUserHomeDir(dotGradleDir)
 
         then:
         succeeds "init"
-        result.assertTaskSkipped ":init"
-        result.assertTaskNotExecuted":wrapper"
-        outputContains("Gradle user home directory '$dotGradleDir' overlaps with the project cache directory")
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
     }
 
-    def "does not skip init task if user home directory has custom name"() {
+    def "skips init task if user home directory and project cache directory are the same"() {
         when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dotGradleDir = targetDir.file('.gradle')
+        dotGradleDir.mkdirs()
+        executer.withGradleUserHomeDir(dotGradleDir)
+        executer.withArguments("--project-cache-dir", dotGradleDir.path)
+
+        then:
+        succeeds "init"
+        result.assertTaskSkipped ":init"
+        result.assertTaskNotExecuted ":wrapper"
+        outputContains("Gradle user home directory '$dotGradleDir' overlaps with the project cache directory")
+        targetDir.list().toList() == ['.gradle']
+    }
+
+    def "can create build in user home directory when user home directory has custom name"() {
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dotGradleDir = targetDir.file('.guh')
         dotGradleDir.mkdirs()
         executer.withGradleUserHomeDir(dotGradleDir)
 
         then:
         succeeds "init"
-        result.assertTaskExecuted ":init"
-        result.assertTaskExecuted ":wrapper"
+        targetDir.file("gradlew").assertIsFile()
+        targetDir.file("settings.gradle").assertIsFile()
+        targetDir.file("build.gradle").assertIsFile()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {

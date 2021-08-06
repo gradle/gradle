@@ -17,7 +17,7 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -30,12 +30,12 @@ import java.io.File;
 public class ResolvedBuildLayout {
     private final GradleInternal gradle;
     private final BuildLayout buildLayout;
-    private final CacheScopeMapping cacheScopeMapping;
+    private final BuildScopedCache buildScopedCache;
 
-    public ResolvedBuildLayout(GradleInternal gradle, BuildLayout buildLayout, CacheScopeMapping cacheScopeMapping) {
+    public ResolvedBuildLayout(GradleInternal gradle, BuildLayout buildLayout, BuildScopedCache buildScopedCache) {
         this.gradle = gradle;
         this.buildLayout = buildLayout;
-        this.cacheScopeMapping = cacheScopeMapping;
+        this.buildScopedCache = buildScopedCache;
     }
 
     /**
@@ -50,7 +50,7 @@ public class ResolvedBuildLayout {
     }
 
     public File getBuildScopeCacheDirectory() {
-        return cacheScopeMapping.getRootDirectory(gradle.getRootProject());
+        return buildScopedCache.getRootDir();
     }
 
     /**

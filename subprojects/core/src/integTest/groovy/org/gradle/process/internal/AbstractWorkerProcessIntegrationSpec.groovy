@@ -27,9 +27,12 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.cache.internal.DefaultCacheScopeMapping
+import org.gradle.cache.internal.CacheScopeMapping
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.initialization.layout.GlobalCacheDir
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
@@ -70,10 +73,12 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     @Rule
     final RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
     final CacheFactory factory = services.get(CacheFactory.class)
-    final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, GradleVersion.current())
+    final GlobalCacheDir globalCacheDir = new GlobalCacheDir({ tmpDir.testDirectory })
+    final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(globalCacheDir.dir, GradleVersion.current())
     final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
+    final GlobalScopedCache globalScopedCache = new DefaultGlobalScopedCache(globalCacheDir.dir, cacheRepository)
     final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)
-    final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)
+    final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(globalScopedCache, moduleRegistry)
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
