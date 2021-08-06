@@ -16,12 +16,18 @@
 
 package org.gradle.architecture.test;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
@@ -38,6 +44,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
+import java.util.stream.Stream;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -51,6 +58,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
+import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiAccessTest {
@@ -91,20 +99,48 @@ public class PublicApiAccessTest {
             );
 
     @ArchTest
-    public static final ArchRule public_api_methods_do_not_return_internal_types = freeze(methods()
+    public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
-        .should().haveRawReturnType(allowed_types_for_public_api)
-    );
-
-    @ArchTest
-    public static final ArchRule public_api_methods_do_not_use_internal_types_as_parameters = freeze(methods()
-        .that(are(public_api_methods))
-        .should().haveRawParameterTypes(ArchUnitFixture.thatAll(are(allowed_types_for_public_api)))
+        .should(not(haveArgumentsOrReturnTypesThatAre(gradleInternalApi())))
     );
 
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
         .that(are(gradlePublicApi()))
-        .should(not(ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
+        .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
     );
+
+    static ArchCondition<JavaMethod> haveArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+        return new MethodReferences(types);
+    }
+
+    static class MethodReferences extends ArchCondition<JavaMethod> {
+        private final DescribedPredicate<JavaClass> types;
+
+        public MethodReferences(DescribedPredicate<JavaClass> types) {
+            super("have arguments or return types that are %s", types.getDescription());
+            this.types = types;
+        }
+
+        @Override
+        public void check(JavaMethod method, ConditionEvents events) {
+            JavaClass rawReturnType = method.getRawReturnType();
+            JavaClassList rawParameterTypes = method.getRawParameterTypes();
+            ImmutableSet<String> matchedClasses = Stream.concat(Stream.of(rawReturnType), rawParameterTypes.stream())
+                .filter(types::apply)
+                .map(JavaClass::getName)
+                .collect(ImmutableSet.toImmutableSet());
+            boolean fulfilled = !matchedClasses.isEmpty();
+            String verb = matchedClasses.size() == 1 ? "is" : "are";
+            String classesDescription = fulfilled ? String.join(", ", matchedClasses) : "no classes";
+            String message = String.format("%s has arguments/return type %s that %s %s in %s",
+                method.getDescription(),
+                classesDescription,
+                verb,
+                types.getDescription(),
+                method.getSourceCodeLocation()
+            );
+            events.add(new SimpleConditionEvent(method, fulfilled, message));
+        }
+    }
 }
