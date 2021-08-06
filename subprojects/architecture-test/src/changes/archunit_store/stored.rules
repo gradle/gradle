@@ -1,6 +1,6 @@
 #
-#Fri Aug 06 16:29:38 CEST 2021
+#Fri Aug 06 17:03:32 CEST 2021
+methods\ that\ are\ public\ API\ methods\ should\ have\ only\ arguments\ or\ return\ types\ that\ are\ Gradle\ public\ API\ or\ primitive\ or\ built-in\ JDK\ classes\ or\ Groovy\ classes=3c3e47be-b5ed-426a-8b9f-cfa00d3b09db
 classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=4b863378-ccfd-4cc1-af5b-e03ff6f3523b
-methods\ that\ are\ public\ API\ methods\ should\ not\ have\ arguments\ or\ return\ types\ that\ are\ Gradle\ Internal\ API=3c3e47be-b5ed-426a-8b9f-cfa00d3b09db
 classes\ that\ are\ not\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=b422a7b8-e77b-4a79-934b-70b4cfd5eebd
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=599bf77e-e598-4e41-bbc4-47951bba0c0f

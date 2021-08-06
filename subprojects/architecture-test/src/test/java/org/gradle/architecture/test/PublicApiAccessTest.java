@@ -19,9 +19,13 @@ package org.gradle.architecture.test;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassList;
+import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -33,6 +37,7 @@ import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -44,7 +49,10 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
-import java.util.stream.Stream;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -86,6 +94,7 @@ public class PublicApiAccessTest {
                 .or(type(URL.class))
                 .or(type(InputStream.class))
                 .or(type(Element.class))
+                .or(type(QName.class))
                 .or(type(StringWriter.class))
                 .or(type(Writer.class))
                 .or(type(Duration.class))
@@ -101,7 +110,7 @@ public class PublicApiAccessTest {
     @ArchTest
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
-        .should(not(haveArgumentsOrReturnTypesThatAre(gradleInternalApi())))
+        .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
     );
 
     @ArchTest
@@ -110,37 +119,69 @@ public class PublicApiAccessTest {
         .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
     );
 
-    static ArchCondition<JavaMethod> haveArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
-        return new MethodReferences(types);
+    static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+        return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
     }
 
-    static class MethodReferences extends ArchCondition<JavaMethod> {
+    static class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
         private final DescribedPredicate<JavaClass> types;
 
-        public MethodReferences(DescribedPredicate<JavaClass> types) {
-            super("have arguments or return types that are %s", types.getDescription());
+        public HaveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+            super("have only arguments or return types that are %s", types.getDescription());
             this.types = types;
         }
 
         @Override
         public void check(JavaMethod method, ConditionEvents events) {
-            JavaClass rawReturnType = method.getRawReturnType();
-            JavaClassList rawParameterTypes = method.getRawParameterTypes();
-            ImmutableSet<String> matchedClasses = Stream.concat(Stream.of(rawReturnType), rawParameterTypes.stream())
-                .filter(types::apply)
+            Set<JavaClass> referencedTypes = new LinkedHashSet<>();
+            unpackJavaType(method.getReturnType(), referencedTypes);
+            method.getTypeParameters().forEach(typeParameter -> unpackJavaType(typeParameter, referencedTypes));
+            referencedTypes.addAll(method.getRawParameterTypes());
+            ImmutableSet<String> matchedClasses = referencedTypes.stream()
+                .filter(it -> !types.apply(it))
                 .map(JavaClass::getName)
                 .collect(ImmutableSet.toImmutableSet());
-            boolean fulfilled = !matchedClasses.isEmpty();
-            String verb = matchedClasses.size() == 1 ? "is" : "are";
-            String classesDescription = fulfilled ? String.join(", ", matchedClasses) : "no classes";
-            String message = String.format("%s has arguments/return type %s that %s %s in %s",
+            boolean fulfilled = matchedClasses.isEmpty();
+            String message = fulfilled
+                ? String.format("%s has only arguments/return type that are %s in %s",
                 method.getDescription(),
-                classesDescription,
-                verb,
+                types.getDescription(),
+                method.getSourceCodeLocation())
+
+                : String.format("%s has arguments/return type %s that %s not %s in %s",
+                method.getDescription(),
+                String.join(", ", matchedClasses),
+                matchedClasses.size() == 1 ? "is" : "are",
                 types.getDescription(),
                 method.getSourceCodeLocation()
             );
             events.add(new SimpleConditionEvent(method, fulfilled, message));
+        }
+
+        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes) {
+            unpackJavaType(type, referencedTypes, new HashSet<>());
+        }
+
+        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes, Set<JavaType> visited) {
+            if (!visited.add(type)) {
+                return;
+            }
+            if (type.toErasure().isEquivalentTo(Object.class)) {
+                return;
+            }
+            referencedTypes.add(type.toErasure());
+            if (type instanceof JavaTypeVariable) {
+                List<JavaType> upperBounds = ((JavaTypeVariable<?>) type).getUpperBounds();
+                upperBounds.forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+            } else if (type instanceof JavaGenericArrayType) {
+                unpackJavaType(((JavaGenericArrayType) type).getComponentType(), referencedTypes, visited);
+            } else if (type instanceof JavaWildcardType) {
+                JavaWildcardType wildcardType = (JavaWildcardType) type;
+                wildcardType.getUpperBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+                wildcardType.getLowerBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+            } else if (type instanceof JavaParameterizedType) {
+                ((JavaParameterizedType) type).getActualTypeArguments().forEach(argument -> unpackJavaType(argument, referencedTypes, visited));
+            }
         }
     }
 }
