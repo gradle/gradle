@@ -8,6 +8,7 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
+    testImplementation(project(":core"))
 
     testImplementation(libs.archunitJunit5)
     testImplementation(libs.guava)

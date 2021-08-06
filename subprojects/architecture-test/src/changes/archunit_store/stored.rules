@@ -1,4 +1,7 @@
 #
-#Fri Jun 25 10:33:07 CEST 2021
+#Fri Aug 06 15:04:26 CEST 2021
+classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=4b863378-ccfd-4cc1-af5b-e03ff6f3523b
+methods\ that\ are\ public\ API\ methods\ should\ have\ raw\ return\ type\ Gradle\ public\ API\ or\ primitive\ or\ built-in\ JDK\ classes\ or\ Groovy\ classes=3f0e613d-a73f-4e1f-b922-4394529f9a35
 classes\ that\ are\ not\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=b422a7b8-e77b-4a79-934b-70b4cfd5eebd
+methods\ that\ are\ public\ API\ methods\ should\ have\ raw\ parameter\ types\ that\ all\ are\ Gradle\ public\ API\ or\ primitive\ or\ built-in\ JDK\ classes\ or\ Groovy\ classes=6fdc78eb-aaf2-4162-adbd-47c3e2adb09d
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=599bf77e-e598-4e41-bbc4-47951bba0c0f
