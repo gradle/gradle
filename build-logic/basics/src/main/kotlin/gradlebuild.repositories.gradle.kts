@@ -24,5 +24,11 @@ repositories {
             includeModuleByRegex("org.gradle", "sample-(check|discovery)")
         }
     }
+    google {
+        content {
+            includeGroup("com.android.databinding")
+            includeGroupByRegex("com\\.android\\.tools(\\.[a-z.\\-]*)?")
+        }
+    }
     mavenCentral()
 }
