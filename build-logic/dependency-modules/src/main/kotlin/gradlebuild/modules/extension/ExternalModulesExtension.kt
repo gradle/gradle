@@ -21,7 +21,7 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension {
 
     val groovyVersion = "3.0.8"
-    val kotlinVersion = "1.4.31"
+    val kotlinVersion = "1.5.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -41,6 +41,7 @@ abstract class ExternalModulesExtension {
     val bouncycastlePkix = "org.bouncycastle:bcpkix-jdk15on"
     val bouncycastleProvider = "org.bouncycastle:bcprov-jdk15on"
     val bsh = "org.apache-extras.beanshell:bsh"
+    val capsule = "io.usethesource:capsule"
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
@@ -185,6 +186,7 @@ abstract class ExternalModulesExtension {
         bouncycastlePgp to License.MIT,
         bouncycastleProvider to License.MIT,
         bsh to License.Apache2,
+        capsule to License.BSDStyle,
         commonsCodec to License.Apache2,
         commonsCompress to License.Apache2,
         commonsHttpclient to License.Apache2,

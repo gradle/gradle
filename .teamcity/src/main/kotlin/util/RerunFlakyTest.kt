@@ -26,7 +26,7 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import configurations.CompileAll
+import configurations.CompileAllProduction
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
@@ -105,6 +105,6 @@ class RerunFlakyTest(os: Os) : BuildType({
     }
 
     dependencies {
-        compileAllDependency(CompileAll.buildTypeId("Check"))
+        compileAllDependency(CompileAllProduction.buildTypeId("Check"))
     }
 })

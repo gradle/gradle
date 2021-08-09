@@ -17,12 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.util.internal.GUtil;
@@ -45,9 +45,9 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     private final PersistentIndexedCache<File, Long> store;
     private final long inceptionTimestamp;
 
-    public DefaultFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+    public DefaultFileAccessTimeJournal(GlobalScopedCache cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheRepository
-            .cache(CACHE_KEY)
+            .crossVersionCache(CACHE_KEY)
             .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("journal cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand

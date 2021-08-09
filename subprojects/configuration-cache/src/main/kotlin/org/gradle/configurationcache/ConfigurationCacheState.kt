@@ -107,7 +107,7 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(createBuild: (String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(createBuild: (File?, String) -> ConfigurationCacheBuild) {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -131,14 +131,12 @@ class ConfigurationCacheState(
     fun calculateRootTaskGraph(state: CachedBuildState) {
         val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
         taskGraph.prepareTaskGraph {
-            state.build.scheduleNodes {
+            state.build.state.populateWorkGraph {
                 it.addNodes(state.workGraph)
                 state.children.forEach(::addNodesForChildBuilds)
-                // This is required to signal that the task graphs are ready for execution. It should not actually end up scheduling any further tasks
-                // TODO - It would be better to have the load() method signal this instead
             }
             taskGraph.populateTaskGraphs()
-            state.build.gradle.taskGraph.populate()
+            state.build.state.workGraph.prepareForExecution(true)
         }
     }
 
@@ -153,6 +151,7 @@ class ConfigurationCacheState(
         require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
+            write(gradle.settings.settingsScript.resource.file)
             writeString(gradle.rootProject.name)
             writeBuildTreeState(gradle)
         }
@@ -173,10 +172,11 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readRootBuild(
-        createBuild: (String) -> ConfigurationCacheBuild
+        createBuild: (File?, String) -> ConfigurationCacheBuild
     ): CachedBuildState {
+        val settingsFile = read() as File?
         val rootProjectName = readString()
-        val build = createBuild(rootProjectName)
+        val build = createBuild(settingsFile, rootProjectName)
         val gradle = build.gradle
         readBuildTreeState(gradle)
         val rootBuildState = readBuildState(build)
@@ -408,7 +408,7 @@ class ConfigurationCacheState(
         val cachedBuildState =
             if (stored) {
                 val confCacheBuild = includedBuild.withState { includedGradle ->
-                    includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
+                    includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(null, includedBuild.name)
                 }
                 confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
                     stateFileFor(buildDefinition),

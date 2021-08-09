@@ -18,22 +18,19 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
 @TargetCoverage({ ScalaCoverage.DEFAULT })
 class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegrationTest {
 
-    def "respects fork options settings and executable"() {
+    def "respects fork options settings and ignores executable"() {
         def differentJvm = AvailableJavaHomes.differentJdk
         Assume.assumeThat(differentJvm, notNullValue())
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javaExecutable.absolutePath)
-        def differentJavaExecutableCanonicalPath = escapeString(differentJvm.javaExecutable.canonicalPath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
@@ -47,11 +44,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
 
-            java {
-                sourceCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
-                targetCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
-            }
-
             tasks.withType(ScalaCompile) {
                 options.forkOptions.executable = "${differentJavaExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
@@ -60,6 +52,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
                         it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
                         it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
                         it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
@@ -79,7 +72,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -99,7 +91,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -119,7 +110,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -141,7 +131,6 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    @ToBeFixedForConfigurationCache
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")

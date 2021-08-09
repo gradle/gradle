@@ -76,3 +76,13 @@ dependencyResolutionManagement {
     }
 }
 // end::catalog_with_bundle[]
+
+// tag::catalog_with_plugin[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias('jmh').toPluginId('me.champeau.jmh').version('0.6.5')
+        }
+    }
+}
+// end::catalog_with_plugin[]

@@ -228,6 +228,42 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         file('dest/a.txt').text == "1 + 2"
     }
 
+    def "can expand tokens with escaped backslash when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2) {
+                    escapeBackslash = true
+                }
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\\n2"
+    }
+
+    def "can expand tokens but not escape backslash by default when copying"() {
+        file('files/a.txt').text = "\$one\\n\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2)
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1\n2"
+    }
+
     def "can filter content using a filtering Reader when copying"() {
         file('files/a.txt').text = "one"
         file('files/b.txt').text = "two"
@@ -316,7 +352,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
         then:
         failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
-        failure.assertHasCause("Missing property (one) for Groovy template expansion. Defined keys [notused, out].")
+        failure.assertHasCause("Missing property (one) for Groovy template expansion. Defined keys [notused].")
     }
 
     def "useful help message when property cannot be expanded in filter chain"() {
@@ -335,7 +371,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         fails 'copy'
         then:
         failure.assertHasCause("Could not copy file '${file("src/two/two.a")}' to '${file("dest/two.a")}'.")
-        failure.assertHasCause("Missing property (two) for Groovy template expansion. Defined keys [notused, out].")
+        failure.assertHasCause("Missing property (two) for Groovy template expansion. Defined keys [notused].")
     }
 
     def "multiple source with inherited include and exclude patterns"() {

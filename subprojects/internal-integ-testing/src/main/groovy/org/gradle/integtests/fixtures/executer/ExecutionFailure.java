@@ -73,7 +73,12 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertThatDescription(Matcher<? super String> matcher);
 
     /**
-     * Asserts that the reported failure has the given resolution (ie the bit after '* Try').
+     * Asserts that the reported failure has exactly the given resolutions (ie the bit after '* Try').
+     */
+    ExecutionFailure assertHasResolutions(String... resolutions);
+
+    /**
+     * Asserts that the reported failure has the given resolution, and maybe more resolutions.
      */
     ExecutionFailure assertHasResolution(String resolution);
 

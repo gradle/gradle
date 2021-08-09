@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package gradlebuild.testing
+package org.gradle.cache.scopes;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-enum class TestType(val prefix: String, val executers: List<String>) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache")),
-    CROSSVERSION("crossVersion", listOf("embedded", "forking"))
+/**
+ * Factory for creating build scoped caches. These typically live under the ~/.gradle directory of the build.
+ */
+@ServiceScope(Scopes.Build.class)
+public interface BuildScopedCache extends ScopedCache {
 }

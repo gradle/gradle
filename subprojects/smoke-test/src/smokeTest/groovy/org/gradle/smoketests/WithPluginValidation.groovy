@@ -75,7 +75,7 @@ trait WithPluginValidation {
         protected void performValidation(List<String> extraParameters = []) {
             def failsValidation = validations.any { !it.messages.isEmpty() }
             def validation = owner.runner(["validateExternalPlugins", "--continue", *extraParameters] as String[])
-            validation.ignoreDeprecationWarnings()
+            validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
             def result
             if (failsValidation) {
                 result = validation.buildAndFail()

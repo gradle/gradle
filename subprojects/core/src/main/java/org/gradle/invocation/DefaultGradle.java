@@ -65,6 +65,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
@@ -75,7 +76,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
-    private final GradleInternal parent;
+    private final BuildState parent;
     private final StartParameter startParameter;
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
@@ -88,7 +89,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private ClassLoaderScope classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
-    public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
+    public DefaultGradle(@Nullable BuildState parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
@@ -137,7 +138,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public GradleInternal getParent() {
-        return parent;
+        return parent == null ? null : parent.getMutableModel();
     }
 
     @Override

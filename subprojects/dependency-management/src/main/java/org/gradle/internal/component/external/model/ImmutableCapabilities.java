@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 
 public class ImmutableCapabilities implements CapabilitiesMetadata {
@@ -33,21 +35,47 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         return of(capabilities.getCapabilities());
     }
 
-    public static ImmutableCapabilities of(List<? extends Capability> capabilities) {
-        if (capabilities.isEmpty()) {
+    public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
             return EMPTY;
         }
         if (capabilities.size() == 1) {
-            Capability single = capabilities.get(0);
-            if (single instanceof ShadowedCapability) {
-                return new ShadowedSingleImmutableCapabilities(single);
-            }
+            Capability single = capabilities.stream().findAny().get();
+            return of(single);
         }
         return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
     }
 
+    public static ImmutableCapabilities of(@Nullable Capability capability) {
+        if (capability == null) {
+            return EMPTY;
+        }
+        if (capability instanceof ShadowedCapability) {
+            return new ShadowedSingleImmutableCapabilities(capability);
+        }
+        return new ImmutableCapabilities(ImmutableList.of(capability));
+    }
+
     public ImmutableCapabilities(ImmutableList<? extends Capability> capabilities) {
         this.capabilities = capabilities;
+    }
+
+    public static ImmutableCapabilities copyAsImmutable(Collection<? extends Capability> capabilities) {
+        if (capabilities.isEmpty()) {
+            return ImmutableCapabilities.EMPTY;
+        }
+
+        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
+        for (Capability descriptor : capabilities) {
+            if (descriptor instanceof ImmutableCapability) {
+                builder.add((ImmutableCapability) descriptor);
+            } else if (descriptor instanceof ShadowedCapability) {
+                builder.add((ShadowedCapability) descriptor);
+            } else {
+                builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+            }
+        }
+        return ImmutableCapabilities.of(builder.build());
     }
 
     @Override

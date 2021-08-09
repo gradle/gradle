@@ -25,14 +25,9 @@ import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
-import static org.gradle.internal.Cast.uncheckedCast;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -91,7 +86,7 @@ public class StartParameterInternal extends StartParameter {
     }
 
     public boolean isSearchUpwards() {
-        return searchUpwards && !useLocationAsProjectRoot(getProjectDir(), getTaskNames());
+        return searchUpwards;
     }
 
     public void doNotSearchUpwards() {
@@ -189,19 +184,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
-    }
-
-    public boolean addTaskNames(Iterable<String> taskPaths) {
-        Set<String> allTasks = newLinkedHashSet(getTaskNames());
-        boolean added = allTasks.addAll(
-            taskPaths instanceof Collection
-                ? uncheckedCast(taskPaths)
-                : newArrayList(taskPaths)
-        );
-        if (added) {
-            setTaskNames(allTasks);
-        }
-        return added;
     }
 
     /**

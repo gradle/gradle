@@ -35,5 +35,11 @@ class IsolatedProjectsJavaIntegrationTest extends AbstractIsolatedProjectsIntegr
 
         then:
         noExceptionThrown()
+
+        when:
+        configurationCacheRun("b:assemble")
+
+        then:
+        noExceptionThrown()
     }
 }

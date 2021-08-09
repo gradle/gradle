@@ -79,7 +79,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
@@ -89,7 +89,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         } else {
             sourceArtifacts = sourceVariant.getArtifacts();
         }
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, dependenciesResolverFactory, transformationNodeFactory);
+        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, sourceVariant.getCapabilities().getCapabilities(), dependenciesResolverFactory, transformationNodeFactory);
     }
 
     private interface Factory {

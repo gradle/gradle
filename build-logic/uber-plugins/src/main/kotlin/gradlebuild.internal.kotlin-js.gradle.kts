@@ -20,8 +20,8 @@ plugins {
     kotlin("js")
     id("gradlebuild.dependency-modules")
     id("gradlebuild.repositories")
-    id("org.gradle.kotlin-dsl.ktlint-convention")
     id("gradlebuild.code-quality")
+    id("gradlebuild.ktlint")
 }
 
 kotlin {

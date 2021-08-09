@@ -34,7 +34,8 @@ class NonIncrementalInputChangesTest extends Specification {
     def "can iterate changes more than once"() {
         def fingerprint = DefaultCurrentFileCollectionFingerprint.from(
             new RegularFileSnapshot("/some/where", "where", HashCode.fromInt(1234), DefaultFileMetadata.file(4, 5, AccessType.DIRECT)),
-            AbsolutePathFingerprintingStrategy.DEFAULT
+            AbsolutePathFingerprintingStrategy.DEFAULT,
+            null
         )
 
         Provider<FileSystemLocation> value = Mock()

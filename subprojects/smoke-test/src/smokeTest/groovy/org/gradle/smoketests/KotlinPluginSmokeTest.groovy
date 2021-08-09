@@ -16,18 +16,24 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
+
+    static SmokeTestGradleRunner runnerFor(AbstractSmokeTest smokeTest, boolean workers, String... tasks) {
+        smokeTest.runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
+            .forwardOutput()
+    }
 
     public static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_TRANSFORMS_API = VersionNumber.parse('1.4.20')
@@ -36,6 +42,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         "Registering artifact transforms extending ArtifactTransform has been deprecated. " +
             "This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead. " +
             "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html for more details."
+    private static final ARCHIVE_NAME_DEPRECATION_WARNING = "The AbstractArchiveTask.archiveName property has been deprecated. " +
+        "This is scheduled to be removed in Gradle 8.0. Please use the archiveFileName property instead. " +
+        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archiveName for more details."
 
 
     // TODO:configuration-cache remove once fixed upstream
@@ -50,15 +59,19 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         given:
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, 'run')
-            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
+        def result = runner(workers, versionNumber, 'run')
+            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
+                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
         then:
@@ -66,8 +79,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, 'run')
-            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+        result = runner(workers, versionNumber, 'run')
+            .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API,
+                ARTIFACT_TRANSFORM_DEPRECATION_WARNING
+            )
             .build()
 
 
@@ -89,16 +104,28 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
+        def versionNumber = VersionNumber.parse(version)
 
         when:
-        def result = runner(workers, 'compileKotlin2Js')
-            .expectLegacyDeprecationWarningIf(workers && VersionNumber.parse(version) < KOTLIN_VERSION_USING_NEW_WORKERS_API,
+        def result = runner(workers, versionNumber, 'compileKotlin2Js')
+            .expectLegacyDeprecationWarningIf(workers && versionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API,
                 "The WorkerExecutor.submit() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
             )
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) >= VersionNumber.parse('1.4.0'),
-                "The `kotlin2js` Gradle plugin has been deprecated.")
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.4.0'),
+                "The `kotlin2js` Gradle plugin has been deprecated."
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+                "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber >= VersionNumber.parse('1.5.20'),
+                "The AbstractCompile.destinationDir property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
+            )
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
         then:
@@ -140,10 +167,12 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, 'compileJava')
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+        def result = runner(false, versionNumber, 'compileJava')
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+            .expectLegacyDeprecationWarningIf(versionNumber.minor == 3, ARCHIVE_NAME_DEPRECATION_WARNING)
             .build()
 
 
@@ -158,6 +187,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+
+        assumeTrue(kotlinVersion != '1.3.72')
+
         given:
         buildFile << """
             plugins {
@@ -174,17 +206,18 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             }
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+        def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, 'build')
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
+        def result = runner(false, versionNumber, 'build')
+            .expectLegacyDeprecationWarningIf(versionNumber < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, 'build')
+        result = runner(false, versionNumber, 'build')
             .expectLegacyDeprecationWarningIf(!GradleContextualExecuter.configCache && VersionNumber.parse(kotlinVersion) < KOTLIN_VERSION_USING_NEW_TRANSFORMS_API, ARTIFACT_TRANSFORM_DEPRECATION_WARNING)
             .build()
 
@@ -195,13 +228,11 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    private BuildResult build(boolean workers, String... tasks) {
-        return runner(workers, *tasks).build()
-    }
-
-    private SmokeTestGradleRunner runner(boolean workers, String... tasks) {
-        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
-            .forwardOutput()
+    private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
+        if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=--illegal-access=permit", *tasks)
+        }
+        return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }
 
     @Override

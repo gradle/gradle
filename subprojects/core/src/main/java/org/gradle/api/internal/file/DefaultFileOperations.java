@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
@@ -64,6 +65,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
+// Suppress warnings that could lead the code to be refactored in a configuration cache incompatible way.
+@SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -88,11 +93,13 @@ public class DefaultFileOperations implements FileOperations {
         FileHasher fileHasher,
         DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
+        ObjectFactory objectFactory,
         FileSystem fileSystem,
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
         DocumentationRegistry documentationRegistry,
-        ProviderFactory providers) {
+        ProviderFactory providers
+    ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -109,6 +116,7 @@ public class DefaultFileOperations implements FileOperations {
             fileCollectionFactory,
             fileResolver,
             patternSetFactory,
+            objectFactory,
             fileSystem,
             instantiator,
             documentationRegistry
@@ -199,10 +207,10 @@ public class DefaultFileOperations implements FileOperations {
                 }
                 if (RegularFile.class.isAssignableFrom(type)) {
                     Provider<RegularFile> regularFileProvider = Cast.uncheckedCast(provider);
-                    return regularFileProvider.map(RegularFile::getAsFile);
+                    return regularFileProvider.map(transformer(RegularFile::getAsFile));
                 }
             }
-            return provider.map(this::file);
+            return provider.map(transformer(this::file));
         }
         return providers.provider(() -> file(path));
     }
@@ -280,6 +288,7 @@ public class DefaultFileOperations implements FileOperations {
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
+        ObjectFactory objectFactory = services.get(ObjectFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         StreamHasher streamHasher = services.get(StreamHasher.class);
@@ -306,6 +315,7 @@ public class DefaultFileOperations implements FileOperations {
             fileHasher,
             resourceHandlerFactory,
             fileTreeFactory,
+            objectFactory,
             fileSystem,
             patternSetFactory,
             deleter,

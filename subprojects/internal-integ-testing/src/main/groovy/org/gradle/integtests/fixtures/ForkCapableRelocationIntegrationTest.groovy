@@ -29,7 +29,6 @@ abstract class ForkCapableRelocationIntegrationTest extends AbstractProjectReloc
         return taskName.split(':').last()
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = ["ScalaCompileRelocationIntegrationTest"])
     def "can provide relocatable command line arguments to forked daemons"() {
         def originalDir = file("original-dir")
         originalDir.file("settings.gradle") << localCacheConfiguration()

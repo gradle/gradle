@@ -35,6 +35,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
@@ -194,34 +195,40 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private void fillInFailureResolution(FailureDetails details) {
         BufferingStyledTextOutput resolution = details.resolution;
+        ContextImpl context = new ContextImpl(resolution);
         if (details.failure instanceof FailureResolutionAware) {
-            ((FailureResolutionAware) details.failure).appendResolution(resolution, clientMetaData);
-            if (resolution.getHasContent()) {
-                resolution.append(' ');
-            }
+            ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
-            resolution.text("Run with ");
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION);
-            resolution.text(" option to get the stack trace. ");
+            context.appendResolution(output -> {
+                resolution.text("Run with ");
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.StacktraceOption.STACKTRACE_LONG_OPTION);
+                resolution.text(" option to get the stack trace.");
+            });
         }
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
-            resolution.text("Run with ");
-            if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION);
-                resolution.text(" or ");
-            }
-            resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
-            resolution.text(" option to get more log output.");
+            context.appendResolution(output -> {
+                resolution.text("Run with ");
+                if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
+                    resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION);
+                    resolution.text(" or ");
+                }
+                resolution.withStyle(UserInput).format("--%s", LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION);
+                resolution.text(" option to get more log output.");
+            });
         }
 
-        addBuildScanMessage(resolution);
+        if (!context.missingBuild) {
+            addBuildScanMessage(context);
+        }
     }
 
-    private void addBuildScanMessage(BufferingStyledTextOutput resolution) {
-        resolution.text(" Run with ");
-        resolution.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
-        resolution.text(" to get full insights.");
+    private void addBuildScanMessage(ContextImpl context) {
+        context.appendResolution(output -> {
+            output.text("Run with ");
+            output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+            output.text(" to get full insights.");
+        });
     }
 
     private void writeGeneralTips(StyledTextOutput resolution) {
@@ -305,6 +312,34 @@ public class BuildExceptionReporter implements Action<Throwable> {
             ((StyledException) failure).render(details);
         } else {
             details.text(getMessage(failure));
+        }
+    }
+
+    private class ContextImpl implements FailureResolutionAware.Context {
+        private final BufferingStyledTextOutput resolution;
+        private boolean missingBuild;
+
+        public ContextImpl(BufferingStyledTextOutput resolution) {
+            this.resolution = resolution;
+        }
+
+        @Override
+        public BuildClientMetaData getClientMetaData() {
+            return clientMetaData;
+        }
+
+        @Override
+        public void doNotSuggestResolutionsThatRequireBuildDefinition() {
+            missingBuild = true;
+        }
+
+        @Override
+        public void appendResolution(Consumer<StyledTextOutput> resolutionProducer) {
+            if (resolution.getHasContent()) {
+                resolution.println();
+            }
+            resolution.style(Info).text("> ").style(Normal);
+            resolutionProducer.accept(resolution);
         }
     }
 }

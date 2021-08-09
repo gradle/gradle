@@ -19,8 +19,8 @@ package org.gradle.internal.watch.registry.impl;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
-import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
+import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions.OsxFileWatcher;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
@@ -31,14 +31,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions> {
+public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
     public DarwinFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
         super(FileEvents.get(OsxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override
-    protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+    protected OsxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
         return fileEventFunctions.newWatcher(fileEvents)
             // TODO Figure out a good value for this
             .withLatency(20, TimeUnit.MICROSECONDS)
@@ -46,8 +46,8 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchableHierarchies);
+    protected FileWatcherUpdater createFileWatcherUpdater(OsxFileWatcher watcher, WatchableHierarchies watchableHierarchies) {
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchableHierarchies, root -> root);
     }
 
     /**

@@ -15,7 +15,7 @@ dependencies {
     constraints {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.6.3")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.1") // Sync with `settings.gradle.kts`
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.1.1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.18.1-hotfix")
         api("com.gradle.publish:plugin-publish-plugin:0.14.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
@@ -24,6 +24,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.3.1")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
+        api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
         api("com.diffplug.spotless:spotless-plugin-gradle:5.10.2")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
@@ -58,7 +59,7 @@ dependencies {
         api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.2.0")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0")
         api("org.jsoup:jsoup:1.13.1")
         api("org.junit.jupiter:junit-jupiter:5.7.1")
         api("org.junit.vintage:junit-vintage-engine:5.7.1")

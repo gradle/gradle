@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -30,7 +29,6 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use accessors for plugins in the buildSrc classpath`() {
         assumeNonEmbeddedGradleExecuter()
 

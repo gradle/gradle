@@ -167,6 +167,7 @@ public class TestFiles {
             fileHasher(),
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
+            objectFactory(),
             fileSystem,
             getPatternSetFactory(),
             deleter(),

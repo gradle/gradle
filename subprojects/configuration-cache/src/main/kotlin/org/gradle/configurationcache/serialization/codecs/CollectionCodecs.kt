@@ -64,8 +64,11 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
 )
 
 
+/**
+ * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
+ */
 internal
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
 
 
 internal
@@ -77,7 +80,17 @@ val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { Co
 
 
 internal
-val treeMapCodec: Codec<TreeMap<Any?, Any?>> = mapCodec { TreeMap<Any?, Any?>() }
+val treeMapCodec: Codec<TreeMap<Any?, Any?>> = codec(
+    {
+        write(it.comparator())
+        writeMap(it)
+    },
+    {
+        @Suppress("unchecked_cast")
+        val comparator = read() as Comparator<Any?>?
+        readMapInto { TreeMap(comparator) }
+    }
+)
 
 
 internal

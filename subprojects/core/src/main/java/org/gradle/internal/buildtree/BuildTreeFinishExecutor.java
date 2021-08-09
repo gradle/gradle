@@ -16,8 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.ExecutionResult;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface BuildTreeFinishExecutor {
@@ -25,7 +24,8 @@ public interface BuildTreeFinishExecutor {
      * Finishes any work and runs any pending user clean up code such as build finished hooks, build service cleanup and so on.
      *
      * @param failures The failures to report to the build finished hooks.
-     * @return A result containing any failures that happened finishing the build tree.
+     * @return The exception to throw, packages up the given failures plus any failures finishing the build.
      */
-    ExecutionResult<Void> finishBuildTree(List<Throwable> failures);
+    @Nullable
+    RuntimeException finishBuildTree(List<Throwable> failures);
 }

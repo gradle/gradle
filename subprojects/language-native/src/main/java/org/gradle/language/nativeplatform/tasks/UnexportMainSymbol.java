@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -56,8 +57,9 @@ public class UnexportMainSymbol extends DefaultTask {
      * @since 4.5
      */
     @InputFiles
-    @PathSensitive(PathSensitivity.NAME_ONLY)
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     public ConfigurableFileCollection getObjects() {
         return source;
     }

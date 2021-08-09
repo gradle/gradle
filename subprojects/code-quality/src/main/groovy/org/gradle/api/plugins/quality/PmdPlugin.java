@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
@@ -53,7 +54,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.31.0";
+    public static final String DEFAULT_PMD_VERSION = "6.36.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
@@ -184,6 +185,13 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         // This is important to get transitive implementation dependencies. PMD may load referenced classes for analysis so it expects the classpath to be "closed" world.
         getJvmPluginServices().configureAsRuntimeClasspath(pmdAuxClasspath);
 
-        taskMapping.map("classpath", () -> sourceSet.getOutput().plus(pmdAuxClasspath));
+        // We have to explicitly add compileClasspath here because it may contain classes that aren't part of the compileClasspathConfiguration. In particular, compile
+        // classpath of the test sourceSet contains output of the main sourceSet.
+        taskMapping.map("classpath", () -> {
+            // It is important to subtract compileClasspath and not pmdAuxClasspath here because these configurations are resolved differently (as a compile and as a
+            // runtime classpath). Compile and runtime entries for the same dependency may resolve to different files (e.g. compiled classes directory vs. jar).
+            FileCollection nonConfigurationClasspathEntries = sourceSet.getCompileClasspath().minus(compileClasspath);
+            return sourceSet.getOutput().plus(nonConfigurationClasspathEntries).plus(pmdAuxClasspath);
+        });
     }
 }

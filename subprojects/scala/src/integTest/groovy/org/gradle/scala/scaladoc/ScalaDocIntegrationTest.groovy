@@ -19,7 +19,6 @@ package org.gradle.scala.scaladoc
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.scala.ScalaCompilationFixture
 
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -28,7 +27,6 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
 
-    @ToBeFixedForConfigurationCache
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
         buildScript(classes.buildScript())
@@ -53,7 +51,6 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         executedAndNotSkipped scaladoc
     }
 
-    @ToBeFixedForConfigurationCache
     def "scaladoc is loaded from cache"() {
         classes.baseline()
         buildScript(classes.buildScript())

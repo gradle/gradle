@@ -1,20 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt",
-            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecScopeKt.version(org.gradle.plugin.use.PluginDependencySpec,org.gradle.api.provider.Provider)",
-            "acceptation": "Detector incorrectly detects that @since is missing",
-            "changes": [
-                "METHOD_ADDED_TO_PUBLIC_CLASS"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ide.api.GeneratorTask",
-            "member": "Class org.gradle.plugins.ide.api.GeneratorTask",
-            "acceptation": "This is a base class and should be abstract. The change is non-breaking, since the class has no abstract members and abstract tasks can be registered.",
-            "changes": [
-                "Class is now abstract"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

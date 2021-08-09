@@ -268,8 +268,8 @@ a|
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
 link:{gradle-issues}13455[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
-link:{gradle-issues}13460[[.yellow]#⚠#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
-link:{gradle-issues}13461[[.red]#✖#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
+link:{gradle-issues}13460[[.green]#✓#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+link:{gradle-issues}13461[[.green]#✓#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
 link:{gradle-issues}13462[[.yellow]#⚠#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
 
 a|

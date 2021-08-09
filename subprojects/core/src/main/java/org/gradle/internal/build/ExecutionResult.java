@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,11 +84,19 @@ public abstract class ExecutionResult<T> {
         return new Failure<>(ImmutableList.of(failure));
     }
 
-    public static <T> ExecutionResult<Void> maybeFailed(List<? extends Throwable> failures) {
+    public static ExecutionResult<Void> maybeFailed(List<? extends Throwable> failures) {
         if (failures.isEmpty()) {
             return SUCCESS;
         } else {
             return new Failure<>(ImmutableList.copyOf(failures));
+        }
+    }
+
+    public static ExecutionResult<Void> maybeFailed(@Nullable Throwable failure) {
+        if (failure == null) {
+            return SUCCESS;
+        } else {
+            return new Failure<>(ImmutableList.of(failure));
         }
     }
 

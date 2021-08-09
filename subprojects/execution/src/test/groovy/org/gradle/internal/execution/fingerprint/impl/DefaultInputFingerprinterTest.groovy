@@ -28,6 +28,7 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -63,7 +64,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * fingerprinter.fingerprint(fileInput) >> fileInputFingerprint
+        1 * fingerprinter.fingerprint(fileInput, null) >> fileInputFingerprint
         0 * _
 
         then:
@@ -74,6 +75,7 @@ class DefaultInputFingerprinterTest extends Specification {
     def "ignores already known properties"() {
         when:
         def result = fingerprintInputProperties(
+            ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of("input", inputSnapshot),
             ImmutableSortedMap.of("file", fileInputFingerprint)
@@ -112,10 +114,11 @@ class DefaultInputFingerprinterTest extends Specification {
 
     private Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = ImmutableSortedMap.of(),
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, FileCollectionFingerprint> previousFingerprints = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots = ImmutableSortedMap.of(),
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, knownValueSnapshots, knownFingerprints, inputs)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs)
     }
 }

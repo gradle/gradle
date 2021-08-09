@@ -45,8 +45,8 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         config1.name >> "config1"
         config1.collectVariants(_) >> { ConfigurationInternal.VariantVisitor visitor ->
             visitor.visitArtifacts(artifacts1)
-            visitor.visitChildVariant("child1", null, null, null)
-            visitor.visitChildVariant("child2", null, null, null)
+            visitor.visitChildVariant("child1", null, null, null, null)
+            visitor.visitChildVariant("child2", null, null, null, null)
         }
         config2.name >> "config2"
         config2.collectVariants(_) >> { ConfigurationInternal.VariantVisitor visitor ->
@@ -64,8 +64,8 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY, _)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config2, configurationMetadataBuilder)
         1 * metaData.addArtifacts("config1", artifacts1)
-        1 * metaData.addVariant("config1", "config1-child1", _, _, _, _)
-        1 * metaData.addVariant("config1", "config1-child2", _, _, _, _)
+        1 * metaData.addVariant("config1", "config1-child1", _, _, _, _, _)
+        1 * metaData.addVariant("config1", "config1-child2", _, _, _, _, _)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
     }

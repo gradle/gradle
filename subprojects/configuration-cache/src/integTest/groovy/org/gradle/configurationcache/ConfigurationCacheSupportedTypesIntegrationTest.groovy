@@ -74,52 +74,82 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains("bean.value = ${output}")
 
         where:
-        type                                 | reference                                                     | output
-        String.name                          | "'value'"                                                     | "value"
-        String.name                          | "null"                                                        | "null"
-        Boolean.name                         | "true"                                                        | "true"
-        boolean.name                         | "true"                                                        | "true"
-        Character.name                       | "'a'"                                                         | "a"
-        char.name                            | "'a'"                                                         | "a"
-        Byte.name                            | "12"                                                          | "12"
-        byte.name                            | "12"                                                          | "12"
-        Short.name                           | "12"                                                          | "12"
-        short.name                           | "12"                                                          | "12"
-        Integer.name                         | "12"                                                          | "12"
-        int.name                             | "12"                                                          | "12"
-        Long.name                            | "12"                                                          | "12"
-        long.name                            | "12"                                                          | "12"
-        Float.name                           | "12.1"                                                        | "12.1"
-        float.name                           | "12.1"                                                        | "12.1"
-        Double.name                          | "12.1"                                                        | "12.1"
-        double.name                          | "12.1"                                                        | "12.1"
-        Class.name                           | "SomeBean"                                                    | "class SomeBean"
-        URL.name                             | "new URL('https://gradle.org/')"                              | "https://gradle.org/"
-        URI.name                             | "URI.create('https://gradle.org/')"                           | "https://gradle.org/"
-        "SomeEnum"                           | "SomeEnum.Two"                                                | "Two"
-        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
-        "List<String>"                       | "['a', 'b', 'c']"                                             | "[a, b, c]"
-        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
-        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
-        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
-        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
-        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
-        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
-        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
-        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
-        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
-        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                         | "[a:1, b:2]"
-        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
-        "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"                            | "[-128, 127]"
-        "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"                          | "[-32768, 32767]"
-        "int[]"                              | "[Integer.MIN_VALUE, Integer.MAX_VALUE]"                      | "[-2147483648, 2147483647]"
-        "long[]"                             | "[Long.MIN_VALUE, Long.MAX_VALUE]"                            | "[-9223372036854775808, 9223372036854775807]"
-        "float[]"                            | "[Float.MIN_VALUE, Float.NaN, Float.MAX_VALUE]"               | "[1.4E-45, NaN, 3.4028235E38]"
-        "double[]"                           | "[Double.MIN_VALUE, Double.NaN, Double.MAX_VALUE]"            | "[4.9E-324, NaN, 1.7976931348623157E308]"
-        "boolean[]"                          | "[true, false]"                                               | "[true, false]"
-        "char[]"                             | "['a', 'b', 'c']"                                             | "abc"
+        type                                 | reference                                                              | output
+        String.name                          | "'value'"                                                              | "value"
+        String.name                          | "null"                                                                 | "null"
+        Boolean.name                         | "true"                                                                 | "true"
+        boolean.name                         | "true"                                                                 | "true"
+        Character.name                       | "'a'"                                                                  | "a"
+        char.name                            | "'a'"                                                                  | "a"
+        Byte.name                            | "12"                                                                   | "12"
+        byte.name                            | "12"                                                                   | "12"
+        Short.name                           | "12"                                                                   | "12"
+        short.name                           | "12"                                                                   | "12"
+        Integer.name                         | "12"                                                                   | "12"
+        int.name                             | "12"                                                                   | "12"
+        Long.name                            | "12"                                                                   | "12"
+        long.name                            | "12"                                                                   | "12"
+        Float.name                           | "12.1"                                                                 | "12.1"
+        float.name                           | "12.1"                                                                 | "12.1"
+        Double.name                          | "12.1"                                                                 | "12.1"
+        double.name                          | "12.1"                                                                 | "12.1"
+        Class.name                           | "SomeBean"                                                             | "class SomeBean"
+        URL.name                             | "new URL('https://gradle.org/')"                                       | "https://gradle.org/"
+        URI.name                             | "URI.create('https://gradle.org/')"                                    | "https://gradle.org/"
+        "SomeEnum"                           | "SomeEnum.Two"                                                         | "Two"
+        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                         | "[Two]"
+        "List<String>"                       | "['a', 'b', 'c']"                                                      | "[a, b, c]"
+        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                         | "[a, b, c]"
+        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                                        | "[a, b, c]"
+        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                               | "[a, b, c]"
+        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                           | "[a, b, c]"
+        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                                     | "[a, b, c]"
+        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                           | "[a, b, c]"
+        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                             | "[Two]"
+        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                         | "[a:1, b:2]"
+        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                                      | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                            | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap({ x, y -> y.compareTo(x) }).tap { putAll([a: 1, b: 2]) }" | "[b:2, a:1]"
+        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                                  | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])"          | "[One:one, Two:two]"
+        "byte[]"                             | "[Byte.MIN_VALUE, Byte.MAX_VALUE]"                                     | "[-128, 127]"
+        "short[]"                            | "[Short.MIN_VALUE, Short.MAX_VALUE]"                                   | "[-32768, 32767]"
+        "int[]"                              | "[Integer.MIN_VALUE, Integer.MAX_VALUE]"                               | "[-2147483648, 2147483647]"
+        "long[]"                             | "[Long.MIN_VALUE, Long.MAX_VALUE]"                                     | "[-9223372036854775808, 9223372036854775807]"
+        "float[]"                            | "[Float.MIN_VALUE, Float.NaN, Float.MAX_VALUE]"                        | "[1.4E-45, NaN, 3.4028235E38]"
+        "double[]"                           | "[Double.MIN_VALUE, Double.NaN, Double.MAX_VALUE]"                     | "[4.9E-324, NaN, 1.7976931348623157E308]"
+        "boolean[]"                          | "[true, false]"                                                        | "[true, false]"
+        "char[]"                             | "['a', 'b', 'c']"                                                      | "abc"
+    }
+
+    @Unroll
+    def "keeps iteration order of #type instances"() {
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                private def underTest = $init
+                @TaskAction def action() {
+                    println("ORDER=${'$'}{$iterate}")
+                }
+            }
+            tasks.register("ok", SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+        def expected = result.output.readLines().find { it.startsWith("ORDER=") }.substring(6)
+
+        and:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains(expected)
+
+        where:
+        type      | init                                               | iterate
+        'HashSet' | "['first', 'second', 'third'] as HashSet"          | "underTest.join(', ')"
+        'HashMap' | "['first': 1, 'second': 2, 'third': 3] as HashMap" | 'underTest.collect { k,v -> "$k=$v" }.join(", ")'
     }
 
     @Unroll
