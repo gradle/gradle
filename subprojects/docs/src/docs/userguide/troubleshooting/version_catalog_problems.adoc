@@ -25,7 +25,7 @@ To fix this problem, if you need more entries, it's probably best to split the c
 == Use of a reserved alias name
 
 This error indicates that you chose an alias which is a reserved name.
-Typically this happens if you choose an alias which ends with `version` or `bundle`, as it may clash with generated accessors.
+Typically this happens if you choose an alias which ends with `version`, `bundle`, or `plugin`, as it may clash with generated accessors.
 
 To fix this problem, you must choose a different alias.
 
