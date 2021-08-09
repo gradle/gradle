@@ -22,7 +22,6 @@ tasks.test {
 
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
-    useJUnitPlatform()
 
     systemProperty("org.gradle.public.api.includes", gradlebuild.basics.PublicApi.includes.joinToString(":"))
     systemProperty("org.gradle.public.api.excludes", gradlebuild.basics.PublicApi.excludes.joinToString(":"))
@@ -30,8 +29,6 @@ tasks.test {
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
-
-    useJUnitPlatform()
 }
 
 class ArchUnitFreezeConfiguration(
