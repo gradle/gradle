@@ -46,6 +46,7 @@ abstract class ExternalModulesExtension {
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
     val commonsIo = "commons-io:commons-io"
     val commonsLang = "commons-lang:commons-lang"
+    val commonsLang3 = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val fastutil = "it.unimi.dsi:fastutil"
     val gcs = "com.google.apis:google-api-services-storage"
@@ -189,6 +190,7 @@ abstract class ExternalModulesExtension {
         commonsHttpclient to License.Apache2,
         commonsIo to License.Apache2,
         commonsLang to License.Apache2,
+        commonsLang3 to License.Apache2,
         commonsMath to License.Apache2,
         fastutil to License.Apache2,
         gcs to License.Apache2,
