@@ -54,6 +54,9 @@ dependencies {
         // We only need "failureaccess" of Guava's dependencies
         withLibraryDependencies<KeepDependenciesByNameRule>("com.google.guava:guava", setOf("failureaccess"))
 
+        // We only need a few utility classes of this module
+        withLibraryDependencies<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
+
         // Test dependencies - minify: remove unused transitive dependencies
         withLibraryDependencies<DependencyRemovalByNameRule>(
             "xyz.rogfam:littleproxy",
