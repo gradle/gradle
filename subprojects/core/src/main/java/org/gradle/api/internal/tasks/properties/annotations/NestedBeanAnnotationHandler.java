@@ -101,8 +101,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Override
         public TaskDependencyContainer getTaskDependencies() {
-            // Ignore
-            return TaskDependencyContainer.EMPTY;
+            throw UncheckedException.throwAsUncheckedException(exception);
         }
 
         @Override

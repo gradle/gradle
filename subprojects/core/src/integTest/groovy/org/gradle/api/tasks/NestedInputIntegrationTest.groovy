@@ -432,6 +432,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17962")
     def "execution fails when a nested property throws an exception"() {
         buildFile << """
             class TaskWithFailingNestedInput extends DefaultTask {
@@ -459,7 +460,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
         failure.assertHasCause("BOOM")
     }
 

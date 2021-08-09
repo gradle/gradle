@@ -44,7 +44,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}")
             .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
@@ -76,7 +76,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
@@ -107,7 +107,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}')
             .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
