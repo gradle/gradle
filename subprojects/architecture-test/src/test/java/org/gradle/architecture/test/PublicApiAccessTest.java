@@ -39,12 +39,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
@@ -87,19 +81,13 @@ public class PublicApiAccessTest {
             .or(primitive)
             .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.util.function", "java.lang.reflect", "java.io")
                 .or(type(File[].class))
-                .or(type(FileInputStream.class))
-                .or(type(Reader.class))
-                .or(type(OutputStream.class))
+                .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))
-                .or(type(InputStream.class))
+                .or(type(Duration.class))
+                .or(type(BigDecimal.class))
                 .or(type(Element.class))
                 .or(type(QName.class))
-                .or(type(StringWriter.class))
-                .or(type(Writer.class))
-                .or(type(Duration.class))
-                .or(type(byte[].class))
-                .or(type(BigDecimal.class))
                 .as("built-in JDK classes"))
             .or(type(Node.class)
                 .or(type(MarkupBuilder.class))
