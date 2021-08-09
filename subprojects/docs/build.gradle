@@ -95,7 +95,7 @@ gradleDocumentation {
     }
 }
 
-stageDocs {
+tasks.named("stageDocs") {
     // Add samples to generated documentation
     from(samples.distribution.renderedDocumentation) {
         into("samples")
