@@ -56,7 +56,7 @@ class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
                         writer.close();
                     }
                 }
-                if(roundEnv.processingOver()) {
+                if (roundEnv.processingOver()) {
                     FileObject resourceFile = filer.createResource($resourceLocation, "", "ServiceRegistryResource.txt", allElements.toArray(new Element[0]));
                     Writer writer = resourceFile.openWriter();
                     try {

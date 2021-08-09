@@ -51,13 +51,16 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Deleter deleter,
         FileOperations fileOperations,
         FileTree sourceTree,
-        Iterable<FileChange> sourceChanges, boolean incremental) {
+        Iterable<FileChange> sourceChanges,
+        boolean incremental
+    ) {
         this.deleter = deleter;
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
         this.sourceChanges = sourceChanges;
         this.incremental = incremental;
     }
+
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec(previous);
@@ -149,6 +152,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             filesToDelete.include(staleClass.replaceAll("[.$]", "_").concat(".h"));
         }
     }
+
     private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
         if (dependents.isDependencyToAll()) {

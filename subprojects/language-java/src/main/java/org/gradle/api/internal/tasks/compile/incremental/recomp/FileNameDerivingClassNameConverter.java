@@ -52,7 +52,7 @@ public class FileNameDerivingClassNameConverter implements SourceFileClassNameCo
     @Override
     public Set<String> getRelativeSourcePaths(String className) {
         Set<String> sourcePaths = delegate.getRelativeSourcePaths(className);
-        if(!sourcePaths.isEmpty()) {
+        if (!sourcePaths.isEmpty()) {
             return sourcePaths;
         }
 

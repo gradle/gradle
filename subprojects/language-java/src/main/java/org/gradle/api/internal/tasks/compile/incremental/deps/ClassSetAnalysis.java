@@ -158,11 +158,8 @@ public class ClassSetAnalysis {
     public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
         Set<String> typesToReprocess = new HashSet<>(annotationProcessingData.getAggregatedTypes());
         for (Map.Entry<String, Set<String>> entry : annotationProcessingData.getGeneratedTypesByOrigin().entrySet()) {
-            String origin = entry.getKey();
-            for (String generatedType : entry.getValue()) {
-                if (compiledClasses.contains(generatedType)) {
-                    typesToReprocess.add(origin);
-                }
+            if (entry.getValue().stream().anyMatch(compiledClasses::contains)) {
+                typesToReprocess.add(entry.getKey());
             }
         }
         return typesToReprocess;
