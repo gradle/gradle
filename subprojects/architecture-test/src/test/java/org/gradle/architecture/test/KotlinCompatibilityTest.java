@@ -16,8 +16,6 @@
 
 package org.gradle.architecture.test;
 
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -43,13 +41,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toSet;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
+import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class KotlinCompatibilityTest {
-
-    public static DescribedPredicate<JavaClass> gradlePublicApi() {
-        return new GradlePublicApi();
-    }
 
     @ArchTest
     public static final ArchRule consistent_nullable_annotations_on_public_api = freeze(classes().that(are(gradlePublicApi())).should(haveAccessorsWithSymmetricalNullableAnnotations()));
@@ -190,25 +185,5 @@ public class KotlinCompatibilityTest {
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && accessorType == PropertyAccessorType.SETTER
             && m.getRawParameterTypes().size() == 1;
-    }
-
-    private static class GradlePublicApi extends DescribedPredicate<JavaClass> {
-        private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
-        private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
-
-        public GradlePublicApi() {
-            super("Gradle public API");
-        }
-
-        @Override
-        public boolean apply(JavaClass input) {
-            return INCLUDES.apply(input.getPackageName()) && !EXCLUDES.apply(input.getPackageName());
-        }
-
-        private static Set<String> parsePackageMatcher(String packageList) {
-            return Arrays.stream(packageList.split(":"))
-                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
-                .collect(toSet());
-        }
     }
 }
