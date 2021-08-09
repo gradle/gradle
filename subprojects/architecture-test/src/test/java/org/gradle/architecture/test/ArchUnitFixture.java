@@ -16,10 +16,17 @@
 
 package org.gradle.architecture.test;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaGenericArrayType;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -38,6 +45,8 @@ import org.gradle.util.UsesNativeServicesExtension;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +72,13 @@ public interface ArchUnitFixture {
             .as("Gradle Internal API");
     }
 
+    DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
+        @Override
+        public boolean apply(JavaClass input) {
+            return input.isPrimitive();
+        }
+    };
+
     static <T> DescribedPredicate<Collection<T>> thatAll(DescribedPredicate<T> predicate) {
         return new DescribedPredicate<Collection<T>>("that all %s", predicate.getDescription()) {
             @Override
@@ -74,6 +90,72 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaClass> haveDirectSuperclassOrInterfaceThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveDirectSuperclassOrInterfaceThatAre(types);
+    }
+
+    static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+        return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
+    }
+
+    class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
+        private final DescribedPredicate<JavaClass> types;
+
+        public HaveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+            super("have only arguments or return types that are %s", types.getDescription());
+            this.types = types;
+        }
+
+        @Override
+        public void check(JavaMethod method, ConditionEvents events) {
+            Set<JavaClass> referencedTypes = new LinkedHashSet<>();
+            unpackJavaType(method.getReturnType(), referencedTypes);
+            method.getTypeParameters().forEach(typeParameter -> unpackJavaType(typeParameter, referencedTypes));
+            referencedTypes.addAll(method.getRawParameterTypes());
+            ImmutableSet<String> matchedClasses = referencedTypes.stream()
+                .filter(it -> !types.apply(it))
+                .map(JavaClass::getName)
+                .collect(ImmutableSet.toImmutableSet());
+            boolean fulfilled = matchedClasses.isEmpty();
+            String message = fulfilled
+                ? String.format("%s has only arguments/return type that are %s in %s",
+                method.getDescription(),
+                types.getDescription(),
+                method.getSourceCodeLocation())
+
+                : String.format("%s has arguments/return type %s that %s not %s in %s",
+                method.getDescription(),
+                String.join(", ", matchedClasses),
+                matchedClasses.size() == 1 ? "is" : "are",
+                types.getDescription(),
+                method.getSourceCodeLocation()
+            );
+            events.add(new SimpleConditionEvent(method, fulfilled, message));
+        }
+
+        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes) {
+            unpackJavaType(type, referencedTypes, new HashSet<>());
+        }
+
+        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes, Set<JavaType> visited) {
+            if (!visited.add(type)) {
+                return;
+            }
+            if (type.toErasure().isEquivalentTo(Object.class)) {
+                return;
+            }
+            referencedTypes.add(type.toErasure());
+            if (type instanceof JavaTypeVariable) {
+                List<JavaType> upperBounds = ((JavaTypeVariable<?>) type).getUpperBounds();
+                upperBounds.forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+            } else if (type instanceof JavaGenericArrayType) {
+                unpackJavaType(((JavaGenericArrayType) type).getComponentType(), referencedTypes, visited);
+            } else if (type instanceof JavaWildcardType) {
+                JavaWildcardType wildcardType = (JavaWildcardType) type;
+                wildcardType.getUpperBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+                wildcardType.getLowerBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
+            } else if (type instanceof JavaParameterizedType) {
+                ((JavaParameterizedType) type).getActualTypeArguments().forEach(argument -> unpackJavaType(argument, referencedTypes, visited));
+            }
+        }
     }
 
     class GradlePublicApi extends DescribedPredicate<JavaClass> {
