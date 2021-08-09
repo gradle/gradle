@@ -263,6 +263,7 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 | `modules-2`           | `files-2.1`           | `metadata-2.96`           | Gradle 6.4 and above
 |===
+// This table is sourced from subprojects/dependency-management/src/main/java/org/gradle/api/internal/artifacts/ivyservice/CacheLayout.java
 
 [[sub:shared-readonly-cache]]
 === Sharing the dependency cache with other Gradle instances
