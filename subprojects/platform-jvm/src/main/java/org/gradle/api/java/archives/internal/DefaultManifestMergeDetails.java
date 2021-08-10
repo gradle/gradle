@@ -16,6 +16,8 @@
 package org.gradle.api.java.archives.internal;
 
 import org.gradle.api.java.archives.ManifestMergeDetails;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultManifestMergeDetails implements ManifestMergeDetails {
     private String section;
@@ -55,8 +57,13 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
 
     @Override
     public String getValue() {
-        //todo: issue warning
-        //todo: remove usages from test
+        if (value instanceof Provider) {
+            DeprecationLogger.deprecateMethod(ManifestMergeDetails.class, "getValue()")
+                .withAdvice("Please use #getRawValue() instead.")
+                .willBeRemovedInGradle8()
+                .withDslReference(ManifestMergeDetails.class, "rawValue")
+                .nagUser();
+        }
         return value.toString();
     }
 
