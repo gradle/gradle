@@ -86,6 +86,7 @@ tasks.withType(AsciidoctorTask).configureEach { task ->
             project.getDependencies().create(project.files("src/main/resources"))
         )
     }
+    task.asciidoctorj.modules.groovyDsl.version '2.0.2'
 }
 
 gradleDocumentation {
