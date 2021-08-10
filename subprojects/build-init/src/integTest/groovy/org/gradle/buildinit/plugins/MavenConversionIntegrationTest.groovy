@@ -495,6 +495,33 @@ Root project 'webinar-parent'
         succeeds 'build'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolDefaultHandling"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        setup:
+        def repo = mavenHttpServer()
+        // update pom with test repo url
+        def localRepoUrl = repo.getUri().toString()
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def taskOutput = result.groupedOutput.task(':init').output
+        taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
+        taskOutput.contains("Setting allowInsecureProtocol=true.")
+
+        def mavenLocalRepoBlock = """maven {
+        url = uri('$localRepoUrl')
+        allowInsecureProtocol = true
+    }""".toString()
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock.trim()))
+    }
+
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
