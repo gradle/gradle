@@ -21,7 +21,6 @@ repositories {
         content {
             includeGroup("net.rubygrapefruit")
             includeModule("classycle", "classycle")
-            includeModule("com.drewwilson.code", "jquery.tipTip")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
             includeModuleByRegex("org.gradle", "sample-(check|discovery)")
