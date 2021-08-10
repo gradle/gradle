@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -30,7 +30,7 @@ import spock.lang.Issue
 import spock.util.Exceptions
 
 @Issue('https://github.com/gradle/gradle/issues/9339')
-@TargetGradleVersion(">=7.2")
+@TargetGradleVersion(">=5.0")
 @ToolingApiVersion("current")
 class JavaVersionCrossVersionTest extends ToolingApiSpecification {
 
@@ -47,40 +47,45 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
     @Requires(TestPrecondition.JDK11_OR_LATER)
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
     def "can deserialize failures with post-jigsaw client and pre-jigsaw daemon"() {
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
+        projectDir.file("gradle.properties")
+            .writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('myTask').run()
+        toolingApi.withConnection { connection ->
+            connection.newBuild()
+                .forTasks('myTask')
+                .withJvmArguments("-javaagent:/Users/lorinc/IdeaProjects/dotcom/tapi-instrumentation/build/libs/tapi-instrumentation-all.jar")
+                .run()
         }
 
         then:
         GradleConnectionException e = thrown()
-        def rootCause = Exceptions.getRootCause(e)
-        rootCause instanceof RuntimeException
-        rootCause.message == "Boom"
-        rootCause.stackTrace.find {
-            it.fileName.endsWith("build.gradle") && it.lineNumber == 4
+        with(Exceptions.getRootCause(e), RuntimeException) {
+            message == "Boom"
+            stackTrace.find {
+                it.fileName.endsWith("build.gradle") && it.lineNumber == 4
+            }
         }
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     @IgnoreIf({ AvailableJavaHomes.jdk11 == null })
     def "can deserialize failures with pre-jigsaw client and post-jigsaw daemon"() {
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk11.javaHome.absolutePath)
+        projectDir.file("gradle.properties")
+            .writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk11.javaHome.absolutePath)
 
         when:
-        toolingApi.withConnection { ProjectConnection connection ->
+        toolingApi.withConnection { connection ->
             connection.newBuild().forTasks('myTask').run()
         }
 
         then:
         GradleConnectionException e = thrown()
-        def rootCause = Exceptions.getRootCause(e)
-        rootCause instanceof RuntimeException
-        rootCause.message == "Boom"
-        rootCause.stackTrace.find {
-            it.fileName.endsWith("build.gradle") && it.lineNumber == 4
+        with(Exceptions.getRootCause(e), RuntimeException) {
+            message == "Boom"
+            stackTrace.find {
+                it.fileName.endsWith("build.gradle") && it.lineNumber == 4
+            }
         }
     }
 }

@@ -49,3 +49,8 @@ classycle {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
+
+tasks.embeddedIntegTest {
+    jvmArgs("-javaagent:/Users/lorinc/IdeaProjects/dotcom/tapi-instrumentation/build/libs/tapi-instrumentation-all.jar")
+}
+
