@@ -31,6 +31,13 @@ dependencyResolutionManagement {
                 includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
             }
         }
+        maven {
+            name = "Gradle public repository"
+            url = uri("https://repo.gradle.org/gradle/public")
+            content {
+                includeModule("classycle", "classycle")
+            }
+        }
         gradlePluginPortal()
         mavenCentral()
     }
