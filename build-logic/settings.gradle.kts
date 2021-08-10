@@ -38,8 +38,8 @@ dependencyResolutionManagement {
                 includeModule("classycle", "classycle")
             }
         }
-        gradlePluginPortal()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 
