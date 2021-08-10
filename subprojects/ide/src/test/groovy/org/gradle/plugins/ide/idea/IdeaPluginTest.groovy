@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 
@@ -213,8 +214,26 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         publicTypeOfExtension("idea") == typeOf(IdeaModel)
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/8749')
     def "can add to file set properties"() {
         given:
+        applyPluginToProjects()
+        def source = new File("foo")
+
+        when:
+        property(project.idea.module).add(source)
+
+        then:
+        property(project.idea.module).contains(source)
+
+        where:
+        property << [{ it.sourceDirs }, { it.testSourceDirs }, { it.resourceDirs }, { it.testResourceDirs }, { it.excludeDirs }]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/8749')
+    def "can add to file set properties when java plugin is applied too"() {
+        given:
+        project.apply plugin: JavaPlugin
         applyPluginToProjects()
         def source = new File("foo")
 
