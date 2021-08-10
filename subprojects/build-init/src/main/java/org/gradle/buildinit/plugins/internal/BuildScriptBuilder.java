@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
@@ -27,30 +28,31 @@ import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
 
 /**
  * Assembles the parts of a build script.
  */
+@SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
+    private final InsecureRepoHandler insecureRepoHandler = InsecureRepoHandler.ALLOW;
 
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
 
     private final List<String> headerLines = new ArrayList<>();
-    private final TopLevelBlock block = new TopLevelBlock();
+    private final TopLevelBlock block = new TopLevelBlock(insecureRepoHandler);
+
 
     public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
         this.dsl = dsl;
@@ -76,6 +78,16 @@ public class BuildScriptBuilder {
 
     private static List<String> splitComment(String comment) {
         return Splitter.on("\n").splitToList(comment.trim());
+    }
+
+    private static URL urlFromString(String urlAsString) {
+        final URL urlAsURL;
+        try {
+            urlAsURL = new URL(urlAsString);
+        } catch (MalformedURLException e) {
+            throw new GradleException(String.format("Invalid URL: '%s'.", urlAsString), e);
+        }
+        return urlAsURL;
     }
 
     /**
@@ -373,6 +385,106 @@ public class BuildScriptBuilder {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    @VisibleForTesting
+    enum Protocol {
+        HTTP("http", false, "https"),
+        HTTPS("https", true, null),
+        FILE("file", true, null);
+
+        public static Protocol fromUrl(URL url) {
+            // The getProtocol() method is misnamed, and really returns a scheme, see https://stackoverflow.com/a/47078624/187206
+            final String protocol = url.getProtocol();
+            return findByPrefix(protocol).orElseThrow(() -> new GradleException(String.format("Unknown protocol: '%s' in URL: '%s'.", protocol, url)));
+        }
+
+        public static URL secureProtocol(URL url) {
+            final Protocol scheme = Protocol.fromUrl(url);
+            final Protocol replacement = scheme.getReplacement();
+
+            try {
+                return new URL(url.toString().replaceFirst(scheme.prefix, replacement.prefix));
+            } catch (final MalformedURLException e) {
+                throw new GradleException(String.format("Error upgrading scheme for URL: '%s'.", url), e);
+            }
+        }
+
+        private static Optional<Protocol> findByPrefix(String prefix) {
+            return Arrays.stream(values())
+                         .filter(s -> s.prefix.equalsIgnoreCase(prefix))
+                         .findFirst();
+        }
+
+        private final String prefix;
+        private final boolean secure;
+        @Nullable private final String replacement;
+
+        Protocol(String prefix, boolean secure, @Nullable String replacement) {
+            this.prefix = prefix;
+            this.secure = secure;
+            this.replacement = replacement;
+        }
+
+        public boolean isSecure() {
+            return secure;
+        }
+
+        public boolean hasReplacement() {
+            return (replacement != null);
+        }
+
+        public Protocol getReplacement() {
+            return findByPrefix(replacement).orElseThrow(IllegalStateException::new);
+        }
+
+        @Override
+        public String toString() {
+            return prefix;
+        }
+    }
+
+    @VisibleForTesting
+    enum InsecureRepoHandler {
+        ALLOW {
+            @Override
+            public void handle(URL url, ScriptBlockImpl statements) {
+                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Setting allowInsecureProtocol=true.");
+                }
+
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url.toString()))), true);
+                statements.propertyAssignment(null, "allowInsecureProtocol", new LiteralValue(true), true);
+            }
+        },
+
+        UPGRADE {
+            @Override
+            public void handle(URL url, ScriptBlockImpl statements) {
+                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+                final Protocol protocol = Protocol.fromUrl(url);
+                if (protocol.hasReplacement()) {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
+                    }
+
+                    final URL upgradedURL = Protocol.secureProtocol(url);
+                    statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(upgradedURL.toString()))), true);
+                } else {
+                    throw new GradleException(String.format("Can't upgrade insecure protocol: '%s' as no replacement exists.", protocol));
+                }
+            }
+        },
+
+        FAIL {
+            @Override
+            public void handle(URL url, ScriptBlockImpl statements) {
+                throw new GradleException(String.format("Aborting build due to insecure protocol in URL: '%s'.", url));
+            }
+        };
+
+        public abstract void handle(URL url, ScriptBlockImpl statements);
     }
 
     public interface Expression {
@@ -879,8 +991,11 @@ public class BuildScriptBuilder {
     }
 
     private static class RepositoriesBlock extends BlockStatement implements RepositoriesBuilder {
-        RepositoriesBlock() {
+        private final InsecureRepoHandler insecureRepoHandler;
+
+        RepositoriesBlock(final InsecureRepoHandler insecureRepoHandler) {
             super("repositories");
+            this.insecureRepoHandler = insecureRepoHandler;
         }
 
         @Override
@@ -900,7 +1015,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void maven(String comment, String url) {
-            add(new MavenRepoExpression(comment, url));
+            add(new MavenRepoExpression(comment, url, insecureRepoHandler));
         }
     }
 
@@ -985,17 +1100,34 @@ public class BuildScriptBuilder {
 
     private static class MavenRepoExpression extends AbstractStatement {
         private final String url;
+        private final InsecureRepoHandler insecureRepoHandler;
 
-        MavenRepoExpression(@Nullable String comment, String url) {
+        MavenRepoExpression(@Nullable String comment, String url, InsecureRepoHandler insecureRepoHandler) {
             super(comment);
             this.url = url;
+            this.insecureRepoHandler = insecureRepoHandler;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             ScriptBlockImpl statements = new ScriptBlockImpl();
-            statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
+            ensureProtocolSecurity(url, statements);
             printer.printBlock("maven", statements);
+        }
+
+        private void ensureProtocolSecurity(String url, ScriptBlockImpl statements) {
+            final URL urlAsURL = urlFromString(url);
+            final Protocol protocol = Protocol.fromUrl(urlAsURL);
+
+            if (protocol.isSecure()) {
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
+            } else {
+                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+                if (logger.isWarnEnabled()) {
+                    logger.warn("URL: '{}' uses an insecure protocol.", url);
+                }
+                insecureRepoHandler.handle(urlAsURL, statements);
+            }
         }
     }
 
@@ -1068,11 +1200,15 @@ public class BuildScriptBuilder {
 
     private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
-        final RepositoriesBlock repositories = new RepositoriesBlock();
+        final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
+
+        private TopLevelBlock(InsecureRepoHandler insecureRepoHandler) {
+            repositories = new RepositoriesBlock(insecureRepoHandler);
+        }
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
