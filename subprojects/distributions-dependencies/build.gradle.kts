@@ -51,7 +51,7 @@ dependencies {
         api(libs.commonsHttpclient)     { version { strictly("4.5.13") }}
         api(libs.commonsIo)             { version { strictly("2.6") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
-        api(libs.commonsLang3)           { version { strictly("3.12.0") }}
+        api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
