@@ -185,6 +185,10 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                             maven {
                                 name 'gradleInternalRepository'
                                 url '${System.getenv("GRADLE_INTERNAL_REPO_URL")}/enterprise-libs-snapshots-local/'
+                                credentials {
+                                    username = System.getenv("GRADLE_INTERNAL_REPO_USERNAME")
+                                    password = System.getenv("GRADLE_INTERNAL_REPO_PASSWORD")
+                                }
                                 authentication {
                                     basic(BasicAuthentication)
                                 }
