@@ -7,7 +7,7 @@ plugins {
 // end::plugins[]
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 // tag::register_variant[]

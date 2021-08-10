@@ -30,7 +30,7 @@ class EclipseWtpEarAndWebAndEjbProjectIntegrationTest extends AbstractEclipseInt
 subprojects {
     apply plugin: 'eclipse-wtp'
 
-    ${jcenterRepository()}
+   ${mavenCentralRepository()}
 }
 project(':ear') {
     apply plugin: 'ear'

@@ -874,7 +874,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 
 It's quite common to have _different checksums for the same artifact_ in the wild.
 How is that possible?
-Despite progress, it's often the case that developers publish, for example, to Maven Central and JCenter separately, using different builds.
+Despite progress, it's often the case that developers publish, for example, to Maven Central and another repository separately, using different builds.
 In general, this is not a problem but sometimes it means that the metadata files would be different (different timestamps, additional whitespaces, ...).
 Add to this that your build may use several repositories or repository mirrors and it makes it quite likely that a single build can "see" different metadata files for the same component!
 In general, it's not malicious (but you **must** verify that the artifact is actually correct), so Gradle lets you declare the additional artifact checksums.

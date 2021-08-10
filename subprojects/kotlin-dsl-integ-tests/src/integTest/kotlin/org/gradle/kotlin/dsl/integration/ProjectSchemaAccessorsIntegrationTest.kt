@@ -16,22 +16,18 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
-
 import java.io.File
 
 
@@ -667,11 +663,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
             plugins { `java-library` }
 
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
+
             dependencies {
                 compile("org.apache.commons:commons-io:1.3.2")
             }
-
-            ${jcenterRepository(GradleDsl.KOTLIN)}
             """
         )
 
@@ -692,7 +688,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            ${jcenterRepository(GradleDsl.KOTLIN)}
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations.compileClasspath.files.forEach {
                 println(org.gradle.util.TextUtil.normaliseFileSeparators(it.path))

@@ -13,7 +13,7 @@ configurations {
 
 repositories {
    flatDir { dirs "lib" }
-   jcenter()
+   mavenCentral()
 }
 
 dependencies {

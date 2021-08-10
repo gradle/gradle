@@ -393,7 +393,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         given:
         buildWithSingleSourceFile()
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies { testImplementation "junit:junit:4.13" }
         """
         file("src/test/java/ThingTest.java") << """

@@ -92,7 +92,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         if (isSingleProject(settings)) {
-            addJcenter(buildScriptBuilder);
+            addMavenCentral(buildScriptBuilder);
             String languagePlugin = description.getPluginName();
             if (languagePlugin != null) {
                 String pluginVersionProperty = description.getPluginVersionProperty();
@@ -112,7 +112,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         if ("common".equals(conventionPluginName)) {
-            addJcenter(buildScriptBuilder);
+            addMavenCentral(buildScriptBuilder);
             String languagePlugin = description.getPluginName() == null ? "java" : description.getPluginName();
             buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin);
             addStandardDependencies(buildScriptBuilder, true);
@@ -171,8 +171,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             "java-library");
     }
 
-    private void addJcenter(BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
+    private void addMavenCentral(BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {

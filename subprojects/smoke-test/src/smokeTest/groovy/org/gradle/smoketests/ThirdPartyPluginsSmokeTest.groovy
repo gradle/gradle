@@ -123,6 +123,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             "Property 'separateOutputDirs' has redundant getters: 'getSeparateOutputDirs()' and 'isSeparateOutputDirs()'. " +
                 "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                 "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
+            "The RepositoryHandler.jcenter() method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation"
         )
     }
 
@@ -145,7 +148,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             }
 
             repositories {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
         """
 
@@ -171,6 +174,9 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 "Property 'logDocuments' is annotated with @Optional that is not allowed for @Console properties. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
+                "The RepositoryHandler.jcenter() method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#jcenter_deprecation"
             )
         }
 

@@ -45,7 +45,7 @@ class UploadTest extends Specification {
 
         when:
         upload.repositories({ RepositoryHandler repositories ->
-            repositories.jcenter()
+            repositories.mavenCentral()
         } as Action<RepositoryHandler>)
 
         then:

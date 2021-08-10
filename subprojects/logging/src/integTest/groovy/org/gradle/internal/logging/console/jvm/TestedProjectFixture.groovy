@@ -41,9 +41,9 @@ class TestedProjectFixture implements RichConsoleStyling {
     static String testableJavaProject(String testDependency, int maxWorkers) {
         """
             apply plugin: 'java'
-            
-            ${RepoScriptBlockUtil.jcenterRepository()}
-            
+
+            ${RepoScriptBlockUtil.mavenCentralRepository()}
+
             dependencies {
                 testImplementation '${testDependency}'
             }

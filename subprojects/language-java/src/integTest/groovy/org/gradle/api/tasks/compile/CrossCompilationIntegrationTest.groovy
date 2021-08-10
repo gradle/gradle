@@ -36,9 +36,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id "java"
             }
-            repositories {
-                jcenter()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation("junit:junit:4.13")
             }

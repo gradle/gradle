@@ -768,9 +768,9 @@ sourceSets {
         source "class A {}"
 
         buildFile << """
-        ${jcenterRepository()}
-dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
-"""
+            ${mavenCentralRepository()}
+            dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
+        """
         expect:
         succeeds language.compileTaskName
     }
@@ -785,7 +785,7 @@ dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
         """
 
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
             }
@@ -806,9 +806,9 @@ dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
         source "class A {}"
 
         buildFile << """
-${jcenterRepository()}
-dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
-"""
+            ${mavenCentralRepository()}
+            dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
+        """
         expect:
         run language.compileTaskName
     }
@@ -1105,9 +1105,9 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         source """class B {}"""
 
         buildFile << """
-        ${jcenterRepository()}
-dependencies { implementation 'com.google.guava:guava:21.0' }
-"""
+            ${mavenCentralRepository()}
+            dependencies { implementation 'com.google.guava:guava:21.0' }
+        """
         outputs.snapshot { succeeds language.compileTaskName }
 
         when:

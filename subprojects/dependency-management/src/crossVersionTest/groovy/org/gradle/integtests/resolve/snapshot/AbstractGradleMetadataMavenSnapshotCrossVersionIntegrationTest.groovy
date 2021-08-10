@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.snapshot
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
-import static org.gradle.integtests.fixtures.AbstractIntegrationSpec.jcenterRepository
+import static org.gradle.integtests.fixtures.AbstractIntegrationSpec.mavenCentralRepository
 
 abstract class AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
@@ -37,7 +37,7 @@ abstract class AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest ex
                 repositories {
                     maven { url "\${rootProject.buildDir}/repo" }
                 }
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
         """
 

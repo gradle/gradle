@@ -38,7 +38,7 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
             apply plugin: 'java'
             apply plugin: 'eclipse'
 
-            ${jcenterRepository()}
+           ${mavenCentralRepository()}
 
             dependencies {
                 compile 'org.example:example-lib:1.0'

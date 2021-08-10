@@ -20,7 +20,7 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
     def setup() {
         buildFile << """
             allprojects {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
        """
     }

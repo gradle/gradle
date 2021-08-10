@@ -181,7 +181,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
     def "can validate task classes using external types"() {
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'com.typesafe:config:1.3.2'
@@ -218,7 +218,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         buildFile << """
             allprojects {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
 
             project(':lib') {

@@ -37,7 +37,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             }
 
             repositories {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
 

@@ -46,5 +46,5 @@ tasks {
 // end::no-accessors[]
 
 repositories {
-    jcenter()
+    mavenCentral()
 }

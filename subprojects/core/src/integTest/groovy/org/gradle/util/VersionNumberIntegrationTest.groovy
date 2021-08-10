@@ -42,7 +42,7 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
                 kotlin("jvm") version embeddedKotlinVersion
             }
 
-            ${jcenterRepository(GradleDsl.KOTLIN)}
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation(gradleApi())

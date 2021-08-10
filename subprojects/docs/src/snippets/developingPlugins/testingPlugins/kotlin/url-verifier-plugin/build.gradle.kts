@@ -44,7 +44,7 @@ tasks.check {
 
 // tag::test-framework[]
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

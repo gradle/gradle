@@ -34,7 +34,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
                 id "org.gradle.test-retry" version "${TestedVersions.testRetryPlugin}"
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")

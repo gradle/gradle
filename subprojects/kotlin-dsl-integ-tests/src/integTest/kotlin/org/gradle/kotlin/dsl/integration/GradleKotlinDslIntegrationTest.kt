@@ -19,8 +19,8 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
@@ -463,7 +463,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         withSettings(
             """
             buildscript {
-                ${jcenterRepository(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
                 dependencies {
                     classpath("org.apache.commons:commons-lang3:3.6")
                 }

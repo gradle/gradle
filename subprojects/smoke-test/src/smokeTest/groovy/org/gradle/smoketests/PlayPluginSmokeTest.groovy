@@ -36,7 +36,7 @@ class PlayPluginSmokeTest extends AbstractSmokeTest {
             }
 
             repositories {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 ${RepoScriptBlockUtil.lightbendMavenRepositoryDefinition()}
                 ${RepoScriptBlockUtil.lightbendIvyRepositoryDefinition()}
             }

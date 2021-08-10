@@ -46,9 +46,7 @@ task someTask
                 tasks.withType(AbstractScalaCompile) {
                     options.fork = true
                 }
-                repositories {
-                    ${jcenterRepository()}
-                }
+                ${mavenCentralRepository()}
                 plugins.withId("scala") {
                     dependencies {
                         implementation("org.scala-lang:scala-library:2.12.6")
@@ -87,9 +85,7 @@ task someTask
         """
         buildFile << """
             allprojects {
-                repositories {
-                    ${jcenterRepository()}
-                }
+                ${mavenCentralRepository()}
             }
             project(":java") {
                 apply plugin: 'java'
@@ -121,9 +117,7 @@ task someTask
         """
         buildFile << """
             allprojects {
-                repositories {
-                    ${jcenterRepository()}
-                }
+                ${mavenCentralRepository()}
             }
             project(":other") {
                 apply plugin: 'base'
@@ -163,9 +157,7 @@ task someTask
         """
         buildFile << """
             allprojects {
-                repositories {
-                    ${jcenterRepository()}
-                }
+                ${mavenCentralRepository()}
                 apply plugin: 'scala'
 
                 dependencies {
@@ -204,7 +196,7 @@ task someTask
             apply plugin: 'maven'
 
             repositories {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
             dependencies {
                 implementation("org.scala-lang:scala-library:2.12.6")
@@ -226,9 +218,7 @@ task someTask
         buildFile << """
             apply plugin: 'scala'
 
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 implementation("org.scala-lang:scala-library")
             }
@@ -255,9 +245,8 @@ task someTask
         buildFile << """
             apply plugin: 'scala'
 
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${mavenCentralRepository()}
+
             dependencies {
                 zinc("com.typesafe.zinc:zinc:0.3.6")
                 implementation("org.scala-lang:scala-library:2.12.6")

@@ -51,9 +51,7 @@ dependencies {
         settingsFile << """
 rootProject.name = 'scalaCompilation'
 dependencyResolutionManagement {
-    repositories {
-        ${jcenterRepository()}
-    }
+    ${mavenCentralRepository()}
 }
 """
         and:

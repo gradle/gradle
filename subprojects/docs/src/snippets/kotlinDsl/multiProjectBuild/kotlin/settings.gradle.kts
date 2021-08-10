@@ -1,7 +1,7 @@
 // tag::repositories[]
 pluginManagement {
     repositories {
-        jcenter()
+        mavenCentral()
         gradlePluginPortal()
     }
 }

@@ -28,7 +28,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
             file("src/main/groovy/CustomTask.groovy") << """
                 import org.gradle.api.*
                 import org.gradle.api.tasks.*
-    
+
                 @CacheableTask
                 class CustomTask extends DefaultTask {
                     @InputFile @PathSensitive(PathSensitivity.NONE) File inputFile
@@ -41,7 +41,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
 
             file("src/main/groovy/CustomPlugin.groovy") << """
                 import org.gradle.api.*
-    
+
                 class CustomPlugin implements Plugin<Project> {
                     @Override
                     void apply(Project project) {
@@ -54,7 +54,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
             """
             file("src/test/groovy/PluginSpec.groovy") << """
                 import spock.lang.Specification
-                
+
                 class PluginSpec extends Specification {
                     def "dummy test"() {
                         expect:
@@ -63,9 +63,9 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
                 }
             """
             file("build.gradle") << """
-                apply plugin: "java-gradle-plugin" 
+                apply plugin: "java-gradle-plugin"
                 apply plugin: "groovy"
-                
+
                 gradlePlugin {
                     plugins {
                         examplePlugin {
@@ -74,14 +74,14 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
                         }
                     }
                 }
-                
-                ${jcenterRepository()}
-                
+
+                ${mavenCentralRepository()}
+
                 dependencies {
                     testImplementation('org.spockframework:spock-core:1.0-groovy-2.4') {
                         exclude module: 'groovy-all'
                     }
-                }                
+                }
             """
         }
 
