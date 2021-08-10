@@ -24,6 +24,7 @@ repositories {
             includeModule("com.drewwilson.code", "jquery.tipTip")
             includeModule("flot", "flot")
             includeModuleByRegex("org.gradle", "sample-(check|discovery)")
+            includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
         }
     }
     google {
