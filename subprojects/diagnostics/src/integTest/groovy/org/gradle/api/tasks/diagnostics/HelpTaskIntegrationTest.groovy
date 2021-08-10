@@ -33,7 +33,6 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         when:
         run(*tasks)
 
-
         then:
         output.contains """
 > Task :help
@@ -56,6 +55,14 @@ For troubleshooting, visit https://help.gradle.org
 
 BUILD SUCCESSFUL"""
 
+        and:
+        // Directory is still empty
+        testDirectory.list().size() == 0
+
+        and:
+        // Uses a directory under the user home for those things that happen to need a cache directory
+        executer.gradleUserHomeDir.file("undefined-build").assertIsDir()
+
         where:
         tasks << [["help"], [], [":help"]]
     }
@@ -77,6 +84,35 @@ Welcome to Gradle ${version}.
 
 Directory '$sub' does not contain a Gradle build.
 """
+
+        and:
+        // Directory is still empty
+        sub.list().size() == 0
+    }
+
+    def "shows help message when run in users home directory"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+
+        // the default, if running from user home dir
+        def gradleUserHomeDir = file(".gradle")
+        executer.withGradleUserHomeDir(gradleUserHomeDir)
+
+        when:
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$testDirectory' does not contain a Gradle build.
+"""
+
+        and:
+        // Uses a directory under the user home for those things that happen to need a cache directory
+        gradleUserHomeDir.file("undefined-build").assertIsDir()
     }
 
     def "shows help message when build is defined using build script only"() {

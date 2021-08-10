@@ -12,7 +12,7 @@ plugins {
 }
 
 val antVersion = "1.10.9"
-val archunitVersion = "0.20.0"
+val archunitVersion = "0.20.1"
 val asmVersion = "9.1"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
@@ -21,7 +21,7 @@ val jacksonVersion = "2.12.1"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-18"
+val nativePlatformVersion = "0.22-milestone-20"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"

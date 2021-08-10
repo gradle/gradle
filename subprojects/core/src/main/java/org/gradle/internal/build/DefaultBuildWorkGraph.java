@@ -78,10 +78,8 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     }
 
     @Override
-    public void prepareForExecution() {
-        if (tasksScheduled) {
-            taskGraph.populate();
-        }
+    public void prepareForExecution(boolean alwaysPopulateWorkGraph) {
+        controller.finalizeWorkGraph(alwaysPopulateWorkGraph || tasksScheduled);
         updateTasksPriorToExecution();
     }
 

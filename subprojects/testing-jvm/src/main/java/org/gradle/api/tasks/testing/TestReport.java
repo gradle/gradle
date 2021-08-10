@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTest
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
@@ -78,9 +79,10 @@ public class TestReport extends DefaultTask {
     /**
      * Returns the set of binary test results to include in the report.
      */
-    @PathSensitive(PathSensitivity.NONE)
     @InputFiles
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.NONE)
     public FileCollection getTestResultDirs() {
         return resultDirs;
     }

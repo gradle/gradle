@@ -21,6 +21,15 @@ plugins {
     `maven-publish`
 }
 
+val artifactoryUrl
+    get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
+
+val artifactoryUserName
+    get() = findProperty("artifactoryUserName") as String?
+
+val artifactoryUserPassword
+    get() = findProperty("artifactoryUserPassword") as String?
+
 publishing {
     publications {
         create<MavenPublication>("gradleDistribution") {
@@ -31,7 +40,7 @@ publishing {
         maven {
             name = "remote"
             val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
-            url = uri("https://repo.gradle.org/gradle/libs-${libsType.get()}-local")
+            url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
             credentials {
                 username = artifactoryUserName
                 password = artifactoryUserPassword
@@ -57,7 +66,7 @@ fun MavenPublication.configureGradleModulePublication() {
 fun Project.configurePublishingTasks() {
     tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
         onlyIf { !project.hasProperty("noUpload") }
-        failEarlyIfCredentialsAreNotSet(this)
+        failEarlyIfUrlOrCredentialsAreNotSet(this)
     }
 
     plugins.withId("gradlebuild.shaded-jar") {
@@ -65,9 +74,12 @@ fun Project.configurePublishingTasks() {
     }
 }
 
-fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
+fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
     gradle.taskGraph.whenReady {
         if (hasTask(publish)) {
+            if (artifactoryUrl.isEmpty()) {
+                throw GradleException("artifactoryUrl is not set!")
+            }
             if (artifactoryUserName.isNullOrEmpty()) {
                 throw GradleException("artifactoryUserName is not set!")
             }
@@ -77,12 +89,6 @@ fun Project.failEarlyIfCredentialsAreNotSet(publish: Task) {
         }
     }
 }
-
-val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
-
-val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
 
 fun publishNormalizedToLocalRepository() {
     val localRepository = layout.buildDirectory.dir("repo")

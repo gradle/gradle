@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -30,25 +31,19 @@ public class NestedRootBuildRunner {
     }
 
     public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
-        createNestedRootBuild(buildName, startParameter, services).run(buildController -> {
+        createNestedBuildTree(buildName, startParameter, services).run(buildController -> {
             buildController.scheduleAndRunTasks();
             return null;
         });
     }
 
-    public static NestedRootBuild createNestedRootBuild(@Nullable String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
+    public static NestedBuildTree createNestedBuildTree(@Nullable String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
         PublicBuildPath fromBuild = services.get(PublicBuildPath.class);
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(startParameter, fromBuild);
 
         BuildState currentBuild = services.get(BuildState.class);
 
-        NestedRootBuild nestedBuild;
-
-        // buildStateRegistry is not threadsafe, but this is the only concurrent use currently
         BuildStateRegistry buildStateRegistry = services.get(BuildStateRegistry.class);
-        synchronized (buildStateRegistry) {
-            nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
-        }
-        return nestedBuild;
+        return buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
     }
 }

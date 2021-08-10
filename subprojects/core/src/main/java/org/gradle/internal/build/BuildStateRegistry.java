@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -105,7 +106,7 @@ public interface BuildStateRegistry {
     /**
      * Creates a new standalone nested build tree.
      */
-    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
+    NestedBuildTree addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
 
     /**
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}

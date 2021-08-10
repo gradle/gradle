@@ -54,9 +54,10 @@ public class WatchedHierarchies {
                     return Stream.empty();
                 }
                 watchedHierarchies = watchedHierarchies.plus(watchableHierarchy.toFile());
-                return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                    ? Stream.of(locationOrFirstExistingAncestor(watchableHierarchy))
-                    : Stream.of(watchableHierarchy);
+                Path location = checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
+                    ? locationOrFirstExistingAncestor(watchableHierarchy)
+                    : watchableHierarchy;
+                return Stream.of(location);
             });
 
         watchedRoots = resolveHierarchiesToWatch(hierarchiesWithSnapshots);

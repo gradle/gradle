@@ -16,7 +16,6 @@
 
 package org.gradle.api
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -100,7 +99,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         isEmpty(testDirectory)
-         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
+        failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
     }
 
     def "does not delete an existing .gradle directory"() {

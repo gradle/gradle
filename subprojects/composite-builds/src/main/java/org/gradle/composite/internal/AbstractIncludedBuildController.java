@@ -107,7 +107,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        build.getWorkGraph().prepareForExecution();
+        build.getWorkGraph().prepareForExecution(false);
 
         state = State.ReadyToRun;
     }

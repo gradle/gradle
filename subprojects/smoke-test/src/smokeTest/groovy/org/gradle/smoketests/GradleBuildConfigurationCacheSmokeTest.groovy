@@ -38,6 +38,7 @@ import spock.lang.Ignore
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
 
+    @Ignore("wip:toolchain failure in CI")
     def "can run Gradle unit tests with configuration cache enabled"() {
 
         given:
