@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +30,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(*tasks)
 
         then:
-        isEmpty(testDirectory)
+        testDirectory.assertIsEmptyDir()
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
@@ -85,7 +84,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("build")
 
         then:
-        isEmpty(dir)
+        dir.assertIsEmptyDir()
         failure.assertHasDescription("Execution failed for task ':build'.")
         failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
     }
@@ -98,7 +97,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("tasks")
 
         then:
-        isEmpty(testDirectory)
+        testDirectory.assertIsEmptyDir()
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
     }
 
@@ -181,14 +180,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds(flag)
 
         then:
-        isEmpty(testDirectory)
+        testDirectory.assertIsEmptyDir()
 
         where:
         flag << ["--version", "--help", "-h", "-?", "--help"]
-    }
-
-    void isEmpty(TestFile dir) {
-        dir.assertIsDir()
-        assert dir.listFiles().size() == 0
     }
 }

@@ -57,7 +57,7 @@ BUILD SUCCESSFUL"""
 
         and:
         // Directory is still empty
-        testDirectory.list().size() == 0
+        testDirectory.assertIsEmptyDir()
 
         and:
         // Uses a directory under the user home for those things that happen to need a cache directory
@@ -87,7 +87,7 @@ Directory '$sub' does not contain a Gradle build.
 
         and:
         // Directory is still empty
-        sub.list().size() == 0
+        sub.assertIsEmptyDir()
     }
 
     def "shows help message when run in users home directory"() {

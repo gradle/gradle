@@ -316,11 +316,28 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     void assertNoDefinedBuild(TestFile testDirectory) {
-        testDirectory.file(".gradle").assertDoesNotExist()
+        def file = findBuildDefinition(testDirectory)
+        if (file != null) {
+            throw new AssertionError("""Found unexpected build definition $file visible to test directory $testDirectory
+tmpdir = ${System.getProperty("java.io.tmpdir")}""")
+        }
+    }
+
+    private TestFile findBuildDefinition(TestFile testDirectory) {
+        def buildFile = testDirectory.file(".gradle")
+        if (buildFile.exists()) {
+            return buildFile
+        }
         def currentDirectory = testDirectory
         for (; ;) {
-            currentDirectory.file(settingsFileName).assertDoesNotExist()
-            currentDirectory.file(settingsKotlinFileName).assertDoesNotExist()
+            def settingsFile = currentDirectory.file(settingsFileName)
+            if (settingsFile.exists()) {
+                return settingsFile
+            }
+            settingsFile = currentDirectory.file(settingsKotlinFileName)
+            if (settingsFile.exists()) {
+                return settingsFile
+            }
             currentDirectory = currentDirectory.parentFile
             if (currentDirectory == null) {
                 break
