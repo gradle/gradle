@@ -16,18 +16,16 @@
 package org.gradle.api.java.archives.internal;
 
 import org.gradle.api.java.archives.ManifestMergeDetails;
-import org.gradle.api.provider.Provider;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class DefaultManifestMergeDetails implements ManifestMergeDetails {
     private String section;
     private String key;
     private String baseValue;
     private String mergeValue;
-    private Object value;
+    private String value;
     private boolean excluded;
 
-    public DefaultManifestMergeDetails(String section, String key, String baseValue, String mergeValue, Object value) {
+    public DefaultManifestMergeDetails(String section, String key, String baseValue, String mergeValue, String value) {
         this.section = section;
         this.key = key;
         this.baseValue = baseValue;
@@ -57,18 +55,6 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
 
     @Override
     public String getValue() {
-        if (value instanceof Provider) {
-            DeprecationLogger.deprecateMethod(ManifestMergeDetails.class, "getValue()")
-                .withAdvice("Please use #getRawValue() instead.")
-                .willBecomeAnErrorInGradle8()
-                .withDslReference(ManifestMergeDetails.class, "rawValue")
-                .nagUser();
-        }
-        return value.toString();
-    }
-
-    @Override
-    public Object getRawValue() {
         return value;
     }
 

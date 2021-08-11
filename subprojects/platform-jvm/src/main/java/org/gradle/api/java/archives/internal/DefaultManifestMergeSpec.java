@@ -23,6 +23,7 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
@@ -117,24 +118,34 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
             }
             addMergeDetailToManifest(section, mergedManifest, mergeDetails);
         }
+
+        System.out.println();
     }
 
     private DefaultManifestMergeDetails getMergeDetails(String section, String key, Object baseValue, Object mergeValue) {
-        Object value = null;
-        value = mergeValue == null ? baseValue : mergeValue;
-        return new DefaultManifestMergeDetails(section, key, nullableToString(baseValue), nullableToString(mergeValue), value);
+        String baseValueString = resolveValueToString(baseValue);
+        String mergeValueString = resolveValueToString(mergeValue);
+        String value = mergeValueString == null ? baseValueString : mergeValueString;
+        return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
     }
 
-    private String nullableToString(Object value) { //todo: does Guava have it?
-        return value == null ? null : value.toString();
+    private static String resolveValueToString(Object value) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof Provider) {
+            Object providedValue = ((Provider<?>) value).getOrNull();
+            return resolveValueToString(providedValue);
+        } else {
+            return value.toString();
+        }
     }
 
     private void addMergeDetailToManifest(String section, DefaultManifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {
         if (!mergeDetails.isExcluded()) {
             if (section == null) {
-                mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getRawValue()));
+                mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getValue()));
             } else {
-                mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getRawValue()), section);
+                mergedManifest.attributes(WrapUtil.toMap(mergeDetails.getKey(), mergeDetails.getValue()), section);
             }
         }
     }

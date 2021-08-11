@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -711,7 +712,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         buildFile << """
             task jar(type: Jar) {
                 manifest {
-                    from("$manifest.absolutePath")
+                    from("${TextUtil.normaliseFileSeparators(manifest.absolutePath)}")
                     attributes(attr: provider { "value" })
                     attributes(version: archiveVersion)
                 }

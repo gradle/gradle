@@ -15,9 +15,6 @@
  */
 package org.gradle.api.java.archives;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
-
 /**
  * Details of a value being merged from two different manifests.
  */
@@ -43,27 +40,10 @@ public interface ManifestMergeDetails {
     String getMergeValue();
 
     /**
-     * Returns the value for the key of the manifest after the merge takes place. By
-     * default this is the value of the source for the merge.
-     *
-     * @deprecated Forcing the value to materialize (as a concrete String) means
-     * early evaluation, which we want to avoid. Use {@link #getRawValue()} instead.
-     * @see #getRawValue()
+     * Returns the value for the key of the manifest after the merge takes place. By default this is the value
+     * of the source for the merge.
      */
-    @Deprecated
     String getValue();
-
-    /**
-     * Returns the value for the key of the manifest after the merge takes place.
-     * By default this is the value of the source for the merge. The value is "raw"
-     * in the sense that its returned as is (for example if it's a {@link Provider}
-     * it will be returned as such, not as the the Provider's value). This is useful
-     * for avoiding early evaluation.
-     *
-     * @since 7.3
-     */
-    @Incubating
-    Object getRawValue();
 
     /**
      * Set's the value for the key of the manifest after the merge takes place.
