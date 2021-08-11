@@ -14,7 +14,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -244,7 +243,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/17619")
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after registering plugin`() {
         withSettings(
