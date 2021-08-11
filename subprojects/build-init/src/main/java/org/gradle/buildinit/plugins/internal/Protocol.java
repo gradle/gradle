@@ -63,6 +63,10 @@ public enum Protocol {
         this.replacement = replacement;
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public boolean isSecure() {
         return secure;
     }

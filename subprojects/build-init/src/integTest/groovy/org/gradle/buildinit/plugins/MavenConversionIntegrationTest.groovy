@@ -17,7 +17,9 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.buildinit.plugins.internal.Protocol
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
@@ -521,6 +523,36 @@ Root project 'webinar-parent'
     maven {
         url = uri($stringDelimiter$localRepoUrl$stringDelimiter)
         ${allowPropertyPrefix}llowInsecureProtocol = true
+    }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolUpgrade"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        setup:
+        def repo = mavenHttpServer()
+        // update pom with test repo url
+        def localRepoUrl = repo.getUri().toString()
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureRepositoryHandlerOption.UPGRADE.id
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def taskOutput = result.groupedOutput.task(':init').output
+        taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
+        taskOutput.contains("Setting allowInsecureProtocol=true.")
+
+        def upgradedRepoUrl = localRepoUrl.replaceFirst(Protocol.HTTP.getPrefix(), Protocol.HTTPS.getPrefix())
+        def stringDelimiter = 'Groovy'.equalsIgnoreCase(scriptDsl.id) ? "'" : '"'
+        def mavenLocalRepoBlock = """
+    maven {
+        url = uri($stringDelimiter$localRepoUrl$stringDelimiter)
     }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
 
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
