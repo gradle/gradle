@@ -80,7 +80,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
      *
      * @since 6.0
      */
-    public static final String DEFAULT_ZINC_VERSION = "1.3.5";
+    public static final String DEFAULT_ZINC_VERSION = "1.5.7";
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
 
     @VisibleForTesting
@@ -144,6 +144,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             // Add safeguard and clear error if the user changed the scala version when using default zinc
             zinc.getIncoming().afterResolve(resolvableDependencies -> {
                 resolvableDependencies.getResolutionResult().allComponents(component -> {
+                    // TODO: support Scala3
                     if (component.getModuleVersion() != null && component.getModuleVersion().getName().equals("scala-library")) {
                         if (!component.getModuleVersion().getVersion().startsWith(DEFAULT_SCALA_ZINC_VERSION)) {
                             throw new InvalidUserCodeException("The version of 'scala-library' was changed while using the default Zinc version. " +

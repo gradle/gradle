@@ -15,10 +15,7 @@
  */
 package org.gradle.api.tasks;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -30,10 +27,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
@@ -60,7 +54,6 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class ScalaRuntime {
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala-(\\w.*?)-(\\d.*).jar");
 
     private final Project project;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
@@ -98,30 +91,22 @@ public class ScalaRuntime {
             }
 
             private Configuration inferScalaClasspath() {
-                File scalaLibraryJar = findScalaJar(classpath, "library");
-                if (scalaLibraryJar == null) {
-                    throw new GradleException(String.format("Cannot infer Scala class path because no Scala library Jar was found. "
-                            + "Does %s declare dependency to scala-library? Searched classpath: %s.", project, classpath));
-                }
-
-                String scalaVersion = getScalaVersion(scalaLibraryJar);
-                if (scalaVersion == null) {
-                    throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
-                }
-
                 String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
 
-                String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
-                DefaultExternalModuleDependency compilerBridgeJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
-                compilerBridgeJar.setTransitive(false);
-                compilerBridgeJar.artifact(artifact -> {
-                    artifact.setClassifier("sources");
-                    artifact.setType("jar");
-                    artifact.setExtension("jar");
-                    artifact.setName(compilerBridgeJar.getName());
-                });
-                DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
-                Configuration scalaRuntimeClasspath = project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+                DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency(
+                    "org.scala-sbt",
+                    "compiler-interface",
+                    zincVersion
+                );
+
+                ScalaLibraryJar scalaLibraryJar = ScalaLibraryJar.find(classpath, project);
+
+                Configuration scalaRuntimeClasspath = project.getConfigurations().detachedConfiguration(
+                    scalaLibraryJar.compilerJar(),
+                    scalaLibraryJar.compilerBridgeJar(zincVersion),
+                    compilerInterfaceJar
+                );
+
                 jvmEcosystemUtilities.configureAsRuntimeClasspath(scalaRuntimeClasspath);
                 return scalaRuntimeClasspath;
             }
@@ -134,42 +119,5 @@ public class ScalaRuntime {
                 }
             }
         };
-    }
-
-    /**
-     * Searches the specified class path for a Scala Jar file (scala-compiler, scala-library,
-     * scala-jdbc, etc.) with the specified appendix (compiler, library, jdbc, etc.).
-     * If no such file is found, {@code null} is returned.
-     *
-     * @param classpath the class path to search
-     * @param appendix the appendix to search for
-     * @return a Scala Jar file with the specified appendix
-     */
-    @Nullable
-    public File findScalaJar(Iterable<File> classpath, String appendix) {
-        for (File file : classpath) {
-            Matcher matcher = SCALA_JAR_PATTERN.matcher(file.getName());
-            if (matcher.matches() && matcher.group(1).equals(appendix)) {
-                return file;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Determines the version of a Scala Jar file (scala-compiler, scala-library,
-     * scala-jdbc, etc.). If the version cannot be determined, or the file is not a Scala
-     * Jar file, {@code null} is returned.
-     *
-     * <p>Implementation note: The version is determined by parsing the file name, which
-     * is expected to match the pattern 'scala-[component]-[version].jar'.
-     *
-     * @param scalaJar a Scala Jar file
-     * @return the version of the Scala Jar file
-     */
-    @Nullable
-    public String getScalaVersion(File scalaJar) {
-        Matcher matcher = SCALA_JAR_PATTERN.matcher(scalaJar.getName());
-        return matcher.matches() ? matcher.group(2) : null;
     }
 }

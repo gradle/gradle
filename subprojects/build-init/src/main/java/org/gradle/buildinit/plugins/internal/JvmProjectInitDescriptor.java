@@ -187,6 +187,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         }
         if (getLanguage() == Language.SCALA) {
             String scalaVersion = libraryVersionProvider.getVersion("scala");
+            // TODO: support Scala3
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
             String scalaCoordinates = constraintsDefined ? "org.scala-lang:scala-library" : "org.scala-lang:scala-library:" + scalaLibraryVersion;
             buildScriptBuilder.implementationDependency("Use Scala " + scalaVersion + " in our library project", scalaCoordinates);
@@ -205,6 +206,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
         }
         if (getLanguage() == Language.SCALA) {
+            // TODO: support Scala3
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
             buildScriptBuilder.implementationDependencyConstraint(null, "org.scala-lang:scala-library:" + scalaLibraryVersion);
         }

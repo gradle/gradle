@@ -54,6 +54,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
     fun updateInitPluginTemplateVersionFile() {
         val versionProperties = Properties()
 
+        // TODO: support Scala3
         findLatest("scala-library", "org.scala-lang:scala-library:2.13.+", versionProperties)
         val scalaVersion = VersionNumber.parse(versionProperties["scala-library"] as String)
         versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"

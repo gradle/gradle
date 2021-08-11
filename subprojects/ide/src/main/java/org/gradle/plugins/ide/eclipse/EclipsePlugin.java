@@ -300,6 +300,7 @@ public class EclipsePlugin extends IdePlugin {
 
                 // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
                 project.getGradle().projectsEvaluated(gradle -> {
+                    // TODO: support Scala3
                     final List<String> provided = Lists.newArrayList("scala-library", "scala-swing", "scala-dbc");
                     Predicate<Dependency> dependencyInProvided = dependency -> provided.contains(dependency.getName());
                     List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(model.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {

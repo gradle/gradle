@@ -33,6 +33,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.tasks.ScalaLibraryJar;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
@@ -57,7 +58,6 @@ public class IdeaScalaConfigurer {
 
     // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
     private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
-    public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
     private final Project rootProject;
 
     public IdeaScalaConfigurer(Project rootProject) {
@@ -137,9 +137,8 @@ public class IdeaScalaConfigurer {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {
             FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
-            File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
-            String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
-            return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
+            ScalaLibraryJar scalaLibraryJar = ScalaLibraryJar.find(scalaClasspath, scalaProject);
+            return createScalaSdkFromScalaVersion(scalaLibraryJar.version, scalaClasspath, useScalaSdk);
         } else {
             // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
             // we can't create a Scala SDK without either one
@@ -161,7 +160,7 @@ public class IdeaScalaConfigurer {
             String originalName = newLibrary.getName();
             int suffix = 1;
             while (containsLibraryWithSameName(existingLibraries, newLibrary.getName())) {
-                newLibrary.setName(originalName + "-" + (suffix++));
+                newLibrary.setName(originalName + "-" + suffix++);
             }
             existingLibraries.add(newLibrary);
         }
