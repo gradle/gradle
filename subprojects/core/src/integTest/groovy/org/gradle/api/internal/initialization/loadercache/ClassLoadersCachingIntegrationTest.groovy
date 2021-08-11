@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegratio
 
 class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
-
     def getIsCachedCheck() {
         """
             class StaticState {
