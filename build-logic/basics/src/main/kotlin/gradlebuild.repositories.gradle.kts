@@ -16,7 +16,22 @@
 
 repositories {
     maven {
-        name = "Gradle libs"
-        url = uri("https://repo.gradle.org/gradle/libs")
+        name = "Gradle public repository"
+        url = uri("https://repo.gradle.org/gradle/public")
+        content {
+            includeGroup("net.rubygrapefruit")
+            includeModule("classycle", "classycle")
+            includeModule("flot", "flot")
+            includeModule("org.gradle", "gradle-tooling-api")
+            includeModuleByRegex("org.gradle", "sample-(check|discovery)")
+            includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
+        }
     }
+    google {
+        content {
+            includeGroup("com.android.databinding")
+            includeGroupByRegex("com\\.android\\.tools(\\.[a-z.\\-]*)?")
+        }
+    }
+    mavenCentral()
 }
