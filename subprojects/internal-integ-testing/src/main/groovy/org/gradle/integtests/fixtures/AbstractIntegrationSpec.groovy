@@ -306,7 +306,12 @@ class AbstractIntegrationSpec extends Specification {
      * By default, tests will run under the `build` directory and so a settings.gradle will be present. Most tests do not care but some are sensitive to this.
      */
     void useTestDirectoryThatIsNotEmbeddedInAnotherBuild() {
-        def undefinedBuildDirectory = Files.createTempDirectory("gradle").toFile()
+        // Cannot use Files.createTempDirectory(String) as other tests mess with the static state used by that method
+        // so that it creates directories under the root directory of the Gradle build.
+        // However, in this case the test requires a directory that is not located under any Gradle build. So use
+        // the 'java.io.tmpdir' system property directly
+        TestFile tmpDir = new TestFile(System.getProperty("java.io.tmpdir"))
+        def undefinedBuildDirectory = Files.createTempDirectory(tmpDir.toPath(), "gradle").toFile()
         testDirOverride = new TestFile(undefinedBuildDirectory)
         assertNoDefinedBuild(testDirectory)
         executer.beforeExecute {
@@ -319,7 +324,7 @@ class AbstractIntegrationSpec extends Specification {
         def file = findBuildDefinition(testDirectory)
         if (file != null) {
             throw new AssertionError("""Found unexpected build definition $file visible to test directory $testDirectory
-tmpdir = ${System.getProperty("java.io.tmpdir")}""")
+tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         }
     }
 
