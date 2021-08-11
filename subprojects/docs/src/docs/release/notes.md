@@ -9,8 +9,9 @@ Include only their name, impactful features should be called out separately belo
 -->
 [anatawa12](https://github.com/anatawa12),
 [Anil Kumar Myla](https://github.com/anilkumarmyla),
-[Marcono1234](https://github.com/Marcono1234)
-[Nicola Corti](https://github.com/cortinico)
+[Marcono1234](https://github.com/Marcono1234),
+[Nicola Corti](https://github.com/cortinico),
+[Alex Landau](https://github.com/AlexLandau)
 
 ## Upgrade instructions
 
