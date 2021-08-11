@@ -774,7 +774,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
 
             task jar(type: Jar) {
                 manifest {
-                    from("$manifest.absolutePath")
+                    from("${TextUtil.normaliseFileSeparators(manifest.absolutePath)}")
                     attributes(attr: provider { "value" })
                     attributes(version: archiveVersion)
                 }
