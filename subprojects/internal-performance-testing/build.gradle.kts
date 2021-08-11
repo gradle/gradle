@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.jsch)
     implementation(libs.commonsMath)
     implementation(libs.jclToSlf4j)
-    implementation(libs.flightrecorder)
     implementation(libs.mina)
     implementation(libs.joptSimple)
     implementation(testFixtures(project(":core")))

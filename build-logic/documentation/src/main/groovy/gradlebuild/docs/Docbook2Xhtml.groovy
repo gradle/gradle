@@ -82,7 +82,7 @@ abstract class Docbook2Xhtml extends SourceTask {
             }
             from(project.zipTree(getDocbookStylesheets().singleFile)) {
                 eachFile {
-                    fcd -> fcd.path = fcd.path.replaceFirst("^docbook-xsl-[0-9\\.]+/", "")
+                    fcd -> fcd.path = fcd.path.replaceFirst("^docbook", "")
                 }
             }
             into(getTemporaryDir())
