@@ -118,8 +118,6 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
             }
             addMergeDetailToManifest(section, mergedManifest, mergeDetails);
         }
-
-        System.out.println();
     }
 
     private DefaultManifestMergeDetails getMergeDetails(String section, String key, Object baseValue, Object mergeValue) {
