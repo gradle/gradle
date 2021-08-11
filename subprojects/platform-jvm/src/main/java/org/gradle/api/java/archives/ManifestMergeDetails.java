@@ -45,6 +45,10 @@ public interface ManifestMergeDetails {
     /**
      * Returns the value for the key of the manifest after the merge takes place. By
      * default this is the value of the source for the merge.
+     *
+     * @deprecated Forcing the value to materialize (as a concrete String) means
+     * early evaluation, which we want to avoid. Use {@link #getRawValue()} instead.
+     * @see #getRawValue()
      */
     @Deprecated
     String getValue();

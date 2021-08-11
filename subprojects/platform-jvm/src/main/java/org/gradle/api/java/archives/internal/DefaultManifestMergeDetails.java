@@ -60,7 +60,7 @@ public class DefaultManifestMergeDetails implements ManifestMergeDetails {
         if (value instanceof Provider) {
             DeprecationLogger.deprecateMethod(ManifestMergeDetails.class, "getValue()")
                 .withAdvice("Please use #getRawValue() instead.")
-                .willBeRemovedInGradle8()
+                .willBecomeAnErrorInGradle8()
                 .withDslReference(ManifestMergeDetails.class, "rawValue")
                 .nagUser();
         }
