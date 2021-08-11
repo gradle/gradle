@@ -3,9 +3,18 @@ import org.gradle.api.internal.FeaturePreviews
 pluginManagement {
     includeBuild("build-logic-settings")
     repositories {
+        maven {
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
+            content {
+                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.internal", "test-selection-gradle-plugin", rcAndMilestonesPattern)
+                includeVersionByRegex("com.gradle.internal.test-selection", "com.gradle.internal.test-selection.gradle.plugin", rcAndMilestonesPattern)
+            }
+        }
         gradlePluginPortal()
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
     }
 }
 
