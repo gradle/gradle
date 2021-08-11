@@ -34,6 +34,7 @@ import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
 import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
@@ -62,13 +63,19 @@ public class Maven2Gradle {
     private final List<MavenProject> dependentWars = new ArrayList<>();
     private final Directory workingDir;
     private final BuildInitDsl dsl;
+    private final InsecureRepositoryHandlerOption insecureRepositoryHandler;
 
     public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl) {
+        this(mavenProjects, workingDir, dsl, InsecureRepositoryHandlerOption.defaultOption);
+    }
+
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, InsecureRepositoryHandlerOption insecureRepositoryHandler) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();
         this.workingDir = workingDir;
         this.dsl = dsl;
+        this.insecureRepositoryHandler = insecureRepositoryHandler;
     }
 
     public void convert() {
@@ -77,11 +84,11 @@ public class Maven2Gradle {
         if (multimodule) {
             String groupId = rootProject.getGroupId();
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build");
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build").withInsecureRepositoryHandler(insecureRepositoryHandler);
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions");
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions").withInsecureRepositoryHandler(insecureRepositoryHandler);
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 
@@ -109,7 +116,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build");
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build").withInsecureRepositoryHandler(insecureRepositoryHandler);
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
@@ -143,7 +150,7 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create(workingDir).generate();
             }
         } else {
-            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build");
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build").withInsecureRepositoryHandler(insecureRepositoryHandler);
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
             scriptBuilder.plugin(null, "java");
@@ -483,7 +490,7 @@ public class Maven2Gradle {
     }
 
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings");
+        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings").withInsecureRepositoryHandler(insecureRepositoryHandler);
 
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName);
         Set<MavenProject> modules = modules(projects, true);

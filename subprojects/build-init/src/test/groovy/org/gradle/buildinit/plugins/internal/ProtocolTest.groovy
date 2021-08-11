@@ -16,9 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.GradleException
 import spock.lang.Specification
-import org.gradle.buildinit.plugins.internal.BuildScriptBuilder.Protocol
 
 class ProtocolTest extends Specification {
     def "detects protocol from url"() {

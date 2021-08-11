@@ -19,8 +19,10 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,9 +35,16 @@ public class InitSettings {
     private final ModularizationOption modularizationOption;
     private final Directory target;
 
-    public InitSettings(String projectName, List<String> subprojects, ModularizationOption modularizationOption,
-                        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target) {
+    @Nullable
+    private final InsecureRepositoryHandlerOption insecureRepositoryHandlerOption;
+
+    public InitSettings(
+        String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target,
+        @Nullable InsecureRepositoryHandlerOption insecureRepositoryHandlerOption
+    ) {
         this.projectName = projectName;
+        this.insecureRepositoryHandlerOption = insecureRepositoryHandlerOption;
         this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
             Collections.singletonList(subprojects.get(0)) : subprojects;
         this.modularizationOption = modularizationOption;
@@ -71,5 +80,10 @@ public class InitSettings {
 
     public Directory getTarget() {
         return target;
+    }
+
+    @Nullable
+    public InsecureRepositoryHandlerOption getInsecureRepositoryHandlerOption() {
+        return insecureRepositoryHandlerOption;
     }
 }

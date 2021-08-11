@@ -31,9 +31,11 @@ import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
+import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -57,6 +59,7 @@ public class InitBuild extends DefaultTask {
     private String testFramework;
     private String projectName;
     private String packageName;
+    private String insecureRepoHandler;
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -132,6 +135,20 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getTestFramework() {
         return testFramework;
+    }
+
+    /**
+     * How to handle insecure URLs used for Maven Repositories.
+     *
+     * This property can be set via command-line option '--insecure-repos'.
+     *
+     * @since 7.3
+     */
+    @Nullable
+    @Input
+    @Optional
+    public String getInsecureRepositoryHandler() {
+        return insecureRepoHandler;
     }
 
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -244,9 +261,28 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
+        InsecureRepositoryHandlerOption insecureRepoHandler = null;
+        if (initDescriptor instanceof PomProjectInitDescriptor) {
+            final PomProjectInitDescriptor pomProjectInitDescriptor = (PomProjectInitDescriptor) initDescriptor;
+
+            if (!isNullOrEmpty(this.insecureRepoHandler)) {
+                insecureRepoHandler = InsecureRepositoryHandlerOption.byId(this.insecureRepoHandler);
+                if (insecureRepoHandler == null) {
+                    final TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("The requested insecure repository handler '" + getInsecureRepositoryHandler() + "' is unknown. Supported options");
+                    formatter.startChildren();
+                    pomProjectInitDescriptor.getInsecureRepositoryHandlers().forEach(h -> formatter.node("'" + h.getId() + "'"));
+                    formatter.endChildren();
+                    throw new GradleException(formatter.toString());
+                }
+            } else {
+                insecureRepoHandler = pomProjectInitDescriptor.getDefaultInsecureRepositoryHandler();
+            }
+        }
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir);
+            modularizationOption, dsl, packageName, testFramework, projectDir, insecureRepoHandler);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
@@ -316,6 +352,24 @@ public class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
+    }
+
+    /**
+     * Set the strategy for handling insecure Maven Repositories.
+     *
+     * @since 7.3
+     */
+    @Option(option = "insecure-repos", description = "How to handle insecure URLs used for Maven Repositories.")
+    public void setInsecureRepoHandler(String insecureRepoHandler) {
+        this.insecureRepoHandler = insecureRepoHandler;
+    }
+
+    /**
+     * Available insecure Maven Repository handlers.
+     */
+    @OptionValues("insecure-repos")
+    public List<String> getAvailableInsecureRepoHandlers() {
+        return InsecureRepositoryHandlerOption.listSupported();
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {

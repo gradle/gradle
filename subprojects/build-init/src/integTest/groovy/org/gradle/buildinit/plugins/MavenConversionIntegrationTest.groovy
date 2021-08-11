@@ -515,11 +515,15 @@ Root project 'webinar-parent'
         taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
         taskOutput.contains("Setting allowInsecureProtocol=true.")
 
-        def mavenLocalRepoBlock = """maven {
-        url = uri('$localRepoUrl')
-        allowInsecureProtocol = true
-    }""".toString()
-        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock.trim()))
+        def stringDelimiter = 'Groovy'.equalsIgnoreCase(scriptDsl.id) ? "'" : '"'
+        def allowPropertyPrefix = 'Groovy'.equalsIgnoreCase(scriptDsl.id) ? 'a' : 'isA'
+        def mavenLocalRepoBlock = """
+    maven {
+        url = uri($stringDelimiter$localRepoUrl$stringDelimiter)
+        ${allowPropertyPrefix}llowInsecureProtocol = true
+    }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
     }
 
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
