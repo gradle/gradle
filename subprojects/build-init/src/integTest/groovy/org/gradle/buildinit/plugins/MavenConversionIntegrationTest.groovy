@@ -405,7 +405,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.ALLOW.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -452,7 +452,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE.id
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -527,7 +527,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.WARN.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN.id
 
         then:
         assertWarnOptionSucceeds(result, dsl, localRepoUrl)
@@ -556,7 +556,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.ALLOW.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -588,7 +588,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE.id
 
         then:
         dsl.assertGradleFilesGenerated()
