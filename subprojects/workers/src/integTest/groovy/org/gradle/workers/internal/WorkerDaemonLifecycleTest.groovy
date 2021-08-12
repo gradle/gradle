@@ -22,8 +22,10 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.Ignore
 
 @IntegrationTestTimeout(180)
+@Ignore("https://github.com/gradle/gradle-private/issues/3423")
 class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     String logSnapshot = ""
 
