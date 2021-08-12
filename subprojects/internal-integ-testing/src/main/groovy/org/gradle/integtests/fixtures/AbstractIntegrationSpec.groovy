@@ -306,7 +306,12 @@ class AbstractIntegrationSpec extends Specification {
      * By default, tests will run under the `build` directory and so a settings.gradle will be present. Most tests do not care but some are sensitive to this.
      */
     void useTestDirectoryThatIsNotEmbeddedInAnotherBuild() {
-        def undefinedBuildDirectory = Files.createTempDirectory("gradle").toFile()
+        // Cannot use Files.createTempDirectory(String) as other tests mess with the static state used by that method
+        // so that it creates directories under the root directory of the Gradle build.
+        // However, in this case the test requires a directory that is not located under any Gradle build. So use
+        // the 'java.io.tmpdir' system property directly
+        TestFile tmpDir = new TestFile(System.getProperty("java.io.tmpdir"))
+        def undefinedBuildDirectory = Files.createTempDirectory(tmpDir.toPath(), "gradle").toFile()
         testDirOverride = new TestFile(undefinedBuildDirectory)
         assertNoDefinedBuild(testDirectory)
         executer.beforeExecute {
@@ -316,11 +321,28 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     void assertNoDefinedBuild(TestFile testDirectory) {
-        testDirectory.file(".gradle").assertDoesNotExist()
+        def file = findBuildDefinition(testDirectory)
+        if (file != null) {
+            throw new AssertionError("""Found unexpected build definition $file visible to test directory $testDirectory
+tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
+        }
+    }
+
+    private TestFile findBuildDefinition(TestFile testDirectory) {
+        def buildFile = testDirectory.file(".gradle")
+        if (buildFile.exists()) {
+            return buildFile
+        }
         def currentDirectory = testDirectory
         for (; ;) {
-            currentDirectory.file(settingsFileName).assertDoesNotExist()
-            currentDirectory.file(settingsKotlinFileName).assertDoesNotExist()
+            def settingsFile = currentDirectory.file(settingsFileName)
+            if (settingsFile.exists()) {
+                return settingsFile
+            }
+            settingsFile = currentDirectory.file(settingsKotlinFileName)
+            if (settingsFile.exists()) {
+                return settingsFile
+            }
             currentDirectory = currentDirectory.parentFile
             if (currentDirectory == null) {
                 break

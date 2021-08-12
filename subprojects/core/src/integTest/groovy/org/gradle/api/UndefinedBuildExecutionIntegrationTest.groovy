@@ -16,13 +16,14 @@
 
 package org.gradle.api
 
+import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        executer.requireOwnGradleUserHomeDir()
     }
 
     @Unroll
@@ -31,11 +32,13 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(*tasks)
 
         then:
-        isEmpty(testDirectory)
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
+
+        testDirectory.assertIsEmptyDir()
+        executer.gradleUserHomeDir.assertDoesNotExist()
 
         where:
         tasks << [["tasks"], ["unknown"]]
@@ -85,7 +88,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("build")
 
         then:
-        isEmpty(dir)
+        dir.assertIsEmptyDir()
         failure.assertHasDescription("Execution failed for task ':build'.")
         failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
     }
@@ -98,8 +101,10 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("tasks")
 
         then:
-        isEmpty(testDirectory)
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
+
+        testDirectory.assertIsEmptyDir()
+        gradleUserHomeDir.assertDoesNotExist()
     }
 
     def "does not delete an existing .gradle directory"() {
@@ -160,9 +165,24 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         executer.withArguments("-p", "buildSrc")
         succeeds("tasks")
+
+        file("buildSrc/.gradle").assertIsDir()
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
     def "treats empty buildSrc as undefined build"() {
+        given:
+        file("buildSrc").createDir()
+
+        expect:
+        executer.withArguments("-p", "buildSrc")
+        fails("tasks")
+
+        file("buildSrc").assertIsEmptyDir()
+        executer.gradleUserHomeDir.assertDoesNotExist()
+    }
+
+    def "treats empty buildSrc inside a build as undefined build"() {
         given:
         settingsFile.touch()
         file("buildSrc").createDir()
@@ -172,6 +192,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         executer.withArguments("-p", "buildSrc")
         fails("tasks")
+
+        file("buildSrc").assertIsEmptyDir()
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
     @Unroll
@@ -181,14 +204,9 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds(flag)
 
         then:
-        isEmpty(testDirectory)
+        testDirectory.assertIsEmptyDir()
 
         where:
         flag << ["--version", "--help", "-h", "-?", "--help"]
-    }
-
-    void isEmpty(TestFile dir) {
-        dir.assertIsDir()
-        assert dir.listFiles().size() == 0
     }
 }
