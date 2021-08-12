@@ -35,11 +35,11 @@ public class AdoptOpenJdkRemoteBinary {
 
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
-    private final AdoptOpenJdkDownloader downloader;
+    private final JdkDownloader downloader;
     private final Provider<String> rootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
+    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, JdkDownloader downloader, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
