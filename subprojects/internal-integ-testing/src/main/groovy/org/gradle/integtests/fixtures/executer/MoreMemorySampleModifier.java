@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.samples.model.Command;
-import org.gradle.samples.model.Sample;
-import org.gradle.samples.test.runner.SampleModifier;
+import org.gradle.exemplar.model.Command;
+import org.gradle.exemplar.model.Sample;
+import org.gradle.exemplar.test.runner.SampleModifier;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;

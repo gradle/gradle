@@ -162,7 +162,7 @@ dependencies {
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
         api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
-        api(libs.sampleCheck)           { version { strictly("0.12.6") }}
+        api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.spock)                 { version { strictly("2.0-groovy-3.0") }}
         api(libs.spockJUnit4)           { version { strictly("2.0-groovy-3.0") }}

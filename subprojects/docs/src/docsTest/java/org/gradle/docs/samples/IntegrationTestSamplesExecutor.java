@@ -27,7 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.samples.executor.CommandExecutor;
+import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.io.File;
