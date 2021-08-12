@@ -39,7 +39,7 @@ class AdoptOpenJdkDownloaderTest extends Specification {
         RepositoryTransportFactory transportFactory = newFailingTransportFactory()
 
         given:
-        def downloader = new AdoptOpenJdkDownloader(transportFactory)
+        def downloader = new JdkDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:

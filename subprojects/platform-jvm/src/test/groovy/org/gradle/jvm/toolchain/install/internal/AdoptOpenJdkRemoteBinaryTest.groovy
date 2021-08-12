@@ -42,7 +42,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
 
         when:
         def uri = binary.toDownloadUri(spec)
@@ -71,7 +71,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
 
         when:
         def filename = binary.toFilename(spec)
@@ -101,7 +101,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
         def providerFactory = providerFactory(Providers.of(customBaseUrl))
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory)
 
         when:
         def uri = binary.toDownloadUri(spec)
@@ -119,7 +119,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
+        def downloader = Mock(JdkDownloader)
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
@@ -137,7 +137,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
 
         when:
         def file = binary.download(spec, Mock(File))
@@ -157,7 +157,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader), providerFactory())
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
 
         when:
         def file = binary.download(spec, Mock(File))
@@ -177,7 +177,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
+        def downloader = Mock(JdkDownloader)
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
@@ -198,7 +198,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def downloader = Mock(AdoptOpenJdkDownloader)
+        def downloader = Mock(JdkDownloader)
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
