@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 
 import java.util.Set;
 
@@ -39,10 +39,10 @@ public interface BuildConverter extends BuildInitializer {
     /**
      * Returns the set of insecure repository handlers supported.
      */
-    Set<InsecureProtocolsOption> getInsecureRepositoryHandlers();
+    Set<InsecureProtocolOption> getInsecureProtocolHandlers();
 
     /**
      * Returns the default insecure repository handler used for converting Repository URLs.
      */
-    InsecureProtocolsOption getDefaultInsecureRepositoryHandler();
+    InsecureProtocolOption getDefaultInsecureProtocolHandler();
 }

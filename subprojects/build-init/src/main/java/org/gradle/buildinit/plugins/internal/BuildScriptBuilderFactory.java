@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 
 public class BuildScriptBuilderFactory {
 
@@ -25,7 +25,7 @@ public class BuildScriptBuilderFactory {
         return new BuildScriptBuilder(dsl, pathWithoutExtension);
     }
 
-    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolsOption insecureProtocolsOption) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension, insecureProtocolsOption);
+    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(dsl, pathWithoutExtension, insecureProtocolOption);
     }
 }

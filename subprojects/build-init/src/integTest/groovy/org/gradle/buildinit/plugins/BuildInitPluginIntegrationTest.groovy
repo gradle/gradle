@@ -275,11 +275,11 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                     groovy
                     kotlin
 
-     --insecure-repos     How to handle insecure URLs used for Maven Repositories.
+     --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                           Available values are:
                                allow
-                               fail
                                upgrade
+                               warn
 
      --package     Set the package for source files.
 

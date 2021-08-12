@@ -21,30 +21,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public enum InsecureProtocolsOption implements WithIdentifier {
+public enum InsecureProtocolOption implements WithIdentifier {
     WARN("warn"),
     ALLOW("allow"),
     UPGRADE("upgrade");
 
-    public static InsecureProtocolsOption defaultOption = WARN;
+    public static InsecureProtocolOption defaultOption = WARN;
 
     private final String displayName;
 
     public static List<String> listSupported() {
         return Arrays.stream(values())
-                     .map(InsecureProtocolsOption::getId)
+                     .map(InsecureProtocolOption::getId)
                      .collect(Collectors.toList());
     }
 
     @Nullable
-    public static InsecureProtocolsOption byId(String id) {
+    public static InsecureProtocolOption byId(String id) {
         return Arrays.stream(values())
                      .filter(o -> o.getId().equalsIgnoreCase(id))
                      .findFirst()
                      .orElse(null);
     }
 
-    InsecureProtocolsOption(String displayName) {
+    InsecureProtocolOption(String displayName) {
         this.displayName = displayName;
     }
 

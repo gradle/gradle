@@ -21,7 +21,7 @@ import org.apache.maven.settings.Settings;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
@@ -34,7 +34,7 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         DirectoryProperty getWorkingDir();
         Property<BuildInitDsl> getDsl();
         Property<Settings> getMavenSettings();
-        Property<InsecureProtocolsOption> getInsecureRepositoryHandler();
+        Property<InsecureProtocolOption> getInsecureProtocolOption();
     }
 
     @Override
@@ -43,7 +43,7 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         File pom = params.getWorkingDir().file("pom.xml").get().getAsFile();
         try {
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(params.getMavenSettings().get(), pom);
-            new Maven2Gradle(mavenProjects, params.getWorkingDir().get(), params.getDsl().get(), params.getInsecureRepositoryHandler().get()).convert();
+            new Maven2Gradle(mavenProjects, params.getWorkingDir().get(), params.getDsl().get(), params.getInsecureProtocolOption().get()).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }

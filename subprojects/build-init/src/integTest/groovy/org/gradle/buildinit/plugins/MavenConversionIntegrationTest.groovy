@@ -20,7 +20,7 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.Protocol
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -405,7 +405,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolsOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.ALLOW.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -452,7 +452,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolsOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolOption.UPGRADE.id
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -527,7 +527,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolsOption.WARN.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.WARN.id
 
         then:
         assertWarnOptionSucceeds(result, dsl, localRepoUrl)
@@ -556,7 +556,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolsOption.ALLOW.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.ALLOW.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -588,7 +588,7 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureProtocolsOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocols', InsecureProtocolOption.UPGRADE.id
 
         then:
         dsl.assertGradleFilesGenerated()

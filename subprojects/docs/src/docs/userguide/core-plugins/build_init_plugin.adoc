@@ -91,8 +91,6 @@ The “`pom`” type can be used to convert an Apache Maven build to a Gradle bu
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 
-Note that the migration from Maven builds currently only supports the Groovy DSL for generated build scripts.
-
 The conversion process has the following features:
 
 * Uses effective POM and effective settings (support for POM inheritance, dependency management, properties)
@@ -107,6 +105,7 @@ The conversion process has the following features:
 * Supports packaging of sources, tests, and javadocs
 * Supports TestNG runner
 * Generates global exclusions from Maven enforcer plugin settings
+* Provides link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:insecureProtocolHandler[--insecure-protocol] option for handling Maven repositories located at URLs using `http`
 
 
 [[sec:java_application]]

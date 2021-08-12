@@ -31,7 +31,7 @@ import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
@@ -105,13 +105,13 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public Set<InsecureProtocolsOption> getInsecureRepositoryHandlers() {
-        return new TreeSet<>(Arrays.asList(InsecureProtocolsOption.values()));
+    public Set<InsecureProtocolOption> getInsecureProtocolHandlers() {
+        return new TreeSet<>(Arrays.asList(InsecureProtocolOption.values()));
     }
 
     @Override
-    public InsecureProtocolsOption getDefaultInsecureRepositoryHandler() {
-        return InsecureProtocolsOption.defaultOption;
+    public InsecureProtocolOption getDefaultInsecureProtocolHandler() {
+        return InsecureProtocolOption.defaultOption;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
                         params.getWorkingDir().set(initSettings.getTarget());
                         params.getDsl().set(initSettings.getDsl());
                         params.getMavenSettings().set(settings);
-                        params.getInsecureRepositoryHandler().set(initSettings.getInsecureRepositoryHandlerOption());
+                        params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
                     });
         } catch (SettingsBuildingException exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);

@@ -25,7 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
@@ -54,19 +54,19 @@ public class BuildScriptBuilder {
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
-    private final InsecureRepositoryHandler insecureRepoHandler;
+    private final InsecureProtocolHandler insecureProtocolHandler;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
     public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
-        this(dsl, fileNameWithoutExtension, InsecureProtocolsOption.defaultOption);
+        this(dsl, fileNameWithoutExtension, InsecureProtocolOption.defaultOption);
     }
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolsOption insecureRepositoryHandler) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.insecureRepoHandler = InsecureRepositoryHandler.forOption(insecureRepositoryHandler, dsl);
+        this.insecureProtocolHandler = InsecureProtocolHandler.forOption(insecureProtocolHandler, dsl);
 
         block = new TopLevelBlock(this);
     }
@@ -1045,7 +1045,7 @@ public class BuildScriptBuilder {
             } else {
                 final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
                 logger.warn("Repository URL: '{}' uses an insecure protocol.", url);
-                builder.insecureRepoHandler.handle(urlAsURL, statements);
+                builder.insecureProtocolHandler.handle(urlAsURL, statements);
             }
         }
     }
@@ -1666,11 +1666,11 @@ public class BuildScriptBuilder {
         }
     }
 
-    public interface InsecureRepositoryHandler {
+    public interface InsecureProtocolHandler {
         void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements);
 
-        static InsecureRepositoryHandler forOption(InsecureProtocolsOption insecureRepoHandler, BuildInitDsl dsl) {
-            switch (insecureRepoHandler) {
+        static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl) {
+            switch (insecureProtocolOption) {
                 case WARN:
                     return new BuildScriptBuilder.WarningHandler(dsl);
                 case ALLOW:
@@ -1678,12 +1678,12 @@ public class BuildScriptBuilder {
                 case UPGRADE:
                     return new BuildScriptBuilder.UpgradingHandler();
                 default:
-                    throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureRepoHandler));
+                    throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureProtocolOption));
             }
         }
     }
 
-    public static class WarningHandler implements InsecureRepositoryHandler {
+    public static class WarningHandler implements InsecureProtocolHandler {
         private final BuildInitDsl dsl;
 
         public WarningHandler(BuildInitDsl dsl) {
@@ -1717,7 +1717,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    public static class UpgradingHandler implements InsecureRepositoryHandler {
+    public static class UpgradingHandler implements InsecureProtocolHandler {
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
             final Protocol protocol = Protocol.fromUrl(url);
@@ -1733,7 +1733,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    public static class AllowingHandler implements InsecureRepositoryHandler {
+    public static class AllowingHandler implements InsecureProtocolHandler {
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
             final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
