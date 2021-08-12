@@ -23,8 +23,12 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
@@ -162,7 +166,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             return toolingApi.withConnection(connector, cl)
         } catch (GradleConnectionException e) {
@@ -175,7 +179,7 @@ abstract class ToolingApiSpecification extends Specification {
         toolingApi.connector()
     }
 
-    public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+    def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
             toolingApi.withConnection(cl)
         } catch (GradleConnectionException e) {
@@ -307,7 +311,15 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    public <T> T loadToolingModel(Class<T> modelClass) {
+    ExecutionResult getResult() {
+        return OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString())
+    }
+
+    ExecutionFailure getFailure() {
+        return OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
+    }
+
+    def <T> T loadToolingModel(Class<T> modelClass) {
         withConnection { connection -> connection.getModel(modelClass) }
     }
 

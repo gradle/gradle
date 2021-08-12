@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.internal.build;
 
-import org.gradle.internal.build.BuildToolingModelAction;
+public interface BuildToolingModelAction<T> {
+    void beforeTasks(BuildToolingModelController controller);
 
-/**
- * Responsible for creating a model from the build tree model.
- */
-public interface BuildTreeModelCreator {
-    <T> void beforeTasks(BuildToolingModelAction<? extends T> action);
-
-    <T> T fromBuildModel(BuildToolingModelAction<? extends T> action);
+    T fromBuildModel(BuildToolingModelController controller);
 }

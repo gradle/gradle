@@ -19,6 +19,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
 
 import java.util.function.Function;
@@ -63,8 +64,9 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
+    public <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
         return runBuild(() -> {
+            modelCreator.beforeTasks(action);
             if (runTasks) {
                 ExecutionResult<Void> result = doScheduleAndRunTasks();
                 if (!result.getFailures().isEmpty()) {

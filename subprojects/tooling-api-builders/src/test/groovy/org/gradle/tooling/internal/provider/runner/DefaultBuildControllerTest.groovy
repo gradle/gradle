@@ -24,9 +24,9 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
@@ -59,9 +59,9 @@ class DefaultBuildControllerTest extends Specification {
     }
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
     def projectLeaseRegistry = Stub(ProjectLeaseRegistry)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
     def buildStateRegistry = Stub(BuildStateRegistry)
-    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectLeaseRegistry, buildStateRegistry)
+    def toolingModelController = Mock(BuildToolingModelController)
+    def controller = new DefaultBuildController(toolingModelController, cancellationToken, projectLeaseRegistry, buildStateRegistry)
 
     def setup() {
         GradleThread.setManaged()
@@ -87,6 +87,7 @@ class DefaultBuildControllerTest extends Specification {
         def failure = new UnknownModelException("not found")
 
         given:
+        _ * toolingModelController.configuredModel >> gradle
         _ * gradle.defaultProject >> project
         _ * registry.locateForClientOperation('some.model', false, gradle) >> { throw failure }
 
@@ -180,6 +181,7 @@ class DefaultBuildControllerTest extends Specification {
         def model = new Object()
 
         given:
+        _ * toolingModelController.configuredModel >> gradle
         _ * gradle.defaultProject >> project
         _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
         _ * modelBuilder.build(null) >> model
@@ -217,6 +219,7 @@ class DefaultBuildControllerTest extends Specification {
         }
 
         given:
+        _ * toolingModelController.configuredModel >> gradle
         _ * gradle.defaultProject >> project
         _ * registry.locateForClientOperation("some.model", true, gradle) >> modelBuilder
         _ * modelBuilder.getParameterType() >> parameterType
@@ -244,6 +247,10 @@ class DefaultBuildControllerTest extends Specification {
         then:
         result == ["one", "two", "three"]
 
+        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+            def actions = params[0]
+            actions.forEach { it.run(null) }
+        }
         1 * action1.get() >> "one"
         1 * action2.get() >> "two"
         1 * action3.get() >> "three"
@@ -264,6 +271,10 @@ class DefaultBuildControllerTest extends Specification {
         def e = thrown(MultipleBuildOperationFailures)
         e.causes == [failure1, failure2]
 
+        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+            def actions = params[0]
+            actions.forEach { it.run(null) }
+        }
         1 * action1.get() >> { throw failure1 }
         1 * action2.get() >> { throw failure2 }
         1 * action3.get() >> "three"

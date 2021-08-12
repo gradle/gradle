@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r48;
+package org.gradle.integtests.tooling.r73;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 
-public class CustomBuildFinishedAction implements BuildAction<String> {
-    // Tasks graph is already calculated and tasks executed. Action or model builders can access tasks results.
-
+public class FetchProjectAction implements BuildAction<ProjectPublications> {
     @Override
-    public String execute(BuildController controller) {
-        // Print something to verify it is after task execution
-        System.out.println("buildFinishedAction");
-        return controller.getModel(CustomBuildFinishedModel.class).getValue();
+    public ProjectPublications execute(BuildController controller) {
+        GradleBuild buildModel = controller.getBuildModel();
+        return controller.getModel(buildModel.getRootProject(), ProjectPublications.class);
     }
 }

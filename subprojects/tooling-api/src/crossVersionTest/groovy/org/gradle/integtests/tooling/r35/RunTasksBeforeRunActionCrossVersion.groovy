@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r35
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -115,7 +115,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":help")
+        result.assertTasksExecuted(":help")
     }
 
     @ToolingApiVersion('>4.7') // older versions do not run any tasks
@@ -134,7 +134,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":help")
+        result.assertTasksExecuted(":help")
     }
 
     @ToolingApiVersion('>4.7') // older versions do not run any tasks
@@ -156,7 +156,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
     }
 
     @ToolingApiVersion('>4.7') // older versions do not run any tasks
@@ -178,7 +178,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
     }
 
     @ToolingApiVersion('>4.7') // older versions do not run any tasks
@@ -200,7 +200,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
     }
 
     @ToolingApiVersion('>4.7') // older versions do not run any tasks
@@ -222,7 +222,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        OutputScrapingExecutionResult.from(stdout.toString(), stderr.toString()).assertTasksExecuted(":thing")
+        result.assertTasksExecuted(":thing")
     }
 
     @TargetGradleVersion(">=2.6 <3.5")
