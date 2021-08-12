@@ -16,16 +16,14 @@
 
 package org.gradle.configurationcache.fixtures
 
+import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.Pair
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -33,20 +31,11 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
 import javax.inject.Inject
 
+@SelfType(AbstractIntegrationSpec)
 trait ToolingApiSpec {
-    abstract GradleExecuter getExecuter()
-
-    abstract TestFile getBuildFile()
-
     ToolingApiBackedGradleExecuter getToolingApiExecutor() {
         return (ToolingApiBackedGradleExecuter) getExecuter()
     }
-
-    abstract void setResult(ExecutionResult executionResult)
-
-    abstract void setFailure(ExecutionFailure executionFailure)
-
-    abstract TestFile file(Object... path)
 
     void withSomeToolingModelBuilderPluginInBuildSrc(String content = "") {
         file("buildSrc/src/main/groovy/my/MyModel.groovy") << """
