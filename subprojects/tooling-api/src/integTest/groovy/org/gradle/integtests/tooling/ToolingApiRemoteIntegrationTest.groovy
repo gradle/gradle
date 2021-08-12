@@ -205,7 +205,12 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         def tokenSource = new DefaultCancellationTokenSource()
         def distUri = server.uri("cancelled-dist.zip")
 
-        def content = distribution.binDistribution.bytes[0..30000] as byte[] // more than one progress tick in output
+        BufferedReader reader = new BufferedReader(new FileReader(distribution.binDistribution))
+        def content = new byte[30000] // more than one progress tick in output
+        for (i in 0..<content.length) {
+            content[i++] = reader.read() as byte
+        }
+
         def downloadHandle = server.get("cancelled-dist.zip").sendSomeAndBlock(content)
         server.expect(downloadHandle)
 
