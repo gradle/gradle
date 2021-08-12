@@ -34,7 +34,7 @@ import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
 import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;
@@ -63,9 +63,9 @@ public class Maven2Gradle {
     private final List<MavenProject> dependentWars = new ArrayList<>();
     private final Directory workingDir;
     private final BuildInitDsl dsl;
-    private final InsecureRepositoryHandlerOption insecureRepositoryHandler;
+    private final InsecureProtocolsOption insecureRepositoryHandler;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, InsecureRepositoryHandlerOption insecureRepositoryHandler) {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, InsecureProtocolsOption insecureRepositoryHandler) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();

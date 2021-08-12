@@ -21,30 +21,30 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public enum InsecureRepositoryHandlerOption implements WithIdentifier {
+public enum InsecureProtocolsOption implements WithIdentifier {
+    WARN("warn"),
     ALLOW("allow"),
-    UPGRADE("upgrade"),
-    FAIL("fail");
+    UPGRADE("upgrade");
 
-    public static InsecureRepositoryHandlerOption defaultOption = FAIL;
+    public static InsecureProtocolsOption defaultOption = WARN;
 
     private final String displayName;
 
     public static List<String> listSupported() {
         return Arrays.stream(values())
-                     .map(InsecureRepositoryHandlerOption::getId)
+                     .map(InsecureProtocolsOption::getId)
                      .collect(Collectors.toList());
     }
 
     @Nullable
-    public static InsecureRepositoryHandlerOption byId(String id) {
+    public static InsecureProtocolsOption byId(String id) {
         return Arrays.stream(values())
                      .filter(o -> o.getId().equalsIgnoreCase(id))
                      .findFirst()
                      .orElse(null);
     }
 
-    InsecureRepositoryHandlerOption(String displayName) {
+    InsecureProtocolsOption(String displayName) {
         this.displayName = displayName;
     }
 

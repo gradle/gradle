@@ -35,7 +35,7 @@ import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -261,12 +261,12 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
-        InsecureRepositoryHandlerOption insecureRepoHandler = null;
+        InsecureProtocolsOption insecureRepoHandler = null;
         if (initDescriptor instanceof PomProjectInitDescriptor) {
             final PomProjectInitDescriptor pomProjectInitDescriptor = (PomProjectInitDescriptor) initDescriptor;
 
             if (!isNullOrEmpty(this.insecureRepoHandler)) {
-                insecureRepoHandler = InsecureRepositoryHandlerOption.byId(this.insecureRepoHandler);
+                insecureRepoHandler = InsecureProtocolsOption.byId(this.insecureRepoHandler);
                 if (insecureRepoHandler == null) {
                     final TreeFormatter formatter = new TreeFormatter();
                     formatter.node("The requested insecure repository handler '" + getInsecureRepositoryHandler() + "' is unknown. Supported options");
@@ -369,7 +369,7 @@ public class InitBuild extends DefaultTask {
      */
     @OptionValues("insecure-repos")
     public List<String> getAvailableInsecureRepoHandlers() {
-        return InsecureRepositoryHandlerOption.listSupported();
+        return InsecureProtocolsOption.listSupported();
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {

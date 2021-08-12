@@ -21,7 +21,7 @@ import org.apache.maven.settings.Settings;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
@@ -34,7 +34,7 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         DirectoryProperty getWorkingDir();
         Property<BuildInitDsl> getDsl();
         Property<Settings> getMavenSettings();
-        Property<InsecureRepositoryHandlerOption> getInsecureRepositoryHandler();
+        Property<InsecureProtocolsOption> getInsecureRepositoryHandler();
     }
 
     @Override

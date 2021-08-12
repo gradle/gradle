@@ -25,7 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
 import org.gradle.internal.Cast;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,8 +45,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 /**
  * Assembles the parts of a build script.
@@ -55,21 +54,21 @@ public class BuildScriptBuilder {
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
-    private InsecureRepositoryHandler insecureRepoHandler;
+    private final InsecureRepositoryHandler insecureRepoHandler;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
     public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
-        this(dsl, fileNameWithoutExtension, InsecureRepositoryHandlerOption.FAIL);
+        this(dsl, fileNameWithoutExtension, InsecureProtocolsOption.defaultOption);
     }
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureRepositoryHandlerOption insecureRepositoryHandler) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolsOption insecureRepositoryHandler) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.insecureRepoHandler = InsecureRepositoryHandler.forOption(insecureRepositoryHandler);
+        this.insecureRepoHandler = InsecureRepositoryHandler.forOption(insecureRepositoryHandler, dsl);
 
-        block = new TopLevelBlock(insecureRepoHandler);
+        block = new TopLevelBlock(this);
     }
 
     public BuildScriptBuilder withExternalComments() {
@@ -369,12 +368,10 @@ public class BuildScriptBuilder {
         return () -> {
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
-            try {
-                try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
-                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, externalComments);
-                    printer.printFileHeader(headerLines);
-                    block.writeBodyTo(printer);
-                }
+            try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
+                PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, externalComments);
+                printer.printFileHeader(headerLines);
+                block.writeBodyTo(printer);
             } catch (Exception e) {
                 throw new GradleException("Could not generate file " + target + ".", e);
             }
@@ -847,6 +844,17 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class SingleLineComment extends AbstractStatement {
+        private SingleLineComment(String comment) {
+            super(comment);
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            // NO OP
+        }
+    }
+
     /**
      * Represents the contents of a block.
      */
@@ -904,11 +912,11 @@ public class BuildScriptBuilder {
     }
 
     private static class RepositoriesBlock extends BlockStatement implements RepositoriesBuilder {
-        private final InsecureRepositoryHandler insecureRepoHandler;
+        private final BuildScriptBuilder builder;
 
-        RepositoriesBlock(final InsecureRepositoryHandler insecureRepoHandler) {
+        RepositoriesBlock(final BuildScriptBuilder builder) {
             super("repositories");
-            this.insecureRepoHandler = insecureRepoHandler;
+            this.builder = builder;
         }
 
         @Override
@@ -928,7 +936,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void maven(String comment, String url) {
-            add(new MavenRepoExpression(comment, url, insecureRepoHandler));
+            add(new MavenRepoExpression(comment, url, builder));
         }
     }
 
@@ -1013,12 +1021,12 @@ public class BuildScriptBuilder {
 
     private static class MavenRepoExpression extends AbstractStatement {
         private final String url;
-        private final InsecureRepositoryHandler insecureRepoHandler;
+        private final BuildScriptBuilder builder;
 
-        MavenRepoExpression(@Nullable String comment, String url, InsecureRepositoryHandler insecureRepoHandler) {
+        MavenRepoExpression(@Nullable String comment, String url, BuildScriptBuilder builder) {
             super(comment);
             this.url = url;
-            this.insecureRepoHandler = insecureRepoHandler;
+            this.builder = builder;
         }
 
         @Override
@@ -1037,7 +1045,7 @@ public class BuildScriptBuilder {
             } else {
                 final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
                 logger.warn("Repository URL: '{}' uses an insecure protocol.", url);
-                insecureRepoHandler.handle(urlAsURL, statements);
+                builder.insecureRepoHandler.handle(urlAsURL, statements);
             }
         }
     }
@@ -1107,6 +1115,11 @@ public class BuildScriptBuilder {
         public Expression propertyExpression(String value) {
             return new LiteralValue(value);
         }
+
+        @Override
+        public void comment(String comment) {
+            statements.add(new SingleLineComment(comment));
+        }
     }
 
     private static class TopLevelBlock extends ScriptBlockImpl {
@@ -1117,8 +1130,8 @@ public class BuildScriptBuilder {
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
 
-        private TopLevelBlock(InsecureRepositoryHandler insecureRepoHandler) {
-            repositories = new RepositoriesBlock(insecureRepoHandler);
+        private TopLevelBlock(BuildScriptBuilder builder) {
+            repositories = new RepositoriesBlock(builder);
         }
 
         @Override
@@ -1629,7 +1642,7 @@ public class BuildScriptBuilder {
         @Override
         public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
             ScriptBlock outerBlock = new ScriptBlock(comment, container);
-            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : (elementName + "(" + elementType + ")"));
+            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : elementName + "(" + elementType + ")");
             outerBlock.add(innerBlock);
             for (Statement statement : body) {
                 innerBlock.add(statement);
@@ -1656,36 +1669,60 @@ public class BuildScriptBuilder {
     public interface InsecureRepositoryHandler {
         void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements);
 
-        static InsecureRepositoryHandler forOption(InsecureRepositoryHandlerOption insecureRepoHandler) {
+        static InsecureRepositoryHandler forOption(InsecureProtocolsOption insecureRepoHandler, BuildInitDsl dsl) {
             switch (insecureRepoHandler) {
+                case WARN:
+                    return new BuildScriptBuilder.WarningHandler(dsl);
                 case ALLOW:
                     return new BuildScriptBuilder.AllowingHandler();
                 case UPGRADE:
                     return new BuildScriptBuilder.UpgradingHandler();
-                case FAIL:
-                    return new BuildScriptBuilder.FailingHandler();
                 default:
                     throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureRepoHandler));
             }
         }
     }
 
-    public static class FailingHandler implements InsecureRepositoryHandler {
+    public static class WarningHandler implements InsecureRepositoryHandler {
+        private final BuildInitDsl dsl;
+
+        public WarningHandler(BuildInitDsl dsl) {
+            this.dsl = dsl;
+        }
+
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
+            final boolean isGroovy = dsl.getId().equalsIgnoreCase("Groovy");
+            final String allowPrefix = isGroovy ? "a" : "isA";
+            final String fileExtension = isGroovy ? "gradle" : "gradle.kts";
+
             final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
-            logger.error("Aborting build due to insecure protocol in URL: '{}'.", url);
-            logger.error("Please include the --insecure-repos option with one of the available values [{}] and rerun the init task.", InsecureRepositoryHandlerOption.listSupported().stream().collect(Collectors.joining(", ")));
-            throw new GradleException("Build cancelled.");
+            logger.warn("If you wish to use this repository, you will have to uncomment the line '{}llowInsecureProtocol=true' in the generated build.{}} file.", allowPrefix, fileExtension);
+
+            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
+            statements.comment(buildAllowInsecureProtocolComment(dsl));
+        }
+
+        private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
+            final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+
+            final StringWriter result = new StringWriter();
+            try (PrintWriter writer = new PrintWriter(result)) {
+                PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, false);
+                assignment.writeCodeTo(printer);
+                return result.toString();
+            } catch (Exception e) {
+                throw new GradleException("Could not write comment.", e);
+            }
         }
     }
 
     public static class UpgradingHandler implements InsecureRepositoryHandler {
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
             final Protocol protocol = Protocol.fromUrl(url);
             if (protocol.hasReplacement()) {
+                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
                 logger.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
 
                 final URL upgradedURL = Protocol.secureProtocol(url);

@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolsOption;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import javax.annotation.Nullable;
@@ -36,15 +36,15 @@ public class InitSettings {
     private final Directory target;
 
     @Nullable
-    private final InsecureRepositoryHandlerOption insecureRepositoryHandlerOption;
+    private final InsecureProtocolsOption insecureProtocolsOption;
 
     public InitSettings(
         String projectName, List<String> subprojects, ModularizationOption modularizationOption,
         BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target,
-        @Nullable InsecureRepositoryHandlerOption insecureRepositoryHandlerOption
+        @Nullable InsecureProtocolsOption insecureProtocolsOption
     ) {
         this.projectName = projectName;
-        this.insecureRepositoryHandlerOption = insecureRepositoryHandlerOption;
+        this.insecureProtocolsOption = insecureProtocolsOption;
         this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
             Collections.singletonList(subprojects.get(0)) : subprojects;
         this.modularizationOption = modularizationOption;
@@ -83,7 +83,7 @@ public class InitSettings {
     }
 
     @Nullable
-    public InsecureRepositoryHandlerOption getInsecureRepositoryHandlerOption() {
-        return insecureRepositoryHandlerOption;
+    public InsecureProtocolsOption getInsecureRepositoryHandlerOption() {
+        return insecureProtocolsOption;
     }
 }
