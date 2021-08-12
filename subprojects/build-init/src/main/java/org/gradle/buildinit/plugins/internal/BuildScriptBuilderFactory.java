@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption;
 
 public class BuildScriptBuilderFactory {
 
@@ -24,4 +25,7 @@ public class BuildScriptBuilderFactory {
         return new BuildScriptBuilder(dsl, pathWithoutExtension);
     }
 
+    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension, InsecureRepositoryHandlerOption insecureRepositoryHandlerOption) {
+        return new BuildScriptBuilder(dsl, pathWithoutExtension, insecureRepositoryHandlerOption);
+    }
 }

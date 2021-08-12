@@ -65,10 +65,6 @@ public class Maven2Gradle {
     private final BuildInitDsl dsl;
     private final InsecureRepositoryHandlerOption insecureRepositoryHandler;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl) {
-        this(mavenProjects, workingDir, dsl, InsecureRepositoryHandlerOption.defaultOption);
-    }
-
     public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, InsecureRepositoryHandlerOption insecureRepositoryHandler) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
@@ -84,11 +80,11 @@ public class Maven2Gradle {
         if (multimodule) {
             String groupId = rootProject.getGroupId();
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build").withInsecureRepositoryHandler(insecureRepositoryHandler);
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build", insecureRepositoryHandler);
             buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions").withInsecureRepositoryHandler(insecureRepositoryHandler);
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions", insecureRepositoryHandler);
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 
@@ -116,7 +112,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build").withInsecureRepositoryHandler(insecureRepositoryHandler);
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, RelativePathUtil.relativePath(workingDir.getAsFile(), projectDir(module)) + "/build", insecureRepositoryHandler);
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
@@ -150,7 +146,7 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create(workingDir).generate();
             }
         } else {
-            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build").withInsecureRepositoryHandler(insecureRepositoryHandler);
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build", insecureRepositoryHandler);
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
             scriptBuilder.plugin(null, "java");
@@ -490,7 +486,7 @@ public class Maven2Gradle {
     }
 
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings").withInsecureRepositoryHandler(insecureRepositoryHandler);
+        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings", insecureRepositoryHandler);
 
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName);
         Set<MavenProject> modules = modules(projects, true);

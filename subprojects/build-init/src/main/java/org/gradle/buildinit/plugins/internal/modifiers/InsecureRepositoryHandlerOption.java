@@ -26,7 +26,7 @@ public enum InsecureRepositoryHandlerOption implements WithIdentifier {
     UPGRADE("upgrade"),
     FAIL("fail");
 
-    public static InsecureRepositoryHandlerOption defaultOption = ALLOW;
+    public static InsecureRepositoryHandlerOption defaultOption = FAIL;
 
     private final String displayName;
 

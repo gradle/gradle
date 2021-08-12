@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * Assembles the parts of a build script.
@@ -59,32 +61,19 @@ public class BuildScriptBuilder {
     private final TopLevelBlock block;
 
     public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
+        this(dsl, fileNameWithoutExtension, InsecureRepositoryHandlerOption.FAIL);
+    }
+
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureRepositoryHandlerOption insecureRepositoryHandler) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.insecureRepoHandler = new BuildScriptBuilder.AllowingHandler(); // TODO:17348
+        this.insecureRepoHandler = InsecureRepositoryHandler.forOption(insecureRepositoryHandler);
 
         block = new TopLevelBlock(insecureRepoHandler);
     }
 
     public BuildScriptBuilder withExternalComments() {
         this.externalComments = true;
-        return this;
-    }
-
-    public BuildScriptBuilder withInsecureRepositoryHandler(InsecureRepositoryHandlerOption insecureRepoHandler) {
-        switch (insecureRepoHandler) {
-            case ALLOW:
-                this.insecureRepoHandler = new BuildScriptBuilder.AllowingHandler();
-                break;
-            case UPGRADE:
-                this.insecureRepoHandler = new BuildScriptBuilder.UpgradingHandler();
-                break;
-            case FAIL:
-                this.insecureRepoHandler = new BuildScriptBuilder.FailingHandler();
-                break;
-            default:
-                throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureRepoHandler));
-        }
         return this;
     }
 
@@ -1666,12 +1655,28 @@ public class BuildScriptBuilder {
 
     public interface InsecureRepositoryHandler {
         void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements);
+
+        static InsecureRepositoryHandler forOption(InsecureRepositoryHandlerOption insecureRepoHandler) {
+            switch (insecureRepoHandler) {
+                case ALLOW:
+                    return new BuildScriptBuilder.AllowingHandler();
+                case UPGRADE:
+                    return new BuildScriptBuilder.UpgradingHandler();
+                case FAIL:
+                    return new BuildScriptBuilder.FailingHandler();
+                default:
+                    throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureRepoHandler));
+            }
+        }
     }
 
     public static class FailingHandler implements InsecureRepositoryHandler {
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            throw new GradleException(String.format("Aborting build due to insecure protocol in URL: '%s'.", url));
+            final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+            logger.error("Aborting build due to insecure protocol in URL: '{}'.", url);
+            logger.error("Please include the --insecure-repos option with one of the available values [{}] and rerun the init task.", InsecureRepositoryHandlerOption.listSupported().stream().collect(Collectors.joining(", ")));
+            throw new GradleException("Build cancelled.");
         }
     }
 

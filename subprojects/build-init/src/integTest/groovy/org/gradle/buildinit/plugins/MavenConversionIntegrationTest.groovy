@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.InsecureRepositoryHandlerOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -403,7 +404,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureRepositoryHandlerOption.UPGRADE.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -450,7 +451,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureRepositoryHandlerOption.UPGRADE.id
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -508,7 +509,47 @@ Root project 'webinar-parent'
         targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        fails 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        assertFailOptionFailsOnInsecureRepo(result, localRepoUrl)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolFail"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        setup:
+        def repo = mavenHttpServer()
+        // update pom with test repo url
+        def localRepoUrl = repo.getUri().toString()
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+
+        when:
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureRepositoryHandlerOption.FAIL.id
+
+        then:
+        assertFailOptionFailsOnInsecureRepo(result, localRepoUrl)
+    }
+
+    private static assertFailOptionFailsOnInsecureRepo(ExecutionResult result, String localRepoUrl) {
+        def initTask = result.groupedOutput.task(':init')
+        initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
+        result.assertHasErrorOutput("Aborting build due to insecure protocol in URL: '$localRepoUrl'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolAllow"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        setup:
+        def repo = mavenHttpServer()
+        // update pom with test repo url
+        def localRepoUrl = repo.getUri().toString()
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-repos', InsecureRepositoryHandlerOption.ALLOW.id
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -546,13 +587,13 @@ Root project 'webinar-parent'
 
         def taskOutput = result.groupedOutput.task(':init').output
         taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-        taskOutput.contains("Setting allowInsecureProtocol=true.")
+        taskOutput.contains("Upgrading protocol")
 
         def upgradedRepoUrl = localRepoUrl.replaceFirst(Protocol.HTTP.getPrefix(), Protocol.HTTPS.getPrefix())
         def stringDelimiter = 'Groovy'.equalsIgnoreCase(scriptDsl.id) ? "'" : '"'
         def mavenLocalRepoBlock = """
     maven {
-        url = uri($stringDelimiter$localRepoUrl$stringDelimiter)
+        url = uri($stringDelimiter$upgradedRepoUrl$stringDelimiter)
     }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
 
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
