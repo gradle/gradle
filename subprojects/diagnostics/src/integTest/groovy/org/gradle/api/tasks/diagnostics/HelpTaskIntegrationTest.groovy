@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.GradleVersion
@@ -29,6 +30,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        executer.requireOwnGradleUserHomeDir()
 
         when:
         run(*tasks)
@@ -61,7 +63,7 @@ BUILD SUCCESSFUL"""
 
         and:
         // Uses a directory under the user home for those things that happen to need a cache directory
-        executer.gradleUserHomeDir.file("undefined-build").assertIsDir()
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertIsDir()
 
         where:
         tasks << [["help"], [], [":help"]]
@@ -90,6 +92,32 @@ Directory '$sub' does not contain a Gradle build.
         sub.assertIsEmptyDir()
     }
 
+    def "shows help message when run in a buildSrc directory that does not contain build or settings script"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        settingsFile.createFile()
+        def sub = file("buildSrc").createDir()
+        sub.file("src/main/java/Thing.java") << "class Thing { }"
+
+        when:
+        executer.inDirectory(sub)
+        run "help"
+
+        then:
+        // Current behaviour, not expected behaviour. The directory does actually contain a build definition
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+Directory '$sub' does not contain a Gradle build.
+"""
+
+        and:
+        sub.file(".gradle").assertDoesNotExist()
+        executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
+    }
+
     def "shows help message when run in users home directory"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -112,7 +140,7 @@ Directory '$testDirectory' does not contain a Gradle build.
 
         and:
         // Uses a directory under the user home for those things that happen to need a cache directory
-        gradleUserHomeDir.file("undefined-build").assertIsDir()
+        gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertIsDir()
     }
 
     def "shows help message when build is defined using build script only"() {

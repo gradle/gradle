@@ -17,12 +17,15 @@
 package org.gradle.cache.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
 
 import java.io.File;
 
 public class BuildScopeCacheDir {
+    public static final String UNDEFINED_BUILD = "undefined-build";
+
     private final File cacheDir;
 
     public BuildScopeCacheDir(
@@ -32,8 +35,8 @@ public class BuildScopeCacheDir {
     ) {
         if (startParameter.getProjectCacheDir() != null) {
             cacheDir = startParameter.getProjectCacheDir();
-        } else if (buildLayout.isBuildDefinitionMissing()) {
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), "undefined-build");
+        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
+            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD);
         } else {
             cacheDir = new File(buildLayout.getRootDirectory(), ".gradle");
         }
