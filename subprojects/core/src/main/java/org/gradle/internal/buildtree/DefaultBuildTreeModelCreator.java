@@ -17,24 +17,35 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 import java.util.Collection;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildLifecycleController buildController;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
     private final boolean parallelActions;
 
-    public DefaultBuildTreeModelCreator(BuildLifecycleController buildLifecycleController, BuildOperationExecutor buildOperationExecutor) {
+    public DefaultBuildTreeModelCreator(
+        BuildLifecycleController buildLifecycleController,
+        BuildOperationExecutor buildOperationExecutor,
+        ProjectLeaseRegistry projectLeaseRegistry
+    ) {
         this.buildController = buildLifecycleController;
         this.buildOperationExecutor = buildOperationExecutor;
         parallelActions = !"false".equalsIgnoreCase(buildLifecycleController.getGradle().getStartParameter().getSystemPropertiesArgs().get("org.gradle.internal.tooling.parallel"));
+        this.projectLeaseRegistry = projectLeaseRegistry;
     }
 
     @Override
@@ -59,8 +70,28 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) {
+            // Force configuration of build
+            GradleInternal target = buildController.getConfiguredBuild();
+            ToolingModelBuilderLookup lookup = target.getDefaultProject().getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, param, target);
+        }
+
+        @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, param, target.getMutableModel());
+        }
+
+        @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, param, target.getMutableModel());
+        }
+
+        @Override
         public boolean queryModelActionsRunInParallel() {
-            return parallelActions;
+            return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
         }
 
         @Override

@@ -17,10 +17,16 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 import java.util.Collection;
 
+/**
+ * Coordinates the building of tooling models.
+ */
 public interface BuildToolingModelController {
     /**
      * Returns the current state of the mutable model.
@@ -31,6 +37,12 @@ public interface BuildToolingModelController {
      * Returns the mutable model, configuring if necessary.
      */
     GradleInternal getConfiguredModel();
+
+    ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException;
+
+    ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException;
+
+    ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException;
 
     boolean queryModelActionsRunInParallel();
 

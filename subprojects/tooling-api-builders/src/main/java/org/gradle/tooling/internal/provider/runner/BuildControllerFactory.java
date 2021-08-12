@@ -19,23 +19,20 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildControllerFactory {
     private final BuildCancellationToken buildCancellationToken;
-    private final ProjectLeaseRegistry projectLeaseRegistry;
     private final BuildStateRegistry buildStateRegistry;
 
-    public BuildControllerFactory(BuildCancellationToken buildCancellationToken, ProjectLeaseRegistry projectLeaseRegistry, BuildStateRegistry buildStateRegistry) {
+    public BuildControllerFactory(BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry) {
         this.buildCancellationToken = buildCancellationToken;
-        this.projectLeaseRegistry = projectLeaseRegistry;
         this.buildStateRegistry = buildStateRegistry;
     }
 
     public DefaultBuildController controllerFor(BuildToolingModelController controller) {
-        return new DefaultBuildController(controller, buildCancellationToken, projectLeaseRegistry, buildStateRegistry);
+        return new DefaultBuildController(controller, buildCancellationToken, buildStateRegistry);
     }
 }

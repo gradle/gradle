@@ -255,6 +255,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ProjectInternal getDefaultProject() {
+        if (defaultProject == null) {
+            throw new IllegalStateException("The default project is not yet available for " + this + ".");
+        }
         return defaultProject;
     }
 
