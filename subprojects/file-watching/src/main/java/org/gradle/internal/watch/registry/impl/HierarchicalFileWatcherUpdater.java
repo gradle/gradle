@@ -61,12 +61,19 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
     private final WatchableHierarchies watchableHierarchies;
+    private final MovedHierarchyHandler movedHierarchyHandler;
     private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
 
-    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
+    public HierarchicalFileWatcherUpdater(
+        FileWatcher fileWatcher,
+        FileSystemLocationToWatchValidator locationToWatchValidator,
+        Predicate<String> watchFilter,
+        MovedHierarchyHandler movedHierarchyHandler
+    ) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
         this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
     @Override
@@ -90,6 +97,15 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
         updateWatchedHierarchies(root);
+    }
+
+    @Override
+    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+        SnapshotHierarchy newRoot = movedHierarchyHandler.handleMovedHierarchies(root);
+        if (newRoot != root) {
+            updateWatchedHierarchies(newRoot);
+        }
+        return newRoot;
     }
 
     @Override
@@ -151,5 +167,14 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         FileSystemLocationToWatchValidator NO_VALIDATION = location -> {};
 
         void validateLocationToWatch(File location);
+    }
+
+    public interface MovedHierarchyHandler {
+        /**
+         * On Windows when watched hierarchies are moved, the OS does not send a notification,
+         * even though the VFS should be updated. Our best bet here is to cull any moved watch
+         * roots from the VFS at the start of every build.
+         */
+        SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root);
     }
 }

@@ -47,7 +47,7 @@ import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVE
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
-    private final AbstractFileEventFunctions fileEventFunctions;
+    private final AbstractFileEventFunctions<?> fileEventFunctions;
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
@@ -58,7 +58,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        AbstractFileEventFunctions fileEventFunctions,
+        AbstractFileEventFunctions<?> fileEventFunctions,
         FileWatcher watcher,
         ChangeHandler handler,
         FileWatcherUpdater fileWatcherUpdater,
@@ -132,6 +132,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     @Override
     public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
+    }
+
+    @Override
+    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+        return fileWatcherUpdater.buildStarted(root);
     }
 
     @Override

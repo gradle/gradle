@@ -60,6 +60,12 @@ public interface FileWatcherRegistry extends Closeable {
     void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
+     * Check if watched hierarchies are where we left them after the previous build.
+     */
+    @CheckReturnValue
+    SnapshotHierarchy buildStarted(SnapshotHierarchy root);
+
+    /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
      * This is anything which is not within a watchable hierarchy or in a cache directory.

@@ -279,6 +279,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
     }
 
+    SnapshotHierarchy buildStarted() {
+        virtualFileSystem.root = updater.buildStarted(virtualFileSystem.root)
+        return virtualFileSystem.root
+    }
+
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
         virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies)
     }

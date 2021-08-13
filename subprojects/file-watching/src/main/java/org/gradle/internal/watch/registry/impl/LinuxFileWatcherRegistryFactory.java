@@ -19,27 +19,27 @@ package org.gradle.internal.watch.registry.impl;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
-import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
+import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions.LinuxFileWatcher;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
-public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions> {
+public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
 
     public LinuxFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
         super(FileEvents.get(LinuxFileEventFunctions.class), watchFilter);
     }
 
     @Override
-    protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+    protected LinuxFileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
         return fileEventFunctions.newWatcher(fileEvents)
             .start();
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
+    protected FileWatcherUpdater createFileWatcherUpdater(LinuxFileWatcher watcher, Predicate<String> watchFilter) {
         return new NonHierarchicalFileWatcherUpdater(watcher, watchFilter);
     }
 }
