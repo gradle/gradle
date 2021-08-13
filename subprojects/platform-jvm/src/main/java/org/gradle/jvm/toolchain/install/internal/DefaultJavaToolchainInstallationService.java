@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-public class DefaultJavaToolchainProvisioningService implements org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService {
+public class DefaultJavaToolchainInstallationService implements JavaToolchainInstallationService {
     private static final Comparator<JavaToolchainCandidate> BY_LANGUAGE_VERSION = Comparator.comparingInt(
         cand -> cand.getLanguageVersion().asInt()
     );
@@ -64,8 +64,8 @@ public class DefaultJavaToolchainProvisioningService implements org.gradle.jvm.t
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(
-        AdoptOpenJdkRemoteProvisioningService javaToolchainProvisioner,
+    public DefaultJavaToolchainInstallationService(
+        JavaToolchainProvisioningService javaToolchainProvisioner,
         JdkCacheDirectory cacheDirProvider,
         ProviderFactory factory,
         BuildOperationExecutor executor,

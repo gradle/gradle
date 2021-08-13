@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainInstallationService;
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     public AutoInstalledInstallationSupplier(ProviderFactory factory, JdkCacheDirectory cacheDirProvider) {
         super(factory);
         this.cacheDirProvider = cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainInstallationService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
     }
 
     @Override

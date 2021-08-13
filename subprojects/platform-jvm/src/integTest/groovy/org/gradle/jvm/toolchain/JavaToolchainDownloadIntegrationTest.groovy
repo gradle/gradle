@@ -113,4 +113,59 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def 'can provide a custom provisioning service'() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+
+            interface Services {
+                @javax.inject.Inject
+                JavaToolchainService getToolchains()
+            }
+
+            def toolchains = objects.newInstance(Services).toolchains
+            toolchains.registerToolchainProvisioningService(Custom)
+
+            abstract class Custom implements JavaToolchainProvisioningService {
+                void findCandidates(JavaToolchainProvisioningDetails details) {
+                    details.listCandidates([
+                        details.newCandidate()
+                            .withVendor("foo")
+                            .withLanguageVersion(99)
+                            .build()
+                    ])
+                }
+
+                LazyProvisioner provisionerFor(JavaToolchainCandidate candidate) {
+                    new LazyProvisioner() {
+                        String getFileName() { "dummy.zip" }
+                        boolean provision(File destination) {
+                            throw new RuntimeException("Provisioning custom JDK")
+                        }
+                    }
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir()
+            .withToolchainDownloadEnabled()
+            .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=99, vendor=any, implementation=vendor-specific}")
+            .assertHasCause("Provisioning custom JDK")
+    }
 }

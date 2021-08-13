@@ -23,8 +23,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainInstallationService;
+import org.gradle.jvm.toolchain.install.internal.JavaToolchainInstallationService;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,18 +37,18 @@ public class JavaToolchainQueryService {
 
     private final JavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
-    private final JavaToolchainProvisioningService installService;
+    private final JavaToolchainInstallationService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
 
     @Inject
-    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainInstallationService provisioningService, ProviderFactory factory) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).forUseAtConfigurationTime().map(Boolean::parseBoolean);
-        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainInstallationService.AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
     }
 

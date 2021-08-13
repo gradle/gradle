@@ -21,7 +21,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import java.io.File;
 import java.util.Optional;
 
-public interface JavaToolchainProvisioningService {
+public interface JavaToolchainInstallationService {
 
     Optional<File> tryInstall(JavaToolchainSpec spec);
 

@@ -17,7 +17,9 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Allows to query for toolchain managed tools, like {@link JavaCompiler}, {@link JavaLauncher} and {@link JavadocTool}.
@@ -26,6 +28,7 @@ import org.gradle.api.provider.Provider;
  *
  * @since 6.7
  */
+@HasInternalProtocol
 public interface JavaToolchainService {
 
     /**
@@ -75,4 +78,13 @@ public interface JavaToolchainService {
      * @return A {@code Provider<JavadocTool>}
      */
     Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec);
+
+    /**
+     * Registers a new toolchain provisioning service
+     * @param service the service to register
+     *
+     * @since 7.3
+     */
+    @Incubating
+    void registerToolchainProvisioningService(Class<? extends JavaToolchainProvisioningService> service);
 }

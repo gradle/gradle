@@ -49,7 +49,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         downloadLocation.name >> "filename.zip"
         cache.getDownloadLocation(_ as String) >> downloadLocation
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, operationExecutor, Stub(SystemInfo), Stub(OperatingSystem))
+        def provisioningService = new DefaultJavaToolchainInstallationService(binary, cache, providerFactory, operationExecutor, Stub(SystemInfo), Stub(OperatingSystem))
 
         when:
         provisioningService.tryInstall(spec)
@@ -90,7 +90,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def downloadLocation = new File(temporaryFolder, "jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
+        def provisioningService = new DefaultJavaToolchainInstallationService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
 
         when:
         provisioningService.tryInstall(spec)
@@ -107,7 +107,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.canProvideMatchingJdk(spec) >> false
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
+        def provisioningService = new DefaultJavaToolchainInstallationService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
 
         when:
         def result = provisioningService.tryInstall(spec)
@@ -125,7 +125,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.canProvideMatchingJdk(spec) >> true
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
+        def provisioningService = new DefaultJavaToolchainInstallationService(binary, cache, providerFactory, new TestBuildOperationExecutor(), Stub(SystemInfo), Stub(OperatingSystem))
 
         when:
         def result = provisioningService.tryInstall(spec)
