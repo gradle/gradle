@@ -30,7 +30,7 @@ val bytebuddyVersion = "1.10.20"
 
 dependencies {
     constraints {
-        api(libs.ansiControlSequenceUtil) { version { strictly("0.2") }}
+        api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
