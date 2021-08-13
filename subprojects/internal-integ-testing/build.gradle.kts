@@ -80,7 +80,7 @@ dependencies {
     implementation(libs.jansi)
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.mina)
-    implementation(libs.sampleCheck) {
+    implementation(libs.samplesCheck) {
         exclude(module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
