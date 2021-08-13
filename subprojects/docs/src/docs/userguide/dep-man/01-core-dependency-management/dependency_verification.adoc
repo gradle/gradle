@@ -268,7 +268,7 @@ See <<sec:troubleshooting-verification,troubleshooting dependency verification>>
 === What checksums are verified?
 
 If a dependency verification metadata file declares more than one checksum for a dependency, Gradle will verify _all of them_ and fail if _any of them fails_.
-For example, the following configuration would check both the `md5` and `sha256` checksums:
+For example, the following configuration would check both the `md5` and `sha1` checksums:
 
 [source,xml]
 ----
