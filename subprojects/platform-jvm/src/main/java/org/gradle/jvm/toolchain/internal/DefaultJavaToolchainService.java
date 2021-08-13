@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
@@ -31,11 +32,13 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     private final JavaToolchainQueryService queryService;
     private final ObjectFactory objectFactory;
+    private final ProvisioningServicesRegistry provisioningServicesRegistry;
 
     @Inject
-    public DefaultJavaToolchainService(JavaToolchainQueryService queryService, ObjectFactory objectFactory) {
+    public DefaultJavaToolchainService(JavaToolchainQueryService queryService, ObjectFactory objectFactory, ProvisioningServicesRegistry provisioningServices) {
         this.queryService = queryService;
         this.objectFactory = objectFactory;
+        this.provisioningServicesRegistry = provisioningServices;
     }
 
     @Override
@@ -66,6 +69,11 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
     @Override
     public Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec) {
         return queryService.toolFor(spec, JavaToolchain::getJavadocTool);
+    }
+
+    @Override
+    public void registerToolchainProvisioningService(Class<? extends JavaToolchainProvisioningService> service) {
+        provisioningServicesRegistry.registerProvisioningService(objectFactory.newInstance(service));
     }
 
     private DefaultToolchainSpec configureToolchainSpec(Action<? super JavaToolchainSpec> config) {

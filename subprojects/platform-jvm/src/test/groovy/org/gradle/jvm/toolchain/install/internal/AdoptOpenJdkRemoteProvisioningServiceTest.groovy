@@ -256,12 +256,12 @@ class AdoptOpenJdkRemoteProvisioningServiceTest extends Specification {
 
             @Override
             String getOperatingSystem() {
-                DefaultJavaToolchainProvisioningService.determineOs(os)
+                DefaultJavaToolchainInstallationService.determineOs(os)
             }
 
             @Override
             String getSystemArch() {
-                DefaultJavaToolchainProvisioningService.determineArch(info)
+                DefaultJavaToolchainInstallationService.determineArch(info)
             }
         }
     }

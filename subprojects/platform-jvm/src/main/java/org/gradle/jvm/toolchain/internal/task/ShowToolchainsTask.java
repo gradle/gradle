@@ -24,7 +24,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainInstallationService;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
@@ -68,7 +68,7 @@ public class ShowToolchainsTask extends DefaultTask {
 
     private void printOptions(StyledTextOutput output) {
         boolean detectionEnabled = getBooleanProperty(AutoDetectingInstallationSupplier.AUTO_DETECT);
-        boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD);
+        boolean downloadEnabled = getBooleanProperty(DefaultJavaToolchainInstallationService.AUTO_DOWNLOAD);
         output.withStyle(Identifier).println(" + Options");
         output.withStyle(Normal).format("     | %s", Strings.padEnd("Auto-detection:", 20, ' '));
         output.withStyle(Description).println(detectionEnabled ? "Enabled" : "Disabled");
