@@ -68,7 +68,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = project.the<ModuleIdentityExtension>().gradleBuildBranch.get() in listOf("master", "release") ||
+    fun currentBranchIsMasterOrRelease() = project.the<ModuleIdentityExtension>().gradleBuildBranch.get() in listOf("master", "release", "release6x") ||
         project.the<ModuleIdentityExtension>().gradleBuildBranch.get().startsWith("pre-test/")
 
     private
