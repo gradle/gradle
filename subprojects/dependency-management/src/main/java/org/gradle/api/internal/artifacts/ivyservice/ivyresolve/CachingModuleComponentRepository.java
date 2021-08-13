@@ -92,12 +92,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(ModuleComponentRepository delegate,
-                                            ModuleRepositoryCaches caches,
-                                            CachePolicy cachePolicy,
-                                            BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor,
-                                            ChangingValueDependencyResolutionListener listener) {
+    public CachingModuleComponentRepository(
+        ModuleComponentRepository delegate,
+        ModuleRepositoryCaches caches,
+        CachePolicy cachePolicy,
+        BuildCommencedTimeProvider timeProvider,
+        ComponentMetadataProcessor metadataProcessor,
+        ChangingValueDependencyResolutionListener listener
+    ) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
