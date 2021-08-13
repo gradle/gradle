@@ -127,8 +127,10 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.resources.RemoteResourceService;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -218,6 +220,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transfer.DefaultRemoteResourceService;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -875,5 +878,12 @@ class DependencyManagementBuildScopeServices {
                 }
             };
         }
+    }
+
+    RemoteResourceService createRemoteResourceService(RepositoryTransportFactory repositoryTransportFactory,
+                                                      FileStoreAndIndexProvider fileStoreAndIndexProvider,
+                                                      Gradle gradle,
+                                                      ObjectFactory objectFactory) {
+        return new DefaultRemoteResourceService(repositoryTransportFactory, fileStoreAndIndexProvider.getExternalResourceFileStore(), gradle.getStartParameter(), objectFactory);
     }
 }

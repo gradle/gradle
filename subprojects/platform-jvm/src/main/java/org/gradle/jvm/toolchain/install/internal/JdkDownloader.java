@@ -16,45 +16,23 @@
 
 package org.gradle.jvm.toolchain.install.internal;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.verifier.HttpRedirectVerifier;
-import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.resources.RemoteResourceService;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.AtomicMoveNotSupportedException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.Collections;
 
 public class JdkDownloader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdkDownloader.class);
+    private final RemoteResourceService remoteResourceService;
 
-    private final RepositoryTransportFactory repositoryTransportFactory;
-
-    public JdkDownloader(RepositoryTransportFactory repositoryTransportFactory) {
-        this.repositoryTransportFactory = repositoryTransportFactory;
+    public JdkDownloader(RemoteResourceService remoteResourceService) {
+        this.remoteResourceService = remoteResourceService;
     }
 
     public void download(URI source, File tmpFile) {
-        final ExternalResource resource = createExternalResource(source, tmpFile.getName());
         try {
-            downloadResource(source, tmpFile, resource);
+            remoteResourceService.withResource(source, tmpFile.getName(), res -> res.persistInto(tmpFile));
         } catch (MissingResourceException e) {
             throw new MissingResourceException(source, "Unable to download toolchain. " +
                 "This might indicate that the combination " +
@@ -62,61 +40,5 @@ public class JdkDownloader {
                 "requested JDK is not available.", e);
         }
     }
-
-    private ExternalResource createExternalResource(URI source, String name) {
-        final ExternalResourceName resourceName = new ExternalResourceName(source) {
-            @Override
-            public String getShortDisplayName() {
-                return name;
-            }
-        };
-        return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
-    }
-
-    private void downloadResource(URI source, File targetFile, ExternalResource resource) {
-        final File downloadFile = new File(targetFile.getAbsoluteFile() + ".part");
-        try {
-            resource.withContent(inputStream -> {
-                LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
-                copyIntoFile(source, inputStream, downloadFile);
-            });
-            moveFile(targetFile, downloadFile);
-        } catch (IOException e) {
-            throw new GradleException("Unable to move downloaded toolchain to target destination", e);
-        } finally {
-            downloadFile.delete();
-        }
-    }
-
-    private void moveFile(File targetFile, File downloadFile) throws IOException {
-        try {
-            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
-
-    private void copyIntoFile(URI source, InputStream inputStream, File destination) {
-        try (FileOutputStream outputStream = new FileOutputStream(destination)) {
-            IOUtils.copyLarge(inputStream, outputStream);
-        } catch (IOException e) {
-            throw ResourceExceptions.getFailed(source, e);
-        }
-    }
-
-    private RepositoryTransport getTransport(URI source) {
-        final HttpRedirectVerifier redirectVerifier;
-        try {
-            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false, () -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + source + ". This is not supported, use a secure URI instead.");
-            }, uri -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + uri + ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
-            });
-        } catch (URISyntaxException e) {
-            throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
-        }
-        return repositoryTransportFactory.createTransport("https", "jdk toolchains", Collections.emptyList(), redirectVerifier);
-    }
-
 
 }

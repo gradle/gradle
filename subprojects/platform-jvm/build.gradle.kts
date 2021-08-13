@@ -38,6 +38,8 @@ dependencies {
     testImplementation(testFixtures(project(":platform-native")))
 
     integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.commonsCompress)
+
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

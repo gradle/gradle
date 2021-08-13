@@ -16,15 +16,20 @@
 
 package org.gradle.jvm.toolchain.install.internal
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.resources.RemoteResourceService
 import org.gradle.authentication.Authentication
-import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.ExternalResourceName
-import org.gradle.internal.resource.ExternalResourceRepository
+import org.gradle.internal.resource.cached.ExternalResourceFileStore
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.LocallyAvailableResource
+import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.internal.resource.transfer.DefaultRemoteResourceService
 import org.gradle.internal.verifier.HttpRedirectVerifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -37,9 +42,10 @@ class AdoptOpenJdkDownloaderTest extends Specification {
 
     def "cancelled download does not leave destination file behind"() {
         RepositoryTransportFactory transportFactory = newFailingTransportFactory()
+        RemoteResourceService remoteResourceService = remoteResourceServiceFor(transportFactory)
 
         given:
-        def downloader = new JdkDownloader(transportFactory)
+        def downloader = new JdkDownloader(remoteResourceService)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
@@ -53,9 +59,9 @@ class AdoptOpenJdkDownloaderTest extends Specification {
     private RepositoryTransportFactory newFailingTransportFactory() {
         Mock(RepositoryTransportFactory) {
             createTransport(_ as String, _ as String, _ as Collection<Authentication>, _ as HttpRedirectVerifier) >> Mock(RepositoryTransport) {
-                getRepository() >> Mock(ExternalResourceRepository) {
-                    withProgressLogging() >> Mock(ExternalResourceRepository) {
-                        resource(_ as ExternalResourceName) >> Mock(ExternalResource) {
+                getResourceAccessor() >> Stub(CacheAwareExternalResourceAccessor) {
+                    getResource(_, _, _, _) >> { args ->
+                        Stub(LocallyAvailableExternalResource) {
                             withContent(_ as Action<? super InputStream>) >> { Action<? super InputStream> readAction ->
                                 readAction.execute(new ByteArrayInputStream("foo".bytes))
                                 throw new BuildCancelledException()
@@ -65,5 +71,23 @@ class AdoptOpenJdkDownloaderTest extends Specification {
                 }
             }
         }
+    }
+
+    private RemoteResourceService remoteResourceServiceFor(RepositoryTransportFactory repositoryTransportFactory) {
+        new DefaultRemoteResourceService(
+            repositoryTransportFactory,
+            Stub(ExternalResourceFileStore) {
+                move(_, _) >> { args ->
+                    def (key, file) = args
+                    Stub(LocallyAvailableResource) {
+                        getFile() >> file
+                    }
+                }
+            },
+            Stub(StartParameter) {
+                isOffline() >> false
+            },
+            TestUtil.objectFactory()
+        )
     }
 }

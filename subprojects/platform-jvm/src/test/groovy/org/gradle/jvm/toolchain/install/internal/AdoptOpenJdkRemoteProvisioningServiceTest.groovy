@@ -131,7 +131,7 @@ class AdoptOpenJdkRemoteProvisioningServiceTest extends Specification {
         def candidate = details.candidates.get()[0]
 
         when:
-        def targetFile = new File(temporaryFolder, "jdk"))
+        def targetFile = new File(temporaryFolder, "jdk")
         provisioner.provisionerFor(candidate).provision(targetFile)
 
         then:
