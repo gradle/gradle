@@ -11,6 +11,7 @@ Include only their name, impactful features should be called out separately belo
 [Anil Kumar Myla](https://github.com/anilkumarmyla),
 [Marcono1234](https://github.com/Marcono1234)
 [Nicola Corti](https://github.com/cortinico)
+[Scott Palmer](https://github.com/swpalmer)
 
 ## Upgrade instructions
 
