@@ -47,11 +47,6 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        GradleInternal getMutableModel() {
-            return targetBuild.gradle
-        }
-
-        @Override
         GradleInternal getConfiguredModel() {
             return targetBuild.configuredBuild
         }

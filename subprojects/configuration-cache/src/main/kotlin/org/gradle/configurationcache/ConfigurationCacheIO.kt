@@ -108,7 +108,7 @@ class ConfigurationCacheIO internal constructor(
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
         val build = host.currentBuild
-        val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.rootProject.name + " state")
+        val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.owner.displayName.displayName + " state")
         return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile))

@@ -36,6 +36,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -121,7 +122,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ServiceRegistryFactory getServiceRegistryFactory();
 
-    void setClassLoaderScope(ClassLoaderScope classLoaderScope);
+    void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
 
     ClassLoaderScope getClassLoaderScope();
 

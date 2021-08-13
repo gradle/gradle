@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -152,28 +151,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public Path getIdentityPathForProject(Path projectPath) {
+    public Path calculateIdentityPathForProject(Path projectPath) {
         return getIdentityPath().append(projectPath);
     }
 
     @Override
     public Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions() {
         return buildDefinition.getDependencySubstitutions();
-    }
-
-    @Override
-    public boolean hasInjectedSettingsPlugins() {
-        return !buildDefinition.getInjectedPluginRequests().isEmpty();
-    }
-
-    @Override
-    public SettingsInternal loadSettings() {
-        return buildLifecycleController.getLoadedSettings();
-    }
-
-    @Override
-    public SettingsInternal getLoadedSettings() {
-        return getGradle().getSettings();
     }
 
     @Override

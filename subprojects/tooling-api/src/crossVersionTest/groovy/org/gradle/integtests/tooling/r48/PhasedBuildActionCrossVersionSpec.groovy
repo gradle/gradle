@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.tooling.r48
 
-import org.gradle.integtests.tooling.fixture.ActionDiscardsFailure
-import org.gradle.integtests.tooling.fixture.ActionForwardsFailure
+import org.gradle.integtests.tooling.fixture.ActionDiscardsConfigurationFailure
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
 import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -210,7 +210,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection { connection ->
             def action = connection.action()
-                .projectsLoaded(new ActionForwardsFailure(), projectsLoadedHandler)
+                .projectsLoaded(new ActionQueriesModelThatRequiresConfigurationPhase(), projectsLoadedHandler)
                 .buildFinished(new ActionShouldNotBeCalled(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
@@ -242,8 +242,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnection { connection ->
             def action = connection.action()
-                .projectsLoaded(new ActionDiscardsFailure(), projectsLoadedHandler)
-                .buildFinished(new ActionForwardsFailure(), buildFinishedHandler)
+                .projectsLoaded(new ActionDiscardsConfigurationFailure(), projectsLoadedHandler)
+                .buildFinished(new ActionQueriesModelThatRequiresConfigurationPhase(), buildFinishedHandler)
                 .build()
             collectOutputs(action)
             action.run()

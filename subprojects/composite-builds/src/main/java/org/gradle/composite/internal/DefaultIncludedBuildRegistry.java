@@ -23,6 +23,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -60,6 +61,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     // TODO: Locking around this state
     private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> buildsByIdentifier = new HashMap<>();
+    private final Map<BuildState, StandAloneNestedBuild> buildSrcBuildsByOwner = new HashMap<>();
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
@@ -108,6 +110,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentifier());
         }
         buildAddedBroadcaster.buildAdded(build);
+        maybeAddBuildSrcBuild(build);
     }
 
     @Override
@@ -182,15 +185,22 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner) {
-        if (!SettingsInternal.BUILD_SRC.equals(buildDefinition.getName())) {
-            throw new IllegalStateException("Expected buildSrc build, got: " + buildDefinition.getName());
+    public StandAloneNestedBuild getBuildSrcNestedBuild(BuildState owner) {
+        return buildSrcBuildsByOwner.get(owner);
+    }
+
+    private void maybeAddBuildSrcBuild(BuildState owner) {
+        File buildSrcDir = new File(owner.getBuildRootDir(), SettingsInternal.BUILD_SRC);
+        if (!BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir)) {
+            return;
         }
+
+        BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
+        buildSrcBuildsByOwner.put(owner, build);
         addBuild(build);
-        return build;
     }
 
     @Override
@@ -313,7 +323,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void assertNameDoesNotClashWithRootSubproject(IncludedBuildState includedBuild) {
-        if (rootBuild.getLoadedSettings().findProject(":" + includedBuild.getName()) != null) {
+        if (rootBuild.getProjects().findProject(includedBuild.getIdentityPath()) != null) {
             throw new GradleException("Included build in " + includedBuild.getBuildRootDir() + " has name '" + includedBuild.getName() + "' which is the same as a project of the main build.");
         }
     }

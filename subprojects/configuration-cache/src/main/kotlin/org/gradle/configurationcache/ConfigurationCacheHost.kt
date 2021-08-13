@@ -106,7 +106,7 @@ class ConfigurationCacheHost internal constructor(
         override fun registerProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             val projectRegistry = service<ProjectStateRegistry>()
-            projectRegistry.registerProjects(service<BuildState>())
+            projectRegistry.registerProjects(state, projectDescriptorRegistry)
             createRootProject()
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -36,6 +37,8 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final boolean parallelActions;
+    // Apply some locking around configuration and tooling model lookup. This should move deeper into the build tree and build state controllers
+    private final Object treeMutableStateLock = new Object();
 
     public DefaultBuildTreeModelCreator(
         BuildLifecycleController buildLifecycleController,
@@ -65,28 +68,41 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
-        public GradleInternal getMutableModel() {
-            return buildController.getGradle();
-        }
-
-        @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) {
-            // Force configuration of build
-            GradleInternal target = buildController.getConfiguredBuild();
-            ToolingModelBuilderLookup lookup = target.getDefaultProject().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, param, target);
+            synchronized (treeMutableStateLock) {
+                // Look for a build scoped builder
+                ToolingModelBuilderLookup lookup = buildController.getGradle().getServices().get(ToolingModelBuilderLookup.class);
+                ToolingModelBuilderLookup.Builder builder = lookup.maybeLocateForBuildScope(modelName, param, buildController.getGradle().getOwner());
+                if (builder != null) {
+                    return builder;
+                }
+
+                // Locate a project scoped model using default project
+                return locateBuilderForTarget(buildController.getGradle().getOwner(), modelName, param);
+            }
         }
 
         @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
-            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, param, target.getMutableModel());
+            synchronized (treeMutableStateLock) {
+                // Force configuration of the build and locate builder for default project
+                buildController.getGradle().getOwner().ensureProjectsConfigured();
+                target.ensureProjectsConfigured();
+                ProjectInternal targetProject = target.getMutableModel().getDefaultProject();
+                ToolingModelBuilderLookup lookup = targetProject.getServices().get(ToolingModelBuilderLookup.class);
+                return lookup.locateForClientOperation(modelName, param, targetProject.getOwner());
+            }
         }
 
         @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
-            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, param, target.getMutableModel());
+            synchronized (treeMutableStateLock) {
+                // Force configuration of the containing build and then locate the builder for target project
+                buildController.getGradle().getOwner().ensureProjectsConfigured();
+                target.getOwner().ensureProjectsConfigured();
+                ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
+                return lookup.locateForClientOperation(modelName, param, target);
+            }
         }
 
         @Override

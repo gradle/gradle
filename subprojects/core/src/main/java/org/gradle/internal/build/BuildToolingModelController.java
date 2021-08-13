@@ -29,11 +29,6 @@ import java.util.Collection;
  */
 public interface BuildToolingModelController {
     /**
-     * Returns the current state of the mutable model.
-     */
-    GradleInternal getMutableModel();
-
-    /**
      * Returns the mutable model, configuring if necessary.
      */
     GradleInternal getConfiguredModel();
