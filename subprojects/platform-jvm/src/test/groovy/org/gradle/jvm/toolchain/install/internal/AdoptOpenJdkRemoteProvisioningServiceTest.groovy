@@ -21,6 +21,9 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainCandidate
+import org.gradle.jvm.toolchain.JavaToolchainProvisioningDetails
+import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
@@ -30,7 +33,7 @@ import spock.lang.Specification
 import spock.lang.TempDir
 import spock.lang.Unroll
 
-class AdoptOpenJdkRemoteBinaryTest extends Specification {
+class AdoptOpenJdkRemoteProvisioningServiceTest extends Specification {
 
     @TempDir
     public File temporaryFolder
@@ -39,13 +42,14 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(Mock(JdkDownloader), providerFactory())
+        def details = newDetails(spec, operatingSystem, systemInfoFor(architecture))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
 
         when:
-        def uri = binary.toDownloadUri(spec)
+        def uri = provisioner.constructUri(candidate)
 
         then:
         uri.toString() == "https://api.adoptopenjdk.net/v3/binary/latest" + expectedPath
@@ -68,13 +72,16 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> architecture
+
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(Mock(JdkDownloader), providerFactory())
+        def details = newDetails(spec, operatingSystem, systemInfoFor(architecture))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
+        def handler = provisioner.provisionerFor(candidate)
 
         when:
-        def filename = binary.toFilename(spec)
+        def filename = handler.fileName
 
         then:
         filename == expectedFilename
@@ -97,14 +104,15 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     def "uses configured base uri #customBaseUrl if available"() {
         given:
         def spec = newSpec()
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
         def providerFactory = providerFactory(Providers.of(customBaseUrl))
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory)
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(Mock(JdkDownloader), providerFactory)
+        def details = newDetails(spec, operatingSystem, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
 
         when:
-        def uri = binary.toDownloadUri(spec)
+        def uri = provisioner.constructUri(candidate)
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"
@@ -116,15 +124,15 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     def "downloads from url"() {
         given:
         def spec = newSpec(12)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
         def downloader = Mock(JdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(downloader, providerFactory())
+        def details = newDetails(spec, OperatingSystem.MAC_OS, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
 
         when:
-        def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        def targetFile = new File(temporaryFolder, "jdk"))
+        provisioner.provisionerFor(candidate).provision(targetFile)
 
         then:
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
@@ -134,16 +142,16 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
     def "skips downloading unsupported java version #javaVersion"() {
         given:
         def spec = newSpec(javaVersion)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
+        def downloader = Mock(JdkDownloader)
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(downloader, providerFactory())
+        def details = newDetails(spec, OperatingSystem.MAC_OS, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
 
         when:
-        def file = binary.download(spec, Mock(File))
+        def candidates = details.candidates
 
         then:
-        !file.present
+        !candidates.present
 
         where:
         javaVersion << [5, 6, 7]
@@ -154,16 +162,16 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         given:
         def spec = newSpec(8)
         spec.vendor.set(vendor)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(JdkDownloader), providerFactory())
+        def downloader = Mock(JdkDownloader)
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(downloader, providerFactory())
+        def details = newDetails(spec, OperatingSystem.MAC_OS, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
 
         when:
-        def file = binary.download(spec, Mock(File))
+        def candidates = details.candidates
 
         then:
-        !file.present
+        !candidates.present
 
         where:
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
@@ -174,15 +182,15 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         given:
         def spec = newSpec(12)
         spec.vendor.set(vendor)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
         def downloader = Mock(JdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(downloader, providerFactory())
+        def details = newDetails(spec, OperatingSystem.MAC_OS, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
 
         when:
         def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        provisioner.provisionerFor(candidate).provision(targetFile)
 
         then:
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
@@ -195,24 +203,67 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         given:
         def spec = newSpec(12)
         spec.implementation.set(JvmImplementation.J9)
-        def systemInfo = Mock(SystemInfo)
-        systemInfo.architecture >> SystemInfo.Architecture.amd64
-        def operatingSystem = OperatingSystem.MAC_OS
         def downloader = Mock(JdkDownloader)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
+        def provisioner = new AdoptOpenJdkRemoteProvisioningService(downloader, providerFactory())
+        def details = newDetails(spec, OperatingSystem.MAC_OS, systemInfoFor(SystemInfo.Architecture.amd64))
+        provisioner.findCandidates(details)
+        def candidate = details.candidates.get()[0]
 
         when:
         def targetFile = new File(temporaryFolder, "jdk")
-        binary.download(spec, targetFile)
+        provisioner.provisionerFor(candidate).provision(targetFile)
 
         then:
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/openj9/normal/adoptopenjdk"), _)
     }
 
-    def newSpec(int jdkVersion = 11) {
+    JavaToolchainSpec newSpec(int jdkVersion = 11) {
         def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
         spec.languageVersion.set(JavaLanguageVersion.of(jdkVersion))
         spec
+    }
+
+    SystemInfo systemInfoFor(SystemInfo.Architecture arch) {
+        Stub(SystemInfo) {
+            getArchitecture() >> arch
+            getArchitectureName() >> arch.toString()
+        }
+    }
+
+    JavaToolchainProvisioningDetails newDetails(JavaToolchainSpec spec, OperatingSystem os, SystemInfo info) {
+        new JavaToolchainProvisioningDetailsInternal() {
+            List<JavaToolchainCandidate> candidates
+
+            @Override
+            Optional<List<JavaToolchainCandidate>> getCandidates() {
+                Optional.ofNullable(candidates)
+            }
+
+            @Override
+            JavaToolchainSpec getRequested() {
+                spec
+            }
+
+            @Override
+            JavaToolchainCandidate.Builder newCandidate() {
+                new DefaultJavaToolchainCandidateBuilder(operatingSystem, systemArch)
+            }
+
+            @Override
+            void listCandidates(List<JavaToolchainCandidate> candidates) {
+                this.candidates = candidates
+            }
+
+            @Override
+            String getOperatingSystem() {
+                DefaultJavaToolchainProvisioningService.determineOs(os)
+            }
+
+            @Override
+            String getSystemArch() {
+                DefaultJavaToolchainProvisioningService.determineArch(info)
+            }
+        }
     }
 
     ProviderFactory providerFactory(hostnameProvider = Providers.notDefined()) {

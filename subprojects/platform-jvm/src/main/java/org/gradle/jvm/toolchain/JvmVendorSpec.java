@@ -71,4 +71,13 @@ public abstract class JvmVendorSpec {
         return DefaultJvmVendorSpec.of(vendor);
     }
 
+    /**
+     * Determines if the vendor passed as an argument matches this spec.
+     * @param vendor the vendor to test
+     * @return true if this spec matches the vendor
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public abstract boolean matches(String vendor);
 }

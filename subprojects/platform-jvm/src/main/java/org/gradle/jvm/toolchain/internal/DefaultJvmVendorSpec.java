@@ -63,6 +63,11 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jav
     }
 
     @Override
+    public boolean matches(String vendor) {
+        return test(JvmVendor.fromString(vendor));
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

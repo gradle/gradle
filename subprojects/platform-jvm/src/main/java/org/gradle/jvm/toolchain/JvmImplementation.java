@@ -49,4 +49,23 @@ public final class JvmImplementation {
     public String toString() {
         return displayName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JvmImplementation that = (JvmImplementation) o;
+
+        return displayName.equals(that.displayName);
+    }
+
+    @Override
+    public int hashCode() {
+        return displayName.hashCode();
+    }
 }
