@@ -256,7 +256,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         def tasks = [
             ':docs:docs',
             ':docs:docsTest',
-            "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO remove
+            "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO:configuration-cache remove
         ]
 
         when:
@@ -304,7 +304,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         run(
             tasks + [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
-                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
+                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO:configuration-cache remove
                 TEST_BUILD_TIMESTAMP
             ],
             // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
