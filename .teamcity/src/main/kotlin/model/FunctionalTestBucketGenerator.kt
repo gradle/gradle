@@ -192,11 +192,10 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        // native projects are not able to be run on TD for now
         // `WatchedDirectoriesFileSystemWatchingIntegrationTest fails on local filesystem` doesn't work in remote executor
         // `workers` has a known haning issue
         // Some `kotlin-dsl-tooling-builders` tests are really flaky
-        val forceNoTDSubprojects = listOf("language-native", "platform-native", "testing-native", "ide-native", "file-watching", "workers", "kotlin-dsl-tooling-builders")
+        val forceNoTDSubprojects = listOf("file-watching", "workers", "kotlin-dsl-tooling-builders")
         return if (testCoverage.testType == TestType.platform) {
             splitDocsSubproject(validSubprojects) + splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), forceNoTDSubprojects)
         } else {
