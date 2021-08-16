@@ -65,7 +65,7 @@ public interface FileWatcherRegistry extends Closeable {
      * Check if watched hierarchies are where we left them after the previous build.
      */
     @CheckReturnValue
-    SnapshotHierarchy buildStarted(SnapshotHierarchy root);
+    SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.

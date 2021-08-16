@@ -89,7 +89,8 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+    public SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode) {
+        watchableHierarchies.updateUnwatchableFileSystems(watchMode);
         return root;
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl
 
+import net.rubygrapefruit.platform.file.FileSystemInfo
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
@@ -45,6 +46,7 @@ import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
+import java.util.stream.Stream
 
 @CleanupTestDirectory
 abstract class AbstractFileWatcherUpdaterTest extends Specification {
@@ -225,6 +227,55 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(newestRegisteredWatchableHierarchy)
     }
 
+    def "does not start watching unsupported file system for default watch mode"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+        def unsupportedFileSystem = Stub(FileSystemInfo) {
+            getMountPoint() >> unsupportedFileSystemMountPoint
+            getFileSystemType() >> "unsupported"
+        }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+
+        when:
+        buildStarted(WatchMode.DEFAULT)
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.DEFAULT)
+        then:
+        !vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
+    def "does start watching unsupported file system when watching is enabled"() {
+        def unsupportedFileSystemMountPoint = file("unsupported").createDir()
+        def unwatchableContent = unsupportedFileSystemMountPoint.file("file.txt").createFile()
+        def unsupportedFileSystem = Stub(FileSystemInfo) {
+            getMountPoint() >> unsupportedFileSystemMountPoint
+            getFileSystemType() >> "unsupported"
+        }
+        watchableFileSystemDetector.detectUnsupportedFileSystems() >> { it -> Stream.of(unsupportedFileSystem) }
+
+        when:
+        buildStarted(WatchMode.ENABLED)
+        registerWatchableHierarchies([unsupportedFileSystemMountPoint])
+        addSnapshot(snapshotRegularFile(unwatchableContent))
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        0 * _
+
+        when:
+        buildFinished(Integer.MAX_VALUE, WatchMode.ENABLED)
+        then:
+        vfsHasSnapshotsAt(unwatchableContent)
+        0 * _
+    }
+
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
@@ -283,13 +334,13 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
     }
 
-    SnapshotHierarchy buildStarted() {
-        virtualFileSystem.root = updater.buildStarted(virtualFileSystem.root)
+    SnapshotHierarchy buildStarted(watchMode = WatchMode.DEFAULT) {
+        virtualFileSystem.root = updater.buildStarted(virtualFileSystem.root, watchMode)
         return virtualFileSystem.root
     }
 
-    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
-        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, WatchMode.DEFAULT, maximumNumberOfWatchedHierarchies)
+    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, watchMode = WatchMode.DEFAULT) {
+        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies)
     }
 
     private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {

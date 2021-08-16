@@ -148,8 +148,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
-        return fileWatcherUpdater.buildStarted(root);
+    public SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode) {
+        return fileWatcherUpdater.buildStarted(root, watchMode);
     }
 
     @Override

@@ -43,10 +43,10 @@ public interface FileWatcherUpdater {
     /**
      * Remove watched hierarchies that have been moved.
      *
-     * @see FileWatcherRegistry#buildStarted(SnapshotHierarchy)
+     * @see FileWatcherRegistry#buildStarted(SnapshotHierarchy, WatchMode)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildStarted(SnapshotHierarchy root);
+    SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.

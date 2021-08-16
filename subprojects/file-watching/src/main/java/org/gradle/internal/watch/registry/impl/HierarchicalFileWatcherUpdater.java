@@ -100,8 +100,9 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+    public SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode) {
         SnapshotHierarchy newRoot = movedHierarchyHandler.handleMovedHierarchies(root);
+        watchableHierarchies.updateUnwatchableFileSystems(watchMode);
         if (newRoot != root) {
             updateWatchedHierarchies(newRoot);
         }
