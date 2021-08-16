@@ -249,7 +249,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         }));
 
                         try {
-                            javaCompiler.execute(spec);
+                            WorkResult javaCompilerResult = javaCompiler.execute(spec);
+                            if (javaCompilerResult instanceof ApiCompilerResult) {
+                                result.getSourceClassesMapping().putAll(((ApiCompilerResult) javaCompilerResult).getSourceClassesMapping());
+                            }
                         } catch (CompilationFailedException e) {
                             cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(), cu));
                         }

@@ -44,7 +44,7 @@ public class CurrentCompilation {
             return DependentsSet.dependencyToAll("classpath data of previous compilation is incomplete");
         }
         ClassSetAnalysis.ClassSetDiff classpathChanges = currentClasspath.findChangesSince(previousClasspath);
-        return previous.findDependents(classpathChanges);
+        return previous.findDependentsOfClasspathChanges(classpathChanges);
     }
 
     private ClassSetAnalysis getClasspath() {

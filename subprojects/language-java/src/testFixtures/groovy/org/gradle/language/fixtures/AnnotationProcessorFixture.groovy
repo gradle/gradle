@@ -95,6 +95,8 @@ abstract class AnnotationProcessorFixture {
                 private Filer filer;
                 private Messager messager;
 
+                ${membersBlock}
+
                 @Override
                 public Set<String> getSupportedAnnotationTypes() {
                     return Collections.singleton(${annotationName}.class.getName());
@@ -117,12 +119,11 @@ abstract class AnnotationProcessorFixture {
 
                 @Override
                 public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+                    Set<Element> elements = new HashSet<>();
                     for (TypeElement annotation : annotations) {
-                        if (annotation.getQualifiedName().toString().equals(${annotationName}.class.getName())) {
-                            Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
-                            ${generatorCode}
-                        }
+                         elements.addAll(roundEnv.getElementsAnnotatedWith(annotation));
                     }
+                    ${generatorCode}
                     return true;
                 }
             }
@@ -152,6 +153,9 @@ abstract class AnnotationProcessorFixture {
     protected abstract String getGeneratorCode();
 
     protected String getSupportedOptionsBlock() {
+        ""
+    }
+    protected String getMembersBlock() {
         ""
     }
 }

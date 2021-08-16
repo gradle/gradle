@@ -23,14 +23,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.compile.incremental.recomp.WellKnownSourceFileClassNameConverter.isModuleInfo;
-import static org.gradle.api.internal.tasks.compile.incremental.recomp.WellKnownSourceFileClassNameConverter.isPackageInfo;
-
 public class RecompilationSpec {
     private final Set<String> classesToCompile = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
-    private final Set<String> relativeSourcePathsToCompile = new LinkedHashSet<>();
     private final PreviousCompilation previousCompilation;
     private String fullRebuildCause;
 
@@ -44,7 +40,6 @@ public class RecompilationSpec {
             "classesToCompile=" + classesToCompile +
             ", classesToProcess=" + classesToProcess +
             ", resourcesToGenerate=" + resourcesToGenerate +
-            ", relativeSourcePathsToCompile=" + relativeSourcePathsToCompile +
             ", fullRebuildCause='" + fullRebuildCause + '\'' +
             ", buildNeeded=" + isBuildNeeded() +
             ", fullRebuildNeeded=" + isFullRebuildNeeded() +
@@ -63,24 +58,9 @@ public class RecompilationSpec {
         return previousCompilation;
     }
 
-    public void addRelativeSourcePathsToCompile(Collection<String> paths) {
-        relativeSourcePathsToCompile.addAll(paths);
-    }
-
-    public void addRelativeSourcePathToCompile(String path) {
-        relativeSourcePathsToCompile.add(path);
-    }
-
-    /**
-     * @return the relative paths of files we clearly know to recompile
-     */
-    public Set<String> getRelativeSourcePathsToCompile() {
-        return Collections.unmodifiableSet(relativeSourcePathsToCompile);
-    }
-
     public void addClassesToProcess(Collection<String> classes) {
         classes.forEach(classToReprocess -> {
-            if (isPackageInfo(classToReprocess) || isModuleInfo(classToReprocess)) {
+            if (classToReprocess.endsWith("package-info") || classToReprocess.equals("module-info")) {
                 classesToCompile.add(classToReprocess);
             } else {
                 classesToProcess.add(classToReprocess);
@@ -101,7 +81,7 @@ public class RecompilationSpec {
     }
 
     public boolean isBuildNeeded() {
-        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty() || !relativeSourcePathsToCompile.isEmpty();
+        return isFullRebuildNeeded() || !classesToCompile.isEmpty() || !classesToProcess.isEmpty();
     }
 
     public boolean isFullRebuildNeeded() {
