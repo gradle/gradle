@@ -12,7 +12,8 @@ Include only their name, impactful features should be called out separately belo
 [Marcono1234](https://github.com/Marcono1234),
 [Nicola Corti](https://github.com/cortinico),
 [Marcin Zajączkowski](https://github.com/szpak),
-[Alex Landau](https://github.com/AlexLandau)
+[Alex Landau](https://github.com/AlexLandau),
+[Stefan Oehme](https://github.com/oehme)
 
 ## Upgrade instructions
 
