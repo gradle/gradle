@@ -71,6 +71,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             ":configuration-cache:embeddedIntegTest",
             "--tests=org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
         ]
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun supportedTasks, 0
@@ -97,6 +98,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             ':configuration-cache:embeddedCrossVersionTest',
             '--tests=org.gradle.configurationcache.ConfigurationCacheCrossVersionTest'
         ]
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
@@ -279,6 +281,14 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
     @Override
     protected void assertConfigurationCacheStateLoaded() {
         assert result.output.count("Reusing configuration cache") == 1
+    }
+
+    /**
+     * Generates Kotlin DSL sources once so they are included as :kotlin-dsl:compileKotlin inputs.
+     */
+    private void generateKotlinDslExtensions() {
+        // TODO:configuration-cache handle generated sources better (see gradlebuild.kotlin-dsl-dependencies-embedded.gradle.kts:39)
+        run([':kotlin-dsl:generateKotlinDependencyExtensions'])
     }
 
     private TestExecutionResult assertTestClassExecutedIn(String subProjectDir, String testClass) {
