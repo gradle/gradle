@@ -127,7 +127,7 @@ public interface JvmInstallationMetadata {
 
         private String determineVendorName() {
             JvmVendor.KnownJvmVendor vendor = getVendor().getKnownVendor();
-            if(vendor == JvmVendor.KnownJvmVendor.ORACLE) {
+            if (vendor == JvmVendor.KnownJvmVendor.ORACLE) {
                 if (implementationName != null && implementationName.contains("OpenJDK")) {
                     return "OpenJDK";
                 }
@@ -157,7 +157,7 @@ public interface JvmInstallationMetadata {
                 capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
             }
             boolean isJ9vm = implementationName.contains("J9");
-            if(isJ9vm) {
+            if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
             return capabilities;
