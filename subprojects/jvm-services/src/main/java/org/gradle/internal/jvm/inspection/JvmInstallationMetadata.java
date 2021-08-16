@@ -16,10 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.serialization.Cached;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -77,7 +76,7 @@ public interface JvmInstallationMetadata {
         private final String implementationVersion;
         private final String runtimeVersion;
         private final String jvmVersion;
-        private final Supplier<Set<JavaInstallationCapability>> capabilities = Suppliers.memoize(this::gatherCapabilities);
+        private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
 
         private DefaultJvmInstallationMetadata(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName) {
             this.javaHome = javaHome.toPath();
