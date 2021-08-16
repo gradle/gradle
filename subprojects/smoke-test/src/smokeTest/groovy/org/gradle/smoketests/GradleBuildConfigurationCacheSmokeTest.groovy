@@ -124,6 +124,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             ':smoke-test:smokeTest',
             '--tests=org.gradle.smoketests.ErrorPronePluginSmokeTest'
         ]
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
@@ -149,6 +150,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             ':soak:forkingIntegTest',
             '--tests=org.gradle.connectivity.MavenCentralDependencyResolveIntegrationTest'
         ]
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
@@ -167,11 +169,11 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":soak:forkingIntegTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @NotYetImplemented
     def "can run Gradle codeQuality with configuration cache enabled"() {
 
         given:
         def tasks = [':configuration-cache:codeQuality']
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
@@ -187,9 +189,9 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
 
         then:
         assertConfigurationCacheStateLoaded()
-        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
-        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
@@ -200,6 +202,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
 
         given:
         def tasks = [':architecture-test:checkBinaryCompatibility']
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
@@ -225,6 +228,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
             ':distributions-full:binDistributionZip',
             ':distributions-full:binInstallation'
         ]
+        generateKotlinDslExtensions()
 
         when:
         configurationCacheRun(tasks, 0)
