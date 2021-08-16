@@ -26,11 +26,22 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
 
             testing {
                 testSuites {
-                    sample {}
+                    unitTests {
+                        targets {
+                            getByName("java8").configure { // Needed for Binary Collection, magic in NDOC which makes this work as just the name and closure
+                                testTask.configure {
+                                    description = "Sample"
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
         """
         expect:
-        succeeds "help"
+        succeeds "tasks"
+        outputContains("Sample")
+
     }
 }

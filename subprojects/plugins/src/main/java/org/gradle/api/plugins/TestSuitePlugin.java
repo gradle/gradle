@@ -22,6 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuiteTarget;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.testing.Test;
 
 public class TestSuitePlugin  implements Plugin<Project> {
     @Override
@@ -36,7 +39,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
         testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations()));
 
         testSuites.all(testSuite -> {
-            /*
+
             testSuite.getTargets().whenElementKnown(DefaultJvmTestSuiteTarget.class, testSuiteTarget -> {
 
                 TaskProvider<Test> testTask = project.getTasks().register(testSuite.getName() + testSuiteTarget.getName(), Test.class, task -> {
@@ -47,13 +50,13 @@ public class TestSuitePlugin  implements Plugin<Project> {
                 });
                 testSuiteTarget.getRunTask().convention(testTask);
             });
-            */
+
         });
 
         project.afterEvaluate(p -> {
             testSuites.withType(DefaultJvmTestSuite.class).configureEach(testSuite -> {
                 testSuite.addTestTarget("java8");
-                //testSuite.getTargets().realizeNow();
+                testSuite.getTargets().realizeNow();
             });
         });
     }
