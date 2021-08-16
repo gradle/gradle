@@ -262,6 +262,7 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(null)
+                distribution.maxLocalExecutors.set(0)
                 // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
                 server.set(uri("https://ge-experiment.grdev.net"))
 
