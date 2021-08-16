@@ -23,7 +23,6 @@ repositories {
             includeModule("classycle", "classycle")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            includeModuleByRegex("org.gradle", "sample-(check|discovery)")
             includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
         }
     }
