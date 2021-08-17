@@ -22,11 +22,11 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
     def "applies base plugins and adds convention object"() {
         given:
         buildFile << """
-            apply plugin: org.gradle.api.plugins.TestSuitePlugin
+            apply plugin: 'java'
 
             testing {
                 testSuites {
-                    unitTests {
+                    unitTest {
                         targets {
                             java8 {
                                 testTask.configure {

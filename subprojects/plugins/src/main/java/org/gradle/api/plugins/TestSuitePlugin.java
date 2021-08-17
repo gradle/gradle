@@ -22,8 +22,12 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.testing.Test;
 
 public class TestSuitePlugin  implements Plugin<Project> {
+    public static final String DEFAULT_TEST_SUITE_NAME = "unitTest";
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.java-base");
@@ -39,5 +43,29 @@ public class TestSuitePlugin  implements Plugin<Project> {
                 testSuite.addTestTarget(java);
             });
         });
+
+        configureTest(project, java, testing);
+    }
+
+    private void configureTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
+        });
+
+        final JvmTestSuite testSuite = testing.getTestSuites().create(DEFAULT_TEST_SUITE_NAME);
+        testSuite.getTargets().configureEach(target -> {
+            target.getTestTask().configure(test -> {
+                test.setDescription("Runs the unit tests.");
+                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            });
+        });
+
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite.getTargets()));
+    }
+
+    private SourceSet sourceSetOf(JavaPluginExtension pluginExtension, String mainSourceSetName) {
+        return pluginExtension.getSourceSets().getByName(mainSourceSetName);
     }
 }
