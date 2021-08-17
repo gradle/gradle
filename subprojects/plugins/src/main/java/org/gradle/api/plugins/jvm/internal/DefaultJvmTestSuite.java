@@ -21,17 +21,13 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.Cast;
-import org.gradle.language.BinaryCollection;
-import org.gradle.language.internal.DefaultBinaryCollection;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    private final DefaultBinaryCollection<JvmTestSuiteTarget> targets;
+    //private final DefaultBinaryCollection<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
 
@@ -42,7 +38,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-        this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, JvmTestSuiteTarget.class));
+        //this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, JvmTestSuiteTarget.class));
     }
 
     @Override
@@ -60,18 +56,18 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         configuration.execute(getSources());
     }
 
-
-    public DefaultBinaryCollection<JvmTestSuiteTarget> getTargets() {
+    /*
+    //public DefaultBinaryCollection<JvmTestSuiteTarget> getTargets() {
         return targets;
     }
-    public void targets(Action<BinaryCollection<? extends JvmTestSuiteTarget>> configuration) {
+    //public void targets(Action<BinaryCollection<? extends JvmTestSuiteTarget>> configuration) {
         configuration.execute(targets);
-    }
+    }*/
 
     public void addTestTarget(String target) {
         DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, target);
         defaultJvmTestSuiteTarget.getTestClasses().from(sourceSet.getOutput().getClassesDirs());
         defaultJvmTestSuiteTarget.getRuntimeClasspath().from(sourceSet.getRuntimeClasspath());
-        targets.add(defaultJvmTestSuiteTarget);
+//        targets.add(defaultJvmTestSuiteTarget);
     }
 }

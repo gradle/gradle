@@ -16,7 +16,6 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.commonsLang)
-    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":core-api")))
