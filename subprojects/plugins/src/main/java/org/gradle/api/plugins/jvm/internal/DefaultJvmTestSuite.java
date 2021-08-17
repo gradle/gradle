@@ -21,6 +21,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.SourceSet;
@@ -65,10 +66,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         return targets;
     }
 
-    public void addTestTarget(String target) {
+    public void addTestTarget(JavaPluginExtension java) {
+        String target = getName() + "java" + java.getSourceCompatibility().getMajorVersion();
+
         DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, target);
         defaultJvmTestSuiteTarget.getTestClasses().from(sourceSet.getOutput().getClassesDirs());
         defaultJvmTestSuiteTarget.getRuntimeClasspath().from(sourceSet.getRuntimeClasspath());
+
+        defaultJvmTestSuiteTarget.getJavaVersion().set(java.getSourceCompatibility());
+        defaultJvmTestSuiteTarget.getJavaVersion().finalizeValue();
+
         targets.add(defaultJvmTestSuiteTarget);
     }
 }

@@ -36,7 +36,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             testSuites.withType(DefaultJvmTestSuite.class).configureEach(testSuite -> {
-                testSuite.addTestTarget(testSuite.getName() + "java8-pluginAutomatic");
+                testSuite.addTestTarget(java);
             });
         });
     }

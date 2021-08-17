@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
