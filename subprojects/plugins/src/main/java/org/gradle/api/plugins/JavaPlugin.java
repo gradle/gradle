@@ -285,10 +285,6 @@ public class JavaPlugin implements Plugin<Project> {
 
         SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
-        SourceSet test = sourceSets.create(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
-
         // Register the project's source set output directories
         sourceSets.all(sourceSet ->
             buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput())

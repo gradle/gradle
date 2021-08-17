@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -28,9 +29,11 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
@@ -38,14 +41,27 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final String name;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskContainer tasks) {
+    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskContainer tasks, DependencyHandler dependencies) {
         this.name = name;
-        this.sourceSet = sourceSets.create(getName());
+
+        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            this.sourceSet = sourceSets.create(SourceSet.TEST_SOURCE_SET_NAME);
+        } else {
+            this.sourceSet = sourceSets.create(getName());
+        }
+
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
 
+        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from( (Callable<SourceSetOutput>) () -> sourceSets.getByName("main").getOutput()));
+        }
+
+//        test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+//        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks));
     }
 
