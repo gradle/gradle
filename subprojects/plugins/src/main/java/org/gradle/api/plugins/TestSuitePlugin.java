@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuiteTarget;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 
@@ -40,7 +39,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
 
         testSuites.all(testSuite -> {
 
-            testSuite.getTargets().whenElementKnown(DefaultJvmTestSuiteTarget.class, testSuiteTarget -> {
+            testSuite.getTargets().configureEach(testSuiteTarget -> {
 
                 TaskProvider<Test> testTask = project.getTasks().register(testSuite.getName() + testSuiteTarget.getName(), Test.class, task -> {
                     task.setDescription("Description set by plugin");
@@ -56,7 +55,6 @@ public class TestSuitePlugin  implements Plugin<Project> {
         project.afterEvaluate(p -> {
             testSuites.withType(DefaultJvmTestSuite.class).configureEach(testSuite -> {
                 testSuite.addTestTarget("java8");
-                testSuite.getTargets().realizeNow();
             });
         });
     }

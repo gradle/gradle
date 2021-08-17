@@ -17,17 +17,19 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    //private final DefaultBinaryCollection<JvmTestSuiteTarget> targets;
+    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
 
@@ -38,7 +40,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-        //this.targets = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, JvmTestSuiteTarget.class));
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
+        targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName));
     }
 
     @Override
@@ -56,18 +59,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         configuration.execute(getSources());
     }
 
-    /*
-    //public DefaultBinaryCollection<JvmTestSuiteTarget> getTargets() {
+
+    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
         return targets;
     }
-    //public void targets(Action<BinaryCollection<? extends JvmTestSuiteTarget>> configuration) {
-        configuration.execute(targets);
-    }*/
 
     public void addTestTarget(String target) {
         DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, target);
         defaultJvmTestSuiteTarget.getTestClasses().from(sourceSet.getOutput().getClassesDirs());
         defaultJvmTestSuiteTarget.getRuntimeClasspath().from(sourceSet.getRuntimeClasspath());
-//        targets.add(defaultJvmTestSuiteTarget);
+        targets.add(defaultJvmTestSuiteTarget);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.tasks.SourceSet;
@@ -25,6 +26,5 @@ public interface JvmTestSuite extends Named, SoftwareComponent {
     SourceSet getSources();
     void sources(Action<? super SourceSet> configuration);
 
-    //BinaryCollection<? extends JvmTestSuiteTarget> getTargets();
-    //void targets(Action<BinaryCollection<? extends JvmTestSuiteTarget>> configuration);
+    ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 }
