@@ -238,6 +238,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
 
         if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
+            executer.requireOwnGradleUserHomeDir()
             executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
         }
 
