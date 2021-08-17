@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.tooling.r23
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
@@ -31,20 +31,16 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
             task alpha() { doLast { throw new RuntimeException() } }
         """
 
-        def outputStream = new ByteArrayOutputStream()
-        def errorStream = new ByteArrayOutputStream()
-
         when:
         BuildEnvironment model = toolingApi.withConnection { ProjectConnection connection ->
             ModelBuilder<BuildEnvironment> modelBuilder = connection.model(BuildEnvironment.class)
             modelBuilder.forTasks(new String[0])
-            modelBuilder.setStandardOutput(outputStream)
-            modelBuilder.setStandardError(errorStream)
+            collectOutputs(modelBuilder)
             modelBuilder.get()
         }
 
         then:
         model != null
-        OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString()).assertTasksExecutedInOrder()
+        result.assertTasksExecutedInOrder()
     }
 }

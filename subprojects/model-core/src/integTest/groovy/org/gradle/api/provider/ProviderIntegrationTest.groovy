@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -312,5 +313,46 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("isPresent = false")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17534")
+    def "zipping against non-task provider doesn't lose task dependencies"() {
+        given:
+        buildFile """
+            abstract class Foo extends DefaultTask {
+                @OutputDirectory abstract DirectoryProperty getOutDir()
+                @TaskAction void foo() {
+                    def dir = outDir.get().asFile
+                    assert new File(dir, 'baz').createNewFile()
+                }
+            }
+            abstract class Bar extends DefaultTask {
+                @InputFile abstract RegularFileProperty getInDir()
+                @TaskAction void bar() {}
+            }
+            def task = tasks.register("foo", Foo) {
+                outDir.set(layout.buildDirectory.dir("bam"))
+            }
+            tasks.register("bar", Bar) {
+                inDir.set($zipExpression)
+            }
+        """
+
+        when:
+        run 'bar'
+        if (GradleContextualExecuter.isConfigCache()) {
+            file('build').forceDeleteDir()
+            run 'bar'
+        }
+
+        then:
+        file('build/bam/baz').exists()
+
+        where:
+        zipExpression                                                              | _
+        'task.flatMap { it.outDir }.zip(provider { "baz" }) { d, f -> d.file(f) }' | _
+        'task.get().outDir.zip(provider { "baz" }) { d, f -> d.file(f) }'          | _
+        'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
+        'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
 }

@@ -197,15 +197,23 @@ public class XCTestConventionPlugin implements Plugin<Project> {
             // TODO: Need to lazily configure compile task
             // TODO: Ultimately, this should be some kind of 3rd party dependency that's visible to dependency management.
             compile.getCompilerArgs().addAll(project.provider(() -> {
-                File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath());
+                File platformSdkPath = sdkPlatformPathLocator.find();
+                File frameworkDir = new File(platformSdkPath, "Developer/Library/Frameworks");
+                // Since Xcode 11/12, the XCTest framework is being replaced by a different library that's available in the sdk root
+                File extraInclude = new File(platformSdkPath, "Developer/usr/lib");
+                return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath(), "-I", extraInclude.getAbsolutePath(), "-v");
             }));
 
             // Add a link task
             final TaskProvider<LinkMachOBundle> link = tasks.register(names.getTaskName("link"), LinkMachOBundle.class, task -> {
                 task.getLinkerArgs().set(project.provider(() -> {
-                    File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                    return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-framework", "XCTest", "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks", "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
+                    File platformSdkPath = sdkPlatformPathLocator.find();
+                    File frameworkDir = new File(platformSdkPath, "Developer/Library/Frameworks");
+                    // Since Xcode 11/12, the XCTest framework is being replaced by a different library that's available in the sdk root
+                    File extraInclude = new File(platformSdkPath, "Developer/usr/lib");
+                    return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-L", extraInclude.getAbsolutePath(), "-framework", "XCTest",
+                            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
+                            "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
                 }));
 
                 task.source(binary.getObjects());

@@ -25,7 +25,6 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -36,20 +35,17 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @ServiceScope(Scopes.BuildSession.class)
 public class BuildLayoutValidator {
     private final BuildLayoutFactory buildLayoutFactory;
-    private final ScriptFileResolver scriptFileResolver;
     private final DocumentationRegistry documentationRegistry;
     private final BuildClientMetaData clientMetaData;
     private final List<BuiltInCommand> builtInCommands;
 
     public BuildLayoutValidator(
         BuildLayoutFactory buildLayoutFactory,
-        ScriptFileResolver scriptFileResolver,
         DocumentationRegistry documentationRegistry,
         BuildClientMetaData clientMetaData,
         List<BuiltInCommand> builtInCommands
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
-        this.scriptFileResolver = scriptFileResolver;
         this.documentationRegistry = documentationRegistry;
         this.clientMetaData = clientMetaData;
         this.builtInCommands = builtInCommands;

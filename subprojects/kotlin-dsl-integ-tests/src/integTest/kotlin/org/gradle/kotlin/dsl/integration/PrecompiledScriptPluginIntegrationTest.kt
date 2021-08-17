@@ -14,7 +14,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -107,24 +106,20 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             ":compilePluginsBlocks",
             ":generateScriptPluginAdapters"
         )
-        val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
         val downstreamKotlinCompileTask = ":compileKotlin"
 
         build(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertTaskExecuted(it) }
-            assertTaskExecuted(configurationTask)
             assertTaskExecuted(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it UP-TO-DATE") }
-            assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask UP-TO-DATE")
         }
 
         build(secondDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertOutputContains("$it FROM-CACHE") }
-            assertTaskExecuted(configurationTask)
             assertOutputContains("$downstreamKotlinCompileTask FROM-CACHE")
         }
     }
@@ -248,7 +243,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle/issues/17619")
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after registering plugin`() {
         withSettings(

@@ -57,7 +57,7 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
         compile()
 
         then:
-        outputs.recompiledClasses("Service1", "ServiceRegistry")
+        outputs.recompiledClasses("Service1", "ServiceRegistry", "Main")
     }
 
     def compile() {

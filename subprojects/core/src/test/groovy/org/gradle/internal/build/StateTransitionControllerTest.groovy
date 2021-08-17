@@ -85,7 +85,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot transition to state B as already transitioning to state B."
+        e.message == "Cannot transition to state B as already transitioning to this state."
 
         1 * action.run() >> {
             controller.transition(TestState.A, TestState.B, {})
@@ -166,8 +166,8 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         controller.notInStateIgnoreOtherThreads(TestState.B, action)
 
         then:
-        def e2 = thrown(IllegalStateException)
-        e2.message == "Cannot use this object as a previous transition failed."
+        def e2 = thrown(RuntimeException)
+        e2 == failure
 
         and:
         0 * _
@@ -334,7 +334,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot transition to state B as already transitioning to state B."
+        e.message == "Cannot transition to state B as already transitioning to this state."
 
         1 * action.run() >> {
             controller.transitionIfNotPreviously(TestState.A, TestState.B, {})

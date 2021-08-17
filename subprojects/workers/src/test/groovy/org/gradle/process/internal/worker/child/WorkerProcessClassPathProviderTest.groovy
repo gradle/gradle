@@ -18,15 +18,15 @@ package org.gradle.process.internal.worker.child
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class WorkerProcessClassPathProviderTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final CacheRepository cacheRepository = Mock()
+    final GlobalScopedCache cacheRepository = Mock()
     final ModuleRegistry moduleRegistry = Mock()
     final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)
 

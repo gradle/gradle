@@ -121,6 +121,21 @@ public class Other {}
         outputs.recompiledClasses 'Lambda2', 'Consumer'
     }
 
+    def "renaming inner class removes stale class file"() {
+        def componentUnderTest = new LibWithInnerClasses()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.changeInnerName()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'WithInner2', 'WithInner2$Inner2', 'Consumer'
+        outputs.deletedClasses('WithInner2$Inner')
+    }
+
     class LibWithAnonymousClasses {
         void writeToProject() {
             source """
@@ -236,6 +251,66 @@ public class Other {}
                 class Lambda2 {
                     SomeInterface getAnonymous() {
                         return () -> 42;
+                    }
+                }
+            """
+        }
+    }
+
+    class LibWithInnerClasses {
+        void writeToProject() {
+            source """
+                interface SomeInterface {
+                    int foo();
+                }
+            """
+            source """
+                class WithInner1 {
+                    SomeInterface getInner() {
+                        return new Inner();
+                    }
+
+                    static class Inner implements SomeInterface {
+                        public int foo() {
+                            return 0;
+                        }
+                    }
+                }
+            """
+            source """
+                class WithInner2 {
+                    SomeInterface getInner() {
+                        return new Inner();
+                    }
+
+                    static class Inner implements SomeInterface {
+                        public int foo() {
+                            return 1;
+                        }
+                    }
+                }
+            """
+            source """
+                class Consumer {
+                    void consume() {
+                        System.out.println(new WithInner1().getInner().foo());
+                        System.out.println(new WithInner2().getInner().foo());
+                    }
+                }
+            """
+        }
+
+        void changeInnerName() {
+            source """
+                class WithInner2 {
+                    SomeInterface getInner() {
+                        return new Inner2();
+                    }
+
+                    static class Inner2 implements SomeInterface {
+                        public int foo() {
+                            return 42;
+                        }
                     }
                 }
             """

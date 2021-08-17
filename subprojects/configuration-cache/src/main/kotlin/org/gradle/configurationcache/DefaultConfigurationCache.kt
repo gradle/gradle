@@ -113,9 +113,19 @@ class DefaultConfigurationCache internal constructor(
         if (canLoad) {
             loadWorkGraph()
         } else {
-            prepareForConfiguration()
-            scheduler()
-            saveWorkGraph()
+            runWorkThatContributesToCacheEntry {
+                scheduler()
+                saveWorkGraph()
+            }
+        }
+    }
+
+    override fun maybePrepareModel(action: () -> Unit) {
+        if (canLoad) {
+            return
+        }
+        runWorkThatContributesToCacheEntry {
+            action()
         }
     }
 
@@ -123,10 +133,11 @@ class DefaultConfigurationCache internal constructor(
         if (canLoad) {
             return loadModel().uncheckedCast()
         }
-        prepareForConfiguration()
-        val model = creator()
-        saveModel(model)
-        return model
+        return runWorkThatContributesToCacheEntry {
+            val model = creator()
+            saveModel(model)
+            model
+        }
     }
 
     private
@@ -197,10 +208,22 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun prepareForConfiguration() {
+    fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
+        prepareForWork()
+        val result = action()
+        finishWork()
+        return result
+    }
+
+    private
+    fun prepareForWork() {
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
+    }
+
+    private
+    fun finishWork() {
     }
 
     private
@@ -309,7 +332,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.startCollectingFingerprint {
+        cacheFingerprintController.maybeStartCollectingFingerprint {
             cacheFingerprintWriterContextFor(it)
         }
     }

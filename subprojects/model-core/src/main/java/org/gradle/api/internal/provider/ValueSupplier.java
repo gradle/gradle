@@ -149,7 +149,7 @@ public interface ValueSupplier {
 
         @Override
         public boolean isKnown() {
-            return left.isKnown() && right.isKnown();
+            return left.isKnown() || right.isKnown();
         }
 
         @Override

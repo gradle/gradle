@@ -60,7 +60,6 @@ apply plugin: 'xctest'
         testBundle.writeToProject(testDirectory)
 
         when:
-        executer.withTasks("tasks").run()
         fails("test")
 
         then:

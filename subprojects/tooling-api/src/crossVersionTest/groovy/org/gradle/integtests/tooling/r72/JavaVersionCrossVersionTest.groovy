@@ -20,7 +20,6 @@ package org.gradle.integtests.tooling.r72
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
@@ -31,7 +30,6 @@ import spock.util.Exceptions
 
 @Issue('https://github.com/gradle/gradle/issues/9339')
 @TargetGradleVersion(">=7.2")
-@ToolingApiVersion("current")
 class JavaVersionCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {

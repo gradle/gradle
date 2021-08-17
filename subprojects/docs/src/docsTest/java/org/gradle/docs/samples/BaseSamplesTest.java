@@ -24,11 +24,11 @@ import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
-import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer;
-import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
-import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
-import org.gradle.samples.test.runner.SampleModifiers;
-import org.gradle.samples.test.runner.SamplesOutputNormalizers;
+import org.gradle.exemplar.test.normalizer.FileSeparatorOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
+import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
+import org.gradle.exemplar.test.runner.SampleModifiers;
+import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,

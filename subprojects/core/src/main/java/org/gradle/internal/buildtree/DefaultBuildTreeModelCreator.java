@@ -17,20 +17,69 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildToolingModelAction;
+import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
-import java.util.function.Function;
+import java.util.Collection;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildLifecycleController buildController;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean parallelActions;
 
-    public DefaultBuildTreeModelCreator(BuildLifecycleController buildLifecycleController) {
+    public DefaultBuildTreeModelCreator(BuildLifecycleController buildLifecycleController, BuildOperationExecutor buildOperationExecutor) {
         this.buildController = buildLifecycleController;
+        this.buildOperationExecutor = buildOperationExecutor;
+        parallelActions = !"false".equalsIgnoreCase(buildLifecycleController.getGradle().getStartParameter().getSystemPropertiesArgs().get("org.gradle.internal.tooling.parallel"));
     }
 
     @Override
-    public <T> T fromBuildModel(Function<? super GradleInternal, T> action) {
-        buildController.getConfiguredBuild();
-        return action.apply(buildController.getGradle());
+    public <T> void beforeTasks(BuildToolingModelAction<? extends T> action) {
+        action.beforeTasks(new DefaultBuildToolingModelController());
+    }
+
+    @Override
+    public <T> T fromBuildModel(BuildToolingModelAction<? extends T> action) {
+        return action.fromBuildModel(new DefaultBuildToolingModelController());
+    }
+
+    private class DefaultBuildToolingModelController implements BuildToolingModelController {
+        @Override
+        public GradleInternal getConfiguredModel() {
+            return buildController.getConfiguredBuild();
+        }
+
+        @Override
+        public GradleInternal getMutableModel() {
+            return buildController.getGradle();
+        }
+
+        @Override
+        public boolean queryModelActionsRunInParallel() {
+            return parallelActions;
+        }
+
+        @Override
+        public void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
+            if (parallelActions) {
+                buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
+                    for (RunnableBuildOperation action : actions) {
+                        buildOperationQueue.add(action);
+                    }
+                });
+            } else {
+                for (RunnableBuildOperation action : actions) {
+                    try {
+                        action.run(null);
+                    } catch (Exception e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            }
+        }
     }
 }

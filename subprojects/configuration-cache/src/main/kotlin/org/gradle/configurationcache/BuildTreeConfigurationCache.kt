@@ -29,6 +29,12 @@ interface BuildTreeConfigurationCache {
     fun loadOrScheduleRequestedTasks(scheduler: () -> Unit)
 
     /**
+     * Prepares to load or create a model. Does nothing if the cached model is available or else prepares to capture
+     * configuration fingerprints and validation problems and then runs the given function.
+     */
+    fun maybePrepareModel(action: () -> Unit)
+
+    /**
      * Loads the cached model, if available, or else runs the given function to create it and then writes the result to cache.
      */
     fun <T : Any> loadOrCreateModel(creator: () -> T): T

@@ -18,15 +18,14 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.scopes.BuildTreeScopedCache
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -42,10 +41,9 @@ import java.io.OutputStream
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
-    cacheRepository: CacheRepository,
+    cacheRepository: BuildTreeScopedCache,
     cacheCleanupFactory: CleanupActionFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
-    private val startParameter: ConfigurationCacheStartParameter,
     private val fileSystem: FileSystem
 ) : Stoppable {
 
@@ -160,15 +158,11 @@ class ConfigurationCacheRepository(
 
     private
     val cache = cacheRepository
-        .cache(cacheBaseDir)
+        .crossVersionCache("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
         .withLruCacheCleanup(cacheCleanupFactory)
         .open()
-
-    private
-    val cacheBaseDir
-        get() = startParameter.cacheDir.resolve("configuration-cache")
 
     private
     fun CacheBuilder.withOnDemandLockMode() =

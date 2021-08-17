@@ -13,6 +13,7 @@ Groovy (http://groovy-lang.org)
 SLF4J (http://www.slf4j.org)
 JUnit (http://www.junit.org)
 JCIFS (http://jcifs.samba.org)
+HttpClient (https://hc.apache.org/httpcomponents-client-4.5.x/)
 
 For licenses, see the LICENSE file.
 

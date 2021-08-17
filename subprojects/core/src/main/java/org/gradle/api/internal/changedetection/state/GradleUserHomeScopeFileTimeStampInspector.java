@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -40,8 +39,8 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     private long currentTimestamp;
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
 
-    public GradleUserHomeScopeFileTimeStampInspector(CacheScopeMapping cacheScopeMapping) {
-        super(cacheScopeMapping.getBaseDirectory(null, "file-changes", VersionStrategy.CachePerVersion));
+    public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCache globalScopedCache) {
+        super(globalScopedCache.baseDirForCache("file-changes"));
     }
 
     public void attach(CachingFileHasher fileHasher) {

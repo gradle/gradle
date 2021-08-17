@@ -27,10 +27,8 @@ val originalUrls: Map<String, String> = mapOf(
     "gradle" to "https://repo.gradle.org/gradle/repo",
     "gradleplugins" to "https://plugins.gradle.org/m2",
     "gradlejavascript" to "https://repo.gradle.org/gradle/javascript-public",
-    "gradle-libs" to "https://repo.gradle.org/gradle/libs",
-    "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
-    "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
-    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local"
+    "gradle-public" to "https://repo.gradle.org/gradle/public",
+    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates"
 )
 
 val mirrorUrls: Map<String, String> =

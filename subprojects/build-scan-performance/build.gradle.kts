@@ -56,8 +56,9 @@ subprojects {
 tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 
-    environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
-    environment("ARTIFACTORY_PASSWORD", System.getenv("ARTIFACTORY_PASSWORD"))
+    environment("GRADLE_INTERNAL_REPO_URL", System.getenv("GRADLE_INTERNAL_REPO_URL"))
+    environment("GRADLE_INTERNAL_REPO_USERNAME", System.getenv("GRADLE_INTERNAL_REPO_USERNAME"))
+    environment("GRADLE_INTERNAL_REPO_PASSWORD", System.getenv("GRADLE_INTERNAL_REPO_PASSWORD"))
 
     reportGeneratorClass.set("org.gradle.performance.results.BuildScanReportGenerator")
 }

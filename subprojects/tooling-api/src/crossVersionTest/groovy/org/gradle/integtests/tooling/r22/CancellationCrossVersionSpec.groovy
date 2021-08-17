@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.tooling.r22
 
-
 import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.r18.BrokenAction
+import org.gradle.integtests.tooling.fixture.ActionForwardsFailure
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -119,7 +118,7 @@ throw new RuntimeException("should not run")
 
         when:
         withConnection { ProjectConnection connection ->
-            def action = connection.action(new BrokenAction())
+            def action = connection.action(new ActionForwardsFailure())
             action.withCancellationToken(cancel.token())
             collectOutputs(action)
             action.run(resultHandler)

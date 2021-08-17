@@ -23,11 +23,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.tasks.InitBuild;
-import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -37,10 +35,6 @@ import java.util.concurrent.Callable;
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
 public class BuildInitPlugin implements Plugin<Project> {
-    @Inject
-    protected ResolvedBuildLayout getResolvedBuildLayout() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public void apply(Project project) {
@@ -54,11 +48,9 @@ public class BuildInitPlugin implements Plugin<Project> {
                 FileDetails buildFileDetails = FileDetails.of(buildFile, resolver);
                 File settingsFile = ((ProjectInternal) project).getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
                 FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
-                File userHome = getResolvedBuildLayout().getGlobalScopeCacheDirectory();
-                File projectRoot = getResolvedBuildLayout().getBuildScopeCacheDirectory();
 
-                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, userHome, projectRoot, initBuild.getLogger()));
-                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails, userHome, projectRoot));
+                initBuild.onlyIf(new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger()));
+                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
@@ -70,21 +62,17 @@ public class BuildInitPlugin implements Plugin<Project> {
 
         private final FileDetails buildFile;
         private final FileDetails settingsFile;
-        private final File userHome;
-        private final File projectRoot;
         private final Logger logger;
 
-        private InitBuildOnlyIfSpec(FileDetails buildFile, FileDetails settingsFile, File userHome, File projectRoot, Logger logger) {
+        private InitBuildOnlyIfSpec(FileDetails buildFile, FileDetails settingsFile, Logger logger) {
             this.buildFile = buildFile;
-            this.userHome = userHome;
-            this.projectRoot = projectRoot;
             this.settingsFile = settingsFile;
             this.logger = logger;
         }
 
         @Override
         public boolean isSatisfiedBy(Task element) {
-            String skippedMsg = reasonToSkip(buildFile, settingsFile, userHome, projectRoot);
+            String skippedMsg = reasonToSkip(buildFile, settingsFile);
             if (skippedMsg != null) {
                 logger.warn(skippedMsg);
                 return false;
@@ -97,19 +85,15 @@ public class BuildInitPlugin implements Plugin<Project> {
 
         private final FileDetails buildFile;
         private final FileDetails settingsFile;
-        private final File userHome;
-        private final File projectRoot;
 
-        private InitBuildDependsOnCallable(FileDetails buildFile, FileDetails settingsFile, File userHome, File projectRoot) {
+        private InitBuildDependsOnCallable(FileDetails buildFile, FileDetails settingsFile) {
             this.buildFile = buildFile;
             this.settingsFile = settingsFile;
-            this.userHome = userHome;
-            this.projectRoot = projectRoot;
         }
 
         @Override
         public String call() {
-            if (reasonToSkip(buildFile, settingsFile, userHome, projectRoot) == null) {
+            if (reasonToSkip(buildFile, settingsFile) == null) {
                 return "wrapper";
             } else {
                 return null;
@@ -117,11 +101,7 @@ public class BuildInitPlugin implements Plugin<Project> {
         }
     }
 
-    private static String reasonToSkip(FileDetails buildFile, FileDetails settingsFile, File userHome, File projectRoot) {
-        if (projectRoot.equals(userHome)) {
-            return "Gradle user home directory '" + userHome + "' overlaps with the project cache directory";
-        }
-
+    private static String reasonToSkip(FileDetails buildFile, FileDetails settingsFile) {
         if (buildFile != null && buildFile.file.exists()) {
             return "The build file '" + buildFile.pathForDisplay + "' already exists. Skipping build initialization.";
         }

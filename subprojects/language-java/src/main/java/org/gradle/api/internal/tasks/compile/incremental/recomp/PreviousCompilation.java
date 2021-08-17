@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PreviousCompilation {
     private final PreviousCompilationData data;
@@ -38,28 +38,22 @@ public class PreviousCompilation {
         return new ClassSetAnalysis(data.getClasspathSnapshot());
     }
 
-    public DependentsSet findDependents(ClassSetAnalysis.ClassSetDiff diff) {
+    public DependentsSet findDependentsOfClasspathChanges(ClassSetAnalysis.ClassSetDiff diff) {
         if (diff.getDependents().isDependencyToAll()) {
             return diff.getDependents();
         }
         return classAnalysis.findTransitiveDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants());
     }
 
-    public DependentsSet findDependents(String className, IntSet newConstants) {
-        IntSet constants = new IntOpenHashSet(classAnalysis.getConstants(className));
-        constants.removeAll(newConstants);
-        return classAnalysis.findTransitiveDependents(className, constants);
+    public DependentsSet findDependentsOfSourceChanges(Set<String> classNames) {
+        return classAnalysis.findTransitiveDependents(classNames, classNames.stream().collect(Collectors.toMap(Function.identity(), classAnalysis::getConstants)));
     }
 
-    public Set<String> getTypesToReprocess() {
-        return classAnalysis.getTypesToReprocess();
+    public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
+        return classAnalysis.getTypesToReprocess(compiledClasses);
     }
 
     public SourceFileClassNameConverter getSourceToClassConverter() {
-        if (data.getCompilerApiData().isAvailable()) {
-            return new DefaultSourceFileClassNameConverter(data.getCompilerApiData().getSourceToClassMapping());
-        } else {
-            return new FileNameDerivingClassNameConverter();
-        }
+        return new DefaultSourceFileClassNameConverter(data.getCompilerApiData().getSourceToClassMapping());
     }
 }

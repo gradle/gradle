@@ -112,6 +112,22 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             assertContents(containsText("auxclasspath configured"))
     }
 
+    def "auxclasspath configured for test sourceset of rule-using project"() {
+        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
+
+        given:
+        setupRuleUsingProject(classExtendingJunit(), JUNIT_IMPL_DEPENDENCY)
+
+        file("rule-using/src/test/java/org/gradle/ruleusing/Class2.java") << testClass()
+
+        expect:
+        fails ":rule-using:pmdTest"
+
+        file("rule-using/build/reports/pmd/test.xml").
+            assertContents(containsClass("org.gradle.ruleusing.Class2")).
+            assertContents(containsText("auxclasspath configured"))
+    }
+
     def "auxclasspath not configured properly for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -226,6 +242,13 @@ project("rule-using") {
         """
             package org.gradle.ruleusing;
             public class Class1 extends junit.framework.TestCase { }
+        """
+    }
+
+    private static testClass() {
+        """
+            package org.gradle.ruleusing;
+            public class Class2 extends Class1 { }
         """
     }
 

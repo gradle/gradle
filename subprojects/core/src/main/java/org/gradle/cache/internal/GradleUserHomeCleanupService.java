@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
@@ -34,20 +35,20 @@ public class GradleUserHomeCleanupService implements Stoppable {
 
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
-    private final CacheScopeMapping cacheScopeMapping;
+    private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
         GradleUserHomeDirProvider userHomeDirProvider,
-        CacheScopeMapping cacheScopeMapping,
+        GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
-        this.cacheScopeMapping = cacheScopeMapping;
+        this.globalScopedCache = globalScopedCache;
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
     }
@@ -64,7 +65,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
                 return;
             }
         }
-        File cacheBaseDir = cacheScopeMapping.getRootDirectory(null);
+        File cacheBaseDir = globalScopedCache.getRootDir();
         boolean wasCleanedUp = execute(
             new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter));
         if (wasCleanedUp) {

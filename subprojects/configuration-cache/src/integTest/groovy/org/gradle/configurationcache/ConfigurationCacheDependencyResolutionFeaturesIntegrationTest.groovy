@@ -34,13 +34,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     def setup() {
         // So that dependency resolution results from previous tests do not interfere
         executer.requireOwnGradleUserHomeDir()
-        System.out.println("\$M2_HOME = " + System.getenv("M2_HOME"))
-        System.out.println("maven.repo.local = " + System.getProperty("maven.repo.local"))
-    }
-
-    def cleanup() {
-        System.out.println("\$M2_HOME = " + System.getenv("M2_HOME"))
-        System.out.println("maven.repo.local = " + System.getProperty("maven.repo.local"))
     }
 
     def "does not invalidate configuration cache entry when dynamic version information has not expired"() {

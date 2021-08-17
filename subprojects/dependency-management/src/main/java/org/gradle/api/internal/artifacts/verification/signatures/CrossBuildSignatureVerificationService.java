@@ -18,15 +18,12 @@ package org.gradle.api.internal.artifacts.verification.signatures;
 import com.google.common.collect.Lists;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -54,9 +51,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
 
     public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
                                                   FileHasher fileHasher,
-                                                  CacheScopeMapping cacheScopeMapping,
-                                                  ProjectCacheDir projectCacheDir,
-                                                  CacheRepository repository,
+                                                  BuildScopedCache scopedCache,
                                                   InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
                                                   BuildCommencedTimeProvider timeProvider,
                                                   boolean refreshKeys) {
@@ -64,8 +59,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.fileHasher = fileHasher;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
-        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "signature-verification", VersionStrategy.CachePerVersion);
-        store = repository.cache(cacheDir)
+        store = scopedCache.cache("signature-verification")
             .withDisplayName("Signature verification cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

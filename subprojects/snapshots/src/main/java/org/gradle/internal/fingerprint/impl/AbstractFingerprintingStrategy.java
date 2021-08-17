@@ -75,7 +75,7 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
         return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
     }
 
-    public DirectorySensitivity getDirectorySensitivity() {
+    protected DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }
 

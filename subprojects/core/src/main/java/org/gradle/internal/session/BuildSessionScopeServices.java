@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeSt
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
@@ -35,11 +36,11 @@ import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.internal.CacheRepositoryServices;
-import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
@@ -47,6 +48,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -119,7 +121,6 @@ public class BuildSessionScopeServices {
         registration.add(BuildEventConsumer.class, buildEventConsumer);
         registration.add(CalculatedValueContainerFactory.class);
         registration.add(BuildLayoutValidator.class);
-        registration.addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
         registration.addProvider(new ScopeIdsServices());
@@ -145,18 +146,27 @@ public class BuildSessionScopeServices {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
     }
 
-    ProjectCacheDir createCacheLayout(
+    FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
+        return fileLookup.getFileResolver(buildLayout.getRootDirectory());
+    }
+
+    ProjectCacheDir createProjectCacheDir(
+        GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         Deleter deleter,
         ProgressLoggerFactory progressLoggerFactory,
         StartParameter startParameter
     ) {
-        File cacheDir = startParameter.getProjectCacheDir() != null ? startParameter.getProjectCacheDir() : new File(buildLayout.getRootDirectory(), ".gradle");
-        return new ProjectCacheDir(cacheDir, progressLoggerFactory, deleter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping) {
-        File workDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "fileChanges", VersionStrategy.CachePerVersion);
+    BuildTreeScopedCache createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
+        return new DefaultBuildTreeScopedCache(projectCacheDir.getDir(), cacheRepository);
+    }
+
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCache scopedCache) {
+        File workDir = scopedCache.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
 
@@ -197,9 +207,8 @@ public class BuildSessionScopeServices {
         return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory, javaModuleDetector);
     }
 
-    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "checksums", VersionStrategy.SharedCache);
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }
 
