@@ -38,7 +38,12 @@ import spock.lang.Ignore
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
 
-    @Ignore("wip:toolchain failure in CI")
+    def setup() {
+        // Generate Kotlin DSL sources once so they are included as :kotlin-dsl:compileKotlin inputs.
+        // TODO:configuration-cache handle generated sources better (see gradlebuild.kotlin-dsl-dependencies-embedded.gradle.kts:39)
+        run([':kotlin-dsl:generateKotlinDependencyExtensions'])
+    }
+
     def "can run Gradle unit tests with configuration cache enabled"() {
 
         given:
@@ -65,7 +70,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore("wip:Kotlin 1.5.21")
     def "can run Gradle integ tests with configuration cache enabled"() {
 
         given: "tasks whose configuration can only be loaded in the original daemon"
@@ -92,7 +96,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         assertTestClassExecutedIn "subprojects/configuration-cache", "org.gradle.configurationcache.ConfigurationCacheDebugLogIntegrationTest"
     }
 
-    @Ignore("wip:Kotlin 1.5.21")
     def "can run Gradle cross-version tests with configuration cache enabled"() {
 
         given:
@@ -118,7 +121,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":configuration-cache:embeddedCrossVersionTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore("wip:Kotlin 1.5.21")
     def "can run Gradle smoke tests with configuration cache enabled"() {
 
         given:
@@ -144,7 +146,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":smoke-test:smokeTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore("wip:Kotlin 1.5.21")
     def "can run Gradle soak tests with configuration cache enabled"() {
 
         given:
@@ -170,7 +171,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":soak:forkingIntegTest").outcome == TaskOutcome.SUCCESS
     }
 
-    @NotYetImplemented
     def "can run Gradle codeQuality with configuration cache enabled"() {
 
         given:
@@ -190,11 +190,11 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
 
         then:
         assertConfigurationCacheStateLoaded()
-        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
-        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
-        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
     }
 
@@ -221,7 +221,6 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore("wip:Kotlin 1.5.21")
     def "can build and install Gradle binary distribution with configuration cache enabled"() {
 
         given:
@@ -256,7 +255,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         def tasks = [
             ':docs:docs',
             ':docs:docsTest',
-            "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO remove
+            "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO:configuration-cache remove
         ]
 
         when:
@@ -296,7 +295,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         run(
             tasks + [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
-                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO remove
+                "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn".toString(), // TODO:configuration-cache remove
                 TEST_BUILD_TIMESTAMP
             ],
             // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
