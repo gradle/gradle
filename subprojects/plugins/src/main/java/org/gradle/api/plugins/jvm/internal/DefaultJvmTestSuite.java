@@ -77,8 +77,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
 
         DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, target);
-        defaultJvmTestSuiteTarget.getTestClasses().from(sourceSet.getOutput().getClassesDirs());
-        defaultJvmTestSuiteTarget.getRuntimeClasspath().from(sourceSet.getRuntimeClasspath());
 
         defaultJvmTestSuiteTarget.getJavaVersion().set(java.getSourceCompatibility());
         defaultJvmTestSuiteTarget.getJavaVersion().finalizeValue();

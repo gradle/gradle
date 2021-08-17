@@ -40,7 +40,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
 
         """
         expect:
-        succeeds "tasks"
+        succeeds "tasks", "dependencies"
         outputContains("Sample")
 
     }

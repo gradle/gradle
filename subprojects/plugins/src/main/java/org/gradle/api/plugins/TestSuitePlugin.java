@@ -38,10 +38,8 @@ public class TestSuitePlugin  implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations(), project.getTasks()));
 
-        project.afterEvaluate(p -> {
-            testSuites.withType(DefaultJvmTestSuite.class).configureEach(testSuite -> {
-                testSuite.addTestTarget(java);
-            });
+        testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
+            testSuite.addTestTarget(java);
         });
 
         configureTest(project, java, testing);

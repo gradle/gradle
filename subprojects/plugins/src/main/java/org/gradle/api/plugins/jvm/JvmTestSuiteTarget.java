@@ -19,16 +19,11 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Named;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 
 public interface JvmTestSuiteTarget extends Named, SoftwareComponent {
-    ConfigurableFileCollection getTestClasses();
-    ConfigurableFileCollection getRuntimeClasspath();
-
     TaskProvider<Test> getTestTask();
-
     Property<JavaVersion> getJavaVersion();
 }

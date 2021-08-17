@@ -35,12 +35,7 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
         this.name = name;
 
         // Might not always want Test type here?
-        testTask = tasks.register(name, Test.class, task -> { //TODO:TestSuites - prefix with suite name
-            task.setDescription("Description set by plugin");
-            task.setGroup("verification");
-            task.setTestClassesDirs(getTestClasses());
-            task.setClasspath(getRuntimeClasspath());
-        });
+        testTask = tasks.register(name, Test.class);
     }
 
     @Override
