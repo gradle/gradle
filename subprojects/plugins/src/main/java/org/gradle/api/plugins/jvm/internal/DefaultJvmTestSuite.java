@@ -25,6 +25,7 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 
 import javax.inject.Inject;
 
@@ -34,14 +35,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final String name;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskContainer tasks) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName));
+
+        targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks));
     }
 
     @Override
@@ -58,7 +60,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public void sources(Action<? super SourceSet> configuration) {
         configuration.execute(getSources());
     }
-
 
     public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
         return targets;

@@ -22,39 +22,21 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.testing.Test;
 
 public class TestSuitePlugin  implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.java-base");
-        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-        ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> testSuites =
-            project.getObjects().polymorphicDomainObjectContainer(JvmTestSuite.class);
 
+        ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> testSuites = project.getObjects().polymorphicDomainObjectContainer(JvmTestSuite.class);
         TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class, testSuites);
 
-        testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations()));
-
-        testSuites.all(testSuite -> {
-
-            testSuite.getTargets().configureEach(testSuiteTarget -> {
-
-                TaskProvider<Test> testTask = project.getTasks().register(testSuite.getName() + testSuiteTarget.getName(), Test.class, task -> {
-                    task.setDescription("Description set by plugin");
-                    task.setGroup("verification");
-                    task.setTestClassesDirs(testSuiteTarget.getTestClasses());
-                    task.setClasspath(testSuiteTarget.getRuntimeClasspath());
-                });
-                testSuiteTarget.getRunTask().convention(testTask);
-            });
-
-        });
+        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+        testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations(), project.getTasks()));
 
         project.afterEvaluate(p -> {
             testSuites.withType(DefaultJvmTestSuite.class).configureEach(testSuite -> {
-                testSuite.addTestTarget("java8");
+                testSuite.addTestTarget(testSuite.getName() + "java8-pluginAutomatic");
             });
         });
     }
