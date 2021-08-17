@@ -193,7 +193,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeT
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
-        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
     }
 
