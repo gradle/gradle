@@ -44,7 +44,7 @@ val propagatedEnvironmentVariables = listOf(
     "LOCALAPPDATA",
 
     // Used by Gradle test infrastructure
-    "REPO_MIRROR_URL",
+    "REPO_MIRROR_URLS",
 
     // Used to find local java installations
     "SDKMAN_CANDIDATES_DIR",
