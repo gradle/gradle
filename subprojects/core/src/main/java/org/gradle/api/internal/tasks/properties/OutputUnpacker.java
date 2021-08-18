@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.fingerprint.ContentTracking;
 
 public class OutputUnpacker extends PropertyVisitor.Adapter {
 
@@ -58,13 +59,13 @@ public class OutputUnpacker extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
         MutableBoolean hasSpecs = new MutableBoolean();
         if (finalizeBeforeUnpacking) {
             value.maybeFinalizeValue();
         }
-        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, locationOnly, spec -> {
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, contentTracking, fileCollectionFactory, locationOnly, spec -> {
             hasSpecs.set(true);
             unpackedOutputConsumer.visitUnpackedOutputFileProperty(propertyName, optional, value, spec);
         });

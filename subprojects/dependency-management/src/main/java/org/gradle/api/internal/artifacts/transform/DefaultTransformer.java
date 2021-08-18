@@ -36,7 +36,6 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -53,6 +52,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -336,6 +336,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,
                             lineEndingNormalization,
+                            ContentTracking.TRACKED,
                             () -> FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value)));
                 }
 
@@ -343,6 +344,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                 public void visitOutputFileProperty(
                     String propertyName,
                     boolean optional,
+                    ContentTracking contentTracking,
                     PropertyValue value,
                     OutputFilePropertyType filePropertyType
                 ) {

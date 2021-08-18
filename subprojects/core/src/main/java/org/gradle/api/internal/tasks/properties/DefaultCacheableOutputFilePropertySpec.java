@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
 import javax.annotation.Nullable;
@@ -33,8 +34,14 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
     private final String propertySuffix;
     private final TreeType outputType;
 
-    public DefaultCacheableOutputFilePropertySpec(String propertyName, @Nullable String propertySuffix, FileCollectionInternal outputFiles, TreeType outputType) {
-        super(propertyName, OutputNormalizer.class, outputFiles);
+    public DefaultCacheableOutputFilePropertySpec(
+        String propertyName,
+        @Nullable String propertySuffix,
+        FileCollectionInternal outputFiles,
+        TreeType outputType,
+        ContentTracking contentTracking
+    ) {
+        super(propertyName, OutputNormalizer.class, contentTracking, outputFiles);
         this.propertySuffix = propertySuffix;
         this.outputType = outputType;
     }

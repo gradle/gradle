@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
@@ -53,7 +54,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
                 fileNormalizer,
                 value,
                 filePropertyType,
-                ContentTracking.TRACKED
+                contentTracking
             );
         }
     }
@@ -66,9 +67,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitOutputFileProperty(propertyName, optional, value, filePropertyType);
+            visitor.visitOutputFileProperty(propertyName, optional, contentTracking, value, filePropertyType);
         }
     }
 

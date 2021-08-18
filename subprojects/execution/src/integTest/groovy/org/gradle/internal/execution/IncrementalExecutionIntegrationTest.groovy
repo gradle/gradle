@@ -57,6 +57,7 @@ import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
+import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -902,6 +903,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                                 AbsolutePathInputNormalizer,
                                 DirectorySensitivity.DEFAULT,
                                 LineEndingSensitivity.DEFAULT,
+                                ContentTracking.TRACKED,
                                 { -> TestFiles.fixed(entry.value) }
                             )
                         )
