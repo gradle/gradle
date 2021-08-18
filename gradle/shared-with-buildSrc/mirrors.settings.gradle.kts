@@ -22,16 +22,16 @@ val originalUrls: Map<String, String> = mapOf(
     "mavencentral" to "https://repo.maven.apache.org/maven2/",
     "google" to "https://dl.google.com/dl/android/maven2/",
     "gradle" to "https://repo.gradle.org/gradle/repo",
-    "gradleplugins" to "https://plugins.gradle.org/m2",
+    "gradle-prod-plugins" to "https://plugins.gradle.org/m2",
     "gradlejavascript" to "https://repo.gradle.org/gradle/javascript-public",
     "gradle-libs" to "https://repo.gradle.org/gradle/libs",
     "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
     "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
-    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local"
+    "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local"
 )
 
 val mirrorUrls: Map<String, String> =
-    providers.environmentVariable("REPO_MIRROR_GRDEV_URLS").forUseAtConfigurationTime().orNull
+    providers.environmentVariable("REPO_MIRROR_URLS").forUseAtConfigurationTime().orNull
         ?.ifBlank { null }
         ?.split(',')
         ?.associate { nameToUrl ->
