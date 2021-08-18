@@ -18,11 +18,12 @@ package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
 
-public class FetchModelAction implements BuildAction<String> {
+public class ActionQueriesModelThatRequiresConfigurationPhase implements BuildAction<String> {
     @Override
     public String execute(BuildController controller) {
-        controller.getBuildModel();
+        controller.getModel(GradleProject.class);
         return "result";
     }
 }

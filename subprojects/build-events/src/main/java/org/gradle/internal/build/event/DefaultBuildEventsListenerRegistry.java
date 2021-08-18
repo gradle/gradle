@@ -19,6 +19,7 @@ package org.gradle.internal.build.event;
 import com.google.common.collect.ImmutableList;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -68,8 +69,10 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private final List<Object> listeners = new ArrayList<>();
     private final ExecutorFactory executorFactory;
 
-    public DefaultBuildEventsListenerRegistry(BuildEventListenerFactory factory, ListenerManager listenerManager,
-                                              BuildOperationListenerManager buildOperationListenerManager, ExecutorFactory executorFactory) {
+    public DefaultBuildEventsListenerRegistry(
+        BuildEventListenerFactory factory, ListenerManager listenerManager,
+        BuildOperationListenerManager buildOperationListenerManager, ExecutorFactory executorFactory
+    ) {
         this.factory = factory;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
@@ -237,7 +240,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         @Override
         public void buildFinished(BuildResult result) {
             // TODO - maybe make the registry a build scoped service
-            if (result.getGradle().getParent() != null) {
+            if (!((GradleInternal) result.getGradle()).isRootBuild()) {
                 // Stop only when the root build completes
                 return;
             }

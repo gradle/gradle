@@ -18,12 +18,13 @@ package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.GradleProject;
 
-public class ActionDiscardsFailure implements BuildAction<String> {
+public class ActionDiscardsConfigurationFailure implements BuildAction<String> {
     @Override
     public String execute(BuildController controller) {
         try {
-            controller.getBuildModel();
+            controller.getModel(GradleProject.class);
             throw new IllegalStateException("should fail");
         } catch (Exception e) {
             // Ignore

@@ -99,9 +99,10 @@ public interface BuildStateRegistry {
     IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);
 
     /**
-     * Creates a standalone nested build.
+     * Locates the buildSrc build for the given build, if present. Returns null if the given build does not have an associated buildSrc build.
      */
-    StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner);
+    @Nullable
+    StandAloneNestedBuild getBuildSrcNestedBuild(BuildState owner);
 
     /**
      * Creates a new standalone nested build tree.

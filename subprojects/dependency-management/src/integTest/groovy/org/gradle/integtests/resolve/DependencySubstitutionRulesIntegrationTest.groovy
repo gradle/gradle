@@ -695,7 +695,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'depsub'.")
-        failure.assertHasCause("Project :doesnotexist not found.")
+        failure.assertHasCause("Project with path ':doesnotexist' not found in build ':'.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"() {

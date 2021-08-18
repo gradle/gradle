@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -63,10 +62,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private static ToolingModelBuilderLookup getToolingModelBuilderRegistry(GradleInternal gradle) {
-        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderLookup.class);
-    }
-
     private static class ModelCreateAction implements BuildToolingModelAction<Object> {
         private final BuildModelAction buildModelAction;
         private UnknownModelException modelLookupFailure;
@@ -83,11 +78,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
         @Override
         public Object fromBuildModel(BuildToolingModelController controller) {
             String modelName = buildModelAction.getModelName();
-            GradleInternal gradle = controller.getConfiguredModel();
-            ToolingModelBuilderLookup builderRegistry = getToolingModelBuilderRegistry(gradle);
             ToolingModelBuilderLookup.Builder builder;
             try {
-                builder = builderRegistry.locateForClientOperation(modelName, false, gradle);
+                builder = controller.locateBuilderForDefaultTarget(modelName, false);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;

@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
@@ -26,6 +27,8 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.File;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -34,6 +37,8 @@ import java.util.function.Function;
  */
 @ThreadSafe
 public interface ProjectState extends ModelContainer<ProjectInternal> {
+    DisplayName getDisplayName();
+
     /**
      * Returns the containing build of this project.
      */
@@ -44,6 +49,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      */
     @Nullable
     ProjectState getParent();
+
+    /**
+     * Returns the direct children of this project, in public iteration order.
+     */
+    Set<ProjectState> getChildProjects();
 
     /**
      * Returns the name of this project (which may not necessarily be unique).
@@ -59,6 +69,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Returns a path for this project within its containing build. These are not unique within a build tree.
      */
     Path getProjectPath();
+
+    /**
+     * Returns the project directory.
+     */
+    File getProjectDir();
 
     /**
      * Returns the identifier of the default component produced by this project.
