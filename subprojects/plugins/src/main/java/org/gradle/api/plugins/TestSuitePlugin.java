@@ -58,6 +58,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
         });
 
         final JvmTestSuite testSuite = testing.getTestSuites().create(DEFAULT_TEST_SUITE_NAME);
+        testSuite.useJunit();
         testSuite.getTargets().configureEach(target -> {
             target.getTestTask().configure(test -> {
                 test.setDescription("Runs the unit tests.");

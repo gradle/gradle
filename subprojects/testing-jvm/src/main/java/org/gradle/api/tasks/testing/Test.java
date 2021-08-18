@@ -161,7 +161,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final PatternFilterable patternSet;
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
-    private TestFramework testFramework;
+    private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -183,6 +183,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
     }
 
     @Inject
@@ -674,7 +675,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         try {
             super.executeTests();
         } finally {
-            testFramework = null;
+            testFramework.set((TestFramework) null);
         }
     }
 
@@ -882,16 +883,21 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Internal
+    public Property<TestFramework> getTestFrameworkProperty() {
+        return testFramework;
+    }
+
+    @Internal
     public TestFramework getTestFramework() {
         return testFramework(null);
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        if (testFramework == null) {
+        if (!testFramework.isPresent()) {
             useJUnit(testFrameworkConfigure);
         }
 
-        return testFramework;
+        return testFramework.get();
     }
 
     /**
@@ -934,13 +940,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             throw new IllegalArgumentException("testFramework is null!");
         }
 
-        this.testFramework = testFramework;
+        this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.getOptions()));
+            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
         }
 
-        return this.testFramework;
+        return this.testFramework.get();
     }
 
     /**

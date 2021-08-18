@@ -26,4 +26,6 @@ import org.gradle.api.tasks.testing.Test;
 public interface JvmTestSuiteTarget extends Named, SoftwareComponent {
     TaskProvider<Test> getTestTask();
     Property<JavaVersion> getJavaVersion();
+
+    Property<JvmTestingFramework> getTestingFramework();
 }

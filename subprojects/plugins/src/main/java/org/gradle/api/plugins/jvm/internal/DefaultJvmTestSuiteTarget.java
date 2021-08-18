@@ -19,6 +19,10 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -35,7 +39,15 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
         this.name = name;
 
         // Might not always want Test type here?
-        testTask = tasks.register(name, Test.class);
+        testTask = tasks.register(name, Test.class, t -> {
+            t.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
+                if (framework instanceof JunitPlatformTestingFramework) {
+                    return new JUnitPlatformTestFramework((DefaultTestFilter) t.getFilter());
+                } else {
+                    return new JUnitTestFramework(t, (DefaultTestFilter) t.getFilter());
+                }
+            }));
+        });
     }
 
     @Override
