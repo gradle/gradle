@@ -34,12 +34,14 @@ val singleProjectSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN, SWIFT, CP
 val multiProjectApplicationSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN)
 
 singleProjectSampleLanguages.forEach { language ->
-    setupGeneratorTask(language, "library", ModularizationOption.SINGLE_PROJECT)
-    setupGeneratorTask(language, "application", ModularizationOption.SINGLE_PROJECT)
+    // TODO (donat) uncomment once https://github.com/gradle/gradle/pull/17988 is merged and the wrapper is updated to a version containing the changes
+    // setupGeneratorTask(language, "library", ModularizationOption.SINGLE_PROJECT)
+    // setupGeneratorTask(language, "application", ModularizationOption.SINGLE_PROJECT)
 }
 
 multiProjectApplicationSampleLanguages.forEach { language ->
-    setupGeneratorTask(language, "application", ModularizationOption.WITH_LIBRARY_PROJECTS)
+    // TODO (donat) uncomment once https://github.com/gradle/gradle/pull/17988 is merged and the wrapper is updated to a version containing the changes
+    // setupGeneratorTask(language, "application", ModularizationOption.WITH_LIBRARY_PROJECTS)
 }
 
 fun setupGeneratorTask(language: Language, kind: String, modularizationOption: ModularizationOption) {
