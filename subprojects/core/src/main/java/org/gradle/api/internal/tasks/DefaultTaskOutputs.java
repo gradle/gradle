@@ -39,6 +39,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.fingerprint.ContentTracking;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -72,7 +73,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
         for (TaskOutputFilePropertyRegistration registration : registeredFileProperties) {
-            visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), registration.getValue(), registration.getPropertyType());
+            visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), ContentTracking.TRACKED, registration.getValue(), registration.getPropertyType());
         }
     }
 
@@ -209,7 +210,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
             hasDeclaredOutputs = true;
         }
 

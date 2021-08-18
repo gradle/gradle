@@ -19,6 +19,7 @@ package org.gradle.internal.execution.fingerprint;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -101,13 +102,22 @@ public interface InputFingerprinter {
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
+        private final ContentTracking contentTracking;
         private final Supplier<FileCollection> files;
 
-        public FileValueSupplier(@Nullable Object value, Class<? extends FileNormalizer> normalizer, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, Supplier<FileCollection> files) {
+        public FileValueSupplier(
+            @Nullable Object value,
+            Class<? extends FileNormalizer> normalizer,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            ContentTracking contentTracking,
+            Supplier<FileCollection> files
+        ) {
             this.value = value;
             this.normalizer = normalizer;
             this.directorySensitivity = directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
+            this.contentTracking = contentTracking;
             this.files = files;
         }
 
@@ -127,6 +137,10 @@ public interface InputFingerprinter {
 
         public LineEndingSensitivity getLineEndingNormalization() {
             return lineEndingSensitivity;
+        }
+
+        public ContentTracking getContentTracking() {
+            return contentTracking;
         }
 
         public FileCollection getFiles() {

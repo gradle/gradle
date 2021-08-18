@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.Untracked;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
@@ -48,6 +50,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, getFilePropertyType());
+        ContentTracking contentTracking = propertyMetadata.isAnnotationPresent(Untracked.class) ? ContentTracking.UNTRACKED : ContentTracking.TRACKED;
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), contentTracking, value, getFilePropertyType());
     }
 }
