@@ -129,6 +129,14 @@ include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=
 include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
 ====
 
+If you want to use Scala 3 instead of the `scala-library` dependency you should add the `scala3-library_3` dependency:
+
+.Declaring a Scala 3 dependency for production code
+====
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala3-dependency]"]
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala3-dependency]"]
+====
+
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testCompile` configuration:
 
 .Declaring a Scala dependency for test code
