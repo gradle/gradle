@@ -68,7 +68,8 @@ public enum CachingDisabledReasonCategory {
      * Reasons for non-cacheable inputs:
      * <ul>
      *     <li>some type used as an input is loaded via an unknown classloader,</li>
-     *     <li>a Java lambda was used as an input.</li>
+     *     <li>a Java lambda was used as an input,</li>
+     *     <li>an input is not tracked.</li>
      * </ul>
      *
      * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>

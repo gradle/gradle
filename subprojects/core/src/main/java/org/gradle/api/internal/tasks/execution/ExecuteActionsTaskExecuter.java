@@ -365,6 +365,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
 
             return taskCacheabilityResolver.shouldDisableCaching(
+                context.getTaskProperties().getInputFileProperties(),
                 context.getTaskProperties().hasDeclaredOutputs(),
                 context.getTaskProperties().getOutputFileProperties(),
                 task,
@@ -569,7 +570,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public String getDisplayName() {
-            return "previous output files of " + task.toString();
+            return "previous output files of " + task;
         }
     }
 }

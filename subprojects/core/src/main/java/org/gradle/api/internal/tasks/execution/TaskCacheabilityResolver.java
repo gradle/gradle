@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -28,6 +29,7 @@ import java.util.Optional;
 
 public interface TaskCacheabilityResolver {
     Optional<CachingDisabledReason> shouldDisableCaching(
+        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         boolean hasDeclaredOutputs,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         TaskInternal task,

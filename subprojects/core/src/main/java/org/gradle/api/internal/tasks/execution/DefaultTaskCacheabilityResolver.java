@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -43,6 +45,7 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
 
     @Override
     public Optional<CachingDisabledReason> shouldDisableCaching(
+        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         boolean hasDeclaredOutputs,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         TaskInternal task,
@@ -79,6 +82,20 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 return Optional.of(new CachingDisabledReason(
                     CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,
                     "Output property '" + spec.getPropertyName() + "' contains a file tree"
+                ));
+            }
+            if (spec.getContentTracking() != ContentTracking.TRACKED) {
+                return Optional.of(new CachingDisabledReason(
+                    CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,
+                    "Output property '" + spec.getPropertyName() + "' is untracked"
+                ));
+            }
+        }
+        for (InputFilePropertySpec spec : inputFileProperties) {
+            if (spec.getContentTracking() != ContentTracking.TRACKED) {
+                return Optional.of(new CachingDisabledReason(
+                    CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS,
+                    "Input property '" + spec.getPropertyName() + "' is untracked"
                 ));
             }
         }

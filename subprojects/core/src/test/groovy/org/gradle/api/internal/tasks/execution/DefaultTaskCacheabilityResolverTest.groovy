@@ -20,25 +20,33 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.specs.Spec
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.RelativeFilePathResolver
+import org.gradle.internal.fingerprint.ContentTracking
 import spock.lang.Specification
 
 import javax.annotation.Nullable
 
 class DefaultTaskCacheabilityResolverTest extends Specification {
     def task = Stub(TaskInternal)
-    def cacheableOutputProperty = Mock(CacheableOutputFilePropertySpec)
+    def trackedInputProperty = Stub(InputFilePropertySpec) {
+        getContentTracking() >> ContentTracking.TRACKED
+    }
+    def cacheableOutputProperty = Stub(CacheableOutputFilePropertySpec) {
+        getContentTracking() >> ContentTracking.TRACKED
+    }
     def relativeFilePathResolver = Mock(RelativeFilePathResolver)
     def resolver = new DefaultTaskCacheabilityResolver(relativeFilePathResolver)
 
     def "report no reason if the task is cacheable"() {
         expect:
         determineNoCacheReason(
+            [trackedInputProperty],
             [cacheableOutputProperty],
             [spec({ true })],
         ) == null
@@ -47,6 +55,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "caching is disabled with no outputs"() {
         when:
         def reason = determineNoCacheReason(
+            [],
             [],
             [spec({ true })],
         )
@@ -59,6 +68,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "no cacheIf() means no caching"() {
         when:
         def reason = determineNoCacheReason(
+            [],
             [cacheableOutputProperty]
         )
 
@@ -70,6 +80,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "can turn caching off via cacheIf()"() {
         when:
         def reason = determineNoCacheReason(
+            [],
             [cacheableOutputProperty],
             [spec({ false }, "Cacheable test")]
         )
@@ -82,6 +93,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "error message contains which cacheIf spec failed to evaluate"() {
         when:
         determineNoCacheReason(
+            [],
             [cacheableOutputProperty],
             [spec({ throw new RuntimeException() }, "Exception is thrown")],
         )
@@ -94,6 +106,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "can turn caching off via doNotCacheIf()"() {
         when:
         def reason = determineNoCacheReason(
+            [],
             [cacheableOutputProperty],
             [spec({ true })],
             [spec({ true }, "Uncacheable test")]
@@ -107,6 +120,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "error message contains which doNotCacheIf spec failed to evaluate"() {
         when:
         determineNoCacheReason(
+            [],
             [cacheableOutputProperty],
             [spec({ true })],
             [spec({ "throw new RuntimeException()" }, "Exception is thrown")]
@@ -120,6 +134,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
     def "caching is disabled for non-cacheable file outputs is reported"() {
         when:
         def reason = determineNoCacheReason(
+            [],
             [Stub(OutputFilePropertySpec) {
                 getPropertyName() >> "non-cacheable property"
             }],
@@ -136,6 +151,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
 
         when:
         def reason = determineNoCacheReason(
+            [],
             [cacheableOutputProperty],
             [spec({ true })],
             [],
@@ -149,18 +165,56 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         1 * relativeFilePathResolver.resolveForDisplay(overlappingOutputs.overlappedFilePath) >> "relative/path"
     }
 
+    def "caching is disabled for untracked inputs"() {
+        def untrackedInput = Stub(InputFilePropertySpec) {
+            getContentTracking() >> ContentTracking.UNTRACKED
+            getPropertyName() >> 'untrackedInput'
+        }
+
+        when:
+        def reason = determineNoCacheReason(
+            [untrackedInput],
+            [cacheableOutputProperty],
+            [spec({ true })]
+        )
+
+        then:
+        reason.category == CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS
+        reason.message == "Input property 'untrackedInput' is untracked"
+    }
+
+    def "caching is disabled for untracked outputs"() {
+        def untrackedOutput = Stub(CacheableOutputFilePropertySpec) {
+            getContentTracking() >> ContentTracking.UNTRACKED
+            getPropertyName() >> 'untrackedOutput'
+        }
+
+        when:
+        def reason = determineNoCacheReason(
+            [trackedInputProperty],
+            [untrackedOutput],
+            [spec({ true })]
+        )
+
+        then:
+        reason.category == CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT
+        reason.message == "Output property 'untrackedOutput' is untracked"
+    }
+
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {
         new SelfDescribingSpec<TaskInternal>(spec, description)
     }
 
     @Nullable
     CachingDisabledReason determineNoCacheReason(
+        Collection<InputFilePropertySpec> inputFileProperties,
         Collection<OutputFilePropertySpec> outputFileProperties,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = [],
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = [],
         @Nullable OverlappingOutputs overlappingOutputs = null
     ) {
         resolver.shouldDisableCaching(
+            ImmutableSortedSet.copyOf(inputFileProperties),
             !outputFileProperties.isEmpty(),
             ImmutableSortedSet.copyOf(outputFileProperties),
             task,
