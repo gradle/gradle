@@ -20,7 +20,7 @@ buildscript {
     repositories {
 <% if(binding.hasVariable("springDmPluginVersion")) { %>
         mavenLocal()
-        jcenter()
+        mavenCentral()
 <% } %>
 <% if (binding.hasVariable("buildScanPluginVersion")) { %>
         maven {

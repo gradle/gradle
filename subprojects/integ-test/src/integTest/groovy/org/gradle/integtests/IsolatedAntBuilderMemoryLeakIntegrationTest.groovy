@@ -22,7 +22,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,7 +31,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
 
             allprojects {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
             }
 
             allprojects {

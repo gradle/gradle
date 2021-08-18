@@ -27,17 +27,16 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseIntegrationTest {
         file('src/main/java').mkdirs()
         file('src/test/java').mkdirs()
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories.jcenter()
+            ${mavenCentralRepository()}
 
-dependencies {
-     implementation "com.google.guava:guava:21.0"
-     testImplementation "junit:junit:4.13"
-}
-
-"""
+            dependencies {
+                 implementation "com.google.guava:guava:21.0"
+                 testImplementation "junit:junit:4.13"
+            }
+        """
 
         //then
         classpath.lib("guava-21.0.jar").assertHasNoAttribute("test", "true")

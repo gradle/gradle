@@ -11,7 +11,7 @@ allprojects {
         maven {
             setUrl(File(rootDir.parentFile, "producer/repo"))
         }
-        jcenter()
+        mavenCentral()
         google()
     }
 }

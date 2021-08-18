@@ -318,7 +318,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
                 $testKitDependencies
             }
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
         """.stripIndent()
         if (testKitSpec) {

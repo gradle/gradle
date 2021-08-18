@@ -44,7 +44,7 @@ class AbstractJUnitTestExecutionIntegrationSpec extends AbstractIntegrationSpec 
             }
         '''
         if (declareRepo) {
-            buildFile << jcenterRepository()
+            buildFile << mavenCentralRepository()
         }
     }
 

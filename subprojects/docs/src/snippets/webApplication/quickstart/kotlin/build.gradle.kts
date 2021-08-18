@@ -5,7 +5,7 @@ plugins {
 // end::use-war-plugin[]
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

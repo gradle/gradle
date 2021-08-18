@@ -42,7 +42,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
+        buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
 
         String pluginId = settings.getPackageName() + ".greeting";
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";

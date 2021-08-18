@@ -58,7 +58,7 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
             group = 'org.gradle.test'
             version = '1.9'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "commons-collections:commons-collections:1.+"

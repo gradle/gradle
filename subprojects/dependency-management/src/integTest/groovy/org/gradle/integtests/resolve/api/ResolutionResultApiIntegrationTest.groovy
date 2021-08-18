@@ -636,7 +636,7 @@ testRuntimeClasspath
         buildFile << """
         apply plugin: 'java-library'
 
-        ${jcenterRepository()}
+        ${mavenCentralRepository()}
 
         configurations.all {
             resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {

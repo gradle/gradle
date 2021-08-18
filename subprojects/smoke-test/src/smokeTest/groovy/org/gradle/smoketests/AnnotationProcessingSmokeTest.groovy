@@ -25,7 +25,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             apply plugin: 'java'
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies {
                 compileOnly 'org.projectlombok:lombok:1.18.2'
                 annotationProcessor 'org.projectlombok:lombok:1.18.2'
@@ -36,7 +36,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
             import java.util.ArrayList;
             import java.util.HashMap;
             import lombok.val;
-            
+
             public class ValExample {
               public String example() {
                 val example = new ArrayList<String>();
@@ -44,7 +44,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
                 val foo = example.get(0);
                 return foo.toLowerCase();
               }
-              
+
               public void example2() {
                 val map = new HashMap<Integer, String>();
                 map.put(0, "zero");

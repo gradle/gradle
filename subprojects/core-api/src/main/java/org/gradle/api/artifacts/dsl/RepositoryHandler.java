@@ -106,7 +106,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * repositories {
      *   jcenter {
      *     artifactUrls = ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
@@ -120,7 +120,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @param action a configuration action
      * @return the added repository
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
+    @Deprecated
     MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action);
 
     /**
@@ -130,7 +132,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * The behavior of this repository is otherwise the same as those added by {@link #maven(org.gradle.api.Action)}.
      * <p>
      * Examples:
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * repositories {
      *     jcenter()
      * }
@@ -138,7 +140,9 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      * @see #jcenter(Action)
+     * @deprecated JFrog announced JCenter's <a href="https://blog.gradle.org/jcenter-shutdown">sunset</a> in February 2021. Use {@link #mavenCentral()} instead.
      */
+    @Deprecated
     MavenArtifactRepository jcenter();
 
     /**

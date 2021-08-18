@@ -159,7 +159,7 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
         """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'

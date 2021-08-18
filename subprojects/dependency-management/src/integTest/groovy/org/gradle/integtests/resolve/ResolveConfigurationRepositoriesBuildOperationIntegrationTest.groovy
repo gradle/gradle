@@ -41,6 +41,9 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
             task resolve { doLast { configurations.compileClasspath.resolve() } }
         """
+        if (deprecationWarning) {
+            executer.expectDocumentedDeprecationWarning(deprecationWarning)
+        }
 
         when:
         succeeds 'resolve'
@@ -58,16 +61,16 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         ])
 
         where:
-        repo                   | repoBlock                     | expectedRepo
-        'maven'                | mavenRepoBlock()              | expectedMavenRepo()
-        'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()
-        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()
-        'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()
-        'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()
-        'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()
-        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()
-        'google'               | googleRepoBlock()             | expectedGoogleRepo()
-        'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo()
+        repo                   | repoBlock                     | expectedRepo                     | deprecationWarning
+        'maven'                | mavenRepoBlock()              | expectedMavenRepo()              | null
+        'ivy'                  | ivyRepoBlock()                | expectedIvyRepo()                | null
+        'ivy-no-url'           | ivyRepoNoUrlBlock()           | expectedIvyRepoNoUrl()           | null
+        'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()            | null
+        'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()         | null
+        'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()       | null
+        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
+        'google'               | googleRepoBlock()             | expectedGoogleRepo()             | null
+        'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo() | null
     }
 
     def "repositories used in buildscript blocks are exposed via build operation"() {
@@ -180,8 +183,8 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                repositories { jcenter() }
-                task resolve { doLast { configurations.compileClasspath. resolve() } }
+                ${mavenCentralRepoBlock()}
+                task resolve { doLast { configurations.compileClasspath.resolve() } }
             }
         """
 

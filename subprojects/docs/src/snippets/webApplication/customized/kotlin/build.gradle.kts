@@ -12,7 +12,7 @@ val moreLibs = configurations.create("moreLibs")
 
 repositories {
     flatDir { dir("lib") }
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {

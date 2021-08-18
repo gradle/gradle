@@ -332,7 +332,7 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 ```
 

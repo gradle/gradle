@@ -33,7 +33,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
     def setup() {
         buildFile << """
             apply plugin: "java"
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
             dependencies { testImplementation "org.testng:testng:$version" }
             test {
                 useTestNG()

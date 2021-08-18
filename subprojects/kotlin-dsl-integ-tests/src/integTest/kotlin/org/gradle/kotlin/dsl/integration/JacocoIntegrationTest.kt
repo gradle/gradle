@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -19,7 +19,7 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
                 `kotlin-dsl`
                 jacoco
             }
-            ${jcenterRepository(GradleDsl.KOTLIN)}
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
             dependencies {
                 testImplementation("junit:junit:4.12")
             }

@@ -36,7 +36,7 @@ public class Test {
         buildFile << """
 apply plugin: 'java'
 
-${jcenterRepository()}
+${mavenCentralRepository()}
 
 dependencies {
     compileOnly 'commons-logging:commons-logging:1.2'
@@ -64,7 +64,7 @@ public class Test {
         buildFile << """
 apply plugin: 'java'
 
-${jcenterRepository()}
+${mavenCentralRepository()}
 
 dependencies {
     compileOnly 'commons-logging:commons-logging:1.2'
@@ -271,7 +271,7 @@ project(':projectB') {
         buildFile << """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             sourceSets {
                 additional

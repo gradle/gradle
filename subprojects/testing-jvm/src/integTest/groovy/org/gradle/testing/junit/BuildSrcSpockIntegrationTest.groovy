@@ -29,22 +29,20 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
-apply plugin: 'groovy'
+        apply plugin: 'groovy'
 
-repositories {
-    ${jcenterRepository()}
-}
+        ${mavenCentralRepository()}
 
-dependencies {
-    implementation gradleApi()
-    implementation localGroovy()
+        dependencies {
+            implementation gradleApi()
+            implementation localGroovy()
 
-    testImplementation '$dependencyNotation',
-        'org.spockframework:spock-core:1.0-groovy-2.4@jar',
-        'cglib:cglib:3.2.6',
-        'org.objenesis:objenesis:1.2'
-}
-"""
+            testImplementation '$dependencyNotation',
+                'org.spockframework:spock-core:1.0-groovy-2.4@jar',
+                'cglib:cglib:3.2.6',
+                'org.objenesis:objenesis:1.2'
+        }
+        """
         file("src/main/groovy/MockIt.groovy") << """
 class MockIt {
     void call() {
@@ -86,17 +84,15 @@ class TestSpec extends Specification {
 
     private void writeSpockDependencies() {
         file("build.gradle") << """
-apply plugin: 'groovy'
+            apply plugin: 'groovy'
 
-repositories {
-    ${jcenterRepository()}
-}
+            ${mavenCentralRepository()}
 
-dependencies {
-    testImplementation localGroovy()
-    testImplementation '$dependencyNotation', 'org.spockframework:spock-core:1.0-groovy-2.4@jar'
-}
-"""
+            dependencies {
+                testImplementation localGroovy()
+                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:1.0-groovy-2.4@jar'
+            }
+        """
     }
 
     @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")

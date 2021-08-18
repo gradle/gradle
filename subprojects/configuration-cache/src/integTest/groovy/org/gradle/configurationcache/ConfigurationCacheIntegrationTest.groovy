@@ -422,7 +422,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
             import ${type.name}
 
             buildscript {
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 dependencies {
                     classpath 'com.google.guava:guava:28.0-jre'
                 }

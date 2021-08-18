@@ -707,7 +707,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     def "detects changes in compile classpath"() {
         given:
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                if (providers.gradleProperty('useCommons').forUseAtConfigurationTime().present) {
@@ -760,7 +760,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                 }
             """
         buildFile << """
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             def order = providers.gradleProperty('order').forUseAtConfigurationTime().get() as int
 

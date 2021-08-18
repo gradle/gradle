@@ -113,9 +113,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
                 id 'java-gradle-plugin'
             }
 
-            repositories {
-                ${jcenterRepository()}
-            }
+            ${mavenCentralRepository()}
 
             gradlePlugin {
                 plugins {

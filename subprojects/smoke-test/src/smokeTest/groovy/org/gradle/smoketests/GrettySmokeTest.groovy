@@ -31,11 +31,11 @@ class GrettySmokeTest extends AbstractSmokeTest {
                 id "war"
                 id "org.gretty" version "${TestedVersions.gretty}"
             }
-            
-            ${jcenterRepository()}
+
+            ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
+                implementation group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
             }
             
             gretty {

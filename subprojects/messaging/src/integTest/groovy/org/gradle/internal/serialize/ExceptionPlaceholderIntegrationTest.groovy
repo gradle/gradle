@@ -31,7 +31,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -77,7 +77,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java-library'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -129,7 +129,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java-library'
 
-            ${jcenterRepository()}
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'

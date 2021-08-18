@@ -18,5 +18,5 @@ repositories {
     maven {
         url = uri(project.file("../../local-repo"))
     }
-    jcenter()
+    mavenCentral()
 }

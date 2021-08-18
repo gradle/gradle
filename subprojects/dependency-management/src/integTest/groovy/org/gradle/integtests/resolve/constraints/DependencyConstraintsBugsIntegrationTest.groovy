@@ -27,12 +27,31 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
     @Issue("https://github.com/gradle/gradle/issues/13960")
     def "should resolve dependency which version is provided by an upgraded transitive platform"() {
         given:
+        // io.ktor:ktor-bom:1.3.2 is not available in mavenCentral() and the original issue this test covers
+        // is only reproducible with io.micronaut:micronaut-bom:2.0.1 which depends on io.ktor:ktor-bom:1.3.2
+        // The original issue can still be reproduced using the following placeholder pom for this missing dependency
+        // with Gradle 6.5.1 where the issue was originally reported
+        file('ktor-repo/io/ktor/ktor-bom/1.3.2/ktor-bom-1.3.2.pom') << """
+            <project>
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>io.ktor</groupId>
+              <artifactId>ktor-bom</artifactId>
+              <version>1.3.2</version>
+              <packaging>pom</packaging>
+              <name>ktor-bom</name>
+            </project>
+        """
         buildFile << """
             plugins {
                 id 'java-library'
             }
 
-            ${jcenterRepository()}
+            repositories {
+                ${mavenCentralRepository()}
+                maven {
+                   url(uri("file:ktor-repo/"))
+                }
+            }
 
             dependencies {
                 implementation(platform("io.micronaut:micronaut-bom:2.0.1"))

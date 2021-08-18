@@ -499,12 +499,8 @@ class AbstractIntegrationSpec extends Specification {
         result.assertNotOutput(string.trim())
     }
 
-    static String jcenterRepository(GradleDsl dsl = GROOVY) {
-        RepoScriptBlockUtil.jcenterRepository(dsl)
-    }
-
-    static String mavenCentralRepository() {
-        RepoScriptBlockUtil.mavenCentralRepository()
+    static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.mavenCentralRepository(dsl)
     }
 
     static String googleRepository() {

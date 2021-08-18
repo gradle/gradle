@@ -11,10 +11,10 @@ plugins {
 }
 // end::apply-external-plugin[]
 
-// Projects should use JCenter for external dependencies
+// Projects should use Maven Central for external dependencies
 // This could be the organization's private repository
 repositories {
-    jcenter() 
+    mavenCentral()
 }
 
 // Use the Checkstyle rules provided by the convention plugin

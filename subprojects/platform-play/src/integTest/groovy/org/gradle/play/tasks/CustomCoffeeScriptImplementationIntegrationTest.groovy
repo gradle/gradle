@@ -32,7 +32,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
             }
 
             repositories{
-                ${jcenterRepository()}
+                ${mavenCentralRepository()}
                 maven {
                     name = "gradle-js"
                     url = "https://repo.gradle.org/gradle/javascript-public"
