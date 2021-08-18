@@ -51,7 +51,7 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                 httpPort = 0
                 integrationTestTask = 'checkContainerUp'
                 servletContainer = 'jetty9'
-                logDir = '${testProjectDir.root.absolutePath}/jetty-logs'
+                logDir = '${testProjectDir.absolutePath}/jetty-logs'
                 logFileName = project.name
             }
 

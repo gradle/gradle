@@ -22,14 +22,13 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.task.ReportableToolchain
 import org.gradle.jvm.toolchain.internal.task.ToolchainReportRenderer
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class ToolchainReportRendererTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     InstallationLocation installation = Mock(InstallationLocation)
 
@@ -57,7 +56,7 @@ class ToolchainReportRendererTest extends Specification {
 
     def "jdk is rendered properly"() {
         given:
-        File javaHome = temporaryFolder.newFolder("javahome")
+        File javaHome = new File(temporaryFolder, "javahome").tap { mkdirs() }
         def metadata = JvmInstallationMetadata.from(
             javaHome,
             "1.8.0",

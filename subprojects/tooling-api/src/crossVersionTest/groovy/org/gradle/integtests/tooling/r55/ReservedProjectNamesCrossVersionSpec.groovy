@@ -22,15 +22,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import spock.lang.TempDir
 
 @TargetGradleVersion('>=5.5')
 @ToolingApiVersion(">=5.5")
 class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
 
-    @Rule
-    TemporaryFolder externalProjectFolder = new TemporaryFolder();
+    @TempDir
+    File externalProjectFolder
 
     def setup() {
         buildFile << """
@@ -160,7 +159,7 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
     }
 
     EclipseWorkspace eclipseWorkspace(List<EclipseWorkspaceProject> projects) {
-        new DefaultEclipseWorkspace(externalProjectFolder.newFolder("workspace"), projects)
+        new DefaultEclipseWorkspace(new File(externalProjectFolder, "workspace").tap { mkdirs() }, projects)
     }
 
     EclipseWorkspaceProject gradleProject(String name) {
@@ -172,7 +171,7 @@ class ReservedProjectNamesCrossVersionSpec extends ToolingApiSpecification {
     }
 
     EclipseWorkspaceProject externalProject(String name) {
-        new DefaultEclipseWorkspaceProject(name, externalProjectFolder.newFolder(name))
+        new DefaultEclipseWorkspaceProject(name, new File(externalProjectFolder, name).tap { mkdirs() })
     }
 
 }

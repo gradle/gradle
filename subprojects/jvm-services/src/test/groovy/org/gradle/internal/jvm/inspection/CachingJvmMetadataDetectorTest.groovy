@@ -22,14 +22,15 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Files
 
 class CachingJvmMetadataDetectorTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     def "returned metadata from delegate"() {
         def metadata = Mock(JvmInstallationMetadata)
@@ -69,11 +70,11 @@ class CachingJvmMetadataDetectorTest extends Specification {
         NativeServicesTestFixture.initialize()
         def metaDataDetector = new DefaultJvmMetadataDetector(
             TestFiles.execHandleFactory(),
-            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root)
+            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder)
         )
         def detector = new CachingJvmMetadataDetector(metaDataDetector)
         File javaHome1 = Jvm.current().javaHome
-        def link = new TestFile(temporaryFolder.newFolder(), "jdklink")
+        def link = new TestFile(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "jdklink")
         link.createLink(javaHome1)
 
         when:

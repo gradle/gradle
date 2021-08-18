@@ -29,17 +29,17 @@ import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.PropertiesUtils
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.function.Supplier
 
 @Unroll
 class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
-    @Rule TemporaryFolder tmpdir = new TemporaryFolder()
+    @TempDir File tmpdir
     Map<String, ResourceEntryFilter> filters = Maps.newHashMap()
     ResourceHasher delegate = new RuntimeClasspathResourceHasher()
     ResourceHasher unfilteredHasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)
@@ -356,7 +356,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     }
 
     RegularFileSnapshotContext fileSnapshot(String path, byte[] bytes) {
-        def dir = tmpdir.newFolder()
+        def dir = Files.createTempDirectory(tmpdir.toPath(), null).toFile()
         def file = new File(dir, path)
         file.parentFile.mkdirs()
         file << bytes

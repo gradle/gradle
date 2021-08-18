@@ -46,8 +46,6 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 implementation localGroovy()
                 testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
                 testImplementation("org.spockframework:spock-core")
-                testImplementation("org.spockframework:spock-junit4")
-                testImplementation 'junit:junit:4.13.1'
                 testImplementation gradleTestKit()
                 testImplementation files(createClasspathManifest)
             }
@@ -65,17 +63,16 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
         file("src/test/groovy/Test.groovy") << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class Test extends Specification {
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
                 File buildFile
 
                 def setup() {
-                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
-                    buildFile = testProjectDir.newFile('build.gradle')
+                    new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'test'"
+                    buildFile = new File(testProjectDir, 'build.gradle')
                     def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
                       .collect { it.replace('\\\\', '\\\\\\\\') } // escape backslashes in Windows paths
@@ -97,7 +94,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
 
                     when:
                     def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
+                        .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withDebug($debug)
                         .build()
@@ -119,18 +116,17 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
         file("src/test/groovy/Test.groovy") << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class Test extends Specification {
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
                 File buildFile
                 List<File> pluginClasspath
 
                 def setup() {
-                    testProjectDir.newFile('settings.gradle') << "rootProject.name = 'test'"
-                    buildFile = testProjectDir.newFile('build.gradle')
+                    new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'test'"
+                    buildFile = new File(testProjectDir, 'build.gradle')
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
                       .collect { new File(it) }
@@ -142,7 +138,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
 
                     when:
                     def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
+                        .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withPluginClasspath(pluginClasspath)
                         .withDebug($debug)
