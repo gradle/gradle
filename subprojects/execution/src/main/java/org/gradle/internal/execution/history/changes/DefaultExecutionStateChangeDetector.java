@@ -60,6 +60,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             executable);
 
         // Capture input files state
+        ChangeContainer untrackedInputChanges = new UntrackedPropertyChanges("input", thisExecution.getUntrackedInputFileProperties());
         ChangeContainer inputFilePropertyChanges = new PropertyChanges(
             lastExecution.getInputFileProperties().keySet(),
             thisExecution.getInputFileProperties().keySet(),
@@ -88,6 +89,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(
             previousSuccessState,
             implementationChanges,
+            untrackedInputChanges,
             inputPropertyChanges,
             inputPropertyValueChanges,
             outputFilePropertyChanges,

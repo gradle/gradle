@@ -48,4 +48,70 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":myTask")
     }
+
+    def "task with untracked inputs is not up-to-date"() {
+        buildFile("""
+            abstract class MyTask extends DefaultTask {
+                @Untracked
+                @InputFile
+                abstract RegularFileProperty getInputFile()
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doStuff() {
+                    outputFile.get().asFile.text = inputFile.get().asFile.text
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                inputFile = file("input.txt")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+    }
+
+    def "task with untracked outputs is not up-to-date"() {
+        buildFile("""
+            abstract class MyTask extends DefaultTask {
+                @InputFile
+                abstract RegularFileProperty getInputFile()
+                @Untracked
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void doStuff() {
+                    outputFile.get().asFile.text = inputFile.get().asFile.text
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                inputFile = file("input.txt")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+    }
 }

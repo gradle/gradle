@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.steps.SnapshotResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -39,6 +40,9 @@ public interface BeforeExecutionState extends ExecutionState {
      * @see SnapshotResult#getOutputFilesProduceByWork()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
+
+    ImmutableSortedSet<String> getUntrackedInputFileProperties();
+    ImmutableSortedSet<String> getUntrackedOutputFileProperties();
 
     /**
      * Returns overlapping outputs if they are detected.

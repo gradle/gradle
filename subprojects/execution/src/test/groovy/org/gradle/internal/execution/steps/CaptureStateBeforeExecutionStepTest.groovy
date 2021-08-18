@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -118,13 +119,15 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of("input", inputSnapshot),
-            ImmutableSortedMap.of("input-file", inputFileFingerprint))
+            ImmutableSortedMap.of("input-file", inputFileFingerprint),
+            ImmutableSortedSet.of("untracked-input"))
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties as Map == ["known": knownSnapshot, "input": inputSnapshot]
             assert state.inputFileProperties as Map == ["known-file": knownFileFingerprint, "input-file": inputFileFingerprint]
+            assert state.untrackedInputFileProperties as List == ["untracked-input"]
         }
         0 * _
 
@@ -185,7 +188,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

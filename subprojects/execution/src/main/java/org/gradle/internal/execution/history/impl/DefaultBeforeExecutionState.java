@@ -18,6 +18,7 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -32,14 +33,16 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
     @Nullable
     private final OverlappingOutputs detectedOutputOverlaps;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
+    private final ImmutableSortedSet<String> untrackedInputFileProperties;
+    private final ImmutableSortedSet<String> untrackedOutputFileProperties;
 
     public DefaultBeforeExecutionState(
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
-        @Nullable OverlappingOutputs detectedOutputOverlaps
+        ImmutableSortedSet<String> untrackedInputFileProperties, ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
+        ImmutableSortedSet<String> untrackedOutputFileProperties, @Nullable OverlappingOutputs detectedOutputOverlaps
     ) {
         super(
             implementation,
@@ -47,7 +50,9 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
             inputProperties,
             inputFileProperties
         );
+        this.untrackedInputFileProperties = untrackedInputFileProperties;
         this.outputFileLocationSnapshots = outputFileLocationSnapshots;
+        this.untrackedOutputFileProperties = untrackedOutputFileProperties;
         this.detectedOutputOverlaps = detectedOutputOverlaps;
     }
 
@@ -59,5 +64,15 @@ public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentF
     @Override
     public Optional<OverlappingOutputs> getDetectedOverlappingOutputs() {
         return Optional.ofNullable(detectedOutputOverlaps);
+    }
+
+    @Override
+    public ImmutableSortedSet<String> getUntrackedInputFileProperties() {
+        return untrackedInputFileProperties;
+    }
+
+    @Override
+    public ImmutableSortedSet<String> getUntrackedOutputFileProperties() {
+        return untrackedOutputFileProperties;
     }
 }

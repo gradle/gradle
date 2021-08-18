@@ -18,10 +18,12 @@ package org.gradle.internal.execution.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -70,6 +72,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        private final ImmutableSortedSet.Builder<String> untrackedPropertiesBuilder = ImmutableSortedSet.naturalOrder();
 
         public InputCollectingVisitor(
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
@@ -111,6 +114,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             if (knownCurrentFingerprints.containsKey(propertyName)) {
                 return;
             }
+            if (value.getContentTracking() == ContentTracking.UNTRACKED) {
+                untrackedPropertiesBuilder.add(propertyName);
+                return;
+            }
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity(), value.getLineEndingNormalization());
@@ -120,7 +127,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         public Result complete() {
-            return new InputFingerprints(valueSnapshotsBuilder.build(), fingerprintsBuilder.build());
+            return new InputFingerprints(valueSnapshotsBuilder.build(), fingerprintsBuilder.build(), untrackedPropertiesBuilder.build());
         }
     }
 
@@ -128,10 +135,12 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
     public static class InputFingerprints implements InputFingerprinter.Result {
         private final ImmutableSortedMap<String, ValueSnapshot> valueSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints;
+        private final ImmutableSortedSet<String> untrackedProperties;
 
-        public InputFingerprints(ImmutableSortedMap<String, ValueSnapshot> valueSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints) {
+        public InputFingerprints(ImmutableSortedMap<String, ValueSnapshot> valueSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints, ImmutableSortedSet<String> untrackedProperties) {
             this.valueSnapshots = valueSnapshots;
             this.fileFingerprints = fileFingerprints;
+            this.untrackedProperties = untrackedProperties;
         }
 
         public ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots() {
@@ -140,6 +149,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
             return fileFingerprints;
+        }
+
+        @Override
+        public ImmutableSortedSet<String> getUntrackedProperties() {
+            return untrackedProperties;
         }
     }
 }

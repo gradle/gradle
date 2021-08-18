@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.fingerprint;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.ContentTracking;
@@ -151,5 +152,6 @@ public interface InputFingerprinter {
     interface Result {
         ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
+        ImmutableSortedSet<String> getUntrackedProperties();
     }
 }
