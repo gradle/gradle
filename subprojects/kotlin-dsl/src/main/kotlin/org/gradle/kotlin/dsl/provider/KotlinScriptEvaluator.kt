@@ -35,6 +35,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing.newHasher
@@ -352,6 +353,7 @@ class CompileKotlinScript(
         visitor.visitOutputProperty(
             "classesDir",
             TreeType.DIRECTORY,
+            ContentTracking.TRACKED,
             classesDir,
             fileCollectionFactory.fixed(classesDir)
         )

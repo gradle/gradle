@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
     public R execute(UnitOfWork work, C context) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+            public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
                 ensureOutput(propertyName, root, type);
             }
 

@@ -24,6 +24,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -183,8 +184,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ContentTracking.TRACKED, outputs.dir, TestFiles.fixed(outputs.dir))
+            visitor.visitOutputProperty("file", TreeType.FILE, ContentTracking.TRACKED, outputs.file, TestFiles.fixed(outputs.file))
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
@@ -198,8 +199,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implem
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ContentTracking.TRACKED, outputs.dir, TestFiles.fixed(outputs.dir))
+            visitor.visitOutputProperty("file", TreeType.FILE, ContentTracking.TRACKED, outputs.file, TestFiles.fixed(outputs.file))
         }
     }
 

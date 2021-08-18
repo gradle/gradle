@@ -158,12 +158,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
 
-        ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+        OutputSnapshotter.Result unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {
             case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, unfilteredOutputSnapshots);
+                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, unfilteredOutputSnapshots.getOutputSnapshots());
                 break;
             case IGNORE_OVERLAPS:
                 overlappingOutputs = null;
@@ -188,8 +188,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             inputProperties,
             inputFileFingerprints,
             newInputs.getUntrackedProperties(),
-            unfilteredOutputSnapshots,
-            ImmutableSortedSet.of(),
+            unfilteredOutputSnapshots.getOutputSnapshots(),
+            unfilteredOutputSnapshots.getUntrackedProperties(),
             overlappingOutputs
         );
     }

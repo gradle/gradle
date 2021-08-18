@@ -392,10 +392,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public void visitOutputs(File workspace, OutputVisitor visitor) {
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY, ContentTracking.TRACKED,
                 outputDir,
                 fileCollectionFactory.fixed(outputDir));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE, ContentTracking.TRACKED,
                 resultsFile,
                 fileCollectionFactory.fixed(resultsFile));
         }

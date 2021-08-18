@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.ContentTracking
 
 class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
     def outputChangeListener = Mock(OutputChangeListener)
@@ -43,7 +44,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
         result == delegateResult
 
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, ContentTracking.TRACKED, outputDir, Mock(FileCollection))
             visitor.visitDestroyable(destroyableDir)
             visitor.visitLocalState(localStateDir)
         }

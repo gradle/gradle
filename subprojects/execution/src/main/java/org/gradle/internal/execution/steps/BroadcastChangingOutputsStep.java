@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 
 import java.io.File;
 
@@ -42,7 +43,7 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext, R extends 
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+            public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
                 builder.add(root.getAbsolutePath());
             }
 

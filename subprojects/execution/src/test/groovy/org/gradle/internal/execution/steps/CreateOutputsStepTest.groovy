@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.ContentTracking
 
 class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
     def step = new CreateOutputsStep<>(delegate)
@@ -40,8 +41,8 @@ class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputDir, TestFiles.fixed(outputDir))
-            visitor.visitOutputProperty("file", TreeType.FILE, outputFile, TestFiles.fixed(outputFile))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ContentTracking.TRACKED, outputDir, TestFiles.fixed(outputDir))
+            visitor.visitOutputProperty("file", TreeType.FILE, ContentTracking.TRACKED, outputFile, TestFiles.fixed(outputFile))
             visitor.visitLocalState(localStateFile)
             visitor.visitDestroyable(destroyableFile)
         }

@@ -337,7 +337,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 File outputFile = property.getOutputFile();
                 if (outputFile != null) {
-                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
+                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getContentTracking(), outputFile, property.getPropertyFiles());
                 }
             }
             for (File localStateRoot : context.getTaskProperties().getLocalStateFiles()) {

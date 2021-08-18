@@ -175,8 +175,8 @@ class GenerateProjectAccessors(
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, ContentTracking.TRACKED, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, ContentTracking.TRACKED, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
 

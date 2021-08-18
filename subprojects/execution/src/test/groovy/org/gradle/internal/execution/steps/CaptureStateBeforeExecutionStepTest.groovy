@@ -141,7 +141,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         step.execute(work, context)
 
         then:
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputDirSnapshot)
+        _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshottingResult(outputDir: outputDirSnapshot)
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
@@ -158,7 +158,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         def afterPreviousOutputSnapshot = Mock(FileSystemSnapshot)
         def afterPreviousOutputSnapshots = ImmutableSortedMap.of("outputDir", afterPreviousOutputSnapshot)
         def beforeExecutionOutputSnapshot = Mock(FileSystemSnapshot)
-        def beforeExecutionOutputSnapshots = ImmutableSortedMap.of("outputDir", beforeExecutionOutputSnapshot)
+        def beforeExecutionOutputSnapshots = outputSnapshottingResult(outputDir: beforeExecutionOutputSnapshot)
 
         when:
         step.execute(work, context)
@@ -170,13 +170,13 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * outputSnapshotter.snapshotOutputs(work, _) >> beforeExecutionOutputSnapshots
 
         _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
-        1 * overlappingOutputDetector.detect(afterPreviousOutputSnapshots, beforeExecutionOutputSnapshots) >> null
+        1 * overlappingOutputDetector.detect(afterPreviousOutputSnapshots, beforeExecutionOutputSnapshots.outputSnapshots) >> null
 
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
-            assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots
+            assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots.outputSnapshots
         }
         0 * _
 
@@ -190,7 +190,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
+        _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshottingResult()
         _ * context.history >> Optional.of(executionHistoryStore)
     }
 
@@ -198,6 +198,21 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
             assert it.descriptor.displayName == "Snapshot inputs and outputs before executing job ':test'"
             assert it.result == CaptureStateBeforeExecutionStep.Operation.Result.INSTANCE
+        }
+    }
+
+    private static OutputSnapshotter.Result outputSnapshottingResult(Map<String, FileSystemSnapshot> outputSnapshots = [:]) {
+        def sortedResult = ImmutableSortedMap.copyOf(outputSnapshots)
+        return new OutputSnapshotter.Result() {
+            @Override
+            ImmutableSortedMap<String, FileSystemSnapshot> getOutputSnapshots() {
+                return sortedResult
+            }
+
+            @Override
+            ImmutableSortedSet<String> getUntrackedProperties() {
+                return ImmutableSortedSet.of()
+            }
         }
     }
 }

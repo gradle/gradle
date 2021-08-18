@@ -17,9 +17,11 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;
@@ -32,14 +34,40 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace) {
+    public Result snapshotOutputs(UnitOfWork work, File workspace) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedSet.Builder<String> untrackedProperties = ImmutableSortedSet.naturalOrder();
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+            public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
+                if (contentTracking == ContentTracking.TRACKED) {
+                    builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+                } else {
+                    untrackedProperties.add(propertyName);
+                }
             }
         });
-        return builder.build();
+        return new DefaultResult(builder.build(), untrackedProperties.build());
+    }
+
+    private static class DefaultResult implements Result {
+
+        private final ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots;
+        private final ImmutableSortedSet<String> untrackedProperties;
+
+        public DefaultResult(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots, ImmutableSortedSet<String> untrackedProperties)  {
+            this.outputSnapshots = outputSnapshots;
+            this.untrackedProperties = untrackedProperties;
+        }
+
+        @Override
+        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputSnapshots() {
+            return outputSnapshots;
+        }
+
+        @Override
+        public ImmutableSortedSet<String> getUntrackedProperties() {
+            return untrackedProperties;
+        }
     }
 }

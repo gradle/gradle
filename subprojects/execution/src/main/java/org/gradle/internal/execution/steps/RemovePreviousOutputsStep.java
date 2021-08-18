@@ -23,6 +23,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 
@@ -73,7 +74,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -109,7 +110,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+            public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
                 if (root.exists()) {
                     try {
                         switch (type) {

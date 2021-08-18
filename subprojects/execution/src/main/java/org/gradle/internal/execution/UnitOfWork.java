@@ -27,6 +27,7 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -138,6 +139,7 @@ public interface UnitOfWork extends Describable {
         default void visitOutputProperty(
             String propertyName,
             TreeType type,
+            ContentTracking contentTracking,
             File root,
             FileCollection contents
         ) {}
