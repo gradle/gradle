@@ -68,8 +68,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
         1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _, _, _, InputFilePropertyType.DIRECTORY, ContentTracking.TRACKED)
 
-        1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
-        1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
+        1 * visitor.visitOutputFileProperty('outputFile', false, ContentTracking.TRACKED, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
+        1 * visitor.visitOutputFileProperty('bean.outputDir', false, ContentTracking.TRACKED, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
 
         1 * visitor.visitDestroyableProperty({ it.call().path == 'destroyed' })
 
