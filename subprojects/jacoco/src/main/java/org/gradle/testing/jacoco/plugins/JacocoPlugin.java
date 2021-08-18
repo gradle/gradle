@@ -26,6 +26,9 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.plugins.TestSuitePlugin;
+import org.gradle.api.plugins.TestingExtension;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
@@ -175,13 +178,17 @@ public class JacocoPlugin implements Plugin<Project> {
      */
     private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
-            TaskProvider<Task> testTaskProvider = project.getTasks().named(JavaPlugin.TEST_TASK_NAME);
-            addDefaultReportTask(extension, testTaskProvider);
-            addDefaultCoverageVerificationTask(testTaskProvider);
+            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            JvmTestSuite defaultTestSuite = testing.getTestSuites().getByName(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
+            defaultTestSuite.getTargets().configureEach(target -> {
+                TaskProvider<Test> testTask = target.getTestTask();
+                addDefaultReportTask(extension, testTask);
+                addDefaultCoverageVerificationTask(testTask);
+            });
         });
     }
 
-    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultReportTask(final JacocoPluginExtension extension, final TaskProvider<? extends Task> testTaskProvider) {
         final String testTaskName = testTaskProvider.getName();
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskName) + "Report",
@@ -207,7 +214,7 @@ public class JacocoPlugin implements Plugin<Project> {
             });
     }
 
-    private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
+    private void addDefaultCoverageVerificationTask(final TaskProvider<? extends Task> testTaskProvider) {
         project.getTasks().register(
             "jacoco" + StringUtils.capitalize(testTaskProvider.getName()) + "CoverageVerification",
             JacocoCoverageVerification.class,
