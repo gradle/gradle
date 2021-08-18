@@ -30,7 +30,7 @@ public class UntrackedPropertyChanges implements ChangeContainer {
     @Override
     public boolean accept(ChangeVisitor visitor) {
         for (String untrackedPropertyName : untrackedProperties) {
-            if (!visitor.visitChange(new DescriptiveChange("The %s property %s is untracked", description, untrackedPropertyName))) {
+            if (!visitor.visitChange(new DescriptiveChange("The %s property '%s' is untracked", description, untrackedPropertyName))) {
                 return false;
             }
         }

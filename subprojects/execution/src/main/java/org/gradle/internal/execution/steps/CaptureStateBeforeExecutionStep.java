@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;

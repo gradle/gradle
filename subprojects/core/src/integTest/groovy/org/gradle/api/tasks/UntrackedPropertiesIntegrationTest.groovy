@@ -77,9 +77,10 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":myTask")
 
         when:
-        run("myTask")
+        run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("The input property 'inputFile' is untracked")
     }
 
     def "task with untracked outputs is not up-to-date"() {
@@ -110,8 +111,9 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":myTask")
 
         when:
-        run("myTask")
+        run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("The output property 'outputFile' is untracked")
     }
 }

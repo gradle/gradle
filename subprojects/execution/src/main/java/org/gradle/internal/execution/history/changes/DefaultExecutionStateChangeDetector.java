@@ -72,6 +72,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         );
 
         // Capture output files state
+        ChangeContainer untrackedOutputChanges = new UntrackedPropertyChanges("output", thisExecution.getUntrackedOutputFileProperties());
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
             lastExecution.getOutputFilesProducedByWork().keySet(),
             thisExecution.getOutputFileLocationSnapshots().keySet(),
@@ -92,6 +93,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             untrackedInputChanges,
             inputPropertyChanges,
             inputPropertyValueChanges,
+            untrackedOutputChanges,
             outputFilePropertyChanges,
             outputFileChanges,
             inputFilePropertyChanges,
