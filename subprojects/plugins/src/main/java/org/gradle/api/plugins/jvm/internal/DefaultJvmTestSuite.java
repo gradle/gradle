@@ -25,8 +25,12 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.TestSuitePlugin;
+import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
+import org.gradle.api.plugins.jvm.JunitTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.plugins.jvm.JvmTestingFramework;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceSetOutput;
@@ -58,6 +62,22 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from( (Callable<SourceSetOutput>) () -> sourceSets.getByName("main").getOutput()));
         }
 
+        dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
+            if (framework instanceof JunitPlatformTestingFramework) {
+                return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
+            } else {
+                return "junit:junit:" + framework.getVersion().get();
+            }
+        }));
+        dependencies.addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
+            if (framework instanceof JunitPlatformTestingFramework) {
+                return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
+            } else {
+                return getObjectFactory().fileCollection();
+            }
+        }));
+
+
 //        test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
 //        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
@@ -72,6 +92,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    public abstract ProviderFactory getProviders();
 
     public SourceSet getSources() {
         return sourceSet;
@@ -98,5 +121,19 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         defaultJvmTestSuiteTarget.getJavaVersion().finalizeValue();
 
         targets.add(defaultJvmTestSuiteTarget);
+    }
+
+    @Override
+    public void useJunit() {
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitTestingFramework.class);
+        getTestingFramework().convention(testingFramework);
+        testingFramework.getVersion().convention("4.13");
+    }
+
+    @Override
+    public void useJunitPlatform() {
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class);
+        getTestingFramework().convention(testingFramework);
+        testingFramework.getVersion().convention("5.7.1");
     }
 }

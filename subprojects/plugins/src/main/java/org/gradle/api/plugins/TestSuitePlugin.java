@@ -20,7 +20,9 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
+import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
@@ -40,6 +42,9 @@ public class TestSuitePlugin  implements Plugin<Project> {
 
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
             testSuite.addTestTarget(java);
+            JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class);
+            testSuite.getTestingFramework().convention(testingFramework);
+            testingFramework.getVersion().convention("5.7.1");
         });
 
         configureTest(project, java, testing);

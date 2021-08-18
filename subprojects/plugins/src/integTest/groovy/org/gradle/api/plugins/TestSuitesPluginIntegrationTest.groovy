@@ -19,10 +19,14 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
-    def "applies base plugins and adds convention object"() {
-        given:
+    def setup() {
         buildFile << """
             apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            group = 'example'
+            version = '0.1'
 
             testing {
                 testSuites {
@@ -37,11 +41,31 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-
         """
+    }
+
+    def "applies base plugins and adds convention object"() {
         expect:
         succeeds "tasks", "dependencies"
         outputContains("Sample")
+    }
 
+    def "switch to junit from junit platform"() {
+        buildFile << """
+            testing {
+                testSuites {
+                    unitTest {
+                        useJunit()
+                    }
+
+                    integTest {
+
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "tasks", "dependencies"
     }
 }
