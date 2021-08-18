@@ -62,7 +62,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty('myProperty', { it.call() == 'myValue' }, false)
-        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, _, _, _, InputFilePropertyType.FILE)
+        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, _, _, _, InputFilePropertyType.FILE, ContentTracking.TRACKED)
         1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, _, _, _, InputFilePropertyType.FILES, ContentTracking.TRACKED)
         1 * visitor.visitInputProperty('bean', { it.call() == NestedBean }, false)
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
@@ -207,7 +207,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty("nested" , _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
-        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _, _, _, InputFilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _, _, _, InputFilePropertyType.DIRECTORY, ContentTracking.TRACKED)
         1 * visitor.visitOutputFileProperty("nested.outputDir", false, ContentTracking.TRACKED, _, OutputFilePropertyType.DIRECTORY)
 
         0 * _

@@ -60,6 +60,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
+            import org.gradle.internal.fingerprint.ContentTracking
 
             task myTask(type: MyTask) {
                 inputString = "data"
@@ -85,7 +86,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     def layout = services.get(ProjectLayout)
                     TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType, ContentTracking contentTracking) {
                             inputFiles[propertyName] = layout.files(value)
                         }
 
@@ -399,6 +400,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
+            import org.gradle.internal.fingerprint.ContentTracking
 
             class PrintInputsAndOutputs extends DefaultTask {
                 @Internal
@@ -412,7 +414,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType, ContentTracking contentTracking) {
                             println "Input file property '\${propertyName}'"
                         }
 
