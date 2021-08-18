@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -32,7 +33,7 @@ public interface PropertyVisitor {
 
     void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
 
-    void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType);
+    void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType);
 
     void visitDestroyableProperty(Object value);
 
@@ -51,7 +52,7 @@ public interface PropertyVisitor {
 
         @Override
         @UsedByScanPlugin("test-distribution")
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
         }
 
         @Override

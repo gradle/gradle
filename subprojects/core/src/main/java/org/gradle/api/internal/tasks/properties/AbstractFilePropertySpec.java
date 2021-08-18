@@ -18,20 +18,28 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 
 public abstract class AbstractFilePropertySpec extends AbstractPropertySpec implements FilePropertySpec {
     private final Class<? extends FileNormalizer> normalizer;
+    private final ContentTracking contentTracking;
     private final FileCollectionInternal files;
 
-    public AbstractFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollectionInternal files) {
+    public AbstractFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, ContentTracking contentTracking, FileCollectionInternal files) {
         super(propertyName);
         this.normalizer = normalizer;
+        this.contentTracking = contentTracking;
         this.files = files;
     }
 
     @Override
     public Class<? extends FileNormalizer> getNormalizer() {
         return normalizer;
+    }
+
+    @Override
+    public ContentTracking getContentTracking() {
+        return contentTracking;
     }
 
     @Override
