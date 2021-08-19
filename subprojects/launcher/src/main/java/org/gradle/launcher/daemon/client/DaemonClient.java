@@ -27,6 +27,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -138,10 +139,15 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
 
         LOGGER.debug("Executing build {} in daemon client {pid={}}", buildId, processEnvironment.maybeGetPid());
 
+        // Attempt to connect to an existing idle and compatible daemon
         int saneNumberOfAttempts = 100; //is it sane enough?
-
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
+            // No existing, compatible daemon is available to try
+            if (connection == null) {
+                break;
+            }
+            // Compatible daemon was found, try it
             try {
                 Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
@@ -154,9 +160,20 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters, 
             }
         }
 
-        throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
-            + saneNumberOfAttempts + " different daemons but I could not use any of them to run the build. BuildActionParameters were "
-            + parameters + ".", accumulatedExceptions);
+        // No existing daemon was usable, so start a new one and try it once
+        final DaemonClientConnection connection = connector.startDaemon(compatibilitySpec);
+        try {
+            Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
+            return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
+        } catch (DaemonInitialConnectException e) {
+            // This means we could not connect to the daemon we just started.  fail and don't try again
+            throw new NoUsableDaemonFoundException("A new daemon was started but could not be connected to: " +
+                "pid=" + connection.getDaemon() + ", address= " + connection.getDaemon().getAddress() + ". " +
+                Documentation.userManual("troubleshooting", "network_connection").consultDocumentationMessage(),
+                accumulatedExceptions);
+        } finally {
+            connection.stop();
+        }
     }
 
     protected BuildActionResult executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {

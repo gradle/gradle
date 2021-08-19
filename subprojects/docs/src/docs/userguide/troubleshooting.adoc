@@ -152,6 +152,44 @@ If you're using link:https://projects.eclipse.org/projects/tools.buildship[Build
 .Refreshing a Gradle project in Eclipse Buildship
 image::troubleshooting-refresh-eclipse.png[]
 
+[[network_connection]]
+=== Troubleshooting daemon connection issues
+
+If your Gradle build fails before running any tasks, you may be encountering problems with your network configuration. When Gradle is unable to communicate with the Gradle daemon process, the build will immediately fail with a message similar to this:
+
+```
+$ gradle help
+
+Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for details
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913, address=[7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[/127.0.0.1]], state=Busy, ...
+```
+
+We have observed this can occur when network address translation (NAT) masquerade is used. When NAT masquerade is enabled, connections that should be considered local to the machine are masked to appear from external IP addresses. Gradle refuses to connect to any external IP address as a security precaution.
+
+The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses. 
+
+You can monitor the detected network setup and the connection requests in the daemon log file (`<GRADLE_USER_HOME>/daemon/<Gradle version>/daemon-<PID>.out.log`).
+
+```
+2021-08-12T12:01:50.755+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface enp0s3
+2021-08-12T12:01:50.759+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
+2021-08-12T12:01:50.769+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:85ba:3f3e:1b88:c0e1%enp0s3
+2021-08-12T12:01:50.770+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /10.0.2.15
+2021-08-12T12:01:50.770+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface lo
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? true
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /0:0:0:0:0:0:0:1%lo
+2021-08-12T12:01:50.771+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding loopback address /127.0.0.1
+2021-08-12T12:01:50.775+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Listening on [7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[localhost/127.0.0.1]].
+...
+2021-08-12T12:01:50.797+0200 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Advertising the daemon address to the clients: [7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[localhost/127.0.0.1]]
+...
+2021-08-12T12:01:50.923+0200 [ERROR] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Cannot accept connection from remote address /10.0.2.15.
+```
+
 == Getting additional help
 
 If you didn't find a fix for your issue here, please reach out to the Gradle community on the link:https://discuss.gradle.org/c/help-discuss[help forum] or search relevant developer resources using link:https://help.gradle.org/[help.gradle.org].
