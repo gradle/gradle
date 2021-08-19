@@ -93,7 +93,7 @@ public class ArchUnitFixtureTest {
         Assertions.assertThrows(AssertionError.class, () -> assertHasViolation(event, File.class));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "checkstyle:LeftCurly" })
     static class AllowedMethodTypesClass {
         public void validMethod(String arg1, String arg2) {}
         public File invalidReturnType(String arg1, String arg2) { return null; }
