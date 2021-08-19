@@ -21,6 +21,8 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -36,6 +38,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -149,5 +152,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public void dependencies(Action<? super ComponentDependencies> action) {
         action.execute(dependencies);
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return new AbstractTaskDependency() {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                getTargets().forEach(context::add);
+            }
+        };
     }
 }

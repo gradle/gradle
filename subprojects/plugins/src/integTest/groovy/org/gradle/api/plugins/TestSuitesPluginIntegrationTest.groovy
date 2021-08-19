@@ -72,4 +72,31 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "tasks", "dependencies"
     }
+
+    def "int tests depend on unit tests"() {
+        buildFile << """
+            testing {
+                testSuites {
+                    unitTest {
+                        useJunit()
+                    }
+
+                    integTest {
+                        targets {
+                            all {
+                                testTask.configure {
+                                    dependsOn testing.testSuites.unitTest
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+        """
+
+        expect:
+        succeeds "integTestjava11"
+    }
 }

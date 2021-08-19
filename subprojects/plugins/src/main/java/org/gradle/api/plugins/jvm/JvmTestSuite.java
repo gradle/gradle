@@ -17,13 +17,14 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
+import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 
-public interface JvmTestSuite extends Named, SoftwareComponent {
+public interface JvmTestSuite extends Named, SoftwareComponent, Buildable {
     SourceSet getSources();
     void sources(Action<? super SourceSet> configuration);
 
