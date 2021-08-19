@@ -17,8 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def "can annotate inputs and outputs with Untracked"() {
         buildFile("""
@@ -49,12 +50,13 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":myTask")
     }
 
-    def "task with untracked inputs is not up-to-date"() {
+    def "task with untracked #untrackedType is not up-to-date"() {
         buildFile("""
             abstract class MyTask extends DefaultTask {
-                @Untracked
+                ${untrackedInputs ? '@Untracked' : ''}
                 @InputFile
                 abstract RegularFileProperty getInputFile()
+                ${untrackedInputs ? '' : '@Untracked'}
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
 
@@ -80,15 +82,22 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("The input property 'inputFile' is untracked")
+        outputContains("The ${untrackedType} property '${untrackedType}File' is untracked")
+
+        where:
+        untrackedInputs << [true, false]
+        untrackedType = untrackedInputs ? 'input' : 'output'
     }
 
-    def "task with untracked outputs is not up-to-date"() {
+    def "task with untracked #untrackedType is not cacheable"() {
         buildFile("""
+            @CacheableTask
             abstract class MyTask extends DefaultTask {
+                ${untrackedInputs ? '@Untracked' : ''}
                 @InputFile
+                @PathSensitive(PathSensitivity.RELATIVE)
                 abstract RegularFileProperty getInputFile()
-                @Untracked
+                ${untrackedInputs ? '' : '@Untracked'}
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
 
@@ -106,14 +115,14 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt").text = "input"
 
         when:
-        run("myTask")
+        withBuildCache().run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("""Caching disabled for task ':myTask' because:
+  ${untrackedType.capitalize()} property '${untrackedType}File' is untracked""")
 
-        when:
-        run("myTask", "--info")
-        then:
-        executedAndNotSkipped(":myTask")
-        outputContains("The output property 'outputFile' is untracked")
+        where:
+        untrackedInputs << [true, false]
+        untrackedType = untrackedInputs ? 'input' : 'output'
     }
 }
