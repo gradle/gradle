@@ -332,50 +332,45 @@ class DirectorySnapshotterTest extends Specification {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "unreadable files and directories are snapshotted as missing"() {
+    def "snapshotting unreadable #type fails"() {
         given:
         def rootDir = tmpDir.createDir("root")
         rootDir.file('readableFile').createFile()
         rootDir.file('readableDirectory').createDir()
-        rootDir.file('unreadableFile').createFile().makeUnreadable()
-        rootDir.file('unreadableDirectory').createDir().makeUnreadable()
+
+        def unreadable = rootDir.file('unreadable')
+        unreadable."create${type.capitalize()}"().makeUnreadable()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+        directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
 
         then:
-        ! actuallyFiltered.get()
-        assert snapshot instanceof DirectorySnapshot
-        snapshot.children.collectEntries { [it.name, it.class] } == [
-                readableDirectory: DirectorySnapshot,
-                readableFile: RegularFileSnapshot,
-                unreadableDirectory: MissingFileSnapshot,
-                unreadableFile: MissingFileSnapshot
-        ]
-        snapshot.children.every { it.accessType == AccessType.DIRECT }
+        def ex = thrown(UncheckedIOException)
+        ex.message == String.format(message, unreadable.absolutePath)
         0 * _
 
         cleanup:
         rootDir.listFiles()*.makeReadable()
+
+        where:
+        type   | message
+        "dir"  | "java.nio.file.AccessDeniedException: %s"
+        "file" | "java.io.FileNotFoundException: %s (Permission denied)"
     }
 
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Issue("https://github.com/gradle/gradle/issues/2552")
-    def "named pipe snapshots to MissingFileSnapshot"() {
+    def "snapshotting named pipe fails"() {
         def rootDir = tmpDir.createDir("root")
         def pipe = rootDir.file("testPipe").createNamedPipe()
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
+        directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered)
 
         then:
-        ! actuallyFiltered.get()
-        assert snapshot instanceof DirectorySnapshot
-        snapshot.children.collectEntries { [it.name, it.class] } == [
-            testPipe: MissingFileSnapshot
-        ]
-        snapshot.children.every { it.accessType == AccessType.DIRECT }
+        def ex = thrown(UncheckedIOException)
+        ex.message == "java.io.IOException: Cannot snapshot ${pipe.absolutePath}: not a regular file"
         0 * _
 
         cleanup:
