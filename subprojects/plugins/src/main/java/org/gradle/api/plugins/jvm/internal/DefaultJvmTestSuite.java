@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.TestSuitePlugin;
+import org.gradle.api.plugins.jvm.ComponentDependencies;
 import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JunitTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -43,6 +44,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
+    private final ComponentDependencies dependencies;
 
     @Inject
     public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskContainer tasks, DependencyHandler dependencies) {
@@ -83,6 +85,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks));
+
+        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
     }
 
     @Override
@@ -135,5 +139,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class);
         getTestingFramework().convention(testingFramework);
         testingFramework.getVersion().convention("5.7.1");
+    }
+
+    @Override
+    public ComponentDependencies getDependencies() {
+        return dependencies;
+    }
+
+    @Override
+    public void dependencies(Action<? super ComponentDependencies> action) {
+        action.execute(dependencies);
     }
 }

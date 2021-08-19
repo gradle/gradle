@@ -31,6 +31,10 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 testSuites {
                     unitTest {
+                        dependencies {
+                            implementation 'com.google.guava:guava:30.1.1-jre'
+                        }
+
                         targets {
                             java8 {
                                 testTask.configure {

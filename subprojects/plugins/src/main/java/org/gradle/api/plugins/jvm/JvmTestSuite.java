@@ -33,4 +33,7 @@ public interface JvmTestSuite extends Named, SoftwareComponent {
 
     void useJunitPlatform();
     void useJunit();
+
+    ComponentDependencies getDependencies();
+    void dependencies(Action<? super ComponentDependencies> dependencies);
 }
