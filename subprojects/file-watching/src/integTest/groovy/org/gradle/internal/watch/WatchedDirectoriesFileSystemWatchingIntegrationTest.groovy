@@ -67,11 +67,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run "hello", "--info"
         then:
         outputContains "Hello from original task!"
-
-        // roots discovered during build start up are not registered in a stable order
-        def watchable = determineWatchableHierarchies(output)
-        assert watchable == [ImmutableSet.of(testDirectory), ImmutableSet.of(testDirectory, file("buildSrc"))] ||
-            watchable == [ImmutableSet.of(file("buildSrc")), ImmutableSet.of(testDirectory, file("buildSrc"))]
+        assertWatchableHierarchies([ImmutableSet.of(testDirectory), ImmutableSet.of(testDirectory, file("buildSrc"))])
     }
 
     def "works with composite build"() {
