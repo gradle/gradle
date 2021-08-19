@@ -336,18 +336,16 @@ public class DirectorySnapshotter {
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
             String internedRemappedAbsoluteFilePath = intern(symbolicLinkMapping.remapAbsolutePath(absoluteFilePath));
-            if (attrs.isRegularFile()) {
-                try {
-                    long lastModified = attrs.lastModifiedTime().toMillis();
-                    long fileLength = attrs.size();
-                    FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
-                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
-                    return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
-                } catch (UncheckedIOException e) {
-                    LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
-                }
+            if (attrs.isSymbolicLink()) {
+                return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
+            } else if (!attrs.isRegularFile()) {
+                throw new UncheckedIOException(new IOException(String.format("Cannot snapshot %s: not a regular file", internedRemappedAbsoluteFilePath)));
             }
-            return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
+            long lastModified = attrs.lastModifiedTime().toMillis();
+            long fileLength = attrs.size();
+            FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
+            HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
+            return new RegularFileSnapshot(internedRemappedAbsoluteFilePath, internedName, hash, metadata);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */
@@ -362,9 +360,7 @@ public class DirectorySnapshotter {
                 if (isNotFileSystemLoopException(exc)) {
                     boolean isDirectory = Files.isDirectory(file);
                     if (shouldVisit(file, internedFileName, isDirectory, pathTracker.getSegments())) {
-                        LOGGER.info("Could not read file path '{}'.", file);
-                        String internedAbsolutePath = intern(file.toString());
-                        builder.visitLeafElement(new MissingFileSnapshot(internedAbsolutePath, internedFileName, AccessType.DIRECT));
+                        throw new UncheckedIOException(exc);
                     }
                 }
                 return FileVisitResult.CONTINUE;
