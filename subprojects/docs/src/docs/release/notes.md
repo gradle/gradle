@@ -13,7 +13,8 @@ Include only their name, impactful features should be called out separately belo
 [Nicola Corti](https://github.com/cortinico),
 [Marcin Zajączkowski](https://github.com/szpak),
 [Alex Landau](https://github.com/AlexLandau),
-[Stefan Oehme](https://github.com/oehme)
+[Stefan Oehme](https://github.com/oehme),
+[yinghao niu](https://github.com/towith)
 
 ## Upgrade instructions
 
