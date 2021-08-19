@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -24,7 +26,10 @@ import java.lang.annotation.Target;
 
 /**
  * Declares that the changes in input file or output property should not be tracked by Gradle
+ *
+ * @since 7.3
  */
+@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
