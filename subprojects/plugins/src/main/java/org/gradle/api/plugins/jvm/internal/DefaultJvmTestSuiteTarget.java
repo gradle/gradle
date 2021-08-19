@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.plugins.jvm.JvmTestingFramework;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -40,7 +42,8 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
 
         // Might not always want Test type here?
         testTask = tasks.register(name, Test.class, t -> {
-            t.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
+            Property<JvmTestingFramework> targetTestingFramework = getTestingFramework();
+            t.getTestFrameworkProperty().convention(targetTestingFramework.map(framework -> {
                 if (framework instanceof JunitPlatformTestingFramework) {
                     return new JUnitPlatformTestFramework((DefaultTestFilter) t.getFilter());
                 } else {

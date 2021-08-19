@@ -45,9 +45,14 @@ public class TestSuitePlugin  implements Plugin<Project> {
             JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class);
             testSuite.getTestingFramework().convention(testingFramework);
             testingFramework.getVersion().convention("5.7.1");
+
+            testSuite.getTargets().all(target -> {
+                target.getTestingFramework().convention(testSuite.getTestingFramework());
+            });
         });
 
         configureTest(project, java, testing);
+
     }
 
     private void configureTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
