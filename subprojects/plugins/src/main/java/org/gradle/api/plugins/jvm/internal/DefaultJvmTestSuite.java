@@ -119,7 +119,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             target = JavaPlugin.TEST_TASK_NAME;
         } else {
-            target = getName() + "java" + java.getSourceCompatibility().getMajorVersion();
+            target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
         }
 
         DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, target);
@@ -131,14 +131,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useJunit() {
+    public void useJUnit() {
         JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitTestingFramework.class);
         getTestingFramework().convention(testingFramework);
         testingFramework.getVersion().convention("4.13");
     }
 
     @Override
-    public void useJunitPlatform() {
+    public void useJUnitPlatform() {
         JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class);
         getTestingFramework().convention(testingFramework);
         testingFramework.getVersion().convention("5.7.1");

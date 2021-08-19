@@ -59,7 +59,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     unitTest {
-                        useJunit()
+                        useJUnit()
                     }
 
                     integTest {
@@ -78,7 +78,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
             testing {
                 suites {
                     unitTest {
-                        useJunit()
+                        useJUnit()
                     }
 
                     integTest {
@@ -97,6 +97,6 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "integTestjava11"
+        succeeds "integTest"
     }
 }

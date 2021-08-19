@@ -40,6 +40,8 @@ public class TestSuitePlugin  implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations(), project.getTasks(), project.getDependencies()));
 
+        configureBuiltInTest(project, java, testing);
+
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
             testSuite.addTestTarget(java);
             JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class);
@@ -48,14 +50,16 @@ public class TestSuitePlugin  implements Plugin<Project> {
 
             testSuite.getTargets().all(target -> {
                 target.getTestingFramework().convention(testSuite.getTestingFramework());
+
+                target.getTestTask().configure(test -> {
+                    test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
+                    test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
+                });
             });
         });
-
-        configureTest(project, java, testing);
-
     }
 
-    private void configureTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
+    private void configureBuiltInTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
         project.getTasks().withType(Test.class).configureEach(test -> {
             test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
             test.getConventionMapping().map("classpath", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
@@ -63,7 +67,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
         });
 
         final JvmTestSuite testSuite = testing.getSuites().create(DEFAULT_TEST_SUITE_NAME);
-        testSuite.useJunit();
+        testSuite.useJUnit();
 
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite.getTargets()));
     }

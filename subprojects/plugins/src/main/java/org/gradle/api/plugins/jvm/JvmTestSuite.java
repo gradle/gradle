@@ -32,8 +32,8 @@ public interface JvmTestSuite extends Named, SoftwareComponent, Buildable {
 
     Property<JvmTestingFramework> getTestingFramework();
 
-    void useJunitPlatform();
-    void useJunit();
+    void useJUnitPlatform();
+    void useJUnit();
 
     ComponentDependencies getDependencies();
     void dependencies(Action<? super ComponentDependencies> dependencies);
