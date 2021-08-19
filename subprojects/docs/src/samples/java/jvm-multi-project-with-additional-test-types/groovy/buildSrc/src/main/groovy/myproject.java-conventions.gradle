@@ -32,5 +32,5 @@ testing {
 }
 
 tasks.named('check') {
-    dependsOn(testing.suites.integrationTest.targets)
+    dependsOn(testing.suites.integrationTest)
 }
