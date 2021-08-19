@@ -308,11 +308,11 @@ fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> 
     (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
         override fun visitOutputFileProperty(
-                propertyName: String,
-                optional: Boolean,
-                contentTracking: ContentTracking,
-                value: PropertyValue,
-                filePropertyType: OutputFilePropertyType
+            propertyName: String,
+            optional: Boolean,
+            contentTracking: ContentTracking,
+            value: PropertyValue,
+            filePropertyType: OutputFilePropertyType
         ) {
             properties.add(
                 RegisteredProperty.OutputFile(
@@ -336,16 +336,16 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
     (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
 
         override fun visitInputFileProperty(
-                propertyName: String,
-                optional: Boolean,
-                skipWhenEmpty: Boolean,
-                directorySensitivity: DirectorySensitivity,
-                lineEndingSensitivity: LineEndingSensitivity,
-                incremental: Boolean,
-                fileNormalizer: Class<out FileNormalizer>?,
-                propertyValue: PropertyValue,
-                filePropertyType: InputFilePropertyType,
-                contentTracking: ContentTracking
+            propertyName: String,
+            optional: Boolean,
+            skipWhenEmpty: Boolean,
+            directorySensitivity: DirectorySensitivity,
+            lineEndingSensitivity: LineEndingSensitivity,
+            incremental: Boolean,
+            fileNormalizer: Class<out FileNormalizer>?,
+            propertyValue: PropertyValue,
+            filePropertyType: InputFilePropertyType,
+            contentTracking: ContentTracking
         ) {
             properties.add(
                 RegisteredProperty.InputFile(
