@@ -29,7 +29,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
             version = '0.1'
 
             testing {
-                testSuites {
+                suites {
                     unitTest {
                         dependencies {
                             implementation 'com.google.guava:guava:30.1.1-jre'
@@ -57,7 +57,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
     def "switch to junit from junit platform"() {
         buildFile << """
             testing {
-                testSuites {
+                suites {
                     unitTest {
                         useJunit()
                     }
@@ -76,7 +76,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
     def "int tests depend on unit tests"() {
         buildFile << """
             testing {
-                testSuites {
+                suites {
                     unitTest {
                         useJunit()
                     }
@@ -85,7 +85,7 @@ class TestSuitesPluginIntegrationTest extends AbstractIntegrationSpec {
                         targets {
                             all {
                                 testTask.configure {
-                                    dependsOn testing.testSuites.unitTest
+                                    dependsOn unitTest
                                 }
                             }
                         }

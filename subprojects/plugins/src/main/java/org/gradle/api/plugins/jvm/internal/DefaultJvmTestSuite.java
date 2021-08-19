@@ -87,7 +87,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 //        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, targetName, tasks));
+        this.targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, targetName, tasks));
 
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
     }
@@ -122,7 +122,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target = getName() + "java" + java.getSourceCompatibility().getMajorVersion();
         }
 
-        DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, target);
+        DefaultJvmTestSuiteTarget defaultJvmTestSuiteTarget = getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, target);
 
         defaultJvmTestSuiteTarget.getJavaVersion().set(java.getSourceCompatibility());
         defaultJvmTestSuiteTarget.getJavaVersion().finalizeValue();

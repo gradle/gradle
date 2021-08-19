@@ -21,14 +21,14 @@ import org.gradle.api.plugins.TestingExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 
 public class DefaultTestingExtension implements TestingExtension {
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> testSuites;
+    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> suites;
 
-    public DefaultTestingExtension(ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> testSuites) {
-        this.testSuites = testSuites;
+    public DefaultTestingExtension(ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> suites) {
+        this.suites = suites;
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getTestSuites() {
-        return testSuites;
+    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getSuites() {
+        return suites;
     }
 }

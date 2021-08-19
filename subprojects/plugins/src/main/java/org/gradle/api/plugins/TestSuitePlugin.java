@@ -62,14 +62,8 @@ public class TestSuitePlugin  implements Plugin<Project> {
             test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
 
-        final JvmTestSuite testSuite = testing.getTestSuites().create(DEFAULT_TEST_SUITE_NAME);
+        final JvmTestSuite testSuite = testing.getSuites().create(DEFAULT_TEST_SUITE_NAME);
         testSuite.useJunit();
-        testSuite.getTargets().configureEach(target -> {
-            target.getTestTask().configure(test -> {
-                test.setDescription("Runs the unit tests.");
-                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-            });
-        });
 
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite.getTargets()));
     }

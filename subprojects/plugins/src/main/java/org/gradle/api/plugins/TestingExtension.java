@@ -20,5 +20,5 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 
 public interface TestingExtension {
-    ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getTestSuites();
+    ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getSuites();
 }

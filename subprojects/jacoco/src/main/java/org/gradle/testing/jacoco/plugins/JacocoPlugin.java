@@ -179,7 +179,7 @@ public class JacocoPlugin implements Plugin<Project> {
     private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            JvmTestSuite defaultTestSuite = testing.getTestSuites().getByName(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
+            JvmTestSuite defaultTestSuite = testing.getSuites().getByName(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
             defaultTestSuite.getTargets().configureEach(target -> {
                 TaskProvider<Test> testTask = target.getTestTask();
                 addDefaultReportTask(extension, testTask);
