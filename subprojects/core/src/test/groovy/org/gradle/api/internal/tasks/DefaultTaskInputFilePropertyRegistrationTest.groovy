@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.fingerprint.ContentTracking;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 
-public interface TaskOutputFilePropertyRegistration extends TaskPropertyRegistration, TaskOutputFilePropertyBuilder {
-    OutputFilePropertyType getPropertyType();
-    ContentTracking getContentTracking();
+class DefaultTaskInputFilePropertyRegistrationTest extends AbstractTaskFilePropertyRegistrationTest<DefaultTaskInputFilePropertyRegistration> {
+    @Override
+    DefaultTaskInputFilePropertyRegistration createRegistration() {
+        return new DefaultTaskInputFilePropertyRegistration(new StaticValue("file"), InputFilePropertyType.DIRECTORY)
+    }
 }

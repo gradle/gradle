@@ -92,7 +92,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 registration.getNormalizer(),
                 registration.getValue(),
                 registration.getFilePropertyType(),
-                ContentTracking.TRACKED);
+                registration.getContentTracking());
         }
         for (TaskInputPropertyRegistration registration : registeredProperties) {
             visitor.visitInputProperty(registration.getPropertyName(), registration.getValue(), registration.isOptional());

@@ -62,6 +62,40 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         properties << ["inputs", "outputs"]
     }
 
+    def "can register untracked #properties via the runtime API"() {
+        buildFile("""
+            tasks.register("myTask") {
+                def inputFile = file("input.txt")
+                inputs.file(inputFile)
+                    .withPropertyName("inputFile")
+                    ${properties == "inputs" ? ".untracked()" : ""}
+                def outputFile = project.layout.buildDirectory.file("output.txt")
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                    ${(properties == "outputs" ? ".untracked()" : "")}
+                doLast {
+                    outputFile.get().asFile.text = inputFile.text
+                }
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Task has untracked properties.")
+
+        where:
+        properties << [/* "inputs", */ "outputs"]
+    }
+
     def "task with untracked #properties is not cached"() {
         buildFile("""
             @CacheableTask
