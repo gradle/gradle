@@ -28,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.serialization.Cached;
 import org.gradle.jvm.toolchain.JavaToolchainCandidate;
 import org.gradle.jvm.toolchain.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -184,16 +185,16 @@ public class DefaultJavaToolchainInstallationService implements JavaToolchainIns
 
 
     private static class JavaToolChainProvisioningDetailsFactory {
-        private final String os;
-        private final String arch;
+        private final Cached<String> os;
+        private final Cached<String> arch;
 
         private JavaToolChainProvisioningDetailsFactory(SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            this.os = determineArch(systemInfo);
-            this.arch = determineOs(operatingSystem);
+            this.os = Cached.of(() -> determineArch(systemInfo));
+            this.arch = Cached.of(() -> determineOs(operatingSystem));
         }
 
         public JavaToolchainProvisioningDetailsInternal newDetails(JavaToolchainSpec spec) {
-            return new DefaultProvisioningDetails(spec, os, arch);
+            return new DefaultProvisioningDetails(spec, os.get(), arch.get());
         }
 
         private class DefaultProvisioningDetails implements JavaToolchainProvisioningDetailsInternal {
@@ -225,12 +226,12 @@ public class DefaultJavaToolchainInstallationService implements JavaToolchainIns
 
             @Override
             public String getOperatingSystem() {
-                return os;
+                return os.get();
             }
 
             @Override
             public String getSystemArch() {
-                return arch;
+                return arch.get();
             }
 
             @Override
