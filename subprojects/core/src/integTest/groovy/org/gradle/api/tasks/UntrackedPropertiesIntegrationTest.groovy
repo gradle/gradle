@@ -312,6 +312,69 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         cleanup:
         unreadableDir.setReadable(true)
     }
+    
+    def "untracked optional absent output properties are ignored"() {
+        buildFile("""
+            tasks.register("myTask") {
+                def inputFile = file("input.txt")
+                inputs.file(inputFile)
+                    .withPropertyName("inputFile")
+                def outputFile = project.layout.buildDirectory.file("output.txt")
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                outputs.file({ null })
+                    .withPropertyName("optionalOutputFile")
+                    .optional()
+                    .untracked()
+                doLast {
+                    outputFile.get().asFile.text = inputFile.text
+                }
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask")
+        then:
+        skipped(":myTask")
+    }
+
+    def "untracked optional absent input properties cause the task to be out-of-date"() {
+        buildFile("""
+            tasks.register("myTask") {
+                def inputFile = file("input.txt")
+                inputs.file(inputFile)
+                    .withPropertyName("inputFile")
+                inputs.file({ null })
+                    .withPropertyName("optionalUntrackedInputFile")
+                    .optional()
+                    .untracked()
+                def outputFile = project.layout.buildDirectory.file("output.txt")
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                doLast {
+                    outputFile.get().asFile.text = inputFile.text
+                }
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Task has untracked properties.")
+    }
 
     static generateProducerTask(boolean untracked) {
         """
