@@ -175,7 +175,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     }
 
     def "no state is captured when output file properties cannot be snapshot"() {
-        def failure = new InputFingerprinter.InputFileFingerprintingException("input", new IOException("Error"))
+        def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
         when:
         step.execute(work, context)
 
