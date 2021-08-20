@@ -66,16 +66,25 @@ This will run the single "myTask" and also all of its <<tutorial_using_tasks.ado
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
-In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_:
+
+In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name.
+The following are equivalent _when run from the root project_:
 ----
 $ gradle :my-subproject:taskName
 $ gradle my-subproject:taskName
 ----
 
-You can also run a task for _all_ subprojects by again using a task _selector_ that consists of the task name only. For example, this will run the "test" task for all subprojects when invoked from the root project directory:
+You can also run a task for _all_ subprojects by again using a task _selector_ that consists of the task name only.
+For example, this will run the "test" task for all subprojects when invoked from the root project directory:
 ----
 $ gradle test
 ----
+
+[NOTE]
+====
+Some tasks selectors, like `help`, will only run the task on the project they are invoked on and not on all the subprojects.
+The main motivation for this is that these tasks print out information that would be hard to process if it combined the information from all projects.
+====
 
 When invoking Gradle from within a subproject, the project name should be omitted:
 ----

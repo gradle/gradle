@@ -31,7 +31,7 @@ The dependency report always contains declared and transitive dependencies.
 
 [NOTE]
 ====
-The `dependencies` task will only execute on a _single_ project.
+The `dependencies` task selector will only execute the `dependencies` task on a _single_ project.
 If you run the task on the root project, it will show dependencies of the root project and not of any subproject.
 Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencies`.
 ====
@@ -113,7 +113,7 @@ This might be useful to trim down the output in large graphs.
 
 [NOTE]
 ====
-The `dependencyInsight` task will only execute on a _single_ project.
+The `dependencyInsight` task selector will only execute the `dependencyInsight` task on a _single_ project.
 If you run the task on the root project, it will show the dependency information of the root project and not of any subproject.
 Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencyInsight`.
 ====
