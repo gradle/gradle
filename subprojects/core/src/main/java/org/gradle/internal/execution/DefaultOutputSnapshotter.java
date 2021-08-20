@@ -19,12 +19,14 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;
+import java.io.UncheckedIOException;
 
 public class DefaultOutputSnapshotter implements OutputSnapshotter {
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
@@ -41,7 +43,17 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
                 if (contentTracking == ContentTracking.TRACKED) {
-                    builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+                    try {
+                        builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+                    } catch (UncheckedIOException e) {
+                        DeprecationLogger.deprecate("Snapshotting output directories which contain unreadable files")
+                            .withAdvice("Declare the output property as untracked.")
+                            .willBecomeAnErrorInGradle8()
+                            // TODO: Document
+                            .undocumented()
+                            .nagUser();
+                        untrackedProperties.add(propertyName);
+                    }
                 } else {
                     untrackedProperties.add(propertyName);
                 }
