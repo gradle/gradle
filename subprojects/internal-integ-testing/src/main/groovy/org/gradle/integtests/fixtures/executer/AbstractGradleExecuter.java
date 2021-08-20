@@ -1320,7 +1320,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
-                    } else if (expectedDeprecationWarnings.remove(line)) {
+                    } else if (expectedDeprecationWarnings.removeIf(warning -> line.contains(warning))) {
                         // Deprecation warning is expected
                         i++;
                         i = skipStackTrace(lines, i);
