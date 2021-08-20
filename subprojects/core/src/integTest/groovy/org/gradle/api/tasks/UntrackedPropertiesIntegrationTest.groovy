@@ -50,6 +50,40 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         executedAndNotSkipped(":myTask")
     }
 
+    def "can register untracked #untrackedType via the runtime API"() {
+        buildFile("""
+            tasks.register("myTask") {
+                def inputFile = file("input.txt")
+                inputs.file(inputFile)
+                    .withPropertyName("inputFile")
+                    ${untrackedInputs ? ".untracked()" : ""}
+                def outputFile = project.layout.buildDirectory.file("output.txt")
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                    ${(untrackedInputs ? "" : ".untracked()")}
+                doLast {
+                    outputFile.get().asFile.text = inputFile.text
+                }
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run("myTask", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("The ${untrackedType} property '${untrackedType}File' is untracked")
+
+        where:
+        untrackedInputs << [true, false]
+        untrackedType = untrackedInputs ? 'input' : 'output'
+    }
+
     def "task with untracked #untrackedType is not up-to-date"() {
         buildFile("""
             abstract class MyTask extends DefaultTask {

@@ -23,6 +23,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
@@ -70,6 +71,17 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     @Override
     public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
         setOptional(optional);
+        return this;
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal untracked() {
+        return tracked(false);
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal tracked(boolean tracked) {
+        setContentTracking(tracked ? ContentTracking.TRACKED : ContentTracking.UNTRACKED);
         return this;
     }
 

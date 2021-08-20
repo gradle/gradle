@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.fingerprint.ContentTracking;
 
 public class DefaultTaskOutputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskOutputFilePropertyRegistration {
     private final OutputFilePropertyType outputFilePropertyType;
@@ -30,6 +32,17 @@ public class DefaultTaskOutputFilePropertyRegistration extends AbstractTaskFileP
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
         setPropertyName(propertyName);
+        return this;
+    }
+
+    @Override
+    public TaskFilePropertyBuilder untracked() {
+        return tracked(false);
+    }
+
+    @Override
+    public TaskFilePropertyBuilder tracked(boolean tracked) {
+        setContentTracking(tracked ? ContentTracking.TRACKED : ContentTracking.UNTRACKED);
         return this;
     }
 
