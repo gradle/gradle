@@ -163,11 +163,11 @@ class GenerateProjectAccessors(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
             FileValueSupplier(
-                    classPath,
-                    ClasspathNormalizer::class.java,
-                    DirectorySensitivity.IGNORE_DIRECTORIES,
-                    LineEndingSensitivity.DEFAULT,
-                    ContentTracking.TRACKED,
+                classPath,
+                ClasspathNormalizer::class.java,
+                DirectorySensitivity.IGNORE_DIRECTORIES,
+                LineEndingSensitivity.DEFAULT,
+                ContentTracking.TRACKED,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }
         )
     }
