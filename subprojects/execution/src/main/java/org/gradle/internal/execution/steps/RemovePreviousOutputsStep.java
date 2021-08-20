@@ -75,6 +75,9 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
                 public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
+                    if (contentTracking == ContentTracking.UNTRACKED) {
+                        return;
+                    }
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -111,6 +114,9 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, ContentTracking contentTracking, File root, FileCollection contents) {
+                if (contentTracking == ContentTracking.UNTRACKED) {
+                    return;
+                }
                 if (root.exists()) {
                     try {
                         switch (type) {
