@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
@@ -69,8 +69,10 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     private void doRun(TestExecutionRequestAction action, BuildTreeLifecycleController buildController) {
-        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action, buildController.getGradle());
-        buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
+        buildController.beforeBuild(gradle -> {
+            TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action, gradle);
+            gradle.getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
+        });
         buildController.scheduleAndRunTasks();
     }
 
