@@ -70,7 +70,7 @@ abstract class PublishRelease(
 
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteFinalRelease",
+    task = "promoteFinalBackportRelease",
     requiredConfirmationCode = "final",
     init = {
         id("Promotion_FinalRelease")
