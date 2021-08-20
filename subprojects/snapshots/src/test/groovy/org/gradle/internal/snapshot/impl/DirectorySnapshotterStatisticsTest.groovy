@@ -26,6 +26,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.nio.file.NoSuchFileException
 import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
@@ -46,6 +47,8 @@ class DirectorySnapshotterStatisticsTest extends Specification {
         1 * statisticsCollector.recordVisitHierarchy()
 
         then:
+        def ex = thrown(UncheckedIOException)
+        ex.cause instanceof NoSuchFileException
         1 * statisticsCollector.recordVisitFileFailed()
         0 * _
     }
@@ -135,26 +138,34 @@ class DirectorySnapshotterStatisticsTest extends Specification {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "can visit unreadable files"() {
+    def "can visit unreadable #type"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        rootDir.file('readableFile').createFile()
-        rootDir.file('readableDirectory').createDir()
-        rootDir.file('unreadableFile').createFile().makeUnreadable()
-        rootDir.file('unreadableDirectory').createDir().makeUnreadable()
+        def unreadableFile = rootDir.file('unreadable')
+        unreadableFile."create${type.capitalize()}"().makeUnreadable()
 
         when:
         snapshot(rootDir)
 
         then:
+        def ex = thrown(UncheckedIOException)
+        ex.message == String.format(message, unreadableFile)
         1 * statisticsCollector.recordVisitHierarchy()
-        2 * statisticsCollector.recordVisitDirectory()
-        2 * statisticsCollector.recordVisitFile()
-        1 * statisticsCollector.recordVisitFileFailed()
+        1 * statisticsCollector.recordVisitDirectory()
+        if (type == "dir") {
+            1 * statisticsCollector.recordVisitFileFailed()
+        } else {
+            1 * statisticsCollector.recordVisitFile()
+        }
         0 * _
 
         cleanup:
         rootDir.listFiles()*.makeReadable()
+
+        where:
+        type   | message
+        "dir"  | "java.nio.file.AccessDeniedException: %s"
+        "file" | "java.io.FileNotFoundException: %s (Permission denied)"
     }
 
     private snapshot(File root) {
