@@ -46,6 +46,7 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -72,13 +73,15 @@ import java.util.List;
 public class StartParameterResolutionOverride {
     private final StartParameter startParameter;
     private final File gradleDir;
-    private final BuildTreeDefinedKeys keyRing;
+    private final Lazy<BuildTreeDefinedKeys> keyRing;
 
     public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
         this.gradleDir = gradleDir;
-        File keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
-        this.keyRing = new BuildTreeDefinedKeys(keyringsFile);
+        this.keyRing = Lazy.locking().of(() -> {
+            File keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
+            return new BuildTreeDefinedKeys(keyringsFile);
+        });
     }
 
     public void applyToCachePolicy(CachePolicy cachePolicy) {
@@ -106,7 +109,7 @@ public class StartParameterResolutionOverride {
         if (!checksums.isEmpty()) {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             return DisablingVerificationOverride.of(
-                new WriteDependencyVerificationFile(verificationsFile, keyRing, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
+                new WriteDependencyVerificationFile(verificationsFile, keyRing.get(), buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
         } else {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
@@ -117,7 +120,7 @@ public class StartParameterResolutionOverride {
                 try {
                     File sessionReportDir = computeReportDirectory(timeProvider);
                     return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyRing, checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
+                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyRing.get(), checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
                     );
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e);
