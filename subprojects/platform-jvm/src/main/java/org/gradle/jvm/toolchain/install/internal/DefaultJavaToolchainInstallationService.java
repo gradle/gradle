@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -39,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public class DefaultJavaToolchainInstallationService implements JavaToolchainInstallationService {
     private static final Comparator<JavaToolchainCandidate> BY_LANGUAGE_VERSION = Comparator.comparingInt(
@@ -184,19 +186,19 @@ public class DefaultJavaToolchainInstallationService implements JavaToolchainIns
 
 
     private static class JavaToolChainProvisioningDetailsFactory {
-        private final String os;
-        private final String arch;
+        private final Supplier<String> os;
+        private final Supplier<String> arch;
 
         private JavaToolChainProvisioningDetailsFactory(SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            this.os = determineArch(systemInfo);
-            this.arch = determineOs(operatingSystem);
+            this.os = Lazy.unsafe().of(() -> determineArch(systemInfo));
+            this.arch = Lazy.unsafe().of(() -> determineOs(operatingSystem));
         }
 
         public JavaToolchainProvisioningDetailsInternal newDetails(JavaToolchainSpec spec) {
-            return new DefaultProvisioningDetails(spec, os, arch);
+            return new DefaultProvisioningDetails(spec, os.get(), arch.get());
         }
 
-        private class DefaultProvisioningDetails implements JavaToolchainProvisioningDetailsInternal {
+        private static class DefaultProvisioningDetails implements JavaToolchainProvisioningDetailsInternal {
             private final JavaToolchainSpec spec;
             private List<JavaToolchainCandidate> candidates;
             private final String defaultOs;
@@ -225,12 +227,12 @@ public class DefaultJavaToolchainInstallationService implements JavaToolchainIns
 
             @Override
             public String getOperatingSystem() {
-                return os;
+                return defaultOs;
             }
 
             @Override
             public String getSystemArch() {
-                return arch;
+                return defaultArch;
             }
 
             @Override
