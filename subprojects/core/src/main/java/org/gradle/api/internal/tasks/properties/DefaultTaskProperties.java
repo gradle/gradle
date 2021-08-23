@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
@@ -212,6 +213,14 @@ public class DefaultTaskProperties implements TaskProperties {
     @Override
     public boolean hasDeclaredOutputs() {
         return hasDeclaredOutputs;
+    }
+
+    @Override
+    public boolean hasUntrackedProperties() {
+        return Stream.concat(
+            inputFileProperties.stream(),
+            outputFileProperties.stream()
+        ).anyMatch(property -> property.getContentTracking() == ContentTracking.UNTRACKED);
     }
 
     @Override

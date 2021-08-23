@@ -17,25 +17,24 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
-class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    def "can annotate inputs and outputs with Untracked"() {
+    def "task with untracked #properties is not up-to-date"() {
         buildFile("""
             abstract class MyTask extends DefaultTask {
-                @Untracked
+                ${properties == "inputs" ? "@Untracked" : ""}
                 @InputFile
                 abstract RegularFileProperty getInputFile()
-                @Untracked
+                ${properties == "outputs" ? "@Untracked" : ""}
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
-
                 @TaskAction
                 void doStuff() {
                     outputFile.get().asFile.text = inputFile.get().asFile.text
                 }
             }
-
             tasks.register("myTask", MyTask) {
                 inputFile = file("input.txt")
                 outputFile = project.layout.buildDirectory.file("output.txt")
@@ -44,8 +43,56 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("input.txt").text = "input"
 
         when:
-        run("myTask")
+        run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Task has untracked properties.")
+
+        when:
+        run("myTask", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Task has untracked properties.")
+
+        where:
+        properties << ["inputs", "outputs"]
+    }
+
+    def "task with untracked #properties is not cached"() {
+        buildFile("""
+            @CacheableTask
+            abstract class MyTask extends DefaultTask {
+                ${properties == "inputs" ? "@Untracked" : ""}
+                @InputFile
+                @PathSensitive(PathSensitivity.RELATIVE)
+                abstract RegularFileProperty getInputFile()
+                ${properties == "outputs" ? "@Untracked" : ""}
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+                @TaskAction
+                void doStuff() {
+                    outputFile.get().asFile.text = inputFile.get().asFile.text
+                }
+            }
+            tasks.register("myTask", MyTask) {
+                inputFile = file("input.txt")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        withBuildCache().run("myTask", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Caching disabled for task ':myTask' because:")
+        outputContains(expectedMessage)
+
+        where:
+        properties | expectedMessage
+        "inputs"   | "Input property 'inputFile' is untracked"
+        "outputs"  | "Output property 'outputFile' is untracked"
     }
 }
