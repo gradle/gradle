@@ -103,11 +103,8 @@ public class WarPlugin implements Plugin<Project> {
         deprecateForConsumption(providedRuntimeConfiguration);
 
         configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(providedCompileConfiguration);
-        configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
     }
 
