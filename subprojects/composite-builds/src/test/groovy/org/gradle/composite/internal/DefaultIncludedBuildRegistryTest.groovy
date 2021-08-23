@@ -16,7 +16,7 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.GradleException
+
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.exception.ExceptionAnalyser
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
@@ -34,6 +35,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
@@ -41,10 +43,12 @@ import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.session.CrossBuildSessionState
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -90,15 +94,13 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def "can add a root build"() {
         def notifiedBuild
         def buildDefinition = Stub(BuildDefinition)
-        def gradleLauncher = Stub(BuildLifecycleController)
-        def gradle = Stub(GradleInternal)
+        def buildController = buildController()
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        _ * gradleLauncher.gradle >> gradle
-        1 * gradleLauncherFactory.newInstance(buildDefinition, _, null, _) >> gradleLauncher
+        1 * gradleLauncherFactory.newInstance(buildDefinition, _, null, _) >> buildController
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -118,6 +120,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildIdentifier = new DefaultBuildIdentifier("b1")
         def idPath = Path.path(":b1")
         includedBuild.buildIdentifier >> buildIdentifier
+        includedBuild.buildRootDir >> dir
 
         given:
         registry.attachRootBuild(rootBuild())
@@ -138,22 +141,18 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def "can add multiple included builds"() {
-        def dir1 = tmpDir.createDir("b1")
-        def dir2 = tmpDir.createDir("b2")
-        def buildDefinition1 = build(dir1)
-        def buildDefinition2 = build(dir2)
-        def includedBuild1 = Stub(IncludedBuildState)
-        def includedBuild2 = Stub(IncludedBuildState)
+        def buildDefinition1 = build("b1")
+        def buildDefinition2 = build("b2")
+        def includedBuild1 = expectIncludedBuildAdded("b1", buildDefinition1)
+        def includedBuild2 = expectIncludedBuildAdded("b2", buildDefinition2)
 
         given:
         registry.attachRootBuild(rootBuild())
-        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), Path.path(":b1"), buildDefinition1, false, _) >> includedBuild1
-        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b2"), Path.path(":b2"), buildDefinition2, false, _) >> includedBuild2
 
-        expect:
         registry.addIncludedBuild(buildDefinition1)
         registry.addIncludedBuild(buildDefinition2)
 
+        expect:
         registry.includedBuilds as List == [includedBuild1, includedBuild2]
     }
 
@@ -165,23 +164,12 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildDefinition2 = build(dir2, "b2")
         def buildDefinition3 = build(dir3, "b3")
         def id1 = new DefaultBuildIdentifier("b1")
-        def id2 = new DefaultBuildIdentifier("b2")
-        def id3 = new DefaultBuildIdentifier("b3")
-        def idPath1 = Path.path(":b1")
-        def idPath2 = Path.path(":b2")
-        def idPath3 = Path.path(":b3")
-        def includedBuild1 = Stub(IncludedBuildState) { getBuildIdentifier() >> id1 }
-        def includedBuild2 = Stub(IncludedBuildState) { getBuildIdentifier() >> id2 }
-        def includedBuild3 = Stub(IncludedBuildState) { getBuildIdentifier() >> id3 }
-        includedBuild1.identityPath >> idPath1
-        includedBuild2.identityPath >> idPath2
-        includedBuild3.identityPath >> idPath3
+        def includedBuild1 = expectIncludedBuildAdded("b1", buildDefinition1)
+        def includedBuild2 = expectIncludedBuildAdded("b2", buildDefinition2)
+        def includedBuild3 = expectIncludedBuildAdded("b3", buildDefinition3)
 
         given:
         registry.attachRootBuild(rootBuild())
-        includedBuildFactory.createBuild(id1, idPath1, buildDefinition1, false, _) >> includedBuild1
-        includedBuildFactory.createBuild(id2, idPath2, buildDefinition2, false, _) >> includedBuild2
-        includedBuildFactory.createBuild(id3, idPath3, buildDefinition3, false, _) >> includedBuild3
 
         expect:
         registry.addIncludedBuild(buildDefinition1)
@@ -197,10 +185,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def dir = tmpDir.createDir("b1")
         def buildDefinition1 = build(dir)
         def buildDefinition2 = build(dir)
+        def includedBuild = expectIncludedBuildAdded("b1", buildDefinition1)
 
         given:
         registry.attachRootBuild(rootBuild())
-        def includedBuild = registry.addIncludedBuild(buildDefinition1)
+        registry.addIncludedBuild(buildDefinition1)
 
         expect:
         registry.addIncludedBuild(buildDefinition2) is includedBuild
@@ -210,6 +199,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def dir = tmpDir.createDir("b1")
         def buildDefinition = build(dir)
         def includedBuild = Stub(IncludedBuildState)
+        includedBuild.buildRootDir >> dir
 
         given:
         registry.attachRootBuild(rootBuild())
@@ -226,70 +216,65 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.includedBuilds as List == [includedBuild]
     }
 
-    def "can add a buildSrc nested build"() {
+    def "add buildSrc nested build when owner is registered"() {
         given:
-        def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "buildSrc"
-        registry.attachRootBuild(rootBuild())
-        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
-        def notifiedBuild
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file("buildSrc/build.gradle").createFile()
+
+        def rootBuild = rootBuild(rootDir)
+        def notifiedBuilds = []
 
         when:
-        def nestedBuild = registry.addBuildSrcNestedBuild(buildDefinition, owner)
+        registry.attachRootBuild(rootBuild)
+
         then:
-        1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
-            notifiedBuild = addedBuild
+        2 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
+            notifiedBuilds << addedBuild
         }
 
+        and:
+        def nestedBuild = registry.getBuildSrcNestedBuild(rootBuild)
+        nestedBuild != null
         nestedBuild.implicitBuild
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
         nestedBuild.identityPath == Path.path(":buildSrc")
-        notifiedBuild.is(nestedBuild)
 
+        and:
+        notifiedBuilds == [rootBuild, nestedBuild]
+
+        and:
         registry.getBuild(nestedBuild.buildIdentifier).is(nestedBuild)
     }
 
-    def "cannot add multiple buildSrc nested builds with same name"() {
+    def "can add multiple buildSrc builds with different levels of nesting"() {
         given:
-        def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "buildSrc"
-        registry.attachRootBuild(rootBuild())
-        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
+        def rootDir = tmpDir.createDir("root")
+        rootDir.file("buildSrc/build.gradle").createFile()
 
-        when:
-        registry.addBuildSrcNestedBuild(buildDefinition, owner)
-        registry.addBuildSrcNestedBuild(buildDefinition, owner)
-
-        then:
-        thrown GradleException
-    }
-
-    def "can add multiple buildSrc nested builds with same name and different levels of nesting"() {
-        given:
-        def rootBuild = rootBuild()
+        def rootBuild = rootBuild(rootDir)
         registry.attachRootBuild(rootBuild)
 
-        def parent1Definition = Stub(BuildDefinition)
-        parent1Definition.name >> "parent"
-        def parent1 = registry.addIncludedBuild(parent1Definition)
+        def parentDir = rootDir.file("parent").createDir()
+        parentDir.file("buildSrc/build.gradle").createFile()
 
-        def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "buildSrc"
-        buildDefinition.buildRootDir >> new File("d")
+        def parentDefinition = build(parentDir, "parent")
+        def parent = expectIncludedBuildAdded("parent", parentDefinition)
+
+        registry.addIncludedBuild(parentDefinition)
 
         expect:
-        def nestedBuild1 = registry.addBuildSrcNestedBuild(buildDefinition, rootBuild)
+        def nestedBuild1 = registry.getBuildSrcNestedBuild(rootBuild)
         nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
         nestedBuild1.identityPath == Path.path(":buildSrc")
 
-        def nestedBuild2 = registry.addBuildSrcNestedBuild(buildDefinition, parent1)
+        def nestedBuild2 = registry.getBuildSrcNestedBuild(parent)
         // Shows current behaviour, not necessarily desired behaviour
         nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("buildSrc:1")
         nestedBuild2.identityPath == Path.path(":parent:buildSrc")
+    }
 
-        def nestedBuild3 = registry.addBuildSrcNestedBuild(buildDefinition, nestedBuild1)
-        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("buildSrc:2")
-        nestedBuild3.identityPath == Path.path(":buildSrc:buildSrc")
+    def build(String name) {
+        return build(tmpDir.createDir(name), name)
     }
 
     def build(File rootDir, String name = rootDir.name) {
@@ -304,16 +289,35 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         )
     }
 
-    RootBuildState rootBuild(String... projects) {
-        def gradleLauncher = Stub(BuildLifecycleController)
-        def parentGradle = Stub(GradleInternal)
+    IncludedBuildState expectIncludedBuildAdded(String name, BuildDefinition buildDefinition) {
+        def idPath = Path.path(":$name")
+        def buildIdentifier = new DefaultBuildIdentifier(name)
+
         def gradle = Stub(GradleInternal)
+        def services = Stub(ServiceRegistry)
+
+        def includedBuild = Stub(IncludedBuildState)
+        includedBuild.buildRootDir >> buildDefinition.buildRootDir
+        includedBuild.identityPath >> idPath
+        includedBuild.buildIdentifier >> buildIdentifier
+        includedBuild.mutableModel >> gradle
+
+        gradle.services >> services
+
+        services.get(PublicBuildPath) >> Stub(PublicBuildPath)
+
+        includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, false, _) >> includedBuild
+
+        return includedBuild
+    }
+
+    RootBuildState rootBuild(TestFile rootDir = tmpDir.createDir("root-dir")) {
         def settings = Stub(SettingsInternal)
+        def gradle = Stub(GradleInternal)
+        def buildController = buildController(settings, gradle)
         def build = Stub(RootBuildState)
 
-        gradleLauncherFactory.newInstance(_, _, _, _) >> gradleLauncher
-        gradleLauncher.gradle >> gradle
-        gradle.settings >> settings
+        gradleLauncherFactory.newInstance(_, _, _, _) >> buildController
         settings.rootProject >> Stub(ProjectDescriptor) {
             getName() >> "root"
         }
@@ -324,7 +328,32 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.identityPath >> Path.ROOT
         build.loadedSettings >> settings
-        build.mutableModel >> parentGradle
+        build.mutableModel >> gradle
+        build.buildRootDir >> rootDir
         return build
     }
+
+    private BuildLifecycleController buildController() {
+        def settings = Stub(SettingsInternal)
+        def gradle = Stub(GradleInternal)
+        return buildController(settings, gradle)
+    }
+
+    private BuildLifecycleController buildController(SettingsInternal settings, GradleInternal gradle) {
+        def buildController = Stub(BuildLifecycleController)
+        def services = Stub(ServiceRegistry)
+        def buildLayout = Stub(BuildLayout)
+
+        _ * buildController.gradle >> gradle
+        if (settings != null) {
+            _ * gradle.settings >> settings
+        }
+        _ * gradle.services >> services
+        _ * services.get(BuildLayout) >> buildLayout
+        _ * buildLayout.rootDirectory >> tmpDir.file("root-dir")
+        _ * services.get(PublicBuildPath) >> Stub(PublicBuildPath)
+
+        return buildController
+    }
+
 }

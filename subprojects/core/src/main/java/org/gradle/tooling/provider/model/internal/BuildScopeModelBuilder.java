@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r48;
+package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+import org.gradle.internal.build.BuildState;
 
-public class BrokenAction implements BuildAction<String> {
-    @Override
-    public String execute(BuildController controller) {
-        throw new IllegalStateException("should not be called");
-    }
+public interface BuildScopeModelBuilder {
+    /**
+     * Creates the model for the given target. The target build will not necessarily have been configured, and it is the builder's responsibility
+     * to transition the target into the appropriate state required to create the model.
+     */
+    Object create(BuildState target);
 }

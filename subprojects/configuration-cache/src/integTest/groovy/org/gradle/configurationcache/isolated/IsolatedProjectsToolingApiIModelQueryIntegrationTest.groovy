@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.SomeToolingModel
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
 class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
@@ -119,6 +120,9 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
             include("b")
             println("configuring build")
         """
+        buildFile << """
+            throw new RuntimeException("should not be called")
+        """
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -189,11 +193,10 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def model3 = fetchModel(GradleBuild)
+        def model3 = fetchModel(GradleProject)
 
         then:
-        model3 instanceof GradleBuild
-        model3.projects.size() == 1
+        model3 instanceof GradleProject
 
         and:
         outputContains("Creating tooling model as no configuration cache is available for the requested model")
@@ -203,11 +206,10 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def model4 = fetchModel(GradleBuild)
+        def model4 = fetchModel(GradleProject)
 
         then:
-        model4 instanceof GradleBuild
-        model4.projects.size() == 1
+        model4 instanceof GradleProject
 
         and:
         outputContains("Reusing configuration cache.")

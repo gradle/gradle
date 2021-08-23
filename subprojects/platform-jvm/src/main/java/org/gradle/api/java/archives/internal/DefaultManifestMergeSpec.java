@@ -23,6 +23,7 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
@@ -120,11 +121,21 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     private DefaultManifestMergeDetails getMergeDetails(String section, String key, Object baseValue, Object mergeValue) {
-        String value = null;
-        String baseValueString = baseValue != null ? baseValue.toString() : null;
-        String mergeValueString = mergeValue != null ? mergeValue.toString() : null;
-        value = mergeValueString == null ? baseValueString : mergeValueString;
+        String baseValueString = resolveValueToString(baseValue);
+        String mergeValueString = resolveValueToString(mergeValue);
+        String value = mergeValueString == null ? baseValueString : mergeValueString;
         return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
+    }
+
+    private static String resolveValueToString(Object value) {
+        if (value == null) {
+            return null;
+        } else if (value instanceof Provider) {
+            Object providedValue = ((Provider<?>) value).getOrNull();
+            return resolveValueToString(providedValue);
+        } else {
+            return value.toString();
+        }
     }
 
     private void addMergeDetailToManifest(String section, DefaultManifest mergedManifest, DefaultManifestMergeDetails mergeDetails) {

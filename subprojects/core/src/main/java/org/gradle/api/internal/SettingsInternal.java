@@ -28,7 +28,6 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
-import java.io.File;
 import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
@@ -64,8 +63,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
      * Gradle runtime + this object's script's additions.
      */
     ClassLoaderScope getClassLoaderScope();
-
-    File getBuildSrcDir();
 
     ServiceRegistry getServices();
 

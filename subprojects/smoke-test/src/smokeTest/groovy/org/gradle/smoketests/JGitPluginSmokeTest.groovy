@@ -28,7 +28,7 @@ class JGitPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {
         given:
-        GitFileRepository.init(testProjectDir.root)
+        GitFileRepository.init(testProjectDir)
         buildFile << """
             plugins {
                 id "org.ajoberstar.grgit" version "${TestedVersions.grgit}"

@@ -78,7 +78,7 @@ public class SerializedValueSnapshot implements ValueSnapshot {
                     .withContext("Type '" + value.getClass().getName() + "' has a custom implementation for equals().")
                     .withAdvice("Declare the property as @Nested instead to expose its properties as inputs.")
                     .willBeRemovedInGradle8()
-                    .withUserManual("upgrading_7", "equals_up_to_date_deprecation")
+                    .withUserManual("upgrading_version_7", "equals_up_to_date_deprecation")
                     .nagUser();
                 // Same value
                 return true;

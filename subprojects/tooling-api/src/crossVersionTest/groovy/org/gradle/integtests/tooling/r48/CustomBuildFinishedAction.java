@@ -19,9 +19,7 @@ package org.gradle.integtests.tooling.r48;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import java.io.Serializable;
-
-public class CustomBuildFinishedAction implements BuildAction<String>, Serializable {
+public class CustomBuildFinishedAction implements BuildAction<String> {
     // Tasks graph is already calculated and tasks executed. Action or model builders can access tasks results.
 
     @Override

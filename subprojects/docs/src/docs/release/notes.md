@@ -9,9 +9,14 @@ Include only their name, impactful features should be called out separately belo
 -->
 [anatawa12](https://github.com/anatawa12),
 [Anil Kumar Myla](https://github.com/anilkumarmyla),
-[Marcono1234](https://github.com/Marcono1234)
-[Nicola Corti](https://github.com/cortinico)
-[Scott Palmer](https://github.com/swpalmer)
+[Marcono1234](https://github.com/Marcono1234),
+[Nicola Corti](https://github.com/cortinico),
+[Scott Palmer](https://github.com/swpalmer),
+[Marcin Zajączkowski](https://github.com/szpak),
+[Alex Landau](https://github.com/AlexLandau),
+[Stefan Oehme](https://github.com/oehme),
+[yinghao niu](https://github.com/towith),
+[Björn Kautler](https://github.com/Vampire)
 
 ## Upgrade instructions
 

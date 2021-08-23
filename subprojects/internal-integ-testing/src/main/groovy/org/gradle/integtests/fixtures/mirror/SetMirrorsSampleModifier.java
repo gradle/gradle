@@ -17,9 +17,9 @@
 package org.gradle.integtests.fixtures.mirror;
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
-import org.gradle.samples.model.Command;
-import org.gradle.samples.model.Sample;
-import org.gradle.samples.test.runner.SampleModifier;
+import org.gradle.exemplar.model.Command;
+import org.gradle.exemplar.model.Sample;
+import org.gradle.exemplar.test.runner.SampleModifier;
 
 import java.io.File;
 import java.util.ArrayList;

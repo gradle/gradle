@@ -11,7 +11,7 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
-    integTestImplementation(libs.sampleCheck) {
+    integTestImplementation(libs.samplesCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }

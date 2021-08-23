@@ -371,29 +371,21 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         def dotGradleDir = targetDir.file('.gradle')
+        dotGradleDir.mkdirs()
+        def gradlePropertiesFile = dotGradleDir.file("gradle.properties").touch()
+        gradlePropertiesFile << """
+            foo=bar
+        """
+        def snapshot = gradlePropertiesFile.snapshot()
         executer.withGradleUserHomeDir(dotGradleDir)
+        executer.withArguments("--project-cache-dir", dotGradleDir.path)
 
         then:
         succeeds "init"
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle").assertIsFile()
         targetDir.file("build.gradle").assertIsFile()
-    }
-
-    def "skips init task if user home directory and project cache directory are the same"() {
-        when:
-        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        def dotGradleDir = targetDir.file('.gradle')
-        dotGradleDir.mkdirs()
-        executer.withGradleUserHomeDir(dotGradleDir)
-        executer.withArguments("--project-cache-dir", dotGradleDir.path)
-
-        then:
-        succeeds "init"
-        result.assertTaskSkipped ":init"
-        result.assertTaskNotExecuted ":wrapper"
-        outputContains("Gradle user home directory '$dotGradleDir' overlaps with the project cache directory")
-        targetDir.list().toList() == ['.gradle']
+        targetDir.file(".gradle/gradle.properties").assertHasNotChangedSince(snapshot)
     }
 
     def "can create build in user home directory when user home directory has custom name"() {
@@ -408,6 +400,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle").assertIsFile()
         targetDir.file("build.gradle").assertIsFile()
+        targetDir.file(".gradle").assertDoesNotExist()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl) {

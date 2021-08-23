@@ -21,6 +21,8 @@ import org.gradle.internal.compiler.java.TestCompiler
 import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer
 import spock.lang.Requires
 
+import java.nio.file.Files
+
 class ConstantsCollectorTest extends AbstractCompilerPluginTest {
 
     TestCompiler compiler
@@ -35,7 +37,7 @@ class ConstantsCollectorTest extends AbstractCompilerPluginTest {
             (String constantOrigin, String dependent) -> privateDependentToConstants.computeIfAbsent(dependent, { new LinkedHashSet<>() }).add(constantOrigin)
         )
         compiler = new TestCompiler(
-            temporaryFolder.newFolder(),
+            Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(),
             { f -> Optional.empty() },
             {},
             consumer

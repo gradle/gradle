@@ -21,14 +21,13 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     def "cache is properly locked around provisioning a jdk"() {
         def cache = Mock(JdkCacheDirectory)
@@ -75,7 +74,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         binary.canProvideMatchingJdk(spec) >> true
         cache.acquireWriteLock(_, _) >> lock
         binary.toFilename(spec) >> 'jdk-123.zip'
-        def downloadLocation = temporaryFolder.newFile("jdk.zip")
+        def downloadLocation = new File(temporaryFolder, "jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())

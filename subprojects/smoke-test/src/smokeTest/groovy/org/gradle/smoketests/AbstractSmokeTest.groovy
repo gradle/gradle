@@ -34,9 +34,8 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -206,15 +205,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static final String INIT_SCRIPT_LOCATION = "org.gradle.smoketests.init.script"
 
-    @Rule
-    final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir
+    File testProjectDir
     File buildFile
 
     File settingsFile
 
     def setup() {
-        buildFile = new File(testProjectDir.root, defaultBuildFileName)
-        settingsFile = new File(testProjectDir.root, "settings.gradle")
+        buildFile = new File(testProjectDir, defaultBuildFileName)
+        settingsFile = new File(testProjectDir, "settings.gradle")
     }
 
     protected String getDefaultBuildFileName() {
@@ -222,11 +221,11 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     void withKotlinBuildFile() {
-        buildFile = new File(testProjectDir.root, "${getDefaultBuildFileName()}.kts")
+        buildFile = new File(testProjectDir, "${getDefaultBuildFileName()}.kts")
     }
 
     TestFile file(String filename) {
-        def file = new TestFile(testProjectDir.root, filename)
+        def file = new TestFile(testProjectDir, filename)
         def parentDir = file.getParentFile()
         assert parentDir.isDirectory() || parentDir.mkdirs()
 
@@ -237,7 +236,7 @@ abstract class AbstractSmokeTest extends Specification {
         def gradleRunner = GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
                 tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
@@ -309,7 +308,7 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected void useSample(String sampleDirectory) {
         def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
-        FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
+        FileUtils.copyDirectory(smokeTestDirectory, testProjectDir)
     }
 
     protected SmokeTestGradleRunner useAgpVersion(String agpVersion, SmokeTestGradleRunner runner) {

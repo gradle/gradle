@@ -39,10 +39,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         remoteRepo.module("group", "lib1", "6500").publish().allowAll()
 
         settingsFile << """
+            rootProject.name = 'root'
             include 'a', 'b'"""
 
         buildFile << """
             subprojects {
+                group = 'test'
                 configurations { create("default") }
                 task producer(type: FileProducer) {
                     content = providers.gradleProperty("\${project.name}Content").orElse("content")
@@ -138,6 +140,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
 
         when:
         configurationCacheRun(":resolve", "-PaContent=changed")
@@ -153,6 +156,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing, b.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
     }
 
     def "task input property can include mapped configuration elements that contain project dependencies"() {

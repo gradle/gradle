@@ -54,10 +54,11 @@ public interface DaemonConnector {
     void markDaemonAsUnavailable(DaemonConnectDetails daemon);
 
     /**
-     * Connects to a daemon that matches the given constraint, starting one if required.
+     * Connects to a daemon that matches the given constraint.
      *
-     * @return A connection to a matching daemon. Never returns null.
+     * @return A connection to a matching daemon. Returns null if no matching daemon is available.
      */
+    @Nullable
     DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint);
 
     /**

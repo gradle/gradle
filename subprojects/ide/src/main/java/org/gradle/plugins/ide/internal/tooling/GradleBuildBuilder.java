@@ -28,13 +28,14 @@ import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GradleBuildBuilder implements ToolingModelBuilder {
+public class GradleBuildBuilder implements ToolingModelBuilder, BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
 
     public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
@@ -49,7 +50,13 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
         BuildState targetBuild = ((GradleInternal) target.getGradle()).getOwner();
-        return convert(targetBuild, new LinkedHashMap<>());
+        return create(targetBuild);
+    }
+
+    @Override
+    public DefaultGradleBuild create(BuildState target) {
+        target.ensureProjectsLoaded();
+        return convert(target, new LinkedHashMap<>());
     }
 
     private DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
@@ -59,6 +66,9 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         }
         model = new DefaultGradleBuild();
         all.put(targetBuild, model);
+
+        // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
+        targetBuild.ensureProjectsLoaded();
 
         GradleInternal gradle = targetBuild.getMutableModel();
         addProjects(targetBuild, model);
@@ -83,7 +93,6 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
                 IncludedBuildState includedBuildState = (IncludedBuildState) target;
-                includedBuildState.getConfiguredBuild();
                 DefaultGradleBuild convertedIncludedBuild = convert(includedBuildState, all);
                 model.addIncludedBuild(convertedIncludedBuild);
             } else if (target instanceof RootBuildState) {
@@ -96,27 +105,27 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
     }
 
     private void addProjects(BuildState target, DefaultGradleBuild model) {
-        Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
+        Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
-        Project rootProject = target.getMutableModel().getRootProject();
-        BasicGradleProject convertedRootProject = convert(rootProject, convertedProjects);
+        ProjectState rootProject = target.getProjects().getRootProject();
+        BasicGradleProject convertedRootProject = convert(target, rootProject, convertedProjects);
         model.setRootProject(convertedRootProject);
 
         for (ProjectState project : target.getProjects().getAllProjects()) {
-            model.addProject(convertedProjects.get(project.getMutableModel()));
+            model.addProject(convertedProjects.get(project));
         }
     }
 
-    private BasicGradleProject convert(Project project, Map<Project, BasicGradleProject> convertedProjects) {
-        DefaultProjectIdentifier id = new DefaultProjectIdentifier(project.getRootDir(), project.getPath());
+    private BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
         BasicGradleProject converted = new BasicGradleProject().setName(project.getName()).setProjectIdentifier(id);
         converted.setProjectDirectory(project.getProjectDir());
         if (project.getParent() != null) {
             converted.setParent(convertedProjects.get(project.getParent()));
         }
         convertedProjects.put(project, converted);
-        for (Project child : project.getChildProjects().values()) {
-            converted.addChild(convert(child, convertedProjects));
+        for (ProjectState child : project.getChildProjects()) {
+            converted.addChild(convert(owner, child, convertedProjects));
         }
         return converted;
     }

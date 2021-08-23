@@ -15,7 +15,7 @@ class ServicePluginTest extends PluginTest {
 
     def "integrationTest and readmeCheck tasks run with check task"() {
         given:
-        testProjectDir.newFile('README.md') << """
+        new File(testProjectDir, 'README.md') << """
 ## Service API
 
         """
@@ -37,8 +37,8 @@ class ServicePluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFolder('src', 'integrationTest', 'java', 'com', 'myorg')
-        testProjectDir.newFile('src/integrationTest/java/com/myorg/SomeIntegrationTest.java') << """
+        new File(testProjectDir, 'src/integrationTest/java/com/myorg').mkdirs()
+        new File(testProjectDir, 'src/integrationTest/java/com/myorg/SomeIntegrationTest.java') << """
             package com.myorg;
 
             import org.junit.Test;
@@ -67,7 +67,7 @@ class ServicePluginTest extends PluginTest {
 
     def "fails when README does not have service API section"() {
         given:
-        testProjectDir.newFile('README.md') << """
+        new File(testProjectDir, 'README.md') << """
 asdfadfsasf
         """
 

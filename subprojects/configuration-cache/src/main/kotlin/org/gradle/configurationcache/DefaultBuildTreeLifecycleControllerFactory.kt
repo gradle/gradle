@@ -27,12 +27,16 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
+import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class DefaultBuildTreeLifecycleControllerFactory(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cache: BuildTreeConfigurationCache,
     private val taskGraph: IncludedBuildTaskGraph,
+    private val buildOperationExecutor: BuildOperationExecutor,
+    private val projectLeaseRegistry: ProjectLeaseRegistry
 ) : BuildTreeLifecycleControllerFactory {
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Currently, apply the decoration only to the root build, as the cache implementation is still scoped to the root build
@@ -46,7 +50,7 @@ class DefaultBuildTreeLifecycleControllerFactory(
             defaultWorkPreparer
         }
 
-        val defaultModelCreator = DefaultBuildTreeModelCreator(targetBuild)
+        val defaultModelCreator = DefaultBuildTreeModelCreator(targetBuild, buildOperationExecutor, projectLeaseRegistry)
         val modelCreator = if (startParameter.isEnabled && rootBuild) {
             ConfigurationCacheAwareBuildTreeModelCreator(defaultModelCreator, cache)
         } else {

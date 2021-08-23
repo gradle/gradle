@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.language.fixtures.AnnotatedGeneratedClassProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
@@ -33,7 +32,6 @@ import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationTyp
 class AggregatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private static ServiceRegistryProcessorFixture writingResourcesTo(String location) {
         def serviceRegistryProcessor = new ServiceRegistryProcessorFixture()
-        serviceRegistryProcessor.writeResources = true
         serviceRegistryProcessor.resourceLocation = location
         return serviceRegistryProcessor
     }
@@ -146,7 +144,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("AHelper", "B", "BHelper", "ServiceRegistry", "ServiceRegistryResource.txt")
+        outputs.recompiledFiles("B", "BHelper", "ServiceRegistry", "ServiceRegistryResource.txt")
         serviceRegistryReferences("AHelper", "BHelper")
 
         where:
@@ -229,7 +227,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         then:
         outputs.deletedClasses("A", "AHelper")
-        outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt", "BHelper")
+        outputs.recompiledFiles("ServiceRegistry", "ServiceRegistryResource.txt")
         serviceRegistryReferences("BHelper")
         !serviceRegistryReferences("AHelper")
 
@@ -254,7 +252,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         run "compileJava"
 
         then:
-        outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
+        outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt", "Dependent")
     }
 
     def "classes files of generated sources are deleted when annotated file is deleted"() {
@@ -392,7 +390,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         succeeds "compileJava"
 
         then:
-        with(operations[':compileJava'].result.annotationProcessorDetails as List<CompileJavaBuildOperationType.Result.AnnotationProcessorDetails>) {
+        with(operations[':compileJava'].result.annotationProcessorDetails as List<Object>) {
             size() == 1
             first().className == 'ServiceProcessor'
             first().type == AGGREGATING.name()
@@ -402,7 +400,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     def "updating an unrelated file doesn't delete generated resources built by an aggregating processor"() {
         def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
         withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
-        def a = java "@Thing class A {}"
+        java "@Thing class A {}"
         def unrelated = java "class Unrelated {}"
 
         when:
@@ -425,9 +423,9 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     private boolean serviceRegistryReferences(String... services) {
-        def registry = file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").text
+        def registry = file("build/classes/java/main/ServiceRegistryResource.txt").text
         services.every() {
-            registry.contains("get$it")
+            registry.contains("$it")
         }
     }
 }

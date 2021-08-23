@@ -16,29 +16,23 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildControllerFactory {
     private final BuildCancellationToken buildCancellationToken;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final ProjectLeaseRegistry projectLeaseRegistry;
     private final BuildStateRegistry buildStateRegistry;
 
-    public BuildControllerFactory(BuildCancellationToken buildCancellationToken, BuildOperationExecutor buildOperationExecutor, ProjectLeaseRegistry projectLeaseRegistry, BuildStateRegistry buildStateRegistry) {
+    public BuildControllerFactory(BuildCancellationToken buildCancellationToken, BuildStateRegistry buildStateRegistry) {
         this.buildCancellationToken = buildCancellationToken;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.projectLeaseRegistry = projectLeaseRegistry;
         this.buildStateRegistry = buildStateRegistry;
     }
 
-    public DefaultBuildController controllerFor(GradleInternal gradle) {
-        return new DefaultBuildController(gradle, buildCancellationToken, buildOperationExecutor, projectLeaseRegistry, buildStateRegistry);
+    public DefaultBuildController controllerFor(BuildToolingModelController controller) {
+        return new DefaultBuildController(controller, buildCancellationToken, buildStateRegistry);
     }
 }

@@ -22,8 +22,11 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.ClasspathNormalizer
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 
 
 import org.gradle.kotlin.dsl.*
@@ -40,6 +43,9 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternal
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
+import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -48,6 +54,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import java.io.File
 import java.util.function.Consumer
+import javax.inject.Inject
 
 
 /**
@@ -236,11 +243,22 @@ fun Project.enableScriptCompilationOf(
                 plugins = scriptPlugins
             }
 
-        val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
+        kotlinCompileTask {
             dependsOn(generatePrecompiledScriptPluginAccessors)
-            metadataDir.set(accessorsMetadata)
-            classPathFiles.from(compileClasspath)
-            onConfigure { resolverEnvironment ->
+            inputs.files(compileClasspath).withNormalizer(ClasspathNormalizer::class.java)
+            inputs.dir(accessorsMetadata).withPathSensitivity(PathSensitivity.RELATIVE)
+            inputs.property("kotlinDslScriptTemplates", scriptTemplates)
+
+            val implicitImports = serviceOf<ImplicitImports>()
+
+            doFirst {
+                val services = objects.newInstance<ResolverEnvironmentServices>()
+                val resolverEnvironment = resolverEnvironmentStringFor(
+                    implicitImports,
+                    services.classpathFingerprinter,
+                    compileClasspath,
+                    accessorsMetadata.get().asFile
+                )
                 applyKotlinCompilerArgs(
                     listOf(
                         "-script-templates", scriptTemplates,
@@ -251,16 +269,35 @@ fun Project.enableScriptCompilationOf(
             }
         }
 
-        kotlinCompileTask {
-            dependsOn(configurePrecompiledScriptDependenciesResolver)
-        }
-
         if (inClassPathMode()) {
+
+            val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
+                dependsOn(generatePrecompiledScriptPluginAccessors)
+                metadataDir.set(accessorsMetadata)
+                classPathFiles.from(compileClasspath)
+                onConfigure { resolverEnvironment ->
+                    applyKotlinCompilerArgs(
+                        listOf(
+                            "-script-templates", scriptTemplates,
+                            // Propagate implicit imports and other settings
+                            "-Xscript-resolver-environment=$resolverEnvironment"
+                        )
+                    )
+                }
+            }
+
             registerBuildScriptModelTask(
                 configurePrecompiledScriptDependenciesResolver
             )
         }
     }
+}
+
+
+private
+interface ResolverEnvironmentServices {
+    @get:Inject
+    val classpathFingerprinter: ClasspathFingerprinter
 }
 
 
@@ -304,6 +341,7 @@ fun Project.collectScriptPlugins(): List<PrecompiledScriptPlugin> =
 private
 fun Project.collectScriptPluginFiles(): List<File> =
     mutableListOf<File>().apply {
+        // TODO:configuration-cache undeclared build logic input
         gradlePlugin.pluginSourceSet.allSource.matching {
             it.include("**/*.gradle.kts")
         }.visit {

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 
 import java.io.File;
 
@@ -35,10 +34,6 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
     boolean isPluginBuild();
 
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
-
-    boolean hasInjectedSettingsPlugins();
-
-    SettingsInternal loadSettings();
 
     GradleInternal getConfiguredBuild();
 

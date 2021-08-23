@@ -19,10 +19,10 @@ package org.gradle.internal.buildtree
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
 import spock.lang.Specification
 
-import java.util.function.Function
 import java.util.function.Supplier
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
@@ -116,7 +116,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "runs action after running tasks when task execution is requested"() {
-        def action = Mock(Function)
+        def action = Mock(BuildToolingModelAction)
 
         when:
         def result = controller.fromBuildModel(true, action)
@@ -137,7 +137,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "does not run action if task execution fails"() {
-        def action = Mock(Function)
+        def action = Mock(BuildToolingModelAction)
         def failure = new RuntimeException()
 
         when:
@@ -158,7 +158,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "runs action when tasks are not requested"() {
-        def action = Mock(Function)
+        def action = Mock(BuildToolingModelAction)
 
         when:
         def result = controller.fromBuildModel(false, action)
@@ -177,7 +177,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        controller.fromBuildModel(false, Stub(Function))
+        controller.fromBuildModel(false, Stub(BuildToolingModelAction))
 
         then:
         def e = thrown(RuntimeException)

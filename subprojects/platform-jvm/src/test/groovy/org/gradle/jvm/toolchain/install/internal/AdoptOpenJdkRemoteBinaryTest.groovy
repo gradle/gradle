@@ -26,15 +26,14 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
@@ -124,7 +123,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
-        def targetFile = temporaryFolder.newFile("jdk")
+        def targetFile = new File(temporaryFolder, "jdk")
         binary.download(spec, targetFile)
 
         then:
@@ -182,7 +181,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
-        def targetFile = temporaryFolder.newFile("jdk")
+        def targetFile = new File(temporaryFolder, "jdk")
         binary.download(spec, targetFile)
 
         then:
@@ -203,7 +202,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader, providerFactory())
 
         when:
-        def targetFile = temporaryFolder.newFile("jdk")
+        def targetFile = new File(temporaryFolder, "jdk")
         binary.download(spec, targetFile)
 
         then:

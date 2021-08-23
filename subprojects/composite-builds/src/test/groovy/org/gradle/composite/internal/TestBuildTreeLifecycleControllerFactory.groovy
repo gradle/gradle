@@ -18,11 +18,18 @@ package org.gradle.composite.internal
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildToolingModelAction
+import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
+import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
 import java.util.function.Function
 
@@ -30,6 +37,44 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
     @Override
     BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
+    }
+
+    class TestBuildModelController implements BuildToolingModelController {
+        private final BuildLifecycleController targetBuild
+
+        TestBuildModelController(BuildLifecycleController targetBuild) {
+            this.targetBuild = targetBuild
+        }
+
+        @Override
+        GradleInternal getConfiguredModel() {
+            return targetBuild.configuredBuild
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        boolean queryModelActionsRunInParallel() {
+            return false
+        }
+
+        @Override
+        void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
+            throw new UnsupportedOperationException()
+        }
     }
 
     class TestBuildTreeLifecycleController implements BuildTreeLifecycleController {
@@ -63,11 +108,11 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        <T> T fromBuildModel(boolean runTasks, Function<? super GradleInternal, T> action) {
+        def <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
             def failures = []
             T result = null
             try {
-                result = action.apply(targetBuild.configuredBuild)
+                result = action.fromBuildModel(new TestBuildModelController(targetBuild))
             } catch (Throwable t) {
                 failures.add(t)
             }

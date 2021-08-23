@@ -33,6 +33,18 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.3]]
+== Upgrading from 7.2 and earlier
+
+=== Potential breaking changes
+
+==== Application order of plugins in the `plugins` block
+
+The order in which plugins in the `plugins` block were actually applied was inconsistent
+and depended on how a plugin was added to the class path. Now the plugins are always applied
+in the same order they are declared in the `plugins` block which in rare cases might change
+behavior of existing builds.
+
 [[changes_7.2]]
 == Upgrading from 7.1 and earlier
 

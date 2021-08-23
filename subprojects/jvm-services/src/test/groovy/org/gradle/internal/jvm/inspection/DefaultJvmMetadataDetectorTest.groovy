@@ -24,19 +24,18 @@ import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.spockframework.runtime.SpockAssertionError
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class DefaultJvmMetadataDetectorTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder
+    @TempDir
+    File temporaryFolder
 
     TestFile tmpDir
     def setup() {
-        tmpDir = new TestFile(temporaryFolder.newFolder("tmp"))
+        tmpDir = new TestFile(new File(temporaryFolder, "tmp").tap { mkdirs() })
     }
 
     def "cleans up generated Probe class"() {
@@ -45,7 +44,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        def javaHome = temporaryFolder.newFolder("localGradle")
+        def javaHome = new File(temporaryFolder, "localGradle").tap { mkdirs() }
         def metadata = detector.getMetadata(javaHome)
 
         then:
@@ -59,7 +58,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        File javaHome = temporaryFolder.newFolder(jdk)
+        File javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
         if (!jre) {
             def binDir = new File(javaHome, "bin")
             if (binDir.mkdir()) {
@@ -123,7 +122,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
-        def javaHome = temporaryFolder.newFolder(jdk)
+        def javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
         def metadata = detector.getMetadata(javaHome)
 
         then:
@@ -152,7 +151,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
         File javaHome = new File(jdk)
         if (exists) {
-            javaHome = temporaryFolder.newFolder(jdk)
+            javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
         }
         def metadata = detector.getMetadata(javaHome)
 

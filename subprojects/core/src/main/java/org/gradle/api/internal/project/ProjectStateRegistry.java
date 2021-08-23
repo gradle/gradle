@@ -58,7 +58,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers the projects of a build.
      */
-    void registerProjects(BuildState build);
+    void registerProjects(BuildState build, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
 
     /**
      * Registers a single project.

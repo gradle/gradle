@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r26
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestResultHandler
@@ -256,7 +255,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found."
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription("Requested test task with path ':secondTest' cannot be found.")
         assertHasBuildFailedLogging()
     }
@@ -285,7 +283,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('A problem occurred evaluating root project')
         assertHasBuildFailedLogging()
     }

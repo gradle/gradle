@@ -135,7 +135,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
         // No compatible daemons available - start a new daemon
         handleStopEvents(idleDaemons, busyDaemons);
-        return startDaemon(constraint);
+        return null;
     }
 
     private void handleStopEvents(Collection<DaemonInfo> idleDaemons, Collection<DaemonInfo> busyDaemons) {

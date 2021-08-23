@@ -20,9 +20,8 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -30,8 +29,8 @@ import java.nio.charset.Charset
 import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as content
 
 class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specification {
-    @Rule
-    TemporaryFolder tempDir = new TemporaryFolder()
+    @TempDir
+    File tempDir
 
     @Unroll
     def "calculates hash for text file with #description"() {
@@ -89,7 +88,7 @@ class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specific
     def "always calls delegate for directories"() {
         def delegate = Mock(LineEndingNormalizingFileSystemLocationSnapshotHasher)
         def hasher = LineEndingNormalizingFileSystemLocationSnapshotHasher.wrap(delegate, lineEndingSensitivity)
-        def dir = file('dir')
+        def dir = file('dir').tap { it.text = "" }
         def snapshot = snapshot(dir, FileType.Directory)
 
         when:
@@ -103,7 +102,7 @@ class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specific
     }
 
     def "throws IOException generated from hasher"() {
-        def file = file('doesNotExist')
+        def file = file('doesNotExist').tap { it.text = "" }
         def delegate = Mock(LineEndingNormalizingFileSystemLocationSnapshotHasher)
         def hasher = LineEndingNormalizingFileSystemLocationSnapshotHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         def snapshot = this.snapshot(file)
@@ -142,7 +141,7 @@ class LineEndingNormalizingFileSystemLocationSnapshotHasherTest extends Specific
     }
 
     File file(String path) {
-        return tempDir.newFile(path)
+        return new File(tempDir, path)
     }
 
     RegularFileSnapshot snapshot(File file, FileType fileType = FileType.RegularFile) {

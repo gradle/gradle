@@ -16,22 +16,21 @@
 
 package gradlebuild.binarycompatibility
 
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.TempDir
 
 class AcceptedApiChangesJsonFileManagerTest extends Specification {
 
-    @Rule
-    TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    File temporaryFolder
 
     @Subject AcceptedApiChangesJsonFileManager jsonFileManager = new AcceptedApiChangesJsonFileManager()
 
     def jsonFile
 
     def setup() {
-        jsonFile = temporaryFolder.newFile('acceptedChanges.json')
+        jsonFile = new File(temporaryFolder, 'acceptedChanges.json')
     }
 
     def "can clean existing API changes"() {

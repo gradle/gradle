@@ -327,7 +327,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
 
         static ProjectComponentIdentifier identifierForProject(IncludedBuildState build, String notation) {
-            return build.getIdentifierForProject(Path.path(notation));
+            return build.getProjects().getProject(Path.path(notation)).getComponentIdentifier();
         }
     }
 
