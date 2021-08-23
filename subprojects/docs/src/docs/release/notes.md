@@ -14,7 +14,8 @@ Include only their name, impactful features should be called out separately belo
 [Marcin Zajączkowski](https://github.com/szpak),
 [Alex Landau](https://github.com/AlexLandau),
 [Stefan Oehme](https://github.com/oehme),
-[yinghao niu](https://github.com/towith)
+[yinghao niu](https://github.com/towith),
+[Björn Kautler](https://github.com/Vampire)
 
 ## Upgrade instructions
 
