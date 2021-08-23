@@ -18,13 +18,9 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-
-import java.util.Optional;
 
 public class StoreExecutionStateStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
@@ -40,46 +36,41 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
         CurrentSnapshotResult result = delegate.execute(work, context);
         UnitOfWork.Identity identity = context.getIdentity();
         context.getHistory()
-            .ifPresent(history -> storeState(context, history, identity.getUniqueId(), result));
+            .ifPresent(history -> context.getBeforeExecutionState()
+                .ifPresent(beforeExecutionState -> {
+                    ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = result.getOutputFilesProduceByWork();
+                    boolean successful = result.getExecutionResult().isSuccessful();
+
+                    // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
+                    // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
+                    // If there is no previous state, then we do have output changes
+                    boolean shouldStore = successful || context.getAfterPreviousExecutionState()
+                        .map(afterPreviousExecutionState -> didOutputsChange(afterPreviousExecutionState.getOutputFilesProducedByWork(), outputFilesProducedByWork))
+                        .orElse(true);
+
+                    if (shouldStore) {
+                        history.store(
+                            identity.getUniqueId(),
+                            result.getOriginMetadata(),
+                            beforeExecutionState.getImplementation(),
+                            beforeExecutionState.getAdditionalImplementations(),
+                            beforeExecutionState.getInputProperties(),
+                            beforeExecutionState.getInputFileProperties(),
+                            outputFilesProducedByWork,
+                            successful
+                        );
+                    }
+                }));
         return result;
     }
 
-    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, String uniqueId, CurrentSnapshotResult result) {
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = result.getOutputFilesProduceByWork();
-        context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
-            boolean successful = result.getExecutionResult().isSuccessful();
-            // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
-            // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
-            if (successful
-                || didChangeOutput(context.getAfterPreviousExecutionState(), outputFilesProducedByWork)) {
-                executionHistoryStore.store(
-                    uniqueId,
-                    result.getOriginMetadata(),
-                    beforeExecutionState.getImplementation(),
-                    beforeExecutionState.getAdditionalImplementations(),
-                    beforeExecutionState.getInputProperties(),
-                    beforeExecutionState.getInputFileProperties(),
-                    outputFilesProducedByWork,
-                    successful
-                );
-            }
-        });
-    }
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static boolean didChangeOutput(Optional<AfterPreviousExecutionState> afterPreviousExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> current) {
-        // If there is no previous state, then we do have output changes
-        if (!afterPreviousExecutionState.isPresent()) {
-            return true;
-        }
-
+    private static boolean didOutputsChange(ImmutableSortedMap<String, FileSystemSnapshot> previous, ImmutableSortedMap<String, FileSystemSnapshot> current) {
         // If there are different output properties compared to the previous execution, then we do have output changes
-        ImmutableSortedMap<String, FileSystemSnapshot> previous = afterPreviousExecutionState.get().getOutputFilesProducedByWork();
         if (!previous.keySet().equals(current.keySet())) {
             return true;
         }
 
-        // Otherwise do deep compare of outputs
+        // Otherwise, do deep compare of outputs
         ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
         OutputFileChanges changes = new OutputFileChanges(previous, current);
         changes.accept(visitor);
