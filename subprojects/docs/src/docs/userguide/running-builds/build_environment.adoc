@@ -55,7 +55,7 @@ _Default is `false`._
 
 `org.gradle.configureondemand=(true,false)`::
 Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
-_Default is false._
+_Default is `false`._
 
 `org.gradle.console=(auto,plain,rich,verbose)`::
 Customize console output coloring or verbosity.
