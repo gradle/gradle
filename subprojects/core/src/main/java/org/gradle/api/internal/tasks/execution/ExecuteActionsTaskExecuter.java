@@ -365,9 +365,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
 
             return taskCacheabilityResolver.shouldDisableCaching(
-                context.getTaskProperties().hasDeclaredOutputs(),
-                context.getTaskProperties().getOutputFileProperties(),
                 task,
+                context.getTaskProperties(),
                 task.getOutputs().getCacheIfSpecs(),
                 task.getOutputs().getDoNotCacheIfSpecs(),
                 detectedOverlappingOutputs
