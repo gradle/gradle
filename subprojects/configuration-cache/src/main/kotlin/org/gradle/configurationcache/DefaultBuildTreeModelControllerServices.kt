@@ -39,11 +39,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val isolatedProjects = startParameter.isolatedProjects.get()
         val modelParameters = if (requirements.isCreatesModel) {
-            // When creating a model, disable certain features - don't enable configure on demand and only enable configuration cache when isolated projects is enabled
-            BuildModelParameters(false, isolatedProjects, isolatedProjects, true)
+            // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
+            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true)
         } else {
             val configurationCache = startParameter.configurationCache.get() || isolatedProjects
-            BuildModelParameters(startParameter.isConfigureOnDemand, configurationCache, isolatedProjects, false)
+            val configureOnDemand = startParameter.isConfigureOnDemand || isolatedProjects
+            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false)
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
@@ -52,6 +53,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             } else if (modelParameters.isConfigurationCache) {
                 IncubationLogger.incubatingFeatureUsed("Configuration cache")
             }
+        }
+        if (!modelParameters.isIsolatedProjects && modelParameters.isConfigureOnDemand) {
+            IncubationLogger.incubatingFeatureUsed("Configuration on demand")
         }
 
         return BuildTreeModelControllerServices.Supplier { registration ->
