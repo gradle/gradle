@@ -21,6 +21,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.Spec
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -160,10 +161,13 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = [],
         @Nullable OverlappingOutputs overlappingOutputs = null
     ) {
+        def taskProperties = Stub(TaskProperties) {
+            hasDeclaredOutputs() >> !outputFileProperties.isEmpty()
+            getOutputFileProperties() >> ImmutableSortedSet.copyOf(outputFileProperties)
+        }
         resolver.shouldDisableCaching(
-            !outputFileProperties.isEmpty(),
-            ImmutableSortedSet.copyOf(outputFileProperties),
             task,
+            taskProperties,
             cacheIfSpecs,
             doNotCacheIfSpecs,
             overlappingOutputs
