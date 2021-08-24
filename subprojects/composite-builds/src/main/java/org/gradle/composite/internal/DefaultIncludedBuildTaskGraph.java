@@ -83,19 +83,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskIdentifier taskIdentifier) {
         return withState(workGraph -> {
             BuildState build = buildRegistry.getBuild(targetBuild);
-            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(task);
-            return new TaskBackedResource(workGraph, build, taskNode);
-        });
-    }
-
-    @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
-        return withState(workGraph -> {
-            BuildState build = buildRegistry.getBuild(targetBuild);
-            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskPath);
+            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskIdentifier);
             return new TaskBackedResource(workGraph, build, taskNode);
         });
     }

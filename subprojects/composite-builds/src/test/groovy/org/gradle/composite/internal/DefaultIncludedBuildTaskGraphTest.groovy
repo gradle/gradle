@@ -20,6 +20,7 @@ package org.gradle.composite.internal
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.internal.build.BuildState
+import org.gradle.execution.plan.TaskNode
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
@@ -70,7 +71,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -80,7 +81,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -94,7 +95,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         when:
         graph.withNewWorkGraph { g ->
-            graph.locateTask(id, ":task").queueForExecution()
+            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
         }
 
         then:
@@ -111,7 +112,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.locateTask(id, ":task").queueForExecution()
+            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
         }
 
         then:
@@ -128,7 +129,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(DefaultBuildIdentifier.ROOT, taskIdentifier(":task")).queueForExecution()
         }
 
         when:
@@ -154,7 +155,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
             g.scheduleWork {
             }
             g.runWork()
-            graph.locateTask(id, ":task").queueForExecution()
+            graph.locateTask(id, taskIdentifier(":task")).queueForExecution()
         }
 
         then:
@@ -168,5 +169,9 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
         _ * buildStateRegistry.getBuild(id) >> build
         return build
+    }
+
+    static TaskIdentifier taskIdentifier(String taskPath) {
+        return TaskIdentifier.of(taskPath, TaskNode.UNKNOWN_ORDINAL)
     }
 }

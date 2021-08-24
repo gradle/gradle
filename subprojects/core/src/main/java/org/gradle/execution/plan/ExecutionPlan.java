@@ -78,6 +78,11 @@ public interface ExecutionPlan extends Describable {
         }
 
         @Override
+        public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
+            throw new IllegalStateException();
+        }
+
+        @Override
         public void determineExecutionPlan() {
         }
 
@@ -157,6 +162,8 @@ public interface ExecutionPlan extends Describable {
     void addNodes(Collection<? extends Node> nodes);
 
     void addEntryTasks(Collection<? extends Task> tasks);
+
+    void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
 
     void determineExecutionPlan();
 

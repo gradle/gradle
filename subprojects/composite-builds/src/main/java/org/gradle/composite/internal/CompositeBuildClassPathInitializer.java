@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 
@@ -52,7 +53,8 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
                 graph.scheduleWork(builder -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
-                        buildTreeWorkGraphController.locateTask(task.left, task.right).queueForExecution();
+                        TaskIdentifier taskIdentifier = TaskIdentifier.of(task.right, TaskNode.UNKNOWN_ORDINAL);
+                        buildTreeWorkGraphController.locateTask(task.left, taskIdentifier).queueForExecution();
                     }
                 });
                 graph.runWork().rethrow();

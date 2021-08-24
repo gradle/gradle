@@ -28,14 +28,23 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
+import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +89,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private Spec<? super Task> filter = Specs.satisfyAll();
+    private int order = 0;
 
     private boolean invalidNodeRunning;
     private boolean continueOnFailure;
@@ -89,6 +99,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final List<Node> dependenciesWhichRequireMonitoring = new ArrayList<>();
+    private final OrdinalNodeAccess ordinalNodeAccess = new OrdinalNodeAccess();
     private boolean maybeNodesReady;
 
     private boolean buildCancelled;
@@ -134,10 +145,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public void addEntryTasks(Collection<? extends Task> tasks) {
+        addEntryTasks(tasks, order++);
+    }
+
+    @Override
+    public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
         final Deque<Node> queue = new ArrayDeque<>();
 
         for (Task task : sorted(tasks)) {
-            TaskNode node = taskNodeFactory.getOrCreateNode(task);
+            TaskNode node = taskNodeFactory.getOrCreateNode(task, ordinal);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
@@ -348,16 +364,54 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                         nodeQueue.add(position, new NodeInVisitingSegment(finalizer, visitingSegmentCounter++));
                     }
                 }
+
+                // Add any ordinal relationships for this node
+                createOrdinalRelationships(node);
             }
         }
+        ordinalNodeAccess.createInterNodeRelationships();
+        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
         executionQueue.clear();
         dependencyResolver.clear();
         nodeMapping.removeIf(Node::requiresMonitoring);
         executionQueue.addAll(nodeMapping);
+
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
+    }
+
+    private void createOrdinalRelationships(Node node) {
+        if (node instanceof TaskNode && ((TaskNode) node).getOrdinal() != TaskNode.UNKNOWN_ORDINAL) {
+            TaskNode taskNode = (TaskNode) node;
+            TaskClassifier taskClassifier = new TaskClassifier();
+            ProjectInternal project = (ProjectInternal) taskNode.getTask().getProject();
+            ServiceRegistry serviceRegistry = project.getServices();
+            PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
+            propertyWalker.visitProperties(taskNode.getTask(), TypeValidationContext.NOOP, taskClassifier);
+            taskNode.getTask().getOutputs().visitRegisteredProperties(taskClassifier);
+            ((TaskDestroyablesInternal)taskNode.getTask().getDestroyables()).visitRegisteredProperties(taskClassifier);
+            ((TaskLocalStateInternal)taskNode.getTask().getLocalState()).visitRegisteredProperties(taskClassifier);
+
+            if (taskClassifier.isDestroyer()) {
+                Node ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(taskNode.getOrdinal());
+                taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
+
+                if (taskNode.getOrdinal() > 0) {
+                    ordinalNodeAccess.getPrecedingProducerLocationNodes(taskNode.getOrdinal())
+                        .forEach(taskNode::addDependencySuccessor);
+                }
+            } else if (taskClassifier.isProducer()) {
+                Node ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(taskNode.getOrdinal());
+                taskNode.getDependencySuccessors().forEach(ordinalNode::addDependencySuccessor);
+
+                if (taskNode.getOrdinal() > 0) {
+                    ordinalNodeAccess.getPrecedingDestroyerLocationNodes(taskNode.getOrdinal())
+                        .forEach(taskNode::addDependencySuccessor);
+                }
+            }
+        }
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
@@ -619,7 +673,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             return true;
-        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+        } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
             return true;
         }
@@ -720,7 +774,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return false;
     }
 
-    private boolean doesDestroyNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
+    private boolean destroysNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
         if (destroyablePaths.isEmpty()) {
             return false;
         }
@@ -1027,6 +1081,34 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     taskMapping.remove(((LocalTaskNode) removedNode).getTask());
                 }
             }
+        }
+    }
+
+    private static class TaskClassifier extends PropertyVisitor.Adapter {
+        private boolean isProducer;
+        private boolean isDestroyer;
+
+        @Override
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            isProducer = true;
+        }
+
+        @Override
+        public void visitDestroyableProperty(Object value) {
+            isDestroyer = true;
+        }
+
+        @Override
+        public void visitLocalStateProperty(Object value) {
+            isProducer = true;
+        }
+
+        public boolean isProducer() {
+            return isProducer;
+        }
+
+        public boolean isDestroyer() {
+            return isDestroyer;
         }
     }
 }
