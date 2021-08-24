@@ -34,6 +34,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -145,6 +146,13 @@ public interface UnitOfWork extends Describable {
         default void visitLocalState(File localStateRoot) {}
 
         default void visitDestroyable(File destroyableRoot) {}
+    }
+
+    /**
+     * Handles when an input or output cannot be read while snapshotting.
+     */
+    default void handleSnapshottingUnreadableProperties(UncheckedIOException ex) {
+        throw ex;
     }
 
     /**

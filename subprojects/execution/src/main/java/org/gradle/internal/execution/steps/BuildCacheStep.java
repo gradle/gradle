@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
@@ -34,6 +35,7 @@ import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,8 +124,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         }
 
                         @Override
-                        public AfterExecutionState getAfterExecutionState() {
-                            return afterExecutionState;
+                        public Optional<AfterExecutionState> getAfterExecutionState() {
+                            return Optional.of(afterExecutionState);
                         }
                     };
                 })
@@ -159,15 +161,16 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         }
         CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
-            executionResult -> store(cacheableWork, cacheKey, result),
+            executionResult -> result.getAfterExecutionState()
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), result.getOriginMetadata().getExecutionTime())),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
     }
 
-    private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
+    private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
-            buildCache.store(commandFactory.createStore(cacheKey, work, result.getAfterExecutionState().getOutputFilesProducedByWork(), result.getOriginMetadata().getExecutionTime()));
+            buildCache.store(commandFactory.createStore(cacheKey, work, outputFilesProducedByWork, executionTime));
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());

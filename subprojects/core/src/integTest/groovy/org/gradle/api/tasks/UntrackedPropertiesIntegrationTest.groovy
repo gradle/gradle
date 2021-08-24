@@ -95,4 +95,206 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         "inputs"   | "Input property 'inputFile' is untracked"
         "outputs"  | "Output property 'outputFile' is untracked"
     }
+
+    def "tasks can produce and consume unreadable content via untracked properties"() {
+        def rootDir = file("build/root")
+        def unreadableDir = rootDir.file("unreadable")
+
+        buildFile generateProducerTask(true)
+        buildFile generateConsumerTask(true)
+
+        buildFile("""
+            def producer = tasks.register("producer", Producer) {
+                outputDir = project.layout.buildDirectory.dir("root")
+            }
+            tasks.register("consumer", Consumer) {
+                inputDir = producer.flatMap { it.outputDir }
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+
+        expect:
+        succeeds("consumer", "--info")
+
+        cleanup:
+        unreadableDir.setReadable(true)
+    }
+
+    def "task producing unreadable content via tracked property is not stored in execution history"() {
+        def rootDir = file("build/root")
+        def unreadableDir = rootDir.file("unreadable")
+
+        buildFile generateProducerTask(false)
+
+        buildFile("""
+            tasks.register("producer", Producer) {
+                outputDir = project.layout.buildDirectory.dir("root")
+            }
+        """)
+
+        when:
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        run "producer", "--info"
+        then:
+        executedAndNotSkipped(":producer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+
+        when:
+        unreadableDir.setReadable(true)
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        run "producer", "--info"
+        then:
+        executedAndNotSkipped(":producer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Task ':producer' is not up-to-date because:")
+        outputContains("No history is available.")
+
+        cleanup:
+        unreadableDir.setReadable(true)
+    }
+
+    def "task producing unreadable content via tracked property is not stored in cache"() {
+        def rootDir = file("build/root")
+        def unreadableDir = rootDir.file("unreadable")
+
+        buildFile generateProducerTask(false)
+
+        buildFile("""
+            apply plugin: "base"
+
+            tasks.register("producer", Producer) {
+                outputs.cacheIf { true }
+                outputDir = project.layout.buildDirectory.dir("root")
+            }
+        """)
+
+        when:
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        withBuildCache().run "producer", "--info"
+        then:
+        executedAndNotSkipped(":producer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+
+        when:
+        unreadableDir.setReadable(true)
+        run("clean")
+
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        withBuildCache().run "producer", "--info"
+        then:
+        executedAndNotSkipped(":producer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+
+        cleanup:
+        unreadableDir.setReadable(true)
+    }
+
+    def "task consuming unreadable content via tracked property is not tracked"() {
+        def rootDir = file("build/root")
+        def unreadableDir = rootDir.file("unreadable")
+        assert unreadableDir.mkdirs()
+        assert unreadableDir.setReadable(false)
+
+        buildFile generateConsumerTask(false)
+
+        buildFile("""
+            tasks.register("consumer", Consumer) {
+                inputDir = project.layout.buildDirectory.dir("root")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+
+        when:
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        run "consumer", "--info"
+        then:
+        executedAndNotSkipped(":consumer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Task ':consumer' is not up-to-date because:")
+        outputContains("Change tracking is disabled.")
+
+        cleanup:
+        unreadableDir.setReadable(true)
+    }
+
+    def "task consuming unreadable content via tracked property is not stored in cache"() {
+        def rootDir = file("build/root")
+        def unreadableDir = rootDir.file("unreadable")
+        assert unreadableDir.mkdirs()
+        assert unreadableDir.setReadable(false)
+
+        buildFile generateConsumerTask(false)
+
+        buildFile("""
+            tasks.register("consumer", Consumer) {
+                outputs.cacheIf { true }
+                inputDir = project.layout.buildDirectory.dir("root")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+
+        when:
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
+        withBuildCache().run "consumer", "--info"
+        then:
+        executedAndNotSkipped(":consumer")
+        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Task ':consumer' is not up-to-date because:")
+        outputContains("Change tracking is disabled.")
+        outputContains("Caching disabled for task ':consumer' because:")
+        outputContains("Cacheability was not determined")
+
+        cleanup:
+        unreadableDir.setReadable(true)
+    }
+
+    static generateProducerTask(boolean untracked) {
+        """
+            abstract class Producer extends DefaultTask {
+                ${untracked ? "@Untracked" : ""}
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+
+                @TaskAction
+                void execute() {
+                    def unreadableDir = outputDir.get().dir("unreadable").asFile
+                    unreadableDir.mkdirs()
+                    assert unreadableDir.setReadable(false)
+                    assert !unreadableDir.canRead()
+                }
+            }
+        """
+    }
+
+    static generateConsumerTask(boolean untracked) {
+        """
+            abstract class Consumer extends DefaultTask {
+                ${untracked ? "@Untracked" : ""}
+                @InputDirectory
+                abstract DirectoryProperty getInputDir()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    def unreadableDir = inputDir.get().dir("unreadable").asFile
+                    assert !unreadableDir.canRead()
+                    outputFile.get().asFile << "Executed"
+                }
+            }
+        """
+    }
 }

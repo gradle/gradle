@@ -50,6 +50,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -88,6 +89,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -346,6 +348,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             for (File destroyableRoot : context.getTaskProperties().getDestroyableFiles()) {
                 visitor.visitDestroyable(destroyableRoot);
             }
+        }
+
+        @Override
+        public void handleSnapshottingUnreadableProperties(UncheckedIOException ex) {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Failed to snapshot unreadable input or output, treating task as untracked: {}", ex.getCause().toString());
+            }
+            DeprecationLogger.deprecate("Accessing unreadable input or output files")
+                .withAdvice("Declare the input or output property as untracked.")
+                .willBecomeAnErrorInGradle8()
+                // TODO: Document
+                .undocumented()
+                .nagUser();
         }
 
         @Override

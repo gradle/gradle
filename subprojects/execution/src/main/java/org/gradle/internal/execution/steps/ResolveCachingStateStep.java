@@ -157,7 +157,7 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
             }
 
             @Override
-            public AfterExecutionState getAfterExecutionState() {
+            public Optional<AfterExecutionState> getAfterExecutionState() {
                 return result.getAfterExecutionState();
             }
 

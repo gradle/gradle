@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<PreviousExecutionContext, CachingResult> {
@@ -69,7 +70,21 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
     @Override
     public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
-            .map(executionHistoryStore -> captureExecutionStateOp(work, context));
+            .flatMap(history -> operation(operationContext -> {
+                    try {
+                        BeforeExecutionState executionState = captureExecutionState(work, context);
+                        operationContext.setResult(Operation.Result.INSTANCE);
+                        return Optional.of(executionState);
+                    } catch (UncheckedIOException e) {
+                        work.handleSnapshottingUnreadableProperties(e);
+                        operationContext.failed(e);
+                        return Optional.empty();
+                    }
+                },
+                BuildOperationDescriptor
+                    .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
+                    .details(Operation.Details.INSTANCE)
+            ));
         return delegate.execute(work, new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
@@ -120,18 +135,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
                 return context.getPreviousExecutionState();
             }
         });
-    }
-
-    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, PreviousExecutionContext executionContext) {
-        return operation(operationContext -> {
-                BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
-                operationContext.setResult(Operation.Result.INSTANCE);
-                return beforeExecutionState;
-            },
-            BuildOperationDescriptor
-                .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
-                .details(Operation.Details.INSTANCE)
-        );
     }
 
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {

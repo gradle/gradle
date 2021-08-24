@@ -37,12 +37,27 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+        1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
-        }
+        })
 
         then:
         1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
+        0 * _
+    }
+
+    def "does not store untracked outputs"() {
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.empty()
+
+        then:
         0 * _
     }
 }

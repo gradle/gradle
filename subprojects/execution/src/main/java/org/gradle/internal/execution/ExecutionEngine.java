@@ -86,6 +86,6 @@ public interface ExecutionEngine {
          * State after execution.
          */
         @VisibleForTesting
-        AfterExecutionState getAfterExecutionState();
+        Optional<AfterExecutionState> getAfterExecutionState();
     }
 }
