@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics.internal;
+package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.internal.logging.text.TestStyledTextOutput;
-import org.junit.Test;
+import org.gradle.internal.logging.text.TestStyledTextOutput
+import spock.lang.Specification
 
-import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.containsLine
 
-public class PropertyReportRendererTest {
-    private final TestStyledTextOutput out = new TestStyledTextOutput();
+class PropertyReportRendererTest extends Specification {
+    private final TestStyledTextOutput out = new TestStyledTextOutput()
     private final PropertyReportRenderer renderer = new PropertyReportRenderer(){{
-        setOutput(out);
-    }};
+        setOutput(out)
+    }}
 
-    @Test
-    public void writesProperty() {
-        renderer.addProperty("prop", "value");
+    def 'writes property'() {
+        when:
+        renderer.addProperty("prop", "value")
 
-        assert containsLine(out.toString(), "prop: value");
+        then:
+        assert containsLine(out.toString(), "prop: value")
     }
 }
