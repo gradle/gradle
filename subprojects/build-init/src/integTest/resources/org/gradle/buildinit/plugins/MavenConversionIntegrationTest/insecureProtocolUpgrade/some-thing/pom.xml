@@ -27,7 +27,7 @@
             <id>local-remote</id>
             <name>Local Test Repository</name>
             <layout>default</layout>
-            <url>LOCAL_MAVEN_REPO_URL</url>
+            <url>http://www.example.com/maven/repo</url>
         </repository>
     </repositories>
 

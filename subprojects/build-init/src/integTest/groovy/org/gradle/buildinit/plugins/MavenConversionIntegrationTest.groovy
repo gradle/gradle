@@ -502,12 +502,7 @@ Root project 'webinar-parent'
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolDefaultHandling"() {
         def dsl = dslFixtureFor(scriptDsl)
-
-        setup:
-        def repo = mavenHttpServer()
-        // update pom with test repo url
-        def localRepoUrl = repo.getUri().toString()
-        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
@@ -519,12 +514,7 @@ Root project 'webinar-parent'
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolWarn"() {
         def dsl = dslFixtureFor(scriptDsl)
-
-        setup:
-        def repo = mavenHttpServer()
-        // update pom with test repo url
-        def localRepoUrl = repo.getUri().toString()
-        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN.id
@@ -536,24 +526,21 @@ Root project 'webinar-parent'
     private static void assertWarnOptionSucceeds(ExecutionResult result, ScriptDslFixture dsl, String localRepoUrl) {
         dsl.assertGradleFilesGenerated()
 
-        def isGroovy = dsl.scriptDsl.id.equalsIgnoreCase("Groovy")
-        def allowPrefix = isGroovy ? "a" : "isA"
-        def fileExtension = isGroovy ? "gradle" : "gradle.kts"
-
         def initTask = result.groupedOutput.task(':init')
         initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-        initTask.output.contains("If you wish to use this repository, you will have to uncomment the line '${allowPrefix}llowInsecureProtocol=true' in the generated build.${fileExtension} file.")
+
+        def isGroovy = dsl.scriptDsl.id.equalsIgnoreCase("Groovy")
+        if (isGroovy) {
+            initTask.output.contains("If you wish to use this repository, you will have to uncomment the line 'allowInsecureProtocol=true' in the generated build.gradle file.")
+        } else {
+            initTask.output.contains("If you wish to use this repository, you will have to uncomment the line 'isAllowInsecureProtocol=true' in the generated build.gradle.kts file.")
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolAllow"() {
         def dsl = dslFixtureFor(scriptDsl)
-
-        setup:
-        def repo = mavenHttpServer()
-        // update pom with test repo url
-        def localRepoUrl = repo.getUri().toString()
-        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW.id
@@ -566,13 +553,17 @@ Root project 'webinar-parent'
         taskOutput.contains("Setting allowInsecureProtocol=true.")
 
         def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
-        def stringDelimiter = isGroovy ? "'" : '"'
-        def allowPropertyPrefix = isGroovy ? 'a' : 'isA'
-        def mavenLocalRepoBlock = """
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
     maven {
-        url = uri($stringDelimiter$localRepoUrl$stringDelimiter)
-        ${allowPropertyPrefix}llowInsecureProtocol = true
-    }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        url = uri('$localRepoUrl')
+        allowInsecureProtocol = true
+    }""" : """
+    maven {
+        url = uri("$localRepoUrl")
+        isAllowInsecureProtocol = true
+    }""")
 
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
     }
@@ -580,12 +571,7 @@ Root project 'webinar-parent'
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolUpgrade"() {
         def dsl = dslFixtureFor(scriptDsl)
-
-        setup:
-        def repo = mavenHttpServer()
-        // update pom with test repo url
-        def localRepoUrl = repo.getUri().toString()
-        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', localRepoUrl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE.id
@@ -599,11 +585,15 @@ Root project 'webinar-parent'
 
         def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
         def upgradedRepoUrl = localRepoUrl.replaceFirst(Protocol.HTTP.getPrefix(), Protocol.HTTPS.getPrefix())
-        def stringDelimiter = isGroovy ? "'" : '"'
-        def mavenLocalRepoBlock = """
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
     maven {
-        url = uri($stringDelimiter$upgradedRepoUrl$stringDelimiter)
-    }""" // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        url = uri('$upgradedRepoUrl')
+    }""" : """
+    maven {
+        url = uri("$upgradedRepoUrl")
+    }""")
 
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
     }
