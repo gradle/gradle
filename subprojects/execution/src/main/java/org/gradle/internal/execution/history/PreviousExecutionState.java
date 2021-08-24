@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 /**
  * A execution state after the previous execution has finished.
  */
-public interface AfterPreviousExecutionState extends ExecutionState {
+public interface PreviousExecutionState extends ExecutionState {
 
     /**
      * The ID and execution time of origin of the execution's outputs.

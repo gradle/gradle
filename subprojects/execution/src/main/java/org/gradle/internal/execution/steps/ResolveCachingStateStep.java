@@ -31,10 +31,10 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -131,8 +131,8 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
 
             @Override

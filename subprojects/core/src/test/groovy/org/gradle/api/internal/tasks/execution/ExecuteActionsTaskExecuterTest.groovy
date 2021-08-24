@@ -45,9 +45,9 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
@@ -107,7 +107,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
-    def previousState = Stub(AfterPreviousExecutionState) {
+    def previousState = Stub(PreviousExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
 

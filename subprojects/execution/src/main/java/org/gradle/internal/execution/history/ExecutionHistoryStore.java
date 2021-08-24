@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import java.util.Optional;
 
 public interface ExecutionHistoryStore {
-    Optional<AfterPreviousExecutionState> load(String key);
+    Optional<PreviousExecutionState> load(String key);
 
     void store(String key,
                OriginMetadata originMetadata,

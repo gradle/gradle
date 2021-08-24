@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.ExecutionResult
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.snapshot.FileSystemSnapshot
 
@@ -44,7 +44,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
         _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        _ * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
+        _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState))
         0 * _
     }
 

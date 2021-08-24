@@ -25,8 +25,8 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -41,7 +41,7 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final PersistentIndexedCache<String, AfterPreviousExecutionState> store;
+    private final PersistentIndexedCache<String, PreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
@@ -61,7 +61,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public Optional<AfterPreviousExecutionState> load(String key) {
+    public Optional<PreviousExecutionState> load(String key) {
         return Optional.ofNullable(store.getIfPresent(key));
     }
 
@@ -76,7 +76,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
         boolean successful
     ) {
-        store.put(key, new DefaultAfterPreviousExecutionState(
+        store.put(key, new DefaultPreviousExecutionState(
             originMetadata,
             implementation,
             additionalImplementations,

@@ -439,12 +439,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution) {
+        public Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
             TaskProperties properties = context.getTaskProperties();
             FileCollection inputFiles = properties.getInputFiles();
             FileCollection sourceFiles = properties.getSourceFiles();
             boolean hasSourceFiles = properties.hasSourceFiles();
-            return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, outputFilesAfterPreviousExecution);
+            return emptySourceTaskSkipper.skipIfEmptySources(task, hasSourceFiles, inputFiles, sourceFiles, previousOutputFiles);
         }
 
         @Override

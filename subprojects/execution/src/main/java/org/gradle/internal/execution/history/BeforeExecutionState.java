@@ -35,7 +35,7 @@ public interface BeforeExecutionState extends ExecutionState {
      *
      * This includes snapshots for the whole output {@link org.gradle.api.file.FileCollection}.
      *
-     * @see AfterPreviousExecutionState#getOutputFilesProducedByWork()
+     * @see PreviousExecutionState#getOutputFilesProducedByWork()
      * @see SnapshotResult#getOutputFilesProduceByWork()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();

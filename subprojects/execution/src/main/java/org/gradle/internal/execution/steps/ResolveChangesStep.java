@@ -25,9 +25,9 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -67,12 +67,12 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             )
             .orElseGet(() ->
                 beforeExecutionState
-                    .map(beforeExecution -> context.getAfterPreviousExecutionState()
-                        .map(afterPreviousExecution -> context.getValidationProblems()
+                    .map(beforeExecution -> context.getPreviousExecutionState()
+                        .map(previousExecution -> context.getValidationProblems()
                             .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
                             .orElseGet(() ->
                                 changeDetector.detectChanges(
-                                    afterPreviousExecution,
+                                    previousExecution,
                                     beforeExecution,
                                     work,
                                     createIncrementalInputProperties(work)))
@@ -129,8 +129,8 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
 
             @Override
