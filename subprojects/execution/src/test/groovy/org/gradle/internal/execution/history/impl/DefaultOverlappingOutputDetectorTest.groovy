@@ -31,19 +31,19 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
     def detector = new DefaultOverlappingOutputDetector()
 
     def "detects no overlap when there are none"() {
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+        def previousOutputFiles = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", FileSystemSnapshot.EMPTY
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", FileSystemSnapshot.EMPTY
         )
         expect:
-        detector.detect(outputFilesAfterPreviousExecution, outputFilesBeforeExecution) == null
+        detector.detect(previousOutputFiles, outputFilesBeforeExecution) == null
     }
 
     def "detects overlap when there is a stale root"() {
         def staleFileAddedBetweenExecutions = new RegularFileSnapshot("/absolute/path", "path", HashCode.fromInt(1234), DefaultFileMetadata.file(0, 0, AccessType.DIRECT))
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
+        def previousOutputFiles = ImmutableSortedMap.<String, FileSystemSnapshot>of(
             "output", FileSystemSnapshot.EMPTY
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot>of(
@@ -51,7 +51,7 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
         )
 
         when:
-        def overlaps = detector.detect(outputFilesAfterPreviousExecution, outputFilesBeforeExecution)
+        def overlaps = detector.detect(previousOutputFiles, outputFilesBeforeExecution)
 
         then:
         overlaps.propertyName == "output"
@@ -64,7 +64,7 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
         def directoryWithStaleBrokenSymlink = new DirectorySnapshot("/absolute", "absolute", AccessType.DIRECT, HashCode.fromInt(0x5678), [
             staleEntry
         ])
-        def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+        def previousOutputFiles = ImmutableSortedMap.<String, FileSystemSnapshot> of(
             "output", emptyDirectory
         )
         def outputFilesBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
@@ -72,7 +72,7 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
         )
 
         when:
-        def overlaps = detector.detect(outputFilesAfterPreviousExecution, outputFilesBeforeExecution)
+        def overlaps = detector.detect(previousOutputFiles, outputFilesBeforeExecution)
 
         then:
         overlaps.propertyName == "output"

@@ -22,12 +22,12 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
+public class CaptureStateBeforeExecutionStep extends BuildOperationStep<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -67,7 +67,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, AfterPreviousExecutionContext context) {
+    public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(executionHistoryStore -> captureExecutionStateOp(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
@@ -116,13 +116,13 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
         });
     }
 
-    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, AfterPreviousExecutionContext executionContext) {
+    private BeforeExecutionState captureExecutionStateOp(UnitOfWork work, PreviousExecutionContext executionContext) {
         return operation(operationContext -> {
                 BeforeExecutionState beforeExecutionState = captureExecutionState(work, executionContext);
                 operationContext.setResult(Operation.Result.INSTANCE);
@@ -134,8 +134,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
         );
     }
 
-    private BeforeExecutionState captureExecutionState(UnitOfWork work, AfterPreviousExecutionContext context) {
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+        Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
@@ -147,14 +147,14 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState
+        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecutionState
             .map(ExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = afterPreviousExecutionState
+        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
             .map(ExecutionState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterPreviousExecution = afterPreviousExecutionState
-            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = previousExecutionState
+            .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
 
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
@@ -162,7 +162,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {
             case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(outputSnapshotsAfterPreviousExecution, unfilteredOutputSnapshots);
+                overlappingOutputs = overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
                 break;
             case IGNORE_OVERLAPS:
                 overlappingOutputs = null;

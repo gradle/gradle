@@ -157,10 +157,10 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
@@ -829,8 +829,8 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                    return context.getAfterPreviousExecutionState();
+                public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                    return context.getPreviousExecutionState();
                 }
 
                 @Override

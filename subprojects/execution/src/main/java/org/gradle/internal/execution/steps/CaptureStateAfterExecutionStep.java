@@ -22,8 +22,8 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -112,8 +112,8 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         if (hasDetectedOverlappingOutputs) {
-            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getAfterPreviousExecutionState()
-                .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+            ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getPreviousExecutionState()
+                .map(PreviousExecutionState::getOutputFilesProducedByWork)
                 .orElse(ImmutableSortedMap.of());
 
             ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsBeforeExecution = context.getBeforeExecutionState()

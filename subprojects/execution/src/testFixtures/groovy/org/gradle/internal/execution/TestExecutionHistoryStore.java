@@ -19,9 +19,9 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultAfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -38,10 +38,10 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final Map<String, AfterPreviousExecutionState> executionHistory = new HashMap<>();
+    private final Map<String, PreviousExecutionState> executionHistory = new HashMap<>();
 
     @Override
-    public Optional<AfterPreviousExecutionState> load(String key) {
+    public Optional<PreviousExecutionState> load(String key) {
         return Optional.ofNullable(executionHistory.get(key));
     }
 
@@ -56,7 +56,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
         ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
         boolean successful
     ) {
-        executionHistory.put(key, new DefaultAfterPreviousExecutionState(
+        executionHistory.put(key, new DefaultPreviousExecutionState(
             originMetadata,
             implementation,
             additionalImplementations,
@@ -79,7 +79,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
         ));
     }
 
-    public Map<String, AfterPreviousExecutionState> getExecutionHistory() {
+    public Map<String, PreviousExecutionState> getExecutionHistory() {
         return executionHistory;
     }
 }

@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionResult
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -90,7 +90,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.previousExecutionState >> Optional.empty()
 
         then:
         interaction { expectStore(false, outputFilesProduceByWork) }
@@ -98,7 +98,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def "output snapshots are stored after failed execution with changed outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousExecutionState = Mock(PreviousExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -113,8 +113,8 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
 
         then:
         interaction { expectStore(false, outputFilesProduceByWork) }
@@ -122,7 +122,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def "output snapshots are not stored after failed execution with unchanged outputs"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousExecutionState = Mock(PreviousExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -137,8 +137,8 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
         then:
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * afterPreviousExecutionState.outputFilesProducedByWork >> outputFilesProduceByWork
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProduceByWork
         0 * _
     }
 

@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot;
@@ -31,7 +31,7 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.find
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, IncrementalInputProperties incrementalInputProperties) {
+    public ExecutionStateChanges detectChanges(PreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, IncrementalInputProperties incrementalInputProperties) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());

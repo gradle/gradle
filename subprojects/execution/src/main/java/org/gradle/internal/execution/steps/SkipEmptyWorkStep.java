@@ -24,13 +24,13 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.time.Duration;
 import java.util.Optional;
 
-public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implements Step<C, CachingResult> {
+public class SkipEmptyWorkStep<C extends PreviousExecutionContext> implements Step<C, CachingResult> {
     private final Step<? super C, ? extends CachingResult> delegate;
 
     public SkipEmptyWorkStep(Step<? super C, ? extends CachingResult> delegate) {
@@ -39,11 +39,11 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
 
     @Override
     public CachingResult execute(UnitOfWork work, C context) {
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getAfterPreviousExecutionState()
-            .map(AfterPreviousExecutionState::getOutputFilesProducedByWork)
+        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles = context.getPreviousExecutionState()
+            .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
         UnitOfWork.Identity identity = context.getIdentity();
-        return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)
+        return work.skipIfInputsEmpty(previousOutputFiles)
             .map(skippedOutcome -> {
                 context.getHistory()
                     .ifPresent(history -> history.remove(identity.getUniqueId()));

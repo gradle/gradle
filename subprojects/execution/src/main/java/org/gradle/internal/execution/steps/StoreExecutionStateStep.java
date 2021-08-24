@@ -44,8 +44,8 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
                     // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
                     // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
                     // If there is no previous state, then we do have output changes
-                    boolean shouldStore = successful || context.getAfterPreviousExecutionState()
-                        .map(afterPreviousExecutionState -> didOutputsChange(afterPreviousExecutionState.getOutputFilesProducedByWork(), outputFilesProducedByWork))
+                    boolean shouldStore = successful || context.getPreviousExecutionState()
+                        .map(previousExecutionState -> didOutputsChange(previousExecutionState.getOutputFilesProducedByWork(), outputFilesProducedByWork))
                         .orElse(true);
 
                     if (shouldStore) {

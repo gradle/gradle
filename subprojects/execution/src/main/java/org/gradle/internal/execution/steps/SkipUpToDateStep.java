@@ -24,7 +24,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
                 }
                 @SuppressWarnings("OptionalGetWithoutIsPresent")
-                AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecutionState().get();
+                PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
                 return new UpToDateResult() {
                     @Override
                     public ImmutableList<String> getExecutionReasons() {
@@ -66,12 +66,12 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                        return afterPreviousExecutionState.getOutputFilesProducedByWork();
+                        return previousExecutionState.getOutputFilesProducedByWork();
                     }
 
                     @Override
                     public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                        return Optional.of(afterPreviousExecutionState.getOriginMetadata());
+                        return Optional.of(previousExecutionState.getOriginMetadata());
                     }
 
                     @Override
@@ -91,7 +91,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public Duration getDuration() {
-                        return afterPreviousExecutionState.getOriginMetadata().getExecutionTime();
+                        return previousExecutionState.getOriginMetadata().getExecutionTime();
                     }
                 };
             } else {

@@ -19,18 +19,18 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class DefaultAfterPreviousExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements AfterPreviousExecutionState {
+public class DefaultPreviousExecutionState extends AbstractExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
     private final boolean successful;
 
-    public DefaultAfterPreviousExecutionState(
+    public DefaultPreviousExecutionState(
         OriginMetadata originMetadata,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
