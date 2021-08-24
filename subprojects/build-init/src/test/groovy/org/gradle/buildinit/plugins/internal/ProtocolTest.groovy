@@ -21,7 +21,7 @@ import spock.lang.Specification
 class ProtocolTest extends Specification {
     def "detects protocol from url"() {
         expect:
-        Protocol.fromUrl(url) == protocol
+        Protocol.fromUri(url) == protocol
 
         where:
         protocol        | url

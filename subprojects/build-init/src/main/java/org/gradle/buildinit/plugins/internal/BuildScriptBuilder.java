@@ -27,6 +27,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,14 +95,12 @@ public class BuildScriptBuilder {
         return Splitter.on("\n").splitToList(comment.trim());
     }
 
-    private static URL urlFromString(String urlAsString) {
-        final URL urlAsURL;
+    private static URI uriFromString(String uriAsString) {
         try {
-            urlAsURL = new URL(urlAsString);
-        } catch (MalformedURLException e) {
-            throw new GradleException(String.format("Invalid URL: '%s'.", urlAsString), e);
+            return new URI(uriAsString);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        return urlAsURL;
     }
 
     /**
@@ -1039,14 +1038,14 @@ public class BuildScriptBuilder {
         }
 
         private void ensureProtocolSecurity(String url, ScriptBlockImpl statements) {
-            final URL urlAsURL = urlFromString(url);
-            final Protocol protocol = Protocol.fromUrl(urlAsURL);
+            final URI uriAsURI = uriFromString(url);
+            final Protocol protocol = Protocol.fromUri(uriAsURI);
 
             if (protocol.isSecure()) {
                 statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
             } else {
                 logger.warn("Repository URL: '{}' uses an insecure protocol.", url);
-                builder.insecureProtocolHandler.handle(urlAsURL, statements);
+                builder.insecureProtocolHandler.handle(uriAsURI, statements);
             }
         }
     }
@@ -1668,7 +1667,7 @@ public class BuildScriptBuilder {
     }
 
     public interface InsecureProtocolHandler {
-        void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements);
+        void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements);
 
         static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl) {
             switch (insecureProtocolOption) {
@@ -1692,14 +1691,14 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
+        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
             final boolean isGroovy = dsl.getId().equalsIgnoreCase("Groovy");
             final String allowPrefix = isGroovy ? "a" : "isA";
             final String fileExtension = isGroovy ? "gradle" : "gradle.kts";
 
             logger.warn("If you wish to use this repository, you will have to uncomment the line '{}llowInsecureProtocol=true' in the generated build.{}} file.", allowPrefix, fileExtension);
 
-            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
+            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(uri.toString()))), true);
             statements.comment(buildAllowInsecureProtocolComment(dsl));
         }
 
@@ -1719,13 +1718,13 @@ public class BuildScriptBuilder {
 
     public static class UpgradingHandler implements InsecureProtocolHandler {
         @Override
-        public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            final Protocol protocol = Protocol.fromUrl(url);
+        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
+            final Protocol protocol = Protocol.fromUri(uri);
             if (protocol.hasReplacement()) {
                 logger.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
 
-                final URL upgradedURL = Protocol.secureProtocol(url);
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(upgradedURL.toString()))), true);
+                final URI upgradedURI = Protocol.secureProtocol(uri);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(upgradedURI.toString()))), true);
             } else {
                 throw new GradleException(String.format("Can't upgrade insecure protocol: '%s' as no replacement exists.", protocol));
             }
@@ -1734,8 +1733,8 @@ public class BuildScriptBuilder {
 
     public static class AllowingHandler implements InsecureProtocolHandler {
         @Override
-        public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
+        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
+            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(uri.toString()))), true);
             statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
         }
     }

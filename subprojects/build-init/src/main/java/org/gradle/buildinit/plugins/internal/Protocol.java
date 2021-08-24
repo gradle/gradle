@@ -20,6 +20,8 @@ import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Optional;
@@ -29,20 +31,20 @@ public enum Protocol {
     HTTPS("https", true, null),
     FILE("file", true, null);
 
-    public static Protocol fromUrl(URL url) {
+    public static Protocol fromUri(URI uri) {
         // The getProtocol() method is misnamed, and really returns a scheme, see https://stackoverflow.com/a/47078624/187206
-        final String protocol = url.getProtocol();
-        return findByPrefix(protocol).orElseThrow(() -> new GradleException(String.format("Unknown protocol: '%s' in URL: '%s'.", protocol, url)));
+        final String protocol = uri.getScheme();
+        return findByPrefix(protocol).orElseThrow(() -> new GradleException(String.format("Unknown protocol: '%s' in URL: '%s'.", protocol, uri)));
     }
 
-    public static URL secureProtocol(URL url) {
-        final Protocol scheme = Protocol.fromUrl(url);
+    public static URI secureProtocol(URI uri) {
+        final Protocol scheme = Protocol.fromUri(uri);
         final Protocol replacement = scheme.getReplacement();
 
         try {
-            return new URL(url.toString().replaceFirst(scheme.prefix, replacement.prefix));
-        } catch (final MalformedURLException e) {
-            throw new GradleException(String.format("Error upgrading scheme for URL: '%s'.", url), e);
+            return new URI(uri.toString().replaceFirst(scheme.prefix, replacement.prefix));
+        } catch (final URISyntaxException e) {
+            throw new GradleException(String.format("Error upgrading scheme for URL: '%s'.", uri), e);
         }
     }
 
