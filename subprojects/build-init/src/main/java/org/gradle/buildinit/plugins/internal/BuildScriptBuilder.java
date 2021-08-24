@@ -1692,12 +1692,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            final boolean isGroovy = dsl.getId().equalsIgnoreCase("Groovy");
-            final String allowPrefix = isGroovy ? "a" : "isA";
-            final String fileExtension = isGroovy ? "gradle" : "gradle.kts";
-
-            final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
-            logger.warn("If you wish to use this repository, you will have to uncomment the line '{}llowInsecureProtocol=true' in the generated build.{}} file.", allowPrefix, fileExtension);
+            logger.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
 
             statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
             statements.comment(buildAllowInsecureProtocolComment(dsl));
