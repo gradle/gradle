@@ -96,6 +96,9 @@ public class ExternalResourceName implements Describable {
         if (uri.getHost() != null) {
             builder.append("//");
             builder.append(uri.getHost());
+        } else if (uri.getAuthority() != null) {
+            builder.append("//");
+            builder.append(uri.getAuthority());
         }
         if (uri.getPort() > 0) {
             builder.append(":");

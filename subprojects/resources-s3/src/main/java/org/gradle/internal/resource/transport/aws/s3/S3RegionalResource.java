@@ -70,7 +70,7 @@ public class S3RegionalResource {
             this.key = key;
         } else {
             this.region = Optional.absent();
-            this.bucketName = getBucketName(uri.getHost());
+            this.bucketName = getBucketName(uri.getHost() == null ? uri.getAuthority() : uri.getHost());
             this.key = getS3BucketKey(uri);
         }
     }
