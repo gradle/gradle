@@ -18,10 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -176,9 +178,12 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public void visitInputFileProperties(final InputFilePropertyVisitor visitor) {
-        cachingState.getInputs().ifPresent(inputs -> {
+        cachingState.getInputs()
+            .map(CachingInputs::getBeforeExecutionState)
+            .map(BeforeExecutionState::getInputFileProperties)
+            .ifPresent(inputFileProperties -> {
             State state = new State(visitor);
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputs.getInputFileFingerprints().entrySet()) {
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
                 CurrentFileCollectionFingerprint fingerprint = entry.getValue();
 
                 state.propertyName = entry.getKey();
@@ -200,7 +205,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 @Nullable
                 @Override
                 public byte[] apply(CachingInputs inputs) {
-                    ImplementationSnapshot implementation = inputs.getImplementation();
+                    ImplementationSnapshot implementation = inputs.getBeforeExecutionState().getImplementation();
                     if (implementation.getClassLoaderHash() == null) {
                         return null;
                     }
@@ -213,7 +218,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<byte[]> getActionClassLoaderHashesBytes() {
         return cachingState.getInputs()
-            .map(CachingInputs::getAdditionalImplementations)
+            .map(CachingInputs::getBeforeExecutionState)
+            .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementation -> !additionalImplementation.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
                 .map(input -> input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray())
@@ -225,7 +231,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<String> getActionClassNames() {
         return cachingState.getInputs()
-            .map(CachingInputs::getAdditionalImplementations)
+            .map(CachingInputs::getBeforeExecutionState)
+            .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementations -> !additionalImplementations.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
                 .map(ImplementationSnapshot::getTypeName)
@@ -238,7 +245,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public List<String> getOutputPropertyNames() {
         return cachingState.getInputs()
-            .map(CachingInputs::getOutputProperties)
+            .map(CachingInputs::getBeforeExecutionState)
+            .map(BeforeExecutionState::getOutputFileLocationSnapshots)
+            .map(ImmutableSortedMap::keySet)
             .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
             .map(ImmutableSet::asList)
             .orElse(null);

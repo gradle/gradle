@@ -28,9 +28,8 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.caching.CachingStateBuilder;
-import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
-import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
+import org.gradle.internal.execution.caching.CachingStateFactory;
+import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -40,6 +39,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
 
 import java.io.File;
 import java.time.Duration;
@@ -77,7 +77,7 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
-                .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
+                .map(beforeExecutionState -> calculateCachingState(work, beforeExecutionState))
                 .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
         }
 
@@ -178,26 +178,22 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
         };
     }
 
-    private CachingState calculateCachingState(BeforeExecutionState executionState, UnitOfWork work) {
-        CachingStateBuilder builder = buildCache.isEmitDebugLogging()
-            ? new LoggingCachingStateBuilder()
-            : new DefaultCachingStateBuilder();
+    private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
+        Logger logger = buildCache.isEmitDebugLogging()
+            ? LOGGER
+            : NOPLogger.NOP_LOGGER;
+        CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
 
+        ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
         if (!buildCache.isEnabled()) {
-            builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
+            cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
-        OverlappingOutputs detectedOverlappingOutputs = executionState.getDetectedOverlappingOutputs()
+        OverlappingOutputs detectedOverlappingOutputs = beforeExecutionState.getDetectedOverlappingOutputs()
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
-            .ifPresent(builder::markNotCacheable);
+            .ifPresent(cachingDisabledReasonsBuilder::add);
 
-        builder.withImplementation(executionState.getImplementation());
-        builder.withAdditionalImplementations(executionState.getAdditionalImplementations());
-        builder.withInputValueFingerprints(executionState.getInputProperties());
-        builder.withInputFilePropertyFingerprints(executionState.getInputFileProperties());
-        builder.withOutputPropertyNames(executionState.getOutputFileLocationSnapshots().keySet());
-
-        return builder.build();
+        return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
     }
 
     private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {
