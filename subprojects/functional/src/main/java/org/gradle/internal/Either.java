@@ -16,6 +16,9 @@
 
 package org.gradle.internal;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -34,9 +37,54 @@ public abstract class Either<L, R> {
         return new Right<>(value);
     }
 
-    public abstract <U> U fold(Function<L, U> l, Function<R, U> r);
+    /**
+     * Is this a left?
+     */
+    public abstract boolean isLeft();
 
-    public abstract <U> Either<L, U> map(Function<R, U> r);
+    /**
+     * Is this a right?
+     */
+    public abstract boolean isRight();
+
+    /**
+     * Take the value if this is a left.
+     */
+    public abstract Optional<L> ifLeft();
+
+    /**
+     * Take the value if this is a right.
+     */
+    public abstract Optional<R> ifRight();
+
+    /**
+     * Map either case.
+     */
+    public abstract <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r);
+
+    /**
+     * Flat map either case.
+     */
+    public abstract <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r);
+
+    /**
+     * Apply the respective function and return its result.
+     */
+    public abstract <U> U fold(Function<? super L, ? extends U> l, Function<? super R, ? extends U> r);
+
+    /**
+     * Apply the respective consumer.
+     */
+    public abstract void apply(Consumer<? super L> l, Consumer<? super R> r);
+
+    @Override
+    public abstract boolean equals(@Nullable Object obj);
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
 
     private static class Left<L, R> extends Either<L, R> {
         private final L value;
@@ -46,14 +94,65 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public <U> U fold(Function<L, U> l, Function<R, U> r) {
-            return l.apply(value);
+        public boolean isLeft() {
+            return true;
+        }
+
+        @Override
+        public boolean isRight() {
+            return false;
+        }
+
+        @Override
+        public Optional<L> ifLeft() {
+            return Optional.of(value);
+        }
+
+        @Override
+        public Optional<R> ifRight() {
+            return Optional.empty();
+        }
+
+        @Override
+        public <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r) {
+            return new Left<>(l.apply(value));
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public <U> Either<L, U> map(Function<R, U> r) {
-            return (Either<L, U>) this;
+        public <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r) {
+            return (Either<U, V>) l.apply(value);
+        }
+
+        @Override
+        public <U> U fold(Function<? super L, ? extends U> l, Function<? super R, ? extends U> r) {
+            return l.apply(value);
+        }
+
+        @Override
+        public void apply(Consumer<? super L> l, Consumer<? super R> r) {
+            l.accept(value);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return value.equals(((Left<?, ?>) o).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Left(" + value + ")";
         }
     }
 
@@ -65,13 +164,65 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public <U> U fold(Function<L, U> l, Function<R, U> r) {
+        public boolean isLeft() {
+            return false;
+        }
+
+        @Override
+        public boolean isRight() {
+            return true;
+        }
+
+        @Override
+        public Optional<L> ifLeft() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<R> ifRight() {
+            return Optional.of(value);
+        }
+
+        @Override
+        public <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r) {
+            return new Right<>(r.apply(value));
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r) {
+            return (Either<U, V>) r.apply(value);
+        }
+
+        @Override
+        public <U> U fold(Function<? super L, ? extends U> l, Function<? super R, ? extends U> r) {
             return r.apply(value);
         }
 
         @Override
-        public <U> Either<L, U> map(Function<R, U> r) {
-            return new Right<>(r.apply(value));
+        public void apply(Consumer<? super L> l, Consumer<? super R> r) {
+            r.accept(value);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return value.equals(((Right<?, ?>) o).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Right(" + value + ")";
         }
     }
 }
