@@ -66,8 +66,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
 
                     @Override
-                    public AfterExecutionState getAfterExecutionState() {
-                        return afterExecutionState;
+                    public Optional<AfterExecutionState> getAfterExecutionState() {
+                        return Optional.of(afterExecutionState);
                     }
 
                     @Override
@@ -111,7 +111,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public AfterExecutionState getAfterExecutionState() {
+            public Optional<AfterExecutionState> getAfterExecutionState() {
                 return result.getAfterExecutionState();
             }
 

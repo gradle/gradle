@@ -18,6 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.history.AfterExecutionState;
 
+import java.util.Optional;
+
 public interface SnapshotResult extends Result {
-    AfterExecutionState getAfterExecutionState();
+    /**
+     * State after execution, or {@link Optional#empty()} if work is untracked.
+     */
+    Optional<AfterExecutionState> getAfterExecutionState();
 }

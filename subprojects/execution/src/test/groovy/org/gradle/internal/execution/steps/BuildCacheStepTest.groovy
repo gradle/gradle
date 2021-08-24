@@ -68,7 +68,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
         result.reused
         result.originMetadata == cachedOriginMetadata
-        result.afterExecutionState.outputFileLocationSnapshots == outputsFromCache
+        result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
 
@@ -143,6 +143,31 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         }
 
         then:
+        0 * _
+    }
+
+    def "does not store untracked result in cache"() {
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+        !result.reused
+
+        interaction { withValidCacheKey() }
+
+        then:
+        _ * work.allowedToLoadFromCache >> true
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> Optional.empty()
+
+        then:
+        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.afterExecutionState >> Optional.empty()
+
+        then:
+        0 * buildCacheController.store(_)
         0 * _
     }
 
@@ -241,9 +266,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def outputFilesProducedByWork = snapshotsOf("test": [])
         def storeCommand = Mock(BuildCacheStoreCommand)
 
-        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+        1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
-        }
+        })
         1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
         1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> storeCommand

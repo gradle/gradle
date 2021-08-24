@@ -855,7 +855,7 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public AfterExecutionState getAfterExecutionState() {
+                public Optional<AfterExecutionState> getAfterExecutionState() {
                     return result.getAfterExecutionState();
                 }
 

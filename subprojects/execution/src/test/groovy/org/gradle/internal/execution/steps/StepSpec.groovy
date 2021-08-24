@@ -55,6 +55,20 @@ abstract class StepSpec<C extends Context> extends Specification {
         assert buildOperationExecutor.log.records.empty
     }
 
+    protected <T, R> void assertSuccessfulOperation(Class<BuildOperationType<T, R>> operationType, String displayName, R result) {
+        withOnlyOperation(operationType) {
+            assert it.descriptor.displayName == displayName
+            assert it.result == result
+        }
+    }
+
+    protected <T, R> void assertFailedOperation(Class<BuildOperationType<T, R>> operationType, String displayName, Throwable expectedFailure) {
+        withOnlyOperation(operationType) {
+            assert it.descriptor.displayName == displayName
+            assert it.failure == expectedFailure
+        }
+    }
+
     protected <D, R, T extends BuildOperationType<D, R>> void withOnlyOperation(
         Class<T> operationType,
         Consumer<TestBuildOperationExecutor.Log.TypedRecord<D, R>> verifier

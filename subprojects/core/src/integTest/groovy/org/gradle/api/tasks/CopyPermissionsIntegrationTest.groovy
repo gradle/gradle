@@ -283,6 +283,9 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the input or output property as untracked.")
         succeeds 'copy'
         then:
         outputDirectory.list().contains input.name

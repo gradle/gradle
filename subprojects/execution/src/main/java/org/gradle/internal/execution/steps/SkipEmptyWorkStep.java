@@ -26,7 +26,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.time.Duration;
@@ -49,7 +48,6 @@ public class SkipEmptyWorkStep<C extends PreviousExecutionContext> implements St
             .map(skippedOutcome -> {
                 context.getHistory()
                     .ifPresent(history -> history.remove(identity.getUniqueId()));
-                AfterExecutionState defaultAfterExecutionState = new DefaultAfterExecutionState(ImmutableSortedMap.of());
                 return (CachingResult) new CachingResult() {
                     @Override
                     public Try<ExecutionResult> getExecutionResult() {
@@ -77,8 +75,8 @@ public class SkipEmptyWorkStep<C extends PreviousExecutionContext> implements St
                     }
 
                     @Override
-                    public AfterExecutionState getAfterExecutionState() {
-                        return defaultAfterExecutionState;
+                    public Optional<AfterExecutionState> getAfterExecutionState() {
+                        return Optional.empty();
                     }
 
                     @Override

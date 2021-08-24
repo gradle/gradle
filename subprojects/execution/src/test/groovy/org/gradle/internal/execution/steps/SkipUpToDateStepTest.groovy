@@ -80,9 +80,9 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         def afterExecutionState = result.afterExecutionState
 
         then:
-        afterExecutionState == delegateAfterExecutionState
+        afterExecutionState.get() == delegateAfterExecutionState
 
-        1 * delegateResult.afterExecutionState >> delegateAfterExecutionState
+        1 * delegateResult.afterExecutionState >> Optional.of(delegateAfterExecutionState)
         0 * _
     }
 

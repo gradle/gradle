@@ -58,7 +58,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
-    def "no state is captured when task history is not maintained"() {
+    def "no state is captured when history is not maintained"() {
         when:
         step.execute(work, context)
         then:
@@ -95,7 +95,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         0 * _
 
-        assertOperationForInputsBeforeExecution()
+        assertOperation()
     }
 
     def "input properties are snapshotted"() {
@@ -128,26 +128,68 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         0 * _
 
-        assertOperationForInputsBeforeExecution()
+        assertOperation()
     }
 
     def "output file properties are snapshotted"() {
-        def outputDirSnapshot = Mock(FileSystemSnapshot)
+        def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", Mock(FileSystemSnapshot))
 
         when:
         step.execute(work, context)
 
         then:
-        _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputDirSnapshot)
+        _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
-            assert state.outputFileLocationSnapshots == ImmutableSortedMap.of('outputDir', outputDirSnapshot)
+            assert state.outputFileLocationSnapshots == outputSnapshots
         }
         0 * _
 
-        assertOperationForInputsBeforeExecution()
+        assertOperation()
+    }
+
+    def "no state is captured when input properties cannot be snapshot"() {
+        def failure = new UncheckedIOException(new IOException("Error"))
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.inputProperties >> ImmutableSortedMap.of()
+        _ * context.inputFileProperties >> ImmutableSortedMap.of()
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _
+        ) >> { throw failure }
+        interaction { snapshotState() }
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.beforeExecutionState.present
+        }
+        0 * _
+
+        assertOperation(failure)
+    }
+
+    def "no state is captured when output file properties cannot be snapshot"() {
+        def failure = new UncheckedIOException(new IOException("Error"))
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.inputProperties >> ImmutableSortedMap.of()
+        _ * context.inputFileProperties >> ImmutableSortedMap.of()
+        1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
+        interaction { snapshotState() }
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.beforeExecutionState.present
+        }
+        0 * _
+
+        assertOperation(failure)
     }
 
     def "detects overlapping outputs when instructed"() {
@@ -177,7 +219,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         0 * _
 
-        assertOperationForInputsBeforeExecution()
+        assertOperation()
     }
 
     void snapshotState() {
@@ -191,10 +233,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * context.history >> Optional.of(executionHistoryStore)
     }
 
-    private void assertOperationForInputsBeforeExecution() {
-        withOnlyOperation(CaptureStateBeforeExecutionStep.Operation) {
-            assert it.descriptor.displayName == "Snapshot inputs and outputs before executing job ':test'"
-            assert it.result == CaptureStateBeforeExecutionStep.Operation.Result.INSTANCE
+    private void assertOperation(Throwable expectedFailure = null) {
+        if (expectedFailure == null) {
+            assertSuccessfulOperation(CaptureStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", CaptureStateBeforeExecutionStep.Operation.Result.INSTANCE)
+        } else {
+            assertFailedOperation(CaptureStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", expectedFailure)
         }
     }
 }
