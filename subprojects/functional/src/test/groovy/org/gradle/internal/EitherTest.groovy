@@ -36,6 +36,28 @@ class EitherTest extends Specification {
     def left = either(LEFT)
     def right = either(RIGHT)
 
+    def "equals() works"() {
+        expect:
+        either(LEFT) == either(LEFT)
+        either(LEFT2) == either(LEFT2)
+        either(LEFT) != either(LEFT2)
+        either(LEFT2) != either(LEFT)
+        either(LEFT) != either(RIGHT)
+
+        either(RIGHT) == either(RIGHT)
+        either(RIGHT2) == either(RIGHT2)
+        either(RIGHT) != either(RIGHT2)
+        either(RIGHT2) != either(RIGHT)
+        either(RIGHT) != either(LEFT)
+    }
+
+    def "hashCode() works"() {
+        expect:
+        either(LEFT).hashCode() == either(LEFT).hashCode()
+
+        either(RIGHT).hashCode() == either(RIGHT).hashCode()
+    }
+
     def "toString() works"() {
         expect:
         left.toString() == "Left(LEFT)"
