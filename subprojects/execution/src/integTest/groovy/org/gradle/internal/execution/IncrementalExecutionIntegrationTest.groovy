@@ -45,7 +45,7 @@ import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.IdentityCacheStep
-import org.gradle.internal.execution.steps.LoadExecutionStateStep
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
@@ -156,7 +156,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
-            new LoadExecutionStateStep<>(
+            new LoadPreviousExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningReporter,
             new ResolveCachingStateStep<>(buildCacheController, false,

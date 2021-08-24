@@ -28,10 +28,10 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Optional;
 
-public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
     private final Step<? super PreviousExecutionContext, ? extends R> delegate;
 
-    public LoadExecutionStateStep(Step<? super PreviousExecutionContext, ? extends R> delegate) {
+    public LoadPreviousExecutionStateStep(Step<? super PreviousExecutionContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
