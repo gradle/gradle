@@ -43,6 +43,7 @@ public class JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkCacheDirectory.class);
     private static final String MARKER_FILE = "provisioned.ok";
+    private static final String MAC_OS_JAVA_HOME_FOLDER = "Contents/Home";
 
     private final FileOperations operations;
     private final File jdkDirectory;
@@ -68,8 +69,17 @@ public class JdkCacheDirectory {
     }
 
     private File findJavaHome(File potentialHome) {
-        if (new File(potentialHome, "Contents/Home").exists()) {
-            return new File(potentialHome, "Contents/Home");
+        if (new File(potentialHome, MAC_OS_JAVA_HOME_FOLDER).exists()) {
+            return new File(potentialHome, MAC_OS_JAVA_HOME_FOLDER);
+        }
+
+        File[] subfolders = potentialHome.listFiles(File::isDirectory);
+        if (subfolders != null) {
+            for(File subfolder : subfolders) {
+                if (new File(subfolder, MAC_OS_JAVA_HOME_FOLDER).exists()) {
+                    return new File(subfolder, MAC_OS_JAVA_HOME_FOLDER);
+                }
+            }
         }
         return potentialHome;
     }
