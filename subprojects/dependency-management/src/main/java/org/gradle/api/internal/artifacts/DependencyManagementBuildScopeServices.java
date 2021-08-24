@@ -173,7 +173,7 @@ import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
-import org.gradle.internal.execution.steps.LoadExecutionStateStep;
+import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -759,7 +759,7 @@ class DependencyManagementBuildScopeServices {
             new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
-            new LoadExecutionStateStep<>(
+            new LoadPreviousExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep(
