@@ -59,7 +59,7 @@ public class InitBuild extends DefaultTask {
     private String testFramework;
     private String projectName;
     private String packageName;
-    private String insecureProtocolOption;
+    private final Property<String> insecureProtocol = getProject().getObjects().property(String.class);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -140,15 +140,14 @@ public class InitBuild extends DefaultTask {
     /**
      * How to handle insecure (http) URLs used for Maven Repositories.
      *
-     * This property can be set via command-line option '--insecure-protocols'.
+     * This property can be set via command-line option '--insecure-protocols'.  The default value is 'warn'.
      *
      * @since 7.3
      */
-    @Nullable
     @Input
-    @Optional
-    public String getInsecureProtocolHandler() {
-        return insecureProtocolOption;
+    @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
+    public Property<String> getInsecureProtocol() {
+        return insecureProtocol;
     }
 
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -265,18 +264,14 @@ public class InitBuild extends DefaultTask {
         if (initDescriptor instanceof PomProjectInitDescriptor) {
             final PomProjectInitDescriptor pomProjectInitDescriptor = (PomProjectInitDescriptor) initDescriptor;
 
-            if (!isNullOrEmpty(this.insecureProtocolOption)) {
-                insecureProtocolOption = InsecureProtocolOption.byId(this.insecureProtocolOption);
-                if (insecureProtocolOption == null) {
-                    final TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("The requested insecure protocol handler '" + getInsecureProtocolHandler() + "' is unknown. Supported options");
-                    formatter.startChildren();
-                    pomProjectInitDescriptor.getInsecureProtocolHandlers().forEach(h -> formatter.node("'" + h.getId() + "'"));
-                    formatter.endChildren();
-                    throw new GradleException(formatter.toString());
-                }
-            } else {
-                insecureProtocolOption = pomProjectInitDescriptor.getDefaultInsecureProtocolHandler();
+            insecureProtocolOption = InsecureProtocolOption.byId(this.insecureProtocol.get());
+            if (insecureProtocolOption == null) {
+                final TreeFormatter formatter = new TreeFormatter();
+                formatter.node("The requested insecure protocol handler '" + getInsecureProtocol() + "' is unknown. Supported options");
+                formatter.startChildren();
+                pomProjectInitDescriptor.getInsecureProtocolHandlers().forEach(h -> formatter.node("'" + h.getId() + "'"));
+                formatter.endChildren();
+                throw new GradleException(formatter.toString());
             }
         }
 
@@ -352,16 +347,6 @@ public class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
-    }
-
-    /**
-     * Set the strategy for handling insecure Maven Repositories.
-     *
-     * @since 7.3
-     */
-    @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    public void setInsecureProtocolHandler(String insecureProtocolOption) {
-        this.insecureProtocolOption = insecureProtocolOption;
     }
 
     /**
