@@ -42,48 +42,49 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
 
     @Override
     public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-        ImmutableSortedMap<String, HashCode> inputValueFingerprints = collectInputValueFingerprints(beforeExecutionState.getInputProperties());
-
-        Hasher hasher = Hashing.newHasher();
+        Hasher cacheKeyHasher = Hashing.newHasher();
 
         logger.warn("Appending implementation to build cache key: {}",
             beforeExecutionState.getImplementation());
-        beforeExecutionState.getImplementation().appendToHasher(hasher);
+        beforeExecutionState.getImplementation().appendToHasher(cacheKeyHasher);
 
         beforeExecutionState.getAdditionalImplementations().forEach(additionalImplementation -> {
             logger.warn("Appending additional implementation to build cache key: {}",
                 additionalImplementation);
-            additionalImplementation.appendToHasher(hasher);
+            additionalImplementation.appendToHasher(cacheKeyHasher);
         });
 
-        inputValueFingerprints.forEach((propertyName, fingerprint) -> {
-            logger.warn("Appending input value fingerprint for '{}' to build cache key: {}",
-                propertyName, fingerprint);
-            hasher.putString(propertyName);
-            hasher.putHash(fingerprint);
+        beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
+            if (logger.isWarnEnabled()) {
+                Hasher valueHasher = Hashing.newHasher();
+                valueSnapshot.appendToHasher(valueHasher);
+                logger.warn("Appending input value fingerprint for '{}' to build cache key: {}",
+                    propertyName, valueHasher.hash());
+            }
+            cacheKeyHasher.putString(propertyName);
+            valueSnapshot.appendToHasher(cacheKeyHasher);
         });
+
         beforeExecutionState.getInputFileProperties().forEach((propertyName, fingerprint) -> {
             logger.warn("Appending input file fingerprints for '{}' to build cache key: {} - {}",
                 propertyName, fingerprint.getHash(), fingerprint);
-            hasher.putString(propertyName);
-            hasher.putHash(fingerprint.getHash());
+            cacheKeyHasher.putString(propertyName);
+            cacheKeyHasher.putHash(fingerprint.getHash());
         });
+
         beforeExecutionState.getOutputFileLocationSnapshots().keySet().forEach(propertyName -> {
             logger.warn("Appending output property name to build cache key: {}", propertyName);
-            hasher.putString(propertyName);
+            cacheKeyHasher.putString(propertyName);
         });
 
-        CachingInputs inputs = new DefaultCachingInputs(
-            beforeExecutionState,
-            inputValueFingerprints
-        );
+        CachingInputs inputs = new DefaultCachingInputs(beforeExecutionState);
 
         if (cachingDisabledReasons.isEmpty()) {
-            return new CachedState(hasher.hash(), inputs);
+            return new CachedState(cacheKeyHasher.hash(), inputs);
         } else {
             cachingDisabledReasons.forEach(reason ->
                 logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return new NonCachedState(hasher.hash(), cachingDisabledReasons, inputs);
+            return new NonCachedState(cacheKeyHasher.hash(), cachingDisabledReasons, inputs);
         }
     }
 
@@ -182,24 +183,16 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
 
     private static class DefaultCachingInputs implements CachingInputs {
         private final BeforeExecutionState beforeExecutionState;
-        private final ImmutableSortedMap<String, HashCode> inputValueFingerprints;
 
         public DefaultCachingInputs(
-            BeforeExecutionState beforeExecutionState,
-            ImmutableSortedMap<String, HashCode> inputValueFingerprints
+            BeforeExecutionState beforeExecutionState
         ) {
             this.beforeExecutionState = beforeExecutionState;
-            this.inputValueFingerprints = inputValueFingerprints;
         }
 
         @Override
         public BeforeExecutionState getBeforeExecutionState() {
             return beforeExecutionState;
-        }
-
-        @Override
-        public ImmutableSortedMap<String, HashCode> getInputValueFingerprints() {
-            return inputValueFingerprints;
         }
     }
 }

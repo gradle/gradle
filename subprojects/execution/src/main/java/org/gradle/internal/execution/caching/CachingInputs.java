@@ -16,9 +16,7 @@
 
 package org.gradle.internal.execution.caching;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.hash.HashCode;
 
 public interface CachingInputs {
 
@@ -26,12 +24,4 @@ public interface CachingInputs {
      * The state before executing the work.
      */
     BeforeExecutionState getBeforeExecutionState();
-
-    // TODO Calculate this lazily instead
-    /**
-     * Input value fingerprints.
-     *
-     * These are already hashed values of {@link BeforeExecutionState#getInputProperties()}.
-     */
-    ImmutableSortedMap<String, HashCode> getInputValueFingerprints();
 }

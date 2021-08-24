@@ -24,16 +24,20 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
@@ -70,11 +74,18 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
         return cachingState.getInputs()
-            .map(CachingInputs::getInputValueFingerprints)
+            .map(CachingInputs::getBeforeExecutionState)
+            .map(InputExecutionState::getInputProperties)
             .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
             .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
-                .collect(toLinkedHashMap(HashCode::toByteArray)))
+                .collect(toLinkedHashMap(SnapshotTaskInputsBuildOperationResult::valueSnapshotToByteArray)))
             .orElse(null);
+    }
+
+    private static byte[] valueSnapshotToByteArray(ValueSnapshot valueSnapshot) {
+        Hasher hasher = Hashing.newHasher();
+        valueSnapshot.appendToHasher(hasher);
+        return hasher.hash().toByteArray();
     }
 
     @NonNullApi
