@@ -16,25 +16,30 @@
 
 package org.gradle.internal.execution.history;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-/**
- * A execution state after the previous execution has finished.
- */
-public interface PreviousExecutionState extends InputExecutionState, OutputExecutionState {
+public interface InputExecutionState extends ExecutionState {
+    /**
+     * The main implementation snapshots.
+     */
+    ImplementationSnapshot getImplementation();
 
     /**
-     * The ID and execution time of origin of the execution's outputs.
+     * Used only for tasks to return all the task actions.
      */
-    OriginMetadata getOriginMetadata();
+    ImmutableList<ImplementationSnapshot> getAdditionalImplementations();
 
     /**
-     * Whether the execution was successful.
+     * The non-file inputs.
      */
-    boolean isSuccessful();
+    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
-    @Override
-    ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
+    /**
+     * The file inputs.
+     */
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
 }

@@ -18,13 +18,12 @@ package org.gradle.internal.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.execution.history.AfterExecutionState;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -84,11 +83,9 @@ public interface ExecutionEngine {
         Optional<OriginMetadata> getReusedOutputOriginMetadata();
 
         /**
-         * Snapshots of the roots of output properties.
-         *
-         * Does not include any overlapping outputs <em>not</em> produced by the work.
+         * State after execution.
          */
         @VisibleForTesting
-        ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
+        AfterExecutionState getAfterExecutionState();
     }
 }

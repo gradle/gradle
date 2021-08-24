@@ -38,7 +38,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
         context.getHistory()
             .ifPresent(history -> context.getBeforeExecutionState()
                 .ifPresent(beforeExecutionState -> {
-                    ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = result.getOutputFilesProduceByWork();
+                    ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = result.getAfterExecutionState().getOutputFilesProducedByWork();
                     boolean successful = result.getExecutionResult().isSuccessful();
 
                     // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.

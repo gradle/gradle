@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionResult
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
@@ -44,7 +45,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def outputFile = file("output.txt").text = "output"
-    def outputFilesProduceByWork = snapshotsOf(output: outputFile)
+    def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
     def step = new StoreExecutionStateStep<BeforeExecutionContext>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
@@ -67,12 +68,14 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        }
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
-        interaction { expectStore(true, outputFilesProduceByWork) }
+        interaction { expectStore(true, outputFilesProducedByWork) }
         0 * _
     }
 
@@ -85,7 +88,9 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        }
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
@@ -93,7 +98,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         _ * context.previousExecutionState >> Optional.empty()
 
         then:
-        interaction { expectStore(false, outputFilesProduceByWork) }
+        interaction { expectStore(false, outputFilesProducedByWork) }
         0 * _
     }
 
@@ -108,7 +113,9 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        }
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
@@ -117,7 +124,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
 
         then:
-        interaction { expectStore(false, outputFilesProduceByWork) }
+        interaction { expectStore(false, outputFilesProducedByWork) }
         0 * _
     }
 
@@ -132,13 +139,15 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> Mock(AfterExecutionState) {
+            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        }
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
 
         then:
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProduceByWork
+        1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProducedByWork
         0 * _
     }
 

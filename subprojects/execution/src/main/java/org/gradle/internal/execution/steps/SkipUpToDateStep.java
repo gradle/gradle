@@ -17,15 +17,15 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +58,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 }
                 @SuppressWarnings("OptionalGetWithoutIsPresent")
                 PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
+                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(previousExecutionState.getOutputFilesProducedByWork());
                 return new UpToDateResult() {
                     @Override
                     public ImmutableList<String> getExecutionReasons() {
@@ -65,8 +66,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
 
                     @Override
-                    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                        return previousExecutionState.getOutputFilesProducedByWork();
+                    public AfterExecutionState getAfterExecutionState() {
+                        return afterExecutionState;
                     }
 
                     @Override
@@ -110,8 +111,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                return result.getOutputFilesProduceByWork();
+            public AfterExecutionState getAfterExecutionState() {
+                return result.getAfterExecutionState();
             }
 
             @Override
