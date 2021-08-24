@@ -36,6 +36,13 @@ class EitherTest extends Specification {
     def left = either(LEFT)
     def right = either(RIGHT)
 
+    def "toString() works"() {
+        expect:
+        left.toString() == "Left(LEFT)"
+
+        right.toString() == "Right(RIGHT)"
+    }
+
     def "is() works"() {
         expect:
         left.left

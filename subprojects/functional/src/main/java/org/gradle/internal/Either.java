@@ -76,6 +76,9 @@ public abstract class Either<L, R> {
      */
     public abstract void apply(Consumer<? super L> l, Consumer<? super R> r);
 
+    @Override
+    public abstract String toString();
+
     private static class Left<L, R> extends Either<L, R> {
         private final L value;
 
@@ -122,6 +125,11 @@ public abstract class Either<L, R> {
         @Override
         public void apply(Consumer<? super L> l, Consumer<? super R> r) {
             l.accept(value);
+        }
+
+        @Override
+        public String toString() {
+            return "Left(" + value + ")";
         }
     }
 
@@ -171,6 +179,11 @@ public abstract class Either<L, R> {
         @Override
         public void apply(Consumer<? super L> l, Consumer<? super R> r) {
             r.accept(value);
+        }
+
+        @Override
+        public String toString() {
+            return "Right(" + value + ")";
         }
     }
 }
