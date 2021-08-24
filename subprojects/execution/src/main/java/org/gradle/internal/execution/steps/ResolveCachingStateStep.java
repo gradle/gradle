@@ -31,12 +31,12 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,8 +157,8 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                return result.getOutputFilesProduceByWork();
+            public AfterExecutionState getAfterExecutionState() {
+                return result.getAfterExecutionState();
             }
 
             @Override

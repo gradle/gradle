@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
@@ -31,9 +30,10 @@ import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +89,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = cacheHit.getResultingSnapshots();
+                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(cacheHit.getResultingSnapshots());
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
@@ -122,8 +122,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         }
 
                         @Override
-                        public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                            return outputFilesProducedByWork;
+                        public AfterExecutionState getAfterExecutionState() {
+                            return afterExecutionState;
                         }
                     };
                 })
@@ -167,7 +167,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
         try {
-            buildCache.store(commandFactory.createStore(cacheKey, work, result.getOutputFilesProduceByWork(), result.getOriginMetadata().getExecutionTime()));
+            buildCache.store(commandFactory.createStore(cacheKey, work, result.getAfterExecutionState().getOutputFilesProducedByWork(), result.getOriginMetadata().getExecutionTime()));
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Stored cache entry for {} with cache key {}",
                     work.getDisplayName(), cacheKey.getHashCode());

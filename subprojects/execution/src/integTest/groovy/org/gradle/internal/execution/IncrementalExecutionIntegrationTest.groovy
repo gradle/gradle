@@ -211,11 +211,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        result.outputFilesProduceByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
-        SnapshotVisitorUtil.getRelativePaths(result.outputFilesProduceByWork["dir"]) == ["some-file", "some-file-2"]
+        result.afterExecutionState.outputFilesProducedByWork.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
+        SnapshotVisitorUtil.getRelativePaths(result.afterExecutionState.outputFilesProducedByWork["dir"]) == ["some-file", "some-file-2"]
         def afterExecution = Iterables.getOnlyElement(executionHistoryStore.executionHistory.values())
         afterExecution.originMetadata.buildInvocationId == buildInvocationScopeId.id.asString()
-        afterExecution.outputFilesProducedByWork == result.outputFilesProduceByWork
+        afterExecution.outputFilesProducedByWork == result.afterExecutionState.outputFilesProducedByWork
     }
 
     def "work unit is up-to-date if nothing changes"() {
@@ -226,7 +226,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        def outputFilesProduceByWork = result.outputFilesProduceByWork
+        def outputFilesProducedByWork = result.afterExecutionState.outputFilesProducedByWork
 
         when:
         buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -236,7 +236,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
         then:
         result.executionResult.get().outcome == UP_TO_DATE
-        result.outputFilesProduceByWork == outputFilesProduceByWork
+        result.afterExecutionState.outputFilesProducedByWork == outputFilesProducedByWork
     }
 
     def "out-of-date for an output file change"() {

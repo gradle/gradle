@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.Try
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.ExecutionResult
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.snapshot.FileSystemSnapshot
 
 class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)
@@ -44,14 +44,16 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
         _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of()
-        _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState))
+        _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState) {
+            1 * getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
+        })
         0 * _
     }
 
     def "executes when outputs are not up to date"() {
         def delegateResult = Mock(CurrentSnapshotResult)
         def delegateOutcome = Try.successful(Mock(ExecutionResult))
-        def delegateOutputFilesProduceByWork = ImmutableSortedMap.copyOf([test: FileSystemSnapshot.EMPTY])
+        def delegateAfterExecutionState = Mock(AfterExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -75,12 +77,12 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         0 * _
 
         when:
-        def outputFilesProduceByWork = result.outputFilesProduceByWork
+        def afterExecutionState = result.afterExecutionState
 
         then:
-        outputFilesProduceByWork == delegateOutputFilesProduceByWork
+        afterExecutionState == delegateAfterExecutionState
 
-        1 * delegateResult.outputFilesProduceByWork >> delegateOutputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> delegateAfterExecutionState
         0 * _
     }
 

@@ -24,7 +24,7 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.ExecutionState;
+import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -148,10 +148,10 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
         }
 
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecutionState
-            .map(ExecutionState::getInputProperties)
+            .map(InputExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
-            .map(ExecutionState::getInputFileProperties)
+            .map(InputExecutionState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = previousExecutionState
             .map(PreviousExecutionState::getOutputFilesProducedByWork)

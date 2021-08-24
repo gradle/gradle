@@ -16,19 +16,9 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface CurrentSnapshotResult extends SnapshotResult {
-    /**
-     * Get the snapshots of the outputs of the finished work execution.
-     */
-    // TODO This shouldn't be represented as a map of FileSystemSnapshot objects,
-    //      but of FileSystemLocationSnapshot objects
-    @Override
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork();
-
     /**
      * Returns the origin metadata of the finished work's output.
      * The metadata could refer to the current execution if the work had to be executed,

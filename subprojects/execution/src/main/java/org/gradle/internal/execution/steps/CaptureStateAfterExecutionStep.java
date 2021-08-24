@@ -22,8 +22,10 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -57,7 +59,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
         Timer timer = Time.startTimer();
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProduceByWork = operation(
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork = operation(
             operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = captureOutputs(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
@@ -68,6 +70,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                 .details(Operation.Details.INSTANCE)
         );
         long snapshotOutputDuration = timer.getElapsedMillis();
+        AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(outputFilesProducedByWork);
 
         // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
         // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
@@ -78,8 +81,8 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
 
         return new CurrentSnapshotResult() {
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                return outputFilesProduceByWork;
+            public AfterExecutionState getAfterExecutionState() {
+                return afterExecutionState;
             }
 
             @Override
