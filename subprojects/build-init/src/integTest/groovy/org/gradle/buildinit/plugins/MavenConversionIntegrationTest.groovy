@@ -550,7 +550,6 @@ Root project 'webinar-parent'
 
         def taskOutput = result.groupedOutput.task(':init').output
         taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-        taskOutput.contains("Setting allowInsecureProtocol=true.")
 
         def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
 

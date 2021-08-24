@@ -51,6 +51,8 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
@@ -1043,7 +1045,6 @@ public class BuildScriptBuilder {
             if (protocol.isSecure()) {
                 statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
             } else {
-                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
                 logger.warn("Repository URL: '{}' uses an insecure protocol.", url);
                 builder.insecureProtocolHandler.handle(urlAsURL, statements);
             }
@@ -1696,7 +1697,6 @@ public class BuildScriptBuilder {
             final String allowPrefix = isGroovy ? "a" : "isA";
             final String fileExtension = isGroovy ? "gradle" : "gradle.kts";
 
-            final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
             logger.warn("If you wish to use this repository, you will have to uncomment the line '{}llowInsecureProtocol=true' in the generated build.{}} file.", allowPrefix, fileExtension);
 
             statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
@@ -1722,7 +1722,6 @@ public class BuildScriptBuilder {
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
             final Protocol protocol = Protocol.fromUrl(url);
             if (protocol.hasReplacement()) {
-                final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
                 logger.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
 
                 final URL upgradedURL = Protocol.secureProtocol(url);
@@ -1736,9 +1735,6 @@ public class BuildScriptBuilder {
     public static class AllowingHandler implements InsecureProtocolHandler {
         @Override
         public void handle(URL url, BuildScriptBuilder.ScriptBlockImpl statements) {
-            final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
-            logger.warn("Setting allowInsecureProtocol=true.");
-
             statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(url.toString()))), true);
             statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
         }
