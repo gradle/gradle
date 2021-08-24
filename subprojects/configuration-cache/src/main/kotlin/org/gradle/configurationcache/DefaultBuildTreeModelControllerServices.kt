@@ -38,13 +38,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val isolatedProjects = startParameter.isolatedProjects.get()
+        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && !"false".equals(requirements.startParameter.systemPropertiesArgs.get("org.gradle.internal.tooling.parallel"), true)
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
-            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true)
+            BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, parallelToolingActions)
         } else {
             val configurationCache = startParameter.configurationCache.get() || isolatedProjects
             val configureOnDemand = startParameter.isConfigureOnDemand || isolatedProjects
-            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false)
+            BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, parallelToolingActions)
         }
 
         if (!startParameter.isConfigurationCacheQuiet) {
@@ -70,7 +71,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
             // Configuration cache is not supported for nested build trees
-            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true))
+            registration.add(BuildModelParameters::class.java, BuildModelParameters(startParameter.isConfigureOnDemand, false, false, true, false))
             registration.add(RunTasksRequirements::class.java, RunTasksRequirements(startParameter))
         }
     }

@@ -41,14 +41,15 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final Object treeMutableStateLock = new Object();
 
     public DefaultBuildTreeModelCreator(
+        BuildModelParameters buildModelParameters,
         BuildLifecycleController buildLifecycleController,
         BuildOperationExecutor buildOperationExecutor,
         ProjectLeaseRegistry projectLeaseRegistry
     ) {
         this.buildController = buildLifecycleController;
         this.buildOperationExecutor = buildOperationExecutor;
-        parallelActions = !"false".equalsIgnoreCase(buildLifecycleController.getGradle().getStartParameter().getSystemPropertiesArgs().get("org.gradle.internal.tooling.parallel"));
         this.projectLeaseRegistry = projectLeaseRegistry;
+        this.parallelActions = buildModelParameters.isParallelToolingApiActions();
     }
 
     @Override
@@ -88,10 +89,9 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 // Force configuration of the build and locate builder for default project
                 buildController.getGradle().getOwner().ensureProjectsConfigured();
                 target.ensureProjectsConfigured();
-                ProjectInternal targetProject = target.getMutableModel().getDefaultProject();
-                ToolingModelBuilderLookup lookup = targetProject.getServices().get(ToolingModelBuilderLookup.class);
-                return lookup.locateForClientOperation(modelName, param, targetProject.getOwner());
             }
+            ProjectInternal targetProject = target.getMutableModel().getDefaultProject();
+            return doLocate(targetProject.getOwner(), modelName, param);
         }
 
         @Override
@@ -100,9 +100,15 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 // Force configuration of the containing build and then locate the builder for target project
                 buildController.getGradle().getOwner().ensureProjectsConfigured();
                 target.getOwner().ensureProjectsConfigured();
-                ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-                return lookup.locateForClientOperation(modelName, param, target);
             }
+            return doLocate(target, modelName, param);
+        }
+
+        private ToolingModelBuilderLookup.Builder doLocate(ProjectState target, String modelName, boolean param) {
+            // Force configuration of the target project to ensure all builders have been registered
+            target.ensureConfigured();
+            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, param, target);
         }
 
         @Override
@@ -112,7 +118,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         @Override
         public void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
-            if (parallelActions) {
+            if (queryModelActionsRunInParallel()) {
                 buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
                     for (RunnableBuildOperation action : actions) {
                         buildOperationQueue.add(action);
