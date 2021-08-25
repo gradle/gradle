@@ -21,33 +21,33 @@ import spock.lang.Specification
 class ProtocolTest extends Specification {
     def "detects protocol from url"() {
         expect:
-        Protocol.fromUri(url) == protocol
+        Protocol.fromUri(uri) == protocol
 
         where:
-        protocol        | url
-        Protocol.HTTP   | new URL("http://www.google.com")
-        Protocol.HTTPS   | new URL("https://www.google.com")
-        Protocol.FILE   | new URL("file:///usr/share/test.txt")
+        protocol        | uri
+        Protocol.HTTP   | new URI("http://www.google.com")
+        Protocol.HTTPS   | new URI("https://www.google.com")
+        Protocol.FILE   | new URI("file:///usr/share/test.txt")
     }
 
     def "secures url using replaceable protocol"() {
         expect:
-        Protocol.secureProtocol(url) == secureUrl
+        Protocol.secureProtocol(uri) == secureUrl
 
         where:
-        url                                 | secureUrl
-        new URL("http://www.google.com")    | new URL("https://www.google.com")
+        uri                                 | secureUrl
+        new URI("http://www.google.com")    | new URI("https://www.google.com")
     }
 
     def "protocols that can't be secured throw exception"() {
         when:
-        Protocol.secureProtocol(url)
+        Protocol.secureProtocol(uri)
 
         then:
         thrown(IllegalStateException)
 
         where:
-        url << [new URL("https://www.google.com"),
-                new URL("file:///usr/share/test.txt")]
+        uri << [new URI("https://www.google.com"),
+                new URI("file:///usr/share/test.txt")]
     }
 }

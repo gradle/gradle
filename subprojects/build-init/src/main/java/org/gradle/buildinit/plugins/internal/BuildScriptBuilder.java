@@ -53,7 +53,7 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
     private final BuildInitDsl dsl;
     private final DocumentationRegistry documentationRegistry;
@@ -1047,7 +1047,7 @@ public class BuildScriptBuilder {
             if (protocol.isSecure()) {
                 statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
             } else {
-                logger.warn("Repository URL: '{}' uses an insecure protocol.", url);
+                LOGGER.warn("Repository URL: '{}' uses an insecure protocol.", url);
                 builder.insecureProtocolHandler.handle(uriAsURI, statements);
             }
         }
@@ -1697,7 +1697,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
-            logger.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+            LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
 
             statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(uri.toString()))), true);
             statements.comment(buildAllowInsecureProtocolComment(dsl));
@@ -1722,7 +1722,7 @@ public class BuildScriptBuilder {
         public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
             final Protocol protocol = Protocol.fromUri(uri);
             if (protocol.hasReplacement()) {
-                logger.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
+                LOGGER.warn("Upgrading protocol to '{}'.", protocol.getReplacement());
 
                 final URI upgradedURI = Protocol.secureProtocol(uri);
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(upgradedURI.toString()))), true);
