@@ -26,9 +26,11 @@ public enum InsecureProtocolOption implements WithIdentifier {
     ALLOW("allow"),
     UPGRADE("upgrade");
 
-    public static InsecureProtocolOption defaultOption = WARN;
-
     private final String displayName;
+
+    public static InsecureProtocolOption getDefault() {
+        return WARN;
+    }
 
     public static List<String> listSupported() {
         return Arrays.stream(values())

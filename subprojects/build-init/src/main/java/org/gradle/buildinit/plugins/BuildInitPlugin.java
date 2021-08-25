@@ -56,7 +56,7 @@ public class BuildInitPlugin implements Plugin<Project> {
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
 
-                initBuild.getInsecureProtocol().convention(InsecureProtocolOption.defaultOption.getId());
+                initBuild.getInsecureProtocol().convention(InsecureProtocolOption.getDefault().getId());
             });
         }
     }

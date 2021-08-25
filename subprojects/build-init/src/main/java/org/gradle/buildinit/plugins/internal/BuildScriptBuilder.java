@@ -65,7 +65,7 @@ public class BuildScriptBuilder {
     private final TopLevelBlock block;
 
     public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension) {
-        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.defaultOption);
+        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.getDefault());
     }
 
     public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
