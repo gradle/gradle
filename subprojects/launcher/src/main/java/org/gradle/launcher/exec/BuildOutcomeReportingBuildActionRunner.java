@@ -58,13 +58,13 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
-        StartParameter startParameter = buildController.getGradle().getStartParameter();
+        StartParameter startParameter = action.getStartParameter();
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
         listenerManager.addListener(taskStatisticsCollector);
 
         BuildLogger buildLogger = new BuildLogger(Logging.getLogger(BuildLogger.class), styledTextOutputFactory, startParameter, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter);
         // Register as a 'logger' to support this being replaced by build logic.
-        buildController.getGradle().useLogger(buildLogger);
+        buildController.beforeBuild(gradle -> gradle.useLogger(buildLogger));
 
         Result result = delegate.run(action, buildController);
 

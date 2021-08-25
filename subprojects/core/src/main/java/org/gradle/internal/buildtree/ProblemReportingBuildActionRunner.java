@@ -33,11 +33,13 @@ import java.util.function.Consumer;
 public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
     private final ExceptionAnalyser exceptionAnalyser;
+    private final BuildLayout buildLayout;
     private final List<? extends ProblemReporter> reporters;
 
-    public ProblemReportingBuildActionRunner(BuildActionRunner delegate, ExceptionAnalyser exceptionAnalyser, List<? extends ProblemReporter> reporters) {
+    public ProblemReportingBuildActionRunner(BuildActionRunner delegate, ExceptionAnalyser exceptionAnalyser, BuildLayout buildLayout, List<? extends ProblemReporter> reporters) {
         this.delegate = delegate;
         this.exceptionAnalyser = exceptionAnalyser;
+        this.buildLayout = buildLayout;
         this.reporters = ImmutableList.sortedCopyOf(Comparator.comparing(ProblemReporter::getId), reporters);
     }
 
@@ -66,14 +68,14 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
 
     private RootProjectBuildDirCollectingListener getRootProjectBuildDirCollectingListener(BuildTreeLifecycleController buildController) {
         RootProjectBuildDirCollectingListener listener = new RootProjectBuildDirCollectingListener(
-            defaultRootBuildDirOf(buildController)
+            defaultRootBuildDirOf()
         );
-        buildController.getGradle().addBuildListener(listener);
+        buildController.beforeBuild(gradle -> gradle.addBuildListener(listener));
         return listener;
     }
 
-    private File defaultRootBuildDirOf(BuildTreeLifecycleController buildController) {
-        return new File(buildController.getGradle().getServices().get(BuildLayout.class).getRootDirectory(), "build");
+    private File defaultRootBuildDirOf() {
+        return new File(buildLayout.getRootDirectory(), "build");
     }
 
     private static class RootProjectBuildDirCollectingListener extends InternalBuildAdapter {

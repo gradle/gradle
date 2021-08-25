@@ -17,12 +17,14 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.execution.internal.TaskInputsListeners;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
@@ -33,7 +35,9 @@ import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -42,6 +46,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistration;
@@ -49,8 +54,10 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionActionExecutor;
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -194,13 +201,26 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                                      ListenerManager listenerManager,
                                                      BuildStartedTime buildStartedTime,
                                                      BuildRequestMetaData buildRequestMetaData,
+                                                     GradleEnterprisePluginManager gradleEnterprisePluginManager,
+                                                     BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+                                                     StatStatistics.Collector statStatisticsCollector,
+                                                     FileHasherStatistics.Collector fileHasherStatisticsCollector,
+                                                     DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+                                                     BuildOperationRunner buildOperationRunner,
                                                      Clock clock,
+                                                     BuildLayout buildLayout,
                                                      ExceptionAnalyser exceptionAnalyser,
                                                      List<ProblemReporter> problemReporters) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
                 new BuildCompletionNotifyingBuildActionRunner(
-                    new FileSystemWatchingBuildActionRunner(eventEmitter,
+                    new FileSystemWatchingBuildActionRunner(
+                        eventEmitter,
+                        virtualFileSystem,
+                        statStatisticsCollector,
+                        fileHasherStatisticsCollector,
+                        directorySnapshotterStatisticsCollector,
+                        buildOperationRunner,
                         new BuildOutcomeReportingBuildActionRunner(
                             styledTextOutputFactory,
                             workValidationWarningReporter,
@@ -208,11 +228,13 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             new ProblemReportingBuildActionRunner(
                                 new ChainingBuildActionRunner(buildActionRunners),
                                 exceptionAnalyser,
+                                buildLayout,
                                 problemReporters
                             ),
                             buildStartedTime,
                             buildRequestMetaData,
-                            clock))));
+                            clock)),
+                    gradleEnterprisePluginManager));
         }
     }
 }
