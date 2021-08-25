@@ -54,9 +54,9 @@ import java.util.Map;
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
     private static final Logger logger = LoggerFactory.getLogger(BuildScriptBuilder.class);
-    private final static DocumentationRegistry documentationRegistry = null;
 
     private final BuildInitDsl dsl;
+    private final DocumentationRegistry documentationRegistry;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
     private final InsecureProtocolHandler insecureProtocolHandler;
@@ -64,14 +64,15 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
-        this(dsl, fileNameWithoutExtension, InsecureProtocolOption.defaultOption);
+    public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension) {
+        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.defaultOption);
     }
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
+    public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
         this.dsl = dsl;
+        this.documentationRegistry = documentationRegistry;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.insecureProtocolHandler = InsecureProtocolHandler.forOption(insecureProtocolHandler, dsl);
+        this.insecureProtocolHandler = InsecureProtocolHandler.forOption(insecureProtocolHandler, dsl, documentationRegistry);
 
         block = new TopLevelBlock(this);
     }
@@ -1671,10 +1672,10 @@ public class BuildScriptBuilder {
     public interface InsecureProtocolHandler {
         void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements);
 
-        static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl) {
+        static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
             switch (insecureProtocolOption) {
                 case WARN:
-                    return new BuildScriptBuilder.WarningHandler(dsl);
+                    return new BuildScriptBuilder.WarningHandler(dsl, documentationRegistry);
                 case ALLOW:
                     return new BuildScriptBuilder.AllowingHandler();
                 case UPGRADE:
@@ -1687,9 +1688,11 @@ public class BuildScriptBuilder {
 
     public static class WarningHandler implements InsecureProtocolHandler {
         private final BuildInitDsl dsl;
+        private final DocumentationRegistry documentationRegistry;
 
-        public WarningHandler(BuildInitDsl dsl) {
+        public WarningHandler(BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
             this.dsl = dsl;
+            this.documentationRegistry = documentationRegistry;
         }
 
         @Override
