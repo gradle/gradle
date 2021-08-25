@@ -51,7 +51,7 @@ class ExternalResourceNameTest extends Specification {
         URI.create("http://host")                    | ":?#-.~_@"                                         || URI.create("http://host/")              | "/:?#-.~_@"                                         | "http://host/:%3F%23-.~_@"
         new URL("http://bucket/rusty").toURI()       | "org/gradle/artefact-1.0.jar"                      || new URL("http://bucket/").toURI()       | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket/rusty/org/gradle/artefact-1.0.jar"
         new URL("http://bucket-1.2.3/rusty").toURI() | "org/gradle/artefact-1.0.jar"                      || new URL("http://bucket-1.2.3/").toURI() | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket-1.2.3/rusty/org/gradle/artefact-1.0.jar"
-        this.base.toURI()                            | "a/b/c"                                            || URI.create("file:/")                    | this.base.toURI().path + "/a/b/c"                   | "file:/base/a/b/c"
+        this.base.toURI()                            | "a/b/c"                                            || URI.create("file:/")                    | this.base.toURI().path + "/a/b/c"                   | this.base.toURI().toASCIIString() + "/a/b/c"
     }
 
     def "can construct a resource name from a file URI with host and a path"() {

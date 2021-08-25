@@ -82,29 +82,39 @@ public class ExternalResourceName implements Describable {
     }
 
     private String encodeRoot(URI uri) {
-        StringBuilder builder = new StringBuilder();
-        if (uri.getScheme() != null) {
-            builder.append(uri.getScheme());
-            builder.append(":");
+        //based on reversing the operations performed by URI.toString()
 
-            if (isFileOnHost(uri)) {
-                String hostName = URI.create(uri.getPath()).getHost();
-                builder.append("////");
-                builder.append(hostName);
-            }
+        StringBuilder builder = new StringBuilder(uri.toString());
+
+        String fragment = uri.getRawFragment();
+        if (fragment != null) {
+            int index = builder.lastIndexOf("#" + fragment);
+            assert index >= 0;
+            builder.delete(index, builder.length());
         }
-        if (uri.getHost() != null) {
-            builder.append("//");
-            builder.append(uri.getHost());
-        } else if (uri.getAuthority() != null) {
-            builder.append("//");
-            builder.append(uri.getAuthority());
+
+        if (uri.isOpaque()) {
+            return builder.toString();
         }
-        if (uri.getPort() > 0) {
-            builder.append(":");
-            builder.append(uri.getPort());
+
+        String query = uri.getRawQuery();
+        if (query != null) {
+            int index = builder.lastIndexOf("?" + query);
+            assert index >= 0;
+            builder.delete(index, builder.length());
         }
-        return builder.toString();
+
+        String path = uri.getRawPath();
+        if (path != null && isFileOnHost(uri)) {  //if file URI
+            path = URI.create(path).getRawPath(); //remove hostname from path
+        }
+        if (path != null) {
+            int index = builder.lastIndexOf(path);
+            assert index >= 0;
+            builder.delete(index, builder.length());
+        }
+
+        return encode(builder.toString(), true);
     }
 
     public String getDisplayName() {
