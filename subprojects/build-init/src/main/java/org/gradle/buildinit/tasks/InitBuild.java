@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -140,12 +141,13 @@ public class InitBuild extends DefaultTask {
     /**
      * How to handle insecure (http) URLs used for Maven Repositories.
      *
-     * This property can be set via command-line option '--insecure-protocols'.  The default value is 'warn'.
+     * This property can be set via command-line option '--insecure-protocol'.  The default value is 'warn'.
      *
      * @since 7.3
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
+    @Incubating
     public Property<String> getInsecureProtocol() {
         return insecureProtocol;
     }
@@ -353,6 +355,7 @@ public class InitBuild extends DefaultTask {
      * Available insecure Maven Repository handlers.
      */
     @OptionValues("insecure-protocol")
+    @Incubating
     public List<String> getAvailableInsecureProtocolHandler() {
         return InsecureProtocolOption.listSupported();
     }
