@@ -154,18 +154,26 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fileName << ["settings.gradle", "settings.gradle.kts"]
     }
 
-    def "does not treat buildSrc with no build or settings file as undefined build"() {
+    def "does not treat buildSrc with no settings file as undefined build"() {
         given:
         settingsFile.touch()
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+        """
         file("buildSrc/src/main/groovy/Dummy.groovy") << "class Dummy {}"
 
-        expect:
+        when:
         succeeds("tasks") // without deprecation warning
+        then:
         result.assertTaskExecuted(":buildSrc:jar")
+        file("buildSrc/.gradle").assertIsDir()
 
-        executer.withArguments("-p", "buildSrc")
-        succeeds("tasks")
-
+        when:
+        executer.usingProjectDirectory(file("buildSrc"))
+        then:
+        succeeds("jar")
         file("buildSrc/.gradle").assertIsDir()
         executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
@@ -175,7 +183,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc").createDir()
 
         expect:
-        executer.withArguments("-p", "buildSrc")
+        executer.usingProjectDirectory(file("buildSrc"))
         fails("tasks")
 
         file("buildSrc").assertIsEmptyDir()
@@ -190,7 +198,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("tasks")
 
-        executer.withArguments("-p", "buildSrc")
+        executer.usingProjectDirectory(file("buildSrc"))
         fails("tasks")
 
         file("buildSrc").assertIsEmptyDir()
