@@ -16,16 +16,18 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 
 public class BuildScriptBuilderFactory {
+    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
 
     public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension);
+        return new BuildScriptBuilder(dsl, documentationRegistry, pathWithoutExtension);
     }
 
     public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension, insecureProtocolOption);
+        return new BuildScriptBuilder(dsl, documentationRegistry, pathWithoutExtension, insecureProtocolOption);
     }
 }
