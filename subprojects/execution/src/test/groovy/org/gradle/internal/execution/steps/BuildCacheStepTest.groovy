@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableList
+
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -32,6 +32,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.Deleter
 
 import java.time.Duration
@@ -40,8 +41,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
+    def beforeExecutionState = Stub(BeforeExecutionState)
     def cacheKey = Stub(BuildCacheKey)
-    def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
@@ -249,16 +250,13 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         result == delegateResult
         !result.reused
 
-        _ * context.cachingState >> cachingState
-        1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
+        _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 
     private void withValidCacheKey() {
-        _ * context.cachingState >> cachingState
-        1 * cachingState.disabledReasons >> ImmutableList.of()
-        1 * cachingState.key >> Optional.of(cacheKey)
+        _ * context.cachingState >> CachingState.enabled(cacheKey, beforeExecutionState)
     }
 
     private void outputStored(Closure storeResult) {

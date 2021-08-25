@@ -81,13 +81,10 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
                 .orElseGet(() -> calculateCachingStateWithNoCapturedInputs(work));
         }
 
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        if (disabledReasons.isEmpty()) {
-            //noinspection OptionalGetWithoutIsPresent
-            logCacheKey(cachingState.getKey().get(), work);
-        } else {
-            logDisabledReasons(disabledReasons, work);
-        }
+        cachingState.apply(
+            enabled -> logCacheKey(enabled.getKey(), work),
+            disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
+        );
 
         UpToDateResult result = delegate.execute(work, new CachingContext() {
             @Override

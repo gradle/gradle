@@ -30,7 +30,6 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.Deleter;
@@ -70,11 +69,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
 
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, IncrementalChangesContext context) {
-        CachingState cachingState = context.getCachingState();
-        //noinspection OptionalGetWithoutIsPresent
-        return cachingState.getDisabledReasons().isEmpty()
-            ? executeWithCache(work, context, cachingState.getKey().get())
-            : executeWithoutCache(work, context);
+        return context.getCachingState().fold(
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
+            cachingDisabled -> executeWithoutCache(work, context)
+        );
     }
 
     private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {

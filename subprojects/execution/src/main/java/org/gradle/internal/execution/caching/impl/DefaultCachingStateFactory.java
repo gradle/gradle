@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.caching.impl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -26,11 +25,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
-
-import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class DefaultCachingStateFactory implements CachingStateFactory {
     private final Logger logger;
@@ -77,76 +72,11 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
         });
 
         if (cachingDisabledReasons.isEmpty()) {
-            return new CachedState(cacheKeyHasher.hash(), beforeExecutionState);
+            return CachingState.enabled(new DefaultBuildCacheKey(cacheKeyHasher.hash()), beforeExecutionState);
         } else {
             cachingDisabledReasons.forEach(reason ->
                 logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return new NonCachedState(cacheKeyHasher.hash(), cachingDisabledReasons, beforeExecutionState);
-        }
-    }
-
-    private static ImmutableSortedMap<String, HashCode> collectInputValueFingerprints(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
-        ImmutableSortedMap.Builder<String, HashCode> inputPropertyHashesBuilder = ImmutableSortedMap.naturalOrder();
-        inputProperties.forEach((propertyName, valueSnapshot) -> {
-            Hasher hasher = Hashing.newHasher();
-            valueSnapshot.appendToHasher(hasher);
-            HashCode hash = hasher.hash();
-            inputPropertyHashesBuilder.put(propertyName, hash);
-        });
-        return inputPropertyHashesBuilder.build();
-    }
-
-    private static class CachedState implements CachingState {
-        private final BuildCacheKey key;
-        private final BeforeExecutionState beforeExecutionState;
-
-        public CachedState(HashCode key, BeforeExecutionState beforeExecutionState) {
-            this.key = new DefaultBuildCacheKey(key);
-            this.beforeExecutionState = beforeExecutionState;
-        }
-
-        @Override
-        public Optional<BuildCacheKey> getKey() {
-            return Optional.of(key);
-        }
-
-        @Override
-        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
-            return ImmutableList.of();
-        }
-
-        @Override
-        public Optional<BeforeExecutionState> getBeforeExecutionState() {
-            return Optional.of(beforeExecutionState);
-        }
-    }
-
-    private static class NonCachedState implements CachingState {
-        private final BuildCacheKey key;
-        private final ImmutableList<CachingDisabledReason> disabledReasons;
-        private final BeforeExecutionState beforeExecutionState;
-
-        public NonCachedState(@Nullable HashCode key, Iterable<CachingDisabledReason> disabledReasons, BeforeExecutionState beforeExecutionState) {
-            this.key = key == null
-                ? null
-                : new DefaultBuildCacheKey(key);
-            this.disabledReasons = ImmutableList.copyOf(disabledReasons);
-            this.beforeExecutionState = beforeExecutionState;
-        }
-
-        @Override
-        public Optional<BuildCacheKey> getKey() {
-            return Optional.ofNullable(key);
-        }
-
-        @Override
-        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
-            return disabledReasons;
-        }
-
-        @Override
-        public Optional<BeforeExecutionState> getBeforeExecutionState() {
-            return Optional.of(beforeExecutionState);
+            return CachingState.disabled(cachingDisabledReasons, new DefaultBuildCacheKey(cacheKeyHasher.hash()), beforeExecutionState);
         }
     }
 
