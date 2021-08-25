@@ -76,16 +76,18 @@ class EitherTest extends Specification {
 
     def "map() works"() {
         expect:
-        left.map({ assert it == LEFT; LEFT2 }, { assert false }).ifLeft().get() == LEFT2
+        left.mapLeft({ assert it == LEFT; LEFT2 }).left.get() == LEFT2
+        left.mapRight({ assert false }).left.get() == LEFT
 
-        right.map({ assert false }, { assert it == RIGHT; RIGHT2 }).ifRight().get() == RIGHT2
+        right.mapRight({ assert it == RIGHT; RIGHT2 }).right.get() == RIGHT2
+        right.mapLeft({ assert false }).right.get() == RIGHT
     }
 
-    def "flatMap() works"() {
+    def "fold() subsumes flatMap()"() {
         expect:
-        left.flatMap({ assert it == LEFT; either(LEFT2) }, { assert false }).ifLeft().get() == LEFT2
+        left.fold({ assert it == LEFT; either(LEFT2) }, { assert false }).left.get() == LEFT2
 
-        right.flatMap({ assert false }, { assert it == RIGHT; either(RIGHT2) }).ifRight().get() == RIGHT2
+        right.fold({ assert false }, { assert it == RIGHT; either(RIGHT2) }).right.get() == RIGHT2
     }
 
     def "fold() works"() {
