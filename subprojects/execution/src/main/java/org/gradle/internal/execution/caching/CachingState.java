@@ -18,6 +18,7 @@ package org.gradle.internal.execution.caching;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ public interface CachingState {
     /**
      * Individual fingerprints for each of the work's inputs.
      */
-    Optional<CachingInputs> getInputs();
+    Optional<BeforeExecutionState> getBeforeExecutionState();
 
     CachingState NOT_DETERMINED = disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined"));
 
@@ -54,7 +55,7 @@ public interface CachingState {
             }
 
             @Override
-            public Optional<CachingInputs> getInputs() {
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return Optional.empty();
             }
         };

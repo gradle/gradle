@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -77,14 +76,12 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
             cacheKeyHasher.putString(propertyName);
         });
 
-        CachingInputs inputs = new DefaultCachingInputs(beforeExecutionState);
-
         if (cachingDisabledReasons.isEmpty()) {
-            return new CachedState(cacheKeyHasher.hash(), inputs);
+            return new CachedState(cacheKeyHasher.hash(), beforeExecutionState);
         } else {
             cachingDisabledReasons.forEach(reason ->
                 logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return new NonCachedState(cacheKeyHasher.hash(), cachingDisabledReasons, inputs);
+            return new NonCachedState(cacheKeyHasher.hash(), cachingDisabledReasons, beforeExecutionState);
         }
     }
 
@@ -101,11 +98,11 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
 
     private static class CachedState implements CachingState {
         private final BuildCacheKey key;
-        private final CachingInputs inputs;
+        private final BeforeExecutionState beforeExecutionState;
 
-        public CachedState(HashCode key, CachingInputs inputs) {
+        public CachedState(HashCode key, BeforeExecutionState beforeExecutionState) {
             this.key = new DefaultBuildCacheKey(key);
-            this.inputs = inputs;
+            this.beforeExecutionState = beforeExecutionState;
         }
 
         @Override
@@ -119,22 +116,22 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
         }
 
         @Override
-        public Optional<CachingInputs> getInputs() {
-            return Optional.of(inputs);
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return Optional.of(beforeExecutionState);
         }
     }
 
     private static class NonCachedState implements CachingState {
         private final BuildCacheKey key;
         private final ImmutableList<CachingDisabledReason> disabledReasons;
-        private final CachingInputs inputs;
+        private final BeforeExecutionState beforeExecutionState;
 
-        public NonCachedState(@Nullable HashCode key, Iterable<CachingDisabledReason> disabledReasons, CachingInputs inputs) {
+        public NonCachedState(@Nullable HashCode key, Iterable<CachingDisabledReason> disabledReasons, BeforeExecutionState beforeExecutionState) {
             this.key = key == null
                 ? null
                 : new DefaultBuildCacheKey(key);
             this.disabledReasons = ImmutableList.copyOf(disabledReasons);
-            this.inputs = inputs;
+            this.beforeExecutionState = beforeExecutionState;
         }
 
         @Override
@@ -148,8 +145,8 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
         }
 
         @Override
-        public Optional<CachingInputs> getInputs() {
-            return Optional.of(inputs);
+        public Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return Optional.of(beforeExecutionState);
         }
     }
 
@@ -178,21 +175,6 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
         @Override
         public String toString() {
             return getHashCode();
-        }
-    }
-
-    private static class DefaultCachingInputs implements CachingInputs {
-        private final BeforeExecutionState beforeExecutionState;
-
-        public DefaultCachingInputs(
-            BeforeExecutionState beforeExecutionState
-        ) {
-            this.beforeExecutionState = beforeExecutionState;
-        }
-
-        @Override
-        public BeforeExecutionState getBeforeExecutionState() {
-            return beforeExecutionState;
         }
     }
 }

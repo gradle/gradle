@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
+import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  * <p>
  * These two operations should be captured separately, but for historical reasons we don't yet do that.
  * To reproduce this composite operation we capture across executors by starting an operation
- * in {@link StartSnapshotTaskInputsBuildOperationTaskExecuter} and finished in {@link MarkSnapshottingInputsFinishedStep}.
+ * in {@link MarkSnapshottingInputsStartedStep} and finished in {@link MarkSnapshottingInputsFinishedStep}.
  * </p>
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
@@ -73,8 +73,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getBeforeExecutionState)
+        return cachingState.getBeforeExecutionState()
             .map(InputExecutionState::getInputProperties)
             .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
             .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
@@ -189,47 +188,37 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public void visitInputFileProperties(final InputFilePropertyVisitor visitor) {
-        cachingState.getInputs()
-            .map(CachingInputs::getBeforeExecutionState)
+        cachingState.getBeforeExecutionState()
             .map(BeforeExecutionState::getInputFileProperties)
             .ifPresent(inputFileProperties -> {
-            State state = new State(visitor);
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
-                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+                State state = new State(visitor);
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
+                    CurrentFileCollectionFingerprint fingerprint = entry.getValue();
 
-                state.propertyName = entry.getKey();
-                state.propertyHash = fingerprint.getHash();
-                state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
-                state.fingerprints = fingerprint.getFingerprints();
+                    state.propertyName = entry.getKey();
+                    state.propertyHash = fingerprint.getHash();
+                    state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                    state.fingerprints = fingerprint.getFingerprints();
 
-                visitor.preProperty(state);
-                fingerprint.getSnapshot().accept(state);
-                visitor.postProperty();
-            }
-        });
+                    visitor.preProperty(state);
+                    fingerprint.getSnapshot().accept(state);
+                    visitor.postProperty();
+                }
+            });
     }
 
     @Override
     public byte[] getClassLoaderHashBytes() {
-        return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, byte[]>() {
-                @Nullable
-                @Override
-                public byte[] apply(CachingInputs inputs) {
-                    ImplementationSnapshot implementation = inputs.getBeforeExecutionState().getImplementation();
-                    if (implementation.getClassLoaderHash() == null) {
-                        return null;
-                    }
-                    return implementation.getClassLoaderHash().toByteArray();
-                }
-            })
+        return cachingState.getBeforeExecutionState()
+            .map(InputExecutionState::getImplementation)
+            .map(ImplementationSnapshot::getClassLoaderHash)
+            .map(HashCode::toByteArray)
             .orElse(null);
     }
 
     @Override
     public List<byte[]> getActionClassLoaderHashesBytes() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getBeforeExecutionState)
+        return cachingState.getBeforeExecutionState()
             .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementation -> !additionalImplementation.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
@@ -241,8 +230,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Nullable
     @Override
     public List<String> getActionClassNames() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getBeforeExecutionState)
+        return cachingState.getBeforeExecutionState()
             .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementations -> !additionalImplementations.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
@@ -255,8 +243,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Nullable
     @Override
     public List<String> getOutputPropertyNames() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getBeforeExecutionState)
+        return cachingState.getBeforeExecutionState()
             .map(BeforeExecutionState::getOutputFileLocationSnapshots)
             .map(ImmutableSortedMap::keySet)
             .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
