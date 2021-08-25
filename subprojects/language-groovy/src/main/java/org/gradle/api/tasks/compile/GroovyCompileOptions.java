@@ -17,6 +17,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -30,6 +31,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Compilation options to be passed to the Groovy compiler.
@@ -62,6 +64,8 @@ public class GroovyCompileOptions extends AbstractOptions {
     private boolean javaAnnotationProcessing;
 
     private boolean parameters;
+
+    private Set<String> disabledGlobalASTTransformations = Sets.newHashSet("groovy.grape.GrabAnnotationTransformation");
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -281,6 +285,15 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
+    }
+
+    @Nullable @Optional @Input
+    public Set<String> getDisabledGlobalASTTransformations() {
+        return disabledGlobalASTTransformations;
+    }
+
+    public void setDisabledGlobalASTTransformations(@Nullable Set<String> disabledGlobalASTTransformations) {
+        this.disabledGlobalASTTransformations = disabledGlobalASTTransformations;
     }
 
     /**
