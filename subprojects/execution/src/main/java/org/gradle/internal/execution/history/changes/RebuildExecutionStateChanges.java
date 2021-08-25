@@ -49,9 +49,4 @@ public class RebuildExecutionStateChanges implements ExecutionStateChanges {
         }
         return new NonIncrementalInputChanges(inputFileProperties, incrementalInputProperties);
     }
-
-    @Override
-    public ExecutionStateChanges withEnforcedRebuild(String rebuildReason) {
-        return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties, incrementalInputProperties);
-    }
 }

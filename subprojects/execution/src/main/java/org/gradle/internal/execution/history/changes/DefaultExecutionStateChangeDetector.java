@@ -213,11 +213,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         public ImmutableList<String> getAllChangeMessages() {
             return allChangeMessages;
         }
-
-        @Override
-        public ExecutionStateChanges withEnforcedRebuild(String rebuildReason) {
-            return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties, incrementalInputProperties);
-        }
     }
 
     private static class MessageCollectingChangeVisitor implements ChangeVisitor {
