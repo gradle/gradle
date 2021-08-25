@@ -38,24 +38,14 @@ public abstract class Either<L, R> {
     }
 
     /**
-     * Is this a left?
-     */
-    public abstract boolean isLeft();
-
-    /**
-     * Is this a right?
-     */
-    public abstract boolean isRight();
-
-    /**
      * Take the value if this is a left.
      */
-    public abstract Optional<L> ifLeft();
+    public abstract Optional<L> getLeft();
 
     /**
      * Take the value if this is a right.
      */
-    public abstract Optional<R> ifRight();
+    public abstract Optional<R> getRight();
 
     /**
      * Map either case.
@@ -94,22 +84,12 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public boolean isLeft() {
-            return true;
-        }
-
-        @Override
-        public boolean isRight() {
-            return false;
-        }
-
-        @Override
-        public Optional<L> ifLeft() {
+        public Optional<L> getLeft() {
             return Optional.of(value);
         }
 
         @Override
-        public Optional<R> ifRight() {
+        public Optional<R> getRight() {
             return Optional.empty();
         }
 
@@ -164,22 +144,12 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public boolean isLeft() {
-            return false;
-        }
-
-        @Override
-        public boolean isRight() {
-            return true;
-        }
-
-        @Override
-        public Optional<L> ifLeft() {
+        public Optional<L> getLeft() {
             return Optional.empty();
         }
 
         @Override
-        public Optional<R> ifRight() {
+        public Optional<R> getRight() {
             return Optional.of(value);
         }
 

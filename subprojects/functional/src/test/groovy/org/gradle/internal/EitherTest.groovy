@@ -65,22 +65,13 @@ class EitherTest extends Specification {
         right.toString() == "Right(RIGHT)"
     }
 
-    def "is() works"() {
-        expect:
-        left.left
-        !left.right
-
-        !right.left
-        right.right
-    }
-
     def "if() works"() {
         expect:
-        left.ifLeft().get() == LEFT
-        !left.ifRight().present
+        left.left.get() == LEFT
+        !left.right.present
 
-        !right.ifLeft().present
-        right.ifRight().get() == RIGHT
+        !right.left.present
+        right.right.get() == RIGHT
     }
 
     def "map() works"() {
