@@ -30,7 +30,7 @@ public class S3RegionalResource {
     private static final Pattern REGIONAL_ENDPOINT_PATTERN = Pattern.compile("^s3:\\/\\/(.+)?\\.s3[.-]([a-z0-9-]+)\\.amazonaws\\.com(\\.[a-z]+)?\\/(.+)");
 
     //https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html#accessing-a-bucket-using-S3-format
-    private static final Pattern FALLBACK_ENDPOINT_PATTERN = Pattern.compile("^s3:\\/\\/([^\\/]+)\\/(.+)");
+    private static final Pattern FALLBACK_ENDPOINT_PATTERN = Pattern.compile("^[a-z0-9]+:\\/\\/([^\\/]+)\\/(.+)");
 
     private final URI uri;
     private Optional<Region> region;
