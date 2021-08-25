@@ -29,7 +29,7 @@
                 <td><literal>defaults to 'groovy'</literal></td>
             </tr>
             <tr>
-                <td>insecureProtocolHandler</td>
+                <td>insecureProtocol</td>
                 <td><literal>defaults to 'warn'</literal></td>
             </tr>
             <tr>
