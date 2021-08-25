@@ -19,10 +19,7 @@ package org.gradle.launcher.cli
 import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -69,37 +66,6 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
 
         then:
         outputDoesNotContain(welcomeMessage)
-        markerFile.exists()
-    }
-
-    @Ignore("not supported yet")
-    @ToBeImplemented
-    def "renders welcome message only once when executed with Tooling API"() {
-        expect:
-        !markerFile.exists()
-
-        when:
-        def toolingApi = new ToolingApi(distribution, temporaryFolder)
-        def stdOut1 = new ByteArrayOutputStream()
-        def connector = toolingApi.connector()
-        connector.useGradleUserHomeDir(customGradleUserHomeDir)
-
-        toolingApi.withConnection(connector) { connection ->
-            connection.newBuild().setStandardOutput(stdOut1).run()
-        }
-
-        then:
-        stdOut1.toString().contains(welcomeMessage)
-        markerFile.exists()
-
-        when:
-        def stdOut2 = new ByteArrayOutputStream()
-        toolingApi.withConnection { connection ->
-            connection.newBuild().setStandardOutput(stdOut2).run()
-        }
-
-        then:
-        !stdOut2.toString().contains(welcomeMessage)
         markerFile.exists()
     }
 
