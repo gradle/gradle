@@ -38,34 +38,30 @@ public abstract class Either<L, R> {
     }
 
     /**
-     * Is this a left?
-     */
-    public abstract boolean isLeft();
-
-    /**
-     * Is this a right?
-     */
-    public abstract boolean isRight();
-
-    /**
      * Take the value if this is a left.
      */
-    public abstract Optional<L> ifLeft();
+    public abstract Optional<L> getLeft();
 
     /**
      * Take the value if this is a right.
      */
-    public abstract Optional<R> ifRight();
+    public abstract Optional<R> getRight();
 
     /**
-     * Map either case.
+     * Map the left side.
+     *
+     * @see #mapRight
+     * @see #fold
      */
-    public abstract <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r);
+    public abstract <U, V> Either<U, V> mapLeft(Function<? super L, ? extends U> f);
 
     /**
-     * Flat map either case.
+     * Map the right side.
+     *
+     * @see #mapLeft
+     * @see #fold
      */
-    public abstract <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r);
+    public abstract <U, V> Either<U, V> mapRight(Function<? super R, ? extends V> f);
 
     /**
      * Apply the respective function and return its result.
@@ -94,34 +90,24 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public boolean isLeft() {
-            return true;
-        }
-
-        @Override
-        public boolean isRight() {
-            return false;
-        }
-
-        @Override
-        public Optional<L> ifLeft() {
+        public Optional<L> getLeft() {
             return Optional.of(value);
         }
 
         @Override
-        public Optional<R> ifRight() {
+        public Optional<R> getRight() {
             return Optional.empty();
         }
 
         @Override
-        public <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r) {
-            return new Left<>(l.apply(value));
+        public <U, V> Either<U, V> mapLeft(Function<? super L, ? extends U> f) {
+            return new Left<>(f.apply(value));
         }
 
-        @Override
         @SuppressWarnings("unchecked")
-        public <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r) {
-            return (Either<U, V>) l.apply(value);
+        @Override
+        public <U, V> Either<U, V> mapRight(Function<? super R, ? extends V> f) {
+            return (Either<U, V>) this;
         }
 
         @Override
@@ -164,34 +150,24 @@ public abstract class Either<L, R> {
         }
 
         @Override
-        public boolean isLeft() {
-            return false;
-        }
-
-        @Override
-        public boolean isRight() {
-            return true;
-        }
-
-        @Override
-        public Optional<L> ifLeft() {
+        public Optional<L> getLeft() {
             return Optional.empty();
         }
 
         @Override
-        public Optional<R> ifRight() {
+        public Optional<R> getRight() {
             return Optional.of(value);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public <U, V> Either<U, V> map(Function<? super L, ? extends U> l, Function<? super R, ? extends V> r) {
-            return new Right<>(r.apply(value));
+        public <U, V> Either<U, V> mapLeft(Function<? super L, ? extends U> f) {
+            return (Either<U, V>) this;
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public <U, V> Either<U, V> flatMap(Function<? super L, ? extends Either<? extends U, ? extends V>> l, Function<? super R, ? extends Either<? extends U, ? extends V>> r) {
-            return (Either<U, V>) r.apply(value);
+        public <U, V> Either<U, V> mapRight(Function<? super R, ? extends V> f) {
+            return new Right<>(f.apply(value));
         }
 
         @Override
