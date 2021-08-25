@@ -40,9 +40,4 @@ public interface BuildConverter extends BuildInitializer {
      * Returns the set of insecure repository handlers supported.
      */
     Set<InsecureProtocolOption> getInsecureProtocolHandlers();
-
-    /**
-     * Returns the default insecure repository handler used for converting Repository URLs.
-     */
-    InsecureProtocolOption getDefaultInsecureProtocolHandler();
 }

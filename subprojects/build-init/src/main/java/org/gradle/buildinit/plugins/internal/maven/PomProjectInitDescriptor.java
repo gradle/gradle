@@ -110,11 +110,6 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public InsecureProtocolOption getDefaultInsecureProtocolHandler() {
-        return InsecureProtocolOption.defaultOption;
-    }
-
-    @Override
     public void generate(InitSettings initSettings) {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         try {
