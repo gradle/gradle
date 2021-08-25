@@ -224,11 +224,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             final Set<HashCode> seen = new HashSet<>();
             for (T input : inputs) {
                 valueOrTransformProvider.apply(input, seen).ifPresent(valueOrTransform ->
-                    valueOrTransform.fold(
-                        value -> {
-                            results.add(value);
-                            return null;
-                        },
+                    valueOrTransform.apply(
+                        value -> results.add(value),
                         transform -> {
                             final int index = results.size();
                             results.add(null);
@@ -236,7 +233,6 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                                 results.set(index, unchecked(transform));
                                 return null;
                             });
-                            return null;
                         }
                     )
                 );
