@@ -36,7 +36,7 @@ public interface ExecutionEngine {
          * Force the re-execution of the unit of work, disabling optimizations
          * like up-to-date checks, build cache and incremental execution.
          */
-        void forceRebuild(String rebuildReason);
+        void forceNonIncremental(String nonIncremental);
 
         /**
          * Set the validation context to use during execution.

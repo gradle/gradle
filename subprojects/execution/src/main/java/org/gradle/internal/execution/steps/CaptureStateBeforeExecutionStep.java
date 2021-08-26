@@ -92,8 +92,8 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

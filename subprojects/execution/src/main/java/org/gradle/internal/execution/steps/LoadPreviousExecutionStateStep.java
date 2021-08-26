@@ -47,8 +47,8 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

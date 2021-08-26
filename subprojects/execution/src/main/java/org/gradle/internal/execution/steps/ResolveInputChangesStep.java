@@ -56,8 +56,8 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

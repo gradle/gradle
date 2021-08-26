@@ -155,8 +155,8 @@ public class ValidateStep<R extends Result> implements Step<BeforeExecutionConte
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

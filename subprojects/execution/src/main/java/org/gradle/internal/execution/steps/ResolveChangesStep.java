@@ -57,7 +57,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
     @Override
     public R execute(UnitOfWork work, CachingContext context) {
-        ExecutionStateChanges changes = context.getRebuildReason()
+        ExecutionStateChanges changes = context.getNonIncrementalReason()
             .map(ExecutionStateChanges::rebuild)
             .orElseGet(() -> context.getBeforeExecutionState()
                 .map(beforeExecution -> context.getPreviousExecutionState()
@@ -84,8 +84,8 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override

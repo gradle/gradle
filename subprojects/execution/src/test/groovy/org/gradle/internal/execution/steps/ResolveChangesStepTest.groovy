@@ -51,7 +51,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert !changes.createInputChanges().incremental
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.of("Forced rebuild.")
+        _ * context.nonIncrementalReason >> Optional.of("Forced rebuild.")
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         0 * _
     }
@@ -67,7 +67,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert !delegateContext.changes.present
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
@@ -86,7 +86,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert changes.allChangeMessages == ImmutableList.of("No history is available.")
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
@@ -107,7 +107,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert changes.allChangeMessages == ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
@@ -129,7 +129,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert delegateContext.changes.get() == changes
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE

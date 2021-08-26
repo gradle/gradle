@@ -794,8 +794,8 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Optional<String> getRebuildReason() {
-                    return context.getRebuildReason();
+                public Optional<String> getNonIncrementalReason() {
+                    return context.getNonIncrementalReason();
                 }
 
                 @Override
