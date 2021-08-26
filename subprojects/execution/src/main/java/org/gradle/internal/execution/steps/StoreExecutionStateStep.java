@@ -22,6 +22,8 @@ import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import static org.gradle.internal.ExtendedOptional.extend;
+
 public class StoreExecutionStateStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
@@ -34,23 +36,31 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         CurrentSnapshotResult result = delegate.execute(work, context);
-        UnitOfWork.Identity identity = context.getIdentity();
         context.getHistory()
-            .ifPresent(history -> result.getAfterExecutionState()
-                // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
-                // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
-                // If there is no previous state, then we do have output changes
-                .filter(afterExecutionState -> result.getExecutionResult().isSuccessful() || context.getPreviousExecutionState()
-                    .map(previewExecutionState -> didOutputsChange(
-                        previewExecutionState.getOutputFilesProducedByWork(),
-                        afterExecutionState.getOutputFilesProducedByWork()))
-                    .orElse(true))
-                .ifPresent(afterExecutionState -> history.store(
-                    identity.getUniqueId(),
-                    result.getOriginMetadata(),
-                    result.getExecutionResult().isSuccessful(),
-                    afterExecutionState
-                ))
+            .ifPresent(history -> extend(result.getAfterExecutionState())
+                .ifPresentOrElse(
+                    afterExecutionState -> {
+                        // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
+                        // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
+                        // so only the one changed source file needs to be compiled.
+                        // If there is no previous state, then we do have output changes
+                        boolean shouldStore = result.getExecutionResult().isSuccessful() || context.getPreviousExecutionState()
+                            .map(previewExecutionState -> didOutputsChange(
+                                previewExecutionState.getOutputFilesProducedByWork(),
+                                afterExecutionState.getOutputFilesProducedByWork()))
+                            .orElse(true);
+
+                        if (shouldStore) {
+                            history.store(
+                                context.getIdentity().getUniqueId(),
+                                result.getOriginMetadata(),
+                                result.getExecutionResult().isSuccessful(),
+                                afterExecutionState
+                            );
+                        }
+                    },
+                    () -> history.remove(context.getIdentity().getUniqueId())
+                )
             );
         return result;
     }

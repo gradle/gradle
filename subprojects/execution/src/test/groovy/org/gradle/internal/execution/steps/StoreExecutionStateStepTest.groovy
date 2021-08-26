@@ -153,6 +153,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
+        1 * executionHistoryStore.remove(identity.uniqueId)
         _ * delegateResult.afterExecutionState >> Optional.empty()
         0 * _
     }
