@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.buildinit.plugins.internal.Protocol
+
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -31,6 +31,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -595,7 +596,7 @@ Root project 'webinar-parent'
         taskOutput.contains("Upgrading protocol")
 
         def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
-        def upgradedRepoUrl = localRepoUrl.replaceFirst(Protocol.HTTP.getPrefix(), Protocol.HTTPS.getPrefix())
+        def upgradedRepoUrl = GUtil.toSecureUrl(new URI(localRepoUrl))
 
         // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
         def mavenLocalRepoBlock = (isGroovy ? """
