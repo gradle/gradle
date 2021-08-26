@@ -23,11 +23,11 @@ import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 public class BuildScriptBuilderFactory {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
 
-    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, pathWithoutExtension);
+    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String pathWithoutExtension) {
+        return BuildScriptBuilder.forNewProjects(dsl, documentationRegistry, pathWithoutExtension);
     }
 
-    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
-        return new BuildScriptBuilder(dsl, documentationRegistry, pathWithoutExtension, insecureProtocolOption);
+    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+        return BuildScriptBuilder.forMavenConversion(dsl, documentationRegistry, pathWithoutExtension, insecureProtocolOption);
     }
 }

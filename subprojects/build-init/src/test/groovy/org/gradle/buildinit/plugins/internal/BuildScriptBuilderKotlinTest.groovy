@@ -22,7 +22,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 
 class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
 
-    def builder = new BuildScriptBuilder(KOTLIN, new DocumentationRegistry(), "build")
+    def builder = BuildScriptBuilder.forNewProjects(KOTLIN, new DocumentationRegistry(), "build")
 
     TestFile outputFile = tmpDir.file("build.gradle.kts")
 

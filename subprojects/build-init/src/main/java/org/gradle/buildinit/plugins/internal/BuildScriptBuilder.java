@@ -64,11 +64,15 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
-    public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension) {
-        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
+    public static BuildScriptBuilder forNewProjects(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
     }
 
-    public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
+    public static BuildScriptBuilder forMavenConversion(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, insecureProtocolHandler);
+    }
+
+    private BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
         this.dsl = dsl;
         this.documentationRegistry = documentationRegistry;
         this.fileNameWithoutExtension = fileNameWithoutExtension;

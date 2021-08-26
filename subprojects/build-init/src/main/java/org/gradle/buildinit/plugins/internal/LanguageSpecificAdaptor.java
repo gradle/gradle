@@ -130,7 +130,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     private BuildScriptBuilder buildSrcSetup(InitSettings settings) {
-        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "buildSrc/build");
+        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "buildSrc/build");
         buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
             String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin";
@@ -144,13 +144,13 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), buildFile);
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildFile);
         descriptor.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }
 
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(),
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(),
             "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions");
         descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
         return buildScriptBuilder;
