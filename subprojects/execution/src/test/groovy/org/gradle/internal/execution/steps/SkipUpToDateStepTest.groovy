@@ -44,7 +44,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         !result.executionReasons.present
 
         _ * context.changes >> Optional.of(changes)
-        1 * changes.allChangeMessages >> ImmutableList.of()
+        _ * context.rebuildReasons >> ImmutableList.of()
         1 * changes.beforeExecutionState >> Mock(BeforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState) {
             1 * getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
@@ -65,7 +65,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         !result.reusedOutputOriginMetadata.present
 
         _ * context.changes >> Optional.of(changes)
-        1 * changes.allChangeMessages >> ImmutableList.of("change")
+        _ * context.rebuildReasons >> ImmutableList.of("change")
         1 * delegate.execute(work, context) >> delegateResult
         0 * _
 
@@ -93,8 +93,6 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         def result = step.execute(work, context)
 
         then:
-        result.executionReasons == ["Change tracking is disabled."]
-
         _ * context.changes >> Optional.empty()
         1 * delegate.execute(work, context)
         0 * _

@@ -27,22 +27,22 @@ public interface ExecutionStateChanges {
     /**
      * Returns all change messages for inputs and outputs.
      */
-    ImmutableList<String> getAllChangeMessages();
+    ImmutableList<String> getChangeDescriptions();
 
     InputChangesInternal createInputChanges();
 
     BeforeExecutionState getBeforeExecutionState();
 
     static ExecutionStateChanges incremental(
-        ImmutableList<String> allChangeMessages,
+        ImmutableList<String> changeDescriptions,
         BeforeExecutionState beforeExecutionState,
         InputFileChanges inputFileChanges,
         IncrementalInputProperties incrementalInputProperties
     ) {
         return new ExecutionStateChanges() {
             @Override
-            public ImmutableList<String> getAllChangeMessages() {
-                return allChangeMessages;
+            public ImmutableList<String> getChangeDescriptions() {
+                return changeDescriptions;
             }
 
             @Override
@@ -58,14 +58,14 @@ public interface ExecutionStateChanges {
     }
 
     static ExecutionStateChanges nonIncremental(
-        ImmutableList<String> allChangeMessages,
+        ImmutableList<String> changeDescriptions,
         BeforeExecutionState beforeExecutionState,
         IncrementalInputProperties incrementalInputProperties
     ) {
         return new ExecutionStateChanges() {
             @Override
-            public ImmutableList<String> getAllChangeMessages() {
-                return allChangeMessages;
+            public ImmutableList<String> getChangeDescriptions() {
+                return changeDescriptions;
             }
 
             @Override
@@ -76,25 +76,6 @@ public interface ExecutionStateChanges {
             @Override
             public BeforeExecutionState getBeforeExecutionState() {
                 return beforeExecutionState;
-            }
-        };
-    }
-
-    static ExecutionStateChanges rebuild(ImmutableList<String> rebuildReason) {
-        return new ExecutionStateChanges() {
-            @Override
-            public ImmutableList<String> getAllChangeMessages() {
-                return rebuildReason;
-            }
-
-            @Override
-            public InputChangesInternal createInputChanges() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public BeforeExecutionState getBeforeExecutionState() {
-                throw new UnsupportedOperationException();
             }
         };
     }

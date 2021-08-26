@@ -36,6 +36,8 @@ import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
@@ -58,45 +60,88 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
     @Override
     public R execute(UnitOfWork work, CachingContext context) {
-        ExecutionStateChanges changes = context.getBeforeExecutionState()
-            .map(beforeExecution -> {
-                IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
-                return context.getNonIncrementalReason()
-                    .map(ImmutableList::of)
-                    .map(nonIncrementalReason -> ExecutionStateChanges.nonIncremental(
-                        nonIncrementalReason,
-                        beforeExecution,
-                        incrementalInputProperties))
-                    .orElseGet(() -> context.getPreviousExecutionState()
-                        .map(previousExecution -> context.getValidationProblems()
-                            .map(__ -> ExecutionStateChanges.nonIncremental(
-                                VALIDATION_FAILED,
-                                beforeExecution,
-                                incrementalInputProperties
-                            ))
-                            .orElseGet(() -> changeDetector.detectChanges(
-                                work,
-                                previousExecution,
-                                beforeExecution,
-                                incrementalInputProperties)))
-                        .orElseGet(() -> ExecutionStateChanges.nonIncremental(
-                            NO_HISTORY,
-                            beforeExecution,
-                            incrementalInputProperties
-                        )));
-            })
+        IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
+            .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
+            .map(changes -> createDelegateContext(context, changes.getChangeDescriptions(), changes))
             .orElseGet(() -> {
                 ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
                     .map(ImmutableList::of)
                     .orElse(UNTRACKED);
-                return ExecutionStateChanges.rebuild(rebuildReason);
+                return createDelegateContext(context, rebuildReason, null);
             });
 
-        return delegate.execute(work, new IncrementalChangesContext() {
+        return delegate.execute(work, delegateContext);
+    }
+
+    @Nonnull
+    private ExecutionStateChanges resolveExecutionStateChanges(UnitOfWork work, CachingContext context, BeforeExecutionState beforeExecution) {
+        IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
+        return context.getNonIncrementalReason()
+            .map(ImmutableList::of)
+            .map(nonIncrementalReason -> ExecutionStateChanges.nonIncremental(
+                nonIncrementalReason,
+                beforeExecution,
+                incrementalInputProperties))
+            .orElseGet(() -> context.getPreviousExecutionState()
+                .map(previousExecution -> context.getValidationProblems()
+                    .map(__ -> ExecutionStateChanges.nonIncremental(
+                        VALIDATION_FAILED,
+                        beforeExecution,
+                        incrementalInputProperties
+                    ))
+                    .orElseGet(() -> changeDetector.detectChanges(
+                        work,
+                        previousExecution,
+                        beforeExecution,
+                        incrementalInputProperties)))
+                .orElseGet(() -> ExecutionStateChanges.nonIncremental(
+                    NO_HISTORY,
+                    beforeExecution,
+                    incrementalInputProperties
+                )));
+    }
+
+    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
+        UnitOfWork.InputChangeTrackingStrategy inputChangeTrackingStrategy = work.getInputChangeTrackingStrategy();
+        switch (inputChangeTrackingStrategy) {
+            case NONE:
+                return IncrementalInputProperties.NONE;
+            //noinspection deprecation
+            case ALL_PARAMETERS:
+                // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
+                return IncrementalInputProperties.ALL;
+            case INCREMENTAL_PARAMETERS:
+                ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
+                InputVisitor visitor = new InputVisitor() {
+                    @Override
+                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
+                        if (type.isIncremental()) {
+                            Object value = valueSupplier.getValue();
+                            if (value == null) {
+                                throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
+                            }
+                            builder.put(propertyName, value);
+                        }
+                    }
+                };
+                work.visitIdentityInputs(visitor);
+                work.visitRegularInputs(visitor);
+                return new DefaultIncrementalInputProperties(builder.build());
+            default:
+                throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);
+        }
+    }
+
+    private static IncrementalChangesContext createDelegateContext(CachingContext context, ImmutableList<String> rebuildReasons, @Nullable ExecutionStateChanges changes) {
+        return new IncrementalChangesContext() {
+            @Override
+            public ImmutableList<String> getRebuildReasons() {
+                return rebuildReasons;
+            }
+
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
-                // TODO Make this not optional
-                return Optional.of(changes);
+                return Optional.ofNullable(changes);
             }
 
             @Override
@@ -153,37 +198,6 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return context.getBeforeExecutionState();
             }
-        });
-    }
-
-    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
-        UnitOfWork.InputChangeTrackingStrategy inputChangeTrackingStrategy = work.getInputChangeTrackingStrategy();
-        switch (inputChangeTrackingStrategy) {
-            case NONE:
-                return IncrementalInputProperties.NONE;
-            //noinspection deprecation
-            case ALL_PARAMETERS:
-                // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
-                return IncrementalInputProperties.ALL;
-            case INCREMENTAL_PARAMETERS:
-                ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                InputVisitor visitor = new InputVisitor() {
-                    @Override
-                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
-                        if (type.isIncremental()) {
-                            Object value = valueSupplier.getValue();
-                            if (value == null) {
-                                throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
-                            }
-                            builder.put(propertyName, value);
-                        }
-                    }
-                };
-                work.visitIdentityInputs(visitor);
-                work.visitRegularInputs(visitor);
-                return new DefaultIncrementalInputProperties(builder.build());
-            default:
-                throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);
-        }
+        };
     }
 }
