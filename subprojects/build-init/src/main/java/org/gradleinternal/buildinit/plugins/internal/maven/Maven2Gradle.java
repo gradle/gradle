@@ -28,6 +28,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
 public class Maven2Gradle {
-    private final BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory();
+    private final BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory(new DocumentationRegistry());
 
     private final Set<MavenProject> allProjects;
     private final MavenProject rootProject;

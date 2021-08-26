@@ -21,13 +21,17 @@ import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 
 public class BuildScriptBuilderFactory {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
+    private final DocumentationRegistry documentationRegistry;
 
-    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String pathWithoutExtension) {
-        return BuildScriptBuilder.forNewProjects(dsl, documentationRegistry, pathWithoutExtension);
+    public BuildScriptBuilderFactory(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry;
     }
 
-    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String pathWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
-        return BuildScriptBuilder.forMavenConversion(dsl, documentationRegistry, pathWithoutExtension, insecureProtocolOption);
+    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String fileNameWithoutExtension) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
+    }
+
+    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, insecureProtocolOption);
     }
 }
