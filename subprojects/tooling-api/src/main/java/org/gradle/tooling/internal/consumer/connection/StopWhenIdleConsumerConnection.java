@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 /**
  * An adapter for {@link InternalInvalidatableVirtualFileSystemConnection}.
  *
- * <p>Used for providers >= 6.5.</p>
+ * <p>Used for providers &gt;= 6.5.</p>
  */
 public class StopWhenIdleConsumerConnection extends NotifyDaemonsAboutChangedPathsConsumerConnection {
     public StopWhenIdleConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {

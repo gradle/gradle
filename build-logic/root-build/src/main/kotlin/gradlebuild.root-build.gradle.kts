@@ -19,4 +19,5 @@ plugins {
     id("gradlebuild.ide") // Local development: Tweak IDEA import
     id("gradlebuild.dependency-analysis") // Auditing dependencies to find unused libraries
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
+    id("gradlebuild.nexus-publish") // Publish to Maven Central
 }

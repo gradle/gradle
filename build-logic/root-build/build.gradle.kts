@@ -15,4 +15,6 @@ dependencies {
         because("The plugin implementation requires it to be on the root project classpath")
     }
     implementation("com.autonomousapps:dependency-analysis-gradle-plugin")
+    // This plugin requires it to be applied to root project
+    implementation("io.github.gradle-nexus:publish-plugin:1.1.0")
 }

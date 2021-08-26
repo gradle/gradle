@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.converters;
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.kotlin.dsl.*
 
-import org.gradle.tooling.model.eclipse.EclipseProject;
+plugins {
+    id("io.github.gradle-nexus.publish-plugin")
+}
 
-/**
- * This is used for compatibility with clients &lt;5.4
- */
-public class EclipseProjectHasAutoBuildMixin {
-
-    public EclipseProjectHasAutoBuildMixin(EclipseProject eclipseProject) {
-    }
-
-    public boolean hasAutoBuildTasks() {
-        return false;
+nexusPublishing {
+    packageGroup.set(project.group.toString())
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
     }
 }
