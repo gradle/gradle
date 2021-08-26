@@ -58,7 +58,10 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 }
                 @SuppressWarnings("OptionalGetWithoutIsPresent")
                 PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
-                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(previousExecutionState.getOutputFilesProducedByWork());
+                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
+                    changes.getBeforeExecutionState(),
+                    previousExecutionState.getOutputFilesProducedByWork()
+                );
                 return new UpToDateResult() {
                     @Override
                     public ImmutableList<String> getExecutionReasons() {

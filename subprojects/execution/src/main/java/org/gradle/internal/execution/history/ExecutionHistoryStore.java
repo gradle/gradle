@@ -16,27 +16,19 @@
 
 package org.gradle.internal.execution.history;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.Optional;
 
 public interface ExecutionHistoryStore {
     Optional<PreviousExecutionState> load(String key);
 
-    void store(String key,
-               OriginMetadata originMetadata,
-               ImplementationSnapshot implementation,
-               ImmutableList<ImplementationSnapshot> additionalImplementations,
-               ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-               ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-               ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
-               boolean successful);
+    void store(
+        String key,
+        OriginMetadata originMetadata,
+        boolean successful,
+        AfterExecutionState executionState
+    );
 
     void remove(String key);
 }

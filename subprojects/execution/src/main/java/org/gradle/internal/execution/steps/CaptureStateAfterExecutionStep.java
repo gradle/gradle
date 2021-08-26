@@ -106,7 +106,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
             operationContext -> {
                 try {
                     ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(outputsProducedByWork);
+                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork);
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.of(afterExecutionState);
                 } catch (UncheckedIOException e) {

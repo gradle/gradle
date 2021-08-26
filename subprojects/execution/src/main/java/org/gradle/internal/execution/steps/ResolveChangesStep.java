@@ -40,6 +40,7 @@ import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private static final String NO_HISTORY = "No history is available.";
+    private static final String UNTRACKED = "Change tracking is disabled.";
     private static final String VALIDATION_FAILED = "Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.";
 
     private final ExecutionStateChangeDetector changeDetector;
@@ -56,38 +57,25 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
     @Override
     public R execute(UnitOfWork work, CachingContext context) {
-        Optional<ExecutionStateChanges> changes = context.getBeforeExecutionState()
-            .map(beforeExecution -> {
-                    IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
-                    return context.getRebuildReason()
-                        .map(rebuildReason -> ExecutionStateChanges.rebuild(
-                            rebuildReason,
+        ExecutionStateChanges changes = context.getRebuildReason()
+            .map(ExecutionStateChanges::rebuild)
+            .orElseGet(() -> context.getBeforeExecutionState()
+                .map(beforeExecution -> context.getPreviousExecutionState()
+                    .map(previousExecution -> context.getValidationProblems()
+                        .map(__ -> ExecutionStateChanges.rebuild(VALIDATION_FAILED))
+                        .orElseGet(() -> changeDetector.detectChanges(
+                            work,
+                            previousExecution,
                             beforeExecution,
-                            incrementalInputProperties))
-                        .orElseGet(() -> context.getPreviousExecutionState()
-                            .map(previousExecution -> context.getValidationProblems()
-                                .map(__ -> ExecutionStateChanges.rebuild(
-                                    VALIDATION_FAILED,
-                                    beforeExecution,
-                                    incrementalInputProperties))
-                                .orElseGet(() -> changeDetector.detectChanges(
-                                    work,
-                                    previousExecution,
-                                    beforeExecution,
-                                    incrementalInputProperties))
-                            )
-                            .orElseGet(() -> ExecutionStateChanges.rebuild(
-                                NO_HISTORY,
-                                beforeExecution,
-                                incrementalInputProperties))
-                        );
-                }
-            );
+                            createIncrementalInputProperties(work))))
+                    .orElseGet(() -> ExecutionStateChanges.rebuild(NO_HISTORY)))
+                .orElseGet(() -> ExecutionStateChanges.rebuild(UNTRACKED)));
 
         return delegate.execute(work, new IncrementalChangesContext() {
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
-                return changes;
+                // TODO Make this not optional
+                return Optional.of(changes);
             }
 
             @Override

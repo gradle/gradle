@@ -80,11 +80,22 @@ public interface ExecutionStateChanges {
         };
     }
 
-    static ExecutionStateChanges rebuild(
-        String rebuildReason,
-        BeforeExecutionState beforeExecutionState,
-        IncrementalInputProperties incrementalInputProperties
-    ) {
-        return nonIncremental(ImmutableList.of(rebuildReason), beforeExecutionState, incrementalInputProperties);
+    static ExecutionStateChanges rebuild(String rebuildReason) {
+        return new ExecutionStateChanges() {
+            @Override
+            public ImmutableList<String> getAllChangeMessages() {
+                return ImmutableList.of(rebuildReason);
+            }
+
+            @Override
+            public InputChangesInternal createInputChanges() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public BeforeExecutionState getBeforeExecutionState() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 }

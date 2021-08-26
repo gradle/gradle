@@ -16,5 +16,10 @@
 
 package org.gradle.internal.execution.history;
 
-public interface AfterExecutionState extends OutputExecutionState {
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+
+public interface AfterExecutionState extends InputExecutionState, OutputExecutionState {
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 }

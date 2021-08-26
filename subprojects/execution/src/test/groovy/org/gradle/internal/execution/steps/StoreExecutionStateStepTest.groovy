@@ -33,15 +33,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
-    def implementationSnapshot = ImplementationSnapshot.of("Test", HashCode.fromInt(123))
-    def additionalImplementations = ImmutableList.of()
-    def inputProperties = ImmutableSortedMap.of()
-    def inputFileProperties = ImmutableSortedMap.of()
     def beforeExecutionState = Stub(BeforeExecutionState) {
-        getImplementation() >> implementationSnapshot
-        getAdditionalImplementations() >> additionalImplementations
-        getInputProperties() >> inputProperties
-        getInputFileProperties() >> inputFileProperties
+        getImplementation() >> ImplementationSnapshot.of("Test", HashCode.fromInt(123))
+        getAdditionalImplementations() >> ImmutableList.of()
+        getInputProperties() >> ImmutableSortedMap.of()
+        getInputFileProperties() >> ImmutableSortedMap.of()
     }
 
     def outputFile = file("output.txt").text = "output"
@@ -69,11 +65,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
         1 * delegateResult.originMetadata >> originMetadata
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        _ * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
         then:
         interaction { expectStore(true, outputFilesProducedByWork) }
@@ -93,7 +89,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
             1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.empty()
         1 * delegateResult.originMetadata >> originMetadata
 
@@ -114,10 +110,10 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
         1 * delegateResult.originMetadata >> originMetadata
@@ -139,10 +135,10 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
 
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProducedByWork
         0 * _
@@ -157,7 +153,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        _ * context.beforeExecutionState >> Optional.empty()
+        _ * delegateResult.afterExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -165,12 +161,10 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         1 * executionHistoryStore.store(
             identity.uniqueId,
             originMetadata,
-            implementationSnapshot,
-            additionalImplementations,
-            inputProperties,
-            inputFileProperties,
-            finalOutputs,
-            successful
+            successful,
+            { AfterExecutionState executionState ->
+                executionState.outputFilesProducedByWork == finalOutputs
+            }
         )
     }
 }

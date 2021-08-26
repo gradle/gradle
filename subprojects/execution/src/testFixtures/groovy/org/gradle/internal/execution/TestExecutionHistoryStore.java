@@ -16,18 +16,15 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,23 +43,14 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(
-        String key,
-        OriginMetadata originMetadata,
-        ImplementationSnapshot implementation,
-        ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileProperties,
-        boolean successful
-    ) {
+    public void store(String key, OriginMetadata originMetadata, boolean successful, AfterExecutionState executionState) {
         executionHistory.put(key, new DefaultPreviousExecutionState(
             originMetadata,
-            implementation,
-            additionalImplementations,
-            inputProperties,
-            prepareForSerialization(inputFileProperties),
-            outputFileProperties,
+            executionState.getImplementation(),
+            executionState.getAdditionalImplementations(),
+            executionState.getInputProperties(),
+            prepareForSerialization(executionState.getInputFileProperties()),
+            executionState.getOutputFilesProducedByWork(),
             successful
         ));
     }

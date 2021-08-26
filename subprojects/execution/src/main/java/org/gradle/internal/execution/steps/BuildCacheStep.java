@@ -31,6 +31,7 @@ import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
@@ -70,12 +71,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
-            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey()),
+            cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey) {
+    private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
@@ -89,7 +90,9 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     }
                     cleanLocalState(context.getWorkspace(), work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(cacheHit.getResultingSnapshots());
+                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
+                        beforeExecutionState,
+                        cacheHit.getResultingSnapshots());
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
