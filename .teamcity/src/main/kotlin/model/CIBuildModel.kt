@@ -14,6 +14,8 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import configurations.TestPerformanceTest
+import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
+import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -40,7 +42,7 @@ data class CIBuildModel(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck
             ),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION)
+                TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             )
         ),
         Stage(
@@ -63,9 +65,9 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
-                TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
+                TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
-                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)
+                TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             ),
             performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.per_commit, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux"))
         ),
@@ -76,8 +78,8 @@ data class CIBuildModel(
                 SpecificBuild.SmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
-                TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION)
+                TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size),
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size)
             ),
             performanceTests = listOf(
                 PerformanceTestCoverage(6, PerformanceTestType.per_commit, Os.WINDOWS, numberOfBuckets = 5, failsStage = false),
@@ -89,18 +91,18 @@ data class CIBuildModel(
             trigger = Trigger.daily,
             specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
             functionalTests = listOf(
-                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION),
-                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION),
-                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION),
-                TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MIN_VERSION),
-                TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION),
-                TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION),
+                TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
+                TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION, 1),
+                TestCoverage(9, TestType.soak, Os.WINDOWS, JvmCategory.MIN_VERSION, 1),
+                TestCoverage(35, TestType.soak, Os.MACOS, JvmCategory.MIN_VERSION, 1),
+                TestCoverage(10, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size),
+                TestCoverage(11, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size),
+                TestCoverage(12, TestType.noDaemon, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(13, TestType.noDaemon, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(14, TestType.platform, Os.MACOS, JvmCategory.MIN_VERSION, expectedBucketNumber = 20),
-                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION),
-                TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, expectedBucketNumber = 10),
-                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, expectedBucketNumber = 10)
+                TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
+                TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size),
+                TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION, CROSS_VERSION_BUCKETS.size)
             ),
             performanceTests = listOf(
                 PerformanceTestCoverage(2, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, oldUuid = "PerformanceTestSlowLinux")
@@ -189,43 +191,18 @@ data class CIBuildModel(
     val subprojects: GradleSubprojectProvider
 )
 
+fun TestCoverage.getBucketUuid(model: CIBuildModel, bucketIndex: Int) = asConfigurationId(model, "bucket${bucketIndex + 1}")
+
 interface BuildTypeBucket {
     fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest
-
-    fun getUuid(model: CIBuildModel, testCoverage: TestCoverage, bucketIndex: Int): String = testCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
 
     fun getName(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 
     fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) : BuildTypeBucket {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
-        return FunctionalTest(
-            model,
-            getUuid(model, testCoverage, bucketIndex),
-            getName(testCoverage),
-            getDescription(testCoverage),
-
-            testCoverage,
-            stage,
-            listOf(name)
-        )
-    }
-
-    // Build Template or Configuration "Gradle_Check_Platform_4_platform-play" is invalid: contains unsupported character '-'. ID should start with a latin letter
-    // and contain only latin letters, digits and underscores (at most 225 characters).
-    private fun String.kebabCaseToCamelCase() = split('-')
-        .map { it.capitalize() }
-        .joinToString("")
-        .decapitalize()
-
-    override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
-
-    override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for $name"
-
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
     fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
-
     fun asDirectoryName() = name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.toLowerCase() }
 }
 
@@ -259,7 +236,7 @@ data class TestCoverage(
     val testJvmVersion: JvmVersion,
     val vendor: JvmVendor = JvmVendor.oracle,
     val buildJvmVersion: JvmVersion = JvmVersion.java11,
-    val expectedBucketNumber: Int = 50,
+    val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
     val withoutDependencies: Boolean = false
 ) {
 
@@ -268,8 +245,8 @@ data class TestCoverage(
         testType: TestType,
         os: Os,
         testJvm: JvmCategory,
+        expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
         buildJvmVersion: JvmVersion = JvmVersion.java11,
-        expectedBucketNumber: Int = 50,
         withoutDependencies: Boolean = false
     ) : this(uuid, testType, os, testJvm.version, testJvm.vendor, buildJvmVersion, expectedBucketNumber, withoutDependencies)
 
@@ -382,6 +359,7 @@ enum class Trigger {
 }
 
 const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
+
 enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
