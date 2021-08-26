@@ -64,7 +64,7 @@ class DefaultNestedBuildTest extends Specification {
     }
 
     def "stops controller on stop"() {
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(Stub(BuildModelParameters))
         def build = build()
 
         when:
@@ -76,7 +76,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and finishes build when model is not required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(new BuildModelParameters(false, false, false, false, false))
         def build = build()
 
         when:
@@ -97,7 +97,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action but does not finish build when model is required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, true))
+        sessionServices.add(new BuildModelParameters(false, false, false, true, false))
         def build = build()
 
         when:
@@ -118,7 +118,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "can have null result"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, false))
+        sessionServices.add(Stub(BuildModelParameters))
         def build = build()
 
         when:

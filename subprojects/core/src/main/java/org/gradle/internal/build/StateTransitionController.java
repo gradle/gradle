@@ -37,7 +37,7 @@ public class StateTransitionController<T extends StateTransitionController.State
     @Nullable
     private T currentTarget;
     @Nullable
-    private ExecutionResult<Void> failure;
+    private ExecutionResult<?> failure;
 
     public StateTransitionController(T initialState) {
         this.state = initialState;
@@ -139,6 +139,19 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Transitions to the given "to" state.
      * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
      */
+    public <S> S transition(T fromState, T toState, Supplier<? extends S> action) {
+        Thread previousOwner = takeOwnership();
+        try {
+            return doTransition(fromState, toState, () -> ExecutionResult.succeeded(action.get())).getValueOrRethrow();
+        } finally {
+            releaseOwnership(previousOwner);
+        }
+    }
+
+    /**
+     * Transitions to the given "to" state.
+     * Fails if the current state is not the given "from" state or if some other transition is happening or a previous transition has failed.
+     */
     public ExecutionResult<Void> tryTransition(T fromState, T toState, Supplier<ExecutionResult<Void>> action) {
         Thread previousOwner = takeOwnership();
         try {
@@ -193,7 +206,7 @@ public class StateTransitionController<T extends StateTransitionController.State
                 if (failure == null) {
                     return action.apply(ExecutionResult.succeeded());
                 } else {
-                    return action.apply(failure);
+                    return action.apply(failure.asFailure());
                 }
             } finally {
                 state = toState;
@@ -211,7 +224,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }).getValueOrRethrow();
     }
 
-    private ExecutionResult<Void> doTransition(T fromState, T toState, Supplier<ExecutionResult<Void>> action) {
+    private <S> ExecutionResult<S> doTransition(T fromState, T toState, Supplier<ExecutionResult<S>> action) {
         assertNotFailed();
         if (currentTarget != null) {
             if (currentTarget == toState) {
@@ -225,7 +238,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
         currentTarget = toState;
         try {
-            ExecutionResult<Void> result;
+            ExecutionResult<S> result;
             try {
                 result = action.get();
             } catch (Throwable t) {

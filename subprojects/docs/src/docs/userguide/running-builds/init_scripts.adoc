@@ -97,8 +97,8 @@ Having declared the init script classpath, you can use the classes in your init 
 
 .An init script with external dependencies
 ====
-include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all]"]
-include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all]"]
+include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
+include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all];build.gradle.kts[]"]
 ====
 
 Output when applying the init script

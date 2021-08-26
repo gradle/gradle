@@ -25,12 +25,14 @@ public class BuildModelParameters {
     private final boolean configurationCache;
     private final boolean isolatedProjects;
     private final boolean requiresBuildModel;
+    private final boolean parallelToolingApiActions;
 
-    public BuildModelParameters(boolean configureOnDemand, boolean configurationCache, boolean isolatedProjects, boolean requiresBuildModel) {
+    public BuildModelParameters(boolean configureOnDemand, boolean configurationCache, boolean isolatedProjects, boolean requiresBuildModel, boolean parallelToolingApiActions) {
         this.configureOnDemand = configureOnDemand;
         this.configurationCache = configurationCache;
         this.isolatedProjects = isolatedProjects;
         this.requiresBuildModel = requiresBuildModel;
+        this.parallelToolingApiActions = parallelToolingApiActions;
     }
 
     /**
@@ -52,5 +54,12 @@ public class BuildModelParameters {
 
     public boolean isIsolatedProjects() {
         return isolatedProjects;
+    }
+
+    /**
+     * Force parallel tooling API actions? When true, always use parallel execution, when false use a default value.
+     */
+    public boolean isParallelToolingApiActions() {
+        return parallelToolingApiActions;
     }
 }

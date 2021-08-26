@@ -16,16 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
-import org.gradle.internal.file.StatStatistics;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.file.StatStatistics;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails;
@@ -40,26 +38,34 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemWatchingBuildActionRunner.class);
 
     private final BuildOperationProgressEventEmitter eventEmitter;
+    private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
+    private final StatStatistics.Collector statStatisticsCollector;
+    private final FileHasherStatistics.Collector fileHasherStatisticsCollector;
+    private final DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildActionRunner delegate;
 
     public FileSystemWatchingBuildActionRunner(
         BuildOperationProgressEventEmitter eventEmitter,
+        BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+        StatStatistics.Collector statStatisticsCollector,
+        FileHasherStatistics.Collector fileHasherStatisticsCollector,
+        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
+        BuildOperationRunner buildOperationRunner,
         BuildActionRunner delegate
     ) {
         this.eventEmitter = eventEmitter;
+        this.virtualFileSystem = virtualFileSystem;
+        this.statStatisticsCollector = statStatisticsCollector;
+        this.fileHasherStatisticsCollector = fileHasherStatisticsCollector;
+        this.directorySnapshotterStatisticsCollector = directorySnapshotterStatisticsCollector;
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
     }
 
     @Override
     public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
-        GradleInternal gradle = buildController.getGradle();
-        StartParameterInternal startParameter = gradle.getStartParameter();
-        ServiceRegistry services = gradle.getServices();
-        BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
-        StatStatistics.Collector statStatisticsCollector = services.get(StatStatistics.Collector.class);
-        FileHasherStatistics.Collector fileHasherStatisticsCollector = services.get(FileHasherStatistics.Collector.class);
-        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
-        BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
+        StartParameterInternal startParameter = action.getStartParameter();
 
         WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
