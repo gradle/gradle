@@ -16,29 +16,15 @@
 
 package org.gradle.integtests.tooling.r35
 
+import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
-import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 @TargetGradleVersion(">=3.5")
-class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
-
-    private RepositoryHttpServer server
-
-    def setup() {
-        server = new RepositoryHttpServer(temporaryFolder, targetDist.version.version)
-        server.before()
-    }
-
-    def cleanup() {
-        server.after()
-    }
+class BuildProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
 
     @TargetGradleVersion(">=3.5 <4.0")
     def "generates events for interleaved project configuration and dependency resolution"() {
@@ -104,49 +90,18 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=3.5 <4.0")
     def "generates events for downloading artifacts"() {
         given:
-        toolingApi.requireIsolatedUserHome()
+        def modules = setupBuildWithArtifactDownload()
 
-        def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
-        def projectC = mavenHttpRepo.module('group', 'projectC', '1.5').publish()
-        def projectD = mavenHttpRepo.module('group', 'projectD', '2.0-SNAPSHOT').publish()
+        def projectB = modules.projectB
+        def projectC = modules.projectC
+        def projectD = modules.projectD
 
-        settingsFile << """
-            rootProject.name = 'root'
-            include 'a'
-        """
-        buildFile << """
-            allprojects {
-                apply plugin:'java-library'
-            }
-            repositories {
-               maven { url '${mavenHttpRepo.uri}' }
-            }
-
-            dependencies {
-                implementation project(':a')
-                implementation "group:projectB:1.0"
-                implementation "group:projectC:1.+"
-                implementation "group:projectD:2.0-SNAPSHOT"
-            }
-            configurations.compileClasspath.each { println it }
-"""
         when:
-        projectB.pom.expectGet()
-        projectB.artifact.expectGet()
-        projectC.rootMetaData.expectGet()
-        projectC.pom.expectGet()
-        projectC.artifact.expectGet()
-
-        projectD.pom.expectGet()
-        projectD.metaData.expectGet()
-        projectD.artifact.expectGet()
-
-        and:
         def events = ProgressEvents.create()
-        withConnection {
-            ProjectConnection connection ->
-                connection.newBuild()
-                    .addProgressListener(events).run()
+        withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .addProgressListener(events)
+                .run()
         }
 
         then:
@@ -170,15 +125,17 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def downloadCArtifact = events.operation("Download ${server.uri}${projectC.artifactPath}")
         def downloadDPom = events.operation("Download ${server.uri}${projectD.pomPath}")
         def downloadDMavenMetadata = events.operation("Download ${server.uri}${projectD.metaDataPath}")
+        def downloadDArtifact = events.operation("Download ${server.uri}${projectD.artifactPath}")
         resolveCompile.parent == configureRoot
         configureRoot.children == [resolveCompile, resolveArtifactA, resolveArtifactB, resolveArtifactC, resolveArtifactD]
 
         def configureA = events.operation("Configure project :a")
         configureA.parent == resolveCompile
-        resolveCompile.children == [configureA, downloadBMetadata, downloadCRootMetadata, downloadCPom, downloadDMavenMetadata, downloadDPom]
+        resolveCompile.children == [configureA, downloadBMetadata, downloadCRootMetadata, downloadCPom, downloadDMavenMetadata, downloadDPom, downloadDArtifact]
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
+        resolveArtifactD.children == [downloadDArtifact]
     }
 
     @Issue("gradle/gradle#1641")
@@ -345,13 +302,4 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
         events.operation('Task :runInWorker').descendant('MyWorkerAction')
     }
-
-    MavenHttpRepository getMavenHttpRepo() {
-        return new MavenHttpRepository(server, "/repo", mavenRepo)
-    }
-
-    MavenFileRepository getMavenRepo(String name = "repo") {
-        return new MavenFileRepository(file(name))
-    }
-
 }

@@ -117,5 +117,10 @@ public enum OperationType {
      *
      * @since 6.0
      */
-    TEST_OUTPUT
+    TEST_OUTPUT,
+
+    /**
+     * @since 7.3
+     */
+    FILE_DOWNLOAD
 }

@@ -103,6 +103,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
@@ -159,6 +160,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
@@ -170,6 +172,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         projectConfigurationProgressListeners.addAll(listeners.getOrDefault(OperationType.PROJECT_CONFIGURATION, noListeners));
         transformProgressListeners.addAll(listeners.getOrDefault(OperationType.TRANSFORM, noListeners));
         testOutputProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST_OUTPUT, noListeners));
+        fileDownloadListeners.addAll(listeners.getOrDefault(OperationType.FILE_DOWNLOAD, noListeners));
     }
 
     @Override
@@ -195,6 +198,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!testOutputProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_OUTPUT);
+        }
+        if (!fileDownloadListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
         }
         return operations;
     }
@@ -253,6 +259,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
         } else if (descriptor instanceof InternalTestOutputDescriptor) {
             broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
+        } else if (descriptor instanceof InternalFileDownloadDescriptor) {
+            broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
         } else {
             broadcastGenericProgressEvent(progressEvent);
         }
@@ -290,6 +298,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         TestOutputEvent outputEvent = toTestOutputEvent(event, descriptor);
         if (outputEvent != null) {
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
+        }
+    }
+
+    private void broadcastFileDownloadEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {
+        ProgressEvent progressEvent = toGenericProgressEvent(event);
+        if (progressEvent != null) {
+            fileDownloadListeners.getSource().statusChanged(progressEvent);
         }
     }
 
