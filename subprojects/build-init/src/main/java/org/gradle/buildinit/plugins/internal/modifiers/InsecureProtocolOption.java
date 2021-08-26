@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public enum InsecureProtocolOption implements WithIdentifier {
+    FAIL("fail"),
     WARN("warn"),
     ALLOW("allow"),
     UPGRADE("upgrade");

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection HttpUrlsUsage
 
 package org.gradle.buildinit.plugins
 
@@ -509,6 +510,18 @@ Root project 'webinar-parent'
 
         then:
         assertWarnOptionSucceeds(result, dsl, localRepoUrl)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolFail"() {
+        def localRepoUrl = 'http://www.example.com/maven/repo'
+
+        expect:
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL.id
+
+        def initTask = result.groupedOutput.task(':init')
+        initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
+        initTask.output.contains("The current strategy for handling insecure URLs is to fail.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")

@@ -114,6 +114,7 @@ link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildi
 
 Available values are:
 
+* `fail` - Abort the build immediately upon encountering an insecure repository URL.
 * `allow` - Automatically sets the `allowInsecureProtocol` property to `true` for the Maven repository URL in the generated Gradle build script.
 * `warn` - Emits a warning about each insecure URL.  Generates commented-out lines to enable each repository, as per the `allow` option.  You will have to opt-in by editing the generated script and uncommenting each repository URL, or else the Gradle build will fail.
 * `upgrade` - Convert `http` URLs to `https` URLs automatically.

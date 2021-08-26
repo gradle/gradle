@@ -278,6 +278,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
                                   allow
+                                  fail
                                   upgrade
                                   warn
 

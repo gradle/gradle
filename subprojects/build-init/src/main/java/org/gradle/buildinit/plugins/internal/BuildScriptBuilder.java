@@ -65,7 +65,7 @@ public class BuildScriptBuilder {
     private final TopLevelBlock block;
 
     public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension) {
-        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.getDefault());
+        this(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
     }
 
     public BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
@@ -1674,6 +1674,8 @@ public class BuildScriptBuilder {
 
         static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
             switch (insecureProtocolOption) {
+                case FAIL:
+                    return new BuildScriptBuilder.FailingHandler(documentationRegistry);
                 case WARN:
                     return new BuildScriptBuilder.WarningHandler(dsl, documentationRegistry);
                 case ALLOW:
@@ -1683,6 +1685,20 @@ public class BuildScriptBuilder {
                 default:
                     throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureProtocolOption));
             }
+        }
+    }
+
+    public static class FailingHandler implements InsecureProtocolHandler {
+        private final DocumentationRegistry documentationRegistry;
+
+        public FailingHandler(DocumentationRegistry documentationRegistry) {
+            this.documentationRegistry = documentationRegistry;
+        }
+
+        @Override
+        public void handle(URI uri, ScriptBlockImpl statements) {
+            LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+            throw new GradleException(String.format("Build aborted due to insecure protocol in repository: %s", uri));
         }
     }
 
