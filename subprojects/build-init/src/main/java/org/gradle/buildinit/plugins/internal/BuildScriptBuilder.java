@@ -1676,7 +1676,6 @@ public class BuildScriptBuilder {
                 if (GUtil.isSecureUrl(repoLocation)) {
                     handleSecureURL(repoLocation, statements);
                 } else {
-                    LOGGER.warn("Repository URL: '{}' uses an insecure protocol.", repoLocation);
                     handleInsecureURL(repoLocation, statements);
                 }
 
@@ -1700,7 +1699,7 @@ public class BuildScriptBuilder {
             @Override
             protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
                 LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
-                throw new GradleException(String.format("Build aborted due to insecure protocol in repository: %s", repoLocation));
+                throw new GradleException(String.format("Build generation aborted due to insecure protocol in repository: %s", repoLocation));
             }
         }
 
@@ -1716,8 +1715,9 @@ public class BuildScriptBuilder {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
-
+                // use the insecure URL as-is
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                // Leave a commented out block for opting into using the insecure repository
                 statements.comment(buildAllowInsecureProtocolComment(dsl));
             }
 
@@ -1738,14 +1738,8 @@ public class BuildScriptBuilder {
         class UpgradingHandler extends AbstractMavenRepositoryURLHandler {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                final URI secureUri;
-                try {
-                    secureUri = GUtil.toSecureUrl(repoLocation);
-                } catch (final IllegalArgumentException e) {
-                    throw new GradleException(String.format("Can't upgrade insecure protocol for URL: '%s' as no replacement protocol exists.", repoLocation));
-                }
-
-                LOGGER.warn("Upgrading protocol to '{}'.", secureUri);
+                // convert the insecure url for this repository from http to https
+                final URI secureUri = GUtil.toSecureUrl(repoLocation);
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
             }
         }
@@ -1753,7 +1747,9 @@ public class BuildScriptBuilder {
         class AllowingHandler extends AbstractMavenRepositoryURLHandler {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                // use the insecure URL as-is
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                // Opt into using an insecure protocol with this repository
                 statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
             }
         }

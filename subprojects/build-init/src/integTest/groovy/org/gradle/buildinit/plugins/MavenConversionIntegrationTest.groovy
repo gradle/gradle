@@ -19,19 +19,15 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.buildinit.InsecureProtocolOption
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -502,52 +498,34 @@ Root project 'webinar-parent'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolFail"() {
+        expect:
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
+        result.assertHasErrorOutput("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolDefaultHandling"() {
         def dsl = dslFixtureFor(scriptDsl)
-        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        assertWarnOptionSucceeds(result, dsl, localRepoUrl)
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/17328")
-    def "insecureProtocolFail"() {
-        def localRepoUrl = 'http://www.example.com/maven/repo'
-
-        expect:
-        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
-
-        def initTask = result.groupedOutput.task(':init')
-        initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
+        dsl.assertGradleFilesGenerated()
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolWarn"() {
         def dsl = dslFixtureFor(scriptDsl)
-        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN as String
 
         then:
-        assertWarnOptionSucceeds(result, dsl, localRepoUrl)
-    }
-
-    private static void assertWarnOptionSucceeds(ExecutionResult result, ScriptDslFixture dsl, String localRepoUrl) {
         dsl.assertGradleFilesGenerated()
-
-        def initTask = result.groupedOutput.task(':init')
-        initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-
-        def isGroovy = dsl.scriptDsl.id.equalsIgnoreCase("Groovy")
-        if (isGroovy) {
-            initTask.output.contains("If you wish to use this repository, you will have to uncomment the line 'allowInsecureProtocol=true' in the generated build.gradle file.")
-        } else {
-            initTask.output.contains("If you wish to use this repository, you will have to uncomment the line 'isAllowInsecureProtocol=true' in the generated build.gradle.kts file.")
-        }
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
@@ -561,10 +539,7 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
 
-        def taskOutput = result.groupedOutput.task(':init').output
-        taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-
-        def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
 
         // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
         def mavenLocalRepoBlock = (isGroovy ? """
@@ -583,7 +558,6 @@ Root project 'webinar-parent'
     @Issue("https://github.com/gradle/gradle/issues/17328")
     def "insecureProtocolUpgrade"() {
         def dsl = dslFixtureFor(scriptDsl)
-        def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
         run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
@@ -591,12 +565,8 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
 
-        def taskOutput = result.groupedOutput.task(':init').output
-        taskOutput.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-        taskOutput.contains("Upgrading protocol")
-
-        def isGroovy = scriptDsl.id.equalsIgnoreCase("Groovy")
-        def upgradedRepoUrl = GUtil.toSecureUrl(new URI(localRepoUrl))
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def upgradedRepoUrl = 'https://www.example.com/maven/repo'
 
         // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
         def mavenLocalRepoBlock = (isGroovy ? """

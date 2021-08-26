@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
