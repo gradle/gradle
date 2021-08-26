@@ -59,7 +59,7 @@ public class BuildScriptBuilder {
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
-    private final InsecureProtocolHandler insecureProtocolHandler;
+    private final MavenRepositoryURLHandler mavenRepoURLHandler;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
@@ -75,7 +75,7 @@ public class BuildScriptBuilder {
     private BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolHandler) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.insecureProtocolHandler = InsecureProtocolHandler.forOption(insecureProtocolHandler, dsl, documentationRegistry);
+        this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolHandler, dsl, documentationRegistry);
 
         block = new TopLevelBlock(this);
     }
@@ -1027,31 +1027,18 @@ public class BuildScriptBuilder {
     }
 
     private static class MavenRepoExpression extends AbstractStatement {
-        private final String url;
+        private final URI uri;
         private final BuildScriptBuilder builder;
 
         MavenRepoExpression(@Nullable String comment, String url, BuildScriptBuilder builder) {
             super(comment);
-            this.url = url;
+            this.uri = uriFromString(url);
             this.builder = builder;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            ScriptBlockImpl statements = new ScriptBlockImpl();
-            ensureProtocolSecurity(url, statements);
-            printer.printBlock("maven", statements);
-        }
-
-        private void ensureProtocolSecurity(String url, ScriptBlockImpl statements) {
-            final URI uriAsURI = uriFromString(url);
-
-            if (GUtil.isSecureUrl(uriAsURI)) {
-                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
-            } else {
-                LOGGER.warn("Repository URL: '{}' uses an insecure protocol.", url);
-                builder.insecureProtocolHandler.handle(uriAsURI, statements);
-            }
+            builder.mavenRepoURLHandler.handleURL(uri, printer);
         }
     }
 
@@ -1369,6 +1356,7 @@ public class BuildScriptBuilder {
 
         String pluginDependencySpec(String pluginId, @Nullable String version);
 
+        @SuppressWarnings("unused")
         String nestedPluginDependencySpec(String pluginId, @Nullable String version);
 
         String dependencySpec(String config, String notation);
@@ -1671,90 +1659,112 @@ public class BuildScriptBuilder {
         }
     }
 
-    public interface InsecureProtocolHandler {
-        void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements);
+    private interface MavenRepositoryURLHandler {
+        void handleURL(URI repoLocation, PrettyPrinter printer);
 
-        static InsecureProtocolHandler forOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
+        static MavenRepositoryURLHandler forInsecureProtocolOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
             switch (insecureProtocolOption) {
                 case FAIL:
-                    return new BuildScriptBuilder.FailingHandler(documentationRegistry);
+                    return new FailingHandler(documentationRegistry);
                 case WARN:
-                    return new BuildScriptBuilder.WarningHandler(dsl, documentationRegistry);
+                    return new WarningHandler(dsl, documentationRegistry);
                 case ALLOW:
-                    return new BuildScriptBuilder.AllowingHandler();
+                    return new AllowingHandler();
                 case UPGRADE:
-                    return new BuildScriptBuilder.UpgradingHandler();
+                    return new UpgradingHandler();
                 default:
                     throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureProtocolOption));
             }
         }
-    }
 
-    public static class FailingHandler implements InsecureProtocolHandler {
-        private final DocumentationRegistry documentationRegistry;
+        abstract class AbstractMavenRepositoryURLHandler implements MavenRepositoryURLHandler {
+            @Override
+            public void handleURL(URI repoLocation, PrettyPrinter printer) {
+                ScriptBlockImpl statements = new ScriptBlockImpl();
 
-        public FailingHandler(DocumentationRegistry documentationRegistry) {
-            this.documentationRegistry = documentationRegistry;
-        }
+                if (GUtil.isSecureUrl(repoLocation)) {
+                    handleSecureURL(repoLocation, statements);
+                } else {
+                    LOGGER.warn("Repository URL: '{}' uses an insecure protocol.", repoLocation);
+                    handleInsecureURL(repoLocation, statements);
+                }
 
-        @Override
-        public void handle(URI uri, ScriptBlockImpl statements) {
-            LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
-            throw new GradleException(String.format("Build aborted due to insecure protocol in repository: %s", uri));
-        }
-    }
-
-    public static class WarningHandler implements InsecureProtocolHandler {
-        private final BuildInitDsl dsl;
-        private final DocumentationRegistry documentationRegistry;
-
-        public WarningHandler(BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
-            this.dsl = dsl;
-            this.documentationRegistry = documentationRegistry;
-        }
-
-        @Override
-        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
-            LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
-
-            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(uri.toString()))), true);
-            statements.comment(buildAllowInsecureProtocolComment(dsl));
-        }
-
-        private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
-            final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
-
-            final StringWriter result = new StringWriter();
-            try (PrintWriter writer = new PrintWriter(result)) {
-                PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, false);
-                assignment.writeCodeTo(printer);
-                return result.toString();
-            } catch (Exception e) {
-                throw new GradleException("Could not write comment.", e);
-            }
-        }
-    }
-
-    public static class UpgradingHandler implements InsecureProtocolHandler {
-        @Override
-        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
-            final URI secureUri;
-            try {
-                secureUri = GUtil.toSecureUrl(uri);
-            } catch (final IllegalArgumentException e) {
-                throw new GradleException(String.format("Can't upgrade insecure protocol for URL: '%s' as no replacement protocol exists.", uri));
+                printer.printBlock("maven", statements);
             }
 
-            LOGGER.warn("Upgrading protocol to '{}'.", secureUri);
-            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
-        }
-    }
+            protected void handleSecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(repoLocation.toString()))), true);
+            }
 
-    public static class AllowingHandler implements InsecureProtocolHandler {
-        @Override
-        public void handle(URI uri, BuildScriptBuilder.ScriptBlockImpl statements) {
-            statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(uri.toString()))), true);
-            statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+            protected abstract void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements);
+        }
+
+        class FailingHandler extends AbstractMavenRepositoryURLHandler {
+            private final DocumentationRegistry documentationRegistry;
+
+            public FailingHandler(DocumentationRegistry documentationRegistry) {
+                this.documentationRegistry = documentationRegistry;
+            }
+
+            @Override
+            protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
+                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                throw new GradleException(String.format("Build aborted due to insecure protocol in repository: %s", repoLocation));
+            }
+        }
+
+        class WarningHandler extends AbstractMavenRepositoryURLHandler {
+            private final BuildInitDsl dsl;
+            private final DocumentationRegistry documentationRegistry;
+
+            public WarningHandler(BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
+                this.dsl = dsl;
+                this.documentationRegistry = documentationRegistry;
+            }
+
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.comment(buildAllowInsecureProtocolComment(dsl));
+            }
+
+            private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
+                final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+
+                final StringWriter result = new StringWriter();
+                try (PrintWriter writer = new PrintWriter(result)) {
+                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, false);
+                    assignment.writeCodeTo(printer);
+                    return result.toString();
+                } catch (Exception e) {
+                    throw new GradleException("Could not write comment.", e);
+                }
+            }
+        }
+
+        class UpgradingHandler extends AbstractMavenRepositoryURLHandler {
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                final URI secureUri;
+                try {
+                    secureUri = GUtil.toSecureUrl(repoLocation);
+                } catch (final IllegalArgumentException e) {
+                    throw new GradleException(String.format("Can't upgrade insecure protocol for URL: '%s' as no replacement protocol exists.", repoLocation));
+                }
+
+                LOGGER.warn("Upgrading protocol to '{}'.", secureUri);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
+            }
+        }
+
+        class AllowingHandler extends AbstractMavenRepositoryURLHandler {
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+            }
         }
     }
 }
