@@ -27,7 +27,9 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
-    def beforeExecutionState = Mock(BeforeExecutionState)
+    def beforeExecutionState = Stub(BeforeExecutionState) {
+        inputFileProperties >> ImmutableSortedMap.of()
+    }
     def delegateResult = Mock(Result)
 
     @Override
@@ -46,16 +48,11 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
-            try {
-                changes.createInputChanges()
-                assert false
-            } catch (UnsupportedOperationException e) {
-                assert e.message == 'Cannot query input changes when input tracking is disabled.'
-            }
+            assert !changes.createInputChanges().incremental
             return delegateResult
         }
         _ * context.rebuildReason >> Optional.of("Forced rebuild.")
-        _ * context.beforeExecutionState >> Optional.empty()
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         0 * _
     }
 
@@ -91,7 +88,6 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         }
         _ * context.rebuildReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
@@ -115,7 +111,6 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
-        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
         _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
@@ -138,7 +133,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * changeDetector.detectChanges(previousExecutionState, beforeExecutionState, work, _) >> changes
+        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }
 }

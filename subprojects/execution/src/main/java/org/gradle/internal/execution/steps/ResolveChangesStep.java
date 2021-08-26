@@ -32,7 +32,6 @@ import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProp
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
-import org.gradle.internal.execution.history.changes.RebuildExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -57,35 +56,39 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
     @Override
     public R execute(UnitOfWork work, CachingContext context) {
-        Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
-        ExecutionStateChanges changes = context.getRebuildReason()
-            .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState
-                    .map(BeforeExecutionState::getInputFileProperties)
-                    .orElse(null),
-                    createIncrementalInputProperties(work))
-            )
-            .orElseGet(() ->
-                beforeExecutionState
-                    .map(beforeExecution -> context.getPreviousExecutionState()
-                        .map(previousExecution -> context.getValidationProblems()
-                            .map(__ -> rebuildChanges(work, beforeExecution, VALIDATION_FAILED))
-                            .orElseGet(() ->
-                                changeDetector.detectChanges(
+        Optional<ExecutionStateChanges> changes = context.getBeforeExecutionState()
+            .map(beforeExecution -> {
+                    IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
+                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = beforeExecution.getInputFileProperties();
+                    return context.getRebuildReason()
+                        .map(rebuildReason -> ExecutionStateChanges.rebuild(
+                            rebuildReason,
+                            inputFileProperties,
+                            incrementalInputProperties))
+                        .orElseGet(() -> context.getPreviousExecutionState()
+                            .map(previousExecution -> context.getValidationProblems()
+                                .map(__ -> ExecutionStateChanges.rebuild(
+                                    VALIDATION_FAILED,
+                                    inputFileProperties,
+                                    incrementalInputProperties))
+                                .orElseGet(() -> changeDetector.detectChanges(
+                                    work,
                                     previousExecution,
                                     beforeExecution,
-                                    work,
-                                    createIncrementalInputProperties(work)))
-                        )
-                        .orElseGet(() -> rebuildChanges(work, beforeExecution, NO_HISTORY))
-                    )
-                    .orElse(null)
+                                    incrementalInputProperties))
+                            )
+                            .orElseGet(() -> ExecutionStateChanges.rebuild(
+                                NO_HISTORY,
+                                inputFileProperties,
+                                incrementalInputProperties))
+                        );
+                }
             );
 
         return delegate.execute(work, new IncrementalChangesContext() {
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
-                return Optional.ofNullable(changes);
+                return changes;
             }
 
             @Override
@@ -140,13 +143,9 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return beforeExecutionState;
+                return context.getBeforeExecutionState();
             }
         });
-    }
-
-    private static ExecutionStateChanges rebuildChanges(UnitOfWork work, BeforeExecutionState beforeExecution, String rebuildReason) {
-        return new RebuildExecutionStateChanges(rebuildReason, beforeExecution.getInputFileProperties(), createIncrementalInputProperties(work));
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {

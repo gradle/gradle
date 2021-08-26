@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 /**
  * Represents the complete changes in execution state
@@ -29,4 +31,48 @@ public interface ExecutionStateChanges {
     ImmutableList<String> getAllChangeMessages();
 
     InputChangesInternal createInputChanges();
+
+    static ExecutionStateChanges incremental(
+        ImmutableList<String> allChangeMessages,
+        InputFileChanges inputFileChanges,
+        IncrementalInputProperties incrementalInputProperties
+    ) {
+        return new ExecutionStateChanges() {
+            @Override
+            public ImmutableList<String> getAllChangeMessages() {
+                return allChangeMessages;
+            }
+
+            @Override
+            public InputChangesInternal createInputChanges() {
+                return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
+            }
+        };
+    }
+
+    static ExecutionStateChanges nonIncremental(
+        ImmutableList<String> allChangeMessages,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        IncrementalInputProperties incrementalInputProperties
+    ) {
+        return new ExecutionStateChanges() {
+            @Override
+            public ImmutableList<String> getAllChangeMessages() {
+                return allChangeMessages;
+            }
+
+            @Override
+            public InputChangesInternal createInputChanges() {
+                return new NonIncrementalInputChanges(inputFileProperties, incrementalInputProperties);
+            }
+        };
+    }
+
+    static ExecutionStateChanges rebuild(
+        String rebuildReason,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        IncrementalInputProperties incrementalInputProperties
+    ) {
+        return nonIncremental(ImmutableList.of(rebuildReason), inputFileProperties, incrementalInputProperties);
+    }
 }
