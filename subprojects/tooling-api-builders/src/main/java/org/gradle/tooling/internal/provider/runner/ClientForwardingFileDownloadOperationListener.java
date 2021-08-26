@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.types.DefaultFileDownloadDescriptor;
 import org.gradle.internal.build.event.types.DefaultOperationDescriptor;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
@@ -28,6 +29,9 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class ClientForwardingFileDownloadOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
 
@@ -38,7 +42,8 @@ public class ClientForwardingFileDownloadOperationListener implements BuildOpera
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (buildOperation.getDetails() instanceof ExternalResourceReadBuildOperationType.Details) {
-            DefaultOperationDescriptor descriptor = new DefaultFileDownloadDescriptor(buildOperation.getId(), buildOperation.getName(), buildOperation.getDisplayName(), eventConsumer.findStartedParentId(buildOperation));
+            ExternalResourceReadBuildOperationType.Details details = (ExternalResourceReadBuildOperationType.Details) buildOperation.getDetails();
+            DefaultOperationDescriptor descriptor = descriptor(buildOperation, details);
             eventConsumer.started(new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor));
         }
     }
@@ -46,8 +51,17 @@ public class ClientForwardingFileDownloadOperationListener implements BuildOpera
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (buildOperation.getDetails() instanceof ExternalResourceReadBuildOperationType.Details) {
-            DefaultOperationDescriptor descriptor = new DefaultFileDownloadDescriptor(buildOperation.getId(), buildOperation.getName(), buildOperation.getDisplayName(), eventConsumer.findStartedParentId(buildOperation));
+            ExternalResourceReadBuildOperationType.Details details = (ExternalResourceReadBuildOperationType.Details) buildOperation.getDetails();
+            DefaultOperationDescriptor descriptor = descriptor(buildOperation, details);
             eventConsumer.finished(new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent)));
+        }
+    }
+
+    private DefaultFileDownloadDescriptor descriptor(BuildOperationDescriptor buildOperation, ExternalResourceReadBuildOperationType.Details details) {
+        try {
+            return new DefaultFileDownloadDescriptor(buildOperation.getId(), buildOperation.getName(), buildOperation.getDisplayName(), eventConsumer.findStartedParentId(buildOperation), new URI(details.getLocation()));
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

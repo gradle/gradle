@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.tooling.events.download.internal;
 
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 
 import java.net.URI;
 
-public class DefaultFileDownloadDescriptor extends DefaultOperationDescriptor implements InternalFileDownloadDescriptor {
+public class DefaultFileDownloadOperationDescriptor extends DefaultOperationDescriptor implements FileDownloadOperationDescriptor {
     private final URI uri;
 
-    public DefaultFileDownloadDescriptor(Object id, String name, String displayName, Object parentId, URI uri) {
-        super(id, name, displayName, parentId);
-        this.uri = uri;
+    public DefaultFileDownloadOperationDescriptor(InternalFileDownloadDescriptor descriptor, OperationDescriptor parent) {
+        super(descriptor, parent);
+        this.uri = descriptor.getUri();
     }
 
     @Override

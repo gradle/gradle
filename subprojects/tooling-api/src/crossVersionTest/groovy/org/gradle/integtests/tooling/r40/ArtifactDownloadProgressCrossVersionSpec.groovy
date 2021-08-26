@@ -20,12 +20,13 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GradleVersion
 
 class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
-    @TargetGradleVersion(">=4.0")
+    @TargetGradleVersion(">=5.7")
     def "generates events for downloading artifacts"() {
         given:
-        def modules = setupBuildWithArtifactDownload()
+        def modules = setupBuildWithArtifactDownloadDuringConfiguration()
 
         def projectB = modules.projectB
         def projectC = modules.projectC
@@ -44,7 +45,7 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
 
         def configureBuild = events.operation("Configure build")
 
-        def applyRootBuildScript = configureBuild.child("Configure project :").child("Apply build file 'build.gradle' to root project 'root'")
+        def applyRootBuildScript = configureBuild.child("Configure project :").child(applyRootProjectBuildScript())
 
         def resolveCompileDependencies = events.operation("Resolve dependencies :compileClasspath", "Resolve dependencies of :compileClasspath")
         def resolveCompileFiles = events.operation("Resolve files :compileClasspath", "Resolve files of :compileClasspath")
@@ -82,5 +83,13 @@ class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionS
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
         resolveArtifactD.children == [downloadDArtifact]
+    }
+
+    private String applyRootProjectBuildScript() {
+        if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
+            return "Apply build file 'build.gradle' to root project 'root'"
+        } else {
+            return "Apply script build.gradle to root project 'root'"
+        }
     }
 }

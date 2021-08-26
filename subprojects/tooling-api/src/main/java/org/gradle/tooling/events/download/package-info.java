@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
-
-import java.net.URI;
-
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 7.3
+ * File download specific interfaces and classes related to event notifications.
  */
-public interface InternalFileDownloadDescriptor extends InternalOperationDescriptor {
-    URI getUri();
-}
+package org.gradle.tooling.events.download;

@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.download;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationDescriptor;
 
 import java.net.URI;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Describes the details of a file that is downloaded.
  *
  * @since 7.3
  */
-public interface InternalFileDownloadDescriptor extends InternalOperationDescriptor {
+@Incubating
+public interface FileDownloadOperationDescriptor extends OperationDescriptor {
+    /**
+     * Returns the URI that the file is downloaded from.
+     */
     URI getUri();
 }
