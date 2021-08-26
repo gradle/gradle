@@ -59,17 +59,16 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
         Optional<ExecutionStateChanges> changes = context.getBeforeExecutionState()
             .map(beforeExecution -> {
                     IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
-                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = beforeExecution.getInputFileProperties();
                     return context.getRebuildReason()
                         .map(rebuildReason -> ExecutionStateChanges.rebuild(
                             rebuildReason,
-                            inputFileProperties,
+                            beforeExecution,
                             incrementalInputProperties))
                         .orElseGet(() -> context.getPreviousExecutionState()
                             .map(previousExecution -> context.getValidationProblems()
                                 .map(__ -> ExecutionStateChanges.rebuild(
                                     VALIDATION_FAILED,
-                                    inputFileProperties,
+                                    beforeExecution,
                                     incrementalInputProperties))
                                 .orElseGet(() -> changeDetector.detectChanges(
                                     work,
@@ -79,7 +78,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                             )
                             .orElseGet(() -> ExecutionStateChanges.rebuild(
                                 NO_HISTORY,
-                                inputFileProperties,
+                                beforeExecution,
                                 incrementalInputProperties))
                         );
                 }

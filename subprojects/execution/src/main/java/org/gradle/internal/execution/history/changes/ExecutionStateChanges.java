@@ -17,8 +17,7 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 
 /**
  * Represents the complete changes in execution state
@@ -32,8 +31,11 @@ public interface ExecutionStateChanges {
 
     InputChangesInternal createInputChanges();
 
+    BeforeExecutionState getBeforeExecutionState();
+
     static ExecutionStateChanges incremental(
         ImmutableList<String> allChangeMessages,
+        BeforeExecutionState beforeExecutionState,
         InputFileChanges inputFileChanges,
         IncrementalInputProperties incrementalInputProperties
     ) {
@@ -47,12 +49,17 @@ public interface ExecutionStateChanges {
             public InputChangesInternal createInputChanges() {
                 return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
             }
+
+            @Override
+            public BeforeExecutionState getBeforeExecutionState() {
+                return beforeExecutionState;
+            }
         };
     }
 
     static ExecutionStateChanges nonIncremental(
         ImmutableList<String> allChangeMessages,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        BeforeExecutionState beforeExecutionState,
         IncrementalInputProperties incrementalInputProperties
     ) {
         return new ExecutionStateChanges() {
@@ -63,16 +70,21 @@ public interface ExecutionStateChanges {
 
             @Override
             public InputChangesInternal createInputChanges() {
-                return new NonIncrementalInputChanges(inputFileProperties, incrementalInputProperties);
+                return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalInputProperties);
+            }
+
+            @Override
+            public BeforeExecutionState getBeforeExecutionState() {
+                return beforeExecutionState;
             }
         };
     }
 
     static ExecutionStateChanges rebuild(
         String rebuildReason,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        BeforeExecutionState beforeExecutionState,
         IncrementalInputProperties incrementalInputProperties
     ) {
-        return nonIncremental(ImmutableList.of(rebuildReason), inputFileProperties, incrementalInputProperties);
+        return nonIncremental(ImmutableList.of(rebuildReason), beforeExecutionState, incrementalInputProperties);
     }
 }

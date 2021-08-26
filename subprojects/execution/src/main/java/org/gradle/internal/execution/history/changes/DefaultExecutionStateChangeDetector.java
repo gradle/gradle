@@ -104,7 +104,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         if (!rebuildReasons.isEmpty()) {
             return ExecutionStateChanges.nonIncremental(
                 rebuildReasons,
-                thisExecution.getInputFileProperties(),
+                thisExecution,
                 incrementalInputProperties
             );
         } else {
@@ -117,6 +117,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             ImmutableList<String> incrementalInputFileChangeMessages = collectChanges(incrementalInputFileChanges);
             return ExecutionStateChanges.incremental(
                 incrementalInputFileChangeMessages,
+                thisExecution,
                 incrementalInputFileChanges,
                 incrementalInputProperties
             );
