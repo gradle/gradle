@@ -64,7 +64,6 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         result == delegateResult
 
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
-            assert !delegateContext.changes.present
             return delegateResult
         }
         _ * context.nonIncrementalReason >> Optional.empty()

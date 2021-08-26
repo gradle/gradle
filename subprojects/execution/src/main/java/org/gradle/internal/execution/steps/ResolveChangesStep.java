@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
@@ -39,9 +40,9 @@ import java.io.File;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
-    private static final String NO_HISTORY = "No history is available.";
-    private static final String UNTRACKED = "Change tracking is disabled.";
-    private static final String VALIDATION_FAILED = "Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.";
+    private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
+    private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
+    private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
 
     private final ExecutionStateChangeDetector changeDetector;
 
@@ -57,19 +58,39 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
 
     @Override
     public R execute(UnitOfWork work, CachingContext context) {
-        ExecutionStateChanges changes = context.getNonIncrementalReason()
-            .map(ExecutionStateChanges::rebuild)
-            .orElseGet(() -> context.getBeforeExecutionState()
-                .map(beforeExecution -> context.getPreviousExecutionState()
-                    .map(previousExecution -> context.getValidationProblems()
-                        .map(__ -> ExecutionStateChanges.rebuild(VALIDATION_FAILED))
-                        .orElseGet(() -> changeDetector.detectChanges(
-                            work,
-                            previousExecution,
+        ExecutionStateChanges changes = context.getBeforeExecutionState()
+            .map(beforeExecution -> {
+                IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
+                return context.getNonIncrementalReason()
+                    .map(ImmutableList::of)
+                    .map(nonIncrementalReason -> ExecutionStateChanges.nonIncremental(
+                        nonIncrementalReason,
+                        beforeExecution,
+                        incrementalInputProperties))
+                    .orElseGet(() -> context.getPreviousExecutionState()
+                        .map(previousExecution -> context.getValidationProblems()
+                            .map(__ -> ExecutionStateChanges.nonIncremental(
+                                VALIDATION_FAILED,
+                                beforeExecution,
+                                incrementalInputProperties
+                            ))
+                            .orElseGet(() -> changeDetector.detectChanges(
+                                work,
+                                previousExecution,
+                                beforeExecution,
+                                incrementalInputProperties)))
+                        .orElseGet(() -> ExecutionStateChanges.nonIncremental(
+                            NO_HISTORY,
                             beforeExecution,
-                            createIncrementalInputProperties(work))))
-                    .orElseGet(() -> ExecutionStateChanges.rebuild(NO_HISTORY)))
-                .orElseGet(() -> ExecutionStateChanges.rebuild(UNTRACKED)));
+                            incrementalInputProperties
+                        )));
+            })
+            .orElseGet(() -> {
+                ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
+                    .map(ImmutableList::of)
+                    .orElse(UNTRACKED);
+                return ExecutionStateChanges.rebuild(rebuildReason);
+            });
 
         return delegate.execute(work, new IncrementalChangesContext() {
             @Override

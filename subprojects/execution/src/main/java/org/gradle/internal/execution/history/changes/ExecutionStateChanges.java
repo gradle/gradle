@@ -80,11 +80,11 @@ public interface ExecutionStateChanges {
         };
     }
 
-    static ExecutionStateChanges rebuild(String rebuildReason) {
+    static ExecutionStateChanges rebuild(ImmutableList<String> rebuildReason) {
         return new ExecutionStateChanges() {
             @Override
             public ImmutableList<String> getAllChangeMessages() {
-                return ImmutableList.of(rebuildReason);
+                return rebuildReason;
             }
 
             @Override
