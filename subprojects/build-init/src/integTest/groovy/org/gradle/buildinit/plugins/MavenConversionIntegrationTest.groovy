@@ -18,10 +18,10 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -407,7 +407,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -454,7 +454,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -518,7 +518,7 @@ Root project 'webinar-parent'
         def localRepoUrl = 'http://www.example.com/maven/repo'
 
         expect:
-        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL.id
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
 
         def initTask = result.groupedOutput.task(':init')
         initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
@@ -530,7 +530,7 @@ Root project 'webinar-parent'
         def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN as String
 
         then:
         assertWarnOptionSucceeds(result, dsl, localRepoUrl)
@@ -556,7 +556,7 @@ Root project 'webinar-parent'
         def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -586,7 +586,7 @@ Root project 'webinar-parent'
         def localRepoUrl = 'http://www.example.com/maven/repo'
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE.id
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
 
         then:
         dsl.assertGradleFilesGenerated()

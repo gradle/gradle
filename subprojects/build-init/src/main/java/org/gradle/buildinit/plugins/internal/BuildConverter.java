@@ -19,9 +19,6 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
-
-import java.util.Set;
 
 /**
  * Converts some existing build to a Gradle build.
@@ -35,9 +32,4 @@ public interface BuildConverter extends BuildInitializer {
     String getSourceBuildDescription();
 
     void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects);
-
-    /**
-     * Returns the set of insecure repository handlers supported.
-     */
-    Set<InsecureProtocolOption> getInsecureProtocolHandlers();
 }

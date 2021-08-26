@@ -17,8 +17,8 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 
 public class BuildScriptBuilderFactory {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry();

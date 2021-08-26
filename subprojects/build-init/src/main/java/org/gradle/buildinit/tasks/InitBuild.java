@@ -28,15 +28,14 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
-import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -60,7 +59,7 @@ public class InitBuild extends DefaultTask {
     private String testFramework;
     private String projectName;
     private String packageName;
-    private final Property<String> insecureProtocol = getProject().getObjects().property(String.class);
+    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -148,7 +147,7 @@ public class InitBuild extends DefaultTask {
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
     @Incubating
-    public Property<String> getInsecureProtocol() {
+    public Property<InsecureProtocolOption> getInsecureProtocol() {
         return insecureProtocol;
     }
 
@@ -262,24 +261,9 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
-        InsecureProtocolOption insecureProtocolOption = null;
-        if (initDescriptor instanceof PomProjectInitDescriptor) {
-            final PomProjectInitDescriptor pomProjectInitDescriptor = (PomProjectInitDescriptor) initDescriptor;
-
-            insecureProtocolOption = InsecureProtocolOption.byId(this.insecureProtocol.get());
-            if (insecureProtocolOption == null) {
-                final TreeFormatter formatter = new TreeFormatter();
-                formatter.node("The requested insecure protocol handler '" + getInsecureProtocol() + "' is unknown. Supported options");
-                formatter.startChildren();
-                pomProjectInitDescriptor.getInsecureProtocolHandlers().forEach(h -> formatter.node("'" + h.getId() + "'"));
-                formatter.endChildren();
-                throw new GradleException(formatter.toString());
-            }
-        }
-
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir, insecureProtocolOption);
+            modularizationOption, dsl, packageName, testFramework, projectDir, insecureProtocol.get());
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
@@ -349,15 +333,6 @@ public class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public void setPackageName(String packageName) {
         this.packageName = packageName;
-    }
-
-    /**
-     * Available insecure Maven Repository handlers.
-     */
-    @OptionValues("insecure-protocol")
-    @Incubating
-    public List<String> getAvailableInsecureProtocolHandler() {
-        return InsecureProtocolOption.listSupported();
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {

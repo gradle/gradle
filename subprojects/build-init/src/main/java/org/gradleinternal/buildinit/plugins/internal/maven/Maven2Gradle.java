@@ -26,15 +26,15 @@ import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.file.Directory;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.util.internal.RelativePathUtil;
 
 import java.io.File;

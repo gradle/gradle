@@ -17,9 +17,9 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.file.Directory;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import javax.annotation.Nullable;

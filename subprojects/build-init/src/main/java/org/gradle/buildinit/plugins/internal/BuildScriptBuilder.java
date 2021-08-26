@@ -26,7 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;

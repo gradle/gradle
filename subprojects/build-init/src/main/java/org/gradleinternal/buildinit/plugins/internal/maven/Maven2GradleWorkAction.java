@@ -20,8 +20,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.buildinit.plugins.internal.modifiers.InsecureProtocolOption;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
