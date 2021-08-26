@@ -22,7 +22,6 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -44,9 +43,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
-            ? Optional.of(determineInputChanges(work, context))
-            : Optional.empty();
+        Optional<InputChangesInternal> inputChanges = determineInputChanges(work, context);
         return delegate.execute(work, new InputChangesContext() {
             @Override
             public Optional<InputChangesInternal> getInputChanges() {
@@ -110,13 +107,16 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
         });
     }
 
-    private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        ExecutionStateChanges changes = context.getChanges().get();
-        InputChangesInternal inputChanges = changes.createInputChanges();
-        if (!inputChanges.isIncremental()) {
-            LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
+    private static Optional<InputChangesInternal> determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
+        if (!work.getInputChangeTrackingStrategy().requiresInputChanges()) {
+            return Optional.empty();
         }
-        return inputChanges;
+        return context.getChanges().map(changes -> {
+            InputChangesInternal inputChanges = changes.createInputChanges();
+            if (!inputChanges.isIncremental()) {
+                LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
+            }
+            return inputChanges;
+        });
     }
 }
