@@ -521,7 +521,6 @@ Root project 'webinar-parent'
 
         def initTask = result.groupedOutput.task(':init')
         initTask.output.contains("Repository URL: '$localRepoUrl' uses an insecure protocol.")
-        initTask.output.contains("The current strategy for handling insecure URLs is to fail.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17328")
