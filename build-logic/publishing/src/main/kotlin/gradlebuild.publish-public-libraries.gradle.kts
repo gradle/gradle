@@ -56,6 +56,12 @@ val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
+// https://github.com/gradle/gradle-promote/blob/51738d5f8fcfe6c3171e320c190e631ed08355af/promote-projects/gradle/build.gradle#L78
+val publishingToMavenCentral: Boolean
+    get() = listOf("milestoneNumber", "rcNumber", "finalRelease").any {
+        providers.gradleProperty(it).forUseAtConfigurationTime().orNull != null
+    }
+
 signing {
     useInMemoryPgpKeys(
         project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
@@ -209,9 +215,13 @@ fun publishNormalizedToLocalRepository() {
 tasks.register("promotionBuild") {
     description = "Build production distros, smoke test them and publish"
     group = "publishing"
-    dependsOn(
+    val dependencies = mutableListOf<String>(
         ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks",
-        "tooling-api:publishGradleDistributionPublicationToSonatypeRepository", "closeAndReleaseSonatypeStagingRepository"
+        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
     )
+    if (publishingToMavenCentral) {
+        dependencies += "tooling-api:publishGradleDistributionPublicationToSonatypeRepository"
+        dependencies += "closeAndReleaseSonatypeStagingRepository"
+    }
+    dependsOn(*dependencies.toTypedArray())
 }
