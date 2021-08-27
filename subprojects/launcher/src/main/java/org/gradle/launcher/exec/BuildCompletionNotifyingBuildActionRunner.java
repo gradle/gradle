@@ -16,26 +16,25 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.invocation.BuildAction;
 
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
  */
 public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
+    private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
 
-    public BuildCompletionNotifyingBuildActionRunner(BuildActionRunner delegate) {
+    public BuildCompletionNotifyingBuildActionRunner(BuildActionRunner delegate, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
         this.delegate = delegate;
+        this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
     }
 
     @Override
     public Result run(final BuildAction action, BuildTreeLifecycleController buildController) {
-        GradleEnterprisePluginManager gradleEnterprisePluginManager = buildController.getGradle().getServices()
-            .get(GradleEnterprisePluginManager.class);
-
         Result result;
         try {
             result = delegate.run(action, buildController);

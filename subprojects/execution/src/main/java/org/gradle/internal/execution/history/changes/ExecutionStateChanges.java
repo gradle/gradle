@@ -29,9 +29,4 @@ public interface ExecutionStateChanges {
     ImmutableList<String> getAllChangeMessages();
 
     InputChangesInternal createInputChanges();
-
-    /**
-     * Turn these changes into ones forcing a rebuild with the given reason.
-     */
-    ExecutionStateChanges withEnforcedRebuild(String rebuildReason);
 }

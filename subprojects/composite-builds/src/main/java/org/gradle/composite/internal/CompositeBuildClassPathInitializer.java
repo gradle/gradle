@@ -16,58 +16,49 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
-    private final BuildIdentifier currentBuild;
+    private final BuildState currentBuild;
 
     public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
-        this.currentBuild = currentBuild.getBuildIdentifier();
+        this.currentBuild = currentBuild;
     }
 
     @Override
     public void execute(Configuration classpath) {
-        ArtifactCollection artifacts = classpath.getIncoming().getArtifacts();
-        List<CompositeProjectComponentArtifactMetadata> localArtifacts = new ArrayList<>();
-        for (ResolvedArtifactResult artifactResult : artifacts.getArtifacts()) {
-            ComponentArtifactIdentifier artifactIdentifier = artifactResult.getId();
-            if (artifactIdentifier instanceof CompositeProjectComponentArtifactMetadata) {
-                localArtifacts.add((CompositeProjectComponentArtifactMetadata) artifactIdentifier);
+        List<Pair<BuildIdentifier, TaskInternal>> tasksToBuild = new ArrayList<>();
+        for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
+            if (!task.getState().getExecuted()) {
+                // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
+                // running tasks at the same time
+                BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
+                assert targetBuild != currentBuild;
+                tasksToBuild.add(Pair.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
             }
         }
-        if (!localArtifacts.isEmpty()) {
+        if (!tasksToBuild.isEmpty()) {
             includedBuildTaskGraph.withNewTaskGraph(() -> {
                 includedBuildTaskGraph.prepareTaskGraph(() -> {
-                    for (CompositeProjectComponentArtifactMetadata artifact : localArtifacts) {
-                        scheduleTasks(currentBuild, artifact);
+                    for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
+                        includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();
                     }
                     includedBuildTaskGraph.populateTaskGraphs();
                 });
                 includedBuildTaskGraph.runScheduledTasks();
                 return null;
             });
-        }
-    }
-
-    public void scheduleTasks(BuildIdentifier requestingBuild, CompositeProjectComponentArtifactMetadata artifact) {
-        BuildIdentifier targetBuild = artifact.getComponentId().getBuild();
-        assert !requestingBuild.equals(targetBuild);
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        for (Task task : tasks) {
-            includedBuildTaskGraph.locateTask(targetBuild, (TaskInternal) task).queueForExecution();
         }
     }
 }

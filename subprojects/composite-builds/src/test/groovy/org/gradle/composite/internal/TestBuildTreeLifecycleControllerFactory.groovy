@@ -31,6 +31,7 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
+import java.util.function.Consumer
 import java.util.function.Function
 
 class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleControllerFactory {
@@ -89,7 +90,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        GradleInternal getGradle() {
+        void beforeBuild(Consumer<? super GradleInternal> action) {
             throw new UnsupportedOperationException()
         }
 

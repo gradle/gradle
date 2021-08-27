@@ -180,9 +180,10 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun startCompilerOperation(description: String): AutoCloseable {
+            val operationDescription = "Compiling $description"
             val operation = progressLoggerFactory
                 .newOperation(KotlinScriptEvaluator::class.java)
-                .start("Compiling script into cache", "Compiling $description into local compilation cache")
+                .start(operationDescription, operationDescription)
             return AutoCloseable { operation.completed() }
         }
 

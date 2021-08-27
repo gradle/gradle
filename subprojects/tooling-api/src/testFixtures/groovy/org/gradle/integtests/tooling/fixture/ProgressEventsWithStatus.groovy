@@ -18,12 +18,13 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.StatusEvent
 
 class ProgressEventsWithStatus extends ProgressEvents {
     @Override
-    protected Operation newOperation(Operation parent, OperationDescriptor descriptor) {
-        return new OperationWithStatus(parent, descriptor)
+    protected Operation newOperation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
+        return new OperationWithStatus(startEvent, parent, descriptor)
     }
 
     @Override
@@ -38,8 +39,8 @@ class ProgressEventsWithStatus extends ProgressEvents {
     static class OperationWithStatus extends ProgressEvents.Operation {
         final List<StatusEvent> statusEvents = []
 
-        OperationWithStatus(ProgressEvents.Operation parent, OperationDescriptor descriptor) {
-            super(parent, descriptor)
+        OperationWithStatus(StartEvent startEvent, ProgressEvents.Operation parent, OperationDescriptor descriptor) {
+            super(startEvent, parent, descriptor)
         }
     }
 }

@@ -78,11 +78,12 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             "${testCoverage.asName()} ($startInclusive <= gradle <$endExclusive)",
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
             testCoverage,
             stage,
+            enableTestDistribution = testCoverage.os == Os.LINUX,
             emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
@@ -105,20 +106,23 @@ class LargeSubprojectSplitBucket(
     val number: Int,
     val include: Boolean,
     val classes: List<TestClassAndSourceSet>
-) : BuildTypeBucket by subproject {
+) : BuildTypeBucket {
     val name = "${subproject.name}_$number"
 
-    override fun getName(testCoverage: TestCoverage) = "${testCoverage.asName()} ($name)"
+    override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
+
+    override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for $name"
 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),
             testCoverage,
             stage,
             subprojects = listOf(subproject.name),
+            enableTestDistribution = false,
             extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
             preBuildSteps = prepareTestClassesStep(testCoverage.os)
         )
@@ -163,8 +167,10 @@ type test-splits\$action-test-classes.properties
 
 class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
-    val enableTestDistribution: Boolean = false
+    val enableTestDistribution: Boolean
 ) : BuildTypeBucket {
+    constructor(subproject: GradleSubproject, enableTestDistribution: Boolean) : this(listOf(subproject), enableTestDistribution)
+
     val name = truncateName(subprojects.joinToString(","))
 
     private fun truncateName(str: String) =
@@ -178,13 +184,13 @@ class SmallSubprojectBucket(
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
         FunctionalTest(
             model,
-            getUuid(model, testCoverage, bucketIndex),
+            testCoverage.getBucketUuid(model, bucketIndex),
             getName(testCoverage),
             getDescription(testCoverage),
             testCoverage,
             stage,
-            subprojects.map { it.name },
-            enableTestDistribution
+            enableTestDistribution,
+            subprojects.map { it.name }
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")
