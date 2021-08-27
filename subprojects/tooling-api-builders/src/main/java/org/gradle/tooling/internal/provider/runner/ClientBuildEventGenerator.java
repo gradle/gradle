@@ -156,16 +156,16 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     }
 
     private static class Disabled extends Mapper {
-        private final BuildEventMapper<?, ?> mapper;
+        private final Class<?> detailsType;
 
         public Disabled(BuildEventMapper<?, ?> mapper) {
-            this.mapper = mapper;
+            this.detailsType = mapper.getDetailsType();
         }
 
         @Nullable
         @Override
         public Operation accept(BuildOperationDescriptor buildOperation) {
-            if (mapper.getDetailsType().isInstance(buildOperation.getDetails())) {
+            if (detailsType.isInstance(buildOperation.getDetails())) {
                 return DISABLED_OPERATION;
             } else {
                 return null;

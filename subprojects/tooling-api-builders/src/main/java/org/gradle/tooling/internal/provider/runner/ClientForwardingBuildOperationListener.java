@@ -63,7 +63,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         OperationIdentifier id = buildOperation.getId();
         String name = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
-        OperationIdentifier parentId = buildOperation.getParentId();
+        OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultOperationDescriptor(id, name, displayName, parentId);
     }
 

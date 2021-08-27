@@ -40,9 +40,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Test listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
- */
 class TestOperationMapper implements BuildEventMapper<ExecuteTestBuildOperationType.Details, DefaultTestDescriptor> {
     private final TestTaskExecutionTracker taskTracker;
 

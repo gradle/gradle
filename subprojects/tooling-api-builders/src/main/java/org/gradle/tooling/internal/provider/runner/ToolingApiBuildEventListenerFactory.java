@@ -53,7 +53,9 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         if (!subscriptions.isAnyOperationTypeRequested()) {
             return emptyList();
         }
+
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
+
         List<Object> listeners = new ArrayList<>();
         listeners.add(ancestryTracker);
         TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
@@ -63,6 +65,16 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
             }
         }
+
+        PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
+        if (subscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
+            listeners.add(pluginApplicationTracker);
+        }
+        ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
+        if (subscriptions.isRequested(OperationType.PROJECT_CONFIGURATION)) {
+            listeners.add(projectConfigurationTracker);
+        }
+
         BuildOperationListener buildListener = NO_OP;
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             if (subscriptions.isRequested(OperationType.GENERIC)) {
@@ -76,10 +88,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, subscriptions, buildListener, operationDependenciesResolver);
                 operationDependenciesResolver.addLookup(transformOperationListener);
                 buildListener = transformOperationListener;
-            }
-            PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
-            if (subscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
-                listeners.add(pluginApplicationTracker);
             }
             if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM, OperationType.TASK)) {
                 TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
@@ -98,11 +106,11 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }
-            buildListener = new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, ancestryTracker, pluginApplicationTracker);
         }
         ImmutableList<BuildEventMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
-            new TestOperationMapper(testTaskTracker)
+            new TestOperationMapper(testTaskTracker),
+            new ProjectConfigurationOperationMapper(projectConfigurationTracker)
         );
         ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
         listeners.add(generator);
