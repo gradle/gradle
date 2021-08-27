@@ -263,7 +263,7 @@ public class InitBuild extends DefaultTask {
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir, insecureProtocol.get());
+            modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));

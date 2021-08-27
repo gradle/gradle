@@ -34,23 +34,28 @@ public class InitSettings {
     private final List<String> subprojects;
     private final ModularizationOption modularizationOption;
     private final Directory target;
-
-    @Nullable
     private final InsecureProtocolOption insecureProtocolOption;
 
+    // Temporary constructor until we upgrade gradle/gradle to a nightly
     public InitSettings(
-        String projectName, List<String> subprojects, ModularizationOption modularizationOption,
-        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target,
-        @Nullable InsecureProtocolOption insecureProtocolOption
+            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+            BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+    ) {
+        this(projectName, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
+    }
+
+    public InitSettings(
+            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+            BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target
     ) {
         this.projectName = projectName;
-        this.insecureProtocolOption = insecureProtocolOption;
         this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
             Collections.singletonList(subprojects.get(0)) : subprojects;
         this.modularizationOption = modularizationOption;
         this.dsl = dsl;
         this.packageName = packageName;
         this.testFramework = testFramework;
+        this.insecureProtocolOption = insecureProtocolOption;
         this.target = target;
     }
 
