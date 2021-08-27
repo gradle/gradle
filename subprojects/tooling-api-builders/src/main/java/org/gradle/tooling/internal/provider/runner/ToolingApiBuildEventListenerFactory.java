@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -62,11 +63,8 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             }
             listeners.add(buildListener);
         }
-        if (subscriptions.isAnyRequested(OperationType.FILE_DOWNLOAD)) {
-            listeners.add(new ClientForwardingFileDownloadOperationListener(progressEventConsumer));
-        }
+        BuildOperationListener buildListener = NO_OP;
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
-            BuildOperationListener buildListener = NO_OP;
             if (subscriptions.isRequested(OperationType.GENERIC)) {
                 buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(progressEventConsumer));
             }
@@ -100,8 +98,10 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }
-            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, ancestryTracker, pluginApplicationTracker));
+            buildListener = new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, ancestryTracker, pluginApplicationTracker);
         }
+        ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, ImmutableList.of(new FileDownloadOperationMapper()), buildListener);
+        listeners.add(generator);
         return listeners;
     }
 
