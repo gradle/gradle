@@ -24,13 +24,11 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
 
     def "buildSrc without settings file can execute standalone"() {
         given:
-        settingsFile.createFile()
         def buildSrc = file("buildSrc")
         buildSrc.file("build.gradle") << ''
 
         when:
         def connection = toolingApi.connector(buildSrc).connect()
-        buildSrc.file("settings.gradle").delete()
 
         then:
         connection.newBuild().forTasks("help").run()
