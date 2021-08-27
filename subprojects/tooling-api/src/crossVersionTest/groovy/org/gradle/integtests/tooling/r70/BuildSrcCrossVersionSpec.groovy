@@ -42,7 +42,6 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
         when:
         withConnectionToBuildSrc { connection ->
             def build = connection.newBuild()
-            collectOutputs(build)
             build.forTasks("help").run()
         }
         then:
@@ -54,21 +53,18 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
         withConnectionToBuildSrc { connection ->
             buildSrc.file("settings.gradle").touch()
             def build = connection.newBuild()
-            collectOutputs(build)
             build.forTasks("help").run()
         }
         then:
         noExceptionThrown()
     }
 
-    def "can request model from buildSrc"() {
+    def "can request model from buildSrc without settings file"() {
         expect:
         def gradleProject = withConnectionToBuildSrc { connection ->
              def modelBuilder = connection.model(GradleProject)
-            collectOutputs(modelBuilder)
             modelBuilder.get()
         }
-        println result.output
         gradleProject.projectDirectory == buildSrc
         gradleProject.path == ':'
         gradleProject.children.size() == 0
@@ -85,9 +81,9 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
         gradleProject.children.size() == 0
     }
 
-    private <T> T withConnectionToBuildSrc(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure c) {
+    private <T> T withConnectionToBuildSrc(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> c) {
         def connector = toolingApi.connector(buildSrc)
-        buildSrc.file("settings.gradle").delete() // TODO: HACK
+        buildSrc.file("settings.gradle").delete() // TODO: Remove this once we change toolingApi.connector to not create settings.gradle files
         return withConnection(connector, c)
     }
 }
