@@ -49,9 +49,9 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "buildSrc with settings file can execute standalone"() {
+        buildSrc.file("settings.gradle").touch()
         when:
         withConnectionToBuildSrc { connection ->
-            buildSrc.file("settings.gradle").touch()
             def build = connection.newBuild()
             build.forTasks("help").run()
         }
@@ -71,9 +71,9 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can request model from buildSrc with settings file"() {
+        buildSrc.file("settings.gradle").touch()
         expect:
         def gradleProject = withConnectionToBuildSrc { connection ->
-            buildSrc.file("settings.gradle").touch()
             connection.getModel(GradleProject)
         }
         gradleProject.projectDirectory == buildSrc
@@ -83,7 +83,6 @@ class BuildSrcCrossVersionSpec extends ToolingApiSpecification {
 
     private <T> T withConnectionToBuildSrc(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> c) {
         def connector = toolingApi.connector(buildSrc)
-        buildSrc.file("settings.gradle").delete() // TODO: Remove this once we change toolingApi.connector to not create settings.gradle files
         return withConnection(connector, c)
     }
 }
