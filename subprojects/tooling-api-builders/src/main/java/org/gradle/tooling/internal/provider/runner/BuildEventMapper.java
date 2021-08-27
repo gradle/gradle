@@ -27,14 +27,14 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 
 import javax.annotation.Nullable;
 
-public interface BuildEventMapper<FROM, TO extends InternalOperationDescriptor> {
+public interface BuildEventMapper<DETAILS, TO extends InternalOperationDescriptor> {
     boolean isEnabled(BuildEventSubscriptions subscriptions);
 
-    Class<FROM> getDetailType();
+    Class<DETAILS> getDetailsType();
 
-    TO createDescriptor(FROM details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent);
+    TO createDescriptor(DETAILS details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent);
 
-    InternalOperationStartedProgressEvent createStartedEvent(TO descriptor, OperationStartEvent startEvent);
+    InternalOperationStartedProgressEvent createStartedEvent(TO descriptor, DETAILS details, OperationStartEvent startEvent);
 
     InternalOperationFinishedProgressEvent createFinishedEvent(TO descriptor, OperationFinishEvent finishEvent);
 }

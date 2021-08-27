@@ -41,7 +41,7 @@ public class FileDownloadOperationMapper implements BuildEventMapper<ExternalRes
     }
 
     @Override
-    public Class<ExternalResourceReadBuildOperationType.Details> getDetailType() {
+    public Class<ExternalResourceReadBuildOperationType.Details> getDetailsType() {
         return ExternalResourceReadBuildOperationType.Details.class;
     }
 
@@ -55,7 +55,7 @@ public class FileDownloadOperationMapper implements BuildEventMapper<ExternalRes
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultFileDownloadDescriptor descriptor, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(DefaultFileDownloadDescriptor descriptor, ExternalResourceReadBuildOperationType.Details details, OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
     }
 

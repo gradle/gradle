@@ -32,6 +32,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -463,9 +464,17 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                 connection.newBuild().withArguments('--rerun-tasks').forTasks('test').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TEST)).run()
         }
 
-        then: 'the parent of the root test progress event is null'
-        events.tests[0].descriptor.parent == null
+        then: 'the parent of the root test progress event is containing generic operation'
+        events.tests[0].descriptor.parent == descriptorForParentOfRootTestSuite(events)
         events.tests.tail().every { it.descriptor.parent instanceof TestOperationDescriptor }
+    }
+
+    def descriptorForParentOfRootTestSuite(ProgressEvents events) {
+        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("7.3")) {
+            events.operation("Run tasks").descriptor
+        } else {
+            null
+        }
     }
 
     def goodCode() {

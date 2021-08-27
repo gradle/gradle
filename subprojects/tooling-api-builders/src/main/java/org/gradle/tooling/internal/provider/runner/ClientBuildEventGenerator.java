@@ -58,7 +58,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         for (Mapper mapper : mappers) {
             Operation operation = mapper.accept(buildOperation);
             if (operation != null) {
-                Operation previous = running.putIfAbsent(buildOperation.getId(), operation);
+                Operation previous = running.put(buildOperation.getId(), operation);
                 if (previous != null) {
                     throw new IllegalStateException("Operation " + buildOperation.getId() + " already started.");
                 }
@@ -108,7 +108,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
         @Override
         public void generateStartEvent(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            progressEventConsumer.started(mapper.createStartedEvent(descriptor, startEvent));
+            progressEventConsumer.started(mapper.createStartedEvent(descriptor, buildOperation.getDetails(), startEvent));
         }
 
         @Override
@@ -145,8 +145,9 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         @Nullable
         @Override
         public Operation accept(BuildOperationDescriptor buildOperation) {
-            if (mapper.getDetailType().isInstance(buildOperation.getDetails())) {
-                InternalOperationDescriptor descriptor = mapper.createDescriptor(buildOperation.getDetails(), buildOperation, progressEventConsumer.findStartedParentId(buildOperation));
+            if (mapper.getDetailsType().isInstance(buildOperation.getDetails())) {
+                OperationIdentifier parentId = progressEventConsumer.findStartedParentId(buildOperation);
+                InternalOperationDescriptor descriptor = mapper.createDescriptor(buildOperation.getDetails(), buildOperation, parentId);
                 return new EnabledOperation(descriptor, mapper, progressEventConsumer);
             } else {
                 return null;
@@ -164,7 +165,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         @Nullable
         @Override
         public Operation accept(BuildOperationDescriptor buildOperation) {
-            if (mapper.getDetailType().isInstance(buildOperation.getDetails())) {
+            if (mapper.getDetailsType().isInstance(buildOperation.getDetails())) {
                 return DISABLED_OPERATION;
             } else {
                 return null;

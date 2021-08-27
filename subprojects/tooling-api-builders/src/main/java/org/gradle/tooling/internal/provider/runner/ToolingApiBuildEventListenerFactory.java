@@ -56,17 +56,17 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
         List<Object> listeners = new ArrayList<>();
         listeners.add(ancestryTracker);
+        TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
         if (subscriptions.isRequested(OperationType.TEST)) {
-            BuildOperationListener buildListener = new ClientForwardingTestOperationListener(progressEventConsumer, ancestryTracker, subscriptions);
+            listeners.add(testTaskTracker);
             if (subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
-                buildListener = new ClientForwardingTestOutputOperationListener(buildListener, progressEventConsumer, idFactory);
+                listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
             }
-            listeners.add(buildListener);
         }
         BuildOperationListener buildListener = NO_OP;
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             if (subscriptions.isRequested(OperationType.GENERIC)) {
-                buildListener = new TestIgnoringBuildOperationListener(new ClientForwardingBuildOperationListener(progressEventConsumer));
+                buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);
             }
             if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, subscriptions, buildListener);
@@ -100,7 +100,11 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             }
             buildListener = new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, ancestryTracker, pluginApplicationTracker);
         }
-        ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, ImmutableList.of(new FileDownloadOperationMapper()), buildListener);
+        ImmutableList<BuildEventMapper<?, ?>> mappers = ImmutableList.of(
+            new FileDownloadOperationMapper(),
+            new TestOperationMapper(testTaskTracker)
+        );
+        ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
         listeners.add(generator);
         return listeners;
     }
