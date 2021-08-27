@@ -26,13 +26,13 @@ import org.gradle.cache.LockOptions
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.internal.Resources
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class JdkCacheDirectoryTest extends Specification {
 
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @TempDir
+    public File temporaryFolder
 
     @Rule
     public final Resources resources = new Resources()
@@ -51,16 +51,16 @@ class JdkCacheDirectoryTest extends Specification {
     def "lists jdk directories when listing java homes"() {
         given:
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
-        def install1 = temporaryFolder.newFolder("jdks/jdk-123")
+        def install1 = new File(temporaryFolder, "jdks/jdk-123").tap { mkdirs() }
         new File(install1, "provisioned.ok").createNewFile()
 
-        def install2 = temporaryFolder.newFolder("jdks/jdk-345")
+        def install2 = new File(temporaryFolder, "jdks/jdk-345").tap { mkdirs() }
         new File(install2, "provisioned.ok").createNewFile()
 
-        def install3 = temporaryFolder.newFolder("jdks/jdk-mac/Contents/Home")
-        new File(temporaryFolder.getRoot(), "jdks/jdk-mac/provisioned.ok").createNewFile()
+        def install3 = new File(temporaryFolder, "jdks/jdk-mac/Contents/Home").tap { mkdirs() }
+        new File(temporaryFolder, "jdks/jdk-mac/provisioned.ok").createNewFile()
 
-        temporaryFolder.newFolder("jdks/notReady")
+        new File(temporaryFolder, "jdks/notReady").tap { mkdirs() }
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
@@ -71,7 +71,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from tar.gz archive"() {
         def jdkArchive = resources.getResource("jdk.tar.gz")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
@@ -84,7 +84,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     def "provisions jdk from zip archive"() {
         def jdkArchive = resources.getResource("jdk.zip")
-        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder.root, tmpFileProvider()), mockLockManager())
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
 
         when:
         def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
@@ -100,14 +100,13 @@ class JdkCacheDirectoryTest extends Specification {
         new GradleUserHomeDirProvider() {
             @Override
             File getGradleUserHomeDirectory() {
-                temporaryFolder.create()
-                return temporaryFolder.root
+                return temporaryFolder
             }
         }
     }
 
     TemporaryFileProvider tmpFileProvider() {
-        new DefaultTemporaryFileProvider({ temporaryFolder.root })
+        new DefaultTemporaryFileProvider({ temporaryFolder })
     }
 
     FileLockManager mockLockManager() {

@@ -23,6 +23,7 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 
 /**
  * Build operation listener that filters test related build operations before forwarding to a delegate.
@@ -38,7 +39,7 @@ class TestIgnoringBuildOperationListener implements BuildOperationListener {
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Details)) {
+        if (!filtered(buildOperation)) {
             delegate.started(buildOperation, startEvent);
         }
     }
@@ -49,9 +50,14 @@ class TestIgnoringBuildOperationListener implements BuildOperationListener {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Details)) {
+        if (!filtered(buildOperation)) {
             delegate.finished(buildOperation, finishEvent);
         }
+    }
+
+    private boolean filtered(BuildOperationDescriptor buildOperation) {
+        return buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Details
+            || buildOperation.getDetails() instanceof ExternalResourceReadBuildOperationType.Details;
     }
 
 }

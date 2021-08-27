@@ -34,8 +34,6 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
                 testImplementation gradleTestKit()
                 testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
                 testImplementation("org.spockframework:spock-core")
-                testImplementation("org.spockframework:spock-junit4")
-                testImplementation 'junit:junit:4.13.1'
             }
 
             test.useJUnitPlatform()
@@ -68,21 +66,20 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class Test extends Specification {
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
                 File buildFile
 
                 def setup() {
-                    def buildSrcDir = testProjectDir.newFolder('buildSrc', 'src', 'main', 'java')
+                    def buildSrcDir = new File(testProjectDir, 'buildSrc/src/main/java').tap { mkdirs() }
                     def pluginFile = new File(buildSrcDir, 'BuildScanPlugin.java')
                     pluginFile << '''${buildScanPlugin()}'''
-                    def settingsFile = testProjectDir.newFile('settings.gradle')
+                    def settingsFile = new File(testProjectDir, 'settings.gradle')
                     settingsFile << "rootProject.name = 'test'"
-                    buildFile = testProjectDir.newFile('build.gradle')
+                    buildFile = new File(testProjectDir, 'build.gradle')
                     buildFile << '''${buildScanPluginApplication()}'''
                 }
 
@@ -109,7 +106,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
     static String gradleRunnerWithoutStandardInput() {
         """
             GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
                 .withDebug($debug)
                 .build()
@@ -119,7 +116,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
     static String gradleRunnerWithStandardInput() {
         """
             GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
                 .withDebug($debug)
                 .withStandardInput(System.in)

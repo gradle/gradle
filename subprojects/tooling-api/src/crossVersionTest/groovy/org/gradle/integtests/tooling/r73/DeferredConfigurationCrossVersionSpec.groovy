@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r73
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import spock.lang.Ignore
 
 @TargetGradleVersion(">=7.3")
 class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
@@ -70,7 +69,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(prefix)
     }
 
-    @Ignore
     def "runs settings scripts and does not configure projects when action queries GradleProject model"() {
         setupBuild()
 
@@ -90,7 +88,6 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(rootProjectMessage)
     }
 
-    @Ignore
     @ToolingApiVersion(">=4.8")
     def "runs settings scripts and does not configure projects when phased action queries GradleProject model"() {
         setupBuild()

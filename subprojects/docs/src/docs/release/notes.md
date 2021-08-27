@@ -11,9 +11,12 @@ Include only their name, impactful features should be called out separately belo
 [Anil Kumar Myla](https://github.com/anilkumarmyla),
 [Marcono1234](https://github.com/Marcono1234),
 [Nicola Corti](https://github.com/cortinico),
+[Scott Palmer](https://github.com/swpalmer),
 [Marcin Zajączkowski](https://github.com/szpak),
 [Alex Landau](https://github.com/AlexLandau),
-[Stefan Oehme](https://github.com/oehme)
+[Stefan Oehme](https://github.com/oehme),
+[yinghao niu](https://github.com/towith),
+[Björn Kautler](https://github.com/Vampire)
 
 ## Upgrade instructions
 
@@ -53,7 +56,17 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
+<a name="tooling-api"></a>
+### Tooling API improvements
 
+TBD - The tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
+and Buildship to integrate Gradle into the IDE.
+
+#### File download progress events
+
+TBD - some build may download many files or very large files, for example when resolving many dependencies, and this 
+may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as 
+dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running. 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

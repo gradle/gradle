@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.InitSettings;
@@ -57,6 +59,7 @@ public class InitBuild extends DefaultTask {
     private String testFramework;
     private String projectName;
     private String packageName;
+    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -132,6 +135,20 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getTestFramework() {
         return testFramework;
+    }
+
+    /**
+     * How to handle insecure (http) URLs used for Maven Repositories.
+     *
+     * This property can be set via command-line option '--insecure-protocol'.  The default value is 'warn'.
+     *
+     * @since 7.3
+     */
+    @Input
+    @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
+    @Incubating
+    public Property<InsecureProtocolOption> getInsecureProtocol() {
+        return insecureProtocol;
     }
 
     public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
@@ -246,7 +263,7 @@ public class InitBuild extends DefaultTask {
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir);
+            modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));

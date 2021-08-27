@@ -183,7 +183,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         def projectId(String projectName) {
             def buildId = $buildId
             def projectPath = $projectPath
-            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).getIdentifierForProject(${Path.name}.path(projectPath))
+            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
         }
 """
     }

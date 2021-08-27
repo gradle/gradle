@@ -16,6 +16,7 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
@@ -34,8 +35,13 @@ public class BuildLayoutFactory {
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(File currentDir, boolean searchUpwards) {
+    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+        boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
         return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+    }
+
+    private boolean isBuildSrc(File currentDir) {
+        return currentDir.getName().equals(SettingsInternal.BUILD_SRC);
     }
 
     /**
@@ -53,9 +59,7 @@ public class BuildLayoutFactory {
             return buildLayoutFrom(configuration, explicitSettingsFile);
         }
 
-        File currentDir = configuration.getCurrentDir();
-        boolean searchUpwards = configuration.isSearchUpwards();
-        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+        return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
     private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {

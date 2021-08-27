@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+import java.net.URI;
 
-public class FetchModelAction implements BuildAction<String> {
-    @Override
-    public String execute(BuildController controller) {
-        controller.getBuildModel();
-        return "result";
-    }
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 7.3
+ */
+public interface InternalFileDownloadDescriptor extends InternalOperationDescriptor {
+    URI getUri();
 }

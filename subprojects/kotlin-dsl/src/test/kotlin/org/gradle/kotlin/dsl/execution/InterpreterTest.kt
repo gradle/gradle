@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.internal.hash.HashCode
@@ -81,7 +82,7 @@ class InterpreterTest : TestWithTempFiles() {
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
             on { resource } doReturn scriptSourceResource
-            on { displayName } doReturn scriptSourceDisplayName
+            on { shortDisplayName } doReturn Describables.of(scriptSourceDisplayName)
         }
         val parentClassLoader = mock<ClassLoader>()
         val baseScope = mock<ClassLoaderScope> {

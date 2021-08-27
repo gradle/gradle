@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r18
 
-
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfigurationPhase
+import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresOnlySettingsEvaluation
+import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ActionForwardsFailure
-import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnknownModelException
@@ -153,13 +153,62 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=7.3")
-    def "action receives failure when configuration fails"() {
+    def "action receives failure when init script fails"() {
+        given:
+        def initScript = file("init.gradle")
+        initScript << 'throw new RuntimeException("broken")'
+
+        when:
+        withConnection {
+            def action = it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
+            action.withArguments("-I${initScript}")
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith('The supplied build action failed with an exception.')
+        e.cause.message.contains('A problem occurred evaluating initialization script.')
+
+        and:
+        failure.assertHasDescription('A problem occurred evaluating initialization script.')
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "action receives failure when settings evaluation fails"() {
+        given:
+        settingsFile << '''
+            rootProject.name = 'root'
+            throw new RuntimeException("broken")
+        '''
+
+        when:
+        withConnection {
+            def action = it.action(new ActionQueriesModelThatRequiresOnlySettingsEvaluation())
+            collectOutputs(action)
+            action.run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith('The supplied build action failed with an exception.')
+        e.cause.message.contains("A problem occurred evaluating settings 'root'.")
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        assertHasConfigureFailedLogging()
+    }
+
+    @TargetGradleVersion(">=7.3")
+    def "action receives failure when project configuration fails"() {
         given:
         buildFile << 'throw new RuntimeException("broken")'
 
         when:
         withConnection {
-            def action = it.action(new ActionForwardsFailure())
+            def action = it.action(new ActionQueriesModelThatRequiresConfigurationPhase())
             collectOutputs(action)
             action.run()
         }

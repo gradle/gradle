@@ -31,7 +31,6 @@ dependencies {
 
     implementation(localGroovy())
     testImplementation("org.spockframework:spock-core")
-    testImplementation("org.spockframework:spock-junit4")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
 }

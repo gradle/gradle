@@ -67,7 +67,8 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         nestedBuildSrc.editableBuilds.empty
     }
 
-    @TargetGradleVersion(">4.9 <7.1") // older versions do not like nested included builds or nested buildSrc builds
+    @TargetGradleVersion(">4.9 <7.1")
+    // versions 4.9 and older do not like nested included builds or nested buildSrc builds
     def "older versions do not include buildSrc builds in model"() {
         buildsWithBuildSrc()
 
@@ -125,7 +126,35 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         includedBuildSrc.editableBuilds.empty
     }
 
-    @TargetGradleVersion(">=6.8") // older versions do not handle cycles
+    def "can query model for multi-project buildSrc builds"() {
+        multiProjectBuildSrc(projectDir)
+        settingsFile << """
+            includeBuild("child")
+        """
+
+        def childBuild = file("child")
+        multiProjectBuildSrc(childBuild)
+
+        given:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        expect:
+        model.includedBuilds.size() == 1
+        model.editableBuilds.size() == 3
+
+        def buildSrc = model.editableBuilds[0]
+        buildSrc.buildIdentifier.rootDir == file("buildSrc")
+        buildSrc.projects.size() == 3
+
+        def nestedBuildSrc = model.editableBuilds[2]
+        nestedBuildSrc.buildIdentifier.rootDir == file("child/buildSrc")
+        nestedBuildSrc.projects.size() == 3
+    }
+
+    @TargetGradleVersion(">=6.8")
+    // versions older than 6.8 do not handle cycles
     def "can query model when there are cycles in the included build graph"() {
         settingsFile << """
             includeBuild("child1")
@@ -163,7 +192,8 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         included2.includedBuilds[0].is(included1)
     }
 
-    @TargetGradleVersion(">=6.8") // older versions do not allow root to be included by child
+    @TargetGradleVersion(">=6.8")
+    // versions older than 6.8 do not allow root to be included by child
     def "can query model when included build includes root build"() {
         settingsFile << """
             includeBuild("child")
@@ -190,6 +220,26 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         model.editableBuilds[0].is(included)
 
         included.includedBuilds[0].is(model)
+    }
+
+    def "can query model for nested buildSrc builds"() {
+        def buildSrcDir = buildSrc(projectDir)
+        def nestedBuildSrcDir = buildSrc(buildSrcDir)
+
+        given:
+        def model = withConnection {
+            it.getModel(GradleBuild)
+        }
+
+        expect:
+        model.includedBuilds.empty
+        model.editableBuilds.size() == 2
+
+        def buildSrc = model.editableBuilds[0]
+        buildSrc.buildIdentifier.rootDir == buildSrcDir
+
+        def nestedBuildSrc = model.editableBuilds[1]
+        nestedBuildSrc.buildIdentifier.rootDir == nestedBuildSrcDir
     }
 
     def "build action can fetch model for buildSrc project"() {
@@ -234,7 +284,16 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         buildSrc(nestedBuild)
     }
 
-    void buildSrc(TestFile dir) {
-        dir.file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
+    TestFile buildSrc(TestFile dir) {
+        def buildSrc = dir.file("buildSrc")
+        buildSrc.file("src/main/java/Thing.java") << "class Thing { }"
+        return buildSrc
+    }
+
+    void multiProjectBuildSrc(TestFile dir) {
+        dir.file("buildSrc/settings.gradle") << """
+            include("a")
+            include("b")
+        """
     }
 }

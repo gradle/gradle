@@ -37,6 +37,19 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         0 * _
     }
 
+    def "runs action and returns result for transition when in from state"() {
+        def action = Mock(Supplier)
+        def controller = new StateTransitionController(TestState.A)
+
+        when:
+        def result = controller.transition(TestState.A, TestState.B, action)
+
+        then:
+        result == "result"
+        1 * action.get() >> "result"
+        0 * _
+    }
+
     def "fails transition when already in to state"() {
         def action = Mock(Runnable)
         def controller = new StateTransitionController(TestState.A)

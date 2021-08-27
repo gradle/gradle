@@ -19,6 +19,7 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -46,6 +47,10 @@ public class SerializableFileCollectionFingerprint implements FileCollectionFing
     }
 
     @Override
+    public boolean wasCreatedWithStrategy(FingerprintingStrategy strategy) {
+        return strategy.getConfigurationHash().equals(strategyConfigurationHash);
+    }
+
     public HashCode getStrategyConfigurationHash() {
         return strategyConfigurationHash;
     }

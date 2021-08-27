@@ -25,10 +25,10 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
+import java.nio.file.Files
 import java.util.function.Supplier
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -36,7 +36,7 @@ import java.util.jar.Manifest
 class MetaInfAwareClasspathResourceHasherTest extends Specification {
     public static final String MANIFEST_PATH = 'META-INF/MANIFEST.MF'
 
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @TempDir File tmpDir
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
 
@@ -448,8 +448,7 @@ class MetaInfAwareClasspathResourceHasherTest extends Specification {
 
     def fileSnapshot(String path, Map<String, Object> attributesMap = [:], Exception exception = null) {
         ByteArrayOutputStream manifestBytes = getManifestByteStream(attributesMap)
-        tmpDir.create()
-        File root = tmpDir.newFolder()
+        File root = Files.createTempDirectory(tmpDir.toPath(), null).toFile()
         File manifestFile = new File(root, MANIFEST_PATH)
         manifestFile.parentFile.mkdirs()
         manifestFile.write(manifestBytes.toString())

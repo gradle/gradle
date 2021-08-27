@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 
-public class ActionDiscardsFailure implements BuildAction<String> {
+import java.net.URI;
+
+public class DefaultFileDownloadDescriptor extends DefaultOperationDescriptor implements InternalFileDownloadDescriptor {
+    private final URI uri;
+
+    public DefaultFileDownloadDescriptor(Object id, String name, String displayName, Object parentId, URI uri) {
+        super(id, name, displayName, parentId);
+        this.uri = uri;
+    }
+
     @Override
-    public String execute(BuildController controller) {
-        try {
-            controller.getBuildModel();
-            throw new IllegalStateException("should fail");
-        } catch (Exception e) {
-            // Ignore
-        }
-        return "result";
+    public URI getUri() {
+        return uri;
     }
 }

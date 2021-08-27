@@ -711,6 +711,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + "taskRequests=" + taskRequests
             + ", excludedTaskNames=" + excludedTaskNames
             + ", currentDir=" + currentDir
+            + ", projectDir=" + projectDir
             + ", projectProperties=" + projectProperties
             + ", systemPropertiesArgs=" + systemPropertiesArgs
             + ", gradleUserHomeDir=" + gradleUserHomeDir

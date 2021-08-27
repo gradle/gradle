@@ -39,11 +39,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
-        def expectedMetadata = new File(testProjectDir.root, 'expected-metadata')
-        def actualRepo = new File(testProjectDir.root, 'producer/repo')
+        def expectedMetadata = new File(testProjectDir, 'expected-metadata')
+        def actualRepo = new File(testProjectDir, 'producer/repo')
 
         when:
-        buildFile = new File(testProjectDir.root, "producer/${defaultBuildFileName}.kts")
+        buildFile = new File(testProjectDir, "producer/${defaultBuildFileName}.kts")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
             androidPluginVersion: androidPluginVersion)
@@ -61,7 +61,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        buildFile = new File(testProjectDir.root, "consumer/${defaultBuildFileName}.kts")
+        buildFile = new File(testProjectDir, "consumer/${defaultBuildFileName}.kts")
         replaceVariablesInBuildFile(
             kotlinVersion: kotlinVersion,
             androidPluginVersion: androidPluginVersion)
@@ -128,7 +128,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     private BuildResult publish() {
         setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
-            .withProjectDir(new File(testProjectDir.root, 'producer'))
+            .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
             // this deprecation is coming from the Kotlin plugin
             .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
@@ -141,7 +141,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     private BuildResult consumer(String runTask) {
         setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner(runTask, '-q'))
-            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
             .build()
     }
@@ -149,7 +149,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     // Reevaluate if this is still needed when upgrading android plugin. Currently required with version 4.2.2
     private BuildResult consumerWithJdk16WorkaroundForAndroidManifest(String runTask) {
         def runner = runner(runTask, '-q')
-            .withProjectDir(new File(testProjectDir.root, 'consumer'))
+            .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")

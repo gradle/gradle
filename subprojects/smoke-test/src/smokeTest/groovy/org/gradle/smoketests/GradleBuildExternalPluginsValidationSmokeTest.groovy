@@ -62,6 +62,7 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
                 'org.jetbrains.kotlin.js',
                 'org.asciidoctor.gradle.base.AsciidoctorBasePlugin',
                 'org.asciidoctor.gradle.jvm.AsciidoctorJBasePlugin',
+                'org.asciidoctor.gradle.jvm.AsciidoctorJPlugin',
                 'org.asciidoctor.jvm.convert',
                 'com.gradle.plugin-publish',
                 'kotlin',

@@ -24,9 +24,8 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -34,8 +33,8 @@ import java.nio.charset.Charset
 import org.gradle.api.internal.changedetection.state.LineEndingContentFixture as content
 
 class LineEndingNormalizingResourceHasherTest extends Specification {
-    @Rule
-    TemporaryFolder tempDir = new TemporaryFolder()
+    @TempDir
+    File tempDir
 
     @Unroll
     def "calculates hash for text file with #description"() {
@@ -127,7 +126,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
     }
 
     def "throws IOException generated from hasher"() {
-        def file = file('doesNotExist')
+        def file = file('doesNotExist').tap { it.text = "" }
         def delegate = Mock(ResourceHasher)
         def hasher = LineEndingNormalizingResourceHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
         def snapshotContext = snapshotContext(file)
@@ -177,7 +176,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
     }
 
     File file(String path) {
-        return tempDir.newFile(path)
+        return new File(tempDir, path)
     }
 
     static ZipEntryContext zipContext(File file, boolean directory = false) {

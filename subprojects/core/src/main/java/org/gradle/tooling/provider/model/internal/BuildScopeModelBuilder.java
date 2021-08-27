@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture;
+package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
+import org.gradle.internal.build.BuildState;
 
-public class ActionForwardsFailure implements BuildAction<String> {
-    @Override
-    public String execute(BuildController controller) {
-        controller.getBuildModel();
-        return "result";
-    }
+public interface BuildScopeModelBuilder {
+    /**
+     * Creates the model for the given target. The target build will not necessarily have been configured, and it is the builder's responsibility
+     * to transition the target into the appropriate state required to create the model.
+     */
+    Object create(BuildState target);
 }

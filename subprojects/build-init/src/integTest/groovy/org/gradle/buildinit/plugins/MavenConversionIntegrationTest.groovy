@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection HttpUrlsUsage
 
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
@@ -401,7 +403,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
 
         then:
         dsl.assertGradleFilesGenerated()
@@ -448,7 +450,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
         expectParentPomRequest(repo)
 
         when:
-        run 'init', '--dsl', scriptDsl.id as String
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
 
         then:
         targetDir.file(dsl.settingsFileName).exists()
@@ -493,6 +495,89 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
         succeeds 'build'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolFail"() {
+        expect:
+        fails 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.FAIL as String
+        result.assertHasErrorOutput("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolDefaultHandling"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolWarn"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.WARN as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+        outputContains("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See ")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolAllow"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def localRepoUrl = 'http://www.example.com/maven/repo'
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.ALLOW as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
+    maven {
+        url = uri('$localRepoUrl')
+        allowInsecureProtocol = true
+    }""" : """
+    maven {
+        url = uri("$localRepoUrl")
+        isAllowInsecureProtocol = true
+    }""")
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17328")
+    def "insecureProtocolUpgrade"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--insecure-protocol', InsecureProtocolOption.UPGRADE as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def upgradedRepoUrl = 'https://www.example.com/maven/repo'
+
+        // Indentation is important here, it has to exactly match what is generated, so don't trim or stripIndent, need leading spaces
+        def mavenLocalRepoBlock = (isGroovy ? """
+    maven {
+        url = uri('$upgradedRepoUrl')
+    }""" : """
+    maven {
+        url = uri("$upgradedRepoUrl")
+    }""")
+
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
     }
 
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {

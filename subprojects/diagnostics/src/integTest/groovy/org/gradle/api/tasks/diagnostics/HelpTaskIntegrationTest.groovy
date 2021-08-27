@@ -114,7 +114,7 @@ Directory '$sub' does not contain a Gradle build.
 """
 
         and:
-        sub.file(".gradle").assertDoesNotExist()
+        sub.file(".gradle").assertIsDir()
         executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
