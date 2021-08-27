@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
+    implementation(project(":resources"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":tooling-api"))

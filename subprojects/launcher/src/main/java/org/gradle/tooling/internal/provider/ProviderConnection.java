@@ -365,6 +365,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
+            .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;
@@ -406,11 +407,17 @@ public class ProviderConnection {
                     }
                 }
                 if (consumerVersion.compareTo(GradleVersion.version("5.1")) < 0) {
-                    // Some types were split out of 'generic' type in 5.1, so include these when the consumer requests 'generic'
+                    // Some types were split out of 'generic' type in 5.1, so include these when an older consumer requests 'generic'
                     if (operationTypes.contains(OperationType.GENERIC)) {
                         operationTypes.add(OperationType.PROJECT_CONFIGURATION);
                         operationTypes.add(OperationType.TRANSFORM);
                         operationTypes.add(OperationType.WORK_ITEM);
+                    }
+                }
+                if(consumerVersion.compareTo(GradleVersion.version("7.3")) < 0) {
+                    // Some types were split out of 'generic' type in 7.3, so include these when an older consumer requests 'generic'
+                    if (operationTypes.contains(OperationType.GENERIC)) {
+                        operationTypes.add(OperationType.FILE_DOWNLOAD);
                     }
                 }
                 return operationTypes;
