@@ -24,14 +24,23 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
+import org.gradle.util.internal.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,18 +52,23 @@ import java.util.Map;
 /**
  * Assembles the parts of a build script.
  */
+@SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
+    private final MavenRepositoryURLHandler mavenRepoURLHandler;
 
     private final List<String> headerLines = new ArrayList<>();
-    private final TopLevelBlock block = new TopLevelBlock();
+    private final TopLevelBlock block;
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
+    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
+        this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
+        this.block = new TopLevelBlock(this);
     }
 
     public BuildScriptBuilder withExternalComments() {
@@ -76,6 +90,14 @@ public class BuildScriptBuilder {
 
     private static List<String> splitComment(String comment) {
         return Splitter.on("\n").splitToList(comment.trim());
+    }
+
+    private static URI uriFromString(String uriAsString) {
+        try {
+            return new URI(uriAsString);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     /**
@@ -344,12 +366,10 @@ public class BuildScriptBuilder {
         return () -> {
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
-            try {
-                try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
-                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, externalComments);
-                    printer.printFileHeader(headerLines);
-                    block.writeBodyTo(printer);
-                }
+            try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
+                PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, externalComments);
+                printer.printFileHeader(headerLines);
+                block.writeBodyTo(printer);
             } catch (Exception e) {
                 throw new GradleException("Could not generate file " + target + ".", e);
             }
@@ -822,6 +842,17 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class SingleLineComment extends AbstractStatement {
+        private SingleLineComment(String comment) {
+            super(comment);
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            // NO OP
+        }
+    }
+
     /**
      * Represents the contents of a block.
      */
@@ -879,8 +910,11 @@ public class BuildScriptBuilder {
     }
 
     private static class RepositoriesBlock extends BlockStatement implements RepositoriesBuilder {
-        RepositoriesBlock() {
+        private final BuildScriptBuilder builder;
+
+        RepositoriesBlock(final BuildScriptBuilder builder) {
             super("repositories");
+            this.builder = builder;
         }
 
         @Override
@@ -900,7 +934,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void maven(String comment, String url) {
-            add(new MavenRepoExpression(comment, url));
+            add(new MavenRepoExpression(comment, url, builder));
         }
     }
 
@@ -984,22 +1018,22 @@ public class BuildScriptBuilder {
     }
 
     private static class MavenRepoExpression extends AbstractStatement {
-        private final String url;
+        private final URI uri;
+        private final BuildScriptBuilder builder;
 
-        MavenRepoExpression(@Nullable String comment, String url) {
+        MavenRepoExpression(@Nullable String comment, String url, BuildScriptBuilder builder) {
             super(comment);
-            this.url = url;
+            this.uri = uriFromString(url);
+            this.builder = builder;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            ScriptBlockImpl statements = new ScriptBlockImpl();
-            statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
-            printer.printBlock("maven", statements);
+            builder.mavenRepoURLHandler.handleURL(uri, printer);
         }
     }
 
-    private static class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
+    public static class ScriptBlockImpl implements ScriptBlockBuilder, BlockBody {
         final List<Statement> statements = new ArrayList<>();
 
         public void add(Statement statement) {
@@ -1064,15 +1098,24 @@ public class BuildScriptBuilder {
         public Expression propertyExpression(String value) {
             return new LiteralValue(value);
         }
+
+        @Override
+        public void comment(String comment) {
+            statements.add(new SingleLineComment(comment));
+        }
     }
 
     private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
-        final RepositoriesBlock repositories = new RepositoriesBlock();
+        final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
+
+        private TopLevelBlock(BuildScriptBuilder builder) {
+            repositories = new RepositoriesBlock(builder);
+        }
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
@@ -1304,6 +1347,7 @@ public class BuildScriptBuilder {
 
         String pluginDependencySpec(String pluginId, @Nullable String version);
 
+        @SuppressWarnings("unused")
         String nestedPluginDependencySpec(String pluginId, @Nullable String version);
 
         String dependencySpec(String config, String notation);
@@ -1582,7 +1626,7 @@ public class BuildScriptBuilder {
         @Override
         public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
             ScriptBlock outerBlock = new ScriptBlock(comment, container);
-            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : (elementName + "(" + elementType + ")"));
+            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : elementName + "(" + elementType + ")");
             outerBlock.add(innerBlock);
             for (Statement statement : body) {
                 innerBlock.add(statement);
@@ -1603,6 +1647,111 @@ public class BuildScriptBuilder {
         @Override
         public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
             plugins.add(new PluginSpec("groovy-gradle-plugin", null, comment));
+        }
+    }
+
+    private interface MavenRepositoryURLHandler {
+        void handleURL(URI repoLocation, PrettyPrinter printer);
+
+        static MavenRepositoryURLHandler forInsecureProtocolOption(InsecureProtocolOption insecureProtocolOption, BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
+            switch (insecureProtocolOption) {
+                case FAIL:
+                    return new FailingHandler(documentationRegistry);
+                case WARN:
+                    return new WarningHandler(dsl, documentationRegistry);
+                case ALLOW:
+                    return new AllowingHandler();
+                case UPGRADE:
+                    return new UpgradingHandler();
+                default:
+                    throw new IllegalStateException(String.format("Unknown handler: '%s'.", insecureProtocolOption));
+            }
+        }
+
+        abstract class AbstractMavenRepositoryURLHandler implements MavenRepositoryURLHandler {
+            @Override
+            public void handleURL(URI repoLocation, PrettyPrinter printer) {
+                ScriptBlockImpl statements = new ScriptBlockImpl();
+
+                if (GUtil.isSecureUrl(repoLocation)) {
+                    handleSecureURL(repoLocation, statements);
+                } else {
+                    handleInsecureURL(repoLocation, statements);
+                }
+
+                printer.printBlock("maven", statements);
+            }
+
+            protected void handleSecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(repoLocation.toString()))), true);
+            }
+
+            protected abstract void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements);
+        }
+
+        class FailingHandler extends AbstractMavenRepositoryURLHandler {
+            private final DocumentationRegistry documentationRegistry;
+
+            public FailingHandler(DocumentationRegistry documentationRegistry) {
+                this.documentationRegistry = documentationRegistry;
+            }
+
+            @Override
+            protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
+                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                throw new GradleException(String.format("Build generation aborted due to insecure protocol in repository: %s", repoLocation));
+            }
+        }
+
+        class WarningHandler extends AbstractMavenRepositoryURLHandler {
+            private final BuildInitDsl dsl;
+            private final DocumentationRegistry documentationRegistry;
+
+            public WarningHandler(BuildInitDsl dsl, DocumentationRegistry documentationRegistry) {
+                this.dsl = dsl;
+                this.documentationRegistry = documentationRegistry;
+            }
+
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                // use the insecure URL as-is
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                // Leave a commented out block for opting into using the insecure repository
+                statements.comment(buildAllowInsecureProtocolComment(dsl));
+            }
+
+            private String buildAllowInsecureProtocolComment(BuildInitDsl dsl) {
+                final PropertyAssignment assignment = new PropertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+
+                final StringWriter result = new StringWriter();
+                try (PrintWriter writer = new PrintWriter(result)) {
+                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, false);
+                    assignment.writeCodeTo(printer);
+                    return result.toString();
+                } catch (Exception e) {
+                    throw new GradleException("Could not write comment.", e);
+                }
+            }
+        }
+
+        class UpgradingHandler extends AbstractMavenRepositoryURLHandler {
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                // convert the insecure url for this repository from http to https
+                final URI secureUri = GUtil.toSecureUrl(repoLocation);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
+            }
+        }
+
+        class AllowingHandler extends AbstractMavenRepositoryURLHandler {
+            @Override
+            protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
+                // use the insecure URL as-is
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                // Opt into using an insecure protocol with this repository
+                statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
+            }
         }
     }
 }
