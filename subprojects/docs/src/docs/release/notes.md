@@ -56,7 +56,17 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
+<a name="tooling-api"></a>
+### Tooling API improvements
 
+TBD - The tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
+and Buildship to integrate Gradle into the IDE.
+
+#### File download progress events
+
+TBD - some build may download many files or very large files, for example when resolving many dependencies, and this 
+may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as 
+dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running. 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
