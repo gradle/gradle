@@ -33,7 +33,13 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
             }
 
-            configurations { customConf }
+            configurations {
+                customConf {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, "library"))
+                    }
+                }
+            }
 
             dependencies {
                 implementation 'org.gradle:gradle-tooling-api:${tapiVersion}'
