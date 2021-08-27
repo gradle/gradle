@@ -38,7 +38,8 @@ import java.util.function.BiFunction;
  * </p>
  *
  * <p>
- * A provider may be used to represent a task output. Such a provider carries information about which task produces its value. When attached to a task input, this allows Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A provider may be used to represent a task output. Such a provider carries information about which task produces its value. When attached to a task input, this allows
+ * Gradle to automatically add dependencies between tasks based on the values they use as inputs and produce as outputs.
  * </p>
  *
  * <p>
@@ -96,10 +97,11 @@ public interface Provider<T> {
     /**
      * Returns a new {@link Provider} whose value is the value of this provider transformed using the given function.
      *
-     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result.
-     * Whenever this provider has no value, the new provider will also have no value and the transformation will not be called.
+     * <p>The resulting provider will be live, so that each time it is queried, it queries the original (this) provider and applies the transformation
+     * to the result. Whenever the original provider has no value, the new provider will also have no value and the transformation will not be called.
      *
-     * <p>When this provider represents a task or the output of a task, the new provider will be considered an output of the task and will carry dependency information that Gradle can use to automatically attach task dependencies to tasks that use the new provider for input values.</p>
+     * <p>When this provider represents a task or the output of a task, the new provider will be considered an output of the task and will carry dependency
+     * information that Gradle can use to automatically attach task dependencies to tasks that use the new provider for input values.</p>
      *
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
@@ -109,10 +111,31 @@ public interface Provider<T> {
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.
      *
-     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result.
-     * Whenever this provider has no value, the new provider will also have no value and the transformation will not be called.
+     * <p>While very similar in functionality to the regular {@link #map(Transformer) map} operation, this method offers a convenient way of chaining
+     * together multiple {@link Provider Providers}, like so:</p>
      *
-     * <p>Any task details associated with this provider are ignored. The new provider will use whatever task details are associated with the return value of the function.</p>
+     * <pre>{@code
+     * val configProvider: Provider<Config> = envProvider.flatMap {env ->
+     *     accountProvider.flatMap { account ->
+     *         regionProvider.map { region ->
+     *             Config(
+     *                 env = env,
+     *                 account = account,
+     *                 region = region
+     *             )
+     *         }
+     *     }
+     * }
+     * }</pre>
+     *
+     * <p>The resulting provider will be live, so that each time it is queried, it queries the original provider and applies the transformation to the result.
+     * With chaining, querying the original provider will lead to querying the entire chain of providers. (In the above example querying {@code configProvider}
+     * result in {@code envProvider} being queries, which in turn results in {@code accountProvider} being queried and so on.) If any provider making up the
+     * chain has no value, then the resulting (final) provider will also have no value.</p>
+     *
+     * <p>Any task details associated with this provider are ignored. The new provider will use whatever task details are associated with the return value of
+     * the transformation. With chaining, this will result in the task details traveling from the beginning of the chain to the end. (In the above example
+     * the task details of {@code configProvider} will be the ones coming from {@code regionProvider}.)</p>
      *
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 5.0
