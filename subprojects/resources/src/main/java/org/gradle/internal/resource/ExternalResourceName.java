@@ -25,6 +25,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
  */
@@ -34,7 +36,7 @@ public class ExternalResourceName implements Describable {
 
     public ExternalResourceName(URI uri) {
         if (uri.getPath() == null) {
-            throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
+            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", uri.toString()));
         }
         this.encodedRoot = encodeRoot(uri);
         this.path = extractPath(uri);
@@ -52,7 +54,7 @@ public class ExternalResourceName implements Describable {
 
     public ExternalResourceName(URI parent, String path) {
         if (parent.getPath() == null) {
-            throw new IllegalArgumentException(String.format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
+            throw new IllegalArgumentException(format("Cannot create resource name from non-hierarchical URI '%s'.", parent.toString()));
         }
         String newPath;
         String parentPath = extractPath(parent);
@@ -89,7 +91,9 @@ public class ExternalResourceName implements Describable {
         String fragment = uri.getRawFragment();
         if (fragment != null) {
             int index = builder.lastIndexOf("#" + fragment);
-            assert index >= 0;
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate fragment in URI: %s", uri));
+            }
             builder.delete(index, builder.length());
         }
 
@@ -100,7 +104,9 @@ public class ExternalResourceName implements Describable {
         String query = uri.getRawQuery();
         if (query != null) {
             int index = builder.lastIndexOf("?" + query);
-            assert index >= 0;
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate query in URI: %s", uri));
+            }
             builder.delete(index, builder.length());
         }
 
@@ -110,7 +116,9 @@ public class ExternalResourceName implements Describable {
         }
         if (path != null) {
             int index = builder.lastIndexOf(path);
-            assert index >= 0;
+            if (index < 0) {
+                throw new RuntimeException(format("Can't locate path in URI: %s", uri));
+            }
             builder.delete(index, builder.length());
         }
 

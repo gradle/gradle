@@ -40,18 +40,18 @@ class ExternalResourceNameTest extends Specification {
         name.root == name.root.root
 
         where:
-        baseUri                               | path                                                      || expectedRoot                            | expectedPath                                        | expectedAsciiString
-        URI.create("http://host/")                   | "a/b/c.html"                                       || URI.create("http://host/")              | "/a/b/c.html"                                       | "http://host/a/b/c.html"
-        URI.create("http://host/")                   | "/a/b/c"                                           || URI.create("http://host/")              | "/a/b/c"                                            | "http://host/a/b/c"
-        URI.create("http://host:8008")               | "/a/b/c"                                           || URI.create("http://host:8008/")         | "/a/b/c"                                            | "http://host:8008/a/b/c"
-        URI.create("http://host/")                   | "/"                                                || URI.create("http://host/")              | "/"                                                 | "http://host/"
-        URI.create("http://host/a/b/c")              | ""                                                 || URI.create("http://host/")              | "/a/b/c"                                            | "http://host/a/b/c"
-        URI.create("http://host/a/b/c")              | "[123]"                                            || URI.create("http://host/")              | "/a/b/c/[123]"                                      | "http://host/a/b/c/%5B123%5D"
-        URI.create("http://host")                    | "\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" || URI.create("http://host/")              | "/\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | "http://host/%7B%7F%C2%80%CE%B1%DF%BF%E0%A0%80%E3%82%B1%EF%BF%BE"
-        URI.create("http://host")                    | ":?#-.~_@"                                         || URI.create("http://host/")              | "/:?#-.~_@"                                         | "http://host/:%3F%23-.~_@"
-        new URL("http://bucket/rusty").toURI()       | "org/gradle/artefact-1.0.jar"                      || new URL("http://bucket/").toURI()       | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket/rusty/org/gradle/artefact-1.0.jar"
-        new URL("http://bucket-1.2.3/rusty").toURI() | "org/gradle/artefact-1.0.jar"                      || new URL("http://bucket-1.2.3/").toURI() | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket-1.2.3/rusty/org/gradle/artefact-1.0.jar"
-        this.base.toURI()                            | "a/b/c"                                            || URI.create("file:/")                    | this.base.toURI().path + "/a/b/c"                   | this.base.toURI().toASCIIString() + "/a/b/c"
+        baseUri                               | path                                                      | expectedRoot                            | expectedPath                                        | expectedAsciiString
+        URI.create("http://host/")                   | "a/b/c.html"                                       | URI.create("http://host/")              | "/a/b/c.html"                                       | "http://host/a/b/c.html"
+        URI.create("http://host/")                   | "/a/b/c"                                           | URI.create("http://host/")              | "/a/b/c"                                            | "http://host/a/b/c"
+        URI.create("http://host:8008")               | "/a/b/c"                                           | URI.create("http://host:8008/")         | "/a/b/c"                                            | "http://host:8008/a/b/c"
+        URI.create("http://host/")                   | "/"                                                | URI.create("http://host/")              | "/"                                                 | "http://host/"
+        URI.create("http://host/a/b/c")              | ""                                                 | URI.create("http://host/")              | "/a/b/c"                                            | "http://host/a/b/c"
+        URI.create("http://host/a/b/c")              | "[123]"                                            | URI.create("http://host/")              | "/a/b/c/[123]"                                      | "http://host/a/b/c/%5B123%5D"
+        URI.create("http://host")                    | "\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | URI.create("http://host/")              | "/\u007b\u007f\u0080\u03b1\u07ff\u0800\u30b1\ufffe" | "http://host/%7B%7F%C2%80%CE%B1%DF%BF%E0%A0%80%E3%82%B1%EF%BF%BE"
+        URI.create("http://host")                    | ":?#-.~_@"                                         | URI.create("http://host/")              | "/:?#-.~_@"                                         | "http://host/:%3F%23-.~_@"
+        new URL("http://bucket/rusty").toURI()       | "org/gradle/artefact-1.0.jar"                      | new URL("http://bucket/").toURI()       | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket/rusty/org/gradle/artefact-1.0.jar"
+        new URL("http://bucket-1.2.3/rusty").toURI() | "org/gradle/artefact-1.0.jar"                      | new URL("http://bucket-1.2.3/").toURI() | "/rusty/org/gradle/artefact-1.0.jar"                | "http://bucket-1.2.3/rusty/org/gradle/artefact-1.0.jar"
+        this.base.toURI()                            | "a/b/c"                                            | URI.create("file:/")                    | this.base.toURI().path + "/a/b/c"                   | this.base.toURI().toASCIIString() + "/a/b/c"
     }
 
     def "can construct a resource name from a file URI with host and a path"() {
