@@ -77,7 +77,7 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
         return descriptors.computeIfAbsent(details.getTransformationNode(), transformationNode -> {
             OperationIdentifier id = buildOperation.getId();
             String displayName = buildOperation.getDisplayName();
-            Object parentId = eventConsumer.findStartedParentId(buildOperation);
+            OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
             String transformerName = details.getTransformerName();
             String subjectName = details.getSubjectName();
             Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(transformationNode);

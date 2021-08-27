@@ -105,7 +105,7 @@ class PluginApplicationTracker implements BuildOperationListener {
         PluginApplication pluginApplication = pluginApplicationRegistry.get(applicationId);
         if (pluginApplication != null) {
             track(buildOperation, pluginApplication);
-        }
+        } // else either user code is not a plugin or script or the target is not a project
     }
 
     private void track(BuildOperationDescriptor buildOperation, PluginApplication pluginApplication) {

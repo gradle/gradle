@@ -20,6 +20,7 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
@@ -53,10 +54,10 @@ class ClientForwardingWorkItemOperationListener extends SubtreeFilteringBuildOpe
     }
 
     private DefaultWorkItemDescriptor toWorkItemDescriptor(BuildOperationDescriptor buildOperation, ExecuteWorkItemBuildOperationType.Details details) {
-        Object id = buildOperation.getId();
+        OperationIdentifier id = buildOperation.getId();
         String className = details.getClassName();
         String displayName = buildOperation.getDisplayName();
-        Object parentId = eventConsumer.findStartedParentId(buildOperation);
+        OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultWorkItemDescriptor(id, className, displayName, parentId);
     }
 

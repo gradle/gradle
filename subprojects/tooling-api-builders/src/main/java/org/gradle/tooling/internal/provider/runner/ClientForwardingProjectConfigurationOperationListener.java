@@ -101,7 +101,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
     }
 
     private DefaultProjectConfigurationDescriptor toProjectConfigurationDescriptor(BuildOperationDescriptor buildOperation, ConfigureProjectBuildOperationType.Details details) {
-        Object id = buildOperation.getId();
+        OperationIdentifier id = buildOperation.getId();
         String displayName = buildOperation.getDisplayName();
         OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultProjectConfigurationDescriptor(id, displayName, parentId, details.getRootDir(), details.getProjectPath());
