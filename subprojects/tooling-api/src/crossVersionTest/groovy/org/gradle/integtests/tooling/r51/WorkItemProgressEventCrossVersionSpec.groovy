@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
@@ -46,10 +45,10 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.task
+        taskOperation.assertIsTask()
         with(taskOperation.descendant("org.gradle.test.TestWork")) {
             successful
-            workItem
+            assertIsWorkItem()
             descriptor.className == "org.gradle.test.TestWork"
         }
     }
@@ -61,7 +60,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.task
+        taskOperation.assertIsTask()
         with(taskOperation.descendant("org.gradle.test.TestWork")) {
             successful
             buildOperation
@@ -74,7 +73,7 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.task
+        taskOperation.assertIsTask()
         taskOperation.descendants { it.descriptor.displayName == "TestWork" }.empty
     }
 
@@ -97,11 +96,10 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def taskOperation = events.operation("Task :runInWorker")
-        taskOperation.task
+        taskOperation.assertIsTask()
         with(taskOperation.child("org.gradle.test.TestWork")) {
             !successful
-            workItem
-            descriptor instanceof WorkItemOperationDescriptor
+            assertIsWorkItem()
             descriptor.className == "org.gradle.test.TestWork"
             failures.size() == 1
             with (failures[0]) {

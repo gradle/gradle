@@ -62,6 +62,9 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             }
             listeners.add(buildListener);
         }
+        if (subscriptions.isAnyRequested(OperationType.FILE_DOWNLOAD)) {
+            listeners.add(new ClientForwardingFileDownloadOperationListener(progressEventConsumer));
+        }
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             BuildOperationListener buildListener = NO_OP;
             if (subscriptions.isRequested(OperationType.GENERIC)) {

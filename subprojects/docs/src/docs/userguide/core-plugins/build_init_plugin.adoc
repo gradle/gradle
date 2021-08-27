@@ -91,8 +91,6 @@ The “`pom`” type can be used to convert an Apache Maven build to a Gradle bu
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 
-Note that the migration from Maven builds currently only supports the Groovy DSL for generated build scripts.
-
 The conversion process has the following features:
 
 * Uses effective POM and effective settings (support for POM inheritance, dependency management, properties)
@@ -107,7 +105,19 @@ The conversion process has the following features:
 * Supports packaging of sources, tests, and javadocs
 * Supports TestNG runner
 * Generates global exclusions from Maven enforcer plugin settings
+* Provides <<build_init_plugin.adoc#sec:allow_insecure,an option for handling Maven repositories located at URLs using `http`>>
 
+[[sec:allow_insecure]]
+==== The `--insecure-protocol` option
+This option is used to tell the conversion process how to handle converting Maven repositories located at insecure `http` URLs.  Insecure Repositories Set the
+link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:getInsecureProtocol[--insecure-protocol] option.  The default value is `warn`.
+
+Available values are:
+
+* `fail` - Abort the build immediately upon encountering an insecure repository URL.
+* `allow` - Automatically sets the `allowInsecureProtocol` property to `true` for the Maven repository URL in the generated Gradle build script.
+* `warn` - Emits a warning about each insecure URL.  Generates commented-out lines to enable each repository, as per the `allow` option.  You will have to opt-in by editing the generated script and uncommenting each repository URL, or else the Gradle build will fail.
+* `upgrade` - Convert `http` URLs to `https` URLs automatically.
 
 [[sec:java_application]]
 === `java-application` build type

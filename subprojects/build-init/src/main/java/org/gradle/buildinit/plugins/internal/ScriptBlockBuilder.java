@@ -59,4 +59,11 @@ public interface ScriptBlockBuilder {
      * Returns a property expression that can be used as a method argument or property assignment value
      */
     BuildScriptBuilder.Expression propertyExpression(String value);
+
+    /**
+     * Adds a single line comment to this block.
+     *
+     * @param comment the comment to add
+     */
+    void comment(String comment);
 }
