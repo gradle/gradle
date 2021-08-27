@@ -89,10 +89,12 @@ fun MavenPublication.configureGradleModulePublication() {
     pom {
         packaging = "jar"
         name.set("gradle-${project.name}")
-        description.set(provider {
-            require(project.description != null) { "You must set the description of published project ${project.name}" }
-            project.description
-        })
+        description.set(
+            provider {
+                require(project.description != null) { "You must set the description of published project ${project.name}" }
+                project.description
+            }
+        )
         url.set("https://gradle.org")
         licenses {
             license {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.*
 
 plugins {
