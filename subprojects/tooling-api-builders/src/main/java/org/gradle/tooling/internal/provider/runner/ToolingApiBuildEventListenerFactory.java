@@ -58,21 +58,14 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
 
         List<Object> listeners = new ArrayList<>();
         listeners.add(ancestryTracker);
-        TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
-        if (subscriptions.isRequested(OperationType.TEST)) {
-            listeners.add(testTaskTracker);
-            if (subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
-                listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
-            }
+
+        if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
+            listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
         }
 
         PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
         if (subscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
             listeners.add(pluginApplicationTracker);
-        }
-        ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
-        if (subscriptions.isRequested(OperationType.PROJECT_CONFIGURATION)) {
-            listeners.add(projectConfigurationTracker);
         }
 
         BuildOperationListener buildListener = NO_OP;
@@ -107,7 +100,11 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 buildListener = taskOperationListener;
             }
         }
-        ImmutableList<BuildEventMapper<?, ?>> mappers = ImmutableList.of(
+
+        TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
+        ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
+
+        ImmutableList<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
             new TestOperationMapper(testTaskTracker),
             new ProjectConfigurationOperationMapper(projectConfigurationTracker)

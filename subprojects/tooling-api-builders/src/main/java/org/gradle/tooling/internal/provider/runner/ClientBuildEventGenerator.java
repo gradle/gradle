@@ -28,8 +28,11 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,23 +41,30 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientBuildEventGenerator implements BuildOperationListener {
     private final BuildOperationListener fallback;
     private final List<Mapper> mappers;
+    private final List<BuildOperationTracker> trackers;
     private final Map<OperationIdentifier, Operation> running = new ConcurrentHashMap<>();
 
-    public ClientBuildEventGenerator(ProgressEventConsumer progressEventConsumer, BuildEventSubscriptions subscriptions, List<? extends BuildEventMapper<?, ?>> mappers, BuildOperationListener fallback) {
+    public ClientBuildEventGenerator(ProgressEventConsumer progressEventConsumer, BuildEventSubscriptions subscriptions, List<? extends BuildOperationMapper<?, ?>> mappers, BuildOperationListener fallback) {
         this.fallback = fallback;
-        ImmutableList.Builder<Mapper> builder = ImmutableList.builder();
-        for (BuildEventMapper<?, ?> mapper : mappers) {
+        List<Mapper> mapperBuilder = new ArrayList<>(mappers.size());
+        Set<BuildOperationTracker> trackers = new LinkedHashSet<>();
+        for (BuildOperationMapper<?, ?> mapper : mappers) {
             if (mapper.isEnabled(subscriptions)) {
-                builder.add(new Enabled(mapper, progressEventConsumer));
+                mapperBuilder.add(new Enabled(mapper, progressEventConsumer));
+                trackers.addAll(mapper.getTrackers());
             } else {
-                builder.add(new Disabled(mapper));
+                mapperBuilder.add(new Disabled(mapper));
             }
         }
-        this.mappers = builder.build();
+        this.mappers = ImmutableList.copyOf(mapperBuilder);
+        this.trackers = ImmutableList.copyOf(trackers);
     }
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        for (BuildOperationTracker tracker : trackers) {
+            tracker.started(buildOperation, startEvent);
+        }
         for (Mapper mapper : mappers) {
             Operation operation = mapper.accept(buildOperation);
             if (operation != null) {
@@ -80,6 +90,9 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        for (BuildOperationTracker tracker : trackers) {
+            tracker.finished(buildOperation, finishEvent);
+        }
         Operation operation = running.remove(buildOperation.getId());
         if (operation != null) {
             operation.generateFinishEvent(buildOperation, finishEvent);
@@ -97,10 +110,10 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
     private static class EnabledOperation extends Operation {
         private final InternalOperationDescriptor descriptor;
-        private final BuildEventMapper<Object, InternalOperationDescriptor> mapper;
+        private final BuildOperationMapper<Object, InternalOperationDescriptor> mapper;
         private final ProgressEventConsumer progressEventConsumer;
 
-        public EnabledOperation(InternalOperationDescriptor descriptor, BuildEventMapper<Object, InternalOperationDescriptor> mapper, ProgressEventConsumer progressEventConsumer) {
+        public EnabledOperation(InternalOperationDescriptor descriptor, BuildOperationMapper<Object, InternalOperationDescriptor> mapper, ProgressEventConsumer progressEventConsumer) {
             this.descriptor = descriptor;
             this.mapper = mapper;
             this.progressEventConsumer = progressEventConsumer;
@@ -134,10 +147,10 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     }
 
     private static class Enabled extends Mapper {
-        private final BuildEventMapper<Object, InternalOperationDescriptor> mapper;
+        private final BuildOperationMapper<Object, InternalOperationDescriptor> mapper;
         private final ProgressEventConsumer progressEventConsumer;
 
-        public Enabled(BuildEventMapper<?, ?> mapper, ProgressEventConsumer progressEventConsumer) {
+        public Enabled(BuildOperationMapper<?, ?> mapper, ProgressEventConsumer progressEventConsumer) {
             this.mapper = Cast.uncheckedCast(mapper);
             this.progressEventConsumer = progressEventConsumer;
         }
@@ -158,7 +171,7 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     private static class Disabled extends Mapper {
         private final Class<?> detailsType;
 
-        public Disabled(BuildEventMapper<?, ?> mapper) {
+        public Disabled(BuildOperationMapper<?, ?> mapper) {
             this.detailsType = mapper.getDetailsType();
         }
 

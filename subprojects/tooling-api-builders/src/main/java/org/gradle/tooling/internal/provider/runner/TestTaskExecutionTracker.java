@@ -20,20 +20,17 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  */
-class TestTaskExecutionTracker implements BuildOperationListener {
+class TestTaskExecutionTracker implements BuildOperationTracker {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final Map<Object, String> runningTasks = new ConcurrentHashMap<>();
 
@@ -61,10 +58,6 @@ class TestTaskExecutionTracker implements BuildOperationListener {
                 throw new IllegalStateException("Build operation " + buildOperation.getId() + " already started.");
             }
         }
-    }
-
-    @Override
-    public void progress(@Nullable OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
     }
 
     @Override

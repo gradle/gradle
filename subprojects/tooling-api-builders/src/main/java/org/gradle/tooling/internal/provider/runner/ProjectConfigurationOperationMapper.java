@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
@@ -39,7 +40,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 
-class ProjectConfigurationOperationMapper implements BuildEventMapper<ConfigureProjectBuildOperationType.Details, DefaultProjectConfigurationDescriptor> {
+class ProjectConfigurationOperationMapper implements BuildOperationMapper<ConfigureProjectBuildOperationType.Details, DefaultProjectConfigurationDescriptor> {
     private final ProjectConfigurationTracker projectConfigurationTracker;
 
     ProjectConfigurationOperationMapper(ProjectConfigurationTracker projectConfigurationTracker) {
@@ -54,6 +55,11 @@ class ProjectConfigurationOperationMapper implements BuildEventMapper<ConfigureP
     @Override
     public Class<ConfigureProjectBuildOperationType.Details> getDetailsType() {
         return ConfigureProjectBuildOperationType.Details.class;
+    }
+
+    @Override
+    public List<BuildOperationTracker> getTrackers() {
+        return ImmutableList.of(projectConfigurationTracker);
     }
 
     @Override

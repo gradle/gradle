@@ -20,10 +20,8 @@ import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
@@ -39,7 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 
-class ProjectConfigurationTracker implements BuildOperationListener {
+class ProjectConfigurationTracker implements BuildOperationTracker {
 
     private final Map<OperationIdentifier, ProjectConfigurationResult> results = new ConcurrentHashMap<>();
     private final BuildOperationAncestryTracker ancestryTracker;
@@ -63,10 +61,6 @@ class ProjectConfigurationTracker implements BuildOperationListener {
         if (buildOperation.getDetails() instanceof ConfigureProjectBuildOperationType.Details) {
             results.put(buildOperation.getId(), new ProjectConfigurationResult());
         }
-    }
-
-    @Override
-    public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
     }
 
     @Override

@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestResult;
@@ -40,7 +41,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-class TestOperationMapper implements BuildEventMapper<ExecuteTestBuildOperationType.Details, DefaultTestDescriptor> {
+class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperationType.Details, DefaultTestDescriptor> {
     private final TestTaskExecutionTracker taskTracker;
 
     TestOperationMapper(TestTaskExecutionTracker taskTracker) {
@@ -55,6 +56,11 @@ class TestOperationMapper implements BuildEventMapper<ExecuteTestBuildOperationT
     @Override
     public Class<ExecuteTestBuildOperationType.Details> getDetailsType() {
         return ExecuteTestBuildOperationType.Details.class;
+    }
+
+    @Override
+    public List<? extends BuildOperationTracker> getTrackers() {
+        return ImmutableList.of(taskTracker);
     }
 
     @Override

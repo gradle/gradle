@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class FileDownloadOperationMapper implements BuildEventMapper<ExternalResourceReadBuildOperationType.Details, DefaultFileDownloadDescriptor> {
+public class FileDownloadOperationMapper implements BuildOperationMapper<ExternalResourceReadBuildOperationType.Details, DefaultFileDownloadDescriptor> {
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.FILE_DOWNLOAD);

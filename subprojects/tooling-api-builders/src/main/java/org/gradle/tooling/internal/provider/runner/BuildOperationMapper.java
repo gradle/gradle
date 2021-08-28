@@ -26,11 +26,24 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
-public interface BuildEventMapper<DETAILS, TO extends InternalOperationDescriptor> {
+/**
+ * Maps build operations of a particular type into progress events to forward to the tooling API client.
+ */
+public interface BuildOperationMapper<DETAILS, TO extends InternalOperationDescriptor> {
     boolean isEnabled(BuildEventSubscriptions subscriptions);
 
     Class<DETAILS> getDetailsType();
+
+    /**
+     * Returns the trackers that are used by this mapper. If this mapper is enabled, then the trackers should be notified of
+     * build operation execution. If this mapper is not enabled, the trackers can be ignored.
+     */
+    default List<? extends BuildOperationTracker> getTrackers() {
+        return Collections.emptyList();
+    }
 
     TO createDescriptor(DETAILS details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent);
 
