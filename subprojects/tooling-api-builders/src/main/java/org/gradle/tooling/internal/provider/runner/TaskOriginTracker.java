@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType;
 import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType;
@@ -26,6 +27,7 @@ import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,6 +38,11 @@ class TaskOriginTracker implements BuildOperationTracker {
 
     TaskOriginTracker(PluginApplicationTracker pluginApplicationTracker) {
         this.pluginApplicationTracker = pluginApplicationTracker;
+    }
+
+    @Override
+    public List<? extends BuildOperationTracker> getTrackers() {
+        return ImmutableList.of(pluginApplicationTracker);
     }
 
     @Nullable

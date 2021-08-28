@@ -51,13 +51,22 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         for (BuildOperationMapper<?, ?> mapper : mappers) {
             if (mapper.isEnabled(subscriptions)) {
                 mapperBuilder.add(new Enabled(mapper, progressEventConsumer));
-                trackers.addAll(mapper.getTrackers());
+                collectTrackers(trackers, mapper.getTrackers());
             } else {
                 mapperBuilder.add(new Disabled(mapper));
             }
         }
         this.mappers = ImmutableList.copyOf(mapperBuilder);
         this.trackers = ImmutableList.copyOf(trackers);
+    }
+
+    private void collectTrackers(Set<BuildOperationTracker> dest, List<? extends BuildOperationTracker> trackers) {
+        for (BuildOperationTracker tracker : trackers) {
+            if (!dest.contains(tracker)) {
+                collectTrackers(dest, tracker.getTrackers());
+                dest.add(tracker);
+            }
+        }
     }
 
     @Override
@@ -96,10 +105,13 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
         Operation operation = running.remove(buildOperation.getId());
         if (operation != null) {
             operation.generateFinishEvent(buildOperation, finishEvent);
-            return;
+        } else {
+            // Not recognized, so generate generic events, if appropriate
+            fallback.finished(buildOperation, finishEvent);
         }
-        // Not recognized, so generate generic events, if appropriate
-        fallback.finished(buildOperation, finishEvent);
+        for (BuildOperationTracker tracker : trackers) {
+            tracker.discardState(buildOperation);
+        }
     }
 
     private static abstract class Operation {
@@ -148,16 +160,18 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
     private static class Enabled extends Mapper {
         private final BuildOperationMapper<Object, InternalOperationDescriptor> mapper;
         private final ProgressEventConsumer progressEventConsumer;
+        private final Class<?> detailsType;
 
         public Enabled(BuildOperationMapper<?, ?> mapper, ProgressEventConsumer progressEventConsumer) {
             this.mapper = Cast.uncheckedCast(mapper);
+            this.detailsType = mapper.getDetailsType();
             this.progressEventConsumer = progressEventConsumer;
         }
 
         @Nullable
         @Override
         public Operation accept(BuildOperationDescriptor buildOperation) {
-            if (mapper.getDetailsType().isInstance(buildOperation.getDetails())) {
+            if (detailsType.isInstance(buildOperation.getDetails())) {
                 OperationIdentifier parentId = progressEventConsumer.findStartedParentId(buildOperation);
                 InternalOperationDescriptor descriptor = mapper.createDescriptor(buildOperation.getDetails(), buildOperation, parentId);
                 return new EnabledOperation(descriptor, mapper, progressEventConsumer);

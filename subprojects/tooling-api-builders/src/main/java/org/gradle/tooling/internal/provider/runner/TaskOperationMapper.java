@@ -55,12 +55,12 @@ import static java.util.Collections.singletonList;
 
 class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperationDetails, DefaultTaskDescriptor>, OperationDependencyLookup {
     private final Map<TaskIdentity<?>, DefaultTaskDescriptor> descriptors = new ConcurrentHashMap<>();
-    private final OperationResultPostProcessor operationResultPostProcessor;
+    private final PostProcessors operationResultPostProcessor;
     private final TaskOriginTracker taskOriginTracker;
     private final OperationDependenciesResolver operationDependenciesResolver;
 
-    TaskOperationMapper(OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
-        this.operationResultPostProcessor = operationResultPostProcessor;
+    TaskOperationMapper(List<OperationResultPostProcessor> operationResultPostProcessors, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
+        this.operationResultPostProcessor = new PostProcessors(operationResultPostProcessors);
         this.taskOriginTracker = taskOriginTracker;
         this.operationDependenciesResolver = operationDependenciesResolver;
     }
@@ -77,7 +77,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
 
     @Override
     public List<? extends BuildOperationTracker> getTrackers() {
-        return ImmutableList.of(taskOriginTracker);
+        return ImmutableList.of(taskOriginTracker, operationResultPostProcessor);
     }
 
     @Override
@@ -136,4 +136,32 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         }
     }
 
+    private static class PostProcessors implements BuildOperationTracker {
+        private final List<OperationResultPostProcessor> processors;
+
+        public PostProcessors(List<OperationResultPostProcessor> processors) {
+            this.processors = processors;
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            for (OperationResultPostProcessor processor : processors) {
+                processor.started(buildOperation, startEvent);
+            }
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            for (OperationResultPostProcessor processor : processors) {
+                processor.finished(buildOperation, finishEvent);
+            }
+        }
+
+        public AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId) {
+            for (OperationResultPostProcessor factory : processors) {
+                taskResult = factory.process(taskResult, taskBuildOperationId);
+            }
+            return taskResult;
+        }
+    }
 }

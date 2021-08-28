@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -46,6 +47,11 @@ class ProjectConfigurationTracker implements BuildOperationTracker {
     ProjectConfigurationTracker(BuildOperationAncestryTracker ancestryTracker, PluginApplicationTracker pluginApplicationTracker) {
         this.ancestryTracker = ancestryTracker;
         this.pluginApplicationTracker = pluginApplicationTracker;
+    }
+
+    @Override
+    public List<? extends BuildOperationTracker> getTrackers() {
+        return ImmutableList.of(pluginApplicationTracker);
     }
 
     public List<InternalPluginApplicationResult> resultsFor(OperationIdentifier buildOperation) {

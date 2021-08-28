@@ -45,7 +45,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     }
 
     @Override
-    public Object getId() {
+    public OperationIdentifier getId() {
         return id;
     }
 
@@ -65,7 +65,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     }
 
     @Override
-    public Object getParentId() {
+    public OperationIdentifier getParentId() {
         return parentId;
     }
 
