@@ -60,7 +60,7 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultFileDownloadDescriptor descriptor, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultFileDownloadDescriptor descriptor, ExternalResourceReadBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent));
     }
 }

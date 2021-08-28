@@ -51,6 +51,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         then: "test progress events must be forwarded to the attached listeners"
         !events.tests.empty
         events.operations == events.tests
+        events.trees.size() == 1
     }
 
     def "receive test progress events when launching a build"() {
@@ -67,6 +68,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         then: "test progress events must be forwarded to the attached listeners"
         !events.tests.empty
         events.operations == events.tests
+        events.trees.size() == 1
     }
 
     def "receive current test progress event even if one of multiple test listeners throws an exception"() {
@@ -471,7 +473,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
     def descriptorForParentOfRootTestSuite(ProgressEvents events) {
         if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("7.3")) {
-            events.operation("Run tasks").descriptor
+            events.operation("Execute executeTests for :test").descriptor
         } else {
             null
         }

@@ -126,10 +126,9 @@ public class ClientBuildEventGenerator implements BuildOperationListener {
 
         @Override
         public void generateFinishEvent(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            progressEventConsumer.finished(mapper.createFinishedEvent(descriptor, finishEvent));
+            progressEventConsumer.finished(mapper.createFinishedEvent(descriptor, buildOperation.getDetails(), finishEvent));
         }
     }
-
 
     private static final Operation DISABLED_OPERATION = new Operation() {
         @Override

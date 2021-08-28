@@ -49,5 +49,5 @@ public interface BuildOperationMapper<DETAILS, TO extends InternalOperationDescr
 
     InternalOperationStartedProgressEvent createStartedEvent(TO descriptor, DETAILS details, OperationStartEvent startEvent);
 
-    InternalOperationFinishedProgressEvent createFinishedEvent(TO descriptor, OperationFinishEvent finishEvent);
+    InternalOperationFinishedProgressEvent createFinishedEvent(TO descriptor, DETAILS details, OperationFinishEvent finishEvent);
 }

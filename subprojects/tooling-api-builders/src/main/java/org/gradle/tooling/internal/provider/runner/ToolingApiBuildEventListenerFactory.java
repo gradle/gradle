@@ -69,45 +69,41 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         }
 
         BuildOperationListener buildListener = NO_OP;
+        if (subscriptions.isRequested(OperationType.GENERIC)) {
+            buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);
+        }
+
+        OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
-            if (subscriptions.isRequested(OperationType.GENERIC)) {
-                buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);
-            }
-            if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM)) {
+            if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM) && subscriptions.isRequested(OperationType.TASK)) {
                 buildListener = new ClientForwardingWorkItemOperationListener(progressEventConsumer, subscriptions, buildListener);
             }
-            OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
             if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM)) {
                 ClientForwardingTransformOperationListener transformOperationListener = new ClientForwardingTransformOperationListener(progressEventConsumer, subscriptions, buildListener, operationDependenciesResolver);
                 operationDependenciesResolver.addLookup(transformOperationListener);
                 buildListener = transformOperationListener;
             }
-            if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TRANSFORM, OperationType.TASK)) {
-                TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
-                if (subscriptions.isAnyRequested(OperationType.TASK)) {
-                    listeners.add(taskOriginTracker);
-                }
-
-                List<OperationResultPostProcessor> postProcessors = new ArrayList<>(postProcessorFactories.size());
-                for (OperationResultPostProcessorFactory postProcessorFactory : postProcessorFactories) {
-                    postProcessors.addAll(postProcessorFactory.createProcessors(subscriptions, consumer));
-                }
-                listeners.addAll(postProcessors);
-                OperationResultPostProcessor postProcessor = new CompositeOperationResultPostProcessor(postProcessors);
-
-                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, subscriptions, buildListener, postProcessor, taskOriginTracker, operationDependenciesResolver);
-                operationDependenciesResolver.addLookup(taskOperationListener);
-                buildListener = taskOperationListener;
-            }
         }
 
         TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
         ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
+        TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
+
+        List<OperationResultPostProcessor> postProcessors = new ArrayList<>(postProcessorFactories.size());
+        for (OperationResultPostProcessorFactory postProcessorFactory : postProcessorFactories) {
+            postProcessors.addAll(postProcessorFactory.createProcessors(subscriptions, consumer));
+        }
+        listeners.addAll(postProcessors);
+        OperationResultPostProcessor postProcessor = new CompositeOperationResultPostProcessor(postProcessors);
+
+        TaskOperationMapper taskOperationListener = new TaskOperationMapper(postProcessor, taskOriginTracker, operationDependenciesResolver);
+        operationDependenciesResolver.addLookup(taskOperationListener);
 
         ImmutableList<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
             new TestOperationMapper(testTaskTracker),
-            new ProjectConfigurationOperationMapper(projectConfigurationTracker)
+            new ProjectConfigurationOperationMapper(projectConfigurationTracker),
+            taskOperationListener
         );
         ClientBuildEventGenerator generator = new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
         listeners.add(generator);

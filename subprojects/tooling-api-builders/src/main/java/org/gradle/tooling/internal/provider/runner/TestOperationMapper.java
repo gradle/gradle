@@ -75,13 +75,12 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTestDescriptor descriptor, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
         return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
     }
 
     private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal suite) {
-        Object id = suite.getId();
         String name = suite.getName();
         String displayName = backwardsCompatibleDisplayNameOf(suite);
         String testKind = InternalJvmTestDescriptor.KIND_SUITE;
@@ -92,7 +91,6 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptorInternal test) {
-        Object id = test.getId();
         String name = test.getName();
         String displayName = backwardsCompatibleDisplayNameOf(test);
         String testKind = InternalJvmTestDescriptor.KIND_ATOMIC;

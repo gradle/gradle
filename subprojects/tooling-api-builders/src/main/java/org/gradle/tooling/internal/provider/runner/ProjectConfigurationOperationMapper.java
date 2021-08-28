@@ -75,7 +75,7 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultProjectConfigurationDescriptor descriptor, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultProjectConfigurationDescriptor descriptor, ConfigureProjectBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, projectConfigurationTracker.resultsFor(descriptor.getId()));
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, result);
     }

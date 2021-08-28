@@ -26,7 +26,7 @@ import org.gradle.tooling.events.OperationType
 
 @ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
-class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersionSpec {
+class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
     def "generates typed events for downloads during dependency resolution"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
 
@@ -41,9 +41,7 @@ class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersio
 
         then:
         events.operations.size() == 8
-        events.operations.each {
-            assert it.parent == null
-        }
+        events.trees == events.operations
         events.operation("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
         events.operation("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact.uri)
         events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
@@ -71,9 +69,7 @@ class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersio
         thrown(BuildException)
 
         events.operations.size() >= 4
-        events.operations.each {
-            assert it.parent == null
-        }
+        events.trees == events.operations
         events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
         def brokenDownloads = events.operations("Download ${modules.projectC.pom.uri}")
         brokenDownloads.each {
@@ -96,6 +92,7 @@ class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersio
 
         then:
         events.operations.size() == 10
+        events.trees.size() == 1
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == null
         configureRoot.child("Configure project :a")
@@ -124,6 +121,7 @@ class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersio
 
         then:
         events.operations.size() == 10
+        events.trees.size() == 2
         events.operation("Task :a:compileJava")
         def task = events.operation("Task :resolve")
         task.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
@@ -134,6 +132,23 @@ class DependencyArtifactDownloadCrossVersionTest extends AbstractHttpCrossVersio
         task.child("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom.uri)
         task.child("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri)
         task.child("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact.uri)
+    }
+
+    def "does not generate events when file download type is not requested"() {
+        setupBuildWithArtifactDownloadDuringTaskExecution()
+
+        when:
+        def events = ProgressEvents.create()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            collectOutputs(build)
+            build.forTasks("resolve")
+            build.addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
+                .run()
+        }
+
+        then:
+        !events.operations.any { it.download }
     }
 
     @TargetGradleVersion(">=3.5 <7.3")
