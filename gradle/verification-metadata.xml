@@ -225,6 +225,7 @@
             <trusting group="com.google.errorprone" name="error_prone_annotations"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="e7dc75fc24fb3c8dfe8086ad3d5839a2262cbbfb" group="org.jetbrains.kotlinx"/>
          <trusted-key id="e85aed155021af8a6c6b7a4a7c7d8456294423ba" group="org.objenesis" name="objenesis"/>
          <trusted-key id="e870fb6be4ba46c81520fd6936b9cf3beb52d771" group="com.openhtmltopdf"/>
          <trusted-key id="ea23db1360d9029481e7f2efecdfea3cb4493b94" group="org.apache.sshd"/>

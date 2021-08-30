@@ -155,8 +155,8 @@ dependencies {
         api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
-        api(libs.kotlinCoroutines)      { version { strictly("1.4.1") }}
-        api(libs.kotlinCoroutinesDebug) { version { strictly("1.4.1") }}
+        api(libs.kotlinCoroutines)      { version { strictly("1.5.1") }}
+        api(libs.kotlinCoroutinesDebug) { version { strictly("1.5.1") }}
         api(libs.littleproxy)           { version { strictly("2.0.5") }}
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
