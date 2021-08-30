@@ -24,8 +24,8 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,18 +52,18 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         ImmutableList<String> reasons = context.getRebuildReasons();
         return context.getChanges()
             .filter(__ -> reasons.isEmpty())
-            .map(changes -> skipExecutionBecause(work, changes, context))
+            .map(changes -> skipExecution(work, changes.getBeforeExecutionState(), context))
             .orElseGet(() -> executeBecause(work, reasons, context));
     }
 
-    private UpToDateResult skipExecutionBecause(UnitOfWork work, ExecutionStateChanges changes, C context) {
+    private UpToDateResult skipExecution(UnitOfWork work, BeforeExecutionState beforeExecutionState, C context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
         }
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
         AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
-            changes.getBeforeExecutionState(),
+            beforeExecutionState,
             previousExecutionState.getOutputFilesProducedByWork()
         );
         return new UpToDateResult() {
