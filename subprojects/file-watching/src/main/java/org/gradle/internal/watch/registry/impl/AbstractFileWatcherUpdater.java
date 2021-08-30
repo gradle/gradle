@@ -17,8 +17,11 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchMode;
+
+import javax.annotation.CheckReturnValue;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private final FileWatcher fileWatcher;
@@ -31,9 +34,13 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateUnsupportedFileSystems(WatchMode watchMode) {
+    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
         watchableHierarchies.updateUnsupportedFileSystems(watchMode);
+        return doUpdateVfsOnBuildStarted(root);
     }
+
+    @CheckReturnValue
+    protected abstract SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root);
 
     protected FileWatcher getFileWatcher() {
         return fileWatcher;

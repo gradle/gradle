@@ -96,7 +96,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
+    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = movedHierarchyHandler.handleMovedHierarchies(root);
         if (newRoot != root) {
             updateWatchedHierarchies(newRoot);

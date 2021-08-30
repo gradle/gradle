@@ -178,6 +178,11 @@ public class WatchableHierarchies {
         return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
     }
 
+    /**
+     * Detects and updates the unsupported file systems.
+     *
+     * Depending on the watch mode, actually detecting the unsupported file systems may not be necessary.
+     */
     public void updateUnsupportedFileSystems(WatchMode watchMode) {
         unsupportedHierarchies = shouldWatchUnsupportedFileSystems(watchMode)
             ? DefaultFileHierarchySet.of()

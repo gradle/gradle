@@ -149,7 +149,6 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        fileWatcherUpdater.updateUnsupportedFileSystems(watchMode);
         return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode);
     }
 

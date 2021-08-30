@@ -49,13 +49,6 @@ public interface FileWatcherUpdater {
     SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
-     * Detects and updates the unsupported file systems.
-     *
-     * Depending on the watch mode, actually detecting the unsupported file systems may not be necessary.
-     */
-    void updateUnsupportedFileSystems(WatchMode watchMode);
-
-    /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
      * @see FileWatcherRegistry#updateVfsOnBuildFinished(SnapshotHierarchy, WatchMode, int)

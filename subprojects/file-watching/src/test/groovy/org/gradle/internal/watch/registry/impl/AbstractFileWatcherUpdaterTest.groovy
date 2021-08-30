@@ -335,7 +335,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     SnapshotHierarchy buildStarted(watchMode = WatchMode.DEFAULT) {
-        updater.updateUnsupportedFileSystems(watchMode)
         virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode)
         return virtualFileSystem.root
     }

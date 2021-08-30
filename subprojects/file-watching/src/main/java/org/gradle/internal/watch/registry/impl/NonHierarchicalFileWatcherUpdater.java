@@ -85,7 +85,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
+    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         return root;
     }
 
