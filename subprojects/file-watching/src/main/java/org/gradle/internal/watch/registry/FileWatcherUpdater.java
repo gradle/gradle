@@ -46,7 +46,7 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode);
+    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
      * Detects and updates the unsupported file systems.
@@ -61,7 +61,7 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#updateVfsOnBuildFinished(SnapshotHierarchy, WatchMode, int)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
+    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
     Collection<Path> getWatchedHierarchies();
 }

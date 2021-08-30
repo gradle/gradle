@@ -336,12 +336,12 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     SnapshotHierarchy buildStarted(watchMode = WatchMode.DEFAULT) {
         updater.updateUnsupportedFileSystems(watchMode)
-        virtualFileSystem.root = updater.buildStarted(virtualFileSystem.root, watchMode)
+        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode)
         return virtualFileSystem.root
     }
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, watchMode = WatchMode.DEFAULT) {
-        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies)
+        virtualFileSystem.root = updater.updateVfsOnBuildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies)
     }
 
     private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
