@@ -34,6 +34,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
                 void doStuff() {
+                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.get().asFile.text
                 }
             }
@@ -74,6 +75,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                     .withPropertyName("outputFile")
                     ${(properties == "outputs" ? ".untracked()" : "")}
                 doLast {
+                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.text
                 }
             }
@@ -109,6 +111,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
                 void doStuff() {
+                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.get().asFile.text
                 }
             }
@@ -312,7 +315,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         cleanup:
         unreadableDir.setReadable(true)
     }
-    
+
     def "untracked optional absent output properties are ignored"() {
         buildFile("""
             tasks.register("myTask") {
@@ -358,6 +361,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 outputs.file(outputFile)
                     .withPropertyName("outputFile")
                 doLast {
+                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.text
                 }
             }
@@ -408,6 +412,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 void execute() {
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()
+                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile << "Executed"
                 }
             }
