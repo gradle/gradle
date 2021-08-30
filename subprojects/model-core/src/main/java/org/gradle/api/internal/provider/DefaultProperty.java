@@ -112,8 +112,11 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    public Property<T> convention(Provider<? extends T> valueProvider) {
-        setConvention(Providers.internal(valueProvider).asSupplier(getValidationDisplayName(), type, sanitizer));
+    public Property<T> convention(Provider<? extends T> provider) {
+        if (provider == null) {
+            throw new IllegalArgumentException("Cannot set the convention of a property using a null provider.");
+        }
+        setConvention(Providers.internal(provider).asSupplier(getValidationDisplayName(), type, sanitizer));
         return this;
     }
 
