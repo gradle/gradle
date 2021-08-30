@@ -307,8 +307,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitRegularInputs(InputVisitor visitor) {
-            ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
-            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
+            TaskProperties taskProperties = context.getTaskProperties();
+            if (taskProperties.hasUntrackedProperties()) {
+                // Not visiting inputs of untracked task
+                return;
+            }
+            ImmutableSortedSet<InputPropertySpec> inputProperties = taskProperties.getInputProperties();
+            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = taskProperties.getInputFileProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
                 visitor.visitInputProperty(inputProperty.getPropertyName(), () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
             }
@@ -336,16 +341,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitOutputs(File workspace, OutputVisitor visitor) {
-            for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
+            TaskProperties taskProperties = context.getTaskProperties();
+            if (taskProperties.hasUntrackedProperties()) {
+                // Not visiting outputs of untracked task
+                return;
+            }
+            for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
                 File outputFile = property.getOutputFile();
                 if (outputFile != null) {
                     visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
                 }
             }
-            for (File localStateRoot : context.getTaskProperties().getLocalStateFiles()) {
+            for (File localStateRoot : taskProperties.getLocalStateFiles()) {
                 visitor.visitLocalState(localStateRoot);
             }
-            for (File destroyableRoot : context.getTaskProperties().getDestroyableFiles()) {
+            for (File destroyableRoot : taskProperties.getDestroyableFiles()) {
                 visitor.visitDestroyable(destroyableRoot);
             }
         }
