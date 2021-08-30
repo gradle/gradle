@@ -186,11 +186,7 @@ public class WatchableHierarchies {
     private <T> T forEachUnsupportedFileSystem(T current, BiFunction<T, ? super FileSystemInfo, T> accumulator, String failureAction, T onFailure) {
         try {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
-                .reduce(
-                    current,
-                    accumulator,
-                    nonCombining()
-                );
+                .reduce(current, accumulator, nonCombining());
         } catch (NativeException e) {
             LOGGER.warn("Unable to list file systems to check whether they can be watched. {}. Reason: {}", failureAction, e.getMessage());
             return onFailure;
