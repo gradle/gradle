@@ -58,6 +58,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -89,7 +90,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -351,12 +351,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void handleSnapshottingUnreadableProperties(UncheckedIOException ex) {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Failed to snapshot unreadable input or output, treating task as untracked: {}", ex.getCause().toString());
-            }
-            DeprecationLogger.deprecate("Accessing unreadable input or output files")
-                .withAdvice("Declare the input or output property as untracked.")
+        public void handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
+            nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
+        }
+
+        @Override
+        public void handleUnreadableOutputs(OutputSnapshotter.OutputFileSnapshottingException ex) {
+            nagUserAboutUnreadableInputsOrOutputs("output", ex.getPropertyName(), ex.getCause());
+        }
+
+        private void nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
+            LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
+            DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
+                    propertyType, propertyName, getDisplayName()))
+                .withAdvice("Declare the property as untracked.")
                 .willBecomeAnErrorInGradle8()
                 // TODO: Document
                 .undocumented()

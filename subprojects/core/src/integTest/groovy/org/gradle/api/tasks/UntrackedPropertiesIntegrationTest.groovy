@@ -125,6 +125,14 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task producing unreadable content via tracked property is not stored in execution history"() {
+        executer.beforeExecute {
+            executer.withStackTraceChecksDisabled()
+            executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
+                "Accessing unreadable inputs or outputs has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the property as untracked.")
+        }
+
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
 
@@ -137,25 +145,21 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         """)
 
         when:
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
         run "producer", "--info"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Cannot access output property 'outputDir' of task ':producer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         when:
         unreadableDir.setReadable(true)
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
         run "producer", "--info"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
         outputContains("Task ':producer' is not up-to-date because:")
         outputContains("No history is available.")
+        outputContains("Cannot access output property 'outputDir' of task ':producer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
@@ -163,14 +167,20 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task producing unreadable content via tracked property is not stored in cache"() {
+        executer.beforeExecute {
+            executer.withStackTraceChecksDisabled()
+            executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
+                "Accessing unreadable inputs or outputs has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the property as untracked.")
+        }
+
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
 
         buildFile generateProducerTask(false)
 
         buildFile("""
-            apply plugin: "base"
-
             tasks.register("producer", Producer) {
                 outputs.cacheIf { true }
                 outputDir = project.layout.buildDirectory.dir("root")
@@ -178,25 +188,21 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         """)
 
         when:
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
         withBuildCache().run "producer", "--info"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Cannot access output property 'outputDir' of task ':producer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         when:
         unreadableDir.setReadable(true)
-        run("clean")
+        assert rootDir.deleteDir()
 
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
         withBuildCache().run "producer", "--info"
         then:
         executedAndNotSkipped(":producer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
+        outputContains("Cannot access output property 'outputDir' of task ':producer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
@@ -219,15 +225,18 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         """)
 
         when:
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
+            "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
+            "Declare the property as untracked.")
         run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
         outputContains("Task ':consumer' is not up-to-date because:")
         outputContains("Change tracking is disabled.")
+        outputContains("Cannot access input property 'inputDir' of task ':consumer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)
@@ -251,17 +260,20 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         """)
 
         when:
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
+            "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
+            "Declare the property as untracked.")
         withBuildCache().run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
-        outputContains("Failed to snapshot unreadable input or output, treating task as untracked: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
         outputContains("Task ':consumer' is not up-to-date because:")
         outputContains("Change tracking is disabled.")
         outputContains("Caching disabled for task ':consumer' because:")
         outputContains("Cacheability was not determined")
+        outputContains("Cannot access input property 'inputDir' of task ':consumer'")
+        outputContains("java.io.UncheckedIOException: java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
         unreadableDir.setReadable(true)

@@ -39,7 +39,13 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+                FileSystemSnapshot snapshot;
+                try {
+                    snapshot = fileCollectionSnapshotter.snapshot(contents);
+                } catch (Exception ex) {
+                    throw new OutputFileSnapshottingException(propertyName, ex);
+                }
+                builder.put(propertyName, snapshot);
             }
         });
         return builder.build();

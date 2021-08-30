@@ -61,7 +61,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
 
     def "no state is captured if snapshotting outputs fail"() {
         def delegateDuration = Duration.ofMillis(123)
-        def failure = new UncheckedIOException(new IOException("Error"))
+        def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
 
         when:
         def result = step.execute(work, context)

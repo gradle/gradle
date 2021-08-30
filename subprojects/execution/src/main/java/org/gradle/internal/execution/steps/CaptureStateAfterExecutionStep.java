@@ -34,7 +34,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -109,9 +108,9 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork);
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.of(afterExecutionState);
-                } catch (UncheckedIOException e) {
+                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
                     operationContext.failed(e);
-                    work.handleSnapshottingUnreadableProperties(e);
+                    work.handleUnreadableOutputs(e);
                     return Optional.empty();
                 }
             },

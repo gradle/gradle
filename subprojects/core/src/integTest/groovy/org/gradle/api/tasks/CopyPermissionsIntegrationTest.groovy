@@ -273,7 +273,8 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         def input = file("readableFile.txt").createFile()
 
         def outputDirectory = file("output")
-        def unreadableOutput = create(file("${outputDirectory.name}/unreadable${type.capitalize()}")).makeUnreadable()
+        def unreadableOutput = file("${outputDirectory.name}/unreadable${type.capitalize()}")
+        create(unreadableOutput).makeUnreadable()
 
         buildFile << """
             task copy(type: Copy) {
@@ -283,19 +284,23 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("Accessing unreadable input or output files has been deprecated. " +
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
+            "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the input or output property as untracked.")
-        succeeds 'copy'
+            "Declare the property as untracked.")
+        succeeds 'copy', "--info"
         then:
         outputDirectory.list().contains input.name
+        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
+        outputContains(expectedError(unreadableOutput))
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
-        type        | create
-        'file'      | { it.createFile() }
-        'directory' | { it.createDir() }
+        type        | create              | expectedError
+        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
+        'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
     }
 }

@@ -37,7 +37,7 @@ public interface InputFingerprinter {
         ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
-    );
+    ) throws InputFingerprintingException, InputFileFingerprintingException;
 
     /**
      * Hack require to get normalized input path without fingerprinting contents.
@@ -151,5 +151,36 @@ public interface InputFingerprinter {
     interface Result {
         ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
+    }
+
+    class InputFingerprintingException extends RuntimeException {
+        private final String propertyName;
+
+        public InputFingerprintingException(String propertyName, String message, Throwable cause) {
+            super(String.format("Cannot fingerprint input property '%s': %s.", propertyName, message), cause);
+            this.propertyName = propertyName;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
+    }
+
+    class InputFileFingerprintingException extends RuntimeException {
+        private final String propertyName;
+
+        public InputFileFingerprintingException(String propertyName, Throwable cause) {
+            super(String.format("Cannot fingerprint input file property '%s'.", propertyName), cause);
+            this.propertyName = propertyName;
+        }
+
+        private InputFileFingerprintingException(String formattedMessage, Throwable cause, String propertyName) {
+            super(formattedMessage, cause);
+            this.propertyName = propertyName;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
     }
 }

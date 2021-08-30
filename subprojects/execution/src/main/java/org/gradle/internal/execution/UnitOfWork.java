@@ -19,9 +19,11 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -34,7 +36,6 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -149,9 +150,16 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Handles when an input or output cannot be read while snapshotting.
+     * Handles when an input cannot be read while fingerprinting.
      */
-    default void handleSnapshottingUnreadableProperties(UncheckedIOException ex) {
+    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
+        throw ex;
+    }
+
+    /**
+     * Handles when an output cannot be read while snapshotting.
+     */
+    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
         throw ex;
     }
 
