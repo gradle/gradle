@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks
 
 
-import org.gradle.internal.fingerprint.ContentTracking
+import org.gradle.api.internal.tasks.properties.ContentTracking
 import spock.lang.Specification
 
 abstract class AbstractTaskFilePropertyRegistrationTest<T extends AbstractTaskFilePropertyRegistration> extends Specification {

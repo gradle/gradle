@@ -51,7 +51,6 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropert
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -357,7 +356,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
-                    ContentTracking.TRACKED,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
         }
 

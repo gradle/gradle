@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.TaskProperties
@@ -28,7 +29,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.file.RelativeFilePathResolver
-import org.gradle.internal.fingerprint.ContentTracking
 import spock.lang.Specification
 
 import javax.annotation.Nullable

@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
@@ -39,7 +40,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.fingerprint.ContentTracking;
 
 import javax.annotation.Nullable;
 import java.io.File;

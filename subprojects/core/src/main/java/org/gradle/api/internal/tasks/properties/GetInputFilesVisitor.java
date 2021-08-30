@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 

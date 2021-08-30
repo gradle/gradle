@@ -32,7 +32,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;

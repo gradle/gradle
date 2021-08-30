@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -56,7 +57,6 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.util.internal.DeferredUtil

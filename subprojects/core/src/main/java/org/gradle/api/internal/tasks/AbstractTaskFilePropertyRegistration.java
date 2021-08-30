@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.fingerprint.ContentTracking;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 
 public abstract class AbstractTaskFilePropertyRegistration implements TaskPropertyRegistration {
     private String propertyName;

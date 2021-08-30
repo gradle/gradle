@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.fingerprint.ContentTracking;
 
 public class DefaultTaskOutputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskOutputFilePropertyRegistration {
     private final OutputFilePropertyType outputFilePropertyType;

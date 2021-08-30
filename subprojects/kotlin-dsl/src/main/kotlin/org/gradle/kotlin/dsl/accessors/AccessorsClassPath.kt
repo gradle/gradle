@@ -30,7 +30,6 @@ import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSup
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.file.TreeType.DIRECTORY
-import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -167,7 +166,6 @@ class GenerateProjectAccessors(
                 ClasspathNormalizer::class.java,
                 DirectorySensitivity.IGNORE_DIRECTORIES,
                 LineEndingSensitivity.DEFAULT,
-                ContentTracking.TRACKED,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }
         )
     }

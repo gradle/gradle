@@ -40,7 +40,6 @@ import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSp
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -370,7 +369,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
                     transformer.getInputArtifactDependenciesLineEndingNormalization(),
-                    ContentTracking.TRACKED,
                     () -> dependencies.getFiles()
                         .orElse(fileCollectionFactory.empty())));
         }
@@ -384,7 +382,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),
                     transformer.getInputArtifactLineEndingNormalization(),
-                    ContentTracking.TRACKED,
                     () -> fileCollectionFactory.fixed(inputArtifact)));
         }
 

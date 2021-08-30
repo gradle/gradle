@@ -19,6 +19,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -28,7 +29,6 @@ import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotati
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.fingerprint.ContentTracking
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

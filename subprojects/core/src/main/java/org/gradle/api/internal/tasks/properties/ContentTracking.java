@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.api.internal.tasks.properties;
 
 public enum ContentTracking {
     TRACKED,

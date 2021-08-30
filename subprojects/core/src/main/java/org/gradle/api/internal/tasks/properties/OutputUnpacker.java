@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.fingerprint.ContentTracking;
 
 public class OutputUnpacker extends PropertyVisitor.Adapter {
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.ContentTracking;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
