@@ -46,18 +46,14 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedDirectories = HashMultiset.create();
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
-    private final FileWatcher fileWatcher;
-
-    private final WatchableHierarchies watchableHierarchies;
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
-        this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = watchableHierarchies;
+        super(fileWatcher, watchableHierarchies);
     }
 
     @Override
@@ -65,14 +61,14 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.stream()
-            .filter(watchableHierarchies::shouldWatch)
+            .filter(getWatchableHierarchies()::shouldWatch)
             .forEach(snapshot -> {
                 ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
                 previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
-            .filter(watchableHierarchies::shouldWatch)
+            .filter(getWatchableHierarchies()::shouldWatch)
             .forEach(snapshot -> {
                 ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).stream()
                     .map(Path::toString).collect(Collectors.toList()));
@@ -85,12 +81,11 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+        getWatchableHierarchies().registerWatchableHierarchy(watchableHierarchy, root);
     }
 
     @Override
     public SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        watchableHierarchies.updateUnwatchableFileSystems(watchMode);
         return root;
     }
 
@@ -102,7 +97,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
             return invalidatedRoot;
         };
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
+        SnapshotHierarchy newRoot = getWatchableHierarchies().removeUnwatchableContent(
             root,
             watchMode,
             hierarchy -> containsSnapshots(hierarchy, root),
@@ -115,11 +110,11 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public Collection<Path> getWatchedHierarchies() {
-        return watchableHierarchies.getWatchableHierarchies();
+        return getWatchableHierarchies().getWatchableHierarchies();
     }
 
     private boolean containsSnapshots(Path location, SnapshotHierarchy root) {
-        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
+        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(getWatchableHierarchies());
         root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
         return !checkIfNonEmptySnapshotVisitor.isEmpty();
     }
@@ -151,10 +146,10 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         try {
             if (!directoriesToStopWatching.isEmpty()) {
-                fileWatcher.stopWatching(directoriesToStopWatching);
+                getFileWatcher().stopWatching(directoriesToStopWatching);
             }
             if (!directoriesToStartWatching.isEmpty()) {
-                fileWatcher.startWatching(directoriesToStartWatching);
+                getFileWatcher().startWatching(directoriesToStartWatching);
             }
         } catch (NativeException e) {
             if (e.getMessage().contains("Already watching path: ")) {
@@ -187,7 +182,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             return snapshot.accept(new FileSystemLocationSnapshotTransformer<SnapshotVisitResult>() {
                 @Override
                 public SnapshotVisitResult visitDirectory(DirectorySnapshot directorySnapshot) {
-                    if (watchableHierarchies.ignoredForWatching(directorySnapshot)) {
+                    if (getWatchableHierarchies().ignoredForWatching(directorySnapshot)) {
                         return SnapshotVisitResult.SKIP_SUBTREE;
                     } else {
                         subDirectoryToWatchConsumer.accept(directorySnapshot.getAbsolutePath());

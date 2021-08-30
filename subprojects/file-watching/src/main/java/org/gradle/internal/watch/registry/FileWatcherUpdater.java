@@ -49,6 +49,13 @@ public interface FileWatcherUpdater {
     SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
+     * Detects and updates the unwatchable file systems.
+     *
+     * Depending on the watch mode, actually detecting the unsupported file systems may not be necessary.
+     */
+    void updateUnwatchableFileSystems(WatchMode watchMode);
+
+    /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
      * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, WatchMode, int)
