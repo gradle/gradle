@@ -70,7 +70,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.buildStarted(_, _) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildStarted(_, _) >> rootReference.getRoot()
         1 * watcherRegistry.setDebugLoggingEnabled(false)
         0 * _
 
@@ -78,7 +78,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -96,7 +96,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.buildStarted(_, _) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildStarted(_, _) >> rootReference.getRoot()
         1 * watcherRegistry.setDebugLoggingEnabled(false)
         0 * _
 
@@ -104,14 +104,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
-        1 * watcherRegistry.buildStarted(_ as SnapshotHierarchy, WatchMode.ENABLED) >> { SnapshotHierarchy root, watchMode -> root }
+        1 * watcherRegistry.updateVfsOnBuildStarted(_ as SnapshotHierarchy, WatchMode.ENABLED) >> { SnapshotHierarchy root, watchMode -> root }
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.setDebugLoggingEnabled(false)
         0 * _
@@ -133,7 +133,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.afterBuildStarted(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.buildStarted(_, _) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildStarted(_, _) >> rootReference.getRoot()
         1 * watcherRegistry.setDebugLoggingEnabled(false)
         1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
@@ -147,7 +147,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
+        1 * watcherRegistry.updateVfsOnBuildFinished(_, WatchMode.ENABLED, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:

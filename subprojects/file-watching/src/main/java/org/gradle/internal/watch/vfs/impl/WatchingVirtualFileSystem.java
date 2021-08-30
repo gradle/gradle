@@ -106,7 +106,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = watchRegistry.buildStarted(currentRoot, watchMode);
+                            newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode);
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
@@ -192,7 +192,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies));
+                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.updateVfsOnBuildFinished(currentRoot, watchMode, maximumNumberOfWatchedHierarchies));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
@@ -265,7 +265,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     stopWatchingAndInvalidateHierarchyAfterError();
                 }
             });
-            SnapshotHierarchy newRoot = watchRegistry.buildStarted(currentRoot.empty(), watchMode);
+            SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode);
             watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
             watchableHierarchies.clear();
             return newRoot;
