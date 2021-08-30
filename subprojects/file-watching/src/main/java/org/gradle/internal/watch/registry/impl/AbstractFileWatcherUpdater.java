@@ -31,8 +31,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateUnwatchableFileSystems(WatchMode watchMode) {
-        watchableHierarchies.updateUnwatchableFileSystems(watchMode);
+    public void updateUnsupportedFileSystems(WatchMode watchMode) {
+        watchableHierarchies.updateUnsupportedFileSystems(watchMode);
     }
 
     protected FileWatcher getFileWatcher() {

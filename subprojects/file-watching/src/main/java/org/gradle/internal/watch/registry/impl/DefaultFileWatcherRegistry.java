@@ -149,7 +149,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public SnapshotHierarchy buildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        fileWatcherUpdater.updateUnwatchableFileSystems(watchMode);
+        fileWatcherUpdater.updateUnsupportedFileSystems(watchMode);
         return fileWatcherUpdater.buildStarted(root, watchMode);
     }
 
