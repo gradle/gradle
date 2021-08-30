@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
-import org.gradle.internal.fingerprint.impl.FingerprinterRegistration;
 
 import java.util.Collection;
 import java.util.List;

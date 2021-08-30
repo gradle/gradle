@@ -40,7 +40,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry

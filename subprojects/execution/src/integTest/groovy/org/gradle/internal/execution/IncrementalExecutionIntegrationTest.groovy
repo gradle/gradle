@@ -37,6 +37,7 @@ import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
@@ -64,7 +65,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.impl.FingerprinterRegistration
+import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
