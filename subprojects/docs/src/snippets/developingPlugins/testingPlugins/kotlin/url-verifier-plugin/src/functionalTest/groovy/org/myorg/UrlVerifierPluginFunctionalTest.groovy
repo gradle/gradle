@@ -1,18 +1,17 @@
 package org.myorg
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class UrlVerifierPluginFunctionalTest extends Specification {
-    @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir File testProjectDir
     File buildFile
 
     def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
         buildFile << """
             plugins {
                 id 'org.myorg.url-verifier'
@@ -29,7 +28,7 @@ class UrlVerifierPluginFunctionalTest extends Specification {
 
         when:
         def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir)
             .withArguments('verifyUrl')
             .withPluginClasspath()
             .build()

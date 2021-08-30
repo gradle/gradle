@@ -341,7 +341,7 @@ fun Project.collectScriptPlugins(): List<PrecompiledScriptPlugin> =
 private
 fun Project.collectScriptPluginFiles(): List<File> =
     mutableListOf<File>().apply {
-        // TODO:cc undeclared build logic input
+        // TODO:configuration-cache undeclared build logic input
         gradlePlugin.pluginSourceSet.allSource.matching {
             it.include("**/*.gradle.kts")
         }.visit {

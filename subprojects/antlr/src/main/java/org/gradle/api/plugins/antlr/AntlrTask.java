@@ -293,7 +293,7 @@ public class AntlrTask extends SourceTask {
      * {@inheritDoc}
      */
     @Override
-    @Internal
+    @Internal("tracked via stableSources")
     public FileTree getSource() {
         return super.getSource();
     }

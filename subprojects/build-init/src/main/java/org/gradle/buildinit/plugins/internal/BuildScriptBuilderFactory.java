@@ -16,12 +16,22 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 
 public class BuildScriptBuilderFactory {
+    private final DocumentationRegistry documentationRegistry;
 
-    public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension);
+    public BuildScriptBuilderFactory(DocumentationRegistry documentationRegistry) {
+        this.documentationRegistry = documentationRegistry;
     }
 
+    public BuildScriptBuilder scriptForNewProjects(BuildInitDsl dsl, String fileNameWithoutExtension) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, InsecureProtocolOption.FAIL);
+    }
+
+    public BuildScriptBuilder scriptForMavenConversion(BuildInitDsl dsl, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+        return new BuildScriptBuilder(dsl, documentationRegistry, fileNameWithoutExtension, insecureProtocolOption);
+    }
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.initialization.buildsrc;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -52,8 +51,7 @@ public class BuildSrcUpdateFactory {
 
     private Collection<File> build() {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
-        GradleInternal gradle = buildController.getGradle();
-        gradle.addListener(listener);
+        buildController.beforeBuild(gradle -> gradle.addListener(listener));
 
         buildController.scheduleAndRunTasks();
 

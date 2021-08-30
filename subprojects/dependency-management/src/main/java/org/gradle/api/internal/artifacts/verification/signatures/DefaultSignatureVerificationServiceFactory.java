@@ -32,11 +32,9 @@ import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
-import org.gradle.security.internal.KeyringFilePublicKeyService;
 import org.gradle.security.internal.PublicKeyDownloadService;
 import org.gradle.security.internal.PublicKeyResultBuilder;
 import org.gradle.security.internal.PublicKeyService;
-import org.gradle.security.internal.PublicKeyServiceChain;
 import org.gradle.security.internal.SecuritySupport;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -79,7 +77,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     }
 
     @Override
-    public SignatureVerificationService create(File keyringsFile, List<URI> keyServers, boolean useKeyServers) {
+    public SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers) {
         boolean refreshKeys = this.refreshKeys || !useKeyServers;
         ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
         });
@@ -90,13 +88,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         } else {
             keyService = EmptyPublicKeyService.getInstance();
         }
-        if (!keyringsFile.exists()) {
-            keyringsFile = SecuritySupport.asciiArmoredFileFor(keyringsFile);
-        }
-        if (keyringsFile.exists()) {
-            KeyringFilePublicKeyService keyringFilePublicKeyService = new KeyringFilePublicKeyService(keyringsFile);
-            keyService = PublicKeyServiceChain.of(keyringFilePublicKeyService, keyService);
-        }
+        keyService = keyrings.applyTo(keyService);
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
         return new CrossBuildSignatureVerificationService(
             delegate,

@@ -45,8 +45,8 @@ class LibraryPluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
-        testProjectDir.newFile('src/main/java/com/myorg/Util.java') << """
+        new File(testProjectDir, 'src/main/java/com/myorg').mkdirs()
+        new File(testProjectDir, 'src/main/java/com/myorg/Util.java') << """
             package com.myorg;
 
             public class Util {
@@ -61,7 +61,7 @@ class LibraryPluginTest extends PluginTest {
         then:
         result.task(":jar").outcome == TaskOutcome.SUCCESS
         result.task(":publishLibraryPublicationToTestRepoRepository").outcome == TaskOutcome.SUCCESS
-        new File(testProjectDir.getRoot(), 'build/test-repo/com/myorg/my-library/0.1.0/my-library-0.1.0.jar').exists()
+        new File(testProjectDir, 'build/test-repo/com/myorg/my-library/0.1.0/my-library-0.1.0.jar').exists()
     }
 
     def "fails when no README exists"() {
@@ -74,7 +74,7 @@ class LibraryPluginTest extends PluginTest {
 
     def "fails when README does not have API section"() {
         given:
-        testProjectDir.newFile('README.md') << """
+        new File(testProjectDir, 'README.md') << """
 ## Changelog
 - change 1
 - change 2
@@ -90,7 +90,7 @@ class LibraryPluginTest extends PluginTest {
 
     def "fails when README does not have Changelog section"() {
         given:
-        testProjectDir.newFile('README.md') << """
+        new File(testProjectDir, 'README.md') << """
 ## API
 public API description
         """
@@ -104,7 +104,7 @@ public API description
     }
 
     private def readmeContainingMandatorySectionsExists() {
-        testProjectDir.newFile('README.md') << """
+        new File(testProjectDir, 'README.md') << """
 ## API
 public API description
 

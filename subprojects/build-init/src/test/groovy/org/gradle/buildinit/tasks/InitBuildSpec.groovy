@@ -17,6 +17,7 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.InitSettings
@@ -55,6 +56,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor = Mock(BuildInitializer.class)
         buildConverter = Mock(BuildConverter.class)
         init.projectLayoutRegistry = projectLayoutRegistry
+        init.insecureProtocol.convention(InsecureProtocolOption.WARN)
     }
 
     def "creates project with all defaults"() {

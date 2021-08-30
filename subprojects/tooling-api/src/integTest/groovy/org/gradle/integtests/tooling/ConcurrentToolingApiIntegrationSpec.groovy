@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -28,8 +28,6 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectionParameters
@@ -42,7 +40,6 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Retry
-import spock.lang.Specification
 
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -52,25 +49,21 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @Issue("GRADLE-1933")
 @Retry(condition = { onWindowsSocketDisappearance(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 @IgnoreIf({ GradleContextualExecuter.embedded }) // concurrent tooling api is only supported for forked mode
-class ConcurrentToolingApiIntegrationSpec extends Specification {
+class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 
     int threads = 3
 
-    DaemonsFixture getDaemonsFixture() {
-        toolingApi.daemons
-    }
-
     def setup() {
         concurrent.shortTimeout = 180000
+        settingsFile.touch()
     }
 
     def "handles the same target gradle version concurrently"() {
-        file('build.gradle')  << "apply plugin: 'java'"
+        buildFile << "apply plugin: 'java'"
 
         when:
         threads.times {
@@ -79,10 +72,6 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
 
         then:
         concurrent.finished()
-    }
-
-    TestFile file(Object... s) {
-        temporaryFolder.file(s)
     }
 
     def "handles different target gradle versions concurrently"() {
@@ -94,7 +83,7 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
         println "Combination of versions used: current - $dist, last - $last"
         def oldDistApi = new ToolingApi(last, temporaryFolder)
 
-        file('build.gradle')  << "apply plugin: 'java'"
+        buildFile << "apply plugin: 'java'"
 
         when:
         concurrent.start { useToolingApi(toolingApi) }
@@ -120,7 +109,7 @@ See the full stacktrace and the list of causes to investigate""", e);
 
     def "can share connection when running build"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
 def text = System.in.text
 System.out.println 'out=' + text
 System.err.println 'err=' + text
@@ -147,13 +136,17 @@ project.description = text
             concurrent.finished()
         }
 
-        then: noExceptionThrown()
+        then:
+        noExceptionThrown()
     }
 
     def "handles standard input concurrently when getting model"() {
         when:
         threads.times { idx ->
-            file("build$idx/build.gradle") << "description = System.in.text"
+            buildTestFixture.withBuildInSubDir()
+            singleProjectBuild("build$idx") {
+                buildFile << "description = System.in.text"
+            }
         }
 
         then:
@@ -174,8 +167,12 @@ project.description = text
     def "handles standard input concurrently when running build"() {
         when:
         threads.times { idx ->
-            file("build$idx/build.gradle") << "task show { doLast { println System.in.text} }"
+            buildTestFixture.withBuildInSubDir()
+            singleProjectBuild("build$idx") {
+                buildFile << "task show { doLast { println System.in.text} }"
+            }
         }
+
 
         then:
         threads.times { idx ->
@@ -195,14 +192,19 @@ project.description = text
 
     def "during task execution receives distribution progress including waiting for the other thread"() {
         given:
-        file("build1/build.gradle") << "task foo1"
-        file("build2/build.gradle") << "task foo2"
+        buildTestFixture.withBuildInSubDir()
+        def build1 = singleProjectBuild("build1") {
+            buildFile << "task foo1"
+        }
+        def build2 = singleProjectBuild("build2") {
+            buildFile << "task foo2"
+        }
 
         when:
         def allProgress = new CopyOnWriteArrayList<String>()
 
         concurrent.start {
-            def connector = toolingApi.connector(file("build1"))
+            def connector = toolingApi.connector(build1)
             distributionOperation(connector, { it.description = "download for 1"; Thread.sleep(500) } )
 
             toolingApi.withConnection(connector) { connection ->
@@ -216,7 +218,7 @@ project.description = text
         }
 
         concurrent.start {
-            def connector = toolingApi.connector(file("build2"))
+            def connector = toolingApi.connector(build2)
             distributionOperation(connector, { it.description = "download for 2"; Thread.sleep(500) } )
 
             def connection = connector.connect()
@@ -272,11 +274,11 @@ project.description = text
         concurrent.finished()
     }
 
-    void distributionProgressMessage(GradleConnector connector, String message) {
+    static void distributionProgressMessage(GradleConnector connector, String message) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message} )
     }
 
-    void distributionOperation(GradleConnector connector, Closure operation) {
+    static void distributionOperation(GradleConnector connector, Closure operation) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation )
     }
 
@@ -301,11 +303,14 @@ project.description = text
         when:
         //create build folders with slightly different builds
         threads.times { idx ->
-            file("build$idx/build.gradle") << """
+            buildTestFixture.withBuildInSubDir()
+            singleProjectBuild("build$idx") {
+                buildFile << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
 logger.lifecycle 'this is lifecycle: $idx'
 """
+            }
         }
 
         then:
@@ -335,11 +340,14 @@ logger.lifecycle 'this is lifecycle: $idx'
         when:
         //create build folders with slightly different builds
         threads.times { idx ->
-            file("build$idx/build.gradle") << """
+            buildTestFixture.withBuildInSubDir()
+            singleProjectBuild("build$idx") {
+                buildFile << """
 System.out.println 'this is stdout: $idx'
 System.err.println 'this is stderr: $idx'
 logger.lifecycle 'this is lifecycle: $idx'
 """
+            }
         }
 
         then:

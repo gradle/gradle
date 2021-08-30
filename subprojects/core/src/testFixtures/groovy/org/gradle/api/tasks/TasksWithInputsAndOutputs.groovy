@@ -199,7 +199,7 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputFileCollection() {
+    def taskTypeWithInputFileCollection(TestFile buildFile = getBuildFile()) {
         buildFile << """
             class InputFilesTask extends DefaultTask {
                 @InputFiles

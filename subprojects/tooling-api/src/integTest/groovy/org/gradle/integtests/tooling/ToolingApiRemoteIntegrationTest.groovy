@@ -48,7 +48,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         assert distribution.binDistribution.exists() : "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
         server.start()
         toolingApi.requireIsolatedUserHome()
-        settingsFile << ""
+        settingsFile.touch()
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')

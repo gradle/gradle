@@ -58,7 +58,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
         topLevelFunctionalTests.forEach(this::buildType)
 
         val functionalTestProjects = allCoverage

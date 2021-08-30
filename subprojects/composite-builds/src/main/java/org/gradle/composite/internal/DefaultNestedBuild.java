@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
@@ -52,7 +51,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final BuildScopeServices buildScopeServices;
 
     DefaultNestedBuild(
         BuildIdentifier buildIdentifier,
@@ -69,7 +67,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.owner = owner;
         this.projectStateRegistry = projectStateRegistry;
 
-        buildScopeServices = new BuildScopeServices(buildTree.getServices());
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner, buildScopeServices);
 
         IncludedBuildTaskGraph taskGraph = buildScopeServices.get(IncludedBuildTaskGraph.class);
@@ -131,17 +129,12 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        return buildLifecycleController.getGradle().getSettings();
-    }
-
-    @Override
     public Path getCurrentPrefixForProjectsInChildBuilds() {
         return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildDefinition.getName());
     }
 
     @Override
-    public Path getIdentityPathForProject(Path projectPath) {
+    public Path calculateIdentityPathForProject(Path projectPath) {
         return buildLifecycleController.getGradle().getIdentityPath().append(projectPath);
     }
 

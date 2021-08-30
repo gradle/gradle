@@ -92,12 +92,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final LocateInCacheRepositoryAccess locateInCacheRepositoryAccess = new LocateInCacheRepositoryAccess();
     private final ResolveAndCacheRepositoryAccess resolveAndCacheRepositoryAccess = new ResolveAndCacheRepositoryAccess();
 
-    public CachingModuleComponentRepository(ModuleComponentRepository delegate,
-                                            ModuleRepositoryCaches caches,
-                                            CachePolicy cachePolicy,
-                                            BuildCommencedTimeProvider timeProvider,
-                                            ComponentMetadataProcessor metadataProcessor,
-                                            ChangingValueDependencyResolutionListener listener) {
+    public CachingModuleComponentRepository(
+        ModuleComponentRepository delegate,
+        ModuleRepositoryCaches caches,
+        CachePolicy cachePolicy,
+        BuildCommencedTimeProvider timeProvider,
+        ComponentMetadataProcessor metadataProcessor,
+        ChangingValueDependencyResolutionListener listener
+    ) {
         this.delegate = delegate;
         this.moduleMetadataCache = caches.moduleMetadataCache;
         this.moduleVersionsCache = caches.moduleVersionsCache;
@@ -175,10 +177,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
                 } else {
-                    listener.onDynamicVersionSelection(requested, expiry);
-                    result.listed(versionList);
                     // When age == 0, verified since the start of this build, assume listing hasn't changed
-                    result.setAuthoritative(cachedModuleVersionList.getAge().toMillis() == 0);
+                    boolean authoritative = cachedModuleVersionList.getAge().toMillis() == 0;
+                    result.listed(versionList);
+                    result.setAuthoritative(authoritative);
+                    listener.onDynamicVersionSelection(requested, expiry, versions);
                 }
             }
         }
@@ -379,7 +382,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
                         .collect(Collectors.toSet());
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
-                    listener.onDynamicVersionSelection(dependency.getSelector(), cachePolicy.versionListExpiry(moduleId, versions, Duration.ZERO));
+                    listener.onDynamicVersionSelection(
+                        dependency.getSelector(),
+                        cachePolicy.versionListExpiry(moduleId, versions, Duration.ZERO),
+                        versions
+                    );
                     break;
                 case Failed:
                     break;

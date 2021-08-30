@@ -17,11 +17,11 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -33,6 +33,8 @@ import java.util.function.Consumer;
  * Implementations are not yet entirely thread-safe, but should be.
  */
 public interface BuildState {
+    DisplayName getDisplayName();
+
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      */
@@ -70,15 +72,21 @@ public interface BuildState {
     /**
      * Calculates the identity path for a project in this build.
      */
-    Path getIdentityPathForProject(Path projectPath) throws IllegalStateException;
+    Path calculateIdentityPathForProject(Path projectPath) throws IllegalStateException;
 
     /**
-     * Calculates the identifier for a project in this build.
+     * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
+     * This includes running the settings script for the build.
      */
-    ProjectComponentIdentifier getIdentifierForProject(Path projectPath) throws IllegalStateException;
+    void ensureProjectsLoaded();
 
     /**
-     * Returns the projects of this build.
+     * Ensures all projects in this build are configured, if not already done.
+     */
+    void ensureProjectsConfigured();
+
+    /**
+     * Returns the projects of this build. Fails if the projects are not yet loaded for this build.
      */
     BuildProjectRegistry getProjects();
 

@@ -49,8 +49,6 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
                 implementation localGroovy()
                 testImplementation(platform("org.spockframework:spock-bom:2.0-groovy-3.0"))
                 testImplementation("org.spockframework:spock-core")
-                testImplementation("org.spockframework:spock-junit4")
-                testImplementation("junit:junit:4.13.1")
             }
 
             ${mavenCentralRepository()}

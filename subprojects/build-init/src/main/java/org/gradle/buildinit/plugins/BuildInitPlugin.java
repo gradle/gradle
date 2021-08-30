@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
+import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
 import org.gradle.internal.file.RelativeFilePathResolver;
 
@@ -54,6 +55,8 @@ public class BuildInitPlugin implements Plugin<Project> {
 
                 ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
+
+                initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });
         }
     }

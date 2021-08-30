@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
@@ -141,17 +140,12 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        return buildLifecycleController.getGradle().getSettings();
-    }
-
-    @Override
     public Path getCurrentPrefixForProjectsInChildBuilds() {
         return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildName);
     }
 
     @Override
-    public Path getIdentityPathForProject(Path projectPath) {
+    public Path calculateIdentityPathForProject(Path projectPath) {
         return buildLifecycleController.getGradle().getIdentityPath().append(projectPath);
     }
 

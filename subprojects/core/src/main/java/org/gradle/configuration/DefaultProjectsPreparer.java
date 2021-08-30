@@ -21,7 +21,6 @@ import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.util.internal.IncubationLogger;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -44,7 +43,6 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     @Override
     public void prepareProjects(GradleInternal gradle) {
         if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
-            IncubationLogger.incubatingFeatureUsed("Configuration on demand");
             projectConfigurer.configure(gradle.getRootProject());
         } else {
             projectConfigurer.configureHierarchy(gradle.getRootProject());

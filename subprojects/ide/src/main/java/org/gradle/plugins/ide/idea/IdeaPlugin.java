@@ -369,42 +369,50 @@ public class IdeaPlugin extends IdePlugin {
 
         // Convention
         ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
+        Set<File> sourceDirs = Sets.newLinkedHashSet();
         convention.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("main").getAllJava().getSrcDirs();
+                sourceDirs.addAll(sourceSets.getByName("main").getAllJava().getSrcDirs());
+                return sourceDirs;
             }
         });
+        Set<File> testSourceDirs = Sets.newLinkedHashSet();
         convention.map("testSourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("test").getAllJava().getSrcDirs();
+                testSourceDirs.addAll(sourceSets.getByName("test").getAllJava().getSrcDirs());
+                return testSourceDirs;
             }
         });
+        Set<File> resourceDirs = Sets.newLinkedHashSet();
         convention.map("resourceDirs", new Callable<Set<File>>() {
             @Override
-            public Set<File> call() throws Exception {
+            public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("main").getResources().getSrcDirs();
+                resourceDirs.addAll(sourceSets.getByName("main").getResources().getSrcDirs());
+                return resourceDirs;
             }
         });
+        Set<File> testResourceDirs = Sets.newLinkedHashSet();
         convention.map("testResourceDirs", new Callable<Set<File>>() {
             @Override
-            public Set<File> call() throws Exception {
+            public Set<File> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                return sourceSets.getByName("test").getResources().getSrcDirs();
+                testResourceDirs.addAll(sourceSets.getByName("test").getResources().getSrcDirs());
+                return testResourceDirs;
             }
         });
+        Map<String, FileCollection> singleEntryLibraries = new LinkedHashMap<String, FileCollection>(2);
         convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
             @Override
             public Map<String, FileCollection> call() {
                 SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
-                map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
-                map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
-                return map;
+                singleEntryLibraries.putIfAbsent("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
+                singleEntryLibraries.putIfAbsent("TEST", sourceSets.getByName("test").getOutput().getDirs());
+                return singleEntryLibraries;
             }
 
         });

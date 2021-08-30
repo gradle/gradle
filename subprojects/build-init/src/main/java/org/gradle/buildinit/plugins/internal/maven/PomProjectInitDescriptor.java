@@ -108,11 +108,13 @@ public class PomProjectInitDescriptor implements BuildConverter {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         try {
             Settings settings = settingsProvider.buildSettings();
-            executor.classLoaderIsolation(config -> config.getClasspath().from(mavenClasspath)).submit(Maven2GradleWorkAction.class, params -> {
-                params.getWorkingDir().set(initSettings.getTarget());
-                params.getDsl().set(initSettings.getDsl());
-                params.getMavenSettings().set(settings);
-            });
+            executor.classLoaderIsolation(config -> config.getClasspath().from(mavenClasspath))
+                    .submit(Maven2GradleWorkAction.class, params -> {
+                        params.getWorkingDir().set(initSettings.getTarget());
+                        params.getDsl().set(initSettings.getDsl());
+                        params.getMavenSettings().set(settings);
+                        params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
+                    });
         } catch (SettingsBuildingException exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);
         }

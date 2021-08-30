@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.BuildCancelledException
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildProjectRegistry
@@ -27,8 +25,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.resources.ProjectLeaseRegistry
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -43,25 +39,13 @@ import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
     def cancellationToken = Stub(BuildCancellationToken)
-    def gradle = Stub(GradleInternal) {
-        getServices() >> Stub(ServiceRegistry) {
-            get(BuildCancellationToken) >> cancellationToken
-        }
-    }
-    def registry = Stub(ToolingModelBuilderLookup)
-    def project = Stub(ProjectInternal) {
-        getServices() >> Stub(ServiceRegistry) {
-            get(ToolingModelBuilderLookup) >> registry
-        }
-    }
     def modelId = Stub(ModelIdentifier) {
         getName() >> 'some.model'
     }
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
-    def projectLeaseRegistry = Stub(ProjectLeaseRegistry)
     def buildStateRegistry = Stub(BuildStateRegistry)
     def toolingModelController = Mock(BuildToolingModelController)
-    def controller = new DefaultBuildController(toolingModelController, cancellationToken, projectLeaseRegistry, buildStateRegistry)
+    def controller = new DefaultBuildController(toolingModelController, cancellationToken, buildStateRegistry)
 
     def setup() {
         GradleThread.setManaged()
@@ -87,9 +71,7 @@ class DefaultBuildControllerTest extends Specification {
         def failure = new UnknownModelException("not found")
 
         given:
-        _ * toolingModelController.configuredModel >> gradle
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation('some.model', false, gradle) >> { throw failure }
+        _ * toolingModelController.locateBuilderForDefaultTarget('some.model', false) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -136,8 +118,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState3.buildRootDir >> rootDir
         _ * buildState3.projects >> projects3
         _ * projects3.getProject(Path.path(":some:path")) >> projectState
-        _ * projectState.mutableModel >> project
-        _ * registry.locateForClientOperation("some.model", false, project) >> modelBuilder
+        _ * toolingModelController.locateBuilderForTarget(projectState, "some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -150,7 +131,6 @@ class DefaultBuildControllerTest extends Specification {
     def "uses builder for specified build"() {
         def rootDir = new File("dummy")
         def target = Stub(GradleBuildIdentity)
-        def rootProject = Stub(ProjectInternal)
         def buildState1 = Stub(BuildState)
         def buildState2 = Stub(BuildState)
         def model = new Object()
@@ -164,10 +144,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState1.importableBuild >> false
         _ * buildState2.importableBuild >> true
         _ * buildState2.buildRootDir >> rootDir
-        _ * buildState2.mutableModel >> gradle
-        _ * gradle.rootProject >> rootProject
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * toolingModelController.locateBuilderForTarget(buildState2, "some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -181,9 +158,7 @@ class DefaultBuildControllerTest extends Specification {
         def model = new Object()
 
         given:
-        _ * toolingModelController.configuredModel >> gradle
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model", false, gradle) >> modelBuilder
+        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -219,9 +194,7 @@ class DefaultBuildControllerTest extends Specification {
         }
 
         given:
-        _ * toolingModelController.configuredModel >> gradle
-        _ * gradle.defaultProject >> project
-        _ * registry.locateForClientOperation("some.model", true, gradle) >> modelBuilder
+        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", true) >> modelBuilder
         _ * modelBuilder.getParameterType() >> parameterType
         _ * modelBuilder.build(_) >> { CustomParameter param ->
             assert param != null

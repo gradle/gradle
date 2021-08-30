@@ -549,7 +549,7 @@ class Interpreter(val host: Host) {
     private
     fun startCompilerOperationFor(scriptSource: ScriptSource, scriptTemplateId: String): AutoCloseable {
         logCompilationOf(scriptTemplateId, scriptSource)
-        return host.startCompilerOperation(scriptSource.displayName)
+        return host.startCompilerOperation(scriptSource.shortDisplayName.displayName)
     }
 }
 

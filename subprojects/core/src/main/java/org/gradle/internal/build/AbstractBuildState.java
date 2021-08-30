@@ -16,21 +16,24 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.util.Path;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 import java.util.function.Consumer;
 
 public abstract class AbstractBuildState implements BuildState {
     @Override
+    public DisplayName getDisplayName() {
+        return Describables.of(getBuildIdentifier());
+    }
+
+    @Override
     public String toString() {
-        return getBuildIdentifier().toString();
+        return getDisplayName().getDisplayName();
     }
 
     @Override
@@ -50,19 +53,22 @@ public abstract class AbstractBuildState implements BuildState {
         return getProjectStateRegistry().projectsFor(getBuildIdentifier());
     }
 
+    protected abstract BuildLifecycleController getBuildController();
+
     @Override
-    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-        BuildIdentifier buildIdentifier = getBuildIdentifier();
-        Path identityPath = getIdentityPathForProject(projectPath);
-        DefaultProjectDescriptor project = getLoadedSettings().getProjectRegistry().getProject(projectPath.getPath());
-        if (project == null) {
-            throw new IllegalArgumentException("Project " + projectPath + " not found.");
-        }
-        String name = project.getName();
-        return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, name);
+    public void ensureProjectsLoaded() {
+        getBuildController().getLoadedSettings();
     }
 
-    protected abstract BuildLifecycleController getBuildController();
+    @Override
+    public void ensureProjectsConfigured() {
+        getBuildController().getConfiguredBuild();
+    }
+
+    @Override
+    public SettingsInternal getLoadedSettings() throws IllegalStateException {
+        return getBuildController().getLoadedSettings();
+    }
 
     @Override
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {

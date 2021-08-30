@@ -186,7 +186,7 @@ project.tasks.register('copyFiles', Copy) { Task t ->
 ----
 
 You can see how this example uses the `register()` and `getByName()` methods, which are available on all Gradle “domain object containers”, like tasks, configurations, dependencies, extensions, etc.
-Some collections have dedicated types, `TaskContainer` being one of them, that have useful extra methods like the `create()` method above that takes a task type.
+Some collections have dedicated types, `TaskContainer` being one of them, that have useful extra methods like the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.lang.String,%20java.lang.Class)[create] method that takes a task type.
 
 If you do decide to use static compilation, using an IDE can quickly show errors due to unrecognised types, properties, and methods.
 You’ll also get auto-completion, which is always handy.

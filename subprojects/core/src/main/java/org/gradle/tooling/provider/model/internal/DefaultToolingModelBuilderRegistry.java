@@ -18,11 +18,13 @@ package org.gradle.tooling.provider.model.internal;
 
 import com.google.common.collect.Iterators;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -85,32 +87,47 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     @Override
     public ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException {
         Registration registration = get(modelName);
-        return new LenientToolingModelBuilder(registration.getBuilder());
+        return new LenientToolingModelBuilder(registration.getBuilder(), projectStateRegistry);
     }
 
     @Override
-    public Builder locateForClientOperation(String modelName, boolean parameter, GradleInternal target) throws UnknownModelException {
-        ProjectInternal project = target.getDefaultProject();
-        return new BuildOperationWrappingBuilder(new LockAllProjectsBuilder(locateForClientOperation(modelName, project, parameter), projectStateRegistry), modelName, project, buildOperationExecutor);
+    public Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException {
+        return new BuildOperationWrappingBuilder(
+            new LockSingleProjectBuilder(
+                locateForClientOperation(modelName, target.getMutableModel(), parameter), target), modelName, target.getDisplayName(), buildOperationExecutor);
     }
 
+    @Nullable
     @Override
-    public Builder locateForClientOperation(String modelName, boolean parameter, ProjectInternal target) throws UnknownModelException {
-        return new BuildOperationWrappingBuilder(new LockSingleProjectBuilder(locateForClientOperation(modelName, target, parameter), target, projectStateRegistry), modelName, target, buildOperationExecutor);
+    public Builder maybeLocateForBuildScope(String modelName, boolean parameter, BuildState target) {
+        Registration registration = find(modelName);
+        if (registration == null) {
+            return null;
+        }
+
+        if (!(registration.getBuilder() instanceof BuildScopeModelBuilder)) {
+            return null;
+        }
+
+        BuildScopeModelBuilder buildScopeModelBuilder = (BuildScopeModelBuilder) registration.getBuilder();
+        return new BuildOperationWrappingBuilder(
+            restoreUserCodeApplication(
+                new LockAllProjectsBuilder(
+                    new BuildScopedBuilder(buildScopeModelBuilder, target), projectStateRegistry), registration), modelName, target.getDisplayName(), buildOperationExecutor);
     }
 
     private Builder locateForClientOperation(String modelName, ProjectInternal project, boolean parameter) throws UnknownModelException {
         Registration registration = get(modelName);
         if (registration.getBuilder() instanceof ParameterizedToolingModelBuilder) {
-            return wrap(new BuilderWithParameter(modelName, project, (ParameterizedToolingModelBuilder) registration.getBuilder()), registration);
+            return restoreUserCodeApplication(new BuilderWithParameter(modelName, project, (ParameterizedToolingModelBuilder) registration.getBuilder()), registration);
         }
         if (parameter) {
             throw new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName));
         }
-        return wrap(new BuilderWithNoParameter(modelName, project, registration.getBuilder()), registration);
+        return restoreUserCodeApplication(new BuilderWithNoParameter(modelName, project, registration.getBuilder()), registration);
     }
 
-    private Builder wrap(Builder delegate, Registration registration) {
+    private Builder restoreUserCodeApplication(Builder delegate, Registration registration) {
         UserCodeApplicationContext.Application registeredBy = registration.getRegisteredBy();
         if (registeredBy == null) {
             return delegate;
@@ -168,11 +185,34 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
     }
 
-    private class LenientToolingModelBuilder implements ToolingModelBuilder {
-        private final ToolingModelBuilder delegate;
+    private static class BuildScopedBuilder implements Builder {
+        private final BuildScopeModelBuilder buildScopeModelBuilder;
+        private final BuildState target;
 
-        public LenientToolingModelBuilder(ToolingModelBuilder delegate) {
+        public BuildScopedBuilder(BuildScopeModelBuilder buildScopeModelBuilder, BuildState target) {
+            this.buildScopeModelBuilder = buildScopeModelBuilder;
+            this.target = target;
+        }
+
+        @Nullable
+        @Override
+        public Class<?> getParameterType() {
+            return null;
+        }
+
+        @Override
+        public Object build(@Nullable Object parameter) {
+            return buildScopeModelBuilder.create(target);
+        }
+    }
+
+    private static class LenientToolingModelBuilder implements ToolingModelBuilder {
+        private final ToolingModelBuilder delegate;
+        private final ProjectStateRegistry projectStateRegistry;
+
+        public LenientToolingModelBuilder(ToolingModelBuilder delegate, ProjectStateRegistry projectStateRegistry) {
             this.delegate = delegate;
+            this.projectStateRegistry = projectStateRegistry;
         }
 
         @Override
@@ -251,18 +291,16 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private static class LockSingleProjectBuilder extends DelegatingBuilder {
-        private final ProjectInternal project;
-        private final ProjectStateRegistry projectStateRegistry;
+        private final ProjectState target;
 
-        public LockSingleProjectBuilder(Builder delegate, ProjectInternal project, ProjectStateRegistry projectStateRegistry) {
+        public LockSingleProjectBuilder(Builder delegate, ProjectState target) {
             super(delegate);
-            this.project = project;
-            this.projectStateRegistry = projectStateRegistry;
+            this.target = target;
         }
 
         @Override
         public Object build(Object parameter) {
-            return projectStateRegistry.stateFor(project).fromMutableState(p -> delegate.build(parameter));
+            return target.fromMutableState(p -> delegate.build(parameter));
         }
     }
 
@@ -282,13 +320,13 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
     private static class BuildOperationWrappingBuilder extends DelegatingBuilder {
         private final String modelName;
-        private final ProjectInternal project;
+        private final DisplayName target;
         private final BuildOperationExecutor buildOperationExecutor;
 
-        private BuildOperationWrappingBuilder(Builder delegate, String modelName, ProjectInternal project, BuildOperationExecutor buildOperationExecutor) {
+        private BuildOperationWrappingBuilder(Builder delegate, String modelName, DisplayName target, BuildOperationExecutor buildOperationExecutor) {
             super(delegate);
             this.modelName = modelName;
-            this.project = project;
+            this.target = target;
             this.buildOperationExecutor = buildOperationExecutor;
         }
 
@@ -302,7 +340,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Build model '" + modelName + "' for " + project.getDisplayName()).
+                    return BuildOperationDescriptor.displayName("Build model '" + modelName + "' for " + target.getDisplayName()).
                         progressDisplayName("Building model '" + modelName + "'");
                 }
             });

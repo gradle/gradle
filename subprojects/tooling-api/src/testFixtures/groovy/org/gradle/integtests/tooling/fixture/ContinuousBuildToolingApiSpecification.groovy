@@ -61,7 +61,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ProjectConnection projectConnection
 
 
-    void setup() {
+    def setup() {
         buildFile.text = "apply plugin: 'java'\n"
         sourceDir = file("src/main/java")
     }

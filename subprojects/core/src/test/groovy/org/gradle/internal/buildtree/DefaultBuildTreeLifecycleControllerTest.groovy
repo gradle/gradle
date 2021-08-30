@@ -23,6 +23,7 @@ import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
@@ -188,5 +189,42 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
+    }
+
+    def "can run action against model prior to invoking build"() {
+        def action = Mock(Consumer)
+
+        when:
+        controller.beforeBuild(action)
+
+        then:
+        1 * action.accept(gradle)
+        0 * action._
+    }
+
+    def "cannot run action against model once build has started"() {
+        def action = Mock(Consumer)
+        def modelAction = Mock(BuildToolingModelAction)
+
+        given:
+        _ * modelCreator.fromBuildModel(modelAction) >> {
+            controller.beforeBuild(action)
+        }
+
+        when:
+        controller.fromBuildModel(false, modelAction)
+
+        then:
+        1 * finishExecutor.finishBuildTree(_) >> { args ->
+            throw args[0][0]
+        }
+
+        thrown(IllegalStateException)
+
+        when:
+        controller.beforeBuild(action)
+
+        then:
+        thrown(IllegalStateException)
     }
 }
