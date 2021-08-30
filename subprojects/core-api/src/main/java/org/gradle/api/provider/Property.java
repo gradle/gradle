@@ -72,7 +72,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
 
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
-     * This is the same as {@link #set(Object)} but returns this property to allow method chaining.</p>
+     * This is the same as {@link #set(Object)} but returns this property to allow method chaining.
      *
      * <p>This method can also be used to discard the value of the property, by passing it {@code null}.
      * When the value is discarded (or has never been set in the first place), the convention (default value)
