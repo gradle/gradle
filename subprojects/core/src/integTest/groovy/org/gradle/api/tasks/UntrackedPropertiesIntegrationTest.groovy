@@ -18,6 +18,8 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -96,6 +98,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         "outputs"  | "Output property 'outputFile' is untracked"
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "tasks can produce and consume unreadable content via untracked properties"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -120,6 +123,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task producing unreadable content via tracked property is not stored in execution history"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -157,6 +161,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task producing unreadable content via tracked property is not stored in cache"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -197,6 +202,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task consuming unreadable content via tracked property is not tracked"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
@@ -227,6 +233,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task consuming unreadable content via tracked property is not stored in cache"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
