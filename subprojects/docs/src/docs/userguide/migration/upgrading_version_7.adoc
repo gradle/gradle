@@ -45,6 +45,12 @@ and depended on how a plugin was added to the class path. Now the plugins are al
 in the same order they are declared in the `plugins` block which in rare cases might change
 behavior of existing builds.
 
+==== Effects of exclusion on substituted dependencies in dependency resolution
+
+Prior to this version, a dependency substitution target could not be excluded from a dependency graph.
+This was caused by checking for exclusions prior to performing the substitution.
+Now Gradle will also check for exclusion on the substitution result.
+
 [[changes_7.2]]
 == Upgrading from 7.1 and earlier
 
