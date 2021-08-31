@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter
+import org.gradle.api.internal.tasks.execution.TaskExecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.util.GradleVersion
@@ -58,7 +58,7 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
         )
         metadata.identity == ":compileJava"
         metadata.rootPath == testDirectory.absolutePath
-        metadata.type == ExecuteActionsTaskExecuter.TaskExecution.name.replaceAll(/\$/, ".")
+        metadata.type == TaskExecution.name.replaceAll(/\$/, ".")
         metadata.userName == System.getProperty("user.name")
         metadata.operatingSystem == System.getProperty("os.name")
         metadata.gradleVersion == GradleVersion.current().version
