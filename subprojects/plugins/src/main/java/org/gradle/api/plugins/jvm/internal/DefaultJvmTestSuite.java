@@ -64,7 +64,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
         if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from( (Callable<SourceSetOutput>) () -> sourceSets.getByName("main").getOutput()));
+            dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from((Callable<SourceSetOutput>) () -> sourceSets.getByName("main").getOutput()));
         }
 
         dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
