@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.work.InputChanges
 
 class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -61,6 +62,27 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
         where:
         properties << ["inputs", "outputs"]
+    }
+
+    def "fails when incremental task has untracked properties using #inputChangesType.simpleName"() {
+        file("input/input.txt") << "Content"
+        buildFile(generateUntrackedIncrementalConsumerTask(inputChangesType))
+        buildFile("""
+            tasks.register("consumer", IncrementalConsumer) {
+                inputDir = file("input")
+                outputFile = project.layout.buildDirectory.file("output.txt")
+            }
+        """)
+        file("input.txt").text = "input"
+
+        when:
+        fails("consumer", "--info")
+        then:
+        failureHasCause("Changes are not tracked, unable determine incremental changes.")
+
+        where:
+        //noinspection UnnecessaryQualifiedReference, GrDeprecatedAPIUsage
+        inputChangesType << [InputChanges, org.gradle.api.tasks.incremental.IncrementalTaskInputs]
     }
 
     def "can register untracked #properties via the runtime API"() {
@@ -380,6 +402,10 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         outputContains("Task has untracked properties.")
     }
 
+    def "incremental task with untracked input property is out-of-date"() {
+
+    }
+
     static generateProducerTask(boolean untracked) {
         """
             abstract class Producer extends DefaultTask {
@@ -410,6 +436,29 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
                 @TaskAction
                 void execute() {
+                    def unreadableDir = inputDir.get().dir("unreadable").asFile
+                    assert !unreadableDir.canRead()
+                    outputFile.get().asFile.parentFile.mkdirs()
+                    outputFile.get().asFile << "Executed"
+                }
+            }
+        """
+    }
+
+    static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
+        """
+            abstract class IncrementalConsumer extends DefaultTask {
+                @SkipWhenEmpty
+                @InputDirectory
+                abstract DirectoryProperty getInputDir()
+
+                @Untracked
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute(${inputChangesType.name} changes) {
+                    assert changes != null
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()
                     outputFile.get().asFile.parentFile.mkdirs()
