@@ -40,9 +40,18 @@ public interface PropertyVisitor {
 
     @UsedByScanPlugin("test-distribution")
     class Adapter implements PropertyVisitor {
-        @UsedByScanPlugin("test-distribution")
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType, ContentTracking contentTracking) {
+            visitInputFileProperty(propertyName, optional, skipWhenEmpty, directorySensitivity, lineEndingSensitivity, incremental, fileNormalizer, value, filePropertyType);
+        }
+
+        /**
+         * @deprecated Retained for compatibility with test distribution.
+         */
+        @Deprecated
+        @SuppressWarnings("unused")
+        @UsedByScanPlugin("test-distribution")
+        protected void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
         @Override
@@ -52,6 +61,16 @@ public interface PropertyVisitor {
         @Override
         @UsedByScanPlugin("test-distribution")
         public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            visitOutputFileProperty(propertyName, optional, value, filePropertyType);
+        }
+
+        /**
+         * @deprecated Retained for compatibility with test distribution.
+         */
+        @Deprecated
+        @SuppressWarnings("unused")
+        @UsedByScanPlugin("test-distribution")
+        protected void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         }
 
         @Override
