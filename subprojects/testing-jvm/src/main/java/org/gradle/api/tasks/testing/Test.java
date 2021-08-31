@@ -183,7 +183,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this,(DefaultTestFilter) getFilter()));
     }
 
     @Inject
@@ -882,7 +882,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return this;
     }
 
-    @Internal
+    @Nested
     public Property<TestFramework> getTestFrameworkProperty() {
         return testFramework;
     }
@@ -905,7 +905,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    @Nested
+    @Internal
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
@@ -936,10 +936,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        if (testFramework == null) {
-            throw new IllegalArgumentException("testFramework is null!");
-        }
-
         this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
@@ -40,7 +41,14 @@ public class TestSuitePlugin  implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations(), project.getTasks(), project.getDependencies()));
 
-        configureBuiltInTest(project, java, testing);
+        // TODO: Deprecate this behavior?
+        // Why would any Test task created need to use the test source set's classes?
+        project.getTasks().withType(Test.class).configureEach(test -> {
+            SourceSet testSourceSet = java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+            test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
+            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
+        });
 
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
             testSuite.addTestTarget(java);
@@ -57,22 +65,14 @@ public class TestSuitePlugin  implements Plugin<Project> {
                 });
             });
         });
+
+        configureBuiltInTest(project, java, testing);
     }
 
     private void configureBuiltInTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
-        project.getTasks().withType(Test.class).configureEach(test -> {
-            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
-            test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-        });
-
-        final JvmTestSuite testSuite = testing.getSuites().create(DEFAULT_TEST_SUITE_NAME);
-        testSuite.useJUnit();
-
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite.getTargets()));
-    }
-
-    private SourceSet sourceSetOf(JavaPluginExtension pluginExtension, String mainSourceSetName) {
-        return pluginExtension.getSourceSets().getByName(mainSourceSetName);
+        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite::useJUnit);
+        // Force the realization of this test suite, targets and task
+        testSuite.get();
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 }
