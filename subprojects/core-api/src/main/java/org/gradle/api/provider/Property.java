@@ -28,15 +28,19 @@ import javax.annotation.Nullable;
  * {@link #value(Object)} and {@link #value(Provider)}.
  *
  * <p>
- * A property may be used to represent a task output. Such a property carries information about which task
- * produces its value. When the property is attached to a task input, this allows Gradle to automatically
- * calculate the dependencies between tasks based on the values they use as inputs and produce as outputs.
+ * A property may represent a task output. Such a property carries information about the task producing
+ * its value. When this property is attached to an input of another task, Gradle will automatically determine
+ * the task dependencies based on this connection.
  * </p>
  *
- * <p>You can create a {@link Property} instance using {@link ObjectFactory#property(Class)}. There are
- * also several specialized subtypes of this interface that can be created using various other factory methods.</p>
+ * <p>
+ * You can create a {@link Property} instance using {@link ObjectFactory#property(Class)}. There are
+ * also several specialized subtypes of this interface that can be created using various other factory methods.
+ * </p>
  *
- * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
+ * <p>
+ * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
+ * </p>
  *
  * @param <T> Type of value represented by the property
  * @since 4.3
@@ -45,9 +49,11 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
      *
-     * <p>This method can also be used to discard the value of the property, by passing it {@code null}.
-     * When the value is discarded (or has never been set in the first place), the convention (default value)
-     * for this property, if specified, will be used to provide the value instead.</p>
+     * <p>
+     * This method can also be used to discard the value of the property, by passing it {@code null}. When the
+     * value is discarded (or has never been set in the first place), the convention (default value) for this
+     * property, if specified, will be used to provide the value instead.
+     * </p>
      *
      * @param value The value, can be null.
      */
@@ -58,13 +64,16 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * This property will track the value of the provider and query its value each time the value of the property is queried.
      * When the provider has no value, this property will also have no value.
      *
-     * <p>This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
-     * in an {@code IllegalArgumentException} being thrown. When the value is not set however (has been discarded by
-     * other means, or was never set in the first place), the convention (default value) for this property, if specified,
-     * will be used to provide the value instead.</p>
+     * <p>
+     * This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
+     * in an {@code IllegalArgumentException} being thrown. When the provider has no value, this property will also have
+     * no value - regardless of whether or not a convention has been set.
+     * </p>
      *
-     * <p> When the given provider represents a task output, this property will also carry the task dependency information
-     * from the provider. </p>
+     * <p>
+     * When the given provider represents a task output, this property will also carry the task dependency information
+     * from the provider.
+     * </p>
      *
      * @param provider The provider of the property's value, can't be null.
      */
@@ -74,9 +83,11 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * Sets the value of the property to the given value, replacing whatever value the property already had.
      * This is the same as {@link #set(Object)} but returns this property to allow method chaining.
      *
-     * <p>This method can also be used to discard the value of the property, by passing it {@code null}.
+     * <p>
+     * This method can also be used to discard the value of the property, by passing it {@code null}.
      * When the value is discarded (or has never been set in the first place), the convention (default value)
-     * for this property, if specified, will be used to provide the value instead.</p>
+     * for this property, if specified, will be used to provide the value instead.
+     * </p>
      *
      * @param value The value, can be null.
      * @return this
@@ -90,13 +101,16 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * When the provider has no value, this property will also have no value. This is the same as {@link #set(Provider)}
      * but returns this property to allow method chaining.
      *
-     * <p>This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
-     * in an {@code IllegalArgumentException} being thrown. When the value is not set however (has been discarded by
-     * other means, or was never set in the first place), the convention (default value) for this property, if specified,
-     * will be used to provide the value instead.</p>
+     * <p>
+     * This method can NOT be used to discard the value of the property. Specifying a {@code null} provider will result
+     * in an {@code IllegalArgumentException} being thrown. When the provider has no value, this property will also have
+     * no value - regardless of whether or not a convention has been set.
+     * </p>
      *
-     * <p> When the given provider represents a task output, this property will also carry the task dependency information
-     * from the provider. </p>
+     * <p>
+     * When the given provider represents a task output, this property will also carry the task dependency information
+     * from the provider.
+     * </p>
      *
      * @param provider The provider whose value to use.
      * @return this
@@ -109,8 +123,10 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * no explicit value or value provider has been specified, then the convention will be returned as the value of
      * the property (when queried).
      *
-     * <p>This method can be used to specify that the property does not have a default value, by passing it
-     * {@code null}.</p>
+     * <p>
+     * This method can be used to specify that the property does not have a default value, by passing it
+     * {@code null}.
+     * </p>
      *
      * @param value The convention value, or {@code null} if the property should have no default value.
      * @return this
@@ -123,11 +139,16 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * provider has been set and no explicit value or value provider has been specified, then the convention
      * provider's value will be returned as the value of the property (when queried).
      *
-     * <p>The property's convention tracks the convention provider. Whenever the convention's actual value is
-     * needed, the convention provider will be queried anew.</p>
+     * <p>
+     * The property's convention tracks the convention provider. Whenever the convention's actual value is
+     * needed, the convention provider will be queried anew.
+     * </p>
      *
-     * <p>This method can't be used to specify that a property does not have a default value. Passing in a {@code null}
-     * provider will result in an {@code IllegalArgumentException} being thrown.</p>
+     * <p>
+     * This method can't be used to specify that a property does not have a default value. Passing in a {@code null}
+     * provider will result in an {@code IllegalArgumentException} being thrown. When the provider doesn't have
+     * a value, then the property will behave as if it wouldn't have a convention specified.
+     * </p>
      *
      * @param provider The provider of the property's convention value, can't be null.
      * @return this
@@ -140,12 +161,16 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
      * such as {@link #set(Object)}, {@link #set(Provider)}, {@link #value(Object)} and {@link #value(Provider)} will fail,
      * by throwing an {@code IllegalStateException}.
      *
-     * <p>When this property's value is specified via a {@link Provider}, this method call will trigger the querying
-     * of the provider and the obtained value will be set as the final value of the property. The value of the provider
-     * will not be tracked further.</p>
+     * <p>
+     * When this property's value is specified via a {@link Provider}, calling {@code finalizeValue()} will trigger the
+     * querying of the provider and the obtained value will be set as the final value of the property. The value of the
+     * provider will not be tracked further.
+     * </p>
      *
-     * <p>Note that although the value of the property will not change, the value itself may be a mutable object.
-     * Calling this method does not guarantee that the value will become immutable.</p>
+     * <p>
+     * Note that although the value of the property will not change, the value itself may be a mutable object. Calling
+     * this method does not guarantee that the value will become immutable.
+     * </p>
      *
      * @since 5.0
      */

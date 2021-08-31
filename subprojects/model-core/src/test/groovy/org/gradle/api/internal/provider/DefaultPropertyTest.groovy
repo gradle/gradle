@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 
@@ -96,17 +97,50 @@ class DefaultPropertyTest extends PropertySpec<String> {
         providerWithNoValue().toString() == "property(java.lang.String, undefined)"
     }
 
-    def "can set to null value to discard value"() {
+    def "can set null value to discard value"() {
         given:
         def property = property()
         property.set(someValue())
-        property.set(null)
+        property.set((String) null)
 
         expect:
         !property.present
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
         property.getOrElse(null) == null
+    }
+
+    def "can't set null provider to discard value"() {
+        given:
+        def property = property()
+        property.set(someValue())
+
+        when:
+        property.set((Provider) null)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property using a null provider."
+
+        and:
+        property.present
+    }
+
+    def "will use convention when value set to a provider with no value"() {
+        given:
+        def property = property()
+        property.convention("default")
+        property.set(providerWithNoValue())
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+
+        and:
+        !property.present
     }
 
     def "fails when value is set using incompatible type"() {
@@ -217,6 +251,66 @@ class DefaultPropertyTest extends PropertySpec<String> {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
+    }
+
+    def "can set null convention value to disable convention"() {
+        def property = propertyWithDefaultValue(Number)
+
+        given:
+        property.convention(13)
+
+        expect:
+        property.present
+        property.get() == 13
+
+        when:
+        property.convention((Number) null)
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+
+        and:
+        !property.present
+    }
+
+    def "can't set null convention provider to disable convention"() {
+        def property = propertyWithDefaultValue(Number)
+
+        given:
+        property.convention(13)
+
+        expect:
+        property.present
+        property.get() == 13
+
+        when:
+        property.convention((Provider) null)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the convention of a property using a null provider."
+
+        and:
+        property.present
+    }
+
+    def "can set convention to provider with no value to disable convention"() {
+        def property = propertyWithNoValue()
+
+        given:
+        property.convention(providerWithNoValue())
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+
+        and:
+        !property.present
     }
 
     def "mapped provider is live"() {
