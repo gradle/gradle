@@ -63,28 +63,24 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
-        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from((Callable<SourceSetOutput>) () -> sourceSets.getByName("main").getOutput()));
+        if (!getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
+                if (framework instanceof JunitPlatformTestingFramework) {
+                    return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
+                } else {
+                    return "junit:junit:" + framework.getVersion().get();
+                }
+            }));
+            dependencies.addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
+                if (framework instanceof JunitPlatformTestingFramework) {
+                    return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
+                } else {
+                    return getObjectFactory().fileCollection();
+                }
+            }));
+        } else {
+            dependencies.add(implementation.getName(), getObjectFactory().fileCollection().from((Callable<SourceSetOutput>) () -> sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput()));
         }
-
-        dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-            if (framework instanceof JunitPlatformTestingFramework) {
-                return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
-            } else {
-                return "junit:junit:" + framework.getVersion().get();
-            }
-        }));
-        dependencies.addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
-            if (framework instanceof JunitPlatformTestingFramework) {
-                return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
-            } else {
-                return getObjectFactory().fileCollection();
-            }
-        }));
-
-
-//        test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-//        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, targetName, tasks));
