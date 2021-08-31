@@ -24,11 +24,10 @@ import org.gradle.internal.watch.vfs.WatchMode;
 import javax.annotation.CheckReturnValue;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
-    private final FileWatcher fileWatcher;
-    private final WatchableHierarchies watchableHierarchies;
+    protected final FileWatcher fileWatcher;
+    protected final WatchableHierarchies watchableHierarchies;
 
     public AbstractFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
-
         this.fileWatcher = fileWatcher;
         this.watchableHierarchies = watchableHierarchies;
     }
@@ -41,12 +40,4 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @CheckReturnValue
     protected abstract SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root);
-
-    protected FileWatcher getFileWatcher() {
-        return fileWatcher;
-    }
-
-    protected WatchableHierarchies getWatchableHierarchies() {
-        return watchableHierarchies;
-    }
 }
