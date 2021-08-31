@@ -28,6 +28,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.JvmTestKind
@@ -65,7 +66,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
     void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationToken)
-            .addProgressListener(events)
+            .addProgressListener(events, OperationType.TASK, OperationType.TEST)
 
         collectOutputs(testLauncher)
 

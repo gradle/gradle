@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 
 import java.net.URI;
@@ -23,7 +24,7 @@ import java.net.URI;
 public class DefaultFileDownloadDescriptor extends DefaultOperationDescriptor implements InternalFileDownloadDescriptor {
     private final URI uri;
 
-    public DefaultFileDownloadDescriptor(Object id, String name, String displayName, Object parentId, URI uri) {
+    public DefaultFileDownloadDescriptor(OperationIdentifier id, String name, String displayName, OperationIdentifier parentId, URI uri) {
         super(id, name, displayName, parentId);
         this.uri = uri;
     }

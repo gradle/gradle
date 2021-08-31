@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event;
+package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.internal.build.event.types.AbstractTaskResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Post-processor for {@link AbstractTaskResult} instances.
- *
- * <p>May be used to add information to results by returning specialized subclasses,
- * e.g. from internal language-specific plugins like Java.
+ * Tracks some state for build operations of a given type.
  */
-public interface OperationResultPostProcessor {
+public interface BuildOperationTracker {
+    /**
+     * Returns the trackers that are used by this tracker. If this tracker is required, then its trackers should be notified of
+     * build operation execution. If this tracker is not required, the trackers can be ignored.
+     */
+    default List<? extends BuildOperationTracker> getTrackers() {
+        return Collections.emptyList();
+    }
+
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
     void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 
-    AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId);
+    /**
+     * Signals that the state for the given build operation is no longer required.
+     */
+    default void discardState(BuildOperationDescriptor buildOperation) {
+    }
 }
