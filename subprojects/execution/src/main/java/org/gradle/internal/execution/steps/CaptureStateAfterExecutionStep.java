@@ -109,8 +109,8 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.of(afterExecutionState);
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    operationContext.failed(e);
                     work.handleUnreadableOutputs(e);
+                    operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.empty();
                 }
             },

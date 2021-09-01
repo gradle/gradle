@@ -171,7 +171,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         0 * _
 
-        assertOperation(failure)
+        assertOperation()
     }
 
     def "no state is captured when output file properties cannot be snapshot"() {
@@ -189,7 +189,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         }
         0 * _
 
-        assertOperation(failure)
+        assertOperation()
     }
 
     def "detects overlapping outputs when instructed"() {

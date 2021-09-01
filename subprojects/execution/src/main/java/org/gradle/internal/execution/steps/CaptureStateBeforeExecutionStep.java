@@ -133,7 +133,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
                     unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
                 } catch (OutputFileSnapshottingException e) {
                     work.handleUnreadableOutputs(e);
-                    operationContext.failed(e);
+                    operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.empty();
                 }
 
@@ -145,7 +145,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<Previous
                     // Note that we let InputFingerprintException fall through as we've already
                     // been failing for non-file value fingerprinting problems even for tasks
                     work.handleUnreadableInputs(e);
-                    operationContext.failed(e);
+                    operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.empty();
                 }
             },

@@ -78,7 +78,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
             _ * detectedOverlappingOutputs >> Optional.empty()
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
-        assertOperation(failure)
+        assertOperation()
         0 * _
     }
 
