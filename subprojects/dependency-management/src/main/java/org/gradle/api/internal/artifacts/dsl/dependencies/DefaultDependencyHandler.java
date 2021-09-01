@@ -451,6 +451,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         }
 
         @Override
+        public void enforcedPlatform() {
+            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
+        }
+
+        @Override
         public void testFixtures() {
             this.capabilitiesMutator = capabilities -> capabilities.requireCapability(new ImmutableCapability(dep.getModule().getGroup(), dep.getModule().getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
         }

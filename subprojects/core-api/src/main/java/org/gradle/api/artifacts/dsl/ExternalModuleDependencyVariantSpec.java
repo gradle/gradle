@@ -32,6 +32,12 @@ public interface ExternalModuleDependencyVariantSpec {
     void platform();
 
     /**
+     * Configures the dependency to select the "enforced-platform" variant.
+     * @since 7.3
+     */
+    void enforcedPlatform();
+
+    /**
      * Configures the dependency to select the test fixtures capability.
      */
     void testFixtures();

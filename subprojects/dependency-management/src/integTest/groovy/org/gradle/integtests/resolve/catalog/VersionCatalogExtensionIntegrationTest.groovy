@@ -998,6 +998,49 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17849")
+    def "can use the generated extension to select the enforced-platform variant of a dependency"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test", "lib").version {
+                            require "1.1"
+                        }
+                    }
+                }
+            }
+        """
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1")
+            .publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation(enforcedPlatform(libs.myLib))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.1') {
+                    variant('enforced-platform-runtime', [
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime',
+                        'org.gradle.category': 'enforced-platform'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
     def "can use the generated extension to select a classified dependency"() {
         settingsFile << """
             dependencyResolutionManagement {

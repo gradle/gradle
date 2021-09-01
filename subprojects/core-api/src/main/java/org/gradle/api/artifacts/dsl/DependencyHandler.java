@@ -591,12 +591,12 @@ public interface DependencyHandler extends ExtensionAware {
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 
     /**
-     * Allows fine tuning what variant to select for the target dependency. This can be used to
+     * Allows fine-tuning what variant to select for the target dependency. This can be used to
      * specify a classifier, for example.
      *
      * @param dependencyProvider the dependency provider
      * @param variantSpec the variant specification
-     * @return a new dependency provider targetting the configured variant
+     * @return a new dependency provider targeting the configured variant
      * @since 6.8
      */
     @Incubating
@@ -605,7 +605,7 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Configures this dependency provider to select the platform variant of the target component
      * @param dependencyProvider the dependency provider
-     * @return a new dependency provider targetting the platform variant of the component
+     * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
      */
     @Incubating
@@ -614,9 +614,20 @@ public interface DependencyHandler extends ExtensionAware {
     }
 
     /**
+     * Configures this dependency provider to select the enforced-platform variant of the target component
+     * @param dependencyProvider the dependency provider
+     * @return a new dependency provider targeting the enforced-platform variant of the component
+     * @since 7.3
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+        return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::enforcedPlatform);
+    }
+
+    /**
      * Configures this dependency provider to select the test fixtures of the target component
      * @param dependencyProvider the dependency provider
-     * @return a new dependency provider targetting the test fixtures of the component
+     * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
      */
     @Incubating
