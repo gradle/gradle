@@ -79,9 +79,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    JDK7({
-        JavaVersion.current() == JavaVersion.VERSION_1_7
-    }),
     JDK7_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_7
     }),
@@ -109,9 +106,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK11_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_11
     }),
-    JDK12_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_12
-    }),
     JDK12_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_12
     }),
@@ -121,20 +115,17 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK13_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_13
     }),
-    JDK14_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_14
-    }),
     JDK14_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_14
     }),
     JDK15_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_15
     }),
-    JDK15_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_15
-    }),
     JDK16_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_16
+    }),
+    JDK16_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_16
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'

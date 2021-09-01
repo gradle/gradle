@@ -98,6 +98,9 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def canRunTestsWithCustomSecurityManager() {
+        executer.withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
+        
         when:
         run 'test'
 

@@ -73,7 +73,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
                     // check other environmental stuff
                     assertEquals("Test worker", Thread.currentThread().getName());
-                    assertNull(System.getSecurityManager());
+                    assertNull(System.console());
                 }
             }
         '''.stripIndent()
