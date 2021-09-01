@@ -205,18 +205,37 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
         then:
         def plugins = getPluginConfigurationOperationResult(":").getPluginApplicationResults().collect { it.plugin.displayName }
-        def expectedPlugins = [
-            "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
-            "build.gradle", "script.gradle",
-            "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
-            "org.gradle.api.plugins.BasePlugin",
-            "org.gradle.language.base.plugins.LifecycleBasePlugin",
-            "org.gradle.api.plugins.ReportingBasePlugin"
-        ]
-        if (targetVersion >= GradleVersion.version("6.7")) {
-            expectedPlugins << "org.gradle.api.plugins.JvmEcosystemPlugin"
+        if (targetVersion > GradleVersion.version("7.2")) {
+            assert plugins == [
+                "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
+                "build.gradle", "script.gradle",
+                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.api.plugins.BasePlugin",
+                "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                "org.gradle.api.plugins.JvmEcosystemPlugin",
+                "org.gradle.api.plugins.ReportingBasePlugin",
+                "org.gradle.api.plugins.TestSuitePlugin"
+            ]
+        } else if (targetVersion >= GradleVersion.version("6.7")) {
+            assert plugins == [
+                "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
+                "build.gradle", "script.gradle",
+                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.api.plugins.BasePlugin",
+                "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                "org.gradle.api.plugins.JvmEcosystemPlugin",
+                "org.gradle.api.plugins.ReportingBasePlugin"
+            ]
+        } else {
+            assert plugins == [
+                "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
+                "build.gradle", "script.gradle",
+                "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                "org.gradle.api.plugins.BasePlugin",
+                "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                "org.gradle.api.plugins.ReportingBasePlugin"
+            ]
         }
-        plugins.sort() == expectedPlugins.sort()
     }
 
     def "reports plugin configuration results for remote script plugins"() {
