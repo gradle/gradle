@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -59,6 +60,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         overrideProperties.putAll(getEnvProjectProperties(envProperties));
         overrideProperties.putAll(getSystemProjectProperties(systemProperties));
         overrideProperties.putAll(startParameter.getProjectProperties());
+
+        // workaround https://youtrack.jetbrains.com/issue/KT-47152 - should be fixed in Kotlin 1.5.30
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+            overrideProperties.put("kotlin.incremental", "false");
+        }
 
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
