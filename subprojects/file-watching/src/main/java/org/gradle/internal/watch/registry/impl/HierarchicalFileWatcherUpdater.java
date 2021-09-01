@@ -54,13 +54,10 @@ import java.util.stream.Collectors;
  *   - remember the currently watched directories as old watched directories for the next build
  *   - remove everything that isn't watched from the virtual file system.
  */
-public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
-    private final FileWatcher fileWatcher;
-
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
-    private final WatchableHierarchies watchableHierarchies;
     private final MovedHierarchyHandler movedHierarchyHandler;
     private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
 
@@ -70,9 +67,8 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         WatchableHierarchies watchableHierarchies,
         MovedHierarchyHandler movedHierarchyHandler
     ) {
-        this.fileWatcher = fileWatcher;
+        super(fileWatcher, watchableHierarchies);
         this.locationToWatchValidator = locationToWatchValidator;
-        this.watchableHierarchies = watchableHierarchies;
         this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
@@ -100,7 +96,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = movedHierarchyHandler.handleMovedHierarchies(root);
         if (newRoot != root) {
             updateWatchedHierarchies(newRoot);
@@ -109,7 +105,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,

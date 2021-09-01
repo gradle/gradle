@@ -45,7 +45,19 @@ public class WatchableHierarchies {
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final Predicate<String> watchFilter;
 
+    /**
+     * Hierarchies which can be watched.
+     *
+     * Those are normally project root directories from the current builds and from previous builds.
+     */
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
+
+    /**
+     * Hierarchies which do not support watching.
+     *
+     * Those are the mount points of file systems which do not support watching.
+     */
+    private FileHierarchySet unsupportedHierarchies = DefaultFileHierarchySet.of();
     private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
 
     public WatchableHierarchies(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
@@ -61,6 +73,10 @@ public class WatchableHierarchies {
                 "Unable to watch directory '%s' since it is within Gradle's caches",
                 watchableHierarchyPathString
             ));
+        }
+        if (unsupportedHierarchies.contains(watchableHierarchyPathString)) {
+            LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
+            return;
         }
         if (!watchableHierarchies.contains(watchableHierarchyPathString)) {
             checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPathString, root);
@@ -79,7 +95,7 @@ public class WatchableHierarchies {
         newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
         // When FSW is enabled by default, we discard any non-watchable file systems, but not if it's enabled explicitly
-        if (watchMode == WatchMode.DEFAULT) {
+        if (!shouldWatchUnsupportedFileSystems(watchMode)) {
             newRoot = removeUnwatchableFileSystems(newRoot, invalidator);
         }
         return newRoot;
@@ -160,6 +176,35 @@ public class WatchableHierarchies {
 
     public boolean shouldWatch(FileSystemLocationSnapshot snapshot) {
         return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
+    }
+
+    /**
+     * Detects and updates the unsupported file systems.
+     *
+     * Depending on the watch mode, actually detecting the unsupported file systems may not be necessary.
+     */
+    public void updateUnsupportedFileSystems(WatchMode watchMode) {
+        unsupportedHierarchies = shouldWatchUnsupportedFileSystems(watchMode)
+            ? DefaultFileHierarchySet.of()
+            : detectUnsupportedHierarchies();
+    }
+
+    private boolean shouldWatchUnsupportedFileSystems(WatchMode watchMode) {
+        return watchMode != WatchMode.DEFAULT;
+    }
+
+    private FileHierarchySet detectUnsupportedHierarchies() {
+        try {
+            return watchableFileSystemDetector.detectUnsupportedFileSystems()
+                .reduce(
+                    DefaultFileHierarchySet.of(),
+                    (fileHierarchySet, fileSystemInfo) -> fileHierarchySet.plus(fileSystemInfo.getMountPoint()),
+                    nonCombining()
+                );
+        } catch (NativeException e) {
+            LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched. Reason: {}", e.getMessage());
+            return DefaultFileHierarchySet.of();
+        }
     }
 
     private class RemoveUnwatchedFiles implements FileSystemSnapshotHierarchyVisitor {
