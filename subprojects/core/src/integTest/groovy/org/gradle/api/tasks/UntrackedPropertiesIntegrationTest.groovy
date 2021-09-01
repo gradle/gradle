@@ -402,6 +402,55 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         outputContains("Task has untracked properties.")
     }
 
+    def "does not clean up stale outputs for untracked output properties"() {
+        buildFile("""
+            apply plugin: 'base'
+
+            abstract class Producer extends DefaultTask {
+                @Untracked
+                @OutputDirectory
+                abstract DirectoryProperty getUntrackedOutputDirectory()
+
+                @OutputDirectory
+                abstract DirectoryProperty getTrackedOutputDirectory()
+
+                @TaskAction
+                void writeFile() {
+                    writeFile(trackedOutputDirectory)
+                    writeFile(untrackedOutputDirectory)
+                }
+
+
+                static void writeFile(DirectoryProperty dir) {
+                    def outputFile = dir.file("output.txt").get().asFile
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = "Produced file"
+                }
+            }
+
+            tasks.register("producer", Producer) {
+                untrackedOutputDirectory = project.layout.buildDirectory.dir('untracked')
+                trackedOutputDirectory = project.layout.buildDirectory.dir('tracked')
+            }
+        """)
+
+        def untrackedStaleFile = file("build/untracked/stale-output-file").createFile()
+        def untrackedOutputFile = file("build/untracked/output.txt")
+        def trackedStaleFile = file("build/tracked/stale-output-file").createFile()
+        def trackedOutputFile = file("build/tracked/output.txt")
+
+        when:
+        run "producer"
+        then:
+        executedAndNotSkipped(":producer")
+
+        trackedOutputFile.text == "Produced file"
+        !trackedStaleFile.exists()
+
+        untrackedOutputFile.text == "Produced file"
+        untrackedStaleFile.exists()
+    }
+
     static generateProducerTask(boolean untracked) {
         """
             abstract class Producer extends DefaultTask {
