@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.protocol.ShutdownParameters;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 
 /**
- * <p>Used for providers >= 2.2.</p>
+ * <p>Used for providers &gt;= 2.2.</p>
  */
 public class ShutdownAwareConsumerConnection extends CancellableConsumerConnection {
     public ShutdownAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {

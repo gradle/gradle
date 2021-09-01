@@ -18,6 +18,7 @@ import java.time.Year
 
 plugins {
     id("gradlebuild.module-identity")
+    id("signing")
     `maven-publish`
 }
 
@@ -50,6 +51,29 @@ publishing {
     configurePublishingTasks()
 }
 
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime()
+val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
+
+tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
+
+// https://github.com/gradle/gradle-promote/blob/51738d5f8fcfe6c3171e320c190e631ed08355af/promote-projects/gradle/build.gradle#L78
+val publishingToMavenCentral: Boolean
+    get() = listOf("milestoneNumber", "rcNumber", "finalRelease").any {
+        providers.gradleProperty(it).forUseAtConfigurationTime().orNull != null
+    }
+
+signing {
+    useInMemoryPgpKeys(
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+    )
+    publishing.publications.configureEach {
+        if (signArtifacts) {
+            signing.sign(this)
+        }
+    }
+}
+
 fun MavenPublication.configureGradleModulePublication() {
     from(components["java"])
     artifactId = moduleIdentity.baseName.get()
@@ -59,6 +83,36 @@ fun MavenPublication.configureGradleModulePublication() {
         }
         usage("java-runtime") {
             fromResolutionResult()
+        }
+    }
+
+    pom {
+        packaging = "jar"
+        name.set("gradle-${project.name}")
+        description.set(
+            provider {
+                require(project.description != null) { "You must set the description of published project ${project.name}" }
+                project.description
+            }
+        )
+        url.set("https://gradle.org")
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                name.set("The Gradle team")
+                organization.set("Gradle Inc.")
+                organizationUrl.set("https://gradle.com")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/gradle/gradle.git")
+            developerConnection.set("scm:git:ssh://github.com:gradle/gradle.git")
+            url.set("https://github.com/gradle/gradle")
         }
     }
 }
