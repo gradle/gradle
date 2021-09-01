@@ -145,7 +145,7 @@ public class WatchableHierarchies {
                     nonCombining()
                 );
         } catch (NativeException e) {
-            LOGGER.warn("Unable to list file systems to check whether they can be watched. The whole state of the virtual file system has been discarded.", e);
+            LOGGER.warn("Unable to list file systems to check whether they can be watched. The whole state of the virtual file system has been discarded. Reason: {}", e.getMessage());
             return root.empty();
         }
     }
@@ -202,7 +202,7 @@ public class WatchableHierarchies {
                     nonCombining()
                 );
         } catch (NativeException e) {
-            LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched.", e);
+            LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched. Reason: {}", e.getMessage());
             return DefaultFileHierarchySet.of();
         }
     }
