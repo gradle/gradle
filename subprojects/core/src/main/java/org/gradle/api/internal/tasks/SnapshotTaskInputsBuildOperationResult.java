@@ -18,15 +18,20 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
+import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -42,6 +47,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -53,7 +59,7 @@ import java.util.stream.Collectors;
  * <p>
  * These two operations should be captured separately, but for historical reasons we don't yet do that.
  * To reproduce this composite operation we capture across executors by starting an operation
- * in {@link StartSnapshotTaskInputsBuildOperationTaskExecuter} and finished in {@link MarkSnapshottingInputsFinishedStep}.
+ * in {@link MarkSnapshottingInputsStartedStep} and finished in {@link MarkSnapshottingInputsFinishedStep}.
  * </p>
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
@@ -67,11 +73,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getInputValueFingerprints)
+        return getBeforeExecutionState()
+            .map(InputExecutionState::getInputProperties)
             .filter(inputValueFingerprints -> !inputValueFingerprints.isEmpty())
             .map(inputValueFingerprints -> inputValueFingerprints.entrySet().stream()
-                .collect(toLinkedHashMap(HashCode::toByteArray)))
+                .collect(toLinkedHashMap(valueSnapshot -> {
+                    Hasher hasher = Hashing.newHasher();
+                    valueSnapshot.appendToHasher(hasher);
+                    return hasher.hash().toByteArray();
+                })))
             .orElse(null);
     }
 
@@ -176,44 +186,38 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public void visitInputFileProperties(final InputFilePropertyVisitor visitor) {
-        cachingState.getInputs().ifPresent(inputs -> {
-            State state = new State(visitor);
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputs.getInputFileFingerprints().entrySet()) {
-                CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+        getBeforeExecutionState()
+            .map(BeforeExecutionState::getInputFileProperties)
+            .ifPresent(inputFileProperties -> {
+                State state = new State(visitor);
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileProperties.entrySet()) {
+                    CurrentFileCollectionFingerprint fingerprint = entry.getValue();
 
-                state.propertyName = entry.getKey();
-                state.propertyHash = fingerprint.getHash();
-                state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
-                state.fingerprints = fingerprint.getFingerprints();
+                    state.propertyName = entry.getKey();
+                    state.propertyHash = fingerprint.getHash();
+                    state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                    state.fingerprints = fingerprint.getFingerprints();
 
-                visitor.preProperty(state);
-                fingerprint.getSnapshot().accept(state);
-                visitor.postProperty();
-            }
-        });
+                    visitor.preProperty(state);
+                    fingerprint.getSnapshot().accept(state);
+                    visitor.postProperty();
+                }
+            });
     }
 
     @Override
     public byte[] getClassLoaderHashBytes() {
-        return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, byte[]>() {
-                @Nullable
-                @Override
-                public byte[] apply(CachingInputs inputs) {
-                    ImplementationSnapshot implementation = inputs.getImplementation();
-                    if (implementation.getClassLoaderHash() == null) {
-                        return null;
-                    }
-                    return implementation.getClassLoaderHash().toByteArray();
-                }
-            })
+        return getBeforeExecutionState()
+            .map(InputExecutionState::getImplementation)
+            .map(ImplementationSnapshot::getClassLoaderHash)
+            .map(HashCode::toByteArray)
             .orElse(null);
     }
 
     @Override
     public List<byte[]> getActionClassLoaderHashesBytes() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getAdditionalImplementations)
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementation -> !additionalImplementation.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
                 .map(input -> input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray())
@@ -224,8 +228,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Nullable
     @Override
     public List<String> getActionClassNames() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getAdditionalImplementations)
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementations -> !additionalImplementations.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
                 .map(ImplementationSnapshot::getTypeName)
@@ -237,8 +241,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @Nullable
     @Override
     public List<String> getOutputPropertyNames() {
-        return cachingState.getInputs()
-            .map(CachingInputs::getOutputProperties)
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getOutputFileLocationSnapshots)
+            .map(ImmutableSortedMap::keySet)
             .filter(outputPropertyNames -> !outputPropertyNames.isEmpty())
             .map(ImmutableSet::asList)
             .orElse(null);
@@ -246,7 +251,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public byte[] getHashBytes() {
-        return cachingState.getKey()
+        return getKey()
             .map(BuildCacheKey::toByteArray)
             .orElse(null);
     }
@@ -431,4 +436,17 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         return fileProperties;
     }
 
+    private Optional<BeforeExecutionState> getBeforeExecutionState() {
+        return cachingState.fold(
+            enabled -> Optional.of(enabled.getBeforeExecutionState()),
+            CachingState.Disabled::getBeforeExecutionState
+        );
+    }
+
+    private Optional<BuildCacheKey> getKey() {
+        return cachingState.fold(
+            enabled -> Optional.of(enabled.getKey()),
+            CachingState.Disabled::getKey
+        );
+    }
 }

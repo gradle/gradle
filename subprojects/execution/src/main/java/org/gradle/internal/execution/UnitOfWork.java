@@ -19,9 +19,11 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -148,6 +150,20 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
+     * Handles when an input cannot be read while fingerprinting.
+     */
+    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
+        throw ex;
+    }
+
+    /**
+     * Handles when an output cannot be read while snapshotting.
+     */
+    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
+        throw ex;
+    }
+
+    /**
      * Validate the work definition and configuration.
      */
     default void validate(WorkValidationContext validationContext) {}
@@ -165,7 +181,7 @@ public interface UnitOfWork extends Describable {
      * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
      * returned depending on whether cleanup of existing outputs had to be performed.
      */
-    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution) {
+    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
         return Optional.empty();
     }
 

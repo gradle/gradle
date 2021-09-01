@@ -38,8 +38,8 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
         1 * delegate.execute(work, { CachingContext context ->
-            context.cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.BUILD_CACHE_DISABLED]
-            context.cachingState.disabledReasons*.message == ["Build cache is disabled"]
+            context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.BUILD_CACHE_DISABLED]
+            context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Build cache is disabled"]
         })
     }
 
@@ -51,8 +51,8 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         _ * context.beforeExecutionState >> Optional.empty()
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext)
         1 * delegate.execute(work, { CachingContext context ->
-            context.cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
-            context.cachingState.disabledReasons*.message == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
+            context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
+            context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
         })
     }
 
@@ -66,7 +66,7 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         _ * context.beforeExecutionState >> Optional.empty()
         _ * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
         1 * delegate.execute(work, { CachingContext context ->
-            context.cachingState.disabledReasons == [disabledReason]
+            context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
         })
     }
 }

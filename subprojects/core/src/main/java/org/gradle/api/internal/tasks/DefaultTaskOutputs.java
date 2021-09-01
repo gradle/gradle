@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
@@ -72,7 +73,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
         for (TaskOutputFilePropertyRegistration registration : registeredFileProperties) {
-            visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), registration.getValue(), registration.getPropertyType());
+            visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), registration.getContentTracking(), registration.getValue(), registration.getPropertyType());
         }
     }
 
@@ -209,7 +210,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         boolean hasDeclaredOutputs;
 
         @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
             hasDeclaredOutputs = true;
         }
 

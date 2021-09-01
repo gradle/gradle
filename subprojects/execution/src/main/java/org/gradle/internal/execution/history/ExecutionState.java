@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,5 @@
 
 package org.gradle.internal.execution.history;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-
 public interface ExecutionState {
-    /**
-     * The main implementation snapshots.
-     */
-    ImplementationSnapshot getImplementation();
-
-    /**
-     * Used only for tasks to return all the task actions.
-     */
-    ImmutableList<ImplementationSnapshot> getAdditionalImplementations();
-
-    /**
-     * The non-file inputs.
-     */
-    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
-
-    /**
-     * The file inputs.
-     */
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
 }

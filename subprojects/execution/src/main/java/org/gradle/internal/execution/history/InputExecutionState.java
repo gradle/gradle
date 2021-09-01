@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.caching;
+package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public interface CachingInputs {
-
+public interface InputExecutionState extends ExecutionState {
     /**
-     * The snapshot of the main implementation.
+     * The main implementation snapshots.
      */
     ImplementationSnapshot getImplementation();
 
     /**
-     * Any additional implementation present.
+     * Used only for tasks to return all the task actions.
      */
     ImmutableList<ImplementationSnapshot> getAdditionalImplementations();
 
     /**
-     * Input value fingerprints.
+     * The non-file inputs.
      */
-    ImmutableSortedMap<String, HashCode> getInputValueFingerprints();
+    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
 
     /**
-     * Input file fingerprints.
+     * The file inputs.
      */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileFingerprints();
-
-    /**
-     * Names of the output properties of the work.
-     */
-    ImmutableSortedSet<String> getOutputProperties();
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getInputFileProperties();
 }

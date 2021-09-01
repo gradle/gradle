@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -35,7 +35,7 @@ import org.gradle.internal.snapshot.impl.SnapshotSerializer;
 import java.time.Duration;
 import java.util.Map;
 
-public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<AfterPreviousExecutionState> {
+public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<PreviousExecutionState> {
     private final Serializer<FileCollectionFingerprint> fileCollectionFingerprintSerializer;
     private final Serializer<FileSystemSnapshot> fileSystemSnapshotSerializer;
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer;
@@ -51,7 +51,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     }
 
     @Override
-    public AfterPreviousExecutionState read(Decoder decoder) throws Exception {
+    public PreviousExecutionState read(Decoder decoder) throws Exception {
         OriginMetadata originMetadata = new OriginMetadata(
             decoder.readString(),
             Duration.ofMillis(decoder.readLong())
@@ -74,7 +74,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
         boolean successful = decoder.readBoolean();
 
-        return new DefaultAfterPreviousExecutionState(
+        return new DefaultPreviousExecutionState(
             originMetadata,
             taskImplementation,
             taskActionImplementations,
@@ -86,7 +86,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
     }
 
     @Override
-    public void write(Encoder encoder, AfterPreviousExecutionState execution) throws Exception {
+    public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
         OriginMetadata originMetadata = execution.getOriginMetadata();
         encoder.writeString(originMetadata.getBuildInvocationId());
         encoder.writeLong(originMetadata.getExecutionTime().toMillis());

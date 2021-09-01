@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * The execution state before the current execution.
  */
-public interface BeforeExecutionState extends ExecutionState {
+public interface BeforeExecutionState extends InputExecutionState {
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
@@ -35,8 +35,8 @@ public interface BeforeExecutionState extends ExecutionState {
      *
      * This includes snapshots for the whole output {@link org.gradle.api.file.FileCollection}.
      *
-     * @see AfterPreviousExecutionState#getOutputFilesProducedByWork()
-     * @see SnapshotResult#getOutputFilesProduceByWork()
+     * @see PreviousExecutionState#getOutputFilesProducedByWork()
+     * @see SnapshotResult#getAfterExecutionState()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
 

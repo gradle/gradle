@@ -18,7 +18,7 @@ package org.gradle.internal.execution.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
@@ -101,8 +101,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                     valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Input property '%s' with value '%s' cannot be serialized.",
-                    propertyName, value.getValue()), e);
+                throw new InputFingerprintingException(
+                    propertyName,
+                    String.format("value '%s' cannot be serialized",
+                    value.getValue()),
+                    e);
             }
         }
 
@@ -114,8 +117,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity(), value.getLineEndingNormalization());
-            CurrentFileCollectionFingerprint fingerprint = fingerprinterRegistry.getFingerprinter(normalizationSpec)
-                .fingerprint(value.getFiles(), previousFingerprint);
+            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
+            CurrentFileCollectionFingerprint fingerprint;
+            try {
+                fingerprint = fingerprinter.fingerprint(value.getFiles(), previousFingerprint);
+            } catch (Exception e) {
+                throw new InputFileFingerprintingException(propertyName, e);
+            }
             fingerprintsBuilder.put(propertyName, fingerprint);
         }
 

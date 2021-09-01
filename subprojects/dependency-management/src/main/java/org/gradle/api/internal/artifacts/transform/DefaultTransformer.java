@@ -36,6 +36,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -323,7 +324,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                     boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value,
-                    InputFilePropertyType filePropertyType
+                    InputFilePropertyType filePropertyType,
+                    ContentTracking contentTracking
                 ) {
                     validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
                     visitor.visitInputFileProperty(
@@ -341,6 +343,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                 public void visitOutputFileProperty(
                     String propertyName,
                     boolean optional,
+                    ContentTracking contentTracking,
                     PropertyValue value,
                     OutputFilePropertyType filePropertyType
                 ) {
@@ -600,7 +603,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
                         boolean incremental,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                         PropertyValue value,
-                        InputFilePropertyType filePropertyType
+                        InputFilePropertyType filePropertyType,
+                        ContentTracking contentTracking
                     ) {
                         context.add(value.getTaskDependencies());
                     }

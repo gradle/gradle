@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
@@ -235,9 +235,24 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
+            "Accessing unreadable inputs or outputs has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the property as untracked.")
         run "copy"
         then:
         outputDirectory.list().contains input.name
+        executedAndNotSkipped(":copy")
+
+        when:
+        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
+            "Accessing unreadable inputs or outputs has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Declare the property as untracked.")
+        run "copy"
+        then:
+        outputDirectory.list().contains input.name
+        executedAndNotSkipped(":copy")
 
         cleanup:
         pipe.delete()

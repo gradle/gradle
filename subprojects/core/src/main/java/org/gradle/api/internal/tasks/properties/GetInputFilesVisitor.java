@@ -51,7 +51,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
         PropertyValue value,
-        InputFilePropertyType filePropertyType
+        InputFilePropertyType filePropertyType,
+        ContentTracking contentTracking
     ) {
         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
@@ -62,7 +63,8 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             skipWhenEmpty,
             incremental,
             directorySensitivity,
-            lineEndingSensitivity
+            lineEndingSensitivity,
+            contentTracking
         ));
         if (skipWhenEmpty) {
             hasSourceFiles = true;

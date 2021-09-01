@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -26,6 +25,7 @@ import org.gradle.internal.execution.caching.CachingState;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {
 
@@ -69,19 +69,26 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getCachingDisabledReasonMessage() {
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        return disabledReasons.isEmpty()
-            ? null
-            : disabledReasons.get(0).getMessage();
+        return getCachingDisabledReason()
+            .map(CachingDisabledReason::getMessage)
+            .orElse(null);
     }
 
     @Nullable
     @Override
     public String getCachingDisabledReasonCategory() {
-        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
-        return disabledReasons.isEmpty()
-            ? null
-            : convertNoCacheReasonCategory(disabledReasons.get(0).getCategory()).name();
+        return getCachingDisabledReason()
+            .map(CachingDisabledReason::getCategory)
+            .map(ExecuteTaskBuildOperationResult::convertNoCacheReasonCategory)
+            .map(Enum::name)
+            .orElse(null);
+    }
+
+    private Optional<CachingDisabledReason> getCachingDisabledReason() {
+        return cachingState
+            .whenDisabled()
+            .map(CachingState.Disabled::getDisabledReasons)
+            .map(reasons -> reasons.get(0));
     }
 
     private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {

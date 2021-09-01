@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.OutputFilesRepository
 
 class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements SnasphotterFixture {
@@ -23,7 +24,7 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
     def step = new RecordOutputsStep<>(outputFilesRepository, delegate)
 
     def outputFile = file("output.txt").text = "output"
-    def outputFilesProduceByWork = snapshotsOf(output: outputFile)
+    def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
     def delegateResult = Mock(CurrentSnapshotResult)
 
@@ -36,10 +37,27 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.outputFilesProduceByWork >> outputFilesProduceByWork
+        1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
+            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        })
 
         then:
-        1 * outputFilesRepository.recordOutputs(outputFilesProduceByWork.values())
+        1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
+        0 * _
+    }
+
+    def "does not store untracked outputs"() {
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+        1 * delegate.execute(work, context) >> delegateResult
+
+        then:
+        1 * delegateResult.afterExecutionState >> Optional.empty()
+
+        then:
         0 * _
     }
 }

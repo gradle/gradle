@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -37,7 +39,13 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                builder.put(propertyName, fileCollectionSnapshotter.snapshot(contents));
+                FileSystemSnapshot snapshot;
+                try {
+                    snapshot = fileCollectionSnapshotter.snapshot(contents);
+                } catch (Exception ex) {
+                    throw new OutputFileSnapshottingException(propertyName, ex);
+                }
+                builder.put(propertyName, snapshot);
             }
         });
         return builder.build();

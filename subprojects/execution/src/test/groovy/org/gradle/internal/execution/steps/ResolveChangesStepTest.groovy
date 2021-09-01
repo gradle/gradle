@@ -19,15 +19,17 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
 class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
-    def beforeExecutionState = Mock(BeforeExecutionState)
+    def beforeExecutionState = Stub(BeforeExecutionState) {
+        inputFileProperties >> ImmutableSortedMap.of()
+    }
     def delegateResult = Mock(Result)
 
     @Override
@@ -45,17 +47,12 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
-            try {
-                changes.createInputChanges()
-                assert false
-            } catch (UnsupportedOperationException e) {
-                assert e.message == 'Cannot query input changes when input tracking is disabled.'
-            }
+            assert delegateContext.rebuildReasons == ImmutableList.of("Forced rebuild.")
+            assert !changes.createInputChanges().incremental
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.of("Forced rebuild.")
-        _ * context.beforeExecutionState >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.of("Forced rebuild.")
+        _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         0 * _
     }
 
@@ -67,10 +64,9 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         result == delegateResult
 
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
-            assert !delegateContext.changes.present
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
@@ -86,18 +82,17 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
-            assert changes.allChangeMessages == ImmutableList.of("No history is available.")
+            assert delegateContext.rebuildReasons == ImmutableList.of("No history is available.")
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
-        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
 
     def "doesn't provide input file changes when work fails validation"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousExecutionState = Mock(PreviousExecutionState)
         when:
         def result = step.execute(work, context)
 
@@ -108,20 +103,19 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
-            assert changes.allChangeMessages == ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
+            assert delegateContext.rebuildReasons == ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext.ValidationResult)
-        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
-        _ * context.afterPreviousExecutionState >> Optional.empty()
+        _ * context.previousExecutionState >> Optional.empty()
         0 * _
     }
 
     def "provides input file changes when history is available"() {
-        def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
+        def previousExecutionState = Mock(PreviousExecutionState)
         def changes = Mock(ExecutionStateChanges)
 
         when:
@@ -134,11 +128,12 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
             assert delegateContext.changes.get() == changes
             return delegateResult
         }
-        _ * context.rebuildReason >> Optional.empty()
+        _ * changes.changeDescriptions >> ImmutableList.of("changed")
+        _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
-        1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, _) >> changes
+        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }
 }

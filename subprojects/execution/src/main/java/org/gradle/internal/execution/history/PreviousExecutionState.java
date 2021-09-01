@@ -19,12 +19,11 @@ package org.gradle.internal.execution.history;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
  * A execution state after the previous execution has finished.
  */
-public interface AfterPreviousExecutionState extends ExecutionState {
+public interface PreviousExecutionState extends InputExecutionState, OutputExecutionState {
 
     /**
      * The ID and execution time of origin of the execution's outputs.
@@ -32,19 +31,10 @@ public interface AfterPreviousExecutionState extends ExecutionState {
     OriginMetadata getOriginMetadata();
 
     /**
-     * Whether or not the execution was successful.
+     * Whether the execution was successful.
      */
     boolean isSuccessful();
 
     @Override
     ImmutableSortedMap<String, FileCollectionFingerprint> getInputFileProperties();
-
-    /**
-     * Snapshots of the roots of output properties.
-     *
-     * In the presence of overlapping outputs this might be different from
-     * {@link BeforeExecutionState#getOutputFileLocationSnapshots()},
-     * as this does not include overlapping outputs <em>not</em> produced by the work.
-     */
-    ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork();
 }

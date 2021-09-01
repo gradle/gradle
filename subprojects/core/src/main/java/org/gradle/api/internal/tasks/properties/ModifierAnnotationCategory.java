@@ -21,12 +21,13 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
-import org.gradle.work.NormalizeLineEndings;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.Untracked;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.work.Incremental;
+import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -50,6 +51,9 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     ),
     NORMALIZE_LINE_ENDINGS("ignore line endings",
         NormalizeLineEndings.class
+    ),
+    UNTRACKED("Do not track changes",
+        Untracked.class
     );
 
     private final String displayName;

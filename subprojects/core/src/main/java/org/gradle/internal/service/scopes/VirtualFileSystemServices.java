@@ -50,7 +50,7 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.DefaultOutputSnapshotter;
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
