@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps
 
-
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController

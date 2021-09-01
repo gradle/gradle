@@ -117,7 +117,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         outputContains("Task has untracked properties.")
 
         where:
-        properties << [/* "inputs", */ "outputs"]
+        properties << ["inputs", "outputs"]
     }
 
     def "task with untracked #properties is not cached"() {
@@ -400,10 +400,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task has untracked properties.")
-    }
-
-    def "incremental task with untracked input property is out-of-date"() {
-
     }
 
     static generateProducerTask(boolean untracked) {

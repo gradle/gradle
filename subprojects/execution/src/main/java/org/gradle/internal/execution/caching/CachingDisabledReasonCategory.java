@@ -50,7 +50,7 @@ public enum CachingDisabledReasonCategory {
     /**
      * Work has declared output that is not cacheable.
      *
-     * Readons for non-cacheable outputs:
+     * Reasons for non-cacheable outputs:
      * <ul>
      *     <li>an output contains a file tree,</li>
      *     <li>an output is not tracked.</li>
