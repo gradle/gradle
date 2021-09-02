@@ -301,7 +301,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
     get() = providers.systemProperty("testDistributionPartitionSizeInSeconds").forUseAtConfigurationTime().orNull?.toLong()
 
 val Project.maxParallelForks: Int
-    get() = (findProperty("maxParallelForks")?.toString()?.toInt() ?: 4) * (if (System.getenv("BUILD_AGENT_VARIANT") == "AX41") 2 else 1)
+    get() = findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
