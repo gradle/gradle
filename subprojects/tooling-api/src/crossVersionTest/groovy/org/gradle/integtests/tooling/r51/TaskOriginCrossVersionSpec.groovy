@@ -25,6 +25,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
@@ -63,7 +64,11 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         task(':classes').originPlugin.displayName == "org.gradle.api.plugins.JavaBasePlugin"
         task(':jar').originPlugin.displayName == "org.gradle.java"
         task(':assemble').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
-        task(':test').originPlugin.displayName == "org.gradle.java"
+        if (targetVersion > GradleVersion.version("7.2")) {
+            task(':test').originPlugin.displayName == "org.gradle.api.plugins.TestSuitePlugin"
+        } else {
+            task(':test').originPlugin.displayName == "org.gradle.java"
+        }
         task(':check').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
         task(':build').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
     }
