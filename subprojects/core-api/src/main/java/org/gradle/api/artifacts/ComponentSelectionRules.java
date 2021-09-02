@@ -78,7 +78,7 @@ public interface ComponentSelectionRules {
     /**
      * Adds a rule-source backed component selection rule that will apply to all resolved components.
      *
-     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
+     * The ruleSource provides the rule as exactly one rule method annotated with {@code org.gradle.model.Mutate}.
      *
      * This rule method:
      * <ul>
@@ -115,7 +115,7 @@ public interface ComponentSelectionRules {
     /**
      * Adds a rule-source backed component selection rule that will apply to the specified module.
      *
-     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
+     * The ruleSource provides the rule as exactly one rule method annotated with {@code org.gradle.model.Mutate}.
      *
      * This rule method:
      * <ul>

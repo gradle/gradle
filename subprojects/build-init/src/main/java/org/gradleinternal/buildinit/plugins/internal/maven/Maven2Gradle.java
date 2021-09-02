@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
- * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br/>
+ * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br>
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */

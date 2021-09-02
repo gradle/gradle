@@ -270,7 +270,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * declared by the user.
      *
      * @return The name of the associated upload task
-     * @see org.gradle.api.tasks.Upload
+     * @see "org.gradle.api.tasks.Upload"
      */
     @Deprecated
     String getUploadTaskName();

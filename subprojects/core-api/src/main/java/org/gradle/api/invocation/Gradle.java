@@ -302,8 +302,8 @@ public interface Gradle extends PluginAware {
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.logging.StandardOutputListener}
-     * <li>{@link org.gradle.api.tasks.testing.TestListener}
-     * <li>{@link org.gradle.api.tasks.testing.TestOutputListener}
+     * <li>{@code org.gradle.api.tasks.testing.TestListener}
+     * <li>{@code org.gradle.api.tasks.testing.TestOutputListener}
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *

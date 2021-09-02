@@ -61,7 +61,7 @@ import org.gradle.internal.HasInternalProtocol;
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
  * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
- * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
+ * <h1>Example of publishing a java component with an added source jar and custom module description</h1>
  *
  * <pre class='autoTested'>
  * plugins {

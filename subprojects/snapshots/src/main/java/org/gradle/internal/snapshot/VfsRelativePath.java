@@ -40,11 +40,11 @@ public class VfsRelativePath {
      * The relative path from the root of the file system for the given absolute path.
      *
      * E.g.:
-     *    'C:/' -> 'C:'
-     *    '/home/user/project' -> 'home/user/project'
-     *    '/' -> ''
-     *    '//uncpath/relative/path' -> 'uncpath/relative/path'
-     *    'C:/Users/user/project' -> 'C:/Users/user/project'
+     *    'C:/' -&gt; 'C:'
+     *    '/home/user/project' -&gt; 'home/user/project'
+     *    '/' -&gt; ''
+     *    '//uncpath/relative/path' -&gt; 'uncpath/relative/path'
+     *    'C:/Users/user/project' -&gt; 'C:/Users/user/project'
      */
     public static VfsRelativePath of(String absolutePath) {
         String normalizedRoot = normalizeRoot(absolutePath);
@@ -83,7 +83,7 @@ public class VfsRelativePath {
      * Returns a new relative path starting from the given start index.
      *
      * E.g.
-     *   (some/path, 5) -> path
+     *   (some/path, 5) -&gt; path
      */
     public VfsRelativePath suffixStartingFrom(int startIndex) {
         return new VfsRelativePath(absolutePath, offset + startIndex);
@@ -93,9 +93,9 @@ public class VfsRelativePath {
      * Returns a new relative path starting from the child.
      *
      * E.g.
-     *   (some/path, some) -> path
-     *   (some/path/other, some) -> path/other
-     *   (C:, '') -> C:
+     *   (some/path, some) -&gt; path
+     *   (some/path/other, some) -&gt; path/other
+     *   (C:, '') -&gt; C:
      */
     public VfsRelativePath fromChild(String relativeChildPath) {
         return relativeChildPath.isEmpty()
@@ -170,11 +170,11 @@ public class VfsRelativePath {
      *
      * For example, this method returns:
      *     some/path     == some/other
-     *     some1/path    <  some2/other
-     *     some/path     >  some1/other
+     *     some1/path    &lt;  some2/other
+     *     some/path     &gt;  some1/other
      *     some/same     == some/same/more
      *     some/one/alma == some/two/bela
-     *     a/some        <  b/other
+     *     a/some        &lt;  b/other
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */

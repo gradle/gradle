@@ -20,10 +20,10 @@ package org.gradle.api.logging;
  * <p>An extension to the SLF4J {@code Logger} interface, which adds the {@code quiet} and {@code lifecycle} log
  * levels.</p>
  *
- * <p>You can obtain a {@code Logger} instance using {@link Logging#getLogger(Class)} or {@link
- * Logging#getLogger(String)}. A {@code Logger} instance is also available through {@link
- * org.gradle.api.Project#getLogger()}, {@link org.gradle.api.Task#getLogger()} and {@link
- * org.gradle.api.Script#getLogger()}.</p>
+ * <p>You can obtain a {@code Logger} instance using {@link Logging#getLogger(Class)} or {@code
+ * Logging.getLogger(String)}. A {@code Logger} instance is also available through {@code
+ * org.gradle.api.Project.getLogger()}, {@code org.gradle.api.Task.getLogger()} and {@code
+ * org.gradle.api.Script.getLogger()}.</p>
  * <br>
  * <p><b>CAUTION!</b>
  * Logging sensitive information (credentials, tokens, certain environment variables) above {@link Logger#debug} level is a security vulnerability.

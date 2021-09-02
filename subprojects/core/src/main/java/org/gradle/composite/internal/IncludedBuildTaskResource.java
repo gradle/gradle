@@ -18,8 +18,6 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.function.Consumer;
-
 /**
  * A resource produced by a task in an included build.
  */
@@ -29,7 +27,7 @@ public interface IncludedBuildTaskResource {
     }
 
     /**
-     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
+     * Queues a task for execution, but does not schedule it. Use {@code IncludedBuildTaskGraph.runScheduledTasks(Consumer)} or {@code IncludedBuildTaskGraph.populateTaskGraphs()} to schedule tasks.
      */
     void queueForExecution();
 

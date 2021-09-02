@@ -64,6 +64,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * to control how the task is created. The following options are available:</p>
      *
      * <table>
+     *     <caption>Arguments</caption>
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
@@ -71,7 +72,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * Must be specified.</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
-     * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
+     * create.</td><td>{@code org.gradle.api.DefaultTask}</td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
      * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>

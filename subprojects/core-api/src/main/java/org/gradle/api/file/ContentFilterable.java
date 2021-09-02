@@ -84,7 +84,7 @@ public interface ContentFilterable {
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using
-     * Groovy's {@link groovy.text.SimpleTemplateEngine}. This means you can use simple property references, such as
+     * Groovy's {@code groovy.text.SimpleTemplateEngine}. This means you can use simple property references, such as
      * <code>$property</code> or <code>${property}</code> in the file. You can also include arbitrary Groovy code in the
      * file, such as <code>${version ?: 'unknown'}</code> or <code>${classpath*.name.join(' ')}</code>
      * <p>
@@ -99,7 +99,7 @@ public interface ContentFilterable {
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using
-     * Groovy's {@link groovy.text.SimpleTemplateEngine}. This means you can use simple property references, such as
+     * Groovy's {@code groovy.text.SimpleTemplateEngine}. This means you can use simple property references, such as
      * <code>$property</code> or <code>${property}</code> in the file. You can also include arbitrary Groovy code in the
      * file, such as <code>${version ?: 'unknown'}</code> or <code>${classpath*.name.join(' ')}</code>. The template
      * engine can be configured with the provided action.

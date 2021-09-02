@@ -66,7 +66,7 @@ import java.util.concurrent.Callable;
  * care of deserializing and invoking the worker action.</p>
  *
  * <p> Instantiated in the implementation ClassLoader and invoked from {@link org.gradle.process.internal.worker.GradleWorkerMain}.
- * See {@link ApplicationClassesInSystemClassLoaderWorkerImplementationFactory} for details.</p>
+ * See {@code ApplicationClassesInSystemClassLoaderWorkerImplementationFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final DataInputStream configInputStream;

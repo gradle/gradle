@@ -33,7 +33,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * <p>An implementation is not required to support any of these features. Implementations must be thread-safe.
  *
- * <p>A service of this type is available in all scopes. However, the recommended way to receive an {@code Instantiator} is via a {@link org.gradle.internal.instantiation.InstantiatorFactory}.</p>
+ * <p>A service of this type is available in all scopes. However, the recommended way to receive an {@code Instantiator} is via a <code>org.gradle.internal.instantiation.InstantiatorFactory</code>.</p>
  */
 @UsedByScanPlugin("test-retry")
 public interface Instantiator {

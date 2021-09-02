@@ -209,7 +209,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Determines whether debugging is enabled for the test process. When enabled — {@code debug = true} — the process
      * is started in a suspended state, listening on port 5005. You should disable parallel test execution when
      * debugging and you will need to reattach the debugger occasionally if you use a non-zero value for
-     * {@link org.gradle.api.tasks.testing.Test#getForkEvery()}.
+     * {@code org.gradle.api.tasks.testing.Test.getForkEvery()}.
      * <p>
      * Since Gradle 5.6, you can configure the port and other Java debug properties via
      * {@link #debugOptions(Action)}.

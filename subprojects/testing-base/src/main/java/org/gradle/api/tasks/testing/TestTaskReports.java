@@ -22,7 +22,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.tasks.Internal;
 
 /**
- * The reports produced by the {@link Test} task.
+ * The reports produced by the {@code Test} task.
  */
 public interface TestTaskReports extends ReportContainer<Report> {
 

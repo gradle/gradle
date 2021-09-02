@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Internal;
  * A machine operating system.
  *
  * <table>
+ *     <caption>Operating Systems</caption>
  *     <tr>
  *         <th>Operating System</th>
  *         <th>Aliases</th>

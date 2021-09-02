@@ -39,7 +39,7 @@ import org.gradle.api.artifacts.PublishArtifact;
  *
  * <li>{@link PublishArtifact}.</li>
  *
- * <li>{@link org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...). The task will be executed if the artifact is required.</li>
+ * <li>{@code org.gradle.api.tasks.bundling.AbstractArchiveTask}. The information for publishing the artifact is extracted from the archive task (e.g. name, extension, ...). The task will be executed if the artifact is required.</li>
  *
  * <li>A {@link org.gradle.api.file.RegularFile} or {@link org.gradle.api.file.Directory}.</li>
  *

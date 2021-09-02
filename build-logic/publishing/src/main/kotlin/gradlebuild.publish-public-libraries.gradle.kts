@@ -58,8 +58,8 @@ tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+        project.providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime().orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").forUseAtConfigurationTime().orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {

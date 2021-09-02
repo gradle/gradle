@@ -68,16 +68,14 @@ public interface ProcessForkOptions {
     void setWorkingDir(File dir);
 
     /**
-     * Sets the working directory for the process. The supplied argument is evaluated as per {@link
-     * org.gradle.api.Project#file(Object)}.
+     * Sets the working directory for the process. The supplied argument is evaluated as per <code>org.gradle.api.Project.file(Object)</code>.
      *
      * @param dir The working directory. Must not be null.
      */
     void setWorkingDir(Object dir);
 
     /**
-     * Sets the working directory for the process. The supplied argument is evaluated as per {@link
-     * org.gradle.api.Project#file(Object)}.
+     * Sets the working directory for the process. The supplied argument is evaluated as per <code>org.gradle.api.Project.file(Object)</code>.
      *
      * @param dir The working directory. Must not be null.
      * @return this

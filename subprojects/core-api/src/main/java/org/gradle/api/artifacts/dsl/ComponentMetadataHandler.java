@@ -94,7 +94,7 @@ public interface ComponentMetadataHandler {
     /**
      * Adds a rule that may modify the metadata of any resolved software component.
      *
-     * <p>The ruleSource is an Object that has a single rule method annotated with {@link org.gradle.model.Mutate}.
+     * <p>The ruleSource is an Object that has a single rule method annotated with {@code org.gradle.model.Mutate}.
      *
      * <p>This rule method:
      * <ul>

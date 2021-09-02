@@ -55,7 +55,7 @@ import org.gradle.internal.HasInternalProtocol;
  * method or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
  * As a last resort, it is possible to modify the generated POM using the {@link MavenPom#withXml(org.gradle.api.Action)} method.
  * </p>
- * <h4>Example of publishing a Java module with a source artifact and a customized POM</h4>
+ * <h1>Example of publishing a Java module with a source artifact and a customized POM</h1>
  * <pre class='autoTested'>
  * plugins {
  *     id 'java'

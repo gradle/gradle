@@ -21,7 +21,7 @@ import org.testng.ITestClass;
 
 /**
  * Listener that reacts if a test class is started and finished.
- * This listener is invoked if the executing TestNG version is >= 6.9.10 which introduces the {@code org.testng.IClassListener}.
+ * This listener is invoked if the executing TestNG version is &gt;= 6.9.10 which introduces the {@code org.testng.IClassListener}.
  *
  * @see TestNGListenerAdapterFactory
  */

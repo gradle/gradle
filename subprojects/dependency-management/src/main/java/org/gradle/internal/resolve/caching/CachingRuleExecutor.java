@@ -21,7 +21,7 @@ import org.gradle.internal.action.InstantiatingAction;
 
 /**
  * A caching rule executor allows caching the result of processing a rule. A rule is represented by a
- * {@link InstantiatingAction<DETAILS> instantiating action}, which is responsible for instantiating
+ * {@code InstantiatingAction<DETAILS> instantiating action}, which is responsible for instantiating
  * and configuring a rule. From a user point of view, a rule works on a {@link DETAILS} instance,
  * which is often, but not necessarily, a builder. A {@link DETAILS} can mutate an existing object,
  * for example. This means that the result of executing the rule is not necessarily the same as the

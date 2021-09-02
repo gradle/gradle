@@ -63,6 +63,7 @@ fun configureCompile() {
     }
     addCompileAllTask()
 }
+
 fun configureJavadocVariant() {
     java {
         withJavadocJar()

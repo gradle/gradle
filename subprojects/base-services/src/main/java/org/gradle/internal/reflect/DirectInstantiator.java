@@ -26,20 +26,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 /**
- * You should use the methods of {@link org.gradle.api.internal.InstantiatorFactory} instead of this type, as it will give better error reporting, more consistent behaviour and better performance.
- * This type will be retired in favor of {@link org.gradle.api.internal.InstantiatorFactory} at some point. Currently it is too tangled with a few things to just remove.
+ * You should use the methods of {@code org.gradle.api.internal.InstantiatorFactory} instead of this type, as it will give better error reporting, more consistent behaviour and better performance.
+ * This type will be retired in favor of (@code org.gradle.api.internal.InstantiatorFactory} at some point. Currently it is too tangled with a few things to just remove.
  */
 public class DirectInstantiator implements Instantiator {
 
     /**
-     * Please use {@link org.gradle.api.internal.InstantiatorFactory} instead.
+     * Please use {@code org.gradle.api.internal.InstantiatorFactory} instead.
      */
     public static final Instantiator INSTANCE = new DirectInstantiator();
 
     private final ConstructorCache constructorCache = new ConstructorCache();
 
     /**
-     * Please use {@link org.gradle.api.internal.InstantiatorFactory} instead.
+     * Please use {@code org.gradle.api.internal.InstantiatorFactory} instead.
      */
     public static <T> T instantiate(Class<? extends T> type, Object... params) {
         return INSTANCE.newInstance(type, params);

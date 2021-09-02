@@ -62,7 +62,7 @@ public interface PublishingExtension {
      * The {@code repositories} block is backed by a {@link RepositoryHandler}, which is the same DSL as that that is used for declaring repositories to consume dependencies from. However,
      * certain types of repositories that can be created by the repository handler are not valid for publishing, such as {@link org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral()}.
      * <p>
-     * At this time, only repositories created by the {@code ivy()} factory method have any effect. Please see {@link org.gradle.api.publish.ivy.IvyPublication}
+     * At this time, only repositories created by the {@code ivy()} factory method have any effect. Please see {@code org.gradle.api.publish.ivy.IvyPublication}
      * for information on how this can be used for publishing to Ivy repositories.
      *
      * @param configure The action to configure the container of repositories with.
@@ -86,7 +86,7 @@ public interface PublishingExtension {
      * Maven Project (i.e. {@code pom.xml} and artifacts).
      * <p>
      * Actual publication implementations and the ability to create them are provided by different plugins. The “publishing” plugin itself does not provide any publication types.
-     * For example, given that the 'maven-publish' plugin provides a {@link org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
+     * For example, given that the 'maven-publish' plugin provides a {@code org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
      * <pre class='autoTested'>
      * plugins {
      *     id 'maven-publish'
@@ -101,7 +101,7 @@ public interface PublishingExtension {
      * }
      * </pre>
      * <p>
-     * Please see {@link org.gradle.api.publish.ivy.IvyPublication} and {@link org.gradle.api.publish.maven.MavenPublication} for more information on publishing in these specific formats.
+     * Please see {@code org.gradle.api.publish.ivy.IvyPublication} and {@code org.gradle.api.publish.maven.MavenPublication} for more information on publishing in these specific formats.
      *
      * @param configure The action or closure to configure the publications with.
      */

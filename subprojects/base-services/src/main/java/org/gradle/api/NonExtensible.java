@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the type, when DSL enhanced, does not support extensibility.
  * <p>
- * This means that it will not be enhanced with {@link org.gradle.api.plugins.ExtensionAware}.
+ * This means that it will not be enhanced with {@code org.gradle.api.plugins.ExtensionAware}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -16,10 +16,8 @@
 
 package org.gradle.internal.component.model;
 
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
@@ -39,7 +37,7 @@ import java.util.List;
 
 /**
  * A set of rules provided by the build script author
- * (as {@link Action<DirectDependenciesMetadata>} or {@link Action<DependencyConstraintsMetadata>})
+ * (as {@code Action<DirectDependenciesMetadata>} or {@code Action<DependencyConstraintsMetadata>})
  * that are applied on the dependencies defined in variant/configuration metadata. The rules are applied
  * in the {@link #execute(VariantResolveMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
  */

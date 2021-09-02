@@ -23,8 +23,8 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
  *
  * The set of available publication types is dependent on the application of particular plugins:
  * <ul>
- *     <li>The {@link org.gradle.api.publish.maven.plugins.MavenPublishPlugin} makes it possible to create {@link org.gradle.api.publish.maven.MavenPublication} instances.</li>
- *     <li>The {@link org.gradle.api.publish.ivy.plugins.IvyPublishPlugin} makes it possible to create {@link org.gradle.api.publish.ivy.IvyPublication} instances.</li>
+ *     <li>The {@code org.gradle.api.publish.maven.plugins.MavenPublishPlugin} makes it possible to create {@code org.gradle.api.publish.maven.MavenPublication} instances.</li>
+ *     <li>The {@code org.gradle.api.publish.ivy.plugins.IvyPublishPlugin} makes it possible to create {@code org.gradle.api.publish.ivy.IvyPublication} instances.</li>
  * </ul>
  *
  *

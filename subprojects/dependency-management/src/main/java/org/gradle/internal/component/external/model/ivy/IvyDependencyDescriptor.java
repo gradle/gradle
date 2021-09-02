@@ -115,7 +115,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
      * Choose a set of configurations from the target component.
      * The set chosen is based on a) the name of the configuration that declared this dependency and b) the {@link #confs} mapping for this dependency.
      *
-     * The `confs` mapping is structured as `fromConfiguration -> [targetConf...]`. Targets are collected for all configurations in the `fromConfiguration` hierarchy.
+     * The `confs` mapping is structured as `fromConfiguration -&gt; [targetConf...]`. Targets are collected for all configurations in the `fromConfiguration` hierarchy.
      *   - '*' is a wildcard key, that matches _all_ `fromConfiguration values.
      *       - '*, !A' is a key that matches _all_ `fromConfiguration values _except_ 'A'.
      *   - '%' is a key that matches a `fromConfiguration` value that is not matched by any of the other keys.
