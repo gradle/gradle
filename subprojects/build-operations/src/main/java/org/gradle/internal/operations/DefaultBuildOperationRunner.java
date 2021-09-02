@@ -35,15 +35,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory) {
-        this(currentBuildOperationRef, clock, buildOperationIdFactory, new BuildOperationExecutionListenerFactory() {
-            @Override
-            public BuildOperationExecutionListener createListener() {
-                return BuildOperationExecutionListener.NO_OP;
-            }
-        });
-    }
-
     public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
@@ -260,13 +251,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     public interface BuildOperationExecutionListener {
         BuildOperationExecutionListener NO_OP = new BuildOperationExecutionListener() {
             @Override
-            public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {}
+            public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            }
 
             @Override
-            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {}
+            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
+            }
 
             @Override
-            public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {}
+            public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            }
         };
 
         void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
