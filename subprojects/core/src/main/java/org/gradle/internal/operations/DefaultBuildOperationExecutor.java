@@ -42,7 +42,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    private final UnmanagedBuildOperationWrapper wrapper;
 
     public DefaultBuildOperationExecutor(
         BuildOperationListener listener,
@@ -59,11 +58,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             buildOperationIdFactory,
             () -> new ListenerAdapter(listener, progressLoggerFactory, clock)
         );
-        this.wrapper = new UnmanagedBuildOperationWrapper(
-            listener,
-            clock,
-            currentBuildOperationRef
-        );
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount()));
         managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", parallelismConfiguration.getMaxWorkerCount() * 10));
@@ -71,17 +65,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> runner.run(buildOperation));
+        runner.run(buildOperation);
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return wrapper.callWithUnmanagedSupport(getCurrentBuildOperation(), parent -> runner.call(buildOperation));
+        return runner.call(buildOperation);
     }
 
     @Override
     public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        wrapper.runWithUnmanagedSupport(defaultParent, parent -> runner.execute(buildOperation, worker, parent));
+        runner.execute(buildOperation, worker, defaultParent);
     }
 
     @Override
@@ -105,7 +99,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction, buildOperationConstraint));
+        executeInParallel(false, new QueueWorker<>(getCurrentBuildOperation(), RunnableBuildOperation::run), schedulingAction, buildOperationConstraint);
     }
 
     @Override
@@ -115,7 +109,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(true, new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction, buildOperationConstraint));
+        executeInParallel(true, new QueueWorker<>(getCurrentBuildOperation(), RunnableBuildOperation::run), schedulingAction, buildOperationConstraint);
     }
 
     @Override
@@ -125,7 +119,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(false, new QueueWorker<>(parent, worker), schedulingAction, buildOperationConstraint));
+        executeInParallel(false, new QueueWorker<>(getCurrentBuildOperation(), worker), schedulingAction, buildOperationConstraint);
     }
 
     @Nullable

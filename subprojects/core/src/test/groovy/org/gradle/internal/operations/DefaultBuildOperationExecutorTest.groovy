@@ -541,7 +541,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         ex.message == 'No operation is currently running.'
     }
 
-
     def "can nest operations on unmanaged threads"() {
         when:
         async {
@@ -550,7 +549,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             operationExecutor.run(new RunnableBuildOperation() {
                 void run(BuildOperationContext outerContext) {
                     assert operationExecutor.currentOperation.id != null
-                    assert operationExecutor.currentOperation.parentId.id < 0
+                    assert operationExecutor.currentOperation.parentId == null
 
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext innerContext) {}
