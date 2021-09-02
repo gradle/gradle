@@ -17,7 +17,8 @@ Include only their name, impactful features should be called out separately belo
 [Alex Landau](https://github.com/AlexLandau),
 [Stefan Oehme](https://github.com/oehme),
 [yinghao niu](https://github.com/towith),
-[Björn Kautler](https://github.com/Vampire)
+[Björn Kautler](https://github.com/Vampire),
+[Alexis Tual](https://github.com/alextu)
 
 ## Upgrade instructions
 
