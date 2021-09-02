@@ -40,6 +40,7 @@ addDependencies()
 configureClasspathManifestGeneration()
 configureCompile()
 configureSourcesVariant()
+configureJavadocVariant()
 configureJarTasks()
 configureTests()
 
@@ -61,6 +62,11 @@ fun configureCompile() {
         configureCompileTask(options)
     }
     addCompileAllTask()
+}
+fun configureJavadocVariant() {
+    java {
+        withJavadocJar()
+    }
 }
 
 fun configureSourcesVariant() {
