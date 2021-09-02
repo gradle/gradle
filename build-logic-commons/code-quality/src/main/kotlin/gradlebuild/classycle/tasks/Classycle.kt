@@ -26,6 +26,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -44,6 +45,9 @@ import javax.inject.Inject
 
 @CacheableTask
 abstract class Classycle : DefaultTask() {
+
+    @get:Classpath
+    abstract val classycleClasspath: ConfigurableFileCollection
 
     @get:Internal
     abstract val classesDirs: ConfigurableFileCollection
@@ -79,9 +83,9 @@ abstract class Classycle : DefaultTask() {
     abstract val antBuilder: IsolatedAntBuilder
 
     @TaskAction
-    fun generate() = project.run {
+    fun generate() {
         val classesDirs = existingClassesDir
-        val classpath = configurations["classycle"].files
+        val classpath = classycleClasspath.files
         reportFile.get().asFile.parentFile.mkdirs()
         antBuilder.withClasspath(classpath).execute(
             closureOf<AntBuilderDelegate> {
