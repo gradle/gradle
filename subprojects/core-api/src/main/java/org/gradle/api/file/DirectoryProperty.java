@@ -73,7 +73,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * {@inheritDoc}
      */
     @Override
-    DirectoryProperty convention(Provider<? extends Directory> valueProvider);
+    DirectoryProperty convention(Provider<? extends Directory> provider);
 
     /**
      * Returns a {@link Directory} whose value is the given path resolved relative to the value of this directory.
