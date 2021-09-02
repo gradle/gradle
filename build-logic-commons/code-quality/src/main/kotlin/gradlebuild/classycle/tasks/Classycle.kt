@@ -67,11 +67,11 @@ abstract class Classycle : DefaultTask() {
         get() = classesDirs.filter(File::exists)
 
     @get:OutputFile
-    val reportFile
+    val reportFile: Provider<RegularFile>
         get() = reportName.map { reportDir.file("${it}.txt").get() }
 
     private
-    val analysisFile
+    val analysisFile: Provider<RegularFile>
         get() = reportName.map { reportDir.file("${it}_analysis.xml").get() }
 
     @get:Inject
