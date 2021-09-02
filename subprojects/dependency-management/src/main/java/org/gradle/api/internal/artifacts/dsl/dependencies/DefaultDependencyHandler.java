@@ -417,6 +417,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         });
     }
 
+    /**
+     * Implemented here instead as a default method of DependencyHandler like most of other methods with `Provider<MinimalExternalModuleDependency>` argument
+     * since we don't want to expose enforcedPlatform on many places since we might deprecate enforcedPlatform in the future
+     *
+     * @param dependencyProvider the dependency provider
+     */
+    @Override
+    public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
+        return variantOf(dependencyProvider, spec -> {
+            DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
+            defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
+        });
+    }
+
     private Category toCategory(String category) {
         return objects.named(Category.class, category);
     }
@@ -448,11 +462,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         @Override
         public void platform() {
             this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
-        }
-
-        @Override
-        public void enforcedPlatform() {
-            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         }
 
         @Override

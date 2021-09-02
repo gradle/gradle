@@ -620,9 +620,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 7.3
      */
     @Incubating
-    default Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
-        return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::enforcedPlatform);
-    }
+    Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider);
 
     /**
      * Configures this dependency provider to select the test fixtures of the target component
