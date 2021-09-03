@@ -145,6 +145,15 @@
     "linux" : 238000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 368000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 576000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting gzip tar trees",
   "durations" : [ {
     "testProject" : "archivePerformanceProject",
