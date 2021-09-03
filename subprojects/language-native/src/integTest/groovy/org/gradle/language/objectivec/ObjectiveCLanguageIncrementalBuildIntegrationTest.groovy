@@ -36,27 +36,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractNativeLa
         return false
     }
 
-    @Ignore("Demos a problem with clang on ubuntu creating randomly different object files")
-    def "generates always exactly same object file"() {
-        setup:
-        def recordings = []
-        def invocation =  10
-        when:
-        invocation.times{
-            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def oldHash = Hashing.sha1().hashFile(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).toCompactString()
-
-            //to ensure it's not a timestamp issue
-            sleep(1000)
-            run "cleanCompileHelloSharedLibraryHello$sourceType", "compileHelloSharedLibraryHello$sourceType"
-            def newHash = Hashing.sha1().hashFile(objectFileFor(librarySourceFiles[0], "build/objs/helloSharedLibrary/hello$sourceType")).toCompactString()
-            recordings << (oldHash == newHash)
-        }
-        then:
-        recordings.findAll{ it }.size() != 0 // not everytime the .o file differs -> not a timestamp issue
-        recordings.findAll{ it }.size() == invocation
-    }
-
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()
