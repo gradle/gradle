@@ -24,10 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
-
-import java.nio.file.Path
-
 /**
  * Dependency substitution is performed for models in a composite build
  */
@@ -77,13 +73,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def eclipseProject = loadToolingModel(EclipseProject)
 
         then:
-        def files = eclipseProject.classpath.collect{ it.getFile().toPath() }
-        if (targetVersion > GradleVersion.version("7.2")) {
-            assert files[0].endsWith(Path.of('build', 'classes', 'java', 'main'))
-            assert files[1].endsWith(Path.of('build', 'resources', 'main'))
-        } else {
-            assert files.empty
-        }
+        assert eclipseProject.classpath.empty
         eclipseProject.projectDependencies.collect {it.path}  == ['b1']
     }
 
