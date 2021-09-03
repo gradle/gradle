@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -51,9 +52,9 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+    public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
         STATS.resource(location);
-        return accessor.openResource(location, revalidate);
+        return accessor.withContent(location, revalidate, action);
     }
 
     @Nullable
@@ -192,7 +193,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             if (count == null) {
                 container.put(uri, 1);
             } else {
-                container.put(uri, count+1);
+                container.put(uri, count + 1);
             }
         }
 
@@ -254,7 +255,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
             int cpt = 0;
             for (Map.Entry<URI, Integer> entry : entries) {
                 sb.append("   ").append(entry.getKey()).append(" (").append(entry.getValue()).append(" times)\n");
-                if (++cpt==max) {
+                if (++cpt == max) {
                     break;
                 }
             }

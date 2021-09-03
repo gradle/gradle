@@ -24,6 +24,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
-public class S3ResourceConnector implements ExternalResourceConnector {
+public class S3ResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ResourceConnector.class);
     private final S3Client s3Client;

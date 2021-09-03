@@ -20,7 +20,6 @@ import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
@@ -30,75 +29,72 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     ProgressLogger progressLogger = Mock()
     ExternalResourceReadResponse externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
+    ExternalResourceAccessor.ContentAndMetadataAction action = Mock()
+    URI location = new URI("location")
 
     def setup() {
         externalResource.metaData >> metaData
     }
 
-    @Unroll
-    def "delegates #method to delegate resource accessor"() {
-        when:
-        progressLoggerAccessor."$method"(new URI("location"), false)
-
-        then:
-        1 * accessor."$method"(new URI("location"), false)
-
-        where:
-        method << ['getMetaData', 'openResource']
-    }
-
     def "getResource returns null when delegate returns null"() {
         setup:
-        accessor.openResource(new URI("location"), false) >> null
+        accessor.withContent(location, false, _) >> null
 
         when:
-        def loadedResource = progressLoggerAccessor.openResource(new URI("location"), false)
+        def result = progressLoggerAccessor.withContent(location, false, action)
 
         then:
-        loadedResource == null
+        result == null
+
+        and:
+        0 * action._
     }
 
     def "wraps response in delegate"() {
         setup:
-        accessor.openResource(new URI("location"), false) >> externalResource
+        expectResourceRead(location, metaData, new ByteArrayInputStream())
 
         when:
-        def loadedResource = progressLoggerAccessor.openResource(new URI("location"), false)
+        def result = progressLoggerAccessor.withContent(location, false, action)
 
         then:
-        loadedResource != null
+        result == "result"
+
+        and:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
 
-        when:
-        loadedResource.close()
+        then:
+        1 * action.execute(_, _) >> "result"
 
         then:
-        1 * externalResource.close()
         1 * progressLogger.completed()
     }
 
     def "fires progress events as content is read"() {
         setup:
-        accessor.openResource(new URI("location"), false) >> externalResource
         metaData.getContentLength() >> 4096
-        externalResource.openStream() >> new ByteArrayInputStream(new byte[4096])
+        expectResourceRead(location, metaData, new ByteArrayInputStream(new byte[4096]))
 
         when:
-        def resource = progressLoggerAccessor.openResource(new URI("location"), false)
-        def inputStream = resource.openStream()
-        inputStream.read()
-        inputStream.read()
-        inputStream.read(new byte[560])
-        inputStream.read(new byte[1000])
-        inputStream.read(new byte[1600])
-        inputStream.read(new byte[1024])
-        inputStream.read(new byte[1024])
-        resource.close()
+        def result = progressLoggerAccessor.withContent(location, false, action)
 
         then:
+        result == "result"
+
+        and:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
+        1 * action.execute(_, _) >> { metaData, inputStream ->
+            inputStream.read()
+            inputStream.read()
+            inputStream.read(new byte[560])
+            inputStream.read(new byte[1000])
+            inputStream.read(new byte[1600])
+            inputStream.read(new byte[1024])
+            inputStream.read(new byte[1024])
+            "result"
+        }
         1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
         1 * progressLogger.progress('3 KiB/4 KiB downloaded')
         1 * progressLogger.progress('4 KiB/4 KiB downloaded')
@@ -108,19 +104,19 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     def "fires complete event when response closed with partially read stream"() {
         setup:
-        accessor.openResource(new URI("location"), false) >> externalResource
         metaData.getContentLength() >> 4096
-        externalResource.openStream() >> new ByteArrayInputStream(new byte[4096])
+        expectResourceRead(location, metaData, new ByteArrayInputStream(new byte[4096]))
 
         when:
-        def resource = progressLoggerAccessor.openResource(new URI("location"), false)
-        def inputStream = resource.openStream()
-        inputStream.read(new byte[1600])
-        resource.close()
+        progressLoggerAccessor.withContent(location, false, action)
 
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
+        1 * action.execute(_, _) >> { metaData, inputStream ->
+            inputStream.read(new byte[1600])
+            "result"
+        }
         1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
@@ -128,20 +124,26 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     def "no progress events logged for resources smaller 1024 bytes"() {
         setup:
-        accessor.openResource(new URI("location"), false) >> externalResource
         metaData.getContentLength() >> 1023
-        externalResource.openStream() >> new ByteArrayInputStream(new byte[1023])
+        expectResourceRead(location, metaData, new ByteArrayInputStream(new byte[1023]))
 
         when:
-        def resource = progressLoggerAccessor.openResource(new URI("location"), false)
-        def inputStream = resource.openStream()
-        inputStream.read(new byte[1024])
-        resource.close()
+        progressLoggerAccessor.withContent(location, false, action)
 
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
+        1 * action.execute(_, _) >> { metaData, inputStream ->
+            inputStream.read(new byte[1024])
+            "result"
+        }
         1 * progressLogger.completed()
         0 * progressLogger.progress(_)
+    }
+
+    def expectResourceRead(URI location, ExternalResourceMetaData metaData, InputStream inputStream) {
+        1 * accessor.withContent(location, false, _) >> { uri, revalidate, action ->
+            action.execute(metaData, inputStream)
+        }
     }
 }

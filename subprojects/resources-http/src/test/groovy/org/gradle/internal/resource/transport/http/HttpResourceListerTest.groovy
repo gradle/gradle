@@ -21,20 +21,20 @@ import spock.lang.Specification
 
 class HttpResourceListerTest extends Specification {
     HttpResourceAccessor accessorMock = Mock()
-    HttpResponseResource externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
     HttpResourceLister lister = new HttpResourceLister(accessorMock)
 
-    def "consumeExternalResource closes resource after reading into stream"() {
+    def "parses resource content"() {
         setup:
-        accessorMock.openResource(new URI("http://testrepo/"), true) >> externalResource;
+        def inputStream = new ByteArrayInputStream("<a href='child'/>".bytes)
+
         when:
         lister.list(new URI("http://testrepo/"))
         then:
-        1 * externalResource.openStream() >> new ByteArrayInputStream("<a href='child'/>".bytes)
-        _ * externalResource.metaData >> metaData
-        1 * metaData.getContentType() >> "text/html"
-        1 * externalResource.close()
+        1 * accessorMock.withContent(new URI("http://testrepo/"), true, _) >> {  uri, revalidate, action ->
+            return action.execute(metaData, inputStream)
+        }
+        _ * metaData.getContentType() >> "text/html"
     }
 
     def "list returns null if HttpAccessor returns null"(){

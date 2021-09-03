@@ -26,7 +26,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,10 +80,12 @@ public class PublicKeyDownloadService implements PublicKeyService {
                 }
                 try {
                     URI query = toQuery(baseUri, fingerprint);
-                    ExternalResourceReadResponse response = client.openResource(query, false);
-                    if (response != null) {
-                        extractKeyRing(response, builder, onKeyring);
+                    IOQuery.Result<Boolean> response = client.withContent(query, false, inputStream -> {
+                        extractKeyRing(inputStream, builder, onKeyring);
                         return IOQuery.Result.successful(true);
+                    });
+                    if (response != null) {
+                        return response;
                     } else {
                         logKeyDownloadAttempt(fingerprint, baseUri);
                         // null means the resource is missing from this repo
@@ -128,10 +129,8 @@ public class PublicKeyDownloadService implements PublicKeyService {
         }
     }
 
-    private void extractKeyRing(ExternalResourceReadResponse response, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
-
-        try (InputStream stream = response.openStream();
-             InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
+    private void extractKeyRing(InputStream stream, PublicKeyResultBuilder builder, Consumer<? super PGPPublicKeyRing> onKeyring) throws IOException {
+        try (InputStream decoderStream = PGPUtil.getDecoderStream(stream)) {
             PGPObjectFactory objectFactory = new PGPObjectFactory(
                 decoderStream, new BcKeyFingerprintCalculator());
             PGPPublicKeyRing keyring = (PGPPublicKeyRing) objectFactory.nextObject();

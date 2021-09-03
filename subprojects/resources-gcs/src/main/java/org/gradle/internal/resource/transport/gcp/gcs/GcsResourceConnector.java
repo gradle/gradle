@@ -20,6 +20,7 @@ import com.google.api.services.storage.model.StorageObject;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ import java.util.List;
 
 import static org.gradle.internal.resource.transport.gcp.gcs.ResourceMapper.toExternalResourceMetaData;
 
-public class GcsResourceConnector implements ExternalResourceConnector {
+public class GcsResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GcsResourceConnector.class);
 

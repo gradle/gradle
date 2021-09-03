@@ -17,17 +17,13 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
-    private HttpResourceAccessor accessor;
+    private final HttpResourceAccessor accessor;
 
     public HttpResourceLister(HttpResourceAccessor accessor) {
         this.accessor = accessor;
@@ -35,25 +31,14 @@ public class HttpResourceLister implements ExternalResourceLister {
 
     @Override
     public List<String> list(final URI directory) {
-        final ExternalResourceReadResponse response = accessor.openResource(directory, true);
-        if (response == null) {
-            return null;
-        }
-        try {
+        return accessor.withContent(directory, true, (metaData, inputStream) -> {
+            String contentType = metaData.getContentType();
+            ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
             try {
-                String contentType = response.getMetaData().getContentType();
-                ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
-                InputStream inputStream = response.openStream();
-                try {
-                    return directoryListingParser.parse(directory, inputStream, contentType);
-                } catch (Exception e) {
-                    throw new ResourceException(directory, String.format("Unable to parse HTTP directory listing for '%s'.", directory), e);
-                }
-            } finally {
-                response.close();
+                return directoryListingParser.parse(directory, inputStream, contentType);
+            } catch (Exception e) {
+                throw new ResourceException(directory, String.format("Unable to parse HTTP directory listing for '%s'.", directory), e);
             }
-        } catch (IOException e) {
-            throw ResourceExceptions.getFailed(directory, e);
-        }
+        });
     }
 }

@@ -35,227 +35,188 @@ class AccessorBackedExternalResourceTest extends Specification {
 
     def "can copy content to a file"() {
         def name = new ExternalResourceName("resource")
-        def response = Mock(ExternalResourceReadResponse)
         def file = tmpDir.file("out")
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
 
         when:
+        expectResourceRead(name, "12345")
         def result = resource.writeToIfPresent(file)
 
         then:
         result.bytesRead == 5
         file.text == "12345"
-
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("12345".getBytes())
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, "hi")
         result = resource.writeTo(file)
 
         then:
         result.bytesRead == 2
         file.text == "hi"
-
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
-        1 * response.close()
         0 * _
     }
 
     def "can apply Action to the content of the resource"() {
         def name = new ExternalResourceName("resource")
         def action = Mock(Action)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
 
         when:
+        expectResourceRead(name, "1234")
         def result = resource.withContent(action)
 
         then:
         result.result == null
         result.bytesRead == 4
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
         1 * action.execute(_) >> { InputStream input -> input.text }
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, "1234")
         result = resource.withContent(action)
 
         then:
         result.result == null
         result.bytesRead == 2
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
         1 * action.execute(_) >> { InputStream input -> input.read(); input.read() }
-        1 * response.close()
         0 * _
     }
 
     def "can apply Transformer to the content of the resource"() {
         def name = new ExternalResourceName("resource")
         def transformer = Mock(Transformer)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
 
         when:
+        expectResourceRead(name, "1234")
         def result = resource.withContentIfPresent(transformer)
 
         then:
         result.result == "result 1"
         result.bytesRead == 4
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
         1 * transformer.transform(_) >> { InputStream input -> input.text; "result 1" }
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, "1234")
         result = resource.withContent(transformer)
 
         then:
         result.result == "result 2"
         result.bytesRead == 2
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
         1 * transformer.transform(_) >> { InputStream input -> input.read(); input.read(); "result 2" }
-        1 * response.close()
         0 * _
     }
 
     def "can apply ContentAction to the content of the resource"() {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def metaData = Stub(ExternalResourceMetaData)
 
         when:
+        expectResourceRead(name, metaData, "1234")
         def result = resource.withContentIfPresent(action)
 
         then:
         result.result == "result 1"
         result.bytesRead == 4
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
-        _ * response.metaData >> metaData
         1 * action.execute(_, metaData) >> { InputStream input, ExternalResourceMetaData m -> input.text; "result 1" }
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, metaData, "1234")
         result = resource.withContent(action)
 
         then:
         result.result == "result 2"
         result.bytesRead == 2
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("1234".getBytes())
-        _ * response.metaData >> metaData
         1 * action.execute(_, metaData) >> { InputStream input, ExternalResourceMetaData m -> input.read(); input.read(); "result 2" }
-        1 * response.close()
         0 * _
     }
 
     def "closes response when Action fails"() {
         def name = new ExternalResourceName("resource")
         def action = Mock(Action)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def failure = new RuntimeException()
 
         when:
+        expectResourceRead(name, "1234")
         resource.withContent(action)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
         1 * action.execute(_) >> { throw failure }
-        1 * response.close()
         0 * _
     }
 
     def "closes response when Transformer fails"() {
         def name = new ExternalResourceName("resource")
         def transformer = Mock(Transformer)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def failure = new RuntimeException()
 
         when:
+        expectResourceRead(name, "1234")
         resource.withContentIfPresent(transformer)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
         1 * transformer.transform(_) >> { throw failure }
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, "1234")
         resource.withContent(transformer)
 
         then:
         def e2 = thrown(RuntimeException)
         e2 == failure
 
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
         1 * transformer.transform(_) >> { throw failure }
-        1 * response.close()
         0 * _
     }
 
     def "closes response when ContentAction fails"() {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
-        def response = Mock(ExternalResourceReadResponse)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def metaData = Stub(ExternalResourceMetaData)
         def failure = new RuntimeException()
 
         when:
+        expectResourceRead(name, metaData, "1234")
         resource.withContentIfPresent(action)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
-        _ * response.metaData >> metaData
         1 * action.execute(_, metaData) >> { throw failure }
-        1 * response.close()
         0 * _
 
         when:
+        expectResourceRead(name, metaData, "1234")
         resource.withContent(action)
 
         then:
         def e2 = thrown(RuntimeException)
         e2 == failure
 
-        1 * resourceAccessor.openResource(name.uri, true) >> response
-        1 * response.openStream() >> new ByteArrayInputStream("hi".getBytes())
-        _ * response.metaData >> metaData
         1 * action.execute(_, metaData) >> { throw failure }
-        1 * response.close()
         0 * _
     }
 
@@ -272,7 +233,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         result == null
         !file.exists()
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -290,7 +251,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         e.location == name.uri
         !file.exists()
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -307,7 +268,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -323,7 +284,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         then:
         result == null
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -340,7 +301,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -356,7 +317,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         then:
         result == null
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
     }
 
@@ -373,7 +334,19 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.openResource(name.uri, true) >> null
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
         0 * _
+    }
+
+    def expectResourceRead(ExternalResourceName name, String content) {
+        1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
+            action.execute(new ByteArrayInputStream(content.bytes))
+        }
+    }
+
+    def expectResourceRead(ExternalResourceName name, ExternalResourceMetaData metaData, String content) {
+        1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
+            action.execute(metaData, new ByteArrayInputStream(content.bytes))
+        }
     }
 }

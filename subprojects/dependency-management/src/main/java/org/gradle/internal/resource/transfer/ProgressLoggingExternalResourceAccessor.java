@@ -16,13 +16,11 @@
 
 package org.gradle.internal.resource.transfer;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
@@ -33,53 +31,23 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
+    @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
-        ExternalResourceReadResponse resource = delegate.openResource(location, revalidate);
-        if (resource != null) {
-            return new ProgressLoggingExternalResource(location, resource);
-        } else {
-            return null;
-        }
+    public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
+        return delegate.withContent(location, revalidate, (metaData, inputStream) -> {
+            ResourceOperation downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), metaData.getContentLength());
+            ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+            try {
+                return action.execute(metaData, stream);
+            } finally {
+                downloadOperation.completed();
+            }
+        });
     }
 
     @Override
     @Nullable
     public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
         return delegate.getMetaData(location, revalidate);
-    }
-
-    @VisibleForTesting
-    public class ProgressLoggingExternalResource implements ExternalResourceReadResponse {
-        private final ExternalResourceReadResponse resource;
-        private final ResourceOperation downloadOperation;
-
-        private ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
-            this.resource = resource;
-            downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), resource.getMetaData().getContentLength());
-        }
-
-        @Override
-        public InputStream openStream() throws IOException {
-            return new ProgressLoggingInputStream(resource.openStream(), downloadOperation);
-        }
-
-        @Override
-        public void close() throws IOException {
-            try {
-                resource.close();
-            } finally {
-                downloadOperation.completed();
-            }
-        }
-
-        @Override
-        public ExternalResourceMetaData getMetaData() {
-            return resource.getMetaData();
-        }
-
-        public String toString() {
-            return resource.toString();
-        }
     }
 }

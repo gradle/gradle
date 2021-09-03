@@ -22,12 +22,13 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
 import java.net.URI;
 
-public class SftpResourceAccessor implements ExternalResourceAccessor {
+public class SftpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private final SftpClientFactory sftpClientFactory;
     private final PasswordCredentials credentials;

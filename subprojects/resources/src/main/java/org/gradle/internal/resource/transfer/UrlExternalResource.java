@@ -35,7 +35,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
-public class UrlExternalResource implements ExternalResourceConnector {
+public class UrlExternalResource extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
     public static ExternalResource open(URL url) throws IOException {
         URI uri;
         try {

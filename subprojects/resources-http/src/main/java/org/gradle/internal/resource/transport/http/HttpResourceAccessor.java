@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.net.URI;
 
-public class HttpResourceAccessor implements ExternalResourceAccessor {
+public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
