@@ -409,6 +409,18 @@
     "linux" : 459000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 501000
+    }]
+}, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 474000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change",
   "durations" : [ {
     "testProject" : "largeGroovyMultiProject",
