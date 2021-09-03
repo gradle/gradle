@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":base-annotations"))
     implementation(project(":build-operations"))
 
+    implementation(libs.capsule)
     implementation(libs.guava)
     implementation(libs.nativePlatform)
     implementation(libs.nativePlatformFileEvents)

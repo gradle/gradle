@@ -17,6 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.usethesource.capsule.Set.Transient;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -24,10 +25,11 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static java.util.Comparator.comparingInt;
 
 public class WatchedHierarchies {
     private Set<Path> watchedRoots = new HashSet<>();
@@ -75,10 +77,10 @@ public class WatchedHierarchies {
      */
     @VisibleForTesting
     static Set<Path> resolveHierarchiesToWatch(Stream<Path> directories) {
-        Set<Path> hierarchies = new HashSet<>();
+        Transient<Path> hierarchies = Transient.of();
         directories
-            .sorted(Comparator.comparingInt(Path::getNameCount))
-            .filter(path -> {
+            .sorted(comparingInt(Path::getNameCount))
+            .forEachOrdered(path -> {
                 Path parent = path;
                 while (true) {
                     parent = parent.getParent();
@@ -86,13 +88,12 @@ public class WatchedHierarchies {
                         break;
                     }
                     if (hierarchies.contains(parent)) {
-                        return false;
+                        return;
                     }
                 }
-                return true;
-            })
-            .forEach(hierarchies::add);
-        return hierarchies;
+                hierarchies.__insert(path);
+            });
+        return hierarchies.freeze();
     }
 
     private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {
