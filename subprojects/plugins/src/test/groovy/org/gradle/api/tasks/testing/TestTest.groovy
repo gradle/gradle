@@ -27,7 +27,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
-import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector
