@@ -17,15 +17,12 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.nativeintegration.jansi.JansiStorageLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Issue
-
 // needs to run a distribution from scratch to not have native services on the classpath already
 @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {

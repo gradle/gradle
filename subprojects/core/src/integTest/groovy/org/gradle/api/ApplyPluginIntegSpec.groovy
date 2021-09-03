@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
@@ -27,7 +26,6 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
-
 // TODO: This needs a better home - Possibly in the test kit package in the future
 @Issue("https://github.com/gradle/gradle-private/issues/3247")
 @IgnoreIf({ OperatingSystem.current().macOsX && JavaVersion.current() == JavaVersion.VERSION_1_8})

@@ -17,11 +17,9 @@
 package org.gradle.cache.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 
 // tests a real Gradle distribution
 @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)

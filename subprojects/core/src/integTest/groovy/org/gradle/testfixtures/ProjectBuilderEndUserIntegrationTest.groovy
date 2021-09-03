@@ -16,14 +16,11 @@
 
 package org.gradle.testfixtures
 
-
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
 // this requires a full distribution
 @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
