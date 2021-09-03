@@ -31,7 +31,7 @@ Enjoy first-class Gradle support in your IDE of choice.
 * [Android Studio](https://developer.android.com/studio/build/index.html)
 * [Eclipse](https://www.vogella.com/tutorials/EclipseGradle/article.html)
 * [IntelliJ IDEA](https://www.jetbrains.com/help/idea/gradle.html)
-* [NetBeans](https://netbeans.apache.org/download/nb120/index.html#_gradle)
+* [NetBeans](https://netbeans.apache.org)
 * [Visual Studio Code](https://code.visualstudio.com/docs/languages/java)
 
 ## Need Help?
