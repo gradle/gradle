@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 
 /**
  * Dependency substitution is performed for models in a composite build
@@ -61,9 +60,7 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         }
 
         then:
-        if (targetVersion < GradleVersion.version("7.2")) {
-            assert eclipseProject.classpath.empty
-        }
+        assert eclipseProject.classpath.empty
         assert eclipseProject.projectDependencies.size() == 1
         with(eclipseProject.projectDependencies.first()) {
             it.path == 'b1'
@@ -106,14 +103,9 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         }.modules[0]
 
         then:
-        def moduleDeps = ideaModule.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion < GradleVersion.version("7.2")) {
-            moduleDeps.size() == 1
-        } else {
-            moduleDeps.size() == 3
-        }
-
-        with(moduleDeps.first()) {
+        ideaModule.dependencies.size() == 1
+        with(ideaModule.dependencies.first()) {
+            it instanceof IdeaModuleDependency
             targetModuleName == "b1"
         }
     }
@@ -140,13 +132,9 @@ class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpe
         }.modules[0]
 
         then:
-        def moduleDeps = ideaModule.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion <= GradleVersion.version("7.2")) {
-            moduleDeps.size() == 2
-        } else {
-            moduleDeps.size() === 4
-        }
+        ideaModule.dependencies.size() == 2
+        ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b1-renamed" }
+        ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b2-renamed" }
 
-        moduleDeps.collect { it.targetModuleName } == ["b1-renamed", "b2-renamed"]
     }
 }
