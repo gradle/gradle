@@ -597,54 +597,6 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         fails mainCompileTask
     }
 
-    @Ignore("Test demonstrates missing functionality in incremental build with C++")
-    def "recompiles binary when header file with relative path changes"() {
-        when:
-        buildFile << """
-plugins {
-    id 'cpp'
-}
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-"""
-
-        file("src/main/cpp/main.cpp") << """
-            #include "../not_included/hello.h"
-
-            int main () {
-              sayHello();
-              return 0;
-            }
-"""
-
-        def headerFile = file("src/main/not_included/hello.h") << """
-            void sayHello();
-"""
-
-        file("src/main/cpp/hello.cpp") << """
-            #include <iostream>
-
-            void sayHello() {
-                std::cout << "HELLO" << std::endl;
-            }
-"""
-        then:
-        succeeds "mainExecutable"
-        executable("build/exe/main/main").exec().out == "HELLO\n"
-
-        when:
-        headerFile.text = """
-            NOT A VALID HEADER FILE
-"""
-        then:
-        fails "mainExecutable"
-        and:
-        executedAndNotSkipped "compileMainExecutableMainCpp"
-    }
-
     def buildingCorCppWithGcc() {
         return toolChain.meets(ToolChainRequirement.GCC) && (sourceType == "C" || sourceType == "Cpp")
     }

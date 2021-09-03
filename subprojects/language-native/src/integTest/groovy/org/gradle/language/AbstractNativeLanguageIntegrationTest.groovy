@@ -282,36 +282,5 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         def secondOptionsOrder = secondOptions.linkedObjects().collect { it.name }
         firstOptionsOrder == secondOptionsOrder
     }
-
-    @Ignore
-    def "can run project in extended nested file paths"() {
-        // windows can't handle a path up to 260 characters
-        // we create a path that ends up with build folder longer than is 260
-        def projectPathOffset = 180 - testDirectory.getAbsolutePath().length()
-        def nestedProjectPath = RandomStringUtils.randomAlphanumeric(projectPathOffset - 10) + "/123456789"
-
-        setup:
-        def deepNestedProjectFolder = file(nestedProjectPath)
-        executer.usingProjectDirectory(deepNestedProjectFolder)
-        def TestFile buildFile = deepNestedProjectFolder.file("build.gradle")
-        buildFile << helloWorldApp.pluginScript
-        buildFile << helloWorldApp.extraConfiguration
-        buildFile << """
-            model {
-                components {
-                    main(NativeExecutableSpec)
-                }
-            }
-        """
-
-        and:
-        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"))
-
-        expect:
-        succeeds "mainExecutable"
-        def mainExecutable = executable("$nestedProjectPath/build/exe/main/main")
-        mainExecutable.assertExists()
-        mainExecutable.exec().out == helloWorldApp.englishOutput
-    }
 }
 
