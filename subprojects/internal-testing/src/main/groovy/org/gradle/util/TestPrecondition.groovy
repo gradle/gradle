@@ -19,8 +19,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
-import javax.tools.ToolProvider
-
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
@@ -62,14 +60,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     LINUX({
         OperatingSystem.current().linux
     }),
-    HAS_DOCKER({
-        try {
-            DockerClientFactory.instance().client()
-        } catch (Exception ex) {
-            return false
-        }
-        return true
-    }),
     NOT_LINUX({
         !LINUX.fulfilled
     }),
@@ -79,11 +69,13 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    JDK7_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_1_7
-    }),
-    JDK8({
-        JavaVersion.current() == JavaVersion.VERSION_1_8
+    HAS_DOCKER({
+        try {
+            DockerClientFactory.instance().client()
+        } catch (Exception ex) {
+            return false
+        }
+        return true
     }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
@@ -130,9 +122,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
-    JDK({
-        ToolProvider.systemJavaCompiler != null
-    }),
+
     ONLINE({
         try {
             new URL("http://google.com").openConnection().getInputStream().close()
@@ -146,18 +136,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     SMART_TERMINAL({
         System.getenv("TERM")?.toUpperCase() != "DUMB"
-    }),
-    PULL_REQUEST_BUILD({
-        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
-            return true
-        }
-        return false
-    }),
-    NOT_PULL_REQUEST_BUILD({
-        !PULL_REQUEST_BUILD.fulfilled
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
