@@ -652,6 +652,33 @@
     "linux" : 275000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.incremental compile",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 280000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 1000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.up-to-date assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 160000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 233000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 3125000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 3334000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest.assemble with local cache (build comparison)",
   "durations" : [ {
     "testProject" : "largeJavaMultiProject",

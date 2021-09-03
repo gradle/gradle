@@ -1067,5 +1067,44 @@
         "per_commit" : [ "linux" ]
       }
     } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.incremental compile",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.up-to-date assemble (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
   } ]
 }
