@@ -62,7 +62,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
             case 'mediumSwiftMulti':
                 return 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
             case 'bigSwiftApp':
-                return 'src/main/swift//AppImpl54Api3.swift'
+                return 'src/main/swift/AppImpl54Api3.swift'
             default:
                 throw new IllegalArgumentException("Invalid test project ${testProject}")
         }
