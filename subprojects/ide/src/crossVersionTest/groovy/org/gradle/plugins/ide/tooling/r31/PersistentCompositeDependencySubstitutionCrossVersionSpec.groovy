@@ -105,12 +105,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def ideaModule = loadToolingModel(IdeaProject).modules[0]
 
         then:
-        def moduleDeps = ideaModule.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion < GradleVersion.version("7.2")) {
-            moduleDeps.size() == 1
-        } else {
-            moduleDeps.size() == 3
-        }
+        ideaModule.dependencies.size() == 1
         with(ideaModule.dependencies.first()) {
             it instanceof IdeaModuleDependency
             targetModuleName == "b1"
@@ -137,12 +132,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         def ideaModule = loadToolingModel(IdeaProject).modules[0]
 
         then:
-        def moduleDeps = ideaModule.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion <= GradleVersion.version("7.2")) {
-            moduleDeps.size() == 2
-        } else {
-            moduleDeps.size() === 4
-        }
+        ideaModule.dependencies.size() == 2
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b1-renamed" }
         ideaModule.dependencies.any { it instanceof IdeaModuleDependency && it.targetModuleName == "b2-renamed" }
 
@@ -158,11 +148,10 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         allProjects.rootIdeaProject.modules.size() == 1
 
         def moduleA = allProjects.rootIdeaProject.modules[0]
-        def moduleAModuleDeps = moduleA.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion <= GradleVersion.version("7.2")) {
-            moduleA.dependencies == moduleAModuleDeps // Prior to 7.3, ONLY module deps expected
+        moduleA.dependencies.each {
+            assert it instanceof  IdeaModuleDependency
         }
-        moduleAModuleDeps.collect { it.targetModuleName } == ['b1']
+        moduleA.dependencies.collect { it.targetModuleName } == ['b1']
 
         and:
         assert allProjects.includedBuildIdeaProjects.size() == 2
@@ -174,8 +163,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         projectB.modules*.name == ['buildB', 'b1', 'b2']
 
         def moduleB1 = projectB.modules.find {it.name == 'b1'}
-        def moduleB1ModuleDeps = moduleB1.dependencies.findAll { it instanceof IdeaModuleDependency }
-        moduleB1ModuleDeps.collect { it.targetModuleName } == ['buildC']
+        moduleB1.dependencies.collect { it.targetModuleName } == ['buildC']
 
         and:
         def gradleBuildC = allProjects.includedBuildIdeaProjects.keySet().find { it.buildIdentifier.rootDir == buildC }
@@ -222,11 +210,10 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         allProjects.rootIdeaProject.modules.collect { it.name } == ['buildA']
 
         def moduleA = allProjects.rootIdeaProject.modules[0]
-        def moduleAModuleDeps = moduleA.dependencies.findAll { it instanceof IdeaModuleDependency }
-        if (targetVersion <= GradleVersion.version("7.2")) {
-            moduleA.dependencies == moduleAModuleDeps // Prior to 7.3, ONLY module deps expected
+        moduleA.dependencies.each {
+            assert it instanceof  IdeaModuleDependency
         }
-        moduleAModuleDeps.collect { it.targetModuleName } == ['buildB-b1', 'buildA-buildC', 'buildD-b1']
+        moduleA.dependencies.collect { it.targetModuleName } == ['buildB-b1', 'buildA-buildC', 'buildD-b1']
 
         allProjects.getIdeaProject('buildB').modules.collect { it.name } == ['buildB', 'buildB-b1', 'b2']
         allProjects.getIdeaProject('buildC').modules.collect { it.name } == ['buildA-buildC']
