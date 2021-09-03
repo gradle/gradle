@@ -230,9 +230,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         testSourceSet.java.srcDirs == toLinkedSet(project.file('src/test/java'))
         testSourceSet.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
-        testSourceSet.compileClasspath.is(project.configurations.testCompileClasspath)
+        testSourceSet.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
         testSourceSet.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
-        testSourceSet.compileClasspath.contains(new File(project.buildDir, 'resources/main'))
         testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
         testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
         testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
