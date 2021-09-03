@@ -24,9 +24,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 import org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies
-import org.gradle.util.GradleVersion
-
-import java.nio.file.Path
 
 @TargetGradleVersion('>=5.6')
 @ToolingApiVersion(">=5.6")
@@ -87,13 +84,7 @@ class CompositeProjectSubstitutionCrossVersionSpec extends ToolingApiSpecificati
         then:
         def b1Model = eclipseProjects.collectMany { collectProjects(it) }.find { it.name == "b1" }
         b1Model.projectDependencies.isEmpty()
-
-        List<Path> classpathComponents = b1Model.classpath.collect { it.file.toPath() }
-        assert classpathComponents[0].endsWith('buildC-1.0.jar')
-        if (targetVersion > GradleVersion.version("7.2")) {
-            assert classpathComponents[1].endsWith(Path.of('build', 'classes', 'java', 'main'))
-            assert classpathComponents[2].endsWith(Path.of('build', 'resources', 'main'))
-        }
+        b1Model.classpath.collect { it.file.name }.sort() == ['buildC-1.0.jar']
     }
 
     def "Closed project tasks are run in composite with substitution"() {
@@ -122,14 +113,7 @@ class CompositeProjectSubstitutionCrossVersionSpec extends ToolingApiSpecificati
         then:
         def b1Model = eclipseProjects.collectMany { collectProjects(it) }.find { it.name == "b1" }
         b1Model.projectDependencies.isEmpty()
-
-        List<Path> classpathComponents = b1Model.classpath.collect { it.file.toPath() }
-        assert classpathComponents[0].endsWith('buildC-1.0.jar')
-        if (targetVersion > GradleVersion.version("7.2")) {
-            assert classpathComponents[1].endsWith(Path.of('build', 'classes', 'java', 'main'))
-            assert classpathComponents[2].endsWith(Path.of('build', 'resources', 'main'))
-        }
-
+        b1Model.classpath.collect { it.file.name } == ['buildC-1.0.jar']
         taskExecuted(out, ":eclipseClosedDependencies")
         taskExecuted(out, ":buildC:jar")
     }
