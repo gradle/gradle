@@ -16,7 +16,6 @@
 
 package org.gradle.internal.remote.internal.inet
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {

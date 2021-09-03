@@ -18,7 +18,6 @@ package org.gradle.internal.watch
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 

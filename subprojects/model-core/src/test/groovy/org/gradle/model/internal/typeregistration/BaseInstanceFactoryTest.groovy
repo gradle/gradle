@@ -21,7 +21,6 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
