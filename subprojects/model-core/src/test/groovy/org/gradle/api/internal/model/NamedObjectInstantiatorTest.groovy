@@ -292,15 +292,11 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         e.cause == BrokenConstructor.failure
     }
 
-    @Ignore
-    def "interface may not have additional methods"() {
-        expect: false
-    }
+    // TODO
+    // Implement:
+    // - interface may not have additional methods
+    // - abstract class may not have additional abstract methods
 
-    @Ignore
-    def "abstract class may not have additional abstract methods"() {
-        expect: false
-    }
 }
 
 class DummyGroovyNamed implements Named {
@@ -316,4 +312,3 @@ abstract class BrokenConstructor implements Named {
         throw failure
     }
 }
-
