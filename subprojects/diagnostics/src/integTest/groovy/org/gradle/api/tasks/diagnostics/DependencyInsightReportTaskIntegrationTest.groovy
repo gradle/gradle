@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
