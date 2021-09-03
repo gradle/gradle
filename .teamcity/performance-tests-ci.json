@@ -339,6 +339,19 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+    "groups" : [ {
+      "testProject" : "bigSwiftApp",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "mediumSwiftMulti",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting gzip tar trees",
     "groups" : [ {
       "testProject" : "archivePerformanceProject",
