@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import groovy.test.NotYetImplemented
 
 import org.codehaus.groovy.runtime.StringGroovyMethods
 
@@ -42,6 +43,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
+import org.gradle.util.internal.ToBeImplemented
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -351,8 +353,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
-    // https://github.com/gradle/gradle/issues/17246
-    @Ignore // not yet implemented
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
     @Test
     @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version in settings plugin`() {
@@ -374,14 +375,17 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
-        assertThat(
-            buildFailureOutput("assemble"),
-            containsMultiLineString(
-                """
-                Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
-                """
-            )
-        )
+        build("assemble")
+
+        // TODO Should fail:
+        //    assertThat(
+        //        buildFailureOutput("assemble"),
+        //        containsMultiLineString(
+        //            """
+        //            Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
+        //            """
+        //        )
+        //    )
     }
 
     @Test
