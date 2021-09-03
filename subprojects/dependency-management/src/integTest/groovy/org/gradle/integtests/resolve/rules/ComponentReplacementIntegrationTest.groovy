@@ -404,7 +404,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not allow replacing with self"() {
         declaredReplacements 'a->a'
         expect:
