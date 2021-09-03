@@ -37,7 +37,6 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Ignore
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-@Ignore("https://github.com/gradle/gradle-private/issues/3387")
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @ToBeFixedForConfigurationCache
     def "rebuilds application when a single source file changes"() {
