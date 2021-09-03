@@ -60,11 +60,10 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
 
         when:
         def project = loadToolingModel(EclipseProject)
-        def dependencies = project.classpath.findAll { it.source != null }
+        def dependency = project.classpath[0]
 
         then:
-        assert dependencies.size() == 1
-        dependencies[0].source == customSource
-        dependencies[0].javadoc == customJavadoc
+        dependency.source == customSource
+        dependency.javadoc == customJavadoc
     }
 }
