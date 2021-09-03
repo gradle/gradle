@@ -23,11 +23,10 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.GUtil
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 

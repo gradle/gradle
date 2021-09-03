@@ -16,7 +16,6 @@
 package org.gradle.language.rc
 
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.apache.commons.lang.RandomStringUtils
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -25,10 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.TextUtil
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
