@@ -742,6 +742,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")
+    @ToBeFixedForConfigurationCache
     def "selects a variant with different attribute value but matching transform"() {
         given:
         repository {

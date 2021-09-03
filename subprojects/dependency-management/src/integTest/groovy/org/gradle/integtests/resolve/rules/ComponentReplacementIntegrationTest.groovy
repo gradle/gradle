@@ -404,12 +404,14 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForConfigurationCache
     def "does not allow replacing with self"() {
         declaredReplacements 'a->a'
         expect:
         fails().assertHasCause("Cannot declare module replacement that replaces self: org:a->org:a")
     }
 
+    @ToBeFixedForConfigurationCache
     def "when multiple replacement targets declared only the last one applies"() {
         publishedMavenModules 'c'
         declaredDependencies 'a', 'b', 'c'

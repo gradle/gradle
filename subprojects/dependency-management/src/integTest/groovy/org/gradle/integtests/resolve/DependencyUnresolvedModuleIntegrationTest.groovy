@@ -208,6 +208,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         downloadedLibsDir.assertContainsDescendants('a-1.0.jar')
     }
 
+    @ToBeFixedForConfigurationCache
     def "skips subsequent dependency resolution if HTTP connection exceeds timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
