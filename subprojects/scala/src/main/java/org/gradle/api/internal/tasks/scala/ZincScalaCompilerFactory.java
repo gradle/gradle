@@ -23,6 +23,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.time.Time;
@@ -165,18 +166,27 @@ public class ZincScalaCompilerFactory {
         ClassPath scalaClasspath = hashedScalaClasspath.getClasspath();
         File libraryJar = findFile(ArtifactInfo.ScalaLibraryID, scalaClasspath);
         URL[] libraryUrls;
+        boolean isScala3 = false;
         try {
             File library3Jar = findFile(SCALA_3_LIBRARY_ID, scalaClasspath);
+            isScala3 = true;
             libraryUrls = new URL[]{library3Jar.toURI().toURL(), libraryJar.toURI().toURL()};
         } catch (IllegalStateException e) {
             libraryUrls = new URL[]{libraryJar.toURI().toURL()};
         }
-        ClassLoader scalaLibraryClassLoader = new ScalaCompilerLoader(libraryUrls, xsbti.Reporter.class.getClassLoader());
-        ClassLoader scalaClassLoader = getCachedClassLoader(hashedScalaClasspath, scalaLibraryClassLoader);
+        ClassLoader scalaLibraryClassLoader;
+        ClassLoader scalaClassLoader;
+        if (isScala3) {
+            scalaLibraryClassLoader = new ScalaCompilerLoader(libraryUrls, xsbti.Reporter.class.getClassLoader());
+            scalaClassLoader = getCachedClassLoader(hashedScalaClasspath, scalaLibraryClassLoader);
+        } else {
+            scalaLibraryClassLoader = getClassLoader(DefaultClassPath.of(libraryJar), null);
+            scalaClassLoader = getCachedClassLoader(hashedScalaClasspath, null);
+        }
         String scalaVersion = getScalaVersion(scalaClassLoader);
 
         File compilerJar;
-        if (isScala3(scalaVersion)) {
+        if (isScala3) {
             compilerJar = findFile(SCALA_3_COMPILER_ID, scalaClasspath);
         } else {
             compilerJar = findFile(ArtifactInfo.ScalaCompilerID, scalaClasspath);
