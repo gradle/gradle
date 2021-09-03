@@ -42,12 +42,30 @@ public class DefaultFileHierarchySet {
     }
 
     /**
+     * Creates a set containing the given directory and all its descendants
+     */
+    public static FileHierarchySet fromPath(final String absolutePath) {
+        return new PrefixFileSet(absolutePath);
+    }
+
+    /**
      * Creates a set containing the given directories and all their descendants.
      */
     public static FileHierarchySet of(Iterable<File> rootDirs) {
         FileHierarchySet set = EMPTY;
         for (File rootDir : rootDirs) {
             set = set.plus(rootDir);
+        }
+        return set;
+    }
+
+    /**
+     * Creates a set containing the given directories and all their descendants.
+     */
+    public static FileHierarchySet fromPaths(Iterable<String> rootDirAbsolutePaths) {
+        FileHierarchySet set = EMPTY;
+        for (String rootDirAbsolutePath : rootDirAbsolutePaths) {
+            set = set.plus(rootDirAbsolutePath);
         }
         return set;
     }
@@ -69,6 +87,11 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
+        public FileHierarchySet plus(String absolutePath) {
+            return new PrefixFileSet(absolutePath);
+        }
+
+        @Override
         public String toString() {
             return "EMPTY";
         }
@@ -79,6 +102,11 @@ public class DefaultFileHierarchySet {
 
         PrefixFileSet(File rootDir) {
             String path = toPath(rootDir);
+            this.rootNode = new Node(path);
+        }
+
+        PrefixFileSet(String rootPath) {
+            String path = removeTrailingSeparator(rootPath);
             this.rootNode = new Node(path);
         }
 
@@ -118,9 +146,18 @@ public class DefaultFileHierarchySet {
             return new PrefixFileSet(rootNode.plus(toPath(rootDir)));
         }
 
-        private String toPath(File rootDir) {
+        @Override
+        public FileHierarchySet plus(String absolutePath) {
+            return new PrefixFileSet(rootNode.plus(removeTrailingSeparator(absolutePath)));
+        }
+
+        private static String toPath(File rootDir) {
             assert rootDir.isAbsolute();
             String absolutePath = rootDir.getAbsolutePath();
+            return removeTrailingSeparator(absolutePath);
+        }
+
+        private static String removeTrailingSeparator(String absolutePath) {
             if (absolutePath.equals("/")) {
                 absolutePath = "";
             } else if (absolutePath.endsWith(File.separator)) {
@@ -180,7 +217,7 @@ public class DefaultFileHierarchySet {
                     if (children.isEmpty()) {
                         return this;
                     }
-                    int startNextSegment = (prefixLen == 0) ? 0 : prefixLen + 1;
+                    int startNextSegment = prefixLen == 0 ? 0 : prefixLen + 1;
                     List<Node> merged = new ArrayList<Node>(children.size() + 1);
                     boolean matched = false;
                     for (Node child : children) {
@@ -203,7 +240,7 @@ public class DefaultFileHierarchySet {
             }
             String commonPrefix = prefix.substring(0, prefixLen);
 
-            int newChildrenStartIndex = (prefixLen == 0) ? 0 : prefixLen + 1;
+            int newChildrenStartIndex = prefixLen == 0 ? 0 : prefixLen + 1;
 
             Node newThis = new Node(prefix.substring(newChildrenStartIndex), children);
             Node sibling = new Node(path.substring(newChildrenStartIndex));

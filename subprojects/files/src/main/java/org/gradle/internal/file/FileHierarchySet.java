@@ -27,7 +27,12 @@ public interface FileHierarchySet {
     boolean contains(String path);
 
     /**
-     * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
+     * Returns a set that contains the union of this set and the given path. If the given path is a directory, the set will contain the directory itself, plus all its descendants.
      */
-    FileHierarchySet plus(File dir);
+    FileHierarchySet plus(File path);
+
+    /**
+     * Returns a set that contains the union of this set and the given absolute path. The set contains the path itself, plus all its descendants.
+     */
+    FileHierarchySet plus(String absolutePath);
 }

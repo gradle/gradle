@@ -45,7 +45,8 @@ public class WatchedHierarchies {
         watchedHierarchies = DefaultFileHierarchySet.of();
         Stream<Path> hierarchiesWithSnapshots = watchableHierarchies.getWatchableHierarchies().stream()
             .flatMap(watchableHierarchy -> {
-                if (watchedHierarchies.contains(watchableHierarchy.toString())) {
+                String watchableHierarchyPath = watchableHierarchy.toAbsolutePath().toString();
+                if (watchedHierarchies.contains(watchableHierarchyPath)) {
                     return Stream.empty();
                 }
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
@@ -53,7 +54,7 @@ public class WatchedHierarchies {
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
-                watchedHierarchies = watchedHierarchies.plus(watchableHierarchy.toFile());
+                watchedHierarchies = watchedHierarchies.plus(watchableHierarchyPath);
                 Path location = checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
                     ? locationOrFirstExistingAncestor(watchableHierarchy)
                     : watchableHierarchy;

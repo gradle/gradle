@@ -46,7 +46,6 @@ class DefaultFileHierarchySetTest extends Specification {
         !set.contains(tmpDir.file("any"))
     }
 
-
     def "creates from collection containing single file"() {
         def dir = tmpDir.createDir("dir")
 
@@ -331,5 +330,24 @@ class DefaultFileHierarchySetTest extends Specification {
                 dir2
                 dir3
         """.stripIndent().trim()
+    }
+
+    def "creating from file is the same as from path"() {
+        def dir = tmpDir.createDir("dir")
+        def dir2 = tmpDir.createDir("dir2")
+
+        when:
+        def fromFile = DefaultFileHierarchySet.of(dir)
+        def fromPath = DefaultFileHierarchySet.fromPath(dir.absolutePath)
+
+        then:
+        fromFile.flatten() == fromPath.flatten()
+
+        when:
+        fromFile = fromFile.plus(dir2)
+        fromPath = fromPath.plus(dir2.absolutePath)
+
+        then:
+        fromFile.flatten() == fromPath.flatten()
     }
 }
