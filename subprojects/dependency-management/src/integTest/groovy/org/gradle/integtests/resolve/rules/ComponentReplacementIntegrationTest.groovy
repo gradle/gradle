@@ -405,13 +405,10 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
-    @Ignore
-    //maybe, as a way to 'clear' any replacements
-    def "allow replacing with self"() {
-        declaredDependencies 'a', 'b', 'c'
-        declaredReplacements 'a->c', 'a->b', 'a->a'
+    def "does not allow replacing with self"() {
+        declaredReplacements 'a->a'
         expect:
-        resolvedModules 'a', 'b', 'c'
+        fails().assertHasCause("Cannot declare module replacement that replaces self: org:a->org:a")
     }
 
     @Ignore
