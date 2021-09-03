@@ -21,7 +21,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 public class DefaultFileHierarchySet {
@@ -92,6 +94,10 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
+        public void visitRoots(RootVisitor visitor) {
+        }
+
+        @Override
         public String toString() {
             return "EMPTY";
         }
@@ -119,11 +125,11 @@ public class DefaultFileHierarchySet {
             final List<String> prefixes = new ArrayList<String>();
             rootNode.visitHierarchy(0, new HierarchyVisitor() {
                 @Override
-                public void visitPrefix(int depth, String prefix) {
+                public void visitNode(int depth, Node node) {
                     if (depth == 0) {
-                        prefixes.add(prefix);
+                        prefixes.add(node.prefix);
                     } else {
-                        prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
+                        prefixes.add(depth + ":" + node.prefix.replace(File.separatorChar, '/'));
                     }
 
                 }
@@ -167,20 +173,50 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
+        public void visitRoots(final RootVisitor visitor) {
+            final Deque<String> prefixStack = new ArrayDeque<String>();
+            rootNode.visitHierarchy(0, new HierarchyVisitor() {
+                @Override
+                public void visitNode(int depth, Node node) {
+                    while (prefixStack.size() > depth) {
+                        prefixStack.pop();
+                    }
+                    if (node.children.isEmpty()) {
+                        String root;
+                        if (prefixStack.isEmpty()) {
+                            root = node.prefix;
+                        } else {
+                            StringBuilder builder = new StringBuilder();
+                            for (String prefix : prefixStack) {
+                                builder.append(prefix);
+                                builder.append(File.separatorChar);
+                            }
+                            builder.append(node.prefix);
+                            root = builder.toString();
+                        }
+                        visitor.visitRoot(root);
+                    } else {
+                        prefixStack.add(node.prefix);
+                    }
+                }
+            });
+        }
+
+        @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
             rootNode.visitHierarchy(0, new HierarchyVisitor() {
                 private boolean first = true;
 
                 @Override
-                public void visitPrefix(int depth, String prefix) {
+                public void visitNode(int depth, Node node) {
                     if (first) {
                         first = false;
                     } else {
                         builder.append("\n");
                     }
                     builder.append(Strings.repeat(" ", depth * 2));
-                    builder.append(prefix);
+                    builder.append(node.prefix);
                 }
             });
             return builder.toString();
@@ -292,7 +328,7 @@ public class DefaultFileHierarchySet {
         }
 
         public void visitHierarchy(int depth, HierarchyVisitor visitor) {
-            visitor.visitPrefix(depth, prefix);
+            visitor.visitNode(depth, this);
             for (Node child : children) {
                 child.visitHierarchy(depth + 1, visitor);
             }
@@ -305,6 +341,6 @@ public class DefaultFileHierarchySet {
     }
 
     private interface HierarchyVisitor {
-        void visitPrefix(int depth, String prefix);
+        void visitNode(int depth, Node node);
     }
 }

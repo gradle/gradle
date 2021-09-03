@@ -19,9 +19,7 @@ package org.gradle.internal.watch.registry.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 
 public class SnapshotWatchedDirectoryFinder {
 
@@ -33,19 +31,19 @@ public class SnapshotWatchedDirectoryFinder {
      * - parent dir for regular file snapshots
      * - the first existing parent directory for a missing file snapshot
      */
-    public static ImmutableList<Path> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
-        Path path = Paths.get(snapshot.getAbsolutePath());
+    public static ImmutableList<File> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
+        File path = new File(snapshot.getAbsolutePath());
 
         // For existing files and directories we watch the parent directory,
         // so we learn if the entry itself disappears or gets modified.
         // In case of a missing file we need to find the closest existing
         // ancestor to watch so we can learn if the missing file respawns.
-        Path ancestorToWatch;
+        File ancestorToWatch;
         switch (snapshot.getType()) {
             case RegularFile:
-                return ImmutableList.of(path.getParent());
+                return ImmutableList.of(path.getParentFile());
             case Directory:
-                ancestorToWatch = path.getParent();
+                ancestorToWatch = path.getParentFile();
                 // If the path already is the root (e.g. C:\ on Windows),
                 // then we can't watch its parent.
                 return ancestorToWatch == null
@@ -58,16 +56,16 @@ public class SnapshotWatchedDirectoryFinder {
         }
     }
 
-    public static Path findFirstExistingAncestor(Path path) {
-        Path candidate = path;
+    public static File findFirstExistingAncestor(File path) {
+        File candidate = path;
         while (true) {
-            candidate = candidate.getParent();
+            candidate = candidate.getParentFile();
             if (candidate == null) {
                 // TODO Can this happen on Windows when a SUBST'd drive is unregistered?
                 throw new IllegalStateException("Couldn't find existing ancestor for " + path);
             }
             // TODO Use the VFS to find the ancestor instead
-            if (Files.isDirectory(candidate)) {
+            if (candidate.isDirectory()) {
                 return candidate;
             }
         }

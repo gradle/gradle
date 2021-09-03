@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,7 +58,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
     private final MovedHierarchyHandler movedHierarchyHandler;
-    private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
+    private WatchedHierarchies watchedHierarchies = WatchedHierarchies.EMPTY;
 
     public HierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
@@ -121,34 +120,30 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public Collection<Path> getWatchedHierarchies() {
+    public Collection<File> getWatchedRoots() {
         return watchedHierarchies.getWatchedRoots();
     }
 
     private void updateWatchedHierarchies(SnapshotHierarchy root) {
-        Set<Path> oldWatchedRoots = watchedHierarchies.getWatchedRoots();
-        watchedHierarchies.updateWatchedHierarchies(watchableHierarchies, root);
-        Set<Path> newWatchedRoots = watchedHierarchies.getWatchedRoots();
+        Set<File> oldWatchedRoots = watchedHierarchies.getWatchedRoots();
+        watchedHierarchies = WatchedHierarchies.resolveWatchedHierarchies(watchableHierarchies, root);
+        Set<File> newWatchedRoots = watchedHierarchies.getWatchedRoots();
 
         if (newWatchedRoots.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        Set<Path> hierarchiesToStopWatching = new HashSet<>(oldWatchedRoots);
-        Set<Path> hierarchiesToStartWatching = new HashSet<>(newWatchedRoots);
+        Set<File> hierarchiesToStopWatching = new HashSet<>(oldWatchedRoots);
+        Set<File> hierarchiesToStartWatching = new HashSet<>(newWatchedRoots);
         hierarchiesToStopWatching.removeAll(newWatchedRoots);
         hierarchiesToStartWatching.removeAll(oldWatchedRoots);
         if (hierarchiesToStartWatching.isEmpty() && hierarchiesToStopWatching.isEmpty()) {
             return;
         }
         if (!hierarchiesToStopWatching.isEmpty()) {
-            fileWatcher.stopWatching(hierarchiesToStopWatching.stream()
-                .map(Path::toFile)
-                .collect(Collectors.toList())
-            );
+            fileWatcher.stopWatching(hierarchiesToStopWatching);
         }
         if (!hierarchiesToStartWatching.isEmpty()) {
             fileWatcher.startWatching(hierarchiesToStartWatching.stream()
-                .map(Path::toFile)
                 .peek(locationToWatchValidator::validateLocationToWatch)
                 .collect(Collectors.toList())
             );

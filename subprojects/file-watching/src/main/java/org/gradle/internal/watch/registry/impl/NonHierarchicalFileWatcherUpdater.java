@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,7 +70,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).stream()
-                    .map(Path::toString).collect(Collectors.toList()));
+                    .map(File::getAbsolutePath).collect(Collectors.toList()));
                 watchedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
                 directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
@@ -109,11 +108,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    public Collection<Path> getWatchedHierarchies() {
+    public Collection<File> getWatchedRoots() {
         return watchableHierarchies.getWatchableHierarchies();
     }
 
-    private boolean containsSnapshots(Path location, SnapshotHierarchy root) {
+    private boolean containsSnapshots(File location, SnapshotHierarchy root) {
         CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
         root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
         return !checkIfNonEmptySnapshotVisitor.isEmpty();

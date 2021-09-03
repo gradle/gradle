@@ -31,7 +31,7 @@ class SnapshotWatchedDirectoryFinderTest extends Specification {
 
     def "resolves directories to watch from snapshot"() {
         when:
-        def directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).collect { it.toString() } as Set
+        def directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).collect { it.getAbsolutePath() } as Set
         then:
         normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch as Set)
 

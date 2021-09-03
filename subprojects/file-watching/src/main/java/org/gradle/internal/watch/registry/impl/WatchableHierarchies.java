@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -58,7 +57,7 @@ public class WatchableHierarchies {
      * Those are the mount points of file systems which do not support watching.
      */
     private FileHierarchySet unsupportedHierarchies = DefaultFileHierarchySet.of();
-    private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
+    private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
 
     public WatchableHierarchies(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
         this.watchableFileSystemDetector = watchableFileSystemDetector;
@@ -66,7 +65,7 @@ public class WatchableHierarchies {
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
+        File watchableHierarchyPath = watchableHierarchy.getAbsoluteFile();
         String watchableHierarchyPathString = watchableHierarchyPath.toString();
         if (!watchFilter.test(watchableHierarchyPathString)) {
             throw new IllegalStateException(String.format(
@@ -90,7 +89,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, WatchMode watchMode, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, WatchMode watchMode, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         SnapshotHierarchy newRoot;
         newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
@@ -107,7 +106,7 @@ public class WatchableHierarchies {
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+    private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maximumNumberOfWatchedHierarchies;
@@ -118,11 +117,11 @@ public class WatchableHierarchies {
                 maximumNumberOfWatchedHierarchies
             );
             for (int i = 0; i < toRemove; i++) {
-                Path locationToRemove = recentlyUsedHierarchies.removeLast();
+                File locationToRemove = recentlyUsedHierarchies.removeLast();
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies.stream().map(Path::toFile)::iterator);
+        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
         return result;
     }
 
@@ -150,7 +149,7 @@ public class WatchableHierarchies {
         }
     }
 
-    public Collection<Path> getWatchableHierarchies() {
+    public Collection<File> getWatchableHierarchies() {
         return recentlyUsedHierarchies;
     }
 

@@ -350,4 +350,25 @@ class DefaultFileHierarchySetTest extends Specification {
         then:
         fromFile.flatten() == fromPath.flatten()
     }
+
+    def "root paths are calculated correctly"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def dir1Child = dir1.file("child")
+        def commonDir2 = parent.createDir("common/dir2")
+        def commonDir3 = parent.createDir("common/dir3")
+
+        expect:
+        rootsOf(DefaultFileHierarchySet.of()) == []
+        rootsOf(DefaultFileHierarchySet.of(dir1)) == [dir1.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of([dir1, dir1Child])) == [dir1.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of(commonDir2)) == [commonDir2.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of([dir1, commonDir2, commonDir3])) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
+    }
+
+    private static List<String> rootsOf(FileHierarchySet set) {
+        def roots = []
+        set.visitRoots(( root -> roots.add(root) ))
+        return roots
+    }
 }

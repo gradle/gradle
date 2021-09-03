@@ -22,7 +22,6 @@ import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Collection;
 
 public interface FileWatcherUpdater {
@@ -56,5 +55,17 @@ public interface FileWatcherUpdater {
     @CheckReturnValue
     SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
-    Collection<Path> getWatchedHierarchies();
+    /**
+     * Returns the actual watched roots.
+     *
+     * These can be different from the watchable hierarchies in two ways:
+     *
+     * <ul>
+     *     <li>hierarchies that contain no content are not watched,</li>
+     *     <li>for hierarchies that do not exist on disk (but contain
+     *     {@link org.gradle.internal.snapshot.MissingFileSnapshot}s),
+     *     we watch the first existing parent directory.</li>
+     * </ul>
+     */
+    Collection<File> getWatchedRoots();
 }

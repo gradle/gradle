@@ -35,4 +35,10 @@ public interface FileHierarchySet {
      * Returns a set that contains the union of this set and the given absolute path. The set contains the path itself, plus all its descendants.
      */
     FileHierarchySet plus(String absolutePath);
+
+    void visitRoots(RootVisitor visitor);
+
+    interface RootVisitor {
+        void visitRoot(String absolutePath);
+    }
 }

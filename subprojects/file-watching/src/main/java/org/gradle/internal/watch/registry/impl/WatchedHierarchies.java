@@ -16,84 +16,63 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.io.File;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class WatchedHierarchies {
-    private Set<Path> watchedRoots = new HashSet<>();
-    private FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
+    public static final WatchedHierarchies EMPTY = new WatchedHierarchies(DefaultFileHierarchySet.of(), ImmutableSet.of());
 
-    public boolean contains(Path watchableHierarchy) {
-        return watchedHierarchies.contains(watchableHierarchy.toString());
+    private final ImmutableSet<File> watchedRoots;
+    private final FileHierarchySet watchedHierarchies;
+
+    private WatchedHierarchies(FileHierarchySet watchedHierarchies, ImmutableSet<File> watchedRoots) {
+        this.watchedRoots = watchedRoots;
+        this.watchedHierarchies = watchedHierarchies;
     }
 
-    public Set<Path> getWatchedRoots() {
+    public boolean contains(File watchableHierarchy) {
+        return watchedHierarchies.contains(watchableHierarchy.getAbsolutePath());
+    }
+
+    public Set<File> getWatchedRoots() {
         return watchedRoots;
     }
 
-    public void updateWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
-        watchedHierarchies = DefaultFileHierarchySet.of();
-        Stream<Path> hierarchiesWithSnapshots = watchableHierarchies.getWatchableHierarchies().stream()
-            .flatMap(watchableHierarchy -> {
-                String watchableHierarchyPath = watchableHierarchy.toAbsolutePath().toString();
-                if (watchedHierarchies.contains(watchableHierarchyPath)) {
-                    return Stream.empty();
-                }
-                CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-                vfsRoot.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, watchedHierarchies));
-                if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
-                    return Stream.empty();
-                }
-                watchedHierarchies = watchedHierarchies.plus(watchableHierarchyPath);
-                Path location = checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                    ? locationOrFirstExistingAncestor(watchableHierarchy)
-                    : watchableHierarchy;
-                return Stream.of(location);
-            });
-
-        watchedRoots = resolveHierarchiesToWatch(hierarchiesWithSnapshots);
+    public static WatchedHierarchies resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
+        FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
+        FileHierarchySet watchedRoots = DefaultFileHierarchySet.of();
+        for (File watchableHierarchy : watchableHierarchies.getWatchableHierarchies()) {
+            String watchableHierarchyPath = watchableHierarchy.toString();
+            if (watchedHierarchies.contains(watchableHierarchyPath)) {
+                continue;
+            }
+            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
+            vfsRoot.visitSnapshotRoots(watchableHierarchyPath, new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, watchedHierarchies));
+            if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
+                continue;
+            }
+            watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
+            String existingAncestorToWatch = checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
+                ? locationOrFirstExistingAncestor(watchableHierarchy).toString()
+                : watchableHierarchyPath;
+            watchedRoots = watchedRoots.plus(existingAncestorToWatch);
+        }
+        ImmutableSet.Builder<File> roots = ImmutableSet.builder();
+        watchedRoots.visitRoots(root -> roots.add(new File(root)));
+        return new WatchedHierarchies(watchedHierarchies, roots.build());
     }
 
-    private Path locationOrFirstExistingAncestor(Path watchableHierarchy) {
-        if (Files.isDirectory(watchableHierarchy)) {
+    private static File locationOrFirstExistingAncestor(File watchableHierarchy) {
+        if (watchableHierarchy.isDirectory()) {
             return watchableHierarchy;
         }
         return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(watchableHierarchy);
-    }
-
-    /**
-     * Filters out directories whose ancestor is also among the watched directories.
-     */
-    @VisibleForTesting
-    static Set<Path> resolveHierarchiesToWatch(Stream<Path> directories) {
-        Set<Path> hierarchies = new HashSet<>();
-        directories
-            .sorted(Comparator.comparingInt(Path::getNameCount))
-            .filter(path -> {
-                Path parent = path;
-                while (true) {
-                    parent = parent.getParent();
-                    if (parent == null) {
-                        break;
-                    }
-                    if (hierarchies.contains(parent)) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-            .forEach(hierarchies::add);
-        return hierarchies;
     }
 
     private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {
