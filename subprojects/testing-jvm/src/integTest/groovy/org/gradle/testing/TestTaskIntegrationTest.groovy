@@ -115,6 +115,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
+            dependencies { testImplementation 'junit:junit:4.13' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -142,6 +143,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             dependencies {
+                testImplementation 'junit:junit:4.13'
                 testImplementation project(":dependency")
             }
         """
@@ -181,6 +183,9 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
 
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
         """
         file("src/test/java/MyTest.java") << """
             import org.junit.*;
@@ -303,6 +308,10 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
 
             ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
 
             sourceCompatibility = 1.9
             targetCompatibility = 1.9

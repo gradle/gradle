@@ -39,7 +39,7 @@ public class TestSuitePlugin  implements Plugin<Project> {
         TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class, testSuites);
 
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-        testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, java.getSourceSets(), project.getConfigurations(), project.getTasks(), project.getDependencies()));
+        testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, project, java));
 
         // TODO: Deprecate this behavior?
         // Why would any Test task created need to use the test source set's classes?
