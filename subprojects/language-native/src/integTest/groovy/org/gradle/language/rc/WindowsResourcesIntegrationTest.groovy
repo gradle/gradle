@@ -161,37 +161,6 @@ model {
         installation("build/install/main").exec().out == "Hello!"
     }
 
-    @Ignore
-    def "windows resources compiler can use long file paths"() {
-        // windows can't handle a path up to 260 characters
-        // we create a project path that is ~180 characters to end up
-        // with a path for the compiled resources.res > 260 chars
-        def projectPathOffset = 180 - testDirectory.getAbsolutePath().length()
-        def nestedProjectPath = RandomStringUtils.randomAlphanumeric(projectPathOffset - 10) + "/123456789"
-
-        setup:
-        def deepNestedProjectFolder = file(nestedProjectPath)
-        executer.usingProjectDirectory(deepNestedProjectFolder)
-        def TestFile buildFile = deepNestedProjectFolder.file("build.gradle")
-        buildFile << helloWorldApp.pluginScript
-        buildFile << helloWorldApp.extraConfiguration
-        buildFile << """
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-        """
-
-        and:
-        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"))
-
-        expect:
-        // this test is just for verifying explicitly the behaviour of the windows resource compiler
-        // that's why we explicitly trigger this task instead of main.
-        succeeds "mainExecutable"
-    }
-
     static List<WindowsSdkInstall> getNonDefaultSdks() {
         WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class))
         WindowsSdkInstall defaultSdk = locator.locateComponent(null).component
