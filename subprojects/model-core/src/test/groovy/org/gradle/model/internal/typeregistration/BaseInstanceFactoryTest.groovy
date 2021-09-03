@@ -277,21 +277,6 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Factory registration for '${fullyQualifiedNameOf(ManagedThingSpec)}' is invalid because it doesn't extend an interface with a default implementation"
     }
 
-    @Ignore("This would be hard to check, and we only use this internally, so we'll just be careful")
-    def "fails validation if unmanaged type extends two interface with a default implementation"() {
-        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("impl rule"))
-            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
-        instanceFactory.register(ModelType.of(OtherThingSpec), new SimpleModelRuleDescriptor("other impl rule"))
-            .withImplementation(ModelType.of(DefaultOtherThingSpec), factoryMock)
-        instanceFactory.register(ModelType.of(BothThingSpec), new SimpleModelRuleDescriptor("both rule"))
-
-        when:
-        instanceFactory.validateRegistrations()
-        then:
-        def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '${fullyQualifiedNameOf(BothThingSpec)}' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: ${fullyQualifiedNameOf(ThingSpec)}, ${fullyQualifiedNameOf(OtherThingSpec)}"
-    }
-
     def "fails when registering non-interface internal view"() {
         when:
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
