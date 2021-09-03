@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -411,13 +410,15 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         fails().assertHasCause("Cannot declare module replacement that replaces self: org:a->org:a")
     }
 
-    @Ignore
-    def "pulls extra dependency to graph if multiple replacement targets declared"() {
+    def "when multiple replacement targets declared only the last one applies"() {
         publishedMavenModules 'c'
-        declaredDependencies 'a', 'b'
+        declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c'
         expect:
         resolvedModules 'b', 'c'
+
+        //assert right replacement wins
+        outputContains("org:a:1 -> org:c:1")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1472")
