@@ -60,7 +60,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     static String determineFileToChange(String testProject) {
         switch (testProject) {
             case 'mediumSwiftMulti':
-                return 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+                return 'lib6api3/src/main/swift/Lib6Api3ImplApi2.swift'
             case 'bigSwiftApp':
                 return 'src/main/swift/AppImpl54Api3.swift'
             default:
