@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -43,7 +44,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
     }
 
     // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
         writeSourceFiles()
         expect:

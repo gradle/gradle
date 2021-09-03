@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -81,7 +83,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3068")
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+    @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
     def "can use gradleApi in test"() {
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
@@ -113,7 +116,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // Gradle API JAR is not generated when running embedded
+    @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
     def "generated Gradle API JAR in custom Gradle user home is reused across multiple invocations"() {
         requireOwnGradleUserHomeDir()
 

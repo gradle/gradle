@@ -165,13 +165,17 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     MSBUILD({
         // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-        WINDOWS.fulfilled && "embedded" != System.getProperty("org.gradle.integtest.executer")
+        // To test with MSBuild, we need to have an installed Gradle distribution
+        WINDOWS.fulfilled && INSTALLED_DISTRIBUTION.fulfilled
     }),
     SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({
         !InetAddress.getLocalHost().getHostName().startsWith("ip-")
+    }),
+    INSTALLED_DISTRIBUTION({
+        "embedded" != System.getProperty("org.gradle.integtest.executer")
     })
 
     /**

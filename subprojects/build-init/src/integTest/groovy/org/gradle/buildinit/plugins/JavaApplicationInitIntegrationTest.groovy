@@ -19,6 +19,8 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -228,7 +230,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
 
     @Issue("https://github.com/gradle/gradle/issues/17383")
-    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.INSTALLED_DISTRIBUTION)
     def "command line works with different locale"() {
         setup:
         executer.withCommandLineGradleOpts('-Duser.language=tr', '-Duser.country=TR')
