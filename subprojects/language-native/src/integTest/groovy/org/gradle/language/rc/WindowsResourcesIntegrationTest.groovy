@@ -16,7 +16,6 @@
 package org.gradle.language.rc
 
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.apache.commons.lang.RandomStringUtils
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -25,10 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.TextUtil
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -40,16 +37,6 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
     @Unroll
-    @Ignore("""
-We got failures saying:
-
-hello.cpp
-C:\\Program Files (x86)\\Windows Kits\\8.1\\Include\\um\\winnt.h(5239): error C2169: '_InterlockedAdd': intrinsic function, cannot be defined
-C:\\Program Files (x86)\\Windows Kits\\8.1\\Include\\um\\winnt.h(5423): error C2169: '_InterlockedAnd64': intrinsic function, cannot be defined
-...
-
-Which seems to come from newer version of VS 2019. Ignore this test for now.
-""")
     def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
         given:
         buildFile << """
@@ -169,37 +156,6 @@ model {
         then:
         resourceOnlyLibrary("build/libs/resources/shared/resources").assertExists()
         installation("build/install/main").exec().out == "Hello!"
-    }
-
-    @Ignore
-    def "windows resources compiler can use long file paths"() {
-        // windows can't handle a path up to 260 characters
-        // we create a project path that is ~180 characters to end up
-        // with a path for the compiled resources.res > 260 chars
-        def projectPathOffset = 180 - testDirectory.getAbsolutePath().length()
-        def nestedProjectPath = RandomStringUtils.randomAlphanumeric(projectPathOffset - 10) + "/123456789"
-
-        setup:
-        def deepNestedProjectFolder = file(nestedProjectPath)
-        executer.usingProjectDirectory(deepNestedProjectFolder)
-        def TestFile buildFile = deepNestedProjectFolder.file("build.gradle")
-        buildFile << helloWorldApp.pluginScript
-        buildFile << helloWorldApp.extraConfiguration
-        buildFile << """
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-        """
-
-        and:
-        helloWorldApp.writeSources(file("$nestedProjectPath/src/main"))
-
-        expect:
-        // this test is just for verifying explicitly the behaviour of the windows resource compiler
-        // that's why we explicitly trigger this task instead of main.
-        succeeds "mainExecutable"
     }
 
     static List<WindowsSdkInstall> getNonDefaultSdks() {
