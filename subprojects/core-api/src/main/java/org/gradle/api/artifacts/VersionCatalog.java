@@ -37,44 +37,44 @@ import java.util.Optional;
 public interface VersionCatalog extends Named {
     /**
      * Returns the dependency provider for the corresponding alias.
-     *
+     * <p>
      * Note: Alias passed to this method must be normalized.
-     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * Normalized alias is an alias where any usage of '-', '_', '.' is replaced with '.'.
      * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
-     *
+     * <p>
      * @param alias the normalized alias of the dependency
      */
     Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias);
 
     /**
      * Returns the dependency provider for the corresponding bundle.
-     *
+     * <p>
      * Note: Alias passed to this method must be normalized.
-     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * Normalized alias is an alias where any usage of '-', '_', '.' is replaced with '.'.
      * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
-     *
+     * <p>
      * @param bundle the normalized alias of the bundle
      */
     Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle);
 
     /**
      * Returns the version constraint with the corresponding name in the catalog.
-     *
+     * <p>
      * Note: Alias passed to this method must be normalized.
-     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * Normalized alias is an alias where any usage of '-', '_', '.' is replaced with '.'.
      * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
-     *
+     * <p>
      * @param name the normalized name of the version
      */
     Optional<VersionConstraint> findVersion(String name);
 
     /**
      * Returns the plugin dependency provider for the requested alias.
-     *
+     * <p>
      * Note: Alias passed to this method must be normalized.
-     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * Normalized alias is an alias where any usage of '-', '_', '.' is replaced with '.'.
      * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
-     *
+     * <p>
      * @param alias the normalized alias of the plugin
      *
      * @since 7.2

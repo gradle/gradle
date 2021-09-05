@@ -78,7 +78,7 @@ In case you want to avoid the generation of a subgroup accessor, we recommend to
 For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
 
 When declaring aliases, it's worth noting that any of the `-`, `_` and `.` characters can be used as separators, but the generated catalog will have all normalized to `.`:
-for example `foo-bar` as an alias is converted to `foo.bar` automatically.
+for example `foo-bar` as an alias is converted to `foo.bar` automatically. Normalized aliases must be also used when programmatically accessing catalog with VersionCatalogExtension API.
 ====
 
 [[sec:common-version-numbers]]
@@ -417,7 +417,10 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 Because platforms and catalogs both talk about dependency versions and can both be used to share dependency versions in a project, there might be a confusion regarding what to use and if one is preferable to the other.
 
-The answer is that you should always use catalogs and _maybe_ use platforms in addition.
+In short, you should:
+
+- use catalogs to only define dependencies and their versions for projects and to generate type-safe accessors
+- use platform to apply versions to dependency graph and to affect dependency resolution
 
 A catalog helps with centralizing the dependency versions and is only, as it name implies, a catalog of dependencies you can pick from.
 We recommend using it to declare the coordinates of your dependencies, in all cases.
