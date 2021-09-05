@@ -37,25 +37,45 @@ import java.util.Optional;
 public interface VersionCatalog extends Named {
     /**
      * Returns the dependency provider for the corresponding alias.
-     * @param alias the alias of the dependency
+     *
+     * Note: Alias passed to this method must be normalized.
+     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
+     *
+     * @param alias the normalized alias of the dependency
      */
     Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias);
 
     /**
      * Returns the dependency provider for the corresponding bundle.
-     * @param bundle the alias of the bundle
+     *
+     * Note: Alias passed to this method must be normalized.
+     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
+     *
+     * @param bundle the normalized alias of the bundle
      */
     Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle);
 
     /**
      * Returns the version constraint with the corresponding name in the catalog.
-     * @param name the name of the version
+     *
+     * Note: Alias passed to this method must be normalized.
+     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
+     *
+     * @param name the normalized name of the version
      */
     Optional<VersionConstraint> findVersion(String name);
 
     /**
      * Returns the plugin dependency provider for the requested alias.
-     * @param alias the alias of the plugin
+     *
+     * Note: Alias passed to this method must be normalized.
+     * Normalized alias is alias where any usage of '-', '_', '.' is replaced with '.'.
+     * E.g. for dependency 'my-gradle-dependency' normalized alias is 'my.gradle.dependency'.
+     *
+     * @param alias the normalized alias of the plugin
      *
      * @since 7.2
      */
