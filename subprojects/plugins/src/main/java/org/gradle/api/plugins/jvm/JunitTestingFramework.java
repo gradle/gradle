@@ -16,6 +16,9 @@
 
 package org.gradle.api.plugins.jvm;
 
+/**
+ * {@link JvmTestingFramework} which will execute using "classic" Junit 4.
+ */
 public interface JunitTestingFramework extends JvmTestingFramework {
 
 }

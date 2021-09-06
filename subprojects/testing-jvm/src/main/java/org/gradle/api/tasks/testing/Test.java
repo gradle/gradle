@@ -182,7 +182,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this,(DefaultTestFilter) getFilter()));
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
     }
 
     @Inject

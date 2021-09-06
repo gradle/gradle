@@ -24,6 +24,10 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 
+/**
+ * A group of related tests which both distinguish tests used for different purposes and which
+ * can be configured to run against repeatedly against multiple {@link JvmTestSuiteTarget}s.
+ */
 public interface JvmTestSuite extends Named, SoftwareComponent, Buildable {
     SourceSet getSources();
     void sources(Action<? super SourceSet> configuration);

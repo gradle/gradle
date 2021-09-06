@@ -19,6 +19,9 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
+/**
+ * This DSL element exists to contain any dependencies needed to compile and run a {@link JvmTestSuite}.
+ */
 public interface ComponentDependencies {
     void implementation(Object dependencyNotation);
     void implementation(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);

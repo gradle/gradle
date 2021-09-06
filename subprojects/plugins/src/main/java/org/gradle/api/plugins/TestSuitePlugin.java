@@ -28,6 +28,12 @@ import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
 
+/**
+ * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)
+ * various different target environments.</p>
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ */
 public class TestSuitePlugin  implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = "unitTest";
 

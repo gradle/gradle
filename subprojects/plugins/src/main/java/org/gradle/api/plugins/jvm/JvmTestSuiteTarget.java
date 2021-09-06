@@ -23,6 +23,12 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 
+/**
+ * Defines a target environment against which a {@link JvmTestSuite} should be run, which can specify requirements
+ * like the version of the JVM to use.
+ *
+ * A Test Suite can be run against multiple environments by defining multiple Targets.
+ */
 public interface JvmTestSuiteTarget extends Named, SoftwareComponent {
     TaskProvider<Test> getTestTask();
     Property<JavaVersion> getJavaVersion();

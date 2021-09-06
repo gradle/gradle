@@ -19,6 +19,9 @@ package org.gradle.api.plugins;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 
+/**
+ * This DSL element exists to contain a list of {@link JvmTestSuite}s.
+ */
 public interface TestingExtension {
     ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getSuites();
 }

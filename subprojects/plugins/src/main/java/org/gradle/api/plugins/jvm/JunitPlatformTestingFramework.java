@@ -16,5 +16,8 @@
 
 package org.gradle.api.plugins.jvm;
 
+/**
+ * {@link JvmTestingFramework} which will execute using Junit 5 (Jupiter).
+ */
 public interface JunitPlatformTestingFramework extends JvmTestingFramework {
 }

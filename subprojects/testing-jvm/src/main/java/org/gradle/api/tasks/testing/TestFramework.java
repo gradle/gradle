@@ -21,12 +21,14 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.util.List;
 
+/**
+ * Defines a framework for running automated tests (JUnit 4/5, TestNG).
+ */
 @UsedByScanPlugin("test-retry")
 public interface TestFramework {
 
