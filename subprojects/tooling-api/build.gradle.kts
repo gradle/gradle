@@ -6,11 +6,6 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 gradlebuildJava.usedInToolingApi()
 
 tasks.named<Jar>("sourcesJar") {

@@ -56,16 +56,10 @@ val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
-// https://github.com/gradle/gradle-promote/blob/51738d5f8fcfe6c3171e320c190e631ed08355af/promote-projects/gradle/build.gradle#L78
-val publishingToMavenCentral: Boolean
-    get() = listOf("milestoneNumber", "rcNumber", "finalRelease").any {
-        providers.gradleProperty(it).forUseAtConfigurationTime().orNull != null
-    }
-
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+        project.providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime().orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").forUseAtConfigurationTime().orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {
@@ -88,7 +82,7 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name.set("gradle-${project.name}")
+        name.set("org.gradle:gradle-${project.name}")
         description.set(
             provider {
                 require(project.description != null) { "You must set the description of published project ${project.name}" }
@@ -106,7 +100,7 @@ fun MavenPublication.configureGradleModulePublication() {
             developer {
                 name.set("The Gradle team")
                 organization.set("Gradle Inc.")
-                organizationUrl.set("https://gradle.com")
+                organizationUrl.set("https://gradle.org")
             }
         }
         scm {

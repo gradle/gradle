@@ -165,8 +165,8 @@ public class FileUtils {
      * stripped and replaced with the provided extension.
      *
      * e.g. with a provided extension of ".bar"
-     * foo -> foo.bar
-     * foo.baz -> foo.bar
+     * foo -&gt; foo.bar
+     * foo.baz -&gt; foo.bar
      *
      * @param filePath the file path to transform
      * @param extension the extension to use in the transformed path
