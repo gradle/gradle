@@ -362,6 +362,9 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         vfsHasSnapshotsAt(notMovedDir)
         0 * _
 
+        updater.triggerWatchProbe(watchProbeFor(sourceDir).absolutePath)
+        updater.triggerWatchProbe(watchProbeFor(notMovedDir).absolutePath)
+
         when:
         sourceDir.renameTo(targetDir)
         movedPaths << sourceDir

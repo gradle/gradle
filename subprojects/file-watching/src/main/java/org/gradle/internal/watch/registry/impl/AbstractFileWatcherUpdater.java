@@ -35,9 +35,17 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
         watchableHierarchies.updateUnsupportedFileSystems(watchMode);
-        return doUpdateVfsOnBuildStarted(root);
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnprovenHierarchies(root, createInvalidator());
+        return doUpdateVfsOnBuildStarted(newRoot);
     }
 
     @CheckReturnValue
     protected abstract SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root);
+
+    @Override
+    public void triggerWatchProbe(String path) {
+        watchableHierarchies.triggerWatchProbes(path);
+    }
+
+    protected abstract WatchableHierarchies.Invalidator createInvalidator();
 }

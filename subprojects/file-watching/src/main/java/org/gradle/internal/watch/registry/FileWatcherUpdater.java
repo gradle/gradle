@@ -28,9 +28,9 @@ public interface FileWatcherUpdater {
     /**
      * Registers a watchable hierarchy.
      *
-     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
+     * @see FileWatcherRegistry#registerWatchableHierarchy(File, File, SnapshotHierarchy)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root);
 
     /**
      * Updates the watchers after changes to the root.
@@ -38,6 +38,11 @@ public interface FileWatcherUpdater {
      * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, SnapshotHierarchy)
      */
     void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+
+    /**
+     * Trigger any armed watch probes.
+     */
+    void triggerWatchProbe(String path);
 
     /**
      * Remove watched hierarchies that have been moved.

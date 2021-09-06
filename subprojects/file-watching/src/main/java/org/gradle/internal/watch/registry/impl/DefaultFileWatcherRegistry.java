@@ -83,6 +83,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
+                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
@@ -137,8 +138,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
+    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
+        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, probeFile, root);
     }
 
     @Override

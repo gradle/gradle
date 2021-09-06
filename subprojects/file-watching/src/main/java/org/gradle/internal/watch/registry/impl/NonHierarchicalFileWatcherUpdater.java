@@ -79,8 +79,8 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
+        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, probeFile, root);
     }
 
     @Override
@@ -90,21 +90,25 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     @Override
     public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
-            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-            SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
-            return invalidatedRoot;
-        };
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
             watchMode,
             hierarchy -> hasWatchableContent(hierarchy, root),
             maximumNumberOfWatchedHierarchies,
-            invalidator
+            createInvalidator()
         );
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;
+    }
+
+    @Override
+    protected WatchableHierarchies.Invalidator createInvalidator() {
+        return (location, currentRoot) -> {
+            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
+            SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
+            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
+            return invalidatedRoot;
+        };
     }
 
     @Override

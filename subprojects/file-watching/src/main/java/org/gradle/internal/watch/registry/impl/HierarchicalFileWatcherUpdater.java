@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * The build root directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watchable hierarchies:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
  *   directories inside them.
@@ -89,8 +89,8 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
+        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, probeFile, root);
         updateWatchedHierarchies(root);
     }
 
@@ -105,13 +105,12 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     @Override
     public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
             watchMode,
             watchedHierarchies::contains,
             maximumNumberOfWatchedHierarchies,
-            invalidator
+            createInvalidator()
         );
 
         updateWatchedHierarchies(newRoot);
@@ -145,10 +144,16 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         if (!hierarchiesToStartWatching.isEmpty()) {
             fileWatcher.startWatching(hierarchiesToStartWatching.stream()
                 .peek(locationToWatchValidator::validateLocationToWatch)
+                .peek(watchableHierarchies::armWatchProbe)
                 .collect(Collectors.toList())
             );
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchedRoots.size());
+    }
+
+    @Override
+    protected WatchableHierarchies.Invalidator createInvalidator() {
+        return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     public interface FileSystemLocationToWatchValidator {

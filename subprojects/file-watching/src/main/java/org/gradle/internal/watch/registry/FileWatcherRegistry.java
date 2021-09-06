@@ -46,13 +46,13 @@ public interface FileWatcherRegistry extends Closeable {
     }
 
     /**
-     * Registers a watchable hierarchy.
+     * Registers a watchable hierarchy with the given probe.
      *
      * The watcher registry will only watch for changes in watchable hierarchies.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root);
 
     /**
      * Updates the watchers after changes to the root.

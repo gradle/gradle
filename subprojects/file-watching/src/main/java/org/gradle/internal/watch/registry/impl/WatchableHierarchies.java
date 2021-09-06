@@ -31,9 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
@@ -58,34 +61,63 @@ public class WatchableHierarchies {
      */
     private FileHierarchySet unsupportedHierarchies = DefaultFileHierarchySet.of();
     private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
+    private final Map<File, WatchProbe> watchProbesByHierarchy = new ConcurrentHashMap<>();
+    private final Map<String, WatchProbe> watchProbesByPath = new ConcurrentHashMap<>();
 
     public WatchableHierarchies(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
         this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.watchFilter = watchFilter;
     }
 
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        File watchableHierarchyPath = watchableHierarchy.getAbsoluteFile();
-        String watchableHierarchyPathString = watchableHierarchyPath.toString();
-        if (!watchFilter.test(watchableHierarchyPathString)) {
+    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
+        String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
+        if (!watchFilter.test(watchableHierarchyPath)) {
             throw new IllegalStateException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
-                watchableHierarchyPathString
+                watchableHierarchyPath
             ));
         }
-        if (unsupportedHierarchies.contains(watchableHierarchyPathString)) {
+        if (unsupportedHierarchies.contains(watchableHierarchyPath)) {
             LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
             return;
         }
-        if (!watchableHierarchies.contains(watchableHierarchyPathString)) {
-            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPathString, root);
-            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
+        if (!watchableHierarchies.contains(watchableHierarchyPath)) {
+            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPath, root);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
             watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
         } else {
-            recentlyUsedHierarchies.remove(watchableHierarchyPath);
-            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
+            recentlyUsedHierarchies.remove(watchableHierarchy);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
         }
+        WatchProbe watchProbe = new WatchProbe(watchableHierarchy, probeFile);
+        watchProbesByHierarchy.put(watchableHierarchy, watchProbe);
+        watchProbesByPath.put(probeFile.getAbsolutePath(), watchProbe);
         LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
+    }
+
+    public void armWatchProbe(File watchableHierarchy) {
+        WatchProbe probe = watchProbesByHierarchy.get(watchableHierarchy);
+        if (probe != null) {
+            try {
+                probe.arm();
+            } catch (IOException e) {
+                // TODO Should this be debug instead?
+                LOGGER.warn("Could not arm watch probe for hierarchy {}", watchableHierarchy, e);
+            }
+        } else {
+            // TODO Should this be debug instead?
+            LOGGER.warn("Did not find watchable hierarchy to probe: {}", watchableHierarchy);
+        }
+    }
+
+    /**
+     * Triggers a watch probe at the given location if one exists.
+     */
+    public void triggerWatchProbes(String path) {
+        WatchProbe probe = watchProbesByPath.get(path);
+        if (probe != null) {
+            probe.trigger();
+        }
     }
 
     @CheckReturnValue
@@ -134,6 +166,21 @@ public class WatchableHierarchies {
                 "You can override this by explicitly enabling file system watching.");
         }
         return invalidatedRoot;
+    }
+
+    public SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy newRoot = root;
+        for (WatchProbe watchProbe : watchProbesByHierarchy.values()) {
+            if (watchProbe.leftArmed()) {
+                if (recentlyUsedHierarchies.remove(watchProbe.watchableHierarchy)) {
+                    LOGGER.warn("Invalidating hierarchy because watch probe hasn't been triggered {}", watchProbe.watchableHierarchy);
+                    newRoot = invalidator.invalidate(watchProbe.watchableHierarchy.getAbsolutePath(), newRoot);
+                }
+            }
+        }
+        watchProbesByHierarchy.clear();
+        watchProbesByPath.clear();
+        return newRoot;
     }
 
     private SnapshotHierarchy invalidateUnsupportedFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
@@ -242,5 +289,60 @@ public class WatchableHierarchies {
 
     public interface Invalidator {
         SnapshotHierarchy invalidate(String absolutePath, SnapshotHierarchy currentRoot);
+    }
+
+    private static class WatchProbe {
+        public enum State {
+            /**
+             * Probe hasn't been armed yet.
+             */
+            UNARMED,
+
+            /**
+             * Probe file exists, waiting for event to arrive.
+             */
+            ARMED,
+
+            /**
+             * The expected event has arrived.
+             */
+            TRIGGERED
+        }
+
+        private final File watchableHierarchy;
+        private final File probeFile;
+        private State state = State.UNARMED;
+
+        public WatchProbe(File watchableHierarchy, File probeFile) {
+            this.watchableHierarchy = watchableHierarchy;
+            this.probeFile = probeFile;
+        }
+
+        public synchronized void arm() throws IOException {
+            state = State.ARMED;
+            //noinspection ResultOfMethodCallIgnored
+            probeFile.getParentFile().mkdirs();
+            // Creating a new file should be enough to trigger an event
+            if (probeFile.createNewFile()) {
+                return;
+            }
+            // If the file already existed, we touch it
+            long lastModified;
+            do {
+                lastModified = System.currentTimeMillis();
+            } while (lastModified == probeFile.lastModified());
+            if (!probeFile.setLastModified(lastModified)) {
+                throw new IOException("Couldn't arm watch probe: " + probeFile);
+            }
+        }
+
+        public synchronized void trigger() {
+            LOGGER.debug("Watch probe has been triggered for hierarchyt: {}", watchableHierarchy);
+            state = State.TRIGGERED;
+        }
+
+        public synchronized boolean leftArmed() {
+            return state == State.ARMED;
+        }
     }
 }
