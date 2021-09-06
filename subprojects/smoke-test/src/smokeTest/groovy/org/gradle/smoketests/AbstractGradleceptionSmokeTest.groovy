@@ -96,8 +96,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         @Override
         boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            def version = jvm.languageVersion
-            return version >= JavaVersion.VERSION_1_9 && version <= JavaVersion.VERSION_11
+            return jvm.languageVersion == JavaVersion.VERSION_11
         }
     }
 }
