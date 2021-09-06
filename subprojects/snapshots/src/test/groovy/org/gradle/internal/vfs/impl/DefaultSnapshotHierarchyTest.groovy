@@ -687,7 +687,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
         when:
         hierarchy.snapshotRootsUnder("/")
         then:
-        1 * rootNode.stream()
+        1 * rootNode.completeSnapshots()
         0 * _
     }
 

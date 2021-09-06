@@ -35,13 +35,13 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
 
     @Override
     public void nodeRemoved(FileSystemNode node) {
-        node.stream()
+        node.completeSnapshots()
             .forEach(removedSnapshots::add);
     }
 
     @Override
     public void nodeAdded(FileSystemNode node) {
-        node.stream()
+        node.completeSnapshots()
             .forEach(addedSnapshots::add);
     }
 }

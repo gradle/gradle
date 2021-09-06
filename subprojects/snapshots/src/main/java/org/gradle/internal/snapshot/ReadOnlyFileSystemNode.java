@@ -43,7 +43,7 @@ public interface ReadOnlyFileSystemNode {
         }
 
         @Override
-        public Stream<FileSystemLocationSnapshot> stream() {
+        public Stream<FileSystemLocationSnapshot> completeSnapshots() {
             return Stream.empty();
         }
     };
@@ -66,7 +66,10 @@ public interface ReadOnlyFileSystemNode {
      */
     Optional<MetadataSnapshot> getSnapshot();
 
-    Stream<FileSystemLocationSnapshot> stream();
+    /**
+     * Returns all the complete snapshots accessible from the node.
+     */
+    Stream<FileSystemLocationSnapshot> completeSnapshots();
 
     interface NodeVisitor {
         void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);
