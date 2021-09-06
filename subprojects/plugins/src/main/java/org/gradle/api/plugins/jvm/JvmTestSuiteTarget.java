@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Named;
 import org.gradle.api.component.SoftwareComponent;
@@ -28,7 +29,10 @@ import org.gradle.api.tasks.testing.Test;
  * like the version of the JVM to use.
  *
  * A Test Suite can be run against multiple environments by defining multiple Targets.
+ *
+ * @since 7.3
  */
+@Incubating
 public interface JvmTestSuiteTarget extends Named, SoftwareComponent {
     TaskProvider<Test> getTestTask();
     Property<JavaVersion> getJavaVersion();

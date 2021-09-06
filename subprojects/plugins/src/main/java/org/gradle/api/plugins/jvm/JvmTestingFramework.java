@@ -16,11 +16,15 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 /**
  * Defines a framework for running automated tests (JUnit 4/5, TestNG) which will be used by a {@link JvmTestSuiteTarget} of a {@link JvmTestSuite}.
+ *
+ * @since 7.3
  */
+@Incubating
 public interface JvmTestingFramework {
     Property<String> getVersion();
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -881,6 +882,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return this;
     }
 
+    /**
+     * Returns the chosen {@link TestFramework}.
+     *
+     * @since 7.3
+     */
+    @Incubating
     @Nested
     public Property<TestFramework> getTestFrameworkProperty() {
         return testFramework;

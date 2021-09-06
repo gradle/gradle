@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -33,7 +34,10 @@ import org.gradle.api.tasks.testing.Test;
  * various different target environments.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ *
+ * @since 7.3
  */
+@Incubating
 public class TestSuitePlugin  implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = "unitTest";
 

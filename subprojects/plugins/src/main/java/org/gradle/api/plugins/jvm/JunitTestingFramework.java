@@ -16,9 +16,14 @@
 
 package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
+
 /**
  * {@link JvmTestingFramework} which will execute using "classic" Junit 4.
+ *
+ * @since 7.3
  */
+@Incubating
 public interface JunitTestingFramework extends JvmTestingFramework {
 
 }
