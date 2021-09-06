@@ -20,30 +20,23 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
-public class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
+public class HasWatchableContentSnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
     private final WatchableHierarchies watchableHierarchies;
     private boolean empty = true;
-    private boolean onlyMissing = true;
 
-    public CheckIfNonEmptySnapshotVisitor(WatchableHierarchies watchableHierarchies) {
+    public HasWatchableContentSnapshotVisitor(WatchableHierarchies watchableHierarchies) {
         this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
     public void visitSnapshotRoot(FileSystemLocationSnapshot rootSnapshot) {
-        if (!watchableHierarchies.ignoredForWatching(rootSnapshot)) {
+        if (rootSnapshot.getType() != FileType.Missing
+            && !watchableHierarchies.ignoredForWatching(rootSnapshot)) {
             empty = false;
-            if (rootSnapshot.getType() != FileType.Missing) {
-                onlyMissing = false;
-            }
         }
     }
 
     public boolean isEmpty() {
         return empty;
-    }
-
-    public boolean containsOnlyMissingFiles() {
-        return onlyMissing;
     }
 }

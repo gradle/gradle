@@ -118,7 +118,6 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         addSnapshot(missingFileSnapshot(nonExistingWatchableHierarchy.file("some/missing/file.txt")))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [nonExistingWatchableHierarchy.parentFile]) })
         0 * _
     }
 
@@ -292,7 +291,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "starts watching closer parent when missing file is created"() {
+    def "starts watching when missing file is created"() {
         def rootDir = file("root").createDir()
         def watchableHierarchy = rootDir.file("a/b/projectDir")
         def missingFile = watchableHierarchy.file("c/missing.txt")
@@ -301,15 +300,12 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         registerWatchableHierarchies([watchableHierarchy])
         addSnapshot(missingFileSnapshot(missingFile))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
         0 * _
 
         when:
         missingFile.createFile()
         addSnapshot(snapshotRegularFile(missingFile))
         buildFinished()
-        then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
         0 * _
@@ -378,7 +374,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    MissingFileSnapshot missingFileSnapshot(File location) {
+    private static MissingFileSnapshot missingFileSnapshot(File location) {
         new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
     }
 

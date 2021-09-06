@@ -46,33 +46,21 @@ public class WatchedHierarchies {
 
     public static WatchedHierarchies resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
-        FileHierarchySet watchedRoots = DefaultFileHierarchySet.of();
         for (File watchableHierarchy : watchableHierarchies.getWatchableHierarchies()) {
             String watchableHierarchyPath = watchableHierarchy.toString();
             if (watchedHierarchies.contains(watchableHierarchyPath)) {
                 continue;
             }
-            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-            vfsRoot.visitSnapshotRoots(watchableHierarchyPath, new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, watchedHierarchies));
-            if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
+            HasWatchableContentSnapshotVisitor contentVisitor = new HasWatchableContentSnapshotVisitor(watchableHierarchies);
+            vfsRoot.visitSnapshotRoots(watchableHierarchyPath, new FilterAlreadyCoveredSnapshotsVisitor(contentVisitor, watchedHierarchies));
+            if (contentVisitor.isEmpty()) {
                 continue;
             }
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
-            String existingAncestorToWatch = checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                ? locationOrFirstExistingAncestor(watchableHierarchy).toString()
-                : watchableHierarchyPath;
-            watchedRoots = watchedRoots.plus(existingAncestorToWatch);
         }
         ImmutableSet.Builder<File> roots = ImmutableSet.builder();
-        watchedRoots.visitRoots(root -> roots.add(new File(root)));
+        watchedHierarchies.visitRoots(root -> roots.add(new File(root)));
         return new WatchedHierarchies(watchedHierarchies, roots.build());
-    }
-
-    private static File locationOrFirstExistingAncestor(File watchableHierarchy) {
-        if (watchableHierarchy.isDirectory()) {
-            return watchableHierarchy;
-        }
-        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(watchableHierarchy);
     }
 
     private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {

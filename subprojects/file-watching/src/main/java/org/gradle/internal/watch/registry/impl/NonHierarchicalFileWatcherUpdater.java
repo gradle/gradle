@@ -98,7 +98,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
             root,
             watchMode,
-            hierarchy -> containsSnapshots(hierarchy, root),
+            hierarchy -> hasWatchableContent(hierarchy, root),
             maximumNumberOfWatchedHierarchies,
             invalidator
         );
@@ -111,10 +111,10 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         return watchableHierarchies.getWatchableHierarchies();
     }
 
-    private boolean containsSnapshots(File location, SnapshotHierarchy root) {
-        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-        root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
-        return !checkIfNonEmptySnapshotVisitor.isEmpty();
+    private boolean hasWatchableContent(File location, SnapshotHierarchy root) {
+        HasWatchableContentSnapshotVisitor contentVisitor = new HasWatchableContentSnapshotVisitor(watchableHierarchies);
+        root.visitSnapshotRoots(location.toString(), contentVisitor);
+        return !contentVisitor.isEmpty();
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
