@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -25,6 +26,7 @@ import org.gradle.internal.HasInternalProtocol;
  * @param <T> Type of value represented by provider
  * @since 7.3
  */
+@Incubating
 @HasInternalProtocol
 @NonExtensible
 public interface ProviderConvertible<T> {

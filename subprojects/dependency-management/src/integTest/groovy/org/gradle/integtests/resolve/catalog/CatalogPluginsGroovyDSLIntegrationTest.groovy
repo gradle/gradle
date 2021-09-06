@@ -191,16 +191,12 @@ dependencyResolutionManagement {
         String pluginVersion = '1.5'
         String firstLevelTask = 'greet'
         String firstLevelPluginId = 'com.acme.greeter'
+        String secondLevelPluginTask = 'greet-second'
+        String secondLevelPluginId = 'com.acme.greeter.second'
         new PluginBuilder(file("greeter"))
             .addPluginWithPrintlnTask(firstLevelTask, 'Hello from first plugin!', firstLevelPluginId, "FirstPlugin")
-            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
-            .allowAll()
-
-        String secondLevelPluginTask = 'greet-second'
-        String secondLevelPluginId = 'com.acme.greeter2'
-        new PluginBuilder(file("greeter-second"))
             .addPluginWithPrintlnTask(secondLevelPluginTask, 'Hello from second plugin!', secondLevelPluginId, "SecondPlugin")
-            .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
             .allowAll()
 
         file("settings.gradle") << """

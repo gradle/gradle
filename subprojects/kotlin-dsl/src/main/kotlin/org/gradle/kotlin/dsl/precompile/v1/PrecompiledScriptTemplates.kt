@@ -193,7 +193,6 @@ open class PrecompiledProjectScript(
                 override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
                     return alias(notation.asProvider())
                 }
-
             }
         )
     }
