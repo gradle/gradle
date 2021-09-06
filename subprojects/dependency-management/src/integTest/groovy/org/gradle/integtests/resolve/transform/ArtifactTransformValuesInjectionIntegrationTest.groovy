@@ -37,6 +37,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.Untracked
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
@@ -547,6 +548,51 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    @Unroll
+    def "transform parameters type cannot use annotation @Untracked"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Untracked
+                    @InputFiles
+                    File getBad()
+                    void setBad(File value)
+                }
+
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':a:implementation'.")
+        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+        failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
+        assertPropertyValidationErrors(bad: modifierAnnotationInvalidInContext {
+            annotation(Untracked.simpleName)
+            validAnnotations = "@Classpath, @CompileClasspath, @IgnoreEmptyDirectories, @Incremental, @NormalizeLineEndings, @Optional or @PathSensitive"
+        })
+    }
+
     @Unroll
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         settingsFile << """
@@ -750,6 +796,48 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         where:
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    )
+    @Unroll
+    def "transform action type cannot use annotation @Untracked for @#propertyType.simpleName"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @Untracked
+                @${propertyType.simpleName}
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
+        assertPropertyValidationErrors(inputArtifact: incompatibleAnnotations {
+            annotatedWith(Untracked.simpleName)
+            incompatibleWith(propertyType.simpleName)
+        })
+
+        where:
+        propertyType << [InputArtifact, InputArtifactDependencies]
     }
 
     @Unroll

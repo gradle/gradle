@@ -115,6 +115,18 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    String modifierAnnotationInvalidInContext(@DelegatesTo(value = AnnotationContext, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(AnnotationContext, 'annotation_invalid_in_context', spec)
+        config.description("is annotated with invalid modifier @${config.annotation}")
+            .reason("The '@${config.annotation}' annotation cannot be used in this context")
+            .solution("Remove the annotation")
+            .solution("use a different annotation, e.g one of ${config.validAnnotations}")
+            .render()
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.MISSING_ANNOTATION
     )
     String missingAnnotationMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
