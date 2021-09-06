@@ -17,12 +17,17 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
 
 import javax.inject.Inject;
+import java.util.List;
+import java.util.Optional;
+
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
     protected final DefaultVersionCatalog config;
@@ -55,6 +60,63 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         return providers.of(DependencyValueSource.class,
             spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)))
             .forUseAtConfigurationTime();
+    }
+
+    @Override
+    public final Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
+        if (config.getDependencyAliases().contains(alias)) {
+            return Optional.of(create(alias));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
+        if (config.getBundleAliases().contains(bundle)) {
+            return Optional.of(new BundleFactory(providers, config).createBundle(bundle));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public final Optional<VersionConstraint> findVersion(String name) {
+        if (config.getVersionAliases().contains(name)) {
+            return Optional.of(new VersionFactory(providers, config).findVersionConstraint(name));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Provider<PluginDependency>> findPlugin(String alias) {
+        if (config.getPluginAliases().contains(alias)) {
+            return Optional.of(new PluginFactory(providers, config).createPlugin(alias));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public final String getName() {
+        return config.getName();
+    }
+
+    @Override
+    public List<String> getDependencyAliases() {
+        return config.getDependencyAliases();
+    }
+
+    @Override
+    public List<String> getBundleAliases() {
+        return config.getBundleAliases();
+    }
+
+    @Override
+    public List<String> getVersionAliases() {
+        return config.getVersionAliases();
+    }
+
+    @Override
+    public List<String> getPluginAliases() {
+        return config.getPluginAliases();
     }
 
     public static class VersionFactory {
@@ -90,7 +152,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             return version.getPreferredVersion();
         }
 
-        protected ImmutableVersionConstraint findVersionConstraint(String name) {
+        private ImmutableVersionConstraint findVersionConstraint(String name) {
             return config.getVersion(name).getVersion();
         }
     }
