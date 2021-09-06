@@ -203,7 +203,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 seen.add(cause);
             }
         }
-        failureOnUnexpectedOutput(String.format("No matching cause found in %s", seen));
+        failureOnUnexpectedOutput(String.format("No matching cause found\nExpected: A cause which is %s\n     but: causes were %s", matcher, seen));
         return this;
     }
 
@@ -280,7 +280,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             }
             seen.add(problem.description);
         }
-        failureOnUnexpectedOutput(String.format("No matching failure description found in %s", seen));
+        failureOnUnexpectedOutput(String.format("No matching failure description found\nExpected: A failure description which is %s\n     but: failure descriptions were %s", matcher, seen));
     }
 
     @Override
