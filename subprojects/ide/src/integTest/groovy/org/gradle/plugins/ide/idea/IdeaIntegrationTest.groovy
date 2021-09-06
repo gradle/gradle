@@ -121,9 +121,11 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
 
         hasProjectLibrary('root.ipr', 'scala-sdk-2.10.0', [], [], [], ['compiler-bridge_2.10', 'scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface', 'protobuf-java'])
         hasProjectLibrary('root.ipr', 'scala-sdk-2.11.2', [], [], [], ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'])
+        hasProjectLibrary('root.ipr', 'scala-sdk-3.0.1', [], [], [], ['scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.', 'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.', 'jline-terminal-jna-3.19.0', 'jline-terminal-3.19.0.', 'scala-library-2.13.6', 'protobuf-java-3.7.0.', 'util-interface', 'jna-5.3.1'])
         hasScalaSdk('project1/project1.iml', '2.11.2')
         hasScalaSdk('project2/project2.iml', '2.10.0')
         hasScalaSdk('project3/project3.iml', '2.11.2')
+        hasScalaSdk('project4/project4.iml', '3.0.1')
     }
 
     @Test
@@ -133,9 +135,11 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
 
         hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['compiler-bridge_2.10', 'scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface', 'protobuf-java'], [], [], [])
         hasProjectLibrary('root.ipr', 'scala-compiler-2.11.2', ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'], [], [], [])
+        hasProjectLibrary('root.ipr', 'scala-compiler-3.0.1',  ['scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.', 'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.', 'jline-terminal-jna-3.19.0', 'jline-terminal-3.19.0.', 'scala-library-2.13.6', 'protobuf-java-3.7.0.', 'util-interface', 'jna-5.3.1'], [], [], [])
         hasScalaFacet('project1/project1.iml', 'scala-compiler-2.11.2')
         hasScalaFacet('project2/project2.iml', 'scala-compiler-2.10.0')
         hasScalaFacet('project3/project3.iml', 'scala-compiler-2.11.2')
+        hasScalaFacet('project4/project4.iml', 'scala-compiler-3.0.1')
     }
 
     @Test
@@ -461,7 +465,7 @@ idea.project {
         assert libraryTable
 
         def library = libraryTable.library.find { it.@name == libraryName }
-        assert library : "Can't find $libraryName in ${libraryTable.library.@name.join(', ')}"
+        assert library: "Can't find $libraryName in ${libraryTable.library.@name.join(', ')}"
 
         def classesRoots = library.CLASSES.root
         assert classesRoots.size() == classesLibs.size()
@@ -493,7 +497,7 @@ idea.project {
         def newModuleRootManager = module.component.find { it.@name == "NewModuleRootManager" }
         assert newModuleRootManager
 
-        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk-$version"}
+        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == "scala-sdk-$version" }
         assert sdkLibrary
         assert sdkLibrary.@type == "library"
         assert sdkLibrary.@level == "project"
