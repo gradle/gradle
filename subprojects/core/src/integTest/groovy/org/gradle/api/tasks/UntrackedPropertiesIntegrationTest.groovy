@@ -18,11 +18,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.work.InputChanges
 
-class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
     def "task with untracked #properties is not up-to-date"() {
         buildFile("""
@@ -449,6 +452,43 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
         untrackedOutputFile.text == "Produced file"
         untrackedStaleFile.exists()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
+    )
+    def "fails when @Untracked is applied together with #annotation.simpleName"() {
+        expectReindentedValidationMessage()
+        buildFile("""
+            abstract class InvalidTask extends DefaultTask {
+                @Untracked
+                @${annotation.simpleName}
+                abstract ${inputType} getInput()
+
+                @TaskAction
+                void doStuff() {}
+            }
+
+            tasks.register("invalid", InvalidTask)
+        """)
+
+        when:
+        fails("invalid")
+        then:
+        failureDescriptionContains(
+            incompatibleAnnotations {
+                type('InvalidTask').property('input')
+                annotatedWith(Untracked.simpleName)
+                incompatibleWith(annotation.simpleName)
+                includeLink()
+            }
+        )
+
+        where:
+        annotation | inputType
+        Input      | 'Property<String>'
+        Destroys   | 'ConfigurableFileCollection'
+        LocalState | 'ConfigurableFileCollection'
     }
 
     static generateProducerTask(boolean untracked) {
