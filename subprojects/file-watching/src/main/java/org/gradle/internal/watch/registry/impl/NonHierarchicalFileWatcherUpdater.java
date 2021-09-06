@@ -109,7 +109,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     @Override
     public Collection<File> getWatchedRoots() {
-        return watchableHierarchies.getWatchableHierarchies();
+        return watchableHierarchies.getRecentlyUsedHierarchies();
     }
 
     private boolean hasWatchableContent(File location, SnapshotHierarchy root) {

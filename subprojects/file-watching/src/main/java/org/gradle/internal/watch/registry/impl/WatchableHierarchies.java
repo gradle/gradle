@@ -150,7 +150,7 @@ public class WatchableHierarchies {
         }
     }
 
-    public Collection<File> getWatchableHierarchies() {
+    public Collection<File> getRecentlyUsedHierarchies() {
         return recentlyUsedHierarchies;
     }
 

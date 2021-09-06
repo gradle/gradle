@@ -48,7 +48,7 @@ public class WatchedHierarchies {
 
     public static WatchedHierarchies resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
-        for (File watchableHierarchy : watchableHierarchies.getWatchableHierarchies()) {
+        for (File watchableHierarchy : watchableHierarchies.getRecentlyUsedHierarchies()) {
             String watchableHierarchyPath = watchableHierarchy.toString();
             if (watchedHierarchies.contains(watchableHierarchyPath)) {
                 continue;
