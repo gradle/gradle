@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ReadOnlyFileSystemNode {
     ReadOnlyFileSystemNode EMPTY = new ReadOnlyFileSystemNode() {
@@ -42,7 +43,8 @@ public interface ReadOnlyFileSystemNode {
         }
 
         @Override
-        public void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor) {
+        public Stream<FileSystemLocationSnapshot> stream() {
+            return Stream.empty();
         }
     };
 
@@ -64,7 +66,7 @@ public interface ReadOnlyFileSystemNode {
      */
     Optional<MetadataSnapshot> getSnapshot();
 
-    void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor);
+    Stream<FileSystemLocationSnapshot> stream();
 
     interface NodeVisitor {
         void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);

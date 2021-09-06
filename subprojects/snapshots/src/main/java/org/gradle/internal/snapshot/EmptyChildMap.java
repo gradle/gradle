@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public class EmptyChildMap<T> implements ChildMap<T> {
     private static final EmptyChildMap<Object> INSTANCE = new EmptyChildMap<>();
@@ -64,6 +65,11 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     @Override
     public List<Entry<T>> entries() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public Stream<Entry<T>> stream() {
+        return Stream.empty();
     }
 
     @Override

@@ -323,9 +323,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     boolean vfsHasSnapshotsAt(File location) {
-        def visitor = new CheckIfNonEmptySnapshotVisitor()
-        virtualFileSystem.root.visitSnapshotRoots(location.absolutePath, visitor)
-        return !visitor.empty
+        return virtualFileSystem.root.snapshotRootsUnder(location.absolutePath)
+            .findAny()
+            .present
     }
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
@@ -341,15 +341,5 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, watchMode = WatchMode.DEFAULT) {
         virtualFileSystem.root = updater.updateVfsOnBuildFinished(virtualFileSystem.root, watchMode, maximumNumberOfWatchedHierarchies)
-    }
-
-    private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
-
-        boolean empty = true
-
-        @Override
-        void visitSnapshotRoot(FileSystemLocationSnapshot snapshot) {
-            empty = false
-        }
     }
 }

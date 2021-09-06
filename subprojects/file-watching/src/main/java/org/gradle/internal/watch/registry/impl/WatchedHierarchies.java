@@ -19,11 +19,13 @@ package org.gradle.internal.watch.registry.impl;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import java.io.File;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class WatchedHierarchies {
     public static final WatchedHierarchies EMPTY = new WatchedHierarchies(DefaultFileHierarchySet.of(), ImmutableSet.of());
@@ -51,9 +53,8 @@ public class WatchedHierarchies {
             if (watchedHierarchies.contains(watchableHierarchyPath)) {
                 continue;
             }
-            HasWatchableContentSnapshotVisitor contentVisitor = new HasWatchableContentSnapshotVisitor(watchableHierarchies);
-            vfsRoot.visitSnapshotRoots(watchableHierarchyPath, new FilterAlreadyCoveredSnapshotsVisitor(contentVisitor, watchedHierarchies));
-            if (contentVisitor.isEmpty()) {
+
+            if (hasNoContent(vfsRoot.snapshotRootsUnder(watchableHierarchyPath), watchableHierarchies, watchedHierarchies)) {
                 continue;
             }
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
@@ -63,20 +64,10 @@ public class WatchedHierarchies {
         return new WatchedHierarchies(watchedHierarchies, roots.build());
     }
 
-    private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {
-        private final SnapshotHierarchy.SnapshotVisitor delegate;
-        private final FileHierarchySet alreadyCoveredSnapshots;
-
-        public FilterAlreadyCoveredSnapshotsVisitor(SnapshotHierarchy.SnapshotVisitor delegate, FileHierarchySet alreadyCoveredSnapshots) {
-            this.delegate = delegate;
-            this.alreadyCoveredSnapshots = alreadyCoveredSnapshots;
-        }
-
-        @Override
-        public void visitSnapshotRoot(FileSystemLocationSnapshot snapshot) {
-            if (!alreadyCoveredSnapshots.contains(snapshot.getAbsolutePath())) {
-                delegate.visitSnapshotRoot(snapshot);
-            }
-        }
+    private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies, FileHierarchySet watchedHierarchies) {
+        return snapshots
+            .filter(snapshot -> !watchedHierarchies.contains(snapshot.getAbsolutePath()))
+            .noneMatch(snapshot -> snapshot.getType() != FileType.Missing
+                && !watchableHierarchies.ignoredForWatching(snapshot));
     }
 }

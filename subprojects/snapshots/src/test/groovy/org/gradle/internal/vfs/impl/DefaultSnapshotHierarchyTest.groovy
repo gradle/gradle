@@ -39,6 +39,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.stream.Collectors
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
@@ -497,10 +498,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         set.getMetadata("/base.txt").get().type == FileType.RegularFile
     }
 
-    Collection<FileSystemLocationSnapshot> collectSnapshots(SnapshotHierarchy set, String path) {
-        List<FileSystemLocationSnapshot> result = []
-        set.visitSnapshotRoots(path) { snapshotRoot -> result.add(snapshotRoot)}
-        return result
+    static Collection<FileSystemLocationSnapshot> collectSnapshots(SnapshotHierarchy set, String path) {
+        return set.snapshotRootsUnder(path)
+            .collect(Collectors::toList()) as Collection<FileSystemLocationSnapshot>
     }
 
     def "updates are inserted sorted"() {
@@ -680,15 +680,14 @@ class DefaultSnapshotHierarchyTest extends Specification {
         0 * _
     }
 
-    def "visitRootSnapshots can visit the root"() {
+    def "snapshotRootsUnder can stream the root"() {
         def rootNode = Mock(FileSystemNode)
         def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
-        def snapshotVisitor = Mock(SnapshotHierarchy.SnapshotVisitor)
 
         when:
-        hierarchy.visitSnapshotRoots("/", snapshotVisitor)
+        hierarchy.snapshotRootsUnder("/")
         then:
-        1 * rootNode.accept(snapshotVisitor)
+        1 * rootNode.stream()
         0 * _
     }
 

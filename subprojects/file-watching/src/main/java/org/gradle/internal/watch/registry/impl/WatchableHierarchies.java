@@ -102,7 +102,8 @@ public class WatchableHierarchies {
 
     private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
-        root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
+        root.snapshotRoots()
+            .forEach(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
@@ -154,15 +155,15 @@ public class WatchableHierarchies {
     }
 
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
-        vfsRoot.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
-            if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
+        vfsRoot.snapshotRootsUnder(watchableHierarchy)
+            .filter(snapshotRoot -> !isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot))
+            .forEach(snapshotRoot -> {
                 throw new IllegalStateException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
                     watchableHierarchy
                 ));
-            }
-        });
+            });
     }
 
     public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {

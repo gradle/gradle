@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
@@ -112,9 +113,9 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     private boolean hasWatchableContent(File location, SnapshotHierarchy root) {
-        HasWatchableContentSnapshotVisitor contentVisitor = new HasWatchableContentSnapshotVisitor(watchableHierarchies);
-        root.visitSnapshotRoots(location.toString(), contentVisitor);
-        return !contentVisitor.isEmpty();
+        return root.snapshotRootsUnder(location.toString())
+            .anyMatch(snapshot -> snapshot.getType() != FileType.Missing
+                && !watchableHierarchies.ignoredForWatching(snapshot));
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

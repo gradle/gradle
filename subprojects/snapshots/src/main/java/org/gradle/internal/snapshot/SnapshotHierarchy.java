@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import javax.annotation.CheckReturnValue;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * An immutable hierarchy of snapshots of the file system.
@@ -61,13 +62,9 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
+    Stream<FileSystemLocationSnapshot> snapshotRoots();
 
-    void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor);
-
-    interface SnapshotVisitor {
-        void visitSnapshotRoot(FileSystemLocationSnapshot snapshot);
-    }
+    Stream<FileSystemLocationSnapshot> snapshotRootsUnder(String absolutePath);
 
     /**
      * Receives diff when a {@link SnapshotHierarchy} is updated.
