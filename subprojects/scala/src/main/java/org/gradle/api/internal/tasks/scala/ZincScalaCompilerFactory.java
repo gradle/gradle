@@ -139,7 +139,11 @@ public class ZincScalaCompilerFactory {
                     urls.add(file.toURI().toURL());
                 }
             }
-            return new URLClassLoader(urls.toArray(new URL[0]), parent);
+            if (parent != null) {
+                return new URLClassLoader(urls.toArray(new URL[0]), parent);
+            } else {
+                return new URLClassLoader(urls.toArray(new URL[0]));
+            }
         } catch (Exception ee) {
             throw new RuntimeException(ee);
         }
