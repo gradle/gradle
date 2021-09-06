@@ -18,13 +18,10 @@ package org.gradle.api.internal.catalog;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.plugin.use.PluginDependency;
 
 public interface ExternalModuleDependencyFactory extends VersionCatalog {
-    interface ProviderConvertible<T> {
-        Provider<T> asProvider();
-    }
 
     interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {
     }

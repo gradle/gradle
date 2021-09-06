@@ -51,6 +51,7 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -174,8 +175,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                 .nagUser();
             return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
-        if (dependencyNotation instanceof ExternalModuleDependencyFactory.ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ExternalModuleDependencyFactory.ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+        if (dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         }
         if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);

@@ -187,4 +187,88 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    def "can apply a plugin alias that has sub-accessors"() {
+        String pluginVersion = '1.5'
+        String firstLevelTask = 'greet'
+        String firstLevelPluginId = 'com.acme.greeter'
+        new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(firstLevelTask, 'Hello from first plugin!', firstLevelPluginId, "FirstPlugin")
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+            .allowAll()
+
+        String secondLevelPluginTask = 'greet-second'
+        String secondLevelPluginId = 'com.acme.greeter2'
+        new PluginBuilder(file("greeter-second"))
+            .addPluginWithPrintlnTask(secondLevelPluginTask, 'Hello from second plugin!', secondLevelPluginId, "SecondPlugin")
+            .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
+            .allowAll()
+
+        file("settings.gradle") << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias('greeter').toPluginId('$firstLevelPluginId').version('$pluginVersion')
+            alias('greeter-second').toPluginId('$secondLevelPluginId').version('$pluginVersion')
+        }
+    }
+}"""
+        withPluginAliases(["libs.plugins.greeter", "libs.plugins.greeter.second"])
+
+        when:
+        succeeds(firstLevelTask, secondLevelPluginTask)
+
+        then:
+        outputContains 'Hello from first plugin!'
+        outputContains 'Hello from second plugin!'
+    }
+
+    def "can apply a plugin via buildscript that has sub-accessors"() {
+        String pluginVersion = '1.5'
+        String firstPluginId = 'com.acme.greeter'
+        new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask('greet', 'Hello from first plugin!', firstPluginId, "FirstPlugin")
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+            .allowAll()
+        String secondPluginId = 'com.acme.greeter2'
+        new PluginBuilder(file("greeter-second"))
+            .addPluginWithPrintlnTask('greet2', 'Hello from second plugin!', secondPluginId, "SecondPlugin")
+            .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
+            .allowAll()
+
+        file("settings.gradle") << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias('greeter').to('some', 'artifact').version('1.5')
+            alias('greeter-second').to('some', 'artifact2').version('1.5')
+        }
+    }
+}"""
+        buildFile.text = """
+            buildscript {
+                repositories {
+                    maven {
+                        url = "${pluginPortal.uri}"
+                    }
+                }
+                dependencies {
+                    classpath(libs.greeter)
+                    classpath(libs.greeter.second)
+                }
+            }
+        """ + buildFile.text
+
+        buildFile << """
+            apply plugin: org.gradle.test.FirstPlugin
+            apply plugin: org.gradle.test.SecondPlugin
+        """
+
+        when:
+        succeeds('greet', 'greet2')
+
+        then:
+        outputContains 'Hello from first plugin!'
+        outputContains 'Hello from second plugin!'
+    }
+
 }

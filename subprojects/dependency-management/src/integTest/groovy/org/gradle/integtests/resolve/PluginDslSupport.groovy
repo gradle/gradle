@@ -25,6 +25,10 @@ trait PluginDslSupport {
         withPlugins([:], [(alias): null])
     }
 
+    void withPluginAliases(List<String> aliases = []) {
+        withPlugins([:], aliases.collectEntries { [it, null] })
+    }
+
     void withPluginsBlockContents(String block) {
         def text = buildFile.text
         int idx = text.indexOf('allprojects')
