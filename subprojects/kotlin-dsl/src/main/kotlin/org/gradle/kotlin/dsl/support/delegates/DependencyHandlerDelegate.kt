@@ -146,4 +146,7 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun variantOf(dependencyProvider: Provider<MinimalExternalModuleDependency>, variantSpec: Action<in ExternalModuleDependencyVariantSpec>): Provider<MinimalExternalModuleDependency> =
         delegate.variantOf(dependencyProvider, variantSpec)
+
+    override fun enforcedPlatform(dependencyProvider: Provider<MinimalExternalModuleDependency>): Provider<MinimalExternalModuleDependency> =
+        delegate.enforcedPlatform(dependencyProvider)
 }
