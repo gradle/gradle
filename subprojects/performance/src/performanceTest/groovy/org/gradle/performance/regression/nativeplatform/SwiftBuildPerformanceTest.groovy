@@ -21,12 +21,10 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Ignore
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["mediumSwiftMulti", "bigSwiftApp"])
 )
@@ -62,9 +60,9 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     static String determineFileToChange(String testProject) {
         switch (testProject) {
             case 'mediumSwiftMulti':
-                return 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+                return 'lib6api3/src/main/swift/Lib6Api3ImplApi2.swift'
             case 'bigSwiftApp':
-                return 'src/main/swift//AppImpl54Api3.swift'
+                return 'src/main/swift/AppImpl54Api3.swift'
             default:
                 throw new IllegalArgumentException("Invalid test project ${testProject}")
         }
