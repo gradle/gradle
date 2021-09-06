@@ -16,9 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class EmptyChildMap<T> implements ChildMap<T> {
@@ -49,22 +46,8 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public void visitChildren(BiConsumer<String, ? super T> visitor) {
-    }
-
-    @Override
     public boolean isEmpty() {
         return true;
-    }
-
-    @Override
-    public List<T> values() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<Entry<T>> entries() {
-        return Collections.emptyList();
     }
 
     @Override

@@ -16,9 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.ChildMapFactory.childMap;
@@ -37,16 +34,6 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     @Override
     public boolean isEmpty() {
         return false;
-    }
-
-    @Override
-    public List<T> values() {
-        return Collections.singletonList(entry.getValue());
-    }
-
-    @Override
-    public List<Entry<T>> entries() {
-        return Collections.singletonList(entry);
     }
 
     @Override
@@ -121,11 +108,6 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     @SuppressWarnings("unchecked")
     private <RESULT> SingletonChildMap<RESULT> castThis() {
         return (SingletonChildMap<RESULT>) this;
-    }
-
-    @Override
-    public void visitChildren(BiConsumer<String, ? super T> visitor) {
-        visitor.accept(entry.getPath(), entry.getValue());
     }
 
     @Override

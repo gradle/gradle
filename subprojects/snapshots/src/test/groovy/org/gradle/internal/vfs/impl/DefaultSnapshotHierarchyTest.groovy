@@ -814,7 +814,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         }
         List<String> prefixes = new ArrayList<>()
         def node = set.rootNode
-        def unpackedNode = (node.getSnapshot().filter { it instanceof FileSystemLocationSnapshot }.orElse(node))
+        def unpackedNode = (node.getSnapshot()
+            .filter { it instanceof FileSystemLocationSnapshot }
+            .orElse(node))
         if (unpackedNode instanceof DirectorySnapshot) {
             def children = unpackedNode.children
             children.forEach { child ->
@@ -822,9 +824,8 @@ class DefaultSnapshotHierarchyTest extends Specification {
             }
         } else if (unpackedNode instanceof AbstractIncompleteFileSystemNode) {
             def children = unpackedNode.children
-            children.visitChildren { path, child ->
-                collectPrefixes(path, child, 0, prefixes)
-            }
+            children.stream()
+                .forEach(child -> collectPrefixes(child.path, child.value, 0, prefixes))
         }
         return prefixes
     }
@@ -835,7 +836,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         } else {
             prefixes.add(depth + ":" + path.replace(File.separatorChar, (char) '/'))
         }
-        def unpackedNode = (node.getSnapshot().filter { it instanceof FileSystemLocationSnapshot }.orElse(node))
+        def unpackedNode = (node.getSnapshot()
+            .filter { it instanceof FileSystemLocationSnapshot }
+            .orElse(node))
         if (unpackedNode instanceof DirectorySnapshot) {
             def children = unpackedNode.children
             children.forEach { child ->
@@ -843,9 +846,8 @@ class DefaultSnapshotHierarchyTest extends Specification {
             }
         } else if (unpackedNode instanceof AbstractIncompleteFileSystemNode) {
             def children = unpackedNode.children
-            children.visitChildren { childPath, child ->
-                collectPrefixes(childPath, child, depth + 1, prefixes)
-            }
+            children.stream()
+                .forEach(child -> collectPrefixes(child.path, child.value, depth + 1, prefixes))
         }
     }
 }
