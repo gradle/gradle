@@ -127,6 +127,20 @@ class DefaultFileHierarchySetTest extends Specification {
         ['C:\\any1', 'D:\\any2'] | 'D:\\any2\\thing' | true
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def 'can handle complicated roots'() {
+        expect:
+        rootsOf(DefaultFileHierarchySet.of([
+            "/tulry/nested-cli/nested-cli-nested/buildSrc",
+            "/tulry/nested-cli/buildSrc/buildSrc",
+            "/tulry/nested/buildSrc"
+        ].collect({ new File(it) }))) == [
+            "/tulry/nested-cli/nested-cli-nested/buildSrc",
+            "/tulry/nested-cli/buildSrc/buildSrc",
+            "/tulry/nested/buildSrc"
+        ]
+    }
+
     @Requires(TestPrecondition.UNIX)
     @Unroll
     def 'can handle more dirs on Unix'() {
@@ -368,7 +382,7 @@ class DefaultFileHierarchySetTest extends Specification {
 
     private static List<String> rootsOf(FileHierarchySet set) {
         def roots = []
-        set.visitRoots(( root -> roots.add(root) ))
+        set.visitRoots((root -> roots.add(root)))
         return roots
     }
 }

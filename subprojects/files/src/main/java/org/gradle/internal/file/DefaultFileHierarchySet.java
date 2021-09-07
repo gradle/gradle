@@ -179,7 +179,7 @@ public class DefaultFileHierarchySet {
                 @Override
                 public void visitNode(int depth, Node node) {
                     while (prefixStack.size() > depth) {
-                        prefixStack.pop();
+                        prefixStack.removeLast();
                     }
                     if (node.children.isEmpty()) {
                         String root;
