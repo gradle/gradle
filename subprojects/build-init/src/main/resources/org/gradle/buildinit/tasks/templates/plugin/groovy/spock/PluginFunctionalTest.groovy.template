@@ -13,12 +13,20 @@ class ${className.javaIdentifier} extends Specification {
         given:
         def projectDir = new File("build/functionalTest")
         projectDir.mkdirs()
-        new File(projectDir, "settings.gradle") << ""
-        new File(projectDir, "build.gradle") << """
+
+        def settingsFile = new File(projectDir, "settings.gradle")
+        if (!settingsFile.exists()) {
+            settingsFile << ""
+        }
+
+        def buildFile = new File(projectDir, "build.gradle")
+        if (!buildFile.exists()) {
+            buildFile << """
             plugins {
                 id('${pluginId.value}')
             }
-        """
+"""
+        }
 
         when:
         def runner = GradleRunner.create()

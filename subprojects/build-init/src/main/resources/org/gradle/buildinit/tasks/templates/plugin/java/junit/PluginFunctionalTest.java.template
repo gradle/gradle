@@ -20,11 +20,19 @@ class ${className.javaIdentifier} {
         // Setup the test build
         File projectDir = new File("build/functionalTest");
         Files.createDirectories(projectDir.toPath());
-        writeString(new File(projectDir, "settings.gradle"), "");
-        writeString(new File(projectDir, "build.gradle"),
-            "plugins {" +
-            "  id('${pluginId.value}')" +
-            "}");
+
+        File settingsFile = new File(projectDir, "settings.gradle");
+        if (!settingsFile.exists()) {
+            writeString(settingsFile, "");
+        }
+
+        File buildFile = new File(projectDir, "build.gradle");
+        if (!buildFile.exists()) {
+            writeString(buildFile,
+                "plugins {" +
+                "  id('${pluginId.value}')" +
+                "}");
+        }
 
         // Run the build
         GradleRunner runner = GradleRunner.create();
