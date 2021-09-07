@@ -151,12 +151,12 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
 
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.duration >> delegateDuration
-        _ * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
-            _ * detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
-            _ * outputFileLocationSnapshots >> outputsBeforeExecution
+        _ * context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
+            detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
+            outputFileLocationSnapshots >> outputsBeforeExecution
         })
-        _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState) {
-            _ * outputFilesProducedByWork >> previousOutputs
+        _ * context.previousExecutionState >> Optional.of(Stub(PreviousExecutionState) {
+            outputFilesProducedByWork >> previousOutputs
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
         assertOperation()
