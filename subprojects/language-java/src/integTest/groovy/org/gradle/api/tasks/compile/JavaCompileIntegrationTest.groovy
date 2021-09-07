@@ -20,8 +20,8 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import org.gradle.util.internal.Resources
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -140,7 +140,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
         """
     }
-    
+
     @Requires(TestPrecondition.LINUX)
     def "can compile after package case-rename"() {
         buildFile << """
@@ -446,7 +446,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
                 ${mavenCentralRepository()}
 
                 dependencies {
-                    ${dependencies.collect { "implementation ${it}"}.join('\n') }
+                    ${dependencies.collect { "implementation ${it}" }.join('\n')}
                 }
             """
         }
@@ -513,7 +513,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Java 9 compiler throws error already: 'zip END header not found'
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
@@ -606,7 +607,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains"Malformed class file 'foo.class' found on compile classpath"
+        outputContains "Malformed class file 'foo.class' found on compile classpath"
     }
 
     @Issue("gradle/gradle#1359")
@@ -655,6 +656,38 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         when:
         file('src/main/java/org/gradle/different').createDir()
+        run('compileJava')
+        then:
+        skipped(':compileJava')
+    }
+
+    def "ignores empty directories within the file collection of the sourcepath compiler option"() {
+        given:
+        def sourcePath = 'src/main/ignoredJava'
+        buildFile << """
+            plugins { id 'java' }
+            compileJava.options.sourcepath = files('$sourcePath')
+        """
+
+        file("${sourcePath}/org/gradle/test/MyOptionalTest.java").text = """
+            package org.gradle.test;
+
+            class MyOptionalTest {}
+        """
+
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+
+            class MyTest {}
+        """
+
+        when:
+        run('compileJava')
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        file("${sourcePath}/empty").createDir()
         run('compileJava')
         then:
         skipped(':compileJava')
@@ -833,7 +866,8 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled }) // bootclasspath has been removed in Java 9+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled })
+    // bootclasspath has been removed in Java 9+
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.absolutePath) + "/lib/rt.jar"
@@ -894,7 +928,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         succeeds "compileJava"
 
         then:
-        ! file("build/classes/java/main/com/foo").exists()
+        !file("build/classes/java/main/com/foo").exists()
     }
 
     def "can configure custom header output"() {
