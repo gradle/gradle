@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.testing.TestFramework;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;

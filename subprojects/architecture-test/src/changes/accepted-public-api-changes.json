@@ -1,20 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.getTestFramework()",
-            "acceptation": "Converted field to property, functionality should be identical.",
-            "changes": [
-                "Method return type has changed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.testFramework(groovy.lang.Closure)",
-            "acceptation": "Converted field to property, functionality should be identical.",
-            "changes": [
-                "Method return type has changed"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
