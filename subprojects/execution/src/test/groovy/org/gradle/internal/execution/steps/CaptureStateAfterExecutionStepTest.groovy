@@ -19,10 +19,20 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.OverlappingOutputs
+import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.file.FileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
+import org.gradle.internal.snapshot.RegularFileSnapshot
 
 import java.time.Duration
+
+import static org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
 class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext> {
 
@@ -105,7 +115,53 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         0 * _
     }
 
-    // TODO Add tests for capturing overlapping outputs
+    def "overlapping outputs are captured"() {
+        def delegateDuration = Duration.ofMillis(123)
+
+        def staleFile = fileSnapshot("stale", HashCode.fromInt(123))
+        def outputFile = fileSnapshot("outputs", HashCode.fromInt(345))
+
+        def emptyDirectory = directorySnapshot()
+        def directoryWithStaleFile = directorySnapshot(staleFile)
+        def directoryWithStaleFileAndOutput = directorySnapshot(outputFile, staleFile)
+        def directoryWithOutputFile = directorySnapshot(outputFile)
+
+        def previousOutputs = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "outputDir", emptyDirectory
+        )
+        def outputsBeforeExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "outputDir", directoryWithStaleFile
+        )
+        def outputsAfterExecution = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "outputDir", directoryWithStaleFileAndOutput
+        )
+        def filteredOutputs = ImmutableSortedMap.<String, FileSystemSnapshot> of(
+            "outputDir", directoryWithOutputFile
+        )
+        def overlappingOutputs = Mock(OverlappingOutputs)
+
+        when:
+        def result = step.execute(work, context)
+        then:
+        result.afterExecutionState.get().outputFilesProducedByWork == filteredOutputs
+        !result.reused
+        result.duration == delegateDuration
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.originMetadata.executionTime >= result.duration
+
+        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegateResult.duration >> delegateDuration
+        _ * context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
+            detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
+            outputFileLocationSnapshots >> outputsBeforeExecution
+        })
+        _ * context.previousExecutionState >> Optional.of(Stub(PreviousExecutionState) {
+            outputFilesProducedByWork >> previousOutputs
+        })
+        1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
+        assertOperation()
+        0 * _
+    }
 
     private void assertOperation(Throwable expectedFailure = null) {
         if (expectedFailure == null) {
@@ -113,5 +169,19 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         } else {
             assertFailedOperation(CaptureStateAfterExecutionStep.Operation, "Snapshot outputs after executing job ':test'", expectedFailure)
         }
+    }
+
+    private static RegularFileSnapshot fileSnapshot(String name, HashCode contentHash) {
+        new RegularFileSnapshot("/absolute/${name}", name, contentHash, DefaultFileMetadata.file(0L, 0L, FileMetadata.AccessType.DIRECT))
+    }
+
+    private static FileSystemLocationSnapshot directorySnapshot(RegularFileSnapshot... contents) {
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        builder.enterDirectory(FileMetadata.AccessType.DIRECT, "/absolute", "absolute", INCLUDE_EMPTY_DIRS)
+        contents.each {
+            builder.visitLeafElement(it)
+        }
+        builder.leaveDirectory()
+        return builder.result
     }
 }

@@ -56,7 +56,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.Untracked;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
@@ -165,8 +164,7 @@ class DependencyManagementGlobalScopeServices {
                 Optional.class,
                 PathSensitive.class,
                 IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class,
-                Untracked.class
+                NormalizeLineEndings.class
             ),
             instantiationScheme
         );
