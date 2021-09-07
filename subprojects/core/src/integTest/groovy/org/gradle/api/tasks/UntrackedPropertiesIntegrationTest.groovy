@@ -406,6 +406,11 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     def "does not clean up stale outputs for untracked output properties"() {
+        def untrackedStaleFile = file("build/untracked/stale-output-file").createFile()
+        def untrackedOutputFile = file("build/untracked/output.txt")
+        def trackedStaleFile = file("build/tracked/stale-output-file").createFile()
+        def trackedOutputFile = file("build/tracked/output.txt")
+
         buildFile("""
             apply plugin: 'base'
 
@@ -423,7 +428,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                     writeFile(untrackedOutputDirectory)
                 }
 
-
                 static void writeFile(DirectoryProperty dir) {
                     def outputFile = dir.file("output.txt").get().asFile
                     outputFile.parentFile.mkdirs()
@@ -436,11 +440,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 trackedOutputDirectory = project.layout.buildDirectory.dir('tracked')
             }
         """)
-
-        def untrackedStaleFile = file("build/untracked/stale-output-file").createFile()
-        def untrackedOutputFile = file("build/untracked/output.txt")
-        def trackedStaleFile = file("build/tracked/stale-output-file").createFile()
-        def trackedOutputFile = file("build/tracked/output.txt")
 
         when:
         run "producer"
