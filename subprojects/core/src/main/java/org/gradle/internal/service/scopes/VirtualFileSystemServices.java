@@ -227,7 +227,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState -> {
-                    File buildRootDir = buildState.getBuildRootDir();
+                    File buildRootDir = buildState.getBuildRootDir().getAbsoluteFile();
                     // TODO How can we avoid hard-coding ".gradle" here?
                     File probeFile = new File(buildRootDir, ".gradle/file-system.probe");
                     virtualFileSystem.registerWatchableHierarchy(buildRootDir, probeFile);
