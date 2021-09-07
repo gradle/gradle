@@ -8,12 +8,13 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
+import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
-import model.CROSS_VERSION_BUCKETS
 import model.DefaultFunctionalTestBucketProvider
 import model.FunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
+import model.QUICK_CROSS_VERSION_BUCKETS
 import model.SmallSubprojectBucket
 import model.Stage
 import model.StageNames
@@ -82,7 +83,8 @@ class CIConfigIntegrationTests {
 
             assertEquals(
                 stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
-                it.dependencies.items.size, stage.stageName.stageName)
+                it.dependencies.items.size, stage.stageName.stageName
+            )
         }
     }
 
@@ -139,15 +141,16 @@ class CIConfigIntegrationTests {
         }
 
         fun assertProjectAreSplitByClassesCorrectly(functionalTests: List<BaseGradleBuildType>) {
-            val functionalTestsWithSplit: Map<String, List<BaseGradleBuildType>> = functionalTests.filter { largeSubProjectRegex.containsMatchIn(it.name) }.groupBy { it.getSubProjectSplitName().substringBefore('_') }
+            val functionalTestsWithSplit: Map<String, List<BaseGradleBuildType>> =
+                functionalTests.filter { largeSubProjectRegex.containsMatchIn(it.name) }.groupBy { it.getSubProjectSplitName().substringBefore('_') }
             functionalTestsWithSplit.forEach {
                 assertAllSplitsArePresent(it.key, it.value)
                 assertCorrectParameters(it.key, it.value)
             }
         }
 
-        fun assertProjectAreSplitByGradleVersionCorrectly(testType: TestType, functionalTests: List<BaseGradleBuildType>) {
-            CROSS_VERSION_BUCKETS.forEachIndexed { index: Int, startEndVersion: List<String> ->
+        fun assertProjectAreSplitByGradleVersionCorrectly(buckets: List<List<String>>, testType: TestType, functionalTests: List<BaseGradleBuildType>) {
+            buckets.forEachIndexed { index: Int, startEndVersion: List<String> ->
                 assertTrue(functionalTests[index].name.contains("(${startEndVersion[0]} <= gradle <${startEndVersion[1]})"))
                 assertEquals("clean ${testType}Test", functionalTests[index].getGradleTasks())
                 assertTrue(functionalTests[index].getGradleParams().apply {
@@ -160,10 +163,10 @@ class CIConfigIntegrationTests {
             for (functionalTestProject in stageProject.subProjects.filterIsInstance<FunctionalTestProject>()) {
                 when {
                     functionalTestProject.name.contains("AllVersionsCrossVersion") -> {
-                        assertProjectAreSplitByGradleVersionCorrectly(TestType.allVersionsCrossVersion, functionalTestProject.functionalTests)
+                        assertProjectAreSplitByGradleVersionCorrectly(ALL_CROSS_VERSION_BUCKETS, TestType.allVersionsCrossVersion, functionalTestProject.functionalTests)
                     }
                     functionalTestProject.name.contains("QuickFeedbackCrossVersion") -> {
-                        assertProjectAreSplitByGradleVersionCorrectly(TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
+                        assertProjectAreSplitByGradleVersionCorrectly(QUICK_CROSS_VERSION_BUCKETS, TestType.quickFeedbackCrossVersion, functionalTestProject.functionalTests)
                     }
                     else -> {
                         assertProjectAreSplitByClassesCorrectly(functionalTestProject.functionalTests)
@@ -296,11 +299,11 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allVersionsAreIncludedInCrossVersionTests() {
-        assertEquals("0.0", CROSS_VERSION_BUCKETS[0][0])
-        assertEquals("99.0", CROSS_VERSION_BUCKETS[CROSS_VERSION_BUCKETS.size - 1][1])
+        assertEquals("0.0", ALL_CROSS_VERSION_BUCKETS[0][0])
+        assertEquals("99.0", ALL_CROSS_VERSION_BUCKETS[ALL_CROSS_VERSION_BUCKETS.size - 1][1])
 
-        (1 until CROSS_VERSION_BUCKETS.size).forEach {
-            assertEquals(CROSS_VERSION_BUCKETS[it - 1][1], CROSS_VERSION_BUCKETS[it][0])
+        (1 until ALL_CROSS_VERSION_BUCKETS.size).forEach {
+            assertEquals(ALL_CROSS_VERSION_BUCKETS[it - 1][1], ALL_CROSS_VERSION_BUCKETS[it][0])
         }
     }
 
