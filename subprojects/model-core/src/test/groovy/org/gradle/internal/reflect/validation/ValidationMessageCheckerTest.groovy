@@ -236,6 +236,32 @@ Possible solutions:
     }
 
     @ValidationTestFor(
+        ValidationProblemId.ANNOTATION_INVALID_IN_CONTEXT
+    )
+    def "tests output of modifierAnnotationInvalidInContext"() {
+        when:
+        render modifierAnnotationInvalidInContext {
+            type('SomeType').property('prop')
+            annotation('Invalid')
+            validAnnotations = "@Classpath, @CompileClasspath or @PathSensitive"
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'SomeType' property 'prop' is annotated with invalid modifier @Invalid.
+
+Reason: The '@Invalid' annotation cannot be used in this context.
+
+Possible solutions:
+  1. Remove the annotation.
+  2. Use a different annotation, e.g one of @Classpath, @CompileClasspath or @PathSensitive.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#annotation_invalid_in_context for more details about this problem.
+"""
+    }
+
+    @ValidationTestFor(
         ValidationProblemId.MISSING_ANNOTATION
     )
     def "tests ouput of missingAnnotationMessage"() {
