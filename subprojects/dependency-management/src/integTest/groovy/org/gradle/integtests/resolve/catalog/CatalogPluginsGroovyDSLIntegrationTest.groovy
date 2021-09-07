@@ -142,51 +142,6 @@ dependencyResolutionManagement {
         outputContains message
     }
 
-    def "can apply a plugin declared in a catalog via buildscript"() {
-        String taskName = 'greet'
-        String message = 'Hello from plugin!'
-        String pluginId = 'com.acme.greeter'
-        String pluginVersion = '1.5'
-        def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
-            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
-
-        file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            alias('$alias').to('some', 'artifact').version('1.5')
-        }
-    }
-}"""
-        buildFile.text = """
-            buildscript {
-                repositories {
-                    maven {
-                        url = "${pluginPortal.uri}"
-                    }
-                }
-                dependencies {
-                    classpath(libs.${alias.replace('-', '.')})
-                }
-            }
-        """ + buildFile.text
-
-        buildFile << """
-            apply plugin: org.gradle.test.TestPlugin
-        """
-
-        when:
-        plugin.pluginModule.allowAll()
-        succeeds taskName
-
-        then:
-        outputContains message
-
-        where:
-        alias << ['greeter', 'some.greeter', 'some-greeter']
-    }
-
     def "can apply a plugin alias that has sub-accessors"() {
         String pluginVersion = '1.5'
         String firstLevelTask = 'greet'
@@ -218,7 +173,7 @@ dependencyResolutionManagement {
         outputContains 'Hello from second plugin!'
     }
 
-    def "can apply a plugin via buildscript that has sub-accessors"() {
+    def "can apply a plugin via buildscript and also sub-accessor plugin"() {
         String pluginVersion = '1.5'
         String firstPluginId = 'com.acme.greeter'
         new PluginBuilder(file("greeter"))
@@ -235,8 +190,8 @@ dependencyResolutionManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         libs {
-            alias('greeter').to('some', 'artifact').version('1.5')
-            alias('greeter-second').to('some', 'artifact2').version('1.5')
+            alias('$alias').to('some', 'artifact').version('1.5')
+            alias('$alias-second').to('some', 'artifact2').version('1.5')
         }
     }
 }"""
@@ -248,8 +203,8 @@ dependencyResolutionManagement {
                     }
                 }
                 dependencies {
-                    classpath(libs.greeter)
-                    classpath(libs.greeter.second)
+                    classpath(libs.${alias.replace('-', '.')})
+                    classpath(libs.${alias.replace('-', '.')}.second)
                 }
             }
         """ + buildFile.text
@@ -265,6 +220,9 @@ dependencyResolutionManagement {
         then:
         outputContains 'Hello from first plugin!'
         outputContains 'Hello from second plugin!'
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
 }

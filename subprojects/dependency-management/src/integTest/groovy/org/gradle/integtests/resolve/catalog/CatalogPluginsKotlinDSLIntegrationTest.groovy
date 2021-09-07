@@ -192,49 +192,6 @@ dependencyResolutionManagement {
         outputContains message
     }
 
-    def "can apply a plugin declared in a catalog via buildscript"() {
-        String taskName = 'greet'
-        String message = 'Hello from plugin!'
-        String pluginId = 'com.acme.greeter'
-        String pluginVersion = '1.5'
-        def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
-            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
-
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
-        file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            alias('greeter').to('some', 'artifact').version('1.5')
-        }
-    }
-}"""
-        buildFile.renameTo(file('fixture.gradle'))
-        buildKotlinFile << """
-            buildscript {
-                repositories {
-                    maven {
-                        url = uri("${pluginPortal.uri}")
-                    }
-                }
-                dependencies {
-                    classpath(libs.greeter)
-                }
-            }
-            apply<org.gradle.test.TestPlugin>()
-        """
-
-        when:
-        plugin.pluginModule.allowAll()
-        succeeds taskName
-
-        then:
-        outputContains message
-
-    }
-
     def "can apply a plugin alias that has sub-accessors"() {
         String pluginVersion = '1.5'
         String firstLevelTask = 'greet'
@@ -274,7 +231,7 @@ dependencyResolutionManagement {
         outputContains 'Hello from second plugin!'
     }
 
-    def "can apply a plugin via buildscript that has sub-accessors"() {
+    def "can apply a plugin via buildscript and also sub-accessor plugin"() {
         String pluginVersion = '1.5'
         String firstPluginId = 'com.acme.greeter'
         new PluginBuilder(file("greeter"))
