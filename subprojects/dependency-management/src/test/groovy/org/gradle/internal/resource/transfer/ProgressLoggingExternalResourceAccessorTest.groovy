@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transfer
 
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
@@ -29,7 +30,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     ProgressLogger progressLogger = Mock()
     ExternalResourceReadResponse externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
-    ExternalResourceAccessor.ContentAndMetadataAction action = Mock()
+    ExternalResource.ContentAndMetadataAction action = Mock()
     URI location = new URI("location")
 
     def setup() {
@@ -85,7 +86,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         and:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * action.execute(_, _) >> { metaData, inputStream ->
+        1 * action.execute(_, _) >> { inputStream, metaData ->
             inputStream.read()
             inputStream.read()
             inputStream.read(new byte[560])
@@ -113,7 +114,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * action.execute(_, _) >> { metaData, inputStream ->
+        1 * action.execute(_, _) >> { inputStream, metaData ->
             inputStream.read(new byte[1600])
             "result"
         }
@@ -133,7 +134,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         then:
         1 * progressLoggerFactory.newOperation(_) >> progressLogger
         1 * progressLogger.started()
-        1 * action.execute(_, _) >> { metaData, inputStream ->
+        1 * action.execute(_, _) >> { inputStream, metaData ->
             inputStream.read(new byte[1024])
             "result"
         }
@@ -143,7 +144,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     def expectResourceRead(URI location, ExternalResourceMetaData metaData, InputStream inputStream) {
         1 * accessor.withContent(location, false, _) >> { uri, revalidate, action ->
-            action.execute(metaData, inputStream)
+            action.execute(inputStream, metaData)
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 
 import javax.annotation.Nullable;
@@ -27,7 +28,7 @@ import java.net.URI;
 public abstract class AbstractExternalResourceAccessor implements ExternalResourceAccessor {
     @Nullable
     @Override
-    public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
         ExternalResourceReadResponse response = openResource(location, revalidate);
         if (response == null) {
             return null;
@@ -35,7 +36,7 @@ public abstract class AbstractExternalResourceAccessor implements ExternalResour
         try {
             try {
                 try (InputStream inputStream = response.openStream()) {
-                    return action.execute(response.getMetaData(), inputStream);
+                    return action.execute(inputStream, response.getMetaData());
                 }
             } finally {
                 response.close();

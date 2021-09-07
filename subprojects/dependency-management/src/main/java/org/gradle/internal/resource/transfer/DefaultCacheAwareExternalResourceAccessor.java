@@ -31,7 +31,6 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
-import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -158,14 +157,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             ExternalResourceName sha1Location = location.append(".sha1");
             ExternalResource resource = delegate.resource(sha1Location, revalidate);
             ExternalResourceReadResult<HashCode> result = resource.withContentIfPresent(inputStream -> {
-                try {
-                    String sha = IOUtils.toString(inputStream, StandardCharsets.US_ASCII);
-                    // Servers may return SHA-1 with leading zeros stripped
-                    sha = StringUtils.leftPad(sha, Hashing.sha1().getHexDigits(), '0');
-                    return HashCode.fromString(sha);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                String sha = IOUtils.toString(inputStream, StandardCharsets.US_ASCII);
+                // Servers may return SHA-1 with leading zeros stripped
+                sha = StringUtils.leftPad(sha, Hashing.sha1().getHexDigits(), '0');
+                return HashCode.fromString(sha);
             });
             return result == null ? null : result.getResult();
         } catch (Exception e) {
@@ -193,11 +188,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private LocallyAvailableExternalResource copyToCache(final ExternalResourceName source, final ResourceFileStore fileStore, final ExternalResource resource) {
         // Download to temporary location
         DownloadAction downloadAction = new DownloadAction(source);
-        try {
-            resource.withContentIfPresent(downloadAction);
-        } catch (Exception e) {
-            throw ResourceExceptions.getFailed(source.getUri(), e);
-        }
+        resource.withContentIfPresent(downloadAction);
         if (downloadAction.metaData == null) {
             return null;
         }
@@ -223,7 +214,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return timeProvider.getCurrentTime() - cached.getCachedAt();
     }
 
-    private class DownloadAction implements ExternalResource.ContentAction<Object> {
+    private class DownloadAction implements ExternalResource.ContentAndMetadataAction<Object> {
         private final ExternalResourceName source;
         File destination;
         ExternalResourceMetaData metaData;

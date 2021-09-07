@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
@@ -33,12 +34,12 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     @Nullable
     @Override
-    public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
-        return delegate.withContent(location, revalidate, (metaData, inputStream) -> {
+    public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
             ResourceOperation downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), metaData.getContentLength());
             ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
             try {
-                return action.execute(metaData, stream);
+                return action.execute(stream, metaData);
             } finally {
                 downloadOperation.completed();
             }

@@ -31,7 +31,7 @@ public class HttpResourceLister implements ExternalResourceLister {
 
     @Override
     public List<String> list(final URI directory) {
-        return accessor.withContent(directory, true, (metaData, inputStream) -> {
+        return accessor.withContent(directory, true, (inputStream, metaData) -> {
             String contentType = metaData.getContentType();
             ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
             try {

@@ -21,15 +21,19 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.security.internal.EmptyPublicKeyService;
 import org.gradle.security.internal.Fingerprint;
 import org.gradle.security.internal.PublicKeyDownloadService;
@@ -42,14 +46,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 
+@ServiceScope(Scopes.Build.class)
 public class DefaultSignatureVerificationServiceFactory implements SignatureVerificationServiceFactory {
-    private final HttpConnectorFactory httpConnectorFactory;
+    private final RepositoryTransportFactory transportFactory;
     private final GlobalScopedCache cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -58,7 +64,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
 
-    public DefaultSignatureVerificationServiceFactory(HttpConnectorFactory httpConnectorFactory,
+    public DefaultSignatureVerificationServiceFactory(RepositoryTransportFactory transportFactory,
                                                       GlobalScopedCache cacheRepository,
                                                       InMemoryCacheDecoratorFactory decoratorFactory,
                                                       BuildOperationExecutor buildOperationExecutor,
@@ -66,7 +72,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
                                                       BuildScopedCache buildScopedCache,
                                                       BuildCommencedTimeProvider timeProvider,
                                                       boolean refreshKeys) {
-        this.httpConnectorFactory = httpConnectorFactory;
+        this.transportFactory = transportFactory;
         this.cacheRepository = cacheRepository;
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -79,11 +85,10 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     @Override
     public SignatureVerificationService create(BuildTreeDefinedKeys keyrings, List<URI> keyServers, boolean useKeyServers) {
         boolean refreshKeys = this.refreshKeys || !useKeyServers;
-        ExternalResourceConnector connector = httpConnectorFactory.createResourceConnector(new ResourceConnectorSpecification() {
-        });
+        ExternalResourceRepository repository = transportFactory.createTransport("https", "https", Collections.emptyList(), redirectLocations -> {}).getRepository();
         PublicKeyService keyService;
         if (useKeyServers) {
-            PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), connector);
+            PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
             keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
         } else {
             keyService = EmptyPublicKeyService.getInstance();

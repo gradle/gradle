@@ -17,11 +17,10 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public interface ExternalResourceAccessor {
@@ -40,7 +39,7 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException;
+    <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
 
     /**
      * Reads the resource at the given location.
@@ -57,8 +56,8 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    default <T> T withContent(URI location, boolean revalidate, ContentAction<T> action) throws ResourceException {
-        return withContent(location, revalidate, (metaData, inputStream) -> action.execute(inputStream));
+    default <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAction<T> action) throws ResourceException {
+        return withContent(location, revalidate, (inputStream, metaData) -> action.execute(inputStream));
     }
 
     /**
@@ -76,12 +75,4 @@ public interface ExternalResourceAccessor {
      */
     @Nullable
     ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException;
-
-    interface ContentAction<T> {
-        T execute(InputStream inputStream) throws IOException;
-    }
-
-    interface ContentAndMetadataAction<T> {
-        T execute(ExternalResourceMetaData metaData, InputStream inputStream) throws IOException;
-    }
 }

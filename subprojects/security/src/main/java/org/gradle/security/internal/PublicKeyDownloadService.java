@@ -25,7 +25,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.ExponentialBackoff;
 import org.gradle.internal.io.IOQuery;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadResult;
+import org.gradle.internal.resource.ExternalResourceRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,9 +48,9 @@ public class PublicKeyDownloadService implements PublicKeyService {
     private final static Logger LOGGER = Logging.getLogger(PublicKeyDownloadService.class);
 
     private final List<URI> keyServers;
-    private final ExternalResourceAccessor client;
+    private final ExternalResourceRepository client;
 
-    public PublicKeyDownloadService(List<URI> keyServers, ExternalResourceAccessor client) {
+    public PublicKeyDownloadService(List<URI> keyServers, ExternalResourceRepository client) {
         this.keyServers = keyServers;
         this.client = client;
     }
@@ -80,12 +82,13 @@ public class PublicKeyDownloadService implements PublicKeyService {
                 }
                 try {
                     URI query = toQuery(baseUri, fingerprint);
-                    IOQuery.Result<Boolean> response = client.withContent(query, false, inputStream -> {
+                    ExternalResourceName name = new ExternalResourceName(query);
+                    ExternalResourceReadResult<IOQuery.Result<Boolean>> response = client.resource(name, false).withContentIfPresent(inputStream -> {
                         extractKeyRing(inputStream, builder, onKeyring);
                         return IOQuery.Result.successful(true);
                     });
                     if (response != null) {
-                        return response;
+                        return response.getResult();
                     } else {
                         logKeyDownloadAttempt(fingerprint, baseUri);
                         // null means the resource is missing from this repo

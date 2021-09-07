@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transfer;
 import com.google.common.io.CountingInputStream;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.AbstractExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -85,10 +84,10 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> transformer) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
         return accessor.withContent(name.getUri(), revalidate, inputStream -> {
             try (CountingInputStream input = new CountingInputStream(new BufferedInputStream(inputStream))) {
-                T value = transformer.transform(input);
+                T value = readAction.execute(input);
                 return ExternalResourceReadResult.of(input.getCount(), value);
             }
         });
@@ -96,8 +95,8 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
-        return accessor.withContent(name.getUri(), revalidate, (metadata, inputStream) -> {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
+        return accessor.withContent(name.getUri(), revalidate, (inputStream, metadata) -> {
             try (CountingInputStream stream = new CountingInputStream(new BufferedInputStream(inputStream))) {
                 T value = readAction.execute(stream, metadata);
                 return ExternalResourceReadResult.of(stream.getCount(), value);
@@ -119,7 +118,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
         ExternalResourceReadResult<T> result = withContentIfPresent(readAction);
         if (result == null) {
             throw ResourceExceptions.getMissing(getURI());

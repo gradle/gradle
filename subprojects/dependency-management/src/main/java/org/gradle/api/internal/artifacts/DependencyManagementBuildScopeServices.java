@@ -219,7 +219,6 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
-import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -692,23 +691,13 @@ class DependencyManagementBuildScopeServices {
 
     SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(GlobalScopedCache globalScopedCache,
                                                                                   InMemoryCacheDecoratorFactory decoratorFactory,
-                                                                                  List<ResourceConnectorFactory> resourceConnectorFactories,
+                                                                                  RepositoryTransportFactory transportFactory,
                                                                                   BuildOperationExecutor buildOperationExecutor,
                                                                                   BuildCommencedTimeProvider timeProvider,
                                                                                   BuildScopedCache buildScopedCache,
                                                                                   FileHasher fileHasher,
                                                                                   StartParameter startParameter) {
-        HttpConnectorFactory httpConnectorFactory = null;
-        for (ResourceConnectorFactory factory : resourceConnectorFactories) {
-            if (factory instanceof HttpConnectorFactory) {
-                httpConnectorFactory = (HttpConnectorFactory) factory;
-                break;
-            }
-        }
-        if (httpConnectorFactory == null) {
-            throw new IllegalStateException("Cannot find HttpConnectorFactory");
-        }
-        return new DefaultSignatureVerificationServiceFactory(httpConnectorFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys());
+        return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys());
     }
 
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {

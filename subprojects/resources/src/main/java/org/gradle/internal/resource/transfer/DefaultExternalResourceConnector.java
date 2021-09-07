@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -52,7 +53,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
         STATS.resource(location);
         return accessor.withContent(location, revalidate, action);
     }

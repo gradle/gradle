@@ -32,7 +32,7 @@ class HttpResourceListerTest extends Specification {
         lister.list(new URI("http://testrepo/"))
         then:
         1 * accessorMock.withContent(new URI("http://testrepo/"), true, _) >> {  uri, revalidate, action ->
-            return action.execute(metaData, inputStream)
+            return action.execute(inputStream, metaData)
         }
         _ * metaData.getContentType() >> "text/html"
     }

@@ -16,7 +16,6 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -48,8 +47,8 @@ public interface ExternalResource extends Resource {
     /**
      * Copies the contents of this resource to the given file, if the resource exists.
      *
-     * @throws ResourceException on failure to copy the content.
      * @return null if this resource does not exist.
+     * @throws ResourceException on failure to copy the content.
      */
     @Nullable
     ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException;
@@ -78,16 +77,16 @@ public interface ExternalResource extends Resource {
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
     @SuppressWarnings("overloads")
-    <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents of this resource, if the resource exists.
      *
-     * @throws ResourceException on failure to read the content.
      * @return null if the resource does not exist.
+     * @throws ResourceException on failure to read the content.
      */
     @Nullable
-    <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
@@ -97,18 +96,18 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
-    <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException;
 
     /**
      * Executes the given action against the binary contents and meta-data of this resource.
      * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
      * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
      *
-     * @throws ResourceException on failure to read the content.
      * @return null if the resource does not exist.
+     * @throws ResourceException on failure to read the content.
      */
     @Nullable
-    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException;
+    <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException;
 
     /**
      * Copies the given content to this resource.
@@ -129,12 +128,17 @@ public interface ExternalResource extends Resource {
 
     /**
      * Returns the meta-data for this resource, if the resource exists.
+     *
      * @return null when the resource does not exist.
      */
     @Nullable
     ExternalResourceMetaData getMetaData();
 
-    interface ContentAction<T> {
+    interface ContentAndMetadataAction<T> {
         T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException;
+    }
+
+    interface ContentAction<T> {
+        T execute(InputStream inputStream) throws IOException;
     }
 }

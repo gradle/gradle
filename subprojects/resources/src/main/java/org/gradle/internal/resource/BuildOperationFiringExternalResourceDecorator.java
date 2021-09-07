@@ -17,12 +17,11 @@
 package org.gradle.internal.resource;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
@@ -178,7 +177,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContent(final ContentAction<? extends T> readAction) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
@@ -193,7 +192,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
     }
 
     @Override
-    public <T> ExternalResourceReadResult<T> withContent(final ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContent(final ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
@@ -209,7 +208,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(final Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final ContentAction<? extends T> readAction) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
@@ -225,7 +224,7 @@ public class BuildOperationFiringExternalResourceDecorator implements ExternalRe
 
     @Nullable
     @Override
-    public <T> ExternalResourceReadResult<T> withContentIfPresent(final ContentAction<? extends T> readAction) throws ResourceException {
+    public <T> ExternalResourceReadResult<T> withContentIfPresent(final ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
         return buildOperationExecutor.call(new CallableBuildOperation<ExternalResourceReadResult<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {

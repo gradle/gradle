@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Action
-import org.gradle.api.Transformer
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
@@ -85,36 +84,36 @@ class AccessorBackedExternalResourceTest extends Specification {
         0 * _
     }
 
-    def "can apply Transformer to the content of the resource"() {
+    def "can apply ContentAction to the content of the resource"() {
         def name = new ExternalResourceName("resource")
-        def transformer = Mock(Transformer)
+        def action = Mock(ExternalResource.ContentAction)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
 
         when:
         expectResourceRead(name, "1234")
-        def result = resource.withContentIfPresent(transformer)
+        def result = resource.withContentIfPresent(action)
 
         then:
         result.result == "result 1"
         result.bytesRead == 4
-        1 * transformer.transform(_) >> { InputStream input -> input.text; "result 1" }
+        1 * action.execute(_) >> { InputStream input -> input.text; "result 1" }
         0 * _
 
         when:
         expectResourceRead(name, "1234")
-        result = resource.withContent(transformer)
+        result = resource.withContent(action)
 
         then:
         result.result == "result 2"
         result.bytesRead == 2
-        1 * transformer.transform(_) >> { InputStream input -> input.read(); input.read(); "result 2" }
+        1 * action.execute(_) >> { InputStream input -> input.read(); input.read(); "result 2" }
         0 * _
     }
 
-    def "can apply ContentAction to the content of the resource"() {
+    def "can apply ContentAndMetadataAction to the content of the resource"() {
         def name = new ExternalResourceName("resource")
-        def action = Mock(ExternalResource.ContentAction)
+        def action = Mock(ExternalResource.ContentAndMetadataAction)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def metaData = Stub(ExternalResourceMetaData)
@@ -159,39 +158,39 @@ class AccessorBackedExternalResourceTest extends Specification {
         0 * _
     }
 
-    def "closes response when Transformer fails"() {
+    def "closes response when ContentAction fails"() {
         def name = new ExternalResourceName("resource")
-        def transformer = Mock(Transformer)
+        def action = Mock(ExternalResource.ContentAction)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def failure = new RuntimeException()
 
         when:
         expectResourceRead(name, "1234")
-        resource.withContentIfPresent(transformer)
+        resource.withContentIfPresent(action)
 
         then:
         def e = thrown(RuntimeException)
         e == failure
 
-        1 * transformer.transform(_) >> { throw failure }
+        1 * action.execute(_) >> { throw failure }
         0 * _
 
         when:
         expectResourceRead(name, "1234")
-        resource.withContent(transformer)
+        resource.withContent(action)
 
         then:
         def e2 = thrown(RuntimeException)
         e2 == failure
 
-        1 * transformer.transform(_) >> { throw failure }
+        1 * action.execute(_) >> { throw failure }
         0 * _
     }
 
-    def "closes response when ContentAction fails"() {
+    def "closes response when ContentAndMetadataAction fails"() {
         def name = new ExternalResourceName("resource")
-        def action = Mock(ExternalResource.ContentAction)
+        def action = Mock(ExternalResource.ContentAndMetadataAction)
 
         def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
         def metaData = Stub(ExternalResourceMetaData)
@@ -272,6 +271,39 @@ class AccessorBackedExternalResourceTest extends Specification {
         0 * _
     }
 
+    def "returns null and does not invoke ContentAndMetadataAction when resource does not exist"() {
+        def name = new ExternalResourceName("resource")
+        def action = Mock(ExternalResource.ContentAndMetadataAction)
+
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+
+        when:
+        def result = resource.withContentIfPresent(action)
+
+        then:
+        result == null
+
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        0 * _
+    }
+
+    def "fails and does not invoke ContentAndMetadataAction when resource does not exist"() {
+        def name = new ExternalResourceName("resource")
+        def action = Mock(ExternalResource.ContentAndMetadataAction)
+
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+
+        when:
+        resource.withContent(action)
+
+        then:
+        def e = thrown(MissingResourceException)
+        e.location == name.uri
+
+        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        0 * _
+    }
+
     def "returns null and does not invoke ContentAction when resource does not exist"() {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
@@ -305,39 +337,6 @@ class AccessorBackedExternalResourceTest extends Specification {
         0 * _
     }
 
-    def "returns null and does not invoke Transformer when resource does not exist"() {
-        def name = new ExternalResourceName("resource")
-        def transformer = Mock(Transformer)
-
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
-
-        when:
-        def result = resource.withContentIfPresent(transformer)
-
-        then:
-        result == null
-
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
-        0 * _
-    }
-
-    def "fails and does not invoke Transformer when resource does not exist"() {
-        def name = new ExternalResourceName("resource")
-        def transformer = Mock(Transformer)
-
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
-
-        when:
-        resource.withContent(transformer)
-
-        then:
-        def e = thrown(MissingResourceException)
-        e.location == name.uri
-
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
-        0 * _
-    }
-
     def expectResourceRead(ExternalResourceName name, String content) {
         1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
             action.execute(new ByteArrayInputStream(content.bytes))
@@ -346,7 +345,7 @@ class AccessorBackedExternalResourceTest extends Specification {
 
     def expectResourceRead(ExternalResourceName name, ExternalResourceMetaData metaData, String content) {
         1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
-            action.execute(metaData, new ByteArrayInputStream(content.bytes))
+            action.execute(new ByteArrayInputStream(content.bytes), metaData)
         }
     }
 }

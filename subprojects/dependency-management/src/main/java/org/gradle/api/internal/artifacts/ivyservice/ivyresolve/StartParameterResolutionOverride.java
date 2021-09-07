@@ -55,6 +55,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
@@ -207,7 +208,7 @@ public class StartParameterResolutionOverride {
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
         @Nullable
         @Override
-        public <T> T withContent(URI location, boolean revalidate, ContentAndMetadataAction<T> action) throws ResourceException {
+        public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
             throw offlineResource(location);
         }
 

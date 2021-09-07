@@ -18,7 +18,6 @@ package org.gradle.internal.resource
 
 import org.apache.commons.io.input.NullInputStream
 import org.gradle.api.Action
-import org.gradle.api.Transformer
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -96,24 +95,24 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         }
 
         @Override
-        def <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        def <T> ExternalResourceReadResult<T> withContent(ContentAction<? extends T> readAction) throws ResourceException {
             mock.withContent(readAction)
-            ExternalResourceReadResult.of(READ_CONTENT_LENGTH, readAction.transform(new NullInputStream(0)))
+            ExternalResourceReadResult.of(READ_CONTENT_LENGTH, readAction.execute(new NullInputStream(0)))
         }
 
         @Override
-        def <T> ExternalResourceReadResult<T> withContent(ExternalResource.ContentAction<? extends T> readAction) throws ResourceException {
+        def <T> ExternalResourceReadResult<T> withContent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
             mock.withContent(readAction)
             ExternalResourceReadResult.of(READ_CONTENT_LENGTH, readAction.execute(new NullInputStream(0), getMetaData()))
         }
 
         @Override
-        def <T> ExternalResourceReadResult<T> withContentIfPresent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException {
+        def <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        def <T> ExternalResourceReadResult<T> withContentIfPresent(ExternalResource.ContentAction<? extends T> readAction) throws ResourceException {
+        def <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
             throw new UnsupportedOperationException()
         }
 
@@ -165,12 +164,12 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * delegateMock."$methodName"(parameter)
 
         where:
-        methodName    | parameter                            | methodSignature
-        'writeTo'     | Mock(File)                           | "writeTo(File)"
-        'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
-        'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
-        'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
-        'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
+        methodName    | parameter                                       | methodSignature
+        'writeTo'     | Mock(File)                                      | "writeTo(File)"
+        'writeTo'     | Mock(OutputStream)                              | "writeTo(OutputStream)"
+        'withContent' | Mock(Action)                                    | "withContent(Action<InputStream>)"
+        'withContent' | Mock(ExternalResource.ContentAndMetadataAction) | "withContent(ContentAndMetadataAction<T>)"
+        'withContent' | Mock(ExternalResource.ContentAction)            | "withContent(ContentAction<T>)"
     }
 
     def "wraps metaData get in a build operation"() {
@@ -281,16 +280,11 @@ class BuildOperationFiringExternalResourceDecoratorTest extends Specification {
         1 * delegate."$methodName"(parameter) >> { throw new ResourceException("test resource exception") }
 
         where:
-        methodName    | parameter                            | methodSignature
-        'writeTo'     | Mock(File)                           | "writeTo(File)"
-        'writeTo'     | Mock(OutputStream)                   | "writeTo(OutputStream)"
-        'withContent' | Mock(Action)                         | "withContent(Action<InputStream>)"
-        'withContent' | Mock(ExternalResource.ContentAction) | "withContent(ContentAction<InputStream>)"
-        'withContent' | Mock(Transformer)                    | "withContent(Transformer<T, ? extends InputStream)"
+        methodName    | parameter                                       | methodSignature
+        'writeTo'     | Mock(File)                                      | "writeTo(File)"
+        'writeTo'     | Mock(OutputStream)                              | "writeTo(OutputStream)"
+        'withContent' | Mock(Action)                                    | "withContent(Action<InputStream>)"
+        'withContent' | Mock(ExternalResource.ContentAndMetadataAction) | "withContent(ContentAndMetadataAction<T>)"
+        'withContent' | Mock(ExternalResource.ContentAction)            | "withContent(ContentAction<T>)"
     }
-
-    def <T> T invokeAction(CallableBuildOperation<T> op, BuildOperationContext buildOperationContext) {
-        op.call(buildOperationContext)
-    }
-
 }
