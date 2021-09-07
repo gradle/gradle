@@ -47,9 +47,9 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="settings.gradle.kts[tags=simple_catalog]"]
 ====
 
-[NOTE]
-.Mapping of aliases to type-safe accessors
-====
+[[sub:mapping-aliases-to-accessors]]
+==== Aliases and their mapping to type safe accessors
+
 Aliases must consist of a series of identifiers separated by a dash (`-`, recommended), an underscore (`_`) or a dot (`.`).
 Identifiers themselves must consist of ascii characters, preferably lowercase, eventually followed by numbers.
 
@@ -62,7 +62,7 @@ For example:
 - but `this.#is.not!`
 
 Then type safe accessors are generated for _each subgroup_.
-For example, given the following aliases:
+For example, given the following aliases in version catalog named `libs`:
 
 `guava`, `groovy-core`, `groovy-xml`, `groovy-json`, `androidx.awesome.lib`
 
@@ -74,17 +74,36 @@ We would generate the following type-safe accessors:
 - `libs.groovy.json`
 - `libs.androidx.awesome.lib`
 
-In case you want to avoid the generation of a subgroup accessor, we recommend to rely on case to differentiate.
+Where prefix `libs` comes from version catalog name.
+
+In case you want to avoid the generation of a subgroup accessor, we recommend relying on case to differentiate.
 For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
 
 When declaring aliases, it's worth noting that any of the `-`, `_` and `.` characters can be used as separators, but the generated catalog will have all normalized to `.`:
 for example `foo-bar` as an alias is converted to `foo.bar` automatically.
+
+[WARNING]
+====
+Some keywords are reserved, so they cannot be used as an alias. Next words cannot be used as an alias:
+
+- extensions
+- class
+- convention
+
+Additional to that next words cannot be used as a suffix of an alias:
+
+- bundles
+- versions
+- version
+- bundle
+- plugin
+- plugins
 ====
 
 [[sec:common-version-numbers]]
 ==== Dependencies with same version numbers
 
-In the example above, we can see that we declare 3 aliases for various components of the `groovy` library and that all of them share the same version number.
+In the first example in <<platforms.adoc#sub:version-catalog-declaration, declaring a version catalog>>, we can see that we declare 3 aliases for various components of the `groovy` library and that all of them share the same version number.
 
 Instead of repeating the same version number, we can declare a version and reference it:
 
@@ -228,6 +247,11 @@ Supported members of a version declaration are:
 
 Dependency declaration can either be declared as a simple string, in which case they are interpreted as `group:artifact:version` coordinates, or separating the version declaration from the group and name:
 
+[NOTE]
+====
+For aliases same rules apply as described in <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> section.
+====
+
 .Different dependency notations
 ----
 include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-libs.versions.toml[]
@@ -260,6 +284,18 @@ or
 
 See the https://toml.io[TOML specification] for details.
 ====
+
+[[sub:programmatic-access-to-catalog]]
+=== Programmatic access to catalog
+
+You can also access version catalog programmatically with version catalog extension and version catalog API:
+
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=programmatic_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=programmatic_access]"]
+====
+
+Check link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
 
 [[sec:sharing-catalogs]]
 == Sharing catalogs
@@ -417,7 +453,10 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 Because platforms and catalogs both talk about dependency versions and can both be used to share dependency versions in a project, there might be a confusion regarding what to use and if one is preferable to the other.
 
-The answer is that you should always use catalogs and _maybe_ use platforms in addition.
+In short, you should:
+
+- use catalogs to only define dependencies and their versions for projects and to generate type-safe accessors
+- use platform to apply versions to dependency graph and to affect dependency resolution
 
 A catalog helps with centralizing the dependency versions and is only, as it name implies, a catalog of dependencies you can pick from.
 We recommend using it to declare the coordinates of your dependencies, in all cases.

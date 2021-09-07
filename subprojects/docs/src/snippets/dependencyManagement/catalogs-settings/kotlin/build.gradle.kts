@@ -56,3 +56,13 @@ dependencies {
     implementation(libs.bundles.groovy)
 }
 // end::use_dependency_bundle[]
+
+// tag::programmatic_access[]
+val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+dependencies {
+    versionCatalog.findDependency("groovy-json").ifPresent {
+        implementation(it)
+    }
+}
+// end::programmatic_access[]
+
