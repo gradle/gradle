@@ -1738,6 +1738,104 @@ Second: 1.1"""
         ]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "disallows aliases for dependency which prefix clash with reserved words"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("$reservedName").to("org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
+        })
+
+        where:
+        reservedName  | prefix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "plugins"     | "plugins"
+        "bundles-my"  | "bundles"
+        "versions-my" | "versions"
+        "plugins-my"  | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "aliases for dependencies, plugins and versions do not clash with version catalog methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").to("org:lib1:1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundleAliases",
+            "versionAliases",
+            "pluginAliases",
+            "dependencyAliases",
+            "findPlugin",
+            "findDependency",
+            "findVersion",
+            "findBundle"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allow aliases for plugins and versions which have are reserved words for dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundles",
+            "versions",
+            "plugins"
+        ]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/16768")
     def "the artifact notation doesn't require to set 'name'"() {
         settingsFile << """
@@ -1797,6 +1895,7 @@ Second: 1.1"""
                             prefer "1.1.0"
                             reject "1.0.5"
                         }
+                        alias("lib3").to("org", "test3").withoutVersion()
                         bundle("all", ["lib", "lib2"])
                         alias('greeter').toPluginId('com.acme.greeter').version('1.4')
                         alias('greeter2').toPluginId('com.acme.greeter2').version {
@@ -1822,6 +1921,9 @@ Second: 1.1"""
                     catalog.findDependency("lib2").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
+                    catalog.findDependency("lib3").ifPresent {
+                        println("Found dependency: '\${it.get().toString()}'.")
+                    }
                     catalog.findBundle("all").ifPresent {
                         println("Found bundle: '\${it.get().toString()}'.")
                     }
@@ -1842,6 +1944,7 @@ Second: 1.1"""
         outputContains "Found version: '1.5'."
         outputContains "Found dependency: 'org:test:1.0'."
         outputContains "Found dependency: 'org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        outputContains "Found dependency: 'org:test3'."
         outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
         outputContains "Found plugin: 'com.acme.greeter:1.4'."
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
