@@ -67,8 +67,14 @@ import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuil
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
 
 public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderInternal {
+
+    private enum AliasType {
+        LIBRARY,
+        PLUGIN
+    }
+
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_ALIAS_SUFFIX = ImmutableList.of("bundles", "versions", "version", "bundle", "plugin", "plugins");
+    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins", "versionAliases", "pluginAliases", "bundleAliases", "dependencyAliases");
     private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
@@ -282,31 +288,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        if ("alias".equals(type)) {
-            validateAlias(value);
-        }
-    }
-
-    private void validateAlias(String alias) {
-        for (String suffix : FORBIDDEN_ALIAS_SUFFIX) {
-            String sl = alias.toLowerCase();
-            if (sl.endsWith(suffix)) {
-                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                        .happensBecause(() -> "It shouldn't end with '" + suffix + "'")
-                        .addSolution(() -> "Use a different alias which doesn't end with " + oxfordListOf(FORBIDDEN_ALIAS_SUFFIX, "or"))
-                        .documented()
-                );
-            }
-        }
-        if (RESERVED_ALIAS_NAMES.contains(alias)) {
-            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                    .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
-                    .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
-                    .documented()
-            );
-        }
     }
 
     private <T> T throwVersionCatalogProblem(VersionCatalogProblemId id, Consumer<? super VersionCatalogProblemBuilder.ProblemWithId> spec) {
@@ -419,9 +400,10 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public void to(String gavCoordinates) {
+            validateAlias(AliasType.LIBRARY, alias);
             String[] coordinates = gavCoordinates.split(":");
             if (coordinates.length == 3) {
-                to(coordinates[0], coordinates[1]).version(coordinates[2]);
+                newLibraryBuilder(coordinates[0], coordinates[1]).version(coordinates[2]);
             } else {
                 throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + gavCoordinates + "' is not a valid dependency notation")
@@ -434,12 +416,42 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public LibraryAliasBuilder to(String group, String name) {
+            validateAlias(AliasType.LIBRARY, alias);
+            return newLibraryBuilder(group, name);
+        }
+
+        private LibraryAliasBuilder newLibraryBuilder(String group, String name) {
             return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, group, name);
         }
 
         @Override
         public PluginAliasBuilder toPluginId(String id) {
+            validateAlias(AliasType.PLUGIN, alias);
             return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, id);
+        }
+
+        private void validateAlias(AliasType type, String alias) {
+            if (type == AliasType.LIBRARY) {
+                String sl = normalize(alias.toLowerCase());
+                for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
+                    if (sl.equals(prefix) || sl.startsWith(prefix + ".")) {
+                        throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                                .happensBecause(() -> "It shouldn't start with '" + prefix + "'")
+                                .addSolution(() -> "Use a different alias which doesn't start with " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
+                                .documented()
+                        );
+                    }
+                }
+            }
+            if (RESERVED_ALIAS_NAMES.contains(alias)) {
+                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                        .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
+                        .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
+                        .documented()
+                );
+            }
         }
     }
 
