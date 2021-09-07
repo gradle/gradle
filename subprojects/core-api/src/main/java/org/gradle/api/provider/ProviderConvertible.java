@@ -21,7 +21,7 @@ import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * An object that can be transformed to {@link Provider<T>}.
+ * An object that can be converted to a {@link Provider}.
  *
  * @param <T> Type of value represented by provider
  * @since 7.3
@@ -32,7 +32,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface ProviderConvertible<T> {
 
     /**
-     * Returns a new {@link Provider<T>} from this object.
+     * Returns a {@link Provider} from this object.
      */
     Provider<T> asProvider();
 
