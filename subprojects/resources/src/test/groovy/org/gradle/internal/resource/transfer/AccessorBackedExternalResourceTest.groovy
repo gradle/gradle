@@ -232,7 +232,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         result == null
         !file.exists()
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -250,7 +250,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         e.location == name.uri
         !file.exists()
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -267,7 +267,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -283,7 +283,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         then:
         result == null
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -300,7 +300,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -316,7 +316,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         then:
         result == null
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
@@ -333,18 +333,18 @@ class AccessorBackedExternalResourceTest extends Specification {
         def e = thrown(MissingResourceException)
         e.location == name.uri
 
-        1 * resourceAccessor.withContent(name.uri, true, _) >> null
+        1 * resourceAccessor.withContent(name, true, _) >> null
         0 * _
     }
 
     def expectResourceRead(ExternalResourceName name, String content) {
-        1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
+        1 * resourceAccessor.withContent(name, true, _) >> { uri, revalidate, action ->
             action.execute(new ByteArrayInputStream(content.bytes))
         }
     }
 
     def expectResourceRead(ExternalResourceName name, ExternalResourceMetaData metaData, String content) {
-        1 * resourceAccessor.withContent(name.uri, true, _) >> { uri, revalidate, action ->
+        1 * resourceAccessor.withContent(name, true, _) >> { uri, revalidate, action ->
             action.execute(new ByteArrayInputStream(content.bytes), metaData)
         }
     }

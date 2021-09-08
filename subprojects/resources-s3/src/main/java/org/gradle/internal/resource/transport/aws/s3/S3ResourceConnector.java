@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.io.ByteStreams;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.List;
 
 public class S3ResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
@@ -45,31 +45,31 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     }
 
     @Override
-    public List<String> list(URI parent) {
+    public List<String> list(ExternalResourceName parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
-        return s3Client.listDirectChildren(parent);
+        return s3Client.listDirectChildren(parent.getUri());
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource: {}", location);
-        S3Object s3Object = s3Client.getResource(location);
+        S3Object s3Object = s3Client.getResource(location.getUri());
         if (s3Object == null) {
             return null;
         }
-        return new S3Resource(s3Object, location);
+        return new S3Resource(s3Object, location.getUri());
     }
 
     @Override
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
         LOGGER.debug("Attempting to get resource metadata: {}", location);
-        S3Object s3Object = s3Client.getMetaData(location);
+        S3Object s3Object = s3Client.getMetaData(location.getUri());
         if (s3Object == null) {
             return null;
         }
         try {
             ObjectMetadata objectMetadata = s3Object.getObjectMetadata();
-            return new DefaultExternalResourceMetaData(location,
+            return new DefaultExternalResourceMetaData(location.getUri(),
                 objectMetadata.getLastModified().getTime(),
                 objectMetadata.getContentLength(),
                 objectMetadata.getContentType(),
@@ -102,11 +102,11 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     }
 
     @Override
-    public void upload(ReadableContent resource, URI destination) throws IOException {
+    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
         InputStream inputStream = resource.open();
         try {
-            s3Client.put(inputStream, resource.getContentLength(), destination);
+            s3Client.put(inputStream, resource.getContentLength(), destination.getUri());
         } finally {
             inputStream.close();
         }

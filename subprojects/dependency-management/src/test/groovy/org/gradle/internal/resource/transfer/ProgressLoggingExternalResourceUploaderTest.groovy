@@ -18,6 +18,7 @@
 
 package org.gradle.internal.resource.transfer
 
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ReadableContent
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -34,12 +35,13 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
     def "delegates upload to delegate uploader and logs progress"() {
         setup:
         startsProgress()
+        def name = new ExternalResourceName(new URI("http://a/remote/path"))
 
         when:
-        progressLoggerUploader.upload(localResource(), new URI("http://a/remote/path"))
+        progressLoggerUploader.upload(localResource(), name)
         then:
         1 * delegateResource.open() >> inputStream
-        1 * uploader.upload(_, new URI("http://a/remote/path")) >> {resource, destination ->
+        1 * uploader.upload(_, name) >> {resource, destination ->
             def stream = resource.open();
             assert stream.read(new byte[1024]) == 1024
             assert stream.read() == 48

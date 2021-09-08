@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.gradle.internal.IoActions;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -37,13 +38,13 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
 
     @Override
     @Nullable
-    public HttpResponseResource openResource(final URI uri, boolean revalidate) {
-        String location = uri.toString();
+    public HttpResponseResource openResource(final ExternalResourceName location, boolean revalidate) {
+        String uri = location.getUri().toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        HttpClientResponse response = http.performGet(location, revalidate);
+        HttpClientResponse response = http.performGet(uri, revalidate);
         if (response != null) {
-            return wrapResponse(uri, response);
+            return wrapResponse(location.getUri(), response);
         }
 
         return null;
@@ -61,14 +62,14 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
     }
 
     @Override
-    public ExternalResourceMetaData getMetaData(URI uri, boolean revalidate) {
-        String location = uri.toString();
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
+        String uri = location.getUri().toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
-        HttpClientResponse response = http.performHead(location, revalidate);
+        HttpClientResponse response = http.performHead(uri, revalidate);
 
         ExternalResourceMetaData result = null;
         if (response != null) {
-            HttpResponseResource resource = new HttpResponseResource("HEAD", uri, response);
+            HttpResponseResource resource = new HttpResponseResource("HEAD", location.getUri(), response);
             try {
                 result = resource.getMetaData();
             } finally {

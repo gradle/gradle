@@ -81,9 +81,8 @@ public class PublicKeyDownloadService implements PublicKeyService {
                     return IOQuery.Result.successful(false);
                 }
                 try {
-                    URI query = toQuery(baseUri, fingerprint);
-                    ExternalResourceName name = new ExternalResourceName(query);
-                    ExternalResourceReadResult<IOQuery.Result<Boolean>> response = client.resource(name, false).withContentIfPresent(inputStream -> {
+                    ExternalResourceName query = toQuery(baseUri, fingerprint);
+                    ExternalResourceReadResult<IOQuery.Result<Boolean>> response = client.resource(query).withContentIfPresent(inputStream -> {
                         extractKeyRing(inputStream, builder, onKeyring);
                         return IOQuery.Result.successful(true);
                     });
@@ -146,14 +145,14 @@ public class PublicKeyDownloadService implements PublicKeyService {
         LOGGER.debug("Cannot download public key " + fingerprint + " from " + baseUri.getHost());
     }
 
-    private URI toQuery(URI baseUri, String fingerprint) throws URISyntaxException {
+    private ExternalResourceName toQuery(URI baseUri, String fingerprint) throws URISyntaxException {
         String scheme = baseUri.getScheme();
         int port = baseUri.getPort();
         if ("hkp".equals(scheme)) {
             scheme = "http";
             port = 11371;
         }
-        return new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + fingerprint, null);
+        return new ExternalResourceName(new URI(scheme, null, baseUri.getHost(), port, "/pks/lookup", "op=get&options=mr&search=0x" + fingerprint, null));
     }
 
     @Override

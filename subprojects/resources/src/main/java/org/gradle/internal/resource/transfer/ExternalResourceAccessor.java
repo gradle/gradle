@@ -18,11 +18,14 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
-import java.net.URI;
 
+/**
+ * You should use {@link ExternalResource} instead of this type.
+ */
 public interface ExternalResourceAccessor {
     /**
      * Reads the resource at the given location.
@@ -39,7 +42,7 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
+    <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException;
 
     /**
      * Reads the resource at the given location.
@@ -56,7 +59,7 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    default <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAction<T> action) throws ResourceException {
+    default <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAction<T> action) throws ResourceException {
         return withContent(location, revalidate, (inputStream, metaData) -> action.execute(inputStream));
     }
 
@@ -74,5 +77,5 @@ public interface ExternalResourceAccessor {
      * @throws ResourceException If the resource may exist, but not could be obtained for some reason
      */
     @Nullable
-    ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException;
+    ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException;
 }

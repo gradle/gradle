@@ -28,6 +28,22 @@ class ExternalResourceNameTest extends Specification {
     @Shared
     def base = new File(root, "base")
 
+    def "can construct a resource name from URI"() {
+        expect:
+        def name = new ExternalResourceName(new URI(uri))
+
+        name.uri.toASCIIString() == uri
+        name.path == expectedPath
+        name.uri.path == expectedPath
+        name.root.uri.toASCIIString() == expectedRoot
+
+        where:
+        uri                           | expectedRoot        | expectedPath
+        "http://host:8080/path"       | "http://host:8080/" | "/path"
+        "http://host:8080/path?query" | "http://host:8080/" | "/path"
+        "http://host:8080?query"      | "http://host:8080"  | ""
+    }
+
     def "can construct a resource name from URI and path"() {
         expect:
         def base = baseUri
@@ -40,7 +56,7 @@ class ExternalResourceNameTest extends Specification {
         name.root == name.root.root
 
         where:
-        baseUri                               | path                                                      | expectedRoot                            | expectedPath                                        | expectedAsciiString
+        baseUri                                      | path                                               | expectedRoot                            | expectedPath                                        | expectedAsciiString
         URI.create("http://host/")                   | "a/b/c.html"                                       | URI.create("http://host/")              | "/a/b/c.html"                                       | "http://host/a/b/c.html"
         URI.create("http://host/")                   | "/a/b/c"                                           | URI.create("http://host/")              | "/a/b/c"                                            | "http://host/a/b/c"
         URI.create("http://host:8008")               | "/a/b/c"                                           | URI.create("http://host:8008/")         | "/a/b/c"                                            | "http://host:8008/a/b/c"
@@ -61,7 +77,7 @@ class ExternalResourceNameTest extends Specification {
         name.uri.toASCIIString() == new URI(base.scheme, null, base.host, base.port, "////host/a/b/c", null, null).toASCIIString()
         name.path == "/a/b/c"
         name.uri.path == "//host/a/b/c"
-        name.root.uri == URI.create("file:////host/" )
+        name.root.uri == URI.create("file:////host/")
         name.root == name.root.root
     }
 

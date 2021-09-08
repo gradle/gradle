@@ -67,7 +67,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {
-        return accessor.withContent(name.getUri(), revalidate, inputStream -> {
+        return accessor.withContent(name, revalidate, inputStream -> {
             try (CountingInputStream input = new CountingInputStream(inputStream)) {
                 try (FileOutputStream output = new FileOutputStream(destination)) {
                     IOUtils.copyLarge(input, output);
@@ -85,7 +85,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
-        return accessor.withContent(name.getUri(), revalidate, inputStream -> {
+        return accessor.withContent(name, revalidate, inputStream -> {
             try (CountingInputStream input = new CountingInputStream(new BufferedInputStream(inputStream))) {
                 T value = readAction.execute(input);
                 return ExternalResourceReadResult.of(input.getCount(), value);
@@ -96,7 +96,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
-        return accessor.withContent(name.getUri(), revalidate, (inputStream, metadata) -> {
+        return accessor.withContent(name, revalidate, (inputStream, metadata) -> {
             try (CountingInputStream stream = new CountingInputStream(new BufferedInputStream(inputStream))) {
                 T value = readAction.execute(stream, metadata);
                 return ExternalResourceReadResult.of(stream.getCount(), value);
@@ -106,7 +106,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
 
     @Override
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException {
-        ExternalResourceReadResult<Void> result = accessor.withContent(name.getUri(), revalidate, inputStream -> {
+        ExternalResourceReadResult<Void> result = accessor.withContent(name, revalidate, inputStream -> {
             CountingInputStream input = new CountingInputStream(inputStream);
             readAction.execute(input);
             return ExternalResourceReadResult.of(input.getCount());
@@ -130,7 +130,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     public ExternalResourceWriteResult put(final ReadableContent source) throws ResourceException {
         try {
             CountingReadableContent countingResource = new CountingReadableContent(source);
-            uploader.upload(countingResource, getURI());
+            uploader.upload(countingResource, name);
             return new ExternalResourceWriteResult(countingResource.getCount());
         } catch (IOException e) {
             throw ResourceExceptions.putFailed(getURI(), e);
@@ -141,7 +141,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Override
     public List<String> list() throws ResourceException {
         try {
-            return lister.list(getURI());
+            return lister.list(name);
         } catch (Exception e) {
             throw ResourceExceptions.getFailed(getURI(), e);
         }
@@ -149,7 +149,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
 
     @Override
     public ExternalResourceMetaData getMetaData() {
-        return accessor.getMetaData(getURI(), revalidate);
+        return accessor.getMetaData(name, revalidate);
     }
 
     private static class CountingReadableContent implements ReadableContent {

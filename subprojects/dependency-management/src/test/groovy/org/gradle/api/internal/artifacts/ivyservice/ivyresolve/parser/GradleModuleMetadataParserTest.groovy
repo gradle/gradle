@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint

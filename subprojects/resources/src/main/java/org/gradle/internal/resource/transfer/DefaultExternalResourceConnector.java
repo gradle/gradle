@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
@@ -53,28 +54,28 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
     @Nullable
     @Override
-    public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-        STATS.resource(location);
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        STATS.resource(location.getUri());
         return accessor.withContent(location, revalidate, action);
     }
 
     @Nullable
     @Override
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
-        STATS.metadata(location);
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
+        STATS.metadata(location.getUri());
         return accessor.getMetaData(location, revalidate);
     }
 
     @Nullable
     @Override
-    public List<String> list(URI parent) {
-        STATS.list(parent);
+    public List<String> list(ExternalResourceName parent) {
+        STATS.list(parent.getUri());
         return lister.list(parent);
     }
 
     @Override
-    public void upload(ReadableContent resource, URI destination) throws IOException {
-        STATS.upload(destination);
+    public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+        STATS.upload(destination.getUri());
         uploader.upload(resource, destination);
     }
 

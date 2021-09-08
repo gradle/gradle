@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
@@ -27,11 +28,12 @@ class HttpResourceListerTest extends Specification {
     def "parses resource content"() {
         setup:
         def inputStream = new ByteArrayInputStream("<a href='child'/>".bytes)
+        def name = new ExternalResourceName("http://testrepo/")
 
         when:
-        lister.list(new URI("http://testrepo/"))
+        lister.list(name)
         then:
-        1 * accessorMock.withContent(new URI("http://testrepo/"), true, _) >> {  uri, revalidate, action ->
+        1 * accessorMock.withContent(name, true, _) >> {  uri, revalidate, action ->
             return action.execute(inputStream, metaData)
         }
         _ * metaData.getContentType() >> "text/html"
@@ -39,8 +41,8 @@ class HttpResourceListerTest extends Specification {
 
     def "list returns null if HttpAccessor returns null"(){
         setup:
-        accessorMock.openResource(new URI("http://testrepo/"), true)  >> null
+        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true)  >> null
         expect:
-        null == lister.list(new URI("http://testrepo"))
+        null == lister.list(new ExternalResourceName("http://testrepo"))
     }
 }

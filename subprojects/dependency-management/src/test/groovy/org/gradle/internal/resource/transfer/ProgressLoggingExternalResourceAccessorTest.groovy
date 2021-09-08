@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transfer
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import spock.lang.Specification
 
@@ -31,7 +32,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     ExternalResourceReadResponse externalResource = Mock()
     ExternalResourceMetaData metaData = Mock()
     ExternalResource.ContentAndMetadataAction action = Mock()
-    URI location = new URI("location")
+    def location = new ExternalResourceName(new URI("location"))
 
     def setup() {
         externalResource.metaData >> metaData
@@ -142,7 +143,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         0 * progressLogger.progress(_)
     }
 
-    def expectResourceRead(URI location, ExternalResourceMetaData metaData, InputStream inputStream) {
+    def expectResourceRead(ExternalResourceName location, ExternalResourceMetaData metaData, InputStream inputStream) {
         1 * accessor.withContent(location, false, _) >> { uri, revalidate, action ->
             action.execute(inputStream, metaData)
         }

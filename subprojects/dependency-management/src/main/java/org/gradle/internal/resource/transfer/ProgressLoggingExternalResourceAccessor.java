@@ -19,10 +19,10 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
-import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
@@ -34,9 +34,9 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     @Nullable
     @Override
-    public <T> T withContent(URI location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
         return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
-            ResourceOperation downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), metaData.getContentLength());
+            ResourceOperation downloadOperation = createResourceOperation(location.getUri(), ResourceOperation.Type.download, getClass(), metaData.getContentLength());
             ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
             try {
                 return action.execute(stream, metaData);
@@ -48,7 +48,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
     @Override
     @Nullable
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
         return delegate.getMetaData(location, revalidate);
     }
 }
