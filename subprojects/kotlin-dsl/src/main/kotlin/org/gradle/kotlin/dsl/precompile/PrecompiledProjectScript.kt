@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -60,6 +61,10 @@ open class PrecompiledProjectScript(
                 override fun alias(notation: Provider<PluginDependency>): PluginDependencySpec {
                     project.pluginManager.apply(notation.get().pluginId)
                     return NullPluginDependencySpec
+                }
+
+                override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
+                    return alias(notation.asProvider())
                 }
             }
         )

@@ -22,6 +22,7 @@ import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildIncluder;
@@ -115,6 +116,11 @@ public class DefaultPluginManagementSpec implements PluginManagementSpecInternal
         public PluginDependencySpec alias(Provider<PluginDependency> notation) {
             PluginDependency pluginDependency = notation.get();
             return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
+        }
+
+        @Override
+        public PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
+            return alias(notation.asProvider());
         }
     }
 

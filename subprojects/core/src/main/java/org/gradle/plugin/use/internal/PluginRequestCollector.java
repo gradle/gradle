@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
@@ -121,8 +122,13 @@ public class PluginRequestCollector {
         @Override
         public PluginDependencySpec alias(Provider<PluginDependency> notation) {
             PluginDependency pluginDependency = notation.get();
-            // For now we use the _requested version_ when a plugin comes from a catalog
+            // For now we use the _required version_ when a plugin comes from a catalog
             return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
+        }
+
+        @Override
+        public PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
+            return alias(notation.asProvider());
         }
     }
 
