@@ -67,7 +67,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file('src/test/java/MyTest.java') << standaloneTestClass()
 
         when:
-        succeeds 'dependencies', 'test'
+        succeeds 'test'
 
         then:
         noExceptionThrown()
