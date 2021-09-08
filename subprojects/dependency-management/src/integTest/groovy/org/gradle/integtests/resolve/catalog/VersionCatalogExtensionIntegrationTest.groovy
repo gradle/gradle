@@ -995,6 +995,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
             dependencies {
                 implementation(platform(libs.myLib))
+                implementation(platform(libs.myLib.subgroup))
             }
         """
 
@@ -1048,8 +1049,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             dependencies {
-                implementation(enforcedPlatform(libs.lib))
-                implementation(enforcedPlatform(libs.lib.subgroup))
+                implementation(enforcedPlatform(libs.myLib))
+                implementation(enforcedPlatform(libs.myLib.subgroup))
             }
         """
 
