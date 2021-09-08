@@ -39,14 +39,14 @@ public class DefaultFileHierarchySet {
     /**
      * Creates a set containing the given directory and all its descendants
      */
-    public static FileHierarchySet of(final File rootDir) {
+    public static FileHierarchySet of(File rootDir) {
         return new PrefixFileSet(rootDir);
     }
 
     /**
      * Creates a set containing the given directory and all its descendants
      */
-    public static FileHierarchySet fromPath(final String absolutePath) {
+    public static FileHierarchySet fromPath(String absolutePath) {
         return new PrefixFileSet(absolutePath);
     }
 
@@ -107,8 +107,7 @@ public class DefaultFileHierarchySet {
         private final Node rootNode;
 
         PrefixFileSet(File rootDir) {
-            String path = toPath(rootDir);
-            this.rootNode = new Node(path);
+            this(toAbsolutePath(rootDir));
         }
 
         PrefixFileSet(String rootPath) {
@@ -149,7 +148,7 @@ public class DefaultFileHierarchySet {
 
         @Override
         public FileHierarchySet plus(File rootDir) {
-            return new PrefixFileSet(rootNode.plus(toPath(rootDir)));
+            return plus(toAbsolutePath(rootDir));
         }
 
         @Override
@@ -157,10 +156,9 @@ public class DefaultFileHierarchySet {
             return new PrefixFileSet(rootNode.plus(removeTrailingSeparator(absolutePath)));
         }
 
-        private static String toPath(File rootDir) {
+        private static String toAbsolutePath(File rootDir) {
             assert rootDir.isAbsolute();
-            String absolutePath = rootDir.getAbsolutePath();
-            return removeTrailingSeparator(absolutePath);
+            return rootDir.getAbsolutePath();
         }
 
         private static String removeTrailingSeparator(String absolutePath) {
