@@ -13,6 +13,10 @@ testing {
     suites {
         val unitTest by getting {
             useJUnitPlatform()
+
+            dependencies {
+                implementation("org.junit.jupiter:junit-jupiter:5.7.1")
+            }
         }
 
         val integrationTest by registering {
