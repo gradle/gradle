@@ -755,6 +755,20 @@ include::sample[dir="snippets/files/sync/kotlin",files="build.gradle.kts[tags=co
 
 You can also perform the same function in your own tasks with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:sync(org.gradle.api.Action)[Project.sync(org.gradle.api.Action)] method.
 
+[[sec:copy_deploy]]
+=== Deploying single files into application servers
+
+When working with application servers, you can use a `Copy` task to deploy the application archive (e.g. a WAR file).
+Since you are deploying a single file, the destination directory of the `Copy` is the whole deployment directory.
+The deployment directory sometimes does contain unreadable files like named pipes, so Gradle may have problems doing up-to-date checks.
+In order to support this use-case, you can use link:{groovyDslPath}/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:doNotTrackDestinationDir()[Copy.doNotTrackDestinationDir()].
+
+.Using Copy to deploy a WAR file
+====
+include::sample[dir="snippets/files/deployWarWithCopy/groovy",files="build.gradle"]
+include::sample[dir="snippets/files/deployWarWithCopy/kotlin",files="build.gradle.kts"]
+====
+
 [[sec:archives]]
 == Archive creation in depth
 
