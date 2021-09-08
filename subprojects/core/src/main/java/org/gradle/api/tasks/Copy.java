@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
@@ -86,6 +88,23 @@ public class Copy extends AbstractCopyTask {
     @Override
     public DestinationRootCopySpec getRootSpec() {
         return (DestinationRootCopySpec) super.getRootSpec();
+    }
+
+    /**
+     * Uses {@link Untracked} for {@link #getDestinationDir()}.
+     * <p>
+     * This causes the task to ignore already existing files in the destination directory.
+     * You should use this if the destination directory contains unrelated unreadable files.
+     * </p>
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public void doNotTrackDestinationDir() {
+        getOutputs()
+            .dir((Callable<File>) this::getDestinationDir)
+            .withPropertyName("untrackedDestinationDir")
+            .untracked();
     }
 
     /**

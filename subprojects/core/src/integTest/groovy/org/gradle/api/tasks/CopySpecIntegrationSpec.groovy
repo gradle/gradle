@@ -231,24 +231,17 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
+                doNotTrackDestinationDir()
             }
         """
 
         when:
-        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
         run "copy"
         then:
         outputDirectory.list().contains input.name
         executedAndNotSkipped(":copy")
 
         when:
-        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
         run "copy"
         then:
         outputDirectory.list().contains input.name

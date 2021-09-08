@@ -280,27 +280,27 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
+                doNotTrackDestinationDir()
             }
         """
 
         when:
-        executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access output property 'destinationDir' of task ':copy' (see --info log for details). " +
-            "Accessing unreadable inputs or outputs has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
         succeeds 'copy', "--info"
         then:
         outputDirectory.list().contains input.name
-        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
-        outputContains(expectedError(unreadableOutput))
+
+        when:
+        succeeds 'copy'
+        then:
+        executedAndNotSkipped(':copy')
+        outputDirectory.list().contains input.name
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
-        type        | create              | expectedError
-        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
-        'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
+        type        | create
+        'file'      | { it.createFile() }
+        'directory' | { it.createDir() }
     }
 }

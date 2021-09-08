@@ -22,6 +22,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>doNotTrackDestinationDir</td>
+            </tr>
         </table>
     </section>
 </section>
