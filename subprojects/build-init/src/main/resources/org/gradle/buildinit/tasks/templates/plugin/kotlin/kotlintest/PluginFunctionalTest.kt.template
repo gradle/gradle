@@ -3,6 +3,7 @@
  */
 ${packageDecl.statement}
 import java.io.File
+import java.nio.file.Files
 import org.gradle.testkit.runner.GradleRunner
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -11,16 +12,19 @@ import kotlin.test.assertTrue
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
+    private val projectDir = Files.createTempDirectory("functionalTest").toFile()
+
+    private fun getBuildFile() = projectDir.resolve("build.gradle")
+    private fun getSettingsFile() = projectDir.resolve("settings.gradle")
+
     @Test fun `can run task`() {
         // Setup the test build
-        val projectDir = File("build/functionalTest")
-        projectDir.mkdirs()
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('${pluginId.value}')
-            }
-        """)
+        getSettingsFile().writeText("")
+        getBuildFile().writeText("""
+plugins {
+    id('${pluginId.value}')
+}
+""")
 
         // Run the build
         val runner = GradleRunner.create()
