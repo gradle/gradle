@@ -11,7 +11,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import java.io.File
 
 /**
- * QuickCrossVersionTest only tests the last major version.
+ * QuickCrossVersionTest only tests the last minor for each major version in the range.
  */
 val QUICK_CROSS_VERSION_BUCKETS = listOf(
     listOf("0.0", "3.0"), // 0.0 <= version < 3.0
