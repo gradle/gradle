@@ -11,7 +11,7 @@ repositories {
 
 testing {
     suites {
-        unitTest {
+        test {
             useJUnitPlatform()
 
             dependencies {

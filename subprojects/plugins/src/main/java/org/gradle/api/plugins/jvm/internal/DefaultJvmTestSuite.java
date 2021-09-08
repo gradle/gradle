@@ -53,12 +53,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Inject
     public DefaultJvmTestSuite(String name, Project project, JavaPluginExtension java) {
         this.name = name;
-
-        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            this.sourceSet = java.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
-        } else {
-            this.sourceSet = java.getSourceSets().create(getName());
-        }
+        this.sourceSet = java.getSourceSets().create(getName());
 
         Configuration compileOnly = project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());

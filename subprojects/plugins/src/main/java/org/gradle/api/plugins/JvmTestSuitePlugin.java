@@ -40,7 +40,7 @@ import org.gradle.platform.base.plugins.TestingExtension;
  */
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {
-    public static final String DEFAULT_TEST_SUITE_NAME = "unitTest";
+    public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
 
     @Override
     public void apply(Project project) {

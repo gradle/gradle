@@ -11,7 +11,7 @@ repositories {
 
 testing {
     suites {
-        val unitTest by getting(JvmTestSuite::class) {
+        val test by getting(JvmTestSuite::class) {
             useJUnitPlatform()
 
             dependencies {
