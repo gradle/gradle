@@ -62,7 +62,7 @@ For example:
 - but `this.#is.not!`
 
 Then type safe accessors are generated for _each subgroup_.
-For example, given the following aliases in version catalog named `libs`:
+For example, given the following aliases in a version catalog named `libs`:
 
 `guava`, `groovy-core`, `groovy-xml`, `groovy-json`, `androidx.awesome.lib`
 
@@ -74,7 +74,7 @@ We would generate the following type-safe accessors:
 - `libs.groovy.json`
 - `libs.androidx.awesome.lib`
 
-Where prefix `libs` comes from version catalog name.
+Where the `libs` prefix comes from the version catalog name.
 
 In case you want to avoid the generation of a subgroup accessor, we recommend relying on case to differentiate.
 For example the aliases `groovyCore`, `groovyJson` and `groovyXml` would be mapped to the `libs.groovyCore`, `libs.groovyJson` and `libs.groovyXml` accessors respectively.
@@ -249,7 +249,7 @@ Dependency declaration can either be declared as a simple string, in which case 
 
 [NOTE]
 ====
-For aliases same rules apply as described in <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> section.
+For aliases, the rules described in the section <<platforms.adoc#sub:mapping-aliases-to-accessors, aliases and their mapping to type safe accessors>> apply as well.
 ====
 
 .Different dependency notations
@@ -288,14 +288,14 @@ See the https://toml.io[TOML specification] for details.
 [[sub:programmatic-access-to-catalog]]
 === Programmatic access to catalog
 
-You can also access version catalog programmatically with version catalog extension and version catalog API:
+You can also access version catalog programmatically with the version catalog extension and API:
 
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=programmatic_access]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=programmatic_access]"]
 ====
 
-Check link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
+Check the link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
 
 [[sec:sharing-catalogs]]
 == Sharing catalogs
