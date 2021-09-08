@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
+import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
@@ -63,7 +63,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
 
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
             testSuite.addTestTarget(java);
-            JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class);
+            JvmTestingFramework testingFramework = project.getObjects().newInstance(JUnitPlatformTestingFramework.class);
             testSuite.getTestingFramework().convention(testingFramework);
             testingFramework.getVersion().convention("5.7.1");
 

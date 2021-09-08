@@ -24,5 +24,5 @@ import org.gradle.api.Incubating;
  * @since 7.3
  */
 @Incubating
-public interface JunitPlatformTestingFramework extends JvmTestingFramework {
+public interface JUnitPlatformTestingFramework extends JvmTestingFramework {
 }

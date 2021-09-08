@@ -28,8 +28,8 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.ComponentDependencies;
-import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
-import org.gradle.api.plugins.jvm.JunitTestingFramework;
+import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
+import org.gradle.api.plugins.jvm.JUnitTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
@@ -61,14 +61,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         if (!getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             project.getDependencies().addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JunitPlatformTestingFramework) {
+                if (framework instanceof JUnitPlatformTestingFramework) {
                     return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
                 } else {
                     return "junit:junit:" + framework.getVersion().get();
                 }
             }));
             project.getDependencies().addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JunitPlatformTestingFramework) {
+                if (framework instanceof JUnitPlatformTestingFramework) {
                     return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
                 } else {
                     return getObjectFactory().fileCollection();
@@ -128,14 +128,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitTestingFramework.class);
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitTestingFramework.class);
         getTestingFramework().convention(testingFramework);
         testingFramework.getVersion().convention("4.13");
     }
 
     @Override
     public void useJUnitPlatform() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class);
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitPlatformTestingFramework.class);
         getTestingFramework().convention(testingFramework);
         testingFramework.getVersion().convention("5.7.1");
     }

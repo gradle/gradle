@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
+import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
@@ -52,7 +52,7 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
 
             Property<JvmTestingFramework> targetTestingFramework = getTestingFramework();
             t.getTestFrameworkProperty().convention(targetTestingFramework.map(framework -> {
-                if (framework instanceof JunitPlatformTestingFramework) {
+                if (framework instanceof JUnitPlatformTestingFramework) {
                     return new JUnitPlatformTestFramework((DefaultTestFilter) t.getFilter());
                 } else {
                     return new JUnitTestFramework(t, (DefaultTestFilter) t.getFilter());
