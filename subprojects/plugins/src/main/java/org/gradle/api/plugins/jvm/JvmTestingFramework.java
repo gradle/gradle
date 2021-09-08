@@ -17,7 +17,13 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.testing.Test;
+
+import java.util.List;
 
 /**
  * Defines a framework for running automated tests (JUnit 4/5, TestNG) which will be used by a {@link JvmTestSuiteTarget} of a {@link JvmTestSuite}.
@@ -25,6 +31,14 @@ import org.gradle.api.provider.Property;
  * @since 7.3
  */
 @Incubating
+@NonNullApi
+@SuppressWarnings("unused")
 public interface JvmTestingFramework {
     Property<String> getVersion();
+
+    List<Dependency> getCompileOnlyDependencies();
+    List<Dependency> getImplementationDependencies();
+    List<Dependency> getRuntimeOnlyDependencies();
+
+    TestFramework getTestFramework(Test test);
 }

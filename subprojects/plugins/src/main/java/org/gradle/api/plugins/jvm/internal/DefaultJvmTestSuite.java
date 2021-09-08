@@ -28,8 +28,6 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.TestSuitePlugin;
 import org.gradle.api.plugins.jvm.ComponentDependencies;
-import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
-import org.gradle.api.plugins.jvm.JunitTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
@@ -45,6 +43,7 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURA
 import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
+    private final Project project;
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
@@ -52,6 +51,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Inject
     public DefaultJvmTestSuite(String name, Project project, JavaPluginExtension java) {
+        this.project = project;
         this.name = name;
 
         if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
@@ -63,23 +63,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration compileOnly = project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
+        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
 
-        if (!getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            project.getDependencies().addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JunitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
-                } else {
-                    return "junit:junit:" + framework.getVersion().get();
-                }
-            }));
-            project.getDependencies().addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JunitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
-                } else {
-                    return getObjectFactory().fileCollection();
-                }
-            }));
-        } else {
+        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
             final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
 
@@ -89,8 +75,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerFactory(JvmTestSuiteTarget.class, targetName -> getObjectFactory().newInstance(DefaultJvmTestSuiteTarget.class, this, targetName, project.getTasks()));
-
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
     }
 
     @Override
@@ -133,16 +117,33 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("4.13");
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitTestingFramework.class, project);
+        getTestingFramework().set(testingFramework);
+
+        if (!getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            addFrameworkDeps(testingFramework);
+        }
     }
 
     @Override
     public void useJUnitPlatform() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("5.7.1");
+        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JunitPlatformTestingFramework.class, project);
+        getTestingFramework().set(testingFramework);
+
+        if (!getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            addFrameworkDeps(testingFramework);
+        }
+    }
+
+    private void addFrameworkDeps(JvmTestingFramework testingFramework) {
+        Configuration compileOnly = project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName());
+        Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
+        Configuration runtimeOnly = project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
+
+        // Would be better to connect these with project.getDependencies().addProvider() but there is not a good way to provide a list of deps.  Maybe addMultipleProviders is something that could be added to DependencyHandler?
+        testingFramework.getImplementationDependencies().forEach(dep -> project.getDependencies().add(implementation.getName(), dep));
+        testingFramework.getCompileOnlyDependencies().forEach(dep -> project.getDependencies().add(compileOnly.getName(), dep));
+        testingFramework.getRuntimeOnlyDependencies().forEach(dep -> project.getDependencies().add(runtimeOnly.getName(), dep));
     }
 
     @Override

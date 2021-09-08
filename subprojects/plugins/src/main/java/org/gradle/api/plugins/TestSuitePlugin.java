@@ -22,7 +22,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.DefaultTestingExtension;
-import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
+import org.gradle.api.plugins.jvm.internal.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
@@ -56,15 +56,14 @@ public class TestSuitePlugin  implements Plugin<Project> {
         project.getTasks().withType(Test.class).configureEach(test -> {
             SourceSet testSourceSet = java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
             test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+            test.getConventionMapping().map("classpath", testSourceSet::getRuntimeClasspath);
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
             testSuite.addTestTarget(java);
-            JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class);
+            JvmTestingFramework testingFramework = project.getObjects().newInstance(JunitPlatformTestingFramework.class, project);
             testSuite.getTestingFramework().convention(testingFramework);
-            testingFramework.getVersion().convention("5.7.1");
 
             testSuite.getTargets().all(target -> {
                 target.getTestingFramework().convention(testSuite.getTestingFramework());
@@ -76,10 +75,10 @@ public class TestSuitePlugin  implements Plugin<Project> {
             });
         });
 
-        configureBuiltInTest(project, java, testing);
+        configureBuiltInTest(project, testing);
     }
 
-    private void configureBuiltInTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
+    private void configureBuiltInTest(Project project, TestingExtension testing) {
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite::useJUnit);
         // Force the realization of this test suite, targets and task
         testSuite.get();
