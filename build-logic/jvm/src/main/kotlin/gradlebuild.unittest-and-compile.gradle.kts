@@ -40,7 +40,6 @@ addDependencies()
 configureClasspathManifestGeneration()
 configureCompile()
 configureSourcesVariant()
-configureJavadocVariant()
 configureJarTasks()
 configureTests()
 
@@ -62,18 +61,6 @@ fun configureCompile() {
         configureCompileTask(options)
     }
     addCompileAllTask()
-}
-
-fun configureJavadocVariant() {
-    java {
-        withJavadocJar()
-    }
-    tasks.named<Javadoc>("javadoc") {
-        (options as StandardJavadocDocletOptions).apply {
-            addBooleanOption("html4", true)
-            addBooleanOption("Xdoclint:none", true)
-        }
-    }
 }
 
 fun configureSourcesVariant() {

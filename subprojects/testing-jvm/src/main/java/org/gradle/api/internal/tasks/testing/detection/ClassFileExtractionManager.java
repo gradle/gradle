@@ -67,9 +67,13 @@ public class ClassFileExtractionManager {
     }
 
     /**
-     * Retrieve the file that contains the extracted class file. This method will extract the class file if it is
+     * Retrieve the file that contains the extracted class file.
+     *
+     * <p>
+     * This method will extract the class file if it is
      * not extracted yet. Extracted class files are deleted on exit of the Gradle process. The same class is only
      * extracted once.
+     * </p>
      *
      * @param className Name of the class to extract.
      * @return File that contains the extracted class file.

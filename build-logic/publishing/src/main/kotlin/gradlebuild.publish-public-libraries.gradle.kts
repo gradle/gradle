@@ -22,6 +22,8 @@ plugins {
     `maven-publish`
 }
 
+configureJavadocVariant()
+
 val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
@@ -64,6 +66,18 @@ signing {
     publishing.publications.configureEach {
         if (signArtifacts) {
             signing.sign(this)
+        }
+    }
+}
+
+fun configureJavadocVariant() {
+    java {
+        withJavadocJar()
+    }
+    tasks.named<Javadoc>("javadoc") {
+        (options as StandardJavadocDocletOptions).apply {
+            addBooleanOption("html4", true)
+            addBooleanOption("Xdoclint:none", true)
         }
     }
 }
