@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins;
+package org.gradle.platform.base;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.Named;
 
 /**
- * This DSL element exists to contain a list of {@link JvmTestSuite}s.
+ * Base test suite target.
  *
  * @since 7.3
  */
 @Incubating
-public interface TestingExtension {
-    ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getSuites();
+public interface TestSuiteTarget extends Named {
 }

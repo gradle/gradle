@@ -265,8 +265,8 @@ public class JavaPlugin implements Plugin<Project> {
         }
         final ProjectInternal projectInternal = (ProjectInternal) project;
 
-        project.getPluginManager().apply(JavaBasePlugin.class);
-        project.getPluginManager().apply(TestSuitePlugin.class);
+        project.getPluginManager().apply("org.gradle.java-base");
+        project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));

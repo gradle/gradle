@@ -26,8 +26,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
-import org.gradle.api.plugins.TestSuitePlugin;
-import org.gradle.api.plugins.TestingExtension;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
@@ -39,6 +38,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.platform.base.plugins.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -179,7 +179,7 @@ public class JacocoPlugin implements Plugin<Project> {
     private void addDefaultReportAndCoverageVerificationTasks(final JacocoPluginExtension extension) {
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
-            JvmTestSuite defaultTestSuite = testing.getSuites().getByName(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
+            JvmTestSuite defaultTestSuite = testing.getSuites().withType(JvmTestSuite.class).getByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
             defaultTestSuite.getTargets().configureEach(target -> {
                 TaskProvider<Test> testTask = target.getTestTask();
                 addDefaultReportTask(extension, testTask);

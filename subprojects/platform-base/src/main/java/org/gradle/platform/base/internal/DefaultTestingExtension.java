@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.platform.base.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.plugins.TestingExtension;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.platform.base.TestSuite;
+import org.gradle.platform.base.plugins.TestingExtension;
 
-public class DefaultTestingExtension implements TestingExtension {
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> suites;
+import javax.inject.Inject;
 
-    public DefaultTestingExtension(ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> suites) {
-        this.suites = suites;
+public abstract class DefaultTestingExtension implements TestingExtension {
+    private final ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites;
+
+    @Inject
+    public DefaultTestingExtension() {
+        this.suites = getObjectFactory().polymorphicDomainObjectContainer(TestSuite.class);
     }
 
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
+
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> getSuites() {
+    public ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites() {
         return suites;
     }
 }

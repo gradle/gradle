@@ -21,13 +21,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.internal.DefaultTestingExtension;
 import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.platform.base.TestSuite;
+import org.gradle.platform.base.plugins.TestingExtension;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)
@@ -38,17 +39,17 @@ import org.gradle.api.tasks.testing.Test;
  * @since 7.3
  */
 @Incubating
-public class TestSuitePlugin  implements Plugin<Project> {
+public class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = "unitTest";
 
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply("org.gradle.test-suite-base");
         project.getPluginManager().apply("org.gradle.java-base");
-
-        ExtensiblePolymorphicDomainObjectContainer<JvmTestSuite> testSuites = project.getObjects().polymorphicDomainObjectContainer(JvmTestSuite.class);
-        TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class, testSuites);
-
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+        TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+        testSuites.registerFactory(TestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, project, java));
         testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, project, java));
 
         // TODO: Deprecate this behavior?
@@ -76,11 +77,11 @@ public class TestSuitePlugin  implements Plugin<Project> {
             });
         });
 
-        configureBuiltInTest(project, java, testing);
+        configureBuiltInTest(project, testing);
     }
 
-    private void configureBuiltInTest(Project project, JavaPluginExtension javaPluginExtension, TestingExtension testing) {
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite::useJUnit);
+    private void configureBuiltInTest(Project project, TestingExtension testing) {
+        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, JvmTestSuite::useJUnit);
         // Force the realization of this test suite, targets and task
         testSuite.get();
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));

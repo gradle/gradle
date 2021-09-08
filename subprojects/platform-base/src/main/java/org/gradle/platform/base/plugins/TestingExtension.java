@@ -14,27 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.platform.base.plugins;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.platform.base.TestSuiteTarget;
+import org.gradle.platform.base.TestSuite;
 
 /**
- * Defines a target environment against which a {@link JvmTestSuite} should be run, which can specify requirements
- * like the version of the JVM to use.
- *
- * A Test Suite can be run against multiple environments by defining multiple Targets.
+ * This DSL element exists to contain a collection of {@link TestSuite}s.
  *
  * @since 7.3
  */
 @Incubating
-public interface JvmTestSuiteTarget extends TestSuiteTarget {
-    TaskProvider<Test> getTestTask();
-    Property<JavaVersion> getJavaVersion();
-
-    Property<JvmTestingFramework> getTestingFramework();
+public interface TestingExtension {
+    /**
+     * Available test suites in this project.
+     *
+     * The type of test suites available depend on which other plugins are applied.
+     */
+    ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites();
 }

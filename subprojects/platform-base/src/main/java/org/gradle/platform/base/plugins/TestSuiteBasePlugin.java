@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.platform.base.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.platform.base.TestSuiteTarget;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.platform.base.internal.DefaultTestingExtension;
 
 /**
- * Defines a target environment against which a {@link JvmTestSuite} should be run, which can specify requirements
- * like the version of the JVM to use.
- *
- * A Test Suite can be run against multiple environments by defining multiple Targets.
+ * Base test suite functionality. Makes an extension named "testing" available to the project.
  *
  * @since 7.3
  */
 @Incubating
-public interface JvmTestSuiteTarget extends TestSuiteTarget {
-    TaskProvider<Test> getTestTask();
-    Property<JavaVersion> getJavaVersion();
-
-    Property<JvmTestingFramework> getTestingFramework();
+public class TestSuiteBasePlugin implements Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
+    }
 }

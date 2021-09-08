@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.TestSuitePlugin;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.ComponentDependencies;
 import org.gradle.api.plugins.jvm.JunitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JunitTestingFramework;
@@ -54,7 +54,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public DefaultJvmTestSuite(String name, Project project, JavaPluginExtension java) {
         this.name = name;
 
-        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             this.sourceSet = java.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
         } else {
             this.sourceSet = java.getSourceSets().create(getName());
@@ -64,7 +64,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
-        if (!getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+        if (!getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             project.getDependencies().addProvider(implementation.getName(), getTestingFramework().map(framework -> {
                 if (framework instanceof JunitPlatformTestingFramework) {
                     return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
@@ -117,7 +117,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     public void addTestTarget(JavaPluginExtension java) {
         final String target;
-        if (getName().equals(TestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+        if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             target = JavaPlugin.TEST_TASK_NAME;
         } else {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
