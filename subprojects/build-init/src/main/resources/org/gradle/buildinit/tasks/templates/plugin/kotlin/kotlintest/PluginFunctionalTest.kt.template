@@ -4,15 +4,17 @@
 ${packageDecl.statement}
 import java.io.File
 import java.nio.file.Files
-import org.gradle.testkit.runner.GradleRunner
-import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.test.Test
+import org.gradle.testkit.runner.GradleRunner
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 
 /**
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
-    private val projectDir = Files.createTempDirectory("functionalTest").toFile()
+    @get:Rule val projectDir = TemporaryFolder()
 
     private fun getBuildFile() = projectDir.resolve("build.gradle")
     private fun getSettingsFile() = projectDir.resolve("settings.gradle")
