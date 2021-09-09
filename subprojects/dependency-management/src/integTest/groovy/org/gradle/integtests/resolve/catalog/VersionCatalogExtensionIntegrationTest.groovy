@@ -1729,4 +1729,66 @@ Second: 1.1"""
         }
     }
 
+    def "elements accessed with optional API have useful toString()"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("ver", "1.5")
+                        alias("lib").to("org:test:1.0")
+                        alias("lib2").to("org", "test2").version {
+                            require "1.0.0"
+                            prefer "1.1.0"
+                            reject "1.0.5"
+                        }
+                        bundle("all", ["lib", "lib2"])
+                        alias('greeter').toPluginId('com.acme.greeter').version('1.4')
+                        alias('greeter2').toPluginId('com.acme.greeter2').version {
+                            require "1.0.0"
+                            prefer "1.1.0"
+                            reject "1.0.5"
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def catalog = project.extensions.getByType(VersionCatalogsExtension).named("libs")
+            tasks.register("printCatalog") {
+                doLast {
+                    catalog.findVersion("ver").ifPresent {
+                        println("Found version: '\${it.toString()}'.")
+                    }
+                    catalog.findDependency("lib").ifPresent {
+                        println("Found dependency: '\${it.get().toString()}'.")
+                    }
+                    catalog.findDependency("lib2").ifPresent {
+                        println("Found dependency: '\${it.get().toString()}'.")
+                    }
+                    catalog.findBundle("all").ifPresent {
+                        println("Found bundle: '\${it.get().toString()}'.")
+                    }
+                    catalog.findPlugin("greeter").ifPresent {
+                        println("Found plugin: '\${it.get().toString()}'.")
+                    }
+                    catalog.findPlugin("greeter2").ifPresent {
+                        println("Found plugin: '\${it.get().toString()}'.")
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'printCatalog'
+
+        then:
+        outputContains "Found version: '1.5'."
+        outputContains "Found dependency: 'org:test:1.0'."
+        outputContains "Found dependency: 'org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
+        outputContains "Found plugin: 'com.acme.greeter:1.4'."
+        outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+    }
+
 }
