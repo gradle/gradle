@@ -64,6 +64,9 @@ public class DefaultPluginDependency implements PluginDependency {
 
     @Override
     public String toString() {
-        return pluginId + ":" + versionConstraint;
+        String versionConstraintAsString = versionConstraint.toString();
+        return versionConstraintAsString.isEmpty()
+            ? pluginId
+            : pluginId + ":" + versionConstraintAsString;
     }
 }

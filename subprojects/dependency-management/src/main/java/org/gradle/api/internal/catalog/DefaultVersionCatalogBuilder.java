@@ -61,6 +61,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang.StringUtils.split;
 import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
@@ -430,7 +431,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         private void validateAlias(AliasType type) {
             if (type == AliasType.LIBRARY) {
-                String[] parts = StringUtils.splitByCharacterTypeCamelCase(normalizedAlias.split("\\.")[0]);
+                String[] parts = StringUtils.splitByCharacterTypeCamelCase(split(normalizedAlias, '.')[0]);
                 for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
                     for (String part : parts) {
                         if (part.equalsIgnoreCase(prefix)) {

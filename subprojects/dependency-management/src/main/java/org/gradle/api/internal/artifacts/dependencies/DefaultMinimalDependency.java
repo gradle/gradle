@@ -72,6 +72,9 @@ public class DefaultMinimalDependency implements MinimalExternalModuleDependency
 
     @Override
     public String toString() {
-        return module + ":" + versionConstraint;
+        String versionConstraintAsString = versionConstraint.toString();
+        return versionConstraintAsString.isEmpty()
+            ? module.toString()
+            : module + ":" + versionConstraintAsString;
     }
 }
