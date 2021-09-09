@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -28,6 +29,7 @@ import java.util.List;
 
 public class InitSettings {
     private final BuildInitDsl dsl;
+    private final boolean useIncubatingAPIs;
     private final String packageName;
     private final BuildInitTestFramework testFramework;
     private final String projectName;
@@ -38,17 +40,18 @@ public class InitSettings {
 
     // Temporary constructor until we upgrade gradle/gradle to a nightly
     public InitSettings(
-            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+            String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
             BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
+        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
     }
 
     public InitSettings(
-            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+            String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
             BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target
     ) {
         this.projectName = projectName;
+        this.useIncubatingAPIs = useIncubatingAPIs;
         this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
             Collections.singletonList(subprojects.get(0)) : subprojects;
         this.modularizationOption = modularizationOption;
@@ -90,5 +93,10 @@ public class InitSettings {
     @Nullable
     public InsecureProtocolOption getInsecureProtocolOption() {
         return insecureProtocolOption;
+    }
+
+    @Incubating
+    public boolean getUseIncubatingAPIs() {
+        return useIncubatingAPIs;
     }
 }
