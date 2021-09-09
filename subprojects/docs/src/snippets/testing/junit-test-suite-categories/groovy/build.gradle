@@ -10,14 +10,21 @@ repositories {
 testing {
     suites {
         unitTest {
-            // tag::test-categories[]
-            useJUnit {
-                includeCategories 'org.gradle.junit.CategoryA'
-                excludeCategories 'org.gradle.junit.CategoryB' // FIXME needs JvmTestSuite#useJUnit(Action<? extends JUnitOptions>)
-            }
-            // end::test-categories[]
+            useJUnit()
             dependencies {
                 implementation 'junit:junit:4.13'
+            }
+            targets {
+                all {
+                    // tag::test-categories[]
+                    testTask.configure {
+                        options {
+                            includeCategories 'org.gradle.junit.CategoryA'
+                            excludeCategories 'org.gradle.junit.CategoryB'
+                        }
+                    }
+                    // end::test-categories[]
+                }
             }
         }
     }
