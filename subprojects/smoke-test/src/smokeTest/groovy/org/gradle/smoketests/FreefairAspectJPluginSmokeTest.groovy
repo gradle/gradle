@@ -17,14 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-    // Latest AspectJ 1.9.5 is not compatible with JDK14
-    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'freefair aspectj plugin'() {
@@ -38,12 +33,12 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             ${mavenCentralRepository()}
 
             aspectj {
-                version = "1.9.5"
+                version = "1.9.7"
             }
 
             dependencies {
                 inpath "org.apache.httpcomponents:httpcore-nio:4.4.11"
-                implementation "org.aspectj:aspectjrt:1.9.5"
+                implementation "org.aspectj:aspectjrt:1.9.7"
 
                 testImplementation "junit:junit:4.13"
             }
@@ -80,10 +75,6 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         expect:
         runner('check')
-            .expectDeprecationWarning("The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties",
-                "https://github.com/freefair/gradle-plugins/pull/325")
             .forwardOutput()
             .build()
     }
