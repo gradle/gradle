@@ -214,7 +214,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
                 "org.gradle.api.plugins.ReportingBasePlugin",
-                "org.gradle.api.plugins.TestSuitePlugin"
+                "org.gradle.jvm-test-suite", "org.gradle.test-suite-base"
             ]
         } else if (targetVersion >= GradleVersion.version("6.7")) {
             assert plugins == [
