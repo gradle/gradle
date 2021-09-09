@@ -40,7 +40,8 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     Property<JvmTestingFramework> getTestingFramework();
 
     void useJUnitPlatform();
-    void useJUnit();
+    void useJUnit(); // TODO needs a Closure or action-backed overload for configuring JUnitOptions;
+                     //  see Test.useJUnit(org.gradle.api.Action<? super org.gradle.api.tasks.testing.junit.JUnitOptions>)
 
     ComponentDependencies getDependencies();
     void dependencies(Action<? super ComponentDependencies> dependencies);
