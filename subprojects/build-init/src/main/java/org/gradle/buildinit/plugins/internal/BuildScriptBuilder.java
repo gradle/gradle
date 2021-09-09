@@ -54,9 +54,12 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
+    private static final String INCUBATING_APIS_WARNING_BANNER = "This project uses @Incubating APIs which are subject to change.";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
     private final BuildInitDsl dsl;
+    private boolean useIncubatingAPIs;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
     private final MavenRepositoryURLHandler mavenRepoURLHandler;
@@ -64,9 +67,10 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
-    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
+        this.useIncubatingAPIs = useIncubatingAPIs;
         this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
         this.block = new TopLevelBlock(this);
     }
@@ -364,6 +368,11 @@ public class BuildScriptBuilder {
 
     public TemplateOperation create(Directory targetDirectory) {
         return () -> {
+            if (useIncubatingAPIs) {
+                headerLines.add("\n");
+                headerLines.add(INCUBATING_APIS_WARNING_BANNER);
+            }
+
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
             try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {

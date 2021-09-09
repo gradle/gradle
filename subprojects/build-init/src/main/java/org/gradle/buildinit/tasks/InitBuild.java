@@ -56,6 +56,7 @@ public class InitBuild extends DefaultTask {
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
+    private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
     private String testFramework;
     private String projectName;
     private String packageName;
@@ -99,6 +100,20 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getDsl() {
         return isNullOrEmpty(dsl) ? BuildInitDsl.GROOVY.getId() : dsl;
+    }
+
+    /**
+     * Should the build files be generated to include @Incubating APIs?
+     *
+     * This property can be set via command-line option '--incubating'.
+     *
+     * @since 7.3
+     */
+    @Input
+    @Optional
+    @Option(option = "incubating", description = "Use new incubating APIs?")
+    public Property<Boolean> getUseIncubatingAPIs() {
+        return useIncubatingAPIs;
     }
 
     /**
@@ -215,6 +230,13 @@ public class InitBuild extends DefaultTask {
             }
         }
 
+        boolean useIncubatingAPIs;
+        if (this.useIncubatingAPIs.isPresent()) {
+            useIncubatingAPIs = this.useIncubatingAPIs.get();
+        } else {
+            useIncubatingAPIs = inputHandler.askYesNoQuestion("Use @Incubating APIs in the generated build?", true);
+        }
+
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
             // currently we only support JUnit5 tests for this combination
@@ -262,7 +284,7 @@ public class InitBuild extends DefaultTask {
         }
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
-        InitSettings settings = new InitSettings(projectName, subprojectNames,
+        InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
             modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
         initDescriptor.generate(settings);
 
