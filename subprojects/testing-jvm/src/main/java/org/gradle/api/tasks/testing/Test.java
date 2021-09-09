@@ -667,7 +667,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
-        if (!javaVersion.isJava8Compatible() && testFramework instanceof JUnitPlatformTestFramework) {
+        if (!javaVersion.isJava8Compatible() && testFramework.get() instanceof JUnitPlatformTestFramework) {
             throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
         }
 
