@@ -54,7 +54,7 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
-    private static final String INCUBATING_APIS_WARNING_BANNER = "This project uses @Incubating APIs which are subject to change.";
+    private static final String INCUBATING_APIS_WARNING = "This project uses @Incubating APIs which are subject to change.";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
@@ -82,6 +82,10 @@ public class BuildScriptBuilder {
 
     public String getFileNameWithoutExtension() {
         return fileNameWithoutExtension;
+    }
+
+    public static String getIncubatingApisWarning() {
+        return INCUBATING_APIS_WARNING;
     }
 
     /**
@@ -369,8 +373,7 @@ public class BuildScriptBuilder {
     public TemplateOperation create(Directory targetDirectory) {
         return () -> {
             if (useIncubatingAPIs) {
-                headerLines.add("\n");
-                headerLines.add(INCUBATING_APIS_WARNING_BANNER);
+                headerLines.add(INCUBATING_APIS_WARNING);
             }
 
             File target = getTargetFile(targetDirectory);

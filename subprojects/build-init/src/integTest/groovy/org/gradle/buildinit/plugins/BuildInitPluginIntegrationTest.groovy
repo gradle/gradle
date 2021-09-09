@@ -16,6 +16,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
@@ -59,6 +60,32 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             allOf(
                 containsString("This is a general purpose Gradle build"),
                 containsString("Learn more about Gradle by exploring our samples at")))
+
+        expect:
+        succeeds 'help'
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified which uses @Incubating APIs"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
+
+        when:
+        runInitWith scriptDsl, true
+
+        then:
+        commonFilesGenerated(scriptDsl, dslFixture)
+
+        and:
+        dslFixture.buildFile.assertContents(
+            allOf(
+                containsString("This is a general purpose Gradle build"),
+                containsString("Learn more about Gradle by exploring our samples at"),
+                containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
         succeeds 'help'
@@ -275,6 +302,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                     groovy
                     kotlin
 
+     --incubating     Use new incubating APIs?
+
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
                                   ALLOW
@@ -404,8 +433,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file(".gradle").assertDoesNotExist()
     }
 
-    private ExecutionResult runInitWith(BuildInitDsl dsl) {
-        run 'init', '--dsl', dsl.id
+    private ExecutionResult runInitWith(BuildInitDsl dsl, boolean useIncubatingAPI = false) {
+        def tasks = ['init', '--dsl', dsl.id] as String[]
+        if (useIncubatingAPI) {
+            tasks + '--incubating'
+        }
+        run tasks
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {
