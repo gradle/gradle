@@ -27,7 +27,7 @@ testing {
             targets {
                 all {
                     testTask.configure {
-                        shouldRunAfter(unitTest)
+                        shouldRunAfter(test)
                     }
                 }
             }
