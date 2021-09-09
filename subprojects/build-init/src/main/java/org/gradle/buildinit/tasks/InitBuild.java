@@ -112,7 +112,7 @@ public class InitBuild extends DefaultTask {
     @Input
     @Optional
     @Option(option = "incubating", description = "Use new incubating APIs?")
-    public Property<Boolean> getUseIncubatingAPIs() {
+    public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
 
