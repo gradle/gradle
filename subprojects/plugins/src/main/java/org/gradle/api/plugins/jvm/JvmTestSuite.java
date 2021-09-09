@@ -22,7 +22,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.platform.base.TestSuite;
+import org.gradle.testing.base.TestSuite;
 
 /**
  * A group of related tests which both distinguish tests used for different purposes and which

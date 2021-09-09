@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.platform.base.TestSuiteTarget;
+import org.gradle.testing.base.TestSuiteTarget;
 
 /**
  * Defines a target environment against which a {@link JvmTestSuite} should be run, which can specify requirements

@@ -27,8 +27,8 @@ import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.platform.base.TestSuite;
-import org.gradle.platform.base.plugins.TestingExtension;
+import org.gradle.testing.base.TestSuite;
+import org.gradle.testing.base.TestingExtension;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)

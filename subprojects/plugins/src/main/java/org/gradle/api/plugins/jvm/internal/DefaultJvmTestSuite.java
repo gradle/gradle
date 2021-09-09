@@ -38,7 +38,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.inject.Inject;
-
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;

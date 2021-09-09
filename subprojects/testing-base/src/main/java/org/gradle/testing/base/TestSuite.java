@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.testing.base;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
