@@ -28,7 +28,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Updater for hierarchical file watchers.
@@ -142,11 +141,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
             fileWatcher.stopWatching(hierarchiesToStopWatching);
         }
         if (!hierarchiesToStartWatching.isEmpty()) {
-            fileWatcher.startWatching(hierarchiesToStartWatching.stream()
-                .peek(locationToWatchValidator::validateLocationToWatch)
-                .peek(watchableHierarchies::armWatchProbe)
-                .collect(Collectors.toList())
-            );
+            hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
+            hierarchiesToStartWatching.forEach(watchableHierarchies::armWatchProbe);
+            fileWatcher.startWatching(hierarchiesToStartWatching);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchedRoots.size());
     }
