@@ -19,7 +19,7 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.Incubating;
 
 /**
- * {@link JvmTestingFramework} which will execute using Junit 5 (Jupiter).
+ * {@link JvmTestingFramework} which will execute using the JUnit Platform (part of JUnit 5).
  *
  * @since 7.3
  */
