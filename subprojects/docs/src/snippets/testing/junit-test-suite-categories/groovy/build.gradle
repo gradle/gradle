@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'jvm-test-suite'
 }
 
 repositories {
@@ -9,11 +8,8 @@ repositories {
 
 testing {
     suites {
-        unitTest {
+        test {
             useJUnit()
-            dependencies {
-                implementation 'junit:junit:4.13'
-            }
             targets {
                 all {
                     // tag::test-categories[]
