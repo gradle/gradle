@@ -234,7 +234,7 @@ public class InitBuild extends DefaultTask {
         if (this.useIncubatingAPIs.isPresent()) {
             useIncubatingAPIs = this.useIncubatingAPIs.get();
         } else {
-            useIncubatingAPIs = inputHandler.askYesNoQuestion("Use @Incubating APIs in the generated build?", true);
+            useIncubatingAPIs = inputHandler.askYesNoQuestion("Use @Incubating APIs in the generated build?", false);
         }
 
         BuildInitTestFramework testFramework = null;
