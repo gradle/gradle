@@ -69,4 +69,9 @@ public class DefaultMinimalDependency implements MinimalExternalModuleDependency
         result = 31 * result + versionConstraint.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return module + ":" + versionConstraint;
+    }
 }

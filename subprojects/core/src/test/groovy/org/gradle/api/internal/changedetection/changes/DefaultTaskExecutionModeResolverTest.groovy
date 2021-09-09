@@ -29,6 +29,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.INCREMENTAL
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.NO_OUTPUTS
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.RERUN_TASKS_ENABLED
+import static org.gradle.api.internal.changedetection.TaskExecutionMode.UNTRACKED
 import static org.gradle.api.internal.changedetection.TaskExecutionMode.UP_TO_DATE_WHEN_FALSE
 
 class DefaultTaskExecutionModeResolverTest extends Specification {
@@ -47,12 +48,23 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         _ * outputs.getUpToDateSpec() >> upToDateSpec
     }
 
+    def "untracked"() {
+        when:
+        TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
+
+        then:
+        state == UNTRACKED
+        1 * taskProperties.hasUntrackedProperties() >> true
+        0 * _
+    }
+
     def "no outputs"() {
         when:
         TaskExecutionMode state = repository.getExecutionMode(task, taskProperties)
 
         then:
         state == NO_OUTPUTS
+        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
         _ * task.getTaskActions() >> []
@@ -65,6 +77,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == INCREMENTAL
+        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> true
         0 * _
@@ -77,6 +90,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == RERUN_TASKS_ENABLED
+        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.empty >> false
         0 * _
@@ -88,6 +102,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == UP_TO_DATE_WHEN_FALSE
+        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> true
         1 * upToDateSpec.isSatisfiedBy(task) >> false
         0 * _
@@ -101,6 +116,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
         def ex = thrown InvalidUserCodeException
         ex.message == "You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API"
 
+        1 * taskProperties.hasUntrackedProperties() >> false
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
         _ * task.getTaskActions() >> [Mock(IncrementalInputsTaskAction)]

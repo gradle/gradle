@@ -19,9 +19,9 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -44,9 +44,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        Optional<InputChangesInternal> inputChanges = work.getInputChangeTrackingStrategy().requiresInputChanges()
-            ? Optional.of(determineInputChanges(work, context))
-            : Optional.empty();
+        Optional<InputChangesInternal> inputChanges = determineInputChanges(work, context);
         return delegate.execute(work, new InputChangesContext() {
             @Override
             public Optional<InputChangesInternal> getInputChanges() {
@@ -59,8 +57,8 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
             }
 
             @Override
-            public Optional<String> getRebuildReason() {
-                return context.getRebuildReason();
+            public Optional<String> getNonIncrementalReason() {
+                return context.getNonIncrementalReason();
             }
 
             @Override
@@ -94,8 +92,8 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
             }
 
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return context.getAfterPreviousExecutionState();
+            public Optional<PreviousExecutionState> getPreviousExecutionState() {
+                return context.getPreviousExecutionState();
             }
 
             @Override
@@ -110,13 +108,16 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
         });
     }
 
-    private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        ExecutionStateChanges changes = context.getChanges().get();
+    private static Optional<InputChangesInternal> determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
+        if (!work.getInputChangeTrackingStrategy().requiresInputChanges()) {
+            return Optional.empty();
+        }
+        ExecutionStateChanges changes = context.getChanges()
+            .orElseThrow(() -> new IllegalStateException("Changes are not tracked, unable determine incremental changes."));
         InputChangesInternal inputChanges = changes.createInputChanges();
         if (!inputChanges.isIncremental()) {
             LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
         }
-        return inputChanges;
+        return Optional.of(inputChanges);
     }
 }

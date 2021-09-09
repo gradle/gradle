@@ -43,10 +43,13 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "test launcher api fires progress events"() {
         given:
         collectDescriptorsFromBuild()
+        events.assertIsABuild()
+
         when:
         launchTests(testDescriptors("example.MyTest"));
+
         then:
-        events.assertIsABuild()
+        events.trees == events.tasks
         assertTaskOperationSuccessfulOrSkippedWithNoSource(":compileJava")
         assertTaskOperationSuccessfulOrSkippedWithNoSource(":processResources")
         events.operation("Task :classes").successful

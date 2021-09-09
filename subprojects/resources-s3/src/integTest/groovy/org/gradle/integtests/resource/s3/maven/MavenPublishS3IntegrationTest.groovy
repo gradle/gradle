@@ -41,7 +41,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository"() {
         given:
-        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
+        def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", bucket)
         buildFile << publicationBuild(mavenRepo.uri, """
             credentials(AwsCredentials) {
                 accessKey "someKey"
@@ -62,6 +62,9 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         then:
         module.assertPublishedAsJavaModule()
         module.parsedPom.scopes.isEmpty()
+
+        where:
+        bucket << ["tests3Bucket", "tests-3-Bucket-1.2.3" ]
     }
 
     @ToBeFixedForConfigurationCache

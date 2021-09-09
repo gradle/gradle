@@ -44,4 +44,10 @@ public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePrope
 
     @Override
     TaskInputFilePropertyBuilderInternal optional(boolean optional);
+
+    @Override
+    TaskInputFilePropertyBuilderInternal untracked();
+
+    @Override
+    TaskInputFilePropertyBuilderInternal tracked(boolean tracked);
 }

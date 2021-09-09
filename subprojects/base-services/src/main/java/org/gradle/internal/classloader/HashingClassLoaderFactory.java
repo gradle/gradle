@@ -31,7 +31,7 @@ public interface HashingClassLoaderFactory extends ClassLoaderFactory {
     ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, @Nullable HashCode implementationHash);
 
     /**
-     * Returns the hash associated with the classloader's classpath, or {@link null} if the classloader is unknown to Gradle.
+     * Returns the hash associated with the classloader's classpath, or {@code null} if the classloader is unknown to Gradle.
      * The hash only represents the classloader's classpath only, regardless of whether or not there are any parent classloaders.
      */
     @Nullable

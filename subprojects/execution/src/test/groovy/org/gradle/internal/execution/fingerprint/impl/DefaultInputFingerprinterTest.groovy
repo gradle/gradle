@@ -19,10 +19,10 @@ package org.gradle.internal.execution.fingerprint.impl
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.FileNormalizer
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
+import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
@@ -39,7 +39,6 @@ import java.util.function.Consumer
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 
 class DefaultInputFingerprinterTest extends Specification {
-    def work = Mock(UnitOfWork)
     def fingerprinter = Mock(FileCollectionFingerprinter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_ as FileNormalizationSpec) >> fingerprinter
@@ -110,6 +109,47 @@ class DefaultInputFingerprinterTest extends Specification {
         then:
         result.valueSnapshots as Map == ["identity": inputSnapshot]
         result.fileFingerprints as Map == [:]
+    }
+
+    def "reports value snapshotting problem"() {
+        def failure = new RuntimeException("Error")
+        def input = "failing-value"
+
+        when:
+        fingerprintInputProperties { visitor ->
+            visitor.visitInputProperty("input") { input }
+        }
+
+        then:
+        1 * valueSnapshotter.snapshot(input) >> { throw failure }
+        0 * _
+
+        then:
+        def ex = thrown InputFingerprinter.InputFingerprintingException
+        ex.message == "Cannot fingerprint input property 'input': value 'failing-value' cannot be serialized."
+        ex.propertyName == "input"
+        ex.cause == failure
+    }
+
+    def "reports file snapshotting problem"() {
+        def failure = new UncheckedIOException(new IOException("Error"))
+        when:
+        fingerprintInputProperties { visitor ->
+            visitor.visitInputFileProperty(
+                "file",
+                NON_INCREMENTAL,
+                new FileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+        }
+
+        then:
+        1 * fingerprinter.fingerprint(fileInput, null) >> { throw failure }
+        0 * _
+
+        then:
+        def ex = thrown InputFingerprinter.InputFileFingerprintingException
+        ex.message == "Cannot fingerprint input file property 'file'."
+        ex.propertyName == "file"
+        ex.cause == failure
     }
 
     private Result fingerprintInputProperties(

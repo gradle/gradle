@@ -107,7 +107,7 @@ abstract class AbstractSmokeTest extends Specification {
         })
 
         // https://plugins.gradle.org/plugin/org.gretty
-        static gretty = "3.0.4"
+        static gretty = "3.0.6"
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
         static grgit = "4.1.0"
@@ -119,7 +119,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.12"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "2.0.1"
+        static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.8.16"

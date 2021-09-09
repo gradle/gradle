@@ -28,35 +28,42 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
+    }
+
     @IntegrationTestTimeout(120)
     def "should not hang when running with security manager"() {
         given:
         buildFile << """
-apply plugin:"java"
+            plugins {
+                id("java")
+            }
+            ${withJava11Toolchain()}
+            ${mavenCentralRepository()}
 
-${mavenCentralRepository()}
-
-dependencies {
-    testImplementation 'junit:junit:4.13'
-}
-"""
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+        """
         file('src/test/java/SecurityManagerTest.java') << '''
-import java.security.AccessControlException;
+            import java.security.AccessControlException;
 
-public class SecurityManagerTest {
-    @org.junit.Test
-    public void testSeqManagerNOTWorking() throws Exception {
-        System.setSecurityManager(new SecurityManager());
+            public class SecurityManagerTest {
+                @org.junit.Test
+                public void testSeqManagerNOTWorking() throws Exception {
+                    System.setSecurityManager(new SecurityManager());
 
-        try {
-            System.setProperty("TestProperty", "value");
-        } catch (AccessControlException ex) {
-            System.out.println(ex);
-        }
-        System.setProperty("AnotherProperty", "value");
-    }
-}
-'''
+                    try {
+                        System.setProperty("TestProperty", "value");
+                    } catch (AccessControlException ex) {
+                        System.out.println(ex);
+                    }
+                    System.setProperty("AnotherProperty", "value");
+                }
+            }
+        '''
 
         expect:
         // This test causes the test process to exit ungracefully without closing connections.  This can sometimes
@@ -73,47 +80,50 @@ public class SecurityManagerTest {
     def "should not hang when running with security manager debug flag"() {
         given:
         buildFile << """
-apply plugin:"java"
+            plugins {
+                id("java")
+            }
 
-${mavenCentralRepository()}
+            ${mavenCentralRepository()}
+            ${withJava11Toolchain()}
 
-dependencies {
-    testImplementation 'junit:junit:4.13'
-}
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
 
-tasks.named('test').configure {
-  systemProperty "java.security.debug", "access,failure"
-}
-"""
+            tasks.named('test').configure {
+              systemProperty "java.security.debug", "access,failure"
+            }
+        """
         file("src/test/resources/test.policy") << '''
-grant {
-  permission java.util.PropertyPermission "*", "read";
-  permission java.lang.RuntimePermission "queuePrintJob";
+            grant {
+              permission java.util.PropertyPermission "*", "read";
+              permission java.lang.RuntimePermission "queuePrintJob";
 
-  // to reset at the end of the test
-  permission java.lang.RuntimePermission "setSecurityManager";
-};
-'''
+              // to reset at the end of the test
+              permission java.lang.RuntimePermission "setSecurityManager";
+            };
+        '''
         file('src/test/java/SecurityManagerTest.java') << '''
-import java.net.URI;
-import java.security.Policy;
-import java.security.URIParameter;
+            import java.net.URI;
+            import java.security.Policy;
+            import java.security.URIParameter;
 
-public class SecurityManagerTest {
+            public class SecurityManagerTest {
 
-  @org.junit.Test
-  public void testSecurityManager() throws Exception {
-    URI policyFile = SecurityManagerTest.class.getResource("test.policy").toURI();
-    Policy.setPolicy(Policy.getInstance("JavaPolicy",  new URIParameter(policyFile)));
+              @org.junit.Test
+              public void testSecurityManager() throws Exception {
+                URI policyFile = SecurityManagerTest.class.getResource("test.policy").toURI();
+                Policy.setPolicy(Policy.getInstance("JavaPolicy",  new URIParameter(policyFile)));
 
-    SecurityManager securityManager = new SecurityManager();
-    System.setSecurityManager(securityManager);
+                SecurityManager securityManager = new SecurityManager();
+                System.setSecurityManager(securityManager);
 
-    securityManager.checkPermission(new RuntimePermission("queuePrintJob"));
-    System.setSecurityManager(null);
-  }
-}
-'''
+                securityManager.checkPermission(new RuntimePermission("queuePrintJob"));
+                System.setSecurityManager(null);
+              }
+            }
+        '''
         expect:
         run('test')
         def result = new JUnitXmlTestExecutionResult(testDirectory)
@@ -123,5 +133,15 @@ public class SecurityManagerTest {
         testClassExecutionResult.testCount == 1
         testClassExecutionResult.assertStderr(containsNormalizedString('access: access allowed ("java.lang.RuntimePermission" "queuePrintJob")'))
         testClassExecutionResult.assertStderr(containsNormalizedString('access: access allowed ("java.lang.RuntimePermission" "setSecurityManager")'))
+    }
+
+    private static String withJava11Toolchain() {
+        return """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+        """
     }
 }

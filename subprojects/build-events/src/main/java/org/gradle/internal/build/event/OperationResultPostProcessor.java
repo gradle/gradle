@@ -17,17 +17,21 @@
 package org.gradle.internal.build.event;
 
 import org.gradle.internal.build.event.types.AbstractTaskResult;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationStartEvent;
 
 /**
  * Post-processor for {@link AbstractTaskResult} instances.
  *
  * <p>May be used to add information to results by returning specialized subclasses,
  * e.g. from internal language-specific plugins like Java.
- *
- * @since 5.1
  */
 public interface OperationResultPostProcessor {
+    void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
-    AbstractTaskResult process(AbstractTaskResult taskResult, Object taskBuildOperationId);
+    void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 
+    AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId);
 }

@@ -145,6 +145,15 @@
     "linux" : 238000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 368000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 576000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting gzip tar trees",
   "durations" : [ {
     "testProject" : "archivePerformanceProject",
@@ -400,6 +409,18 @@
     "linux" : 459000
   } ]
 }, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for Eclipse",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 501000
+    }]
+}, {
+    "scenario" : "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+    "durations" : [ {
+        "testProject" : "largeJavaMultiProject",
+        "linux" : 474000
+    } ]
+}, {
   "scenario" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for abi change",
   "durations" : [ {
     "testProject" : "largeGroovyMultiProject",
@@ -630,6 +651,33 @@
     "testProject" : "mediumNativeMonolithic",
     "linux" : 275000
   } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.incremental compile",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 280000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 1000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest.up-to-date assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 160000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 233000
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+    "durations" : [ {
+        "testProject" : "bigSwiftApp",
+        "linux" : 3125000
+    }, {
+        "testProject" : "mediumSwiftMulti",
+        "linux" : 3334000
+    } ]
 }, {
   "scenario" : "org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest.assemble with local cache (build comparison)",
   "durations" : [ {

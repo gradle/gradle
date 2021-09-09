@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -591,21 +592,36 @@ public interface DependencyHandler extends ExtensionAware {
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
 
     /**
-     * Allows fine tuning what variant to select for the target dependency. This can be used to
+     * Allows fine-tuning what variant to select for the target dependency. This can be used to
      * specify a classifier, for example.
      *
      * @param dependencyProvider the dependency provider
      * @param variantSpec the variant specification
-     * @return a new dependency provider targetting the configured variant
+     * @return a new dependency provider targeting the configured variant
      * @since 6.8
      */
     @Incubating
     Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
 
     /**
+     * Allows fine-tuning what variant to select for the target dependency. This can be used to
+     * specify a classifier, for example.
+     *
+     * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
+     * @param variantSpec the variant specification
+     * @return a new dependency provider targeting the configured variant
+     * @since 7.3
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> variantOf(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
+                                                                Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
+        return variantOf(dependencyProviderConvertible.asProvider(), variantSpec);
+    }
+
+    /**
      * Configures this dependency provider to select the platform variant of the target component
      * @param dependencyProvider the dependency provider
-     * @return a new dependency provider targetting the platform variant of the component
+     * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
      */
     @Incubating
@@ -614,14 +630,56 @@ public interface DependencyHandler extends ExtensionAware {
     }
 
     /**
+     * Configures this dependency provider to select the platform variant of the target component
+     * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
+     * @return a new dependency provider targeting the platform variant of the component
+     * @since 7.3
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> platform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+        return platform(dependencyProviderConvertible.asProvider());
+    }
+
+    /**
+     * Configures this dependency provider to select the enforced-platform variant of the target component
+     * @param dependencyProvider the dependency provider
+     * @return a new dependency provider targeting the enforced-platform variant of the component
+     * @since 7.3
+     */
+    @Incubating
+    Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider);
+
+    /**
+     * Configures this dependency provider to select the enforced-platform variant of the target component
+     * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
+     * @return a new dependency provider targeting the enforced-platform variant of the component
+     * @since 7.3
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+        return enforcedPlatform(dependencyProviderConvertible.asProvider());
+    }
+
+    /**
      * Configures this dependency provider to select the test fixtures of the target component
      * @param dependencyProvider the dependency provider
-     * @return a new dependency provider targetting the test fixtures of the component
+     * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
      */
     @Incubating
     default Provider<MinimalExternalModuleDependency> testFixtures(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::testFixtures);
+    }
+
+    /**
+     * Configures this dependency provider to select the test fixtures of the target component
+     * @param dependencyProviderConvertible the dependency provider convertible that returns the dependency provider
+     * @return a new dependency provider targeting the test fixtures of the component
+     * @since 7.3
+     */
+    @Incubating
+    default Provider<MinimalExternalModuleDependency> testFixtures(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
+        return testFixtures(dependencyProviderConvertible.asProvider());
     }
 
 }

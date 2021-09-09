@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
@@ -40,6 +41,9 @@ class PluginDependenciesSpecScope internal constructor(
         plugins.id(id)
 
     override fun alias(notation: Provider<PluginDependency>) =
+        plugins.alias(notation)
+
+    override fun alias(notation: ProviderConvertible<PluginDependency>) =
         plugins.alias(notation)
 }
 

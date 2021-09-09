@@ -64,6 +64,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
+        events.operations.size() == 6
+        events.trees == events.operations
         containsSuccessfulProjectConfigurationOperation(":buildSrc", file("buildSrc"), ":")
         containsSuccessfulProjectConfigurationOperation(":buildSrc:a", file("buildSrc"), ":a")
         containsSuccessfulProjectConfigurationOperation(":", projectDir, ":")
@@ -419,6 +421,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
             def launcher = newBuild()
                 .forTasks(task)
                 .addProgressListener(events, operationTypes)
+            collectOutputs(launcher)
             config.execute(launcher)
             launcher.run()
         }

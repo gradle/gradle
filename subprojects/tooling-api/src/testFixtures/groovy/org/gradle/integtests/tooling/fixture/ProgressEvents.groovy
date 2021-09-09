@@ -221,6 +221,14 @@ class ProgressEvents implements ProgressListener {
     }
 
     /**
+     * Returns all operations with no parent, in the order started.
+     */
+    List<Operation> getTrees() {
+        assertHasZeroOrMoreTrees()
+        return operations.findAll { it.descriptor.parent == null}
+    }
+
+    /**
      * Returns all generic build operations, in the order started.
      */
     List<Operation> getBuildOperations() {
@@ -401,6 +409,10 @@ class ProgressEvents implements ProgressListener {
             } catch (NoClassDefFoundError ignore) {
                 false
             }
+        }
+
+        boolean isDownload() {
+            return descriptor instanceof FileDownloadOperationDescriptor
         }
 
         boolean isBuildOperation() {

@@ -43,6 +43,14 @@ public abstract class JvmVendorSpec {
 
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
     public static final JvmVendorSpec IBM = matching(KnownJvmVendor.IBM);
+
+    /**
+     * A constant for using <a href="https://www.microsoft.com/openjdk">Microsoft OpenJDK</a> as the JVM vendor.
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public static final JvmVendorSpec MICROSOFT = matching(KnownJvmVendor.MICROSOFT);
     public static final JvmVendorSpec ORACLE = matching(KnownJvmVendor.ORACLE);
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
 

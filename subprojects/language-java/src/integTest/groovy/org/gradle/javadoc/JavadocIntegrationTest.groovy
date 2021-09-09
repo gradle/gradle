@@ -245,7 +245,11 @@ Joe!""")
         """
         writeSourceFile()
         expect:
-        executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+            executer.expectDeprecationWarnings(2)
+        } else {
+            executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
+        }
         fails("javadoc") // we're using unsupported options to verify that we do the right thing
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +

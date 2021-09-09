@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -86,31 +85,6 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
                 manifest {
                     attributes('Main-Class': 'driver.Driver')
                 }
-            }
-        """
-
-        when:
-        succeeds taskName
-
-        then:
-        file("out.txt").text == """helloworld"""
-
-        where:
-        method                    | taskName
-        'JavaExec task'           | 'runWithTask'
-        'project.javaexec'        | 'runWithJavaExec'
-        'ExecOperations.javaexec' | 'runWithExecOperations'
-    }
-
-    @Ignore("Change rolled back, to be added again in 7.0")
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
-    def "can run executable jar configured in the application plugin with #method"() {
-
-        buildFile << """
-            apply plugin: 'application'
-            application {
-                mainClass.set('driver.Driver')
             }
         """
 

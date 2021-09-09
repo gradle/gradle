@@ -43,18 +43,18 @@ public interface FileWatcherUpdater {
     /**
      * Remove watched hierarchies that have been moved.
      *
-     * @see FileWatcherRegistry#buildStarted(SnapshotHierarchy)
+     * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildStarted(SnapshotHierarchy root);
+    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
-     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, WatchMode, int)
+     * @see FileWatcherRegistry#updateVfsOnBuildFinished(SnapshotHierarchy, WatchMode, int)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
+    SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
     Collection<Path> getWatchedHierarchies();
 }

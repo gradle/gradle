@@ -244,8 +244,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public THIS convention(Provider<? extends T> valueProvider) {
-            super.convention(valueProvider);
+        public THIS convention(Provider<? extends T> provider) {
+            super.convention(provider);
             return Cast.uncheckedNonnullCast(this);
         }
 

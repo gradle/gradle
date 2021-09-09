@@ -17,15 +17,16 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,6 @@ import java.util.Optional;
 
 public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
-
-    private static final ImmutableList<String> CHANGE_TRACKING_DISABLED = ImmutableList.of("Change tracking is disabled.");
 
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
@@ -50,54 +49,59 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Determining if {} is up-to-date", work.getDisplayName());
         }
-        return context.getChanges().map(changes -> {
-            ImmutableList<String> reasons = changes.getAllChangeMessages();
-            if (reasons.isEmpty()) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
-                }
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecutionState().get();
-                return new UpToDateResult() {
-                    @Override
-                    public ImmutableList<String> getExecutionReasons() {
-                        return ImmutableList.of();
-                    }
+        ImmutableList<String> reasons = context.getRebuildReasons();
+        return context.getChanges()
+            .filter(__ -> reasons.isEmpty())
+            .map(changes -> skipExecution(work, changes.getBeforeExecutionState(), context))
+            .orElseGet(() -> executeBecause(work, reasons, context));
+    }
 
-                    @Override
-                    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                        return afterPreviousExecutionState.getOutputFilesProducedByWork();
-                    }
-
-                    @Override
-                    public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                        return Optional.of(afterPreviousExecutionState.getOriginMetadata());
-                    }
-
-                    @Override
-                    public Try<ExecutionResult> getExecutionResult() {
-                        return Try.successful(new ExecutionResult() {
-                            @Override
-                            public ExecutionOutcome getOutcome() {
-                                return ExecutionOutcome.UP_TO_DATE;
-                            }
-
-                            @Override
-                            public Object getOutput() {
-                                return work.loadRestoredOutput(context.getWorkspace());
-                            }
-                        });
-                    }
-
-                    @Override
-                    public Duration getDuration() {
-                        return afterPreviousExecutionState.getOriginMetadata().getExecutionTime();
-                    }
-                };
-            } else {
-                return executeBecause(work, reasons, context);
+    private UpToDateResult skipExecution(UnitOfWork work, BeforeExecutionState beforeExecutionState, C context) {
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
+        }
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
+        AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
+            beforeExecutionState,
+            previousExecutionState.getOutputFilesProducedByWork()
+        );
+        return new UpToDateResult() {
+            @Override
+            public ImmutableList<String> getExecutionReasons() {
+                return ImmutableList.of();
             }
-        }).orElseGet(() -> executeBecause(work, CHANGE_TRACKING_DISABLED, context));
+
+            @Override
+            public Optional<AfterExecutionState> getAfterExecutionState() {
+                return Optional.of(afterExecutionState);
+            }
+
+            @Override
+            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                return Optional.of(previousExecutionState.getOriginMetadata());
+            }
+
+            @Override
+            public Try<ExecutionResult> getExecutionResult() {
+                return Try.successful(new ExecutionResult() {
+                    @Override
+                    public ExecutionOutcome getOutcome() {
+                        return ExecutionOutcome.UP_TO_DATE;
+                    }
+
+                    @Override
+                    public Object getOutput() {
+                        return work.loadRestoredOutput(context.getWorkspace());
+                    }
+                });
+            }
+
+            @Override
+            public Duration getDuration() {
+                return previousExecutionState.getOriginMetadata().getExecutionTime();
+            }
+        };
     }
 
     private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
@@ -110,8 +114,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProduceByWork() {
-                return result.getOutputFilesProduceByWork();
+            public Optional<AfterExecutionState> getAfterExecutionState() {
+                return result.getAfterExecutionState();
             }
 
             @Override

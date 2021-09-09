@@ -230,7 +230,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
         if (kotlinVersion.getMinor() < 5 && JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=--illegal-access=permit", *tasks)
+            return KotlinPluginSmokeTest.runnerFor(this, workers, "-Dkotlin.daemon.jvm.options=" +
+                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                "--add-opens=java.base/java.util=ALL-UNNAMED", *tasks)
         }
         return KotlinPluginSmokeTest.runnerFor(this, workers, *tasks)
     }

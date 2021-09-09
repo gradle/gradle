@@ -22,8 +22,11 @@ import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -378,6 +381,37 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         result.assertNotPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
     }
 
+    @Requires(TestPrecondition.WINDOWS)
+    def "does not start watching on unsupported file system"() {
+        def testDirectoryProviderOnUnsupportedDrive = TestNameTestDirectoryProvider.forFatDrive(getClass())
+        def projectDir = testDirectoryProviderOnUnsupportedDrive.createDir("project")
+        projectDir.file('build.gradle') << """
+            task myTask {
+                def inputFile = file("input.txt")
+                def outputFile = file("output.txt")
+                inputs.file(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = inputFile.text
+                }
+            }
+        """
+        projectDir.file("input.txt").text = "input"
+        executer.inDirectory(projectDir)
+
+        when:
+        run "myTask", "--info"
+        then:
+        assertWatchedHierarchies([])
+        // We don't remove actual usable content at the end of the build, though we remove some dangling paths.
+        // This is because the project directory is underneath the unsupported file system, so after invalidating D: the project root node is removed from the VFS.
+        result.assertHasPostBuildOutput("Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching.")
+        outputContains("Not watching ${projectDir.absolutePath} since the file system is not supported")
+
+        cleanup:
+        testDirectoryProviderOnUnsupportedDrive.cleanup()
+    }
+
     void assertWatchableHierarchies(List<Set<File>> expectedWatchableHierarchies) {
         assert determineWatchableHierarchies(output) == expectedWatchableHierarchies
     }
@@ -392,7 +426,10 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
             .with { line ->
                 def matcher = line =~ /Watched directory hierarchies: \[(.*)]/
                 String directories = matcher[0][1]
-                return directories.split(', ').collect { new File(it) } as Set
+                return (directories.empty
+                    ? []
+                    : directories.split(', ').collect { new File(it) }
+                ) as Set
             }
 
         assert watchedHierarchies == (expected as Set)

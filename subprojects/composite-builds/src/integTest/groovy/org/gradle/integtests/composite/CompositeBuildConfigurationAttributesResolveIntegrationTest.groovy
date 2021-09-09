@@ -747,8 +747,10 @@ All of them match the consumer attributes:
         """
             $pluginsBlock
 
-            import static com.acme.Flavor.*
-            import static com.acme.BuildType.*
+            import static com.acme.Flavor.free
+            import static com.acme.Flavor.paid
+            import static com.acme.BuildType.debug
+            import static com.acme.BuildType.release
 
             def flavor = Attribute.of(com.acme.Flavor)
             def buildType = Attribute.of(com.acme.BuildType)

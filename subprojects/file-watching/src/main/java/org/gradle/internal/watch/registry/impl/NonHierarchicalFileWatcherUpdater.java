@@ -46,18 +46,14 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedDirectories = HashMultiset.create();
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
-    private final FileWatcher fileWatcher;
-
-    private final WatchableHierarchies watchableHierarchies;
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
-        this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = watchableHierarchies;
+        super(fileWatcher, watchableHierarchies);
     }
 
     @Override
@@ -89,12 +85,12 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildStarted(SnapshotHierarchy root) {
+    protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         return root;
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);

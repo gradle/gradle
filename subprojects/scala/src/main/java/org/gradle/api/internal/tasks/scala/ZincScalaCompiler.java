@@ -136,7 +136,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 analysisFile,
                 CompilerCache.fresh(),
                 incOptions,
-                new LoggedReporter(100, new SbtLoggerAdapter(), p -> p),
+                // MappedPosition is used to make sure toString returns proper error messages
+                new LoggedReporter(100, new SbtLoggerAdapter(), MappedPosition::new),
                 Option.empty(),
                 getExtra()
         );

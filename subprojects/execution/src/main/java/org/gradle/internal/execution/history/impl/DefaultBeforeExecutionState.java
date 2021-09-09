@@ -28,7 +28,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class DefaultBeforeExecutionState extends AbstractExecutionState<CurrentFileCollectionFingerprint> implements BeforeExecutionState {
+public class DefaultBeforeExecutionState extends AbstractInputExecutionState<CurrentFileCollectionFingerprint> implements BeforeExecutionState {
     @Nullable
     private final OverlappingOutputs detectedOutputOverlaps;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;

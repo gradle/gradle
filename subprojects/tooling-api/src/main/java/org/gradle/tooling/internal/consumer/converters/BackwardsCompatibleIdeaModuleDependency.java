@@ -20,7 +20,7 @@ import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
 /**
- * This is used for compatibility with clients <2.14
+ * This is used for compatibility with clients &lt;2.14
  */
 public interface BackwardsCompatibleIdeaModuleDependency extends IdeaModuleDependency {
     IdeaModule getDependencyModule();

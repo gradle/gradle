@@ -37,7 +37,6 @@ import javax.annotation.Nullable;
  *
  * </ul>
  *
- * </p>
  */
 @UsedByScanPlugin("test-distribution")
 public interface ProgressLogger {

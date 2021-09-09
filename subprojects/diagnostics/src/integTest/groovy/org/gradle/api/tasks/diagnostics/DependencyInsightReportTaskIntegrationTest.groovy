@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
@@ -1526,53 +1525,6 @@ org:middle:2.0+ (selected by rule) FAILED
           - ${mavenRepoURL}/org/middle/maven-metadata.xml
 
 org:middle:1.0 -> 2.0+ FAILED
-\\--- org:top:1.0
-     \\--- conf
-"""
-    }
-
-    @Ignore
-    def "shows version resolved from a range where some selectors did not match anything"() {
-        given:
-        mavenRepo.module("org", "leaf", "1.5").publish()
-        mavenRepo.module("org", "top", "1.0")
-            .dependsOn("org", "leaf", "1.0")
-            .dependsOn("org", "leaf", "[1.5,1.9]")
-            .dependsOn("org", "leaf", "0.8+")
-            .publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:top:1.0'
-            }
-            task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'leaf' }
-                configuration = configurations.conf
-            }
-        """
-
-        when:
-        run "insight"
-
-        then:
-        outputContains """
-org:leaf:1.5 (conflict resolution)
-
-org:leaf:1.0 -> 1.5
-\\--- org:top:1.0
-     \\--- conf
-
-org:leaf:0.8+ -> 1.5
-\\--- org:top:1.0
-     \\--- conf
-
-org:leaf:[1.5,1.9] -> 1.5
 \\--- org:top:1.0
      \\--- conf
 """
