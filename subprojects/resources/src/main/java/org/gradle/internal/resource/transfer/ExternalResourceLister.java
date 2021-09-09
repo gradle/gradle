@@ -32,7 +32,7 @@ public interface ExternalResourceLister {
      * Lists the direct children of the parent resource
      *
      * @param parent the resource to list from
-     * @return A list of the direct children of the <code>parent</code>
+     * @return A list of the direct children of the <code>parent</code>, null when the resource does not exist.
      */
     @Nullable
     List<String> list(ExternalResourceName parent) throws ResourceException;

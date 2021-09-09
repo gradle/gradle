@@ -17,8 +17,6 @@
 package org.gradle.internal.resource.transport;
 
 
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resource.BuildOperationFiringExternalResourceDecorator;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -32,37 +30,27 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
-    private final ExternalResourceAccessor loggingAccessor;
-    private final ExternalResourceUploader loggingUploader;
-    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultExternalResourceRepository(String name,
-                                             ExternalResourceAccessor accessor,
-                                             ExternalResourceUploader uploader,
-                                             ExternalResourceLister lister,
-                                             ExternalResourceAccessor loggingAccessor,
-                                             ExternalResourceUploader loggingUploader,
-                                             BuildOperationExecutor buildOperationExecutor) {
+    public DefaultExternalResourceRepository(
+        String name,
+        ExternalResourceAccessor accessor,
+        ExternalResourceUploader uploader,
+        ExternalResourceLister lister
+    ) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
-        this.loggingAccessor = loggingAccessor;
-        this.loggingUploader = loggingUploader;
-        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public ExternalResourceRepository withProgressLogging() {
-        if (loggingAccessor == accessor && loggingUploader == uploader) {
-            return this;
-        }
-        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader, buildOperationExecutor);
+        return this;
     }
 
     @Override
     public ExternalResource resource(ExternalResourceName resource, boolean revalidate) {
-        return new BuildOperationFiringExternalResourceDecorator(resource, buildOperationExecutor, new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate));
+        return new AccessorBackedExternalResource(resource, accessor, uploader, lister, revalidate);
     }
 
     @Override

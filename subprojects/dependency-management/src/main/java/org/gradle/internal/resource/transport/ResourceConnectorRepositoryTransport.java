@@ -31,6 +31,7 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.DefaultCacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceLister;
 import org.gradle.internal.resource.transfer.ProgressLoggingExternalResourceUploader;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -51,9 +52,10 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 FileResourceRepository fileResourceRepository,
                                                 ChecksumService checksumService) {
         super(name);
-        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory);
-        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory);
-        repository = new DefaultExternalResourceRepository(name, connector, connector, connector, loggingAccessor, loggingUploader, buildOperationExecutor);
+        ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, progressLoggerFactory, buildOperationExecutor);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, progressLoggerFactory, buildOperationExecutor);
+        ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, progressLoggerFactory, buildOperationExecutor);
+        repository = new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, loggingLister);
         resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, fileResourceRepository, checksumService);
     }
 
