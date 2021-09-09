@@ -23,8 +23,8 @@ class ${className.javaIdentifier} extends Specification {
 
     def "can run task"() {
         given:
-        getSettingsFile() << ""
-        getBuildFile() << """
+        settingsFile << ""
+        buildFile << """
 plugins {
     id('${pluginId.value}')
 }
