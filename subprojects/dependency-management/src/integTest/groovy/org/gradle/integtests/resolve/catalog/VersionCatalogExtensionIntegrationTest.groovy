@@ -1738,6 +1738,44 @@ Second: 1.1"""
         ]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "disallows aliases for dependency which have a prefix clash with reserved words"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("$reservedName").to("org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            alias(reservedName).shouldNotContain(prefix)
+            reservedAliasPrefix('bundle', 'bundles', 'dependency', 'dependencies', 'plugin', 'plugins', 'version', 'versions')
+        })
+
+        where:
+        reservedName          | prefix
+        "bundles"             | "bundles"
+        "versions"            | "versions"
+        "plugins"             | "plugins"
+        "findPlugin"          | "plugin"
+        "findVersion"         | "version"
+        "findDependency"      | "dependency"
+        "findBundle"          | "bundle"
+        "bundleAliases"       | "bundle"
+        "dependencyAliases"   | "dependency"
+        "dependenciesAliases" | "dependencies"
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/16768")
     def "the artifact notation doesn't require to set 'name'"() {
         settingsFile << """

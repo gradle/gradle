@@ -257,21 +257,24 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         then:
         InvalidUserDataException ex = thrown()
         verify ex.message, reservedAlias {
-            alias(reservedName).shouldNotEndWith(suffix)
-            reservedAliasSuffix("bundle", "bundles", "version", "versions", "plugin", "plugins")
+            alias(reservedName).shouldNotContain(prefix)
+            reservedAliasPrefix('bundle', 'bundles', 'dependency', 'dependencies', 'plugin', 'plugins', 'version', 'versions')
         }
 
         where:
-        reservedName   | suffix
-        'versions'     | 'versions'
-        'bundles'      | 'bundles'
-        'plugins'      | 'plugins'
-        'someVersions' | 'versions'
-        'someBundles'  | 'bundles'
-        'somePlugins'  | 'plugins'
-        'some.version' | 'version'
-        'some.bundle'  | 'bundle'
-        'some.plugin'  | 'plugin'
+        reservedName          | prefix
+        "bundles"             | "bundles"
+        "versions"            | "versions"
+        "plugins"             | "plugins"
+        "findPlugin"          | "plugin"
+        "findVersion"         | "version"
+        "findDependency"      | "dependency"
+        "findBundle"          | "bundle"
+        "bundleAliases"       | "bundle"
+        "dependencyAliases"   | "dependency"
+        "dependenciesAliases" | "dependencies"
+        "pluginAliases"       | "plugin"
+        "versionAliases"      | "version"
     }
 
     @VersionCatalogProblemTestFor(

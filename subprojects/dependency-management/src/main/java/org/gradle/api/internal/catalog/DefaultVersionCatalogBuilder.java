@@ -74,7 +74,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins", "versionAliases", "pluginAliases", "bundleAliases", "dependencyAliases");
+    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundle", "bundles", "version", "versions", "dependency", "dependencies", "plugin", "plugins");
     private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
@@ -276,7 +276,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public AliasBuilder alias(String alias) {
         validateName("alias", alias);
-        return new DefaultAliasBuilder(normalize(alias));
+        return new DefaultAliasBuilder(alias);
     }
 
     private void validateName(String type, String value) {
@@ -393,17 +393,19 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private class DefaultAliasBuilder implements AliasBuilder {
         private final String alias;
+        private final String normalizedAlias;
 
         public DefaultAliasBuilder(String alias) {
             this.alias = alias;
+            this.normalizedAlias = normalize(alias);
         }
 
         @Override
         public void to(String gavCoordinates) {
-            validateAlias(AliasType.LIBRARY, alias);
+            validateAlias(AliasType.LIBRARY);
             String[] coordinates = gavCoordinates.split(":");
             if (coordinates.length == 3) {
-                newLibraryBuilder(coordinates[0], coordinates[1]).version(coordinates[2]);
+                objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
             } else {
                 throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + gavCoordinates + "' is not a valid dependency notation")
@@ -416,35 +418,33 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         @Override
         public LibraryAliasBuilder to(String group, String name) {
-            validateAlias(AliasType.LIBRARY, alias);
-            return newLibraryBuilder(group, name);
-        }
-
-        private LibraryAliasBuilder newLibraryBuilder(String group, String name) {
-            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, group, name);
+            validateAlias(AliasType.LIBRARY);
+            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, name);
         }
 
         @Override
         public PluginAliasBuilder toPluginId(String id) {
-            validateAlias(AliasType.PLUGIN, alias);
-            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, alias, id);
+            validateAlias(AliasType.PLUGIN);
+            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
         }
 
-        private void validateAlias(AliasType type, String alias) {
+        private void validateAlias(AliasType type) {
             if (type == AliasType.LIBRARY) {
-                String sl = normalize(alias.toLowerCase());
+                String[] parts = StringUtils.splitByCharacterTypeCamelCase(normalizedAlias.split("\\.")[0]);
                 for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
-                    if (sl.equals(prefix) || sl.startsWith(prefix + ".")) {
-                        throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                                .happensBecause(() -> "It shouldn't start with '" + prefix + "'")
-                                .addSolution(() -> "Use a different alias which doesn't start with " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
-                                .documented()
-                        );
+                    for (String part : parts) {
+                        if (part.equalsIgnoreCase(prefix)) {
+                            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                                spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                                    .happensBecause(() -> "Prefix for dependency shouldn't contain '" + prefix + "'")
+                                    .addSolution(() -> "Use a different alias which prefix doesn't contain " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or") + " (case insensitive)")
+                                    .documented()
+                            );
+                        }
                     }
                 }
             }
-            if (RESERVED_ALIAS_NAMES.contains(alias)) {
+            if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
                 throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
                     spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
                         .happensBecause(() -> "Alias '" + alias +"' is a reserved name in Gradle which prevents generation of accessors")
