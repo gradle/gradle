@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestingFramework;
@@ -29,6 +30,11 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+
+import java.util.concurrent.Callable;
+
+import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)
@@ -49,8 +55,8 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
-        testSuites.registerFactory(TestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, project, java));
-        testSuites.registerFactory(JvmTestSuite.class, name -> project.getObjects().newInstance(DefaultJvmTestSuite.class, name, project, java));
+        testSuites.registerBinding(TestSuite.class, DefaultJvmTestSuite.class);
+        testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         // TODO: Deprecate this behavior?
         // Why would any Test task created need to use the test source set's classes?
@@ -62,7 +68,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
-            testSuite.addTestTarget(java);
+            testSuite.addDefaultTestTarget();
             JvmTestingFramework testingFramework = project.getObjects().newInstance(JUnitPlatformTestingFramework.class);
             testSuite.getTestingFramework().convention(testingFramework);
             testingFramework.getVersion().convention("5.7.1");
@@ -77,13 +83,22 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             });
         });
 
-        configureBuiltInTest(project, testing);
+        configureBuiltInTest(project, testing, java);
     }
 
-    private void configureBuiltInTest(Project project, TestingExtension testing) {
-        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, JvmTestSuite::useJUnit);
+    private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
+        final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
+            suite.useJUnit();
+            final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
+            final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
+
+            suite.getSources().setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+            suite.getSources().setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        });
+
         // Force the realization of this test suite, targets and task
         testSuite.get();
+
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 }
