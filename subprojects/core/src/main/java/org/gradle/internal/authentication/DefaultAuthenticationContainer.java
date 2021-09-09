@@ -25,7 +25,7 @@ import org.gradle.internal.reflect.Instantiator;
 public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
 
     public DefaultAuthenticationContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
-        super(Authentication.class, instantiator, callbackDecorator);
+        super(Authentication.class, instantiator, instantiator, callbackDecorator);
     }
 
 }
