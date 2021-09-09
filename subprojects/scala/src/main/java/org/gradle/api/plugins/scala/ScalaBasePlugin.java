@@ -96,6 +96,8 @@ public class ScalaBasePlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
+    private ScalaRuntime scalaRuntime = null; 
+
     @Inject
     public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.objectFactory = objectFactory;
@@ -106,7 +108,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+        scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
@@ -115,6 +117,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureCompileDefaults(project, scalaRuntime);
         configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory, scalaRuntime);
         configureScaladoc(project, scalaRuntime);
+    }
+
+    public boolean isScala3(Iterable<File> classpath) {
+        if (scalaRuntime == null) {
+            throw new IllegalStateException("ScalaRuntime hasn't been initialized yet!");
+        }
+        return scalaRuntime.findScalaJar(classpath, "library_3") != null;
     }
 
     private void configureConfigurations(final Project project, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {

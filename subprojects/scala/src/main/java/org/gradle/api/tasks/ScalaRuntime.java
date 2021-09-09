@@ -128,7 +128,10 @@ public class ScalaRuntime {
                     artifact.setName(compilerBridgeJar.getName());
                 });
                 DefaultExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
-                Configuration scalaRuntimeClasspath = project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+
+                Configuration scalaRuntimeClasspath = isScala3 ?
+                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
+                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
                 jvmEcosystemUtilities.configureAsRuntimeClasspath(scalaRuntimeClasspath);
                 return scalaRuntimeClasspath;
             }
@@ -195,7 +198,8 @@ public class ScalaRuntime {
      * Determines Scala compiler jar to download.
      *
      * @param scalaVersion version of scala to download the compiler for
-     * @return bridge dependency to download
+     * @param zincVersion version of zinc to download the compiler for as fallback for Scala 2
+     * @return compiler dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
@@ -209,13 +213,28 @@ public class ScalaRuntime {
      * Determines Scala compiler interfaces jar to download.
      *
      * @param scalaVersion version of scala to download the compiler interfaces for
-     * @return bridge dependency to download
+     * @param zincVersion version of zinc to download the compiler interfaces for as fallback for Scala 2
+     * @return compiler interfaces dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
         } else {
             return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
+        }
+    }
+
+    /**
+     * Determines Scaladoc jar to download. Note that scaladoc for Scala 2 is packaged along the compiler
+     *
+     * @param scalaVersion version of scala to download the scaladoc for
+     * @return scaladoc dependency to download
+     */
+    private DefaultExternalModuleDependency getScaladocDependency(String scalaVersion) {
+        if (scalaVersion.startsWith("3.")) {
+            return new DefaultExternalModuleDependency("org.scala-lang", "scaladoc_3", scalaVersion);
+        } else {
+            return null;
         }
     }
 }

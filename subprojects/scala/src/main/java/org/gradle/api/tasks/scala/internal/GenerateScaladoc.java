@@ -21,11 +21,13 @@ import org.gradle.internal.process.ArgWriter;
 import org.gradle.workers.WorkAction;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters> {
     @Override
@@ -69,9 +71,25 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
     }
 
     private void invokeScalaDoc(List<String> args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class<?> scaladocClass = Thread.currentThread().getContextClassLoader().loadClass("scala.tools.nsc.ScalaDoc");
-        Method process = scaladocClass.getMethod("process", String[].class);
+        ClassLoader scalaClassLoader = Thread.currentThread().getContextClassLoader();
+        String scalaVersion = getScalaVersion(scalaClassLoader);
+
+        String scaladocFqName = scalaVersion.charAt(0) == '3' ? "dotty.tools.scaladoc.Main" : "scala.tools.nsc.ScalaDoc";
+        String scaladocEntryName = scalaVersion.charAt(0) == '3' ? "run" : "process";
+
+        Class<?> scaladocClass = Thread.currentThread().getContextClassLoader().loadClass(scaladocFqName);
+        Method process = scaladocClass.getMethod(scaladocEntryName, String[].class);
         Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
         process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
+    }
+
+    private static String getScalaVersion(ClassLoader scalaClassLoader) {
+        try {
+            Properties props = new Properties();
+            props.load(scalaClassLoader.getResourceAsStream("compiler.properties"));
+            return props.getProperty("version.number");
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to determine scala version");
+        }
     }
 }
