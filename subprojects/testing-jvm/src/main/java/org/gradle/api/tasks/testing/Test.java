@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -161,7 +162,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final PatternFilterable patternSet;
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
-    private TestFramework testFramework;
+    private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -183,6 +184,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
     }
 
     @Inject
@@ -665,7 +667,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
-        if (!javaVersion.isJava8Compatible() && testFramework instanceof JUnitPlatformTestFramework) {
+        if (!javaVersion.isJava8Compatible() && testFramework.get() instanceof JUnitPlatformTestFramework) {
             throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
         }
 
@@ -677,7 +679,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         try {
             super.executeTests();
         } finally {
-            testFramework = null;
+            testFramework.set((TestFramework) null);
         }
     }
 
@@ -884,17 +886,28 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return this;
     }
 
+    /**
+     * Returns the chosen {@link TestFramework}.
+     *
+     * @since 7.3
+     */
+    @Incubating
+    @Nested
+    public Property<TestFramework> getTestFrameworkProperty() {
+        return testFramework;
+    }
+
     @Internal
     public TestFramework getTestFramework() {
         return testFramework(null);
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        if (testFramework == null) {
+        if (!testFramework.isPresent()) {
             useJUnit(testFrameworkConfigure);
         }
 
-        return testFramework;
+        return testFramework.get();
     }
 
     /**
@@ -902,7 +915,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    @Nested
+    @Internal
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
@@ -933,17 +946,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        if (testFramework == null) {
-            throw new IllegalArgumentException("testFramework is null!");
-        }
-
-        this.testFramework = testFramework;
+        this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.getOptions()));
+            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
         }
 
-        return this.testFramework;
+        return this.testFramework.get();
     }
 
     /**

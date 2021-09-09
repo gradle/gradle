@@ -49,7 +49,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -267,6 +266,7 @@ public class JavaPlugin implements Plugin<Project> {
         final ProjectInternal projectInternal = (ProjectInternal) project;
 
         project.getPluginManager().apply(JavaBasePlugin.class);
+        project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, javaExtension));
@@ -275,7 +275,6 @@ public class JavaPlugin implements Plugin<Project> {
         configureSourceSets(project, javaExtension, buildOutputCleanupRegistry);
         configureConfigurations(project, javaExtension);
 
-        configureTest(project, javaExtension);
         configureJavadocTask(project, javaExtension);
         configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
@@ -285,10 +284,6 @@ public class JavaPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = pluginExtension.getSourceSets();
 
         SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
-
-        SourceSet test = sourceSets.create(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.getObjects().fileCollection().from(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.getObjects().fileCollection().from(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         // Register the project's source set output directories
         sourceSets.all(sourceSet ->
@@ -376,19 +371,6 @@ public class JavaPlugin implements Plugin<Project> {
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
-    private void configureTest(Project project, JavaPluginExtension javaPluginExtension) {
-        project.getTasks().withType(Test.class).configureEach(test -> {
-            test.getConventionMapping().map("testClassesDirs", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> sourceSetOf(javaPluginExtension, SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
-            test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-        });
-
-        final Provider<Test> test = project.getTasks().register(TEST_TASK_NAME, Test.class, test1 -> {
-            test1.setDescription("Runs the unit tests.");
-            test1.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-        });
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(test));
-    }
 
     private void configureConfigurations(Project project, JavaPluginExtension extension) {
         ConfigurationContainer configurations = project.getConfigurations();
