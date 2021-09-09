@@ -33,7 +33,7 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             ${mavenCentralRepository()}
 
             aspectj {
-                version = "1.9.5"
+                version = "1.9.7"
             }
 
             dependencies {
