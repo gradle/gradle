@@ -500,10 +500,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @return <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @return <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
      */
     @Input
@@ -514,10 +514,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
-     * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
+     * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
@@ -532,7 +532,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @return <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @return <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
      */
     @Input
@@ -548,7 +548,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * This helps Gradle reliably produce byte-for-byte reproducible archives.
      * </p>
      *
-     * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
+     * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
