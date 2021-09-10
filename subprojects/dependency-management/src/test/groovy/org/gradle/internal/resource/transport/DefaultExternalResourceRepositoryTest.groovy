@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport
 
-import org.gradle.internal.operations.TestBuildOperationExecutor
+
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor
 import org.gradle.internal.resource.transfer.ExternalResourceLister
@@ -31,7 +31,7 @@ class DefaultExternalResourceRepositoryTest extends Specification {
     def resourceAccessor = Mock(ExternalResourceAccessor)
     def resourceUploader = Mock(ExternalResourceUploader)
     def resourceLister = Mock(ExternalResourceLister)
-    def repository = new DefaultExternalResourceRepository("repo", resourceAccessor, resourceUploader, resourceLister, resourceAccessor, resourceUploader, new TestBuildOperationExecutor())
+    def repository = new DefaultExternalResourceRepository("repo", resourceAccessor, resourceUploader, resourceLister)
 
     def "creating resource does not access the backing resource"() {
         def name = new ExternalResourceName("resource")

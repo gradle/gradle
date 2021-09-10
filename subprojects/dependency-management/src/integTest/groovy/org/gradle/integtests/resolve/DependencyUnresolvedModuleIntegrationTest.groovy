@@ -369,7 +369,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingReadTimeout(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Read timed out")
@@ -378,7 +377,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingInternalServerError(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 500 from server: broken")
     }
@@ -386,7 +384,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private void assertDependencyListingUnauthorizedError(String group, String module, String version) {
         failure.assertHasCause("Could not resolve ${group}:${module}:${version}.")
         failure.assertHasCause("Failed to list versions for ${group}:${module}.")
-        failure.assertHasCause("Could not get resource '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'.")
         failure.assertHasCause("Unable to load Maven meta-data from ${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml.")
         failure.assertHasCause("Could not GET '${mavenHttpRepo.uri.toString()}/${group}/${module}/maven-metadata.xml'. Received status code 401 from server: Unauthorized")
     }

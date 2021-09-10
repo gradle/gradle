@@ -16,70 +16,144 @@
 
 package org.gradle.internal.resource.transfer;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
+import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory) {
-        super(progressLoggerFactory);
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
+    @Nullable
     @Override
-    public ExternalResourceReadResponse openResource(URI location, boolean revalidate) {
-        ExternalResourceReadResponse resource = delegate.openResource(location, revalidate);
-        if (resource != null) {
-            return new ProgressLoggingExternalResource(location, resource);
-        } else {
-            return null;
-        }
+    public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        return buildOperationExecutor.call(new DownloadOperation<>(location, revalidate, action));
     }
 
     @Override
     @Nullable
-    public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) {
-        return delegate.getMetaData(location, revalidate);
+    public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
+        return buildOperationExecutor.call(new MetadataOperation(location, revalidate));
     }
 
-    @VisibleForTesting
-    public class ProgressLoggingExternalResource implements ExternalResourceReadResponse {
-        private final ExternalResourceReadResponse resource;
-        private final ResourceOperation downloadOperation;
+    private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {
+        ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
+        return BuildOperationDescriptor
+            .displayName("Download " + resourceName.getUri())
+            .progressDisplayName(resourceName.getShortDisplayName())
+            .details(operationDetails);
+    }
 
-        private ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
-            this.resource = resource;
-            downloadOperation = createResourceOperation(location, ResourceOperation.Type.download, getClass(), resource.getMetaData().getContentLength());
+    private static class MetadataOperationDetails extends LocationDetails implements ExternalResourceReadMetadataBuildOperationType.Details {
+        private MetadataOperationDetails(URI location) {
+            super(location);
         }
 
         @Override
-        public InputStream openStream() throws IOException {
-            return new ProgressLoggingInputStream(resource.openStream(), downloadOperation);
-        }
-
-        @Override
-        public void close() throws IOException {
-            try {
-                resource.close();
-            } finally {
-                downloadOperation.completed();
-            }
-        }
-
-        @Override
-        public ExternalResourceMetaData getMetaData() {
-            return resource.getMetaData();
-        }
-
         public String toString() {
-            return resource.toString();
+            return "ExternalResourceReadMetadataBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private final static ExternalResourceReadMetadataBuildOperationType.Result METADATA_RESULT = new ExternalResourceReadMetadataBuildOperationType.Result() {
+    };
+
+    private static class ReadOperationDetails extends LocationDetails implements ExternalResourceReadBuildOperationType.Details {
+        private ReadOperationDetails(URI location) {
+            super(location);
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceReadBuildOperationType.Details{location=" + getLocation() + ", " + '}';
+        }
+    }
+
+    private static class ReadOperationResult implements ExternalResourceReadBuildOperationType.Result {
+
+        private final long bytesRead;
+
+        private ReadOperationResult(long bytesRead) {
+            this.bytesRead = bytesRead;
+        }
+
+        @Override
+        public long getBytesRead() {
+            return bytesRead;
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceReadBuildOperationType.Result{bytesRead=" + bytesRead + '}';
+        }
+
+    }
+
+    private class DownloadOperation<T> implements CallableBuildOperation<T> {
+        private final ExternalResourceName location;
+        private final boolean revalidate;
+        private final ExternalResource.ContentAndMetadataAction<T> action;
+
+        public DownloadOperation(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) {
+            this.location = location;
+            this.revalidate = revalidate;
+            this.action = action;
+        }
+
+        @Override
+        public T call(BuildOperationContext context) {
+            ResourceOperation downloadOperation = createResourceOperation(context, ResourceOperation.Type.download);
+            T result = delegate.withContent(location, revalidate, (inputStream, metaData) -> {
+                downloadOperation.setContentLength(metaData.getContentLength());
+                ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+                return action.execute(stream, metaData);
+            });
+            context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return createBuildOperationDetails(location);
+        }
+    }
+
+    private class MetadataOperation implements CallableBuildOperation<ExternalResourceMetaData> {
+        private final ExternalResourceName location;
+        private final boolean revalidate;
+
+        public MetadataOperation(ExternalResourceName location, boolean revalidate) {
+            this.location = location;
+            this.revalidate = revalidate;
+        }
+
+        @Override
+        public ExternalResourceMetaData call(BuildOperationContext context) {
+            ExternalResourceMetaData result = delegate.getMetaData(location, revalidate);
+            context.setResult(METADATA_RESULT);
+            return result;
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Metadata of " + location.getDisplayName())
+                .details(new MetadataOperationDetails(location.getUri()));
         }
     }
 }

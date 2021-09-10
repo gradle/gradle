@@ -20,11 +20,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
-@UsedByScanPlugin
 public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
     public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
     public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";

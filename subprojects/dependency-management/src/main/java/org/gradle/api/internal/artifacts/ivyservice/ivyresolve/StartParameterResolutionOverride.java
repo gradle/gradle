@@ -55,10 +55,11 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
-import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
@@ -66,7 +67,6 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 @ServiceScope(Scopes.BuildTree.class)
@@ -208,29 +208,29 @@ public class StartParameterResolutionOverride {
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
         @Nullable
         @Override
-        public ExternalResourceReadResponse openResource(URI location, boolean revalidate) throws ResourceException {
+        public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
             throw offlineResource(location);
         }
 
         @Nullable
         @Override
-        public ExternalResourceMetaData getMetaData(URI location, boolean revalidate) throws ResourceException {
+        public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
             throw offlineResource(location);
         }
 
         @Nullable
         @Override
-        public List<String> list(URI parent) throws ResourceException {
+        public List<String> list(ExternalResourceName parent) throws ResourceException {
             throw offlineResource(parent);
         }
 
         @Override
-        public void upload(ReadableContent resource, URI destination) throws IOException {
-            throw new ResourceException(destination, String.format("Cannot upload to '%s' in offline mode.", destination));
+        public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
+            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
         }
 
-        private ResourceException offlineResource(URI source) {
-            return new ResourceException(source, String.format("No cached resource '%s' available for offline mode.", source));
+        private ResourceException offlineResource(ExternalResourceName source) {
+            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
         }
     }
 

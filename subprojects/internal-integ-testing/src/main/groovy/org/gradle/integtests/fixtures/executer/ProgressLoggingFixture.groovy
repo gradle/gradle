@@ -160,6 +160,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
 
     @Deprecated
     boolean progressLogged(String operation) {
+        println "-> CHECKING: $progressContent"
         def lines = progressContent
         def startIndex = lines.indexOf("[START " + operation + "]")
         if (startIndex == -1) {
