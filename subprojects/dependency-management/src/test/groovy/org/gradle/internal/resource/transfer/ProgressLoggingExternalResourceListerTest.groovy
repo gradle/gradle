@@ -17,7 +17,7 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
@@ -27,10 +27,9 @@ import spock.lang.Specification
 
 class ProgressLoggingExternalResourceListerTest extends Specification {
     def delegate = Mock(ExternalResourceLister)
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def context = Mock(BuildOperationContext)
-    def lister = new ProgressLoggingExternalResourceLister(delegate, progressLoggerFactory, buildOperationExecutor)
+    def lister = new ProgressLoggingExternalResourceLister(delegate, buildOperationExecutor)
     def location = new ExternalResourceName(new URI("https://location/"))
 
     def "delegates list to delegate and generates build operation"() {

@@ -16,30 +16,15 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.operations.BuildOperationContext;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
 public class AbstractProgressLoggingHandler {
-    protected final ProgressLoggerFactory progressLoggerFactory;
-
-    public AbstractProgressLoggingHandler(ProgressLoggerFactory progressLoggerFactory) {
-        this.progressLoggerFactory = progressLoggerFactory;
-    }
-
-    protected ResourceOperation createResourceOperation(URI resource, ResourceOperation.Type operationType, Class<?> loggingClazz) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(loggingClazz != null ? loggingClazz : getClass());
-        String description = createDescription(operationType, resource);
-        progressLogger.setDescription(description);
-        progressLogger.started();
-        return new ResourceOperation(progressLogger, operationType);
-    }
-
-    private String createDescription(ResourceOperation.Type operationType, URI resource) {
-        return operationType.getCapitalized() + " " + resource;
+    protected ResourceOperation createResourceOperation(BuildOperationContext context, ResourceOperation.Type operationType) {
+        return new ResourceOperation(context, operationType);
     }
 
     protected static class LocationDetails {
@@ -61,10 +46,6 @@ public class AbstractProgressLoggingHandler {
         public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
             this.inputStream = inputStream;
             this.resourceOperation = resourceOperation;
-        }
-
-        public long getBytesRead() {
-            return resourceOperation.getTotalProcessedBytes();
         }
 
         @Override

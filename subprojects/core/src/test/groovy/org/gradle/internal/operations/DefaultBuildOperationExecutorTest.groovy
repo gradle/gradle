@@ -289,6 +289,46 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         GradleThread.setUnmanaged()
     }
 
+    def "action can provide progress updates"() {
+        setup:
+        GradleThread.setManaged()
+
+        and:
+        def buildOperation = Mock(RunnableBuildOperation)
+        def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>")
+        def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
+        def progressLogger2 = Spy(NoOpProgressLoggerFactory.Logger)
+
+        when:
+        operationExecutor.run(buildOperation)
+
+        then:
+        1 * buildOperation.description() >> operationDetailsBuilder
+        1 * progressLoggerFactory.newOperation(_ as Class, _ as BuildOperationDescriptor) >> progressLogger
+        1 * progressLogger.start("<some-operation>", "<some-op>")
+
+        then:
+        1 * buildOperation.run(_) >> { BuildOperationContext context ->
+            context.progress("progress 1")
+            context.progress("progress 2")
+        }
+
+        1 * progressLoggerFactory.newOperation(_ as Class, progressLogger) >> progressLogger2
+
+        then:
+        1 * progressLogger2.start("<some-operation>", "progress 1")
+        1 * progressLogger2.progress("progress 2")
+
+        then:
+        1 * progressLogger2.completed()
+
+        then:
+        1 * progressLogger.completed(null, false)
+
+        cleanup:
+        GradleThread.setUnmanaged()
+    }
+
     def "multiple threads can run independent operations concurrently"() {
         def id1
         def id2

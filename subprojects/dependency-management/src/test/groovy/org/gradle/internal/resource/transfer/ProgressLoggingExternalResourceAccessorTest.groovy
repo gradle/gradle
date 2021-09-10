@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.logging.progress.ProgressLogger
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.CallableBuildOperation
@@ -31,18 +30,15 @@ import spock.lang.Specification
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor delegate = Mock()
-    ProgressLoggerFactory progressLoggerFactory = Mock()
     BuildOperationExecutor buildOperationExecutor = Mock()
     BuildOperationContext context = Mock()
-    ProgressLoggingExternalResourceAccessor accessor = new ProgressLoggingExternalResourceAccessor(delegate, progressLoggerFactory, buildOperationExecutor)
-    ProgressLogger progressLogger = Mock()
+    ProgressLoggingExternalResourceAccessor accessor = new ProgressLoggingExternalResourceAccessor(delegate, buildOperationExecutor)
     ExternalResourceMetaData metaData = Mock()
     ExternalResource.ContentAndMetadataAction action = Mock()
     def location = new ExternalResourceName(new URI("https://location/thing.jar"))
 
     def "returns null when resource does not exist"() {
         expectReadBuildOperation(0)
-        expectProgressLogging()
 
         when:
         def result = accessor.withContent(location, false, action)
@@ -60,7 +56,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     def "reads empty content"() {
         setup:
         expectReadBuildOperation(0)
-        expectProgressLogging()
         expectResourceRead(new ByteArrayInputStream())
 
         when:
@@ -77,7 +72,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         setup:
         metaData.getContentLength() >> 4096
         expectReadBuildOperation(4096)
-        expectProgressLogging()
         expectResourceRead(new ByteArrayInputStream(new byte[4096]))
 
         when:
@@ -96,17 +90,16 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1024])
             "result"
         }
-        1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
-        1 * progressLogger.progress('3 KiB/4 KiB downloaded')
-        1 * progressLogger.progress('4 KiB/4 KiB downloaded')
-        0 * progressLogger.progress(_)
+        1 * context.progress('1.5 KiB/4 KiB downloaded')
+        1 * context.progress('3 KiB/4 KiB downloaded')
+        1 * context.progress('4 KiB/4 KiB downloaded')
+        0 * context.progress(_)
     }
 
     def "fires complete event when action complete with partially read stream"() {
         setup:
         metaData.getContentLength() >> 4096
         expectReadBuildOperation(1600)
-        expectProgressLogging()
         expectResourceRead(new ByteArrayInputStream(new byte[4096]))
 
         when:
@@ -117,15 +110,14 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1600])
             "result"
         }
-        1 * progressLogger.progress('1.5 KiB/4 KiB downloaded')
-        0 * progressLogger.progress(_)
+        1 * context.progress('1.5 KiB/4 KiB downloaded')
+        0 * context.progress(_)
     }
 
     def "no progress events logged for resources smaller 1024 bytes"() {
         setup:
         metaData.getContentLength() >> 1023
         expectReadBuildOperation(1023)
-        expectProgressLogging()
         expectResourceRead(new ByteArrayInputStream(new byte[1023]))
 
         when:
@@ -136,14 +128,13 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1024])
             "result"
         }
-        0 * progressLogger.progress(_)
+        0 * context.progress(_)
     }
 
     def "fires progress events when content size is not known"() {
         setup:
         metaData.getContentLength() >> -1
         expectReadBuildOperation(4096)
-        expectProgressLogging()
         expectResourceRead(new ByteArrayInputStream(new byte[4096]))
 
         when:
@@ -162,10 +153,10 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1024])
             "result"
         }
-        1 * progressLogger.progress('1.5 KiB downloaded')
-        1 * progressLogger.progress('3 KiB downloaded')
-        1 * progressLogger.progress('4 KiB downloaded')
-        0 * progressLogger.progress(_)
+        1 * context.progress('1.5 KiB downloaded')
+        1 * context.progress('3 KiB downloaded')
+        1 * context.progress('4 KiB downloaded')
+        0 * context.progress(_)
     }
 
     def "returns null metadata when resource does not exist"() {
@@ -206,7 +197,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             action.call(context)
         }
         1 * context.setResult({ it instanceof ExternalResourceReadMetadataBuildOperationType.Result })
-        0 * progressLoggerFactory._
     }
 
     def expectReadBuildOperation(long bytesRead) {
@@ -223,13 +213,6 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         1 * context.setResult(_) >> { ExternalResourceReadBuildOperationType.Result opResult ->
             assert opResult.bytesRead == bytesRead
         }
-    }
-
-    def expectProgressLogging() {
-        1 * progressLoggerFactory.newOperation(_) >> progressLogger
-        1 * progressLogger.setDescription("Download https://location/thing.jar")
-        1 * progressLogger.started()
-        1 * progressLogger.completed()
     }
 
     def expectResourceRead(InputStream inputStream) {

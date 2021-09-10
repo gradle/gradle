@@ -170,6 +170,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         private final ProgressLoggerFactory progressLoggerFactory;
         private final Clock clock;
         private ProgressLogger progressLogger;
+        private ProgressLogger statusProgressLogger;
 
         public ListenerAdapter(BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
             this.buildOperationListener = buildOperationListener;
@@ -185,7 +186,24 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
 
         @Override
+        public void progress(BuildOperationDescriptor descriptor, String status) {
+            // Currently, need to start a new progress operation to hold the status, as changing the status of the progress operation replaces the
+            // progress display name on the console, whereas we want to display both the progress display name and the status
+            // This should be pushed down into the progress logger infrastructure so that an operation can have both a display name (that doesn't change) and
+            // a status (that does)
+            if (statusProgressLogger == null) {
+                statusProgressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, progressLogger);
+                statusProgressLogger.start(descriptor.getDisplayName(), status);
+            } else {
+                statusProgressLogger.progress(status);
+            }
+        }
+
+        @Override
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationRunner.ReadableBuildOperationContext context) {
+            if (statusProgressLogger != null) {
+                statusProgressLogger.completed();
+            }
             progressLogger.completed(context.getStatus(), context.getFailure() != null);
             buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.getFailure(), context.getResult()));
         }

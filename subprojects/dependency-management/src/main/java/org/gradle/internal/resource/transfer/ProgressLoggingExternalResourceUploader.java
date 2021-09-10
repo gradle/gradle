@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -34,8 +33,7 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
     private final ExternalResourceUploader delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor) {
-        super(progressLoggerFactory);
+    public ProgressLoggingExternalResourceUploader(ExternalResourceUploader delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -94,25 +92,21 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
 
         @Override
         public void run(BuildOperationContext context) throws IOException {
-            ResourceOperation uploadOperation = createResourceOperation(destination.getUri(), ResourceOperation.Type.upload, ProgressLoggingExternalResourceUploader.class);
+            ResourceOperation uploadOperation = createResourceOperation(context, ResourceOperation.Type.upload);
             uploadOperation.setContentLength(resource.getContentLength());
-            try {
-                delegate.upload(new ProgressLoggingReadableContent(resource, uploadOperation), destination);
-                context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
-                    @Override
-                    public long getBytesWritten() {
-                        return uploadOperation.getTotalProcessedBytes();
-                    }
-                });
-            } finally {
-                uploadOperation.completed();
-            }
+            delegate.upload(new ProgressLoggingReadableContent(resource, uploadOperation), destination);
+            context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
+                @Override
+                public long getBytesWritten() {
+                    return uploadOperation.getTotalProcessedBytes();
+                }
+            });
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("Upload " + destination.getDisplayName())
+                .displayName("Upload " + destination.getUri())
                 .progressDisplayName(destination.getShortDisplayName())
                 .details(new PutOperationDetails(destination.getUri()));
         }

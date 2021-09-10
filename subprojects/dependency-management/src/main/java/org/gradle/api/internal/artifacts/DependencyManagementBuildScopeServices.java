@@ -514,8 +514,7 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-                                                                TemporaryFileProvider temporaryFileProvider,
+    RepositoryTransportFactory createRepositoryTransportFactory(TemporaryFileProvider temporaryFileProvider,
                                                                 FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
                                                                 ArtifactCachesProvider artifactCachesProvider,
@@ -528,7 +527,6 @@ class DependencyManagementBuildScopeServices {
                                                                 ListenerManager listenerManager) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
-            progressLoggerFactory,
             temporaryFileProvider,
             fileStoreAndIndexProvider.getExternalResourceIndex(),
             buildCommencedTimeProvider,

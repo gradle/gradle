@@ -128,6 +128,10 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
         @Override
         public void setStatus(String status) {
         }
+
+        @Override
+        public void progress(String status) {
+        }
     }
 
     public static class TestBuildOperationQueue<O extends RunnableBuildOperation> implements BuildOperationQueue<O> {
@@ -338,6 +342,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 @Override
                 public void setStatus(String status) {
                     context.setStatus(status);
+                }
+
+                @Override
+                public void progress(String status) {
+                    context.progress(status);
                 }
             };
         }

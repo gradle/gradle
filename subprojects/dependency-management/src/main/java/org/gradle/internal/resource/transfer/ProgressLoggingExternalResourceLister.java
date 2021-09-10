@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -33,8 +32,7 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
     private final ExternalResourceLister delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceLister(ExternalResourceLister delegate, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor) {
-        super(progressLoggerFactory);
+    public ProgressLoggingExternalResourceLister(ExternalResourceLister delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -76,7 +74,7 @@ public class ProgressLoggingExternalResourceLister extends AbstractProgressLoggi
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor
-                .displayName("List " + parent.getDisplayName())
+                .displayName("List " + parent.getUri())
                 .details(new ListOperationDetails(parent.getUri()));
         }
     }

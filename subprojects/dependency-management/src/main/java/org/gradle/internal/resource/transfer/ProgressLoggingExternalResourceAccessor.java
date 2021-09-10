@@ -17,7 +17,6 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -35,8 +34,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private final ExternalResourceAccessor delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor) {
-        super(progressLoggerFactory);
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -56,7 +54,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {
         ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
-            .displayName("Download " + resourceName.getDisplayName())
+            .displayName("Download " + resourceName.getUri())
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
@@ -119,18 +117,14 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
         @Override
         public T call(BuildOperationContext context) {
-            ResourceOperation downloadOperation = createResourceOperation(location.getUri(), ResourceOperation.Type.download, ProgressLoggingExternalResourceAccessor.class);
-            try {
-                T result = delegate.withContent(location, revalidate, (inputStream, metaData) -> {
-                    downloadOperation.setContentLength(metaData.getContentLength());
-                    ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
-                    return action.execute(stream, metaData);
-                });
-                context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
-                return result;
-            } finally {
-                downloadOperation.completed();
-            }
+            ResourceOperation downloadOperation = createResourceOperation(context, ResourceOperation.Type.download);
+            T result = delegate.withContent(location, revalidate, (inputStream, metaData) -> {
+                downloadOperation.setContentLength(metaData.getContentLength());
+                ProgressLoggingInputStream stream = new ProgressLoggingInputStream(inputStream, downloadOperation);
+                return action.execute(stream, metaData);
+            });
+            context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
+            return result;
         }
 
         @Override

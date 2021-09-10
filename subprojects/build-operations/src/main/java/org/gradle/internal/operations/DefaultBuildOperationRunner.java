@@ -111,6 +111,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                         context.setStatus(status);
                     }
 
+                    @Override
+                    public void progress(String status) {
+                        assertNotFinished();
+                        context.progress(status);
+                    }
+
                     private void finish() {
                         finished = true;
                         try {
@@ -140,13 +146,14 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
         BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
-        DefaultBuildOperationContext context = new DefaultBuildOperationContext();
+        BuildOperationTrackingListener listener = new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener());
+        DefaultBuildOperationContext context = new DefaultBuildOperationContext(descriptor, listener);
         return execution.execute(
             descriptor,
             operationState,
             parent,
             context,
-            new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener())
+            listener
         );
     }
 
@@ -216,6 +223,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
+        public void progress(BuildOperationDescriptor descriptor, String status) {
+            delegate.progress(descriptor, status);
+        }
+
+        @Override
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
             delegate.stop(descriptor, operationState, parent, context);
             LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
@@ -255,6 +267,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             }
 
             @Override
+            public void progress(BuildOperationDescriptor descriptor, String status) {
+            }
+
+            @Override
             public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
             }
 
@@ -264,6 +280,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         };
 
         void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
+
+        void progress(BuildOperationDescriptor descriptor, String status);
 
         void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context);
 
@@ -275,9 +293,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private static class DefaultBuildOperationContext implements ReadableBuildOperationContext {
+        private final BuildOperationDescriptor descriptor;
+        private final BuildOperationExecutionListener listener;
         private Throwable failure;
         private Object result;
         private String status;
+
+        public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
+            this.descriptor = descriptor;
+            this.listener = listener;
+        }
 
         @Nullable
         @Override
@@ -310,6 +335,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void setStatus(@Nullable String status) {
             this.status = status;
+        }
+
+        @Override
+        public void progress(String status) {
+            listener.progress(descriptor, status);
         }
     }
 }

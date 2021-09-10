@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.operations.BuildOperationContext;
 
 import static org.gradle.internal.util.NumberUtil.KIB_BASE;
 import static org.gradle.internal.util.NumberUtil.formatBytes;
@@ -32,15 +32,15 @@ public class ResourceOperation {
         }
     }
 
-    private final ProgressLogger progressLogger;
+    private final BuildOperationContext context;
     private final Type operationType;
     private String contentLengthString;
 
     private long loggedKBytes;
     private long totalProcessedBytes;
 
-    public ResourceOperation(ProgressLogger progressLogger, Type type) {
-        this.progressLogger = progressLogger;
+    public ResourceOperation(BuildOperationContext context, Type type) {
+        this.context = context;
         this.operationType = type;
     }
 
@@ -62,11 +62,7 @@ public class ResourceOperation {
         if (processedKiB > loggedKBytes) {
             loggedKBytes = processedKiB;
             String progressMessage = formatBytes(totalProcessedBytes) + contentLengthString;
-            progressLogger.progress(progressMessage);
+            context.progress(progressMessage);
         }
-    }
-
-    public void completed() {
-        this.progressLogger.completed();
     }
 }

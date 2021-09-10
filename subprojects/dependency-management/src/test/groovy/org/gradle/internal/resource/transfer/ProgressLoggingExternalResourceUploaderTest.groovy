@@ -17,8 +17,7 @@
 
 package org.gradle.internal.resource.transfer
 
-import org.gradle.internal.logging.progress.ProgressLogger
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -29,11 +28,9 @@ import spock.lang.Specification
 
 class ProgressLoggingExternalResourceUploaderTest extends Specification {
     def delegate = Mock(ExternalResourceUploader)
-    def progressLoggerFactory = Mock(ProgressLoggerFactory);
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def context = Mock(BuildOperationContext)
-    def uploader = new ProgressLoggingExternalResourceUploader(delegate, progressLoggerFactory, buildOperationExecutor)
-    def progressLogger = Mock(ProgressLogger)
+    def uploader = new ProgressLoggingExternalResourceUploader(delegate, buildOperationExecutor)
     def inputStream = Mock(InputStream)
     def resource = Mock(ReadableContent)
     def location = new ExternalResourceName(new URI("https://location/thing.jar"))
@@ -41,7 +38,6 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
     def "delegates upload to delegate uploader and logs progress"() {
         setup:
         expectPutBuildOperation(1072)
-        expectProgressLogging()
 
         when:
         uploader.upload(resource, location)
@@ -56,14 +52,13 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         }
         1 * inputStream.read(_, 0, 1024) >> 1024
         1 * inputStream.read(_, 0, 1024) >> 48
-        1 * progressLogger.progress("1 KiB/1 KiB uploaded")
-        0 * progressLogger.progress(_)
+        1 * context.progress("1 KiB/1 KiB uploaded")
+        0 * context.progress(_)
     }
 
     def "uploads empty file"() {
         setup:
         expectPutBuildOperation(0)
-        expectProgressLogging()
 
         when:
         uploader.upload(resource, location)
@@ -74,7 +69,7 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * delegate.upload(_, location) >> { resource, destination ->
             resource.open()
         }
-        0 * progressLogger.progress(_)
+        0 * context.progress(_)
     }
 
     def expectPutBuildOperation(long bytesWritten) {
@@ -91,12 +86,5 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * context.setResult(_) >> { ExternalResourceWriteBuildOperationType.Result opResult ->
             assert opResult.bytesWritten == bytesWritten
         }
-    }
-
-    def expectProgressLogging() {
-        1 * progressLoggerFactory.newOperation(ProgressLoggingExternalResourceUploader.class) >> progressLogger
-        1 * progressLogger.setDescription("Upload https://location/thing.jar")
-        1 * progressLogger.started()
-        1 * progressLogger.completed()
     }
 }
