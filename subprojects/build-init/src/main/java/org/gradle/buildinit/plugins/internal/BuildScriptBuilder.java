@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.internal.Cast;
@@ -59,7 +60,6 @@ public class BuildScriptBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
     private final BuildInitDsl dsl;
-    private boolean useIncubatingAPIs;
     private final String fileNameWithoutExtension;
     private boolean externalComments;
     private final MavenRepositoryURLHandler mavenRepoURLHandler;
@@ -67,10 +67,14 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
+    private final boolean useIncubatingAPIs;
+    private final boolean useTestSuites;
+
     BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
         this.useIncubatingAPIs = useIncubatingAPIs;
+        this.useTestSuites = useIncubatingAPIs;
         this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
         this.block = new TopLevelBlock(this);
     }
@@ -593,7 +597,7 @@ public class BuildScriptBuilder {
         final String configuration;
         final List<String> deps;
 
-        DepSpec(String configuration, String comment, List<String> deps) {
+        DepSpec(String configuration, @Nullable String comment, List<String> deps) {
             super(comment);
             this.configuration = configuration;
             this.deps = deps;
@@ -611,7 +615,7 @@ public class BuildScriptBuilder {
         private final String configuration;
         private final String dep;
 
-        PlatformDepSpec(String configuration, String comment, String dep) {
+        PlatformDepSpec(String configuration, @Nullable String comment, String dep) {
             super(comment);
             this.configuration = configuration;
             this.dep = dep;
@@ -622,6 +626,20 @@ public class BuildScriptBuilder {
             printer.println(printer.syntax.dependencySpec(
                 configuration, "platform(" + printer.syntax.string(dep) + ")"
             ));
+        }
+    }
+
+    private static class SelfDepSpec extends AbstractStatement {
+        private final String configuration;
+
+        SelfDepSpec(String configuration, @Nullable String comment) {
+            super(comment);
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(configuration, "project"));
         }
     }
 
@@ -974,6 +992,11 @@ public class BuildScriptBuilder {
             this.dependencies.put(configuration, new ProjectDepSpec(configuration, comment, projectPath));
         }
 
+        @Override
+        public void selfDependency(String configuration, @Nullable String comment) {
+            this.dependencies.put(configuration, new SelfDepSpec(configuration, comment));
+        }
+
         @Nullable
         @Override
         public String getComment() {
@@ -1026,6 +1049,154 @@ public class BuildScriptBuilder {
                 statements.addAll(dependencies.get(config));
             }
             return statements;
+        }
+    }
+
+    private static class TestingBlock extends BlockStatement implements TestingBuilder, BlockBody {
+        private final List<SuiteBlock> suites = new ArrayList<>();
+
+        TestingBlock() {
+            super("testing");
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock("testing", this);
+        }
+
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            if (!this.suites.isEmpty()) {
+                ScriptBlockImpl suitesBlock = new ScriptBlockImpl();
+                for (Statement suite : suites) {
+                    suitesBlock.add(suite);
+                }
+                printer.printBlock("suites", suitesBlock);
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return new ArrayList<>(suites);
+        }
+
+        @Override
+        public void junitSuite(String name) {
+            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT));
+        }
+
+        @Override
+        public void junitPlatformSuite(String name) {
+            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT_PLATFORM));
+        }
+    }
+
+    private static class SuiteBlock extends BlockStatement implements BlockBody {
+        private final Statement frameworkSelector;
+        private final DependenciesBlock dependencies = new DependenciesBlock();
+        private final List<TargetBlock> targets = new ArrayList<>();
+
+        private final boolean isDefaultTestSuite;
+        private final boolean isDefaultFramework;
+
+        SuiteBlock(String name, Framework framework) {
+            super(name);
+            isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(blockSelector);
+            isDefaultFramework = framework == Framework.getDefault();
+
+            frameworkSelector = new MethodInvocation(null, framework.method);
+            if (isDefaultTestSuite) {
+                dependencies.dependency("implementation", null, framework.defaultDependency);
+            } else {
+                dependencies.platformDependency("implementation", null, "project");
+                configureShouldRunAfterTest();
+            }
+        }
+
+        private void configureShouldRunAfterTest() {
+            targets.add(new TargetBlock("all"));
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            if (isDefaultTestSuite || !isDefaultFramework) {
+                printer.printStatement(frameworkSelector);
+            }
+            if (!dependencies.dependencies.isEmpty()) {
+                printer.printStatement(dependencies);
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            final List<Statement> statements = new ArrayList<>(2);
+            if (isDefaultTestSuite || !isDefaultFramework) {
+                statements.add(frameworkSelector);
+            }
+            if (!dependencies.dependencies.isEmpty()) {
+                statements.add(dependencies);
+            }
+            return statements;
+        }
+
+        public enum Framework {
+            JUNIT(new MethodInvocationExpression("useJunit"), "junit:junit:4.13"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJunitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
+
+            final MethodInvocationExpression method;
+            final String defaultDependency;
+
+            Framework(MethodInvocationExpression method, String defaultDependency) {
+                this.method = method;
+                this.defaultDependency = defaultDependency;
+            }
+
+            public static Framework getDefault() {
+                return JUNIT_PLATFORM;
+            }
+        }
+    }
+
+    private static class TargetBlock extends BlockStatement implements BlockBody {
+        TargetBlock(String name) {
+            super(name);
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+
+        }
+
+
+        @Override
+        public List<Statement> getStatements() {
+            return Collections.emptyList();
         }
     }
 
@@ -1121,19 +1292,33 @@ public class BuildScriptBuilder {
         final BlockStatement plugins = new BlockStatement("plugins");
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
+        final TestingBlock testing = new TestingBlock();
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
+        final BuildScriptBuilder builder;
 
         private TopLevelBlock(BuildScriptBuilder builder) {
             repositories = new RepositoriesBlock(builder);
+            this.builder = builder;
         }
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
+            if (builder.useTestSuites) {
+                plugins.add(new PluginSpec("java", null, null));
+            }
             printer.printStatement(plugins);
+            if (builder.useTestSuites) {
+                repositories.mavenCentral(null);
+            }
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
+            if (builder.useTestSuites) {
+                testing.junitPlatformSuite("test");
+                testing.junitPlatformSuite("integrationTest");
+                printer.printStatement(testing);
+            }
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
@@ -1444,6 +1629,7 @@ public class BuildScriptBuilder {
         public String dependencySpec(String config, String notation) {
             return config + "(" + notation + ")";
         }
+
 
         @Override
         public String propertyAssignment(PropertyAssignment expression) {
