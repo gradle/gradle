@@ -61,7 +61,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'no'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(dslPrompt)
+            assert handle.standardOutput.contains(incubatingPrompt)
         }
         handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
@@ -113,6 +113,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'junit'
         ConcurrentTestUtil.poll(60) {
@@ -193,6 +199,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(dslPrompt)
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
