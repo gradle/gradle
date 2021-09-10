@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
@@ -309,10 +308,6 @@ public class TaskExecution implements UnitOfWork {
             visitor.visitInputProperty(inputProperty.getPropertyName(), () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
         for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
-            if (inputFileProperty.getContentTracking() == ContentTracking.UNTRACKED) {
-                // Not visiting untracked inputs
-                continue;
-            }
             Object value = inputFileProperty.getValue();
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
@@ -337,10 +332,6 @@ public class TaskExecution implements UnitOfWork {
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
-            if (property.getContentTracking() == ContentTracking.UNTRACKED) {
-                // Not visiting untracked outputs
-                continue;
-            }
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
                 visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());

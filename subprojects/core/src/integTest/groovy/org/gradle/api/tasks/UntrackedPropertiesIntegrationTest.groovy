@@ -490,6 +490,69 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         LocalState | 'ConfigurableFileCollection'
     }
 
+    def "invalidates the VFS for untracked output directories"() {
+        buildFile("""
+            abstract class ProducerWithUntrackedOutput extends DefaultTask {
+                @Untracked
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+
+                @TaskAction
+                void createOutput() {
+                    outputDir.file("untracked.txt").get().asFile.text = "untracked"
+                }
+            }
+
+            abstract class ProducerWithTrackedOutput extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir()
+
+                @TaskAction
+                void createOutput() {
+                    outputDir.file("tracked.txt").get().asFile.text = "tracked"
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputDirectory
+                abstract DirectoryProperty getInputDir()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void createOutput() {
+                    outputFile.get().asFile.text = inputDir.get().asFile.list().sort().join(", ")
+                }
+            }
+
+            def producerTracked = tasks.register("producerTracked", ProducerWithTrackedOutput) {
+                outputDir = project.layout.buildDirectory.dir("shared-output")
+            }
+            def producerUntracked = tasks.register("producerUntracked", ProducerWithUntrackedOutput) {
+                outputDir = project.layout.buildDirectory.dir("shared-output")
+                mustRunAfter(producerTracked)
+            }
+            tasks.register("consumer", Consumer) {
+                inputDir = producerTracked.flatMap { it.outputDir }
+                outputFile = project.layout.buildDirectory.file("outputs.txt")
+                mustRunAfter(producerUntracked)
+            }
+        """)
+
+        when:
+        run("consumer")
+        then:
+        executedAndNotSkipped(":producerTracked", ":consumer")
+        notExecuted(":producerUntracked")
+
+        when:
+        run("producerUntracked", "consumer")
+        then:
+        executedAndNotSkipped(":producerUntracked", ":consumer")
+        skipped(":producerTracked")
+    }
+
     static generateProducerTask(boolean untracked) {
         """
             abstract class Producer extends DefaultTask {
