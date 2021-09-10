@@ -31,6 +31,7 @@ import org.gradle.tooling.events.ScriptPluginIdentifier
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.time.Duration
 
@@ -38,6 +39,7 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
+@Ignore("https://github.com/gradle/gradle-private/issues/3431")
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     ProgressEvents events = ProgressEvents.create()
