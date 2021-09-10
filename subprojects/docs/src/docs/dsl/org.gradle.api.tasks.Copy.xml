@@ -23,7 +23,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>doNotTrackDestinationDir</td>
+                <td>doNotTrackOutput</td>
             </tr>
         </table>
     </section>

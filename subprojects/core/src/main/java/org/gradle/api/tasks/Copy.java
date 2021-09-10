@@ -98,11 +98,10 @@ public class Copy extends AbstractCopyTask {
      * Copy tasks with untracked outputs are never up-to-date.
      *
      * @see Untracked
-     *
      * @since 7.3
      */
     @Incubating
-    public void doNotTrackOutputs() {
+    public void doNotTrackOutput() {
         getOutputs()
             .dir((Callable<File>) this::getDestinationDir)
             .withPropertyName("untrackedDestinationDir")

@@ -231,7 +231,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
-                doNotTrackDestinationDir()
+                doNotTrackOutput()
             }
         """
 
