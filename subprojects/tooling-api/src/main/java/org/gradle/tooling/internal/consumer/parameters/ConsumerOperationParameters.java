@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
- * This is used via reflection from {@link ProviderOperationParameters}.
+ * This is used via reflection from `ProviderOperationParameters`.
  */
 @SuppressWarnings("deprecation")
 public class ConsumerOperationParameters implements org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1, org.gradle.tooling.internal.protocol.BuildParametersVersion1, BuildParameters {
