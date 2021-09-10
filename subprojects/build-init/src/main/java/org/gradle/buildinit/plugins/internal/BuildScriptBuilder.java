@@ -27,8 +27,8 @@ import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.InsecureProtocolOption;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Assembles the parts of a build script.
@@ -218,7 +219,7 @@ public class BuildScriptBuilder {
      * Creates a property expression, to use as a method argument or the RHS of a property assignment.
      */
     public Expression propertyExpression(Expression expression, String value) {
-        return new ChainedPropertyExpression((ExpressionValue) expression, new LiteralValue(value));
+        return new ChainedPropertyExpression(expressionValue(expression), new LiteralValue(value));
     }
 
     /**
@@ -425,7 +426,7 @@ public class BuildScriptBuilder {
         String with(Syntax syntax);
     }
 
-    private static class ChainedPropertyExpression implements Expression, ExpressionValue {
+    private static class ChainedPropertyExpression implements ExpressionValue {
         private final ExpressionValue left;
         private final ExpressionValue right;
 
@@ -517,6 +518,36 @@ public class BuildScriptBuilder {
         }
     }
 
+    /**
+     * This class is part of an attempt to provide the minimal functionality needed to script calling methods
+     * which have a no-arg closure as their only parameter.
+     *
+     * TODO: Improve this to be more general, handle more statements than just method calls,
+     * indent multi-statement closures properly, possibly handle args
+     */
+    private static class NoArgClosureExpression implements ExpressionValue {
+        final List<MethodInvocation> calls = new ArrayList<>();
+
+        NoArgClosureExpression(MethodInvocation... calls) {
+            this.calls.addAll(Arrays.asList(calls));
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            final StringBuilder sb = new StringBuilder("{")
+                .append(calls.stream()
+                    .map(call -> call.invocationExpression.with(syntax))
+                    .collect(Collectors.joining("\n", " ", " ")))
+                .append("}");
+            return sb.toString();
+        }
+    }
+
     private static class MethodInvocationExpression implements ExpressionValue {
         @Nullable
         private final ExpressionValue target;
@@ -527,6 +558,12 @@ public class BuildScriptBuilder {
             this.target = target;
             this.methodName = methodName;
             this.arguments = arguments;
+        }
+
+        MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, NoArgClosureExpression closureArg) {
+            this.target = target;
+            this.methodName = methodName;
+            this.arguments = Collections.singletonList(closureArg);
         }
 
         MethodInvocationExpression(String methodName) {
@@ -546,7 +583,15 @@ public class BuildScriptBuilder {
                 result.append('.');
             }
             result.append(methodName);
-            result.append("(");
+
+            boolean onlyArgIsClosure = arguments.size() == 1 && arguments.get(0) instanceof NoArgClosureExpression;
+
+            if (onlyArgIsClosure) {
+                result.append(' ');
+            } else {
+                result.append("(");
+            }
+
             for (int i = 0; i < arguments.size(); i++) {
                 ExpressionValue argument = arguments.get(i);
                 if (i == 0) {
@@ -556,7 +601,13 @@ public class BuildScriptBuilder {
                     result.append(argument.with(syntax));
                 }
             }
-            result.append(")");
+
+            if (onlyArgIsClosure) {
+                result.append(' ');
+            } else {
+                result.append(")");
+            }
+
             return result.toString();
         }
     }
@@ -1058,10 +1109,12 @@ public class BuildScriptBuilder {
     }
 
     private static class TestingBlock extends BlockStatement implements TestingBuilder, BlockBody {
+        private final BuildScriptBuilder builder;
         private final List<SuiteBlock> suites = new ArrayList<>();
 
-        TestingBlock() {
+        TestingBlock(BuildScriptBuilder builder) {
             super("testing");
+            this.builder = builder;
         }
 
         @Override
@@ -1093,16 +1146,17 @@ public class BuildScriptBuilder {
 
         @Override
         public void junitSuite(String name) {
-            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT));
+            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT, builder));
         }
 
         @Override
         public void junitPlatformSuite(String name) {
-            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT_PLATFORM));
+            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT_PLATFORM, builder));
         }
     }
 
     private static class SuiteBlock extends BlockStatement implements BlockBody {
+        private final BuildScriptBuilder builder;
         private final Statement frameworkSelector;
         private final DependenciesBlock dependencies = new DependenciesBlock();
         private final List<TargetBlock> targets = new ArrayList<>();
@@ -1110,8 +1164,9 @@ public class BuildScriptBuilder {
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteBlock(String name, Framework framework) {
+        SuiteBlock(String name, Framework framework, BuildScriptBuilder builder) {
             super(name);
+            this.builder = builder;
             isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(blockSelector);
             isDefaultFramework = framework == Framework.getDefault();
 
@@ -1119,7 +1174,7 @@ public class BuildScriptBuilder {
             if (isDefaultTestSuite) {
                 dependencies.dependency("implementation", null, framework.defaultDependency);
             } else {
-                dependencies.platformDependency("implementation", null, "project");
+                dependencies.selfDependency("implementation", null);
                 configureShouldRunAfterTest();
             }
         }
@@ -1133,7 +1188,7 @@ public class BuildScriptBuilder {
         }
 
         private void configureShouldRunAfterTest() {
-            targets.add(new TargetBlock("all"));
+            targets.add(new TargetBlock("all", builder));
         }
 
         @Override
@@ -1155,6 +1210,7 @@ public class BuildScriptBuilder {
                 printer.printStatement(dependencies);
             }
             if (!targets.isEmpty()) {
+                printer.printStatementSeparator();
                 ScriptBlockImpl targetsBlock = new ScriptBlockImpl();
                 for (Statement target : targets) {
                     targetsBlock.add(target);
@@ -1195,10 +1251,13 @@ public class BuildScriptBuilder {
     }
 
     private static class TargetBlock extends BlockStatement implements BlockBody {
-        final TestTaskConfigurationBlock testTaskConfig = new TestTaskConfigurationBlock();
+        private final BuildScriptBuilder builder;
+        private final MethodInvocation functionalTestConfiguration;
 
-        TargetBlock(String name) {
+        TargetBlock(String name, BuildScriptBuilder builder) {
             super(name);
+            this.builder = builder;
+            functionalTestConfiguration = configureShouldRunAfterTest();
         }
 
         @Override
@@ -1213,43 +1272,19 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatement(testTaskConfig);
+            printer.printStatement(functionalTestConfiguration);
         }
 
-
-        @Override
-        public List<Statement> getStatements() {
-            return Collections.singletonList(testTaskConfig);
-        }
-    }
-
-    private static class TestTaskConfigurationBlock extends BlockStatement implements BlockBody {
-        private final Statement shouldRunAfterTest = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new StringValue("test"))));
-
-        TestTaskConfigurationBlock() {
-            // TODO: Yes, this is a hack, but I don't want to figure out the general case of this kind of construct here, all we ever do is configure
-            super("testTask.configure");
-        }
-
-        @Override
-        public Type type() {
-            return Type.Group;
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(blockSelector, this);
-        }
-
-        @Override
-        public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatement(shouldRunAfterTest);
-
+        private MethodInvocation configureShouldRunAfterTest() {
+            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
+            final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
+            final MethodInvocation functionalTestConfiguration = new MethodInvocation(null, new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
+            return functionalTestConfiguration;
         }
 
         @Override
         public List<Statement> getStatements() {
-            return Collections.singletonList(shouldRunAfterTest);
+            return Collections.singletonList(functionalTestConfiguration);
         }
     }
 
@@ -1345,7 +1380,7 @@ public class BuildScriptBuilder {
         final BlockStatement plugins = new BlockStatement("plugins");
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
-        final TestingBlock testing = new TestingBlock();
+        final TestingBlock testing;
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
@@ -1353,6 +1388,7 @@ public class BuildScriptBuilder {
 
         private TopLevelBlock(BuildScriptBuilder builder) {
             repositories = new RepositoriesBlock(builder);
+            testing = new TestingBlock(builder);
             this.builder = builder;
         }
 
@@ -1387,8 +1423,13 @@ public class BuildScriptBuilder {
 
         private void addCheckDependsOn(SuiteBlock suite) {
             final ExpressionValue testSuites = expressionValue(builder.containerElementExpression("testing", "suites"));
-            final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
-            builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
+            if (builder.dsl == BuildInitDsl.GROOVY) {
+                final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
+                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
+            } else {
+                final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
+                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
+            }
         }
 
         public List<String> extractComments() {
