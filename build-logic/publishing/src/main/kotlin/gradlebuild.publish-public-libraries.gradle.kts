@@ -74,12 +74,6 @@ fun configureJavadocVariant() {
     java {
         withJavadocJar()
     }
-    tasks.named<Javadoc>("javadoc") {
-        (options as StandardJavadocDocletOptions).apply {
-            addBooleanOption("html4", true)
-            addBooleanOption("Xdoclint:none", true)
-        }
-    }
 }
 
 fun MavenPublication.configureGradleModulePublication() {
