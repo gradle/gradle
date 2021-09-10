@@ -44,7 +44,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void triggerWatchProbe(String path) {
-        watchableHierarchies.triggerWatchProbes(path);
+        watchableHierarchies.triggerWatchProbe(path);
     }
 
     protected abstract WatchableHierarchies.Invalidator createInvalidator();

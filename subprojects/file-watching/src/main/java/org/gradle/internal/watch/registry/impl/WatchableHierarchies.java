@@ -113,7 +113,7 @@ public class WatchableHierarchies {
     /**
      * Triggers a watch probe at the given location if one exists.
      */
-    public void triggerWatchProbes(String path) {
+    public void triggerWatchProbe(String path) {
         WatchProbe probe = watchProbesByPath.get(path);
         if (probe != null) {
             probe.trigger();
