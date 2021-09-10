@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -62,6 +63,27 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed(":bp:t")
+    }
+
+    @Issue("gradle/gradle#18196")
+    def "can exclude tasks with start parameters"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task b1(type:GradleBuild) {
+                startParameter = project.getGradle().startParameter.newInstance()
+                tasks = ["t"]
+                buildName = 'bp'
+            }
+            task t
+        """
+        args("-xt")
+
+        when:
+        run 'b1'
+
+        then:
+        notExecuted(":bp:t")
     }
 
     def "fails when build path is not unique"() {

@@ -51,13 +51,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
                 return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
             }
         }
-        // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
-        if (gradle.isRootBuild()) {
-            return getUnqualifiedBuildSelector().getFilter(path);
-        } else {
-            // Included build ignores this exclusion since it doesn't apply directly to it
-            return Specs.satisfyAll();
-        }
+        return getUnqualifiedBuildSelector().getFilter(path);
     }
 
     @Override
