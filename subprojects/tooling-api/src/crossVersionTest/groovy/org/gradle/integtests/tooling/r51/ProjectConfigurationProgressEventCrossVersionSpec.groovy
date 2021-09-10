@@ -31,7 +31,6 @@ import org.gradle.tooling.events.ScriptPluginIdentifier
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.time.Duration
 
@@ -39,7 +38,6 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 @ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=5.1')
-@Ignore("https://github.com/gradle/gradle-private/issues/3431")
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     ProgressEvents events = ProgressEvents.create()
@@ -230,7 +228,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 "org.gradle.api.plugins.JvmEcosystemPlugin",
                 "org.gradle.api.plugins.ReportingBasePlugin"
             ]
-        } else {
+        } else if (targetVersion > GradleVersion.version("5.5.1")) {
             assert plugins == [
                 "org.gradle.help-tasks", "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
@@ -238,6 +236,15 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 "org.gradle.api.plugins.BasePlugin",
                 "org.gradle.language.base.plugins.LifecycleBasePlugin",
                 "org.gradle.api.plugins.ReportingBasePlugin"
+            ]
+        } else {
+            assert plugins == [
+                    "org.gradle.build-init", "org.gradle.wrapper", "org.gradle.help-tasks",
+                    "build.gradle", "script.gradle",
+                    "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",
+                    "org.gradle.api.plugins.BasePlugin",
+                    "org.gradle.language.base.plugins.LifecycleBasePlugin",
+                    "org.gradle.api.plugins.ReportingBasePlugin"
             ]
         }
     }
