@@ -339,7 +339,7 @@ public class WatchableHierarchies {
         }
 
         public synchronized void trigger() {
-            LOGGER.debug("Watch probe has been triggered for hierarchyt: {}", watchableHierarchy);
+            LOGGER.debug("Watch probe has been triggered for hierarchy: {}", watchableHierarchy);
             state = State.TRIGGERED;
         }
 
