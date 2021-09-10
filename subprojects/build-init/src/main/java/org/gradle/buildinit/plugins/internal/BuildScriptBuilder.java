@@ -1072,7 +1072,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            if (!this.suites.isEmpty()) {
+            if (!suites.isEmpty()) {
                 ScriptBlockImpl suitesBlock = new ScriptBlockImpl();
                 for (Statement suite : suites) {
                     suitesBlock.add(suite);
@@ -1141,6 +1141,13 @@ public class BuildScriptBuilder {
             if (!dependencies.dependencies.isEmpty()) {
                 printer.printStatement(dependencies);
             }
+            if (!targets.isEmpty()) {
+                ScriptBlockImpl targetsBlock = new ScriptBlockImpl();
+                for (Statement target : targets) {
+                    targetsBlock.add(target);
+                }
+                printer.printBlock("targets", targetsBlock);
+            }
         }
 
         @Override
@@ -1152,6 +1159,7 @@ public class BuildScriptBuilder {
             if (!dependencies.dependencies.isEmpty()) {
                 statements.add(dependencies);
             }
+            statements.addAll(targets);
             return statements;
         }
 
@@ -1174,6 +1182,8 @@ public class BuildScriptBuilder {
     }
 
     private static class TargetBlock extends BlockStatement implements BlockBody {
+        final TestTaskConfigurationBlock testTaskConfig = new TestTaskConfigurationBlock();
+
         TargetBlock(String name) {
             super(name);
         }
@@ -1190,13 +1200,43 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-
+            printer.printStatement(testTaskConfig);
         }
 
 
         @Override
         public List<Statement> getStatements() {
-            return Collections.emptyList();
+            return Collections.singletonList(testTaskConfig);
+        }
+    }
+
+    private static class TestTaskConfigurationBlock extends BlockStatement implements BlockBody {
+        private final Statement shouldRunAfterTest = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new StringValue("test"))));
+
+        TestTaskConfigurationBlock() {
+            // TODO: Yes, this is a hack, but I don't want to figure out the general case of this kind of construct here, all we ever do is configure
+            super("testTask.configure");
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatement(shouldRunAfterTest);
+
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return Collections.singletonList(shouldRunAfterTest);
         }
     }
 
