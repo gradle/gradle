@@ -10,6 +10,11 @@ testing {
     suites {
         named<JvmTestSuite>("test") {
             useJUnit()
+
+            dependencies {
+                implementation("junit:junit:4.13")
+            }
+
             targets {
                 all {
                     // tag::test-categories[]

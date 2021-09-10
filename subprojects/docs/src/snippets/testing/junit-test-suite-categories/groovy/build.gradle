@@ -10,11 +10,16 @@ testing {
     suites {
         test {
             useJUnit()
+
+            dependencies {
+                implementation 'junit:junit:4.13'
+            }
+
             targets {
                 all {
                     // tag::test-categories[]
                     testTask.configure {
-                        options {
+                        useJUnit {
                             includeCategories 'org.gradle.junit.CategoryA'
                             excludeCategories 'org.gradle.junit.CategoryB'
                         }
