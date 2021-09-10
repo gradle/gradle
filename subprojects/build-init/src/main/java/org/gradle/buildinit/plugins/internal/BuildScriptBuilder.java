@@ -23,6 +23,7 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
@@ -98,6 +99,10 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder fileComment(String comment) {
         headerLines.addAll(splitComment(comment));
         return this;
+    }
+
+    public List<SuiteBlock> getSuites() {
+        return new ArrayList<>(block.testing.suites);
     }
 
     private static List<String> splitComment(String comment) {
@@ -1119,6 +1124,14 @@ public class BuildScriptBuilder {
             }
         }
 
+        public String getName() {
+            return blockSelector;
+        }
+
+        public boolean isDefaultTestSuite() {
+            return isDefaultTestSuite;
+        }
+
         private void configureShouldRunAfterTest() {
             targets.add(new TargetBlock("all"));
         }
@@ -1362,7 +1375,20 @@ public class BuildScriptBuilder {
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
+            if (builder.useTestSuites) {
+                for (SuiteBlock suite : builder.getSuites()) {
+                    if (!suite.isDefaultTestSuite()) {
+                        addCheckDependsOn(suite);
+                    }
+                }
+            }
             printer.printStatement(tasks);
+        }
+
+        private void addCheckDependsOn(SuiteBlock suite) {
+            final ExpressionValue testSuites = expressionValue(builder.containerElementExpression("testing", "suites"));
+            final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
+            builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
         }
 
         public List<String> extractComments() {
