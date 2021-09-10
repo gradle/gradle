@@ -506,6 +506,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     // public for injection
     public static class DefaultVersionCatalogsExtension implements VersionCatalogsExtension {
+
         private final Map<String, VersionCatalog> catalogs;
 
         @Inject

@@ -226,7 +226,6 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         then:
-        println(sources.source)
         def libs = sources.compile()
         def foo = libs.foo.get()
         def bar = libs.bar.get()

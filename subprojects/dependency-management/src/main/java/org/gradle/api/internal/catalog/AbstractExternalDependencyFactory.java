@@ -36,7 +36,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             this.owner = owner;
         }
 
-        protected Provider<MinimalExternalModuleDependency> create(String alias) {
+        @Override
+        public Provider<MinimalExternalModuleDependency> create(String alias) {
             return owner.create(alias);
         }
 
@@ -49,7 +50,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         this.providers = providers;
     }
 
-    protected Provider<MinimalExternalModuleDependency> create(String alias) {
+    @Override
+    public Provider<MinimalExternalModuleDependency> create(String alias) {
         return providers.of(DependencyValueSource.class,
             spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)))
             .forUseAtConfigurationTime();

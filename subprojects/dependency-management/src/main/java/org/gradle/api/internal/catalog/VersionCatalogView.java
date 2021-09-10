@@ -34,20 +34,20 @@ import java.util.Optional;
 public class VersionCatalogView implements VersionCatalog {
 
     private final DefaultVersionCatalog config;
-    private final ProviderFactory providers;
-    private final AbstractExternalDependencyFactory factory;
+    private final ProviderFactory providerFactory;
+    private final ExternalModuleDependencyFactory dependencyFactory;
 
     @Inject
     public VersionCatalogView(DefaultVersionCatalog config, ProviderFactory providerFactory) {
         this.config = config;
-        this.providers = providerFactory;
-        this.factory = new DefaultExternalDependencyFactory(config, providerFactory);
+        this.providerFactory = providerFactory;
+        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory);
     }
 
     @Override
     public final Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
         if (config.getDependencyAliases().contains(alias)) {
-            return Optional.of(factory.create(alias));
+            return Optional.of(dependencyFactory.create(alias));
         }
         return Optional.empty();
     }
@@ -55,7 +55,7 @@ public class VersionCatalogView implements VersionCatalog {
     @Override
     public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
         if (config.getBundleAliases().contains(bundle)) {
-            return Optional.of(new BundleFactory(providers, config).createBundle(bundle));
+            return Optional.of(new BundleFactory(providerFactory, config).createBundle(bundle));
         }
         return Optional.empty();
     }
@@ -63,7 +63,7 @@ public class VersionCatalogView implements VersionCatalog {
     @Override
     public final Optional<VersionConstraint> findVersion(String name) {
         if (config.getVersionAliases().contains(name)) {
-            return Optional.of(new VersionFactory(providers, config).findVersionConstraint(name));
+            return Optional.of(new VersionFactory(providerFactory, config).findVersionConstraint(name));
         }
         return Optional.empty();
     }
@@ -71,7 +71,7 @@ public class VersionCatalogView implements VersionCatalog {
     @Override
     public Optional<Provider<PluginDependency>> findPlugin(String alias) {
         if (config.getPluginAliases().contains(alias)) {
-            return Optional.of(new PluginFactory(providers, config).createPlugin(alias));
+            return Optional.of(new PluginFactory(providerFactory, config).createPlugin(alias));
         }
         return Optional.empty();
     }
