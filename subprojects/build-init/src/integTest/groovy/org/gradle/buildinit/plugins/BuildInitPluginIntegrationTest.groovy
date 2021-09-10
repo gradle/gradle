@@ -434,9 +434,9 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl, boolean useIncubatingAPI = false) {
-        def tasks = ['init', '--dsl', dsl.id] as String[]
+        String[] tasks = ['init', '--dsl', dsl.id]
         if (useIncubatingAPI) {
-            tasks + '--incubating'
+            tasks += '--incubating'
         }
         run tasks
     }
