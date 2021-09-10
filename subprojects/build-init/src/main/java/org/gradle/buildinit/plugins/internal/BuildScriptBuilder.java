@@ -1422,7 +1422,7 @@ public class BuildScriptBuilder {
         }
 
         private void addCheckDependsOn(SuiteBlock suite) {
-            final ExpressionValue testSuites = expressionValue(builder.containerElementExpression("testing", "suites"));
+            final ExpressionValue testSuites = expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
             if (builder.dsl == BuildInitDsl.GROOVY) {
                 final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
                 builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
