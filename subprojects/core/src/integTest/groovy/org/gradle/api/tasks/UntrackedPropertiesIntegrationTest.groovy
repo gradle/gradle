@@ -38,7 +38,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
                 void doStuff() {
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.get().asFile.text
                 }
             }
@@ -100,7 +99,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                     .withPropertyName("outputFile")
                     ${(properties == "outputs" ? ".untracked()" : "")}
                 doLast {
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.text
                 }
             }
@@ -136,7 +134,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
                 void doStuff() {
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.get().asFile.text
                 }
             }
@@ -386,7 +383,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 outputs.file(outputFile)
                     .withPropertyName("outputFile")
                 doLast {
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile.text = inputFile.text
                 }
             }
@@ -430,7 +426,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
                 static void writeFile(DirectoryProperty dir) {
                     def outputFile = dir.file("output.txt").get().asFile
-                    outputFile.parentFile.mkdirs()
                     outputFile.text = "Produced file"
                 }
             }
@@ -585,7 +580,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 void execute() {
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile << "Executed"
                 }
             }
@@ -608,7 +602,6 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                     assert changes != null
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()
-                    outputFile.get().asFile.parentFile.mkdirs()
                     outputFile.get().asFile << "Executed"
                 }
             }
