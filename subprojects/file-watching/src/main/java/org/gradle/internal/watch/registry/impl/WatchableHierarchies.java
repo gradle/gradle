@@ -204,7 +204,8 @@ public class WatchableHierarchies {
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
         vfsRoot.snapshotRootsUnder(watchableHierarchy)
             .filter(snapshotRoot -> !isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot))
-            .forEach(snapshotRoot -> {
+            .findAny()
+            .ifPresent(snapshotRoot -> {
                 throw new IllegalStateException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
@@ -274,6 +275,7 @@ public class WatchableHierarchies {
         }
 
         private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
+            //noinspection UnnecessaryParentheses
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
                 (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
         }
