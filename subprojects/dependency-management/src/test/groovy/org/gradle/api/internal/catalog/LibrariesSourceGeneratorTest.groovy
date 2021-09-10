@@ -226,6 +226,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         }
 
         then:
+        println(sources.source)
         def libs = sources.compile()
         def foo = libs.foo.get()
         def bar = libs.bar.get()
@@ -257,8 +258,8 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         then:
         InvalidUserDataException ex = thrown()
         verify ex.message, reservedAlias {
-            alias(reservedName).shouldNotContain(prefix)
-            reservedAliasPrefix('bundle', 'bundles', 'dependency', 'dependencies', 'plugin', 'plugins', 'version', 'versions')
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         }
 
         where:
@@ -266,15 +267,6 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         "bundles"             | "bundles"
         "versions"            | "versions"
         "plugins"             | "plugins"
-        "findPlugin"          | "plugin"
-        "findVersion"         | "version"
-        "findDependency"      | "dependency"
-        "findBundle"          | "bundle"
-        "bundleAliases"       | "bundle"
-        "dependencyAliases"   | "dependency"
-        "dependenciesAliases" | "dependencies"
-        "pluginAliases"       | "plugin"
-        "versionAliases"      | "version"
     }
 
     @VersionCatalogProblemTestFor(

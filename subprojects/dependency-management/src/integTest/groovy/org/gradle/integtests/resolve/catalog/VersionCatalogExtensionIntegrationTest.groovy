@@ -1741,7 +1741,7 @@ Second: 1.1"""
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.RESERVED_ALIAS_NAME
     )
-    def "disallows aliases for dependency which have a prefix clash with reserved words"() {
+    def "disallows aliases for dependency which prefix clash with reserved words"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -1758,22 +1758,82 @@ Second: 1.1"""
         then:
         verifyContains(failure.error, reservedAlias {
             inCatalog("libs")
-            alias(reservedName).shouldNotContain(prefix)
-            reservedAliasPrefix('bundle', 'bundles', 'dependency', 'dependencies', 'plugin', 'plugins', 'version', 'versions')
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
 
         where:
-        reservedName          | prefix
-        "bundles"             | "bundles"
-        "versions"            | "versions"
-        "plugins"             | "plugins"
-        "findPlugin"          | "plugin"
-        "findVersion"         | "version"
-        "findDependency"      | "dependency"
-        "findBundle"          | "bundle"
-        "bundleAliases"       | "bundle"
-        "dependencyAliases"   | "dependency"
-        "dependenciesAliases" | "dependencies"
+        reservedName  | prefix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "plugins"     | "plugins"
+        "bundles-my"  | "bundles"
+        "versions-my" | "versions"
+        "plugins-my"  | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "aliases for dependencies, plugins and versions do not clash with version catalog methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").to("org:lib1:1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundleAliases",
+            "versionAliases",
+            "pluginAliases",
+            "dependencyAliases",
+            "findPlugin",
+            "findDependency",
+            "findVersion",
+            "findBundle"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allow aliases for plugins and versions which have are reserved words for dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundles",
+            "versions",
+            "plugins"
+        ]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16768")

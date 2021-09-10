@@ -61,7 +61,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang.StringUtils.split;
 import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
@@ -75,7 +74,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
-    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundle", "bundles", "version", "versions", "dependency", "dependencies", "plugin", "plugins");
+    private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
     private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
 
     private final Interner<String> strings;
@@ -431,17 +430,14 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
         private void validateAlias(AliasType type) {
             if (type == AliasType.LIBRARY) {
-                String[] parts = StringUtils.splitByCharacterTypeCamelCase(split(normalizedAlias, '.')[0]);
                 for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
-                    for (String part : parts) {
-                        if (part.equalsIgnoreCase(prefix)) {
-                            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                                spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                                    .happensBecause(() -> "Prefix for dependency shouldn't contain '" + prefix + "'")
-                                    .addSolution(() -> "Use a different alias which prefix doesn't contain " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or") + " (case insensitive)")
-                                    .documented()
-                            );
-                        }
+                    if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
+                        throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                                .happensBecause(() -> "Prefix for dependency shouldn't be equal to '" + prefix + "'")
+                                .addSolution(() -> "Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
+                                .documented()
+                        );
                     }
                 }
             }

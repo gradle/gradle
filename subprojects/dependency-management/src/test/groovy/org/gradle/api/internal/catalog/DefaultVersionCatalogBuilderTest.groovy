@@ -87,8 +87,8 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         InvalidUserDataException ex = thrown()
         verify(ex.message, reservedAlias {
             inCatalog('libs')
-            alias(name).shouldNotContain(prefix)
-            reservedAliasPrefix('bundle', 'bundles', 'dependency', 'dependencies', 'plugin', 'plugins', 'version', 'versions')
+            alias(name).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
 
         where:
@@ -96,16 +96,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         "bundles"             | "bundles"
         "versions"            | "versions"
         "plugins"             | "plugins"
-        "findPlugin"          | "plugin"
-        "findVersion"         | "version"
-        "findDependency"      | "dependency"
-        "findBundle"          | "bundle"
-        "bundleAliases"       | "bundle"
-        "dependencyAliases"   | "dependency"
-        "dependenciesAliases" | "dependencies"
-        "pluginAliases"       | "plugin"
-        "versionAliases"      | "version"
-        "myBundles"           | "bundles"
         "bundles-my"          | "bundles"
         "versions_my"         | "versions"
         "plugins.my"          | "plugins"
@@ -124,14 +114,21 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
 
         where:
         name << [
+            "version",
+            "bundle",
+            "plugin",
             "my-bundles",
             "my-versions",
             "my-plugins",
+            "my-bundle",
             "my-plugin",
             "my-version",
-            "mplugins",
-            "theversion",
-            "theversions"
+            "myBundles",
+            "myPlugins",
+            "myVersions",
+            "bundlesOfMe",
+            "pluginsOfMe",
+            "versionsOfMe",
         ]
     }
 
@@ -152,10 +149,6 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
             "bundles",
             "versions",
             "plugins",
-            "bundleAliases",
-            "dependencyAliases",
-            "pluginAliases",
-            "versionAliases",
             "bundles-my",
             "versions_my",
             "plugins.my"

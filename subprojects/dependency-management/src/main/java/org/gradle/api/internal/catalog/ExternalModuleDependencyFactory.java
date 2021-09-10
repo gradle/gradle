@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.plugin.use.PluginDependency;
 
-public interface ExternalModuleDependencyFactory extends VersionCatalog {
+public interface ExternalModuleDependencyFactory {
 
     interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {
     }
