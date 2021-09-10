@@ -105,12 +105,12 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public Stream<FileSystemLocationSnapshot> snapshotRoots() {
-        return rootNode.completeSnapshots();
+        return rootNode.snapshotRoots();
     }
 
     @Override
     public Stream<FileSystemLocationSnapshot> snapshotRootsUnder(String absolutePath) {
-        return getNode(absolutePath).completeSnapshots();
+        return getNode(absolutePath).snapshotRoots();
     }
 
     private ReadOnlyFileSystemNode getNode(String absolutePath) {

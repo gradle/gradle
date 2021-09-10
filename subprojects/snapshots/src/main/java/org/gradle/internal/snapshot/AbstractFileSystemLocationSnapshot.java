@@ -61,7 +61,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public Stream<FileSystemLocationSnapshot> completeSnapshots() {
+    public Stream<FileSystemLocationSnapshot> snapshotRoots() {
         return Stream.of(this);
     }
 

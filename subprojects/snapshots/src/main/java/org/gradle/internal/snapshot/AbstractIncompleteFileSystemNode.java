@@ -143,10 +143,10 @@ public abstract class AbstractIncompleteFileSystemNode implements FileSystemNode
     protected abstract Optional<FileSystemNode> withAllChildrenRemoved();
 
     @Override
-    public Stream<FileSystemLocationSnapshot> completeSnapshots() {
+    public Stream<FileSystemLocationSnapshot> snapshotRoots() {
         return children.stream()
             .map(ChildMap.Entry::getValue)
-            .flatMap(ReadOnlyFileSystemNode::completeSnapshots);
+            .flatMap(ReadOnlyFileSystemNode::snapshotRoots);
     }
 
     @Override
