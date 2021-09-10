@@ -64,7 +64,7 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
 
     private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
-        root.snapshotRoots()
+        root.rootSnapshots()
             .forEach(snapshot -> snapshot.accept(entrySnapshot -> {
                 retained.add(entrySnapshot.getType());
                 return CONTINUE;

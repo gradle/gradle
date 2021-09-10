@@ -323,7 +323,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     boolean vfsHasSnapshotsAt(File location) {
-        return virtualFileSystem.root.snapshotRootsUnder(location.absolutePath)
+        return virtualFileSystem.root.rootSnapshotsUnder(location.absolutePath)
             .findAny()
             .present
     }

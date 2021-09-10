@@ -54,7 +54,7 @@ public class WatchedHierarchies {
                 continue;
             }
 
-            if (hasNoContent(vfsRoot.snapshotRootsUnder(watchableHierarchyPath), watchableHierarchies, watchedHierarchies)) {
+            if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies, watchedHierarchies)) {
                 continue;
             }
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);

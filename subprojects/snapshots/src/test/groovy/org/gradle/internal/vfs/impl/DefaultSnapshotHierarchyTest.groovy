@@ -499,7 +499,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     }
 
     static Collection<FileSystemLocationSnapshot> collectSnapshots(SnapshotHierarchy set, String path) {
-        return set.snapshotRootsUnder(path)
+        return set.rootSnapshotsUnder(path)
             .collect(Collectors::toList()) as Collection<FileSystemLocationSnapshot>
     }
 
@@ -680,14 +680,14 @@ class DefaultSnapshotHierarchyTest extends Specification {
         0 * _
     }
 
-    def "snapshotRootsUnder can stream the root"() {
+    def 'rootSnapshotsUnder can stream the root'() {
         def rootNode = Mock(FileSystemNode)
         def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
 
         when:
-        hierarchy.snapshotRootsUnder("/")
+        hierarchy.rootSnapshotsUnder("/")
         then:
-        1 * rootNode.snapshotRoots()
+        1 * rootNode.rootSnapshots()
         0 * _
     }
 

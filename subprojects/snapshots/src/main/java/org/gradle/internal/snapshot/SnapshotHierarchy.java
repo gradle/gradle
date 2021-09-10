@@ -62,9 +62,15 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    Stream<FileSystemLocationSnapshot> snapshotRoots();
+    /**
+     * Returns all root snapshots in the hierarchy.
+     */
+    Stream<FileSystemLocationSnapshot> rootSnapshots();
 
-    Stream<FileSystemLocationSnapshot> snapshotRootsUnder(String absolutePath);
+    /**
+     * Returns all root snapshots in the hierarchy below {@code absolutePath}.
+     */
+    Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath);
 
     /**
      * Receives diff when a {@link SnapshotHierarchy} is updated.

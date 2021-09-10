@@ -117,7 +117,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     private boolean hasWatchableContent(File location, SnapshotHierarchy root) {
-        return root.snapshotRootsUnder(location.toString())
+        return root.rootSnapshotsUnder(location.toString())
             .anyMatch(snapshot -> snapshot.getType() != FileType.Missing
                 && !watchableHierarchies.ignoredForWatching(snapshot));
     }
