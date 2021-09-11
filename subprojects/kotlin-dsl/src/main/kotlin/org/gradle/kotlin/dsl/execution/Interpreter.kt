@@ -345,7 +345,7 @@ class Interpreter(val host: Host) {
         }
 
     private
-    fun Any.getKotlinType(): KotlinType = when(this) {
+    fun Any.getKotlinType(): KotlinType = when (this) {
         is GeneratedSubclass -> KotlinType(this.publicType().kotlin)
         else -> KotlinType(this.javaClass.kotlin)
     }
