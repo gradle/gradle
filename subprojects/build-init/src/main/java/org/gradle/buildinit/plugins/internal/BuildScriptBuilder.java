@@ -27,6 +27,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
@@ -102,7 +103,7 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public List<SuiteBlock> getSuites() {
+    public List<SuiteSpec> getSuites() {
         return new ArrayList<>(block.testing.suites);
     }
 
@@ -356,13 +357,73 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Configure an existing task.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskConfiguration taskConfiguration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
+        block.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
+     * Configure an existing task within the given block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskConfiguration taskConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
+        containingBlock.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
      * Registers a task.
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskRegistration taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.add(registration);
+        blockContentsBuilder.execute(registration.body);
+        return registration;
+    }
+
+    /**
+     * Registers a task within the containing block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskRegistration taskRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
+        containingBlock.add(registration);
+        blockContentsBuilder.execute(registration.body);
+        return registration;
+    }
+
+    /**
+     * Configure an existing test suite within the given block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public SuiteConfiguration suiteConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        SuiteConfiguration conf = new SuiteConfiguration(comment, taskName, taskType);
+        containingBlock.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
+     * Registers a test suite within the containing block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public SuiteRegistration suiteRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        SuiteRegistration registration = new SuiteRegistration(comment, taskName, taskType);
+        containingBlock.add(registration);
         blockContentsBuilder.execute(registration.body);
         return registration;
     }
@@ -820,7 +881,7 @@ public class BuildScriptBuilder {
     /**
      * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
-    private interface Statement {
+    public interface Statement {
         enum Type {Empty, Single, Group}
 
         @Nullable
@@ -1110,7 +1171,7 @@ public class BuildScriptBuilder {
 
     private static class TestingBlock extends BlockStatement implements TestingBuilder, BlockBody {
         private final BuildScriptBuilder builder;
-        private final List<SuiteBlock> suites = new ArrayList<>();
+        private final List<SuiteSpec> suites = new ArrayList<>();
 
         TestingBlock(BuildScriptBuilder builder) {
             super("testing");
@@ -1124,7 +1185,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock("testing", this);
+            printer.printBlock(blockSelector, this);
         }
 
 
@@ -1146,49 +1207,67 @@ public class BuildScriptBuilder {
 
         @Override
         public void junitSuite(String name) {
-            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT, builder));
+            suites.add(new SuiteSpec(null, name, SuiteSpec.Framework.JUNIT, builder));
         }
 
         @Override
         public void junitPlatformSuite(String name) {
-            suites.add(new SuiteBlock(name, SuiteBlock.Framework.JUNIT_PLATFORM, builder));
+            suites.add(new SuiteSpec(null, name, SuiteSpec.Framework.JUNIT_PLATFORM, builder));
         }
     }
 
-    private static class SuiteBlock extends BlockStatement implements BlockBody {
+    private static class SuiteSpec extends AbstractStatement {
         private final BuildScriptBuilder builder;
-        private final Statement frameworkSelector;
+
+        private final String name;
+        private final Framework framework;
+
         private final DependenciesBlock dependencies = new DependenciesBlock();
-        private final List<TargetBlock> targets = new ArrayList<>();
+        private final TargetsBlock targets;
 
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteBlock(String name, Framework framework, BuildScriptBuilder builder) {
-            super(name);
+        SuiteSpec(@Nullable String comment, String name, Framework framework, BuildScriptBuilder builder) {
+            super(comment);
             this.builder = builder;
-            isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(blockSelector);
+            this.framework = framework;
+            this.name = name;
+            targets = new TargetsBlock(builder);
+
+            isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
             isDefaultFramework = framework == Framework.getDefault();
 
-            frameworkSelector = new MethodInvocation(null, framework.method);
             if (isDefaultTestSuite) {
-                dependencies.dependency("implementation", null, framework.defaultDependency);
+                dependencies.dependency("implementation", null, framework.implementationDependency);
             } else {
                 dependencies.selfDependency("implementation", null);
-                configureShouldRunAfterTest();
+                targets.all( true);
             }
         }
 
+        private Action<? super ScriptBlockBuilder> buildSuiteConfigurationContents() {
+            return b -> {
+                if (isDefaultTestSuite || !isDefaultFramework) {
+                    b.methodInvocation(null, framework.method.methodName);
+                }
+
+                if (!dependencies.dependencies.isEmpty()) {
+                    b.statement(null, dependencies);
+                }
+
+                if (!targets.targets.isEmpty()) {
+                    b.statement(null, targets);
+                }
+            };
+        }
+
         public String getName() {
-            return blockSelector;
+            return name;
         }
 
         public boolean isDefaultTestSuite() {
             return isDefaultTestSuite;
-        }
-
-        private void configureShouldRunAfterTest() {
-            targets.add(new TargetBlock("all", builder));
         }
 
         @Override
@@ -1198,38 +1277,11 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(blockSelector, this);
-        }
-
-        @Override
-        public void writeBodyTo(PrettyPrinter printer) {
-            if (isDefaultTestSuite || !isDefaultFramework) {
-                printer.printStatement(frameworkSelector);
+            if (isDefaultTestSuite) {
+                printer.printStatement(builder.suiteConfiguration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+            } else {
+                printer.printStatement(builder.suiteRegistration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
             }
-            if (!dependencies.dependencies.isEmpty()) {
-                printer.printStatement(dependencies);
-            }
-            if (!targets.isEmpty()) {
-                printer.printStatementSeparator();
-                ScriptBlockImpl targetsBlock = new ScriptBlockImpl();
-                for (Statement target : targets) {
-                    targetsBlock.add(target);
-                }
-                printer.printBlock("targets", targetsBlock);
-            }
-        }
-
-        @Override
-        public List<Statement> getStatements() {
-            final List<Statement> statements = new ArrayList<>(2);
-            if (isDefaultTestSuite || !isDefaultFramework) {
-                statements.add(frameworkSelector);
-            }
-            if (!dependencies.dependencies.isEmpty()) {
-                statements.add(dependencies);
-            }
-            statements.addAll(targets);
-            return statements;
         }
 
         public enum Framework {
@@ -1237,11 +1289,11 @@ public class BuildScriptBuilder {
             JUNIT_PLATFORM(new MethodInvocationExpression("useJunitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
 
             final MethodInvocationExpression method;
-            final String defaultDependency;
+            final String implementationDependency;
 
-            Framework(MethodInvocationExpression method, String defaultDependency) {
+            Framework(MethodInvocationExpression method, String implementationDependency) {
                 this.method = method;
-                this.defaultDependency = defaultDependency;
+                this.implementationDependency = implementationDependency;
             }
 
             public static Framework getDefault() {
@@ -1250,14 +1302,13 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class TargetBlock extends BlockStatement implements BlockBody {
+    private static class TargetsBlock extends BlockStatement implements TargetsBuilder, BlockBody {
         private final BuildScriptBuilder builder;
-        private final MethodInvocation functionalTestConfiguration;
+        private final List<TargetSpec> targets = new ArrayList<>();
 
-        TargetBlock(String name, BuildScriptBuilder builder) {
-            super(name);
+        TargetsBlock(BuildScriptBuilder builder) {
+            super("targets");
             this.builder = builder;
-            functionalTestConfiguration = configureShouldRunAfterTest();
         }
 
         @Override
@@ -1272,19 +1323,67 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatement(functionalTestConfiguration);
-        }
-
-        private MethodInvocation configureShouldRunAfterTest() {
-            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
-            final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
-            final MethodInvocation functionalTestConfiguration = new MethodInvocation(null, new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
-            return functionalTestConfiguration;
+            if (!targets.isEmpty()) {
+                for (Statement target : targets) {
+                    printer.printStatement(target);
+                }
+            }
         }
 
         @Override
         public List<Statement> getStatements() {
-            return Collections.singletonList(functionalTestConfiguration);
+            return new ArrayList<>(targets);
+        }
+
+        @Override
+        public void all(boolean testTaskShouldRunAfter) {
+            targets.add(new TargetSpec(null, "all", builder, testTaskShouldRunAfter));
+        }
+    }
+
+    private static class TargetSpec extends BlockStatement implements BlockBody {
+        private final BuildScriptBuilder builder;
+        private final String name;
+        private final boolean testTaskShouldRunAfter;
+
+        TargetSpec(@Nullable String comment, String name, BuildScriptBuilder builder, boolean testTaskShouldRunAfter) {
+            super(comment);
+            this.builder = builder;
+            this.name = name;
+            this.testTaskShouldRunAfter = testTaskShouldRunAfter;
+
+            if (testTaskShouldRunAfter) {
+                configureShouldRunAfterTest();
+            }
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(name, this);
+        }
+
+        private void configureShouldRunAfterTest() {
+            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
+            final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
+            final MethodInvocation functionalTestConfiguration = new MethodInvocation(null, new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
+            add(functionalTestConfiguration);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            for (Statement statement : body.statements) {
+                printer.printStatement(statement);
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return body.statements;
         }
     }
 
@@ -1353,6 +1452,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void statement(@Nullable String comment, Statement statement) {
+            statements.add(statement);
+        }
+
+        @Override
         public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
             blockContentsBuilder.execute(block(comment, methodName));
         }
@@ -1412,7 +1516,7 @@ public class BuildScriptBuilder {
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
             if (builder.useTestSuites) {
-                for (SuiteBlock suite : builder.getSuites()) {
+                for (SuiteSpec suite : builder.getSuites()) {
                     if (!suite.isDefaultTestSuite()) {
                         addCheckDependsOn(suite);
                     }
@@ -1421,7 +1525,7 @@ public class BuildScriptBuilder {
             printer.printStatement(tasks);
         }
 
-        private void addCheckDependsOn(SuiteBlock suite) {
+        private void addCheckDependsOn(SuiteSpec suite) {
             final ExpressionValue testSuites = expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
             if (builder.dsl == BuildInitDsl.GROOVY) {
                 final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
@@ -1451,6 +1555,45 @@ public class BuildScriptBuilder {
                     comments.add(statement.getComment());
                 }
             }
+        }
+    }
+
+    private static class TaskConfiguration implements Statement, ExpressionValue {
+        final String taskName;
+        final String taskType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        TaskConfiguration(@Nullable String comment, String taskName, String taskType) {
+            this.comment = comment;
+            this.taskName = taskName;
+            this.taskType = taskType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.taskConfiguration(taskName, taskType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceTask(taskName);
         }
     }
 
@@ -1489,7 +1632,85 @@ public class BuildScriptBuilder {
 
         @Override
         public String with(Syntax syntax) {
-            return syntax.referenceRegisteredTask(taskName);
+            return syntax.referenceTask(taskName);
+        }
+    }
+
+    private static class SuiteConfiguration implements Statement, ExpressionValue {
+        final String suiteName;
+        final String suiteType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        SuiteConfiguration(@Nullable String comment, String suiteName, String suiteType) {
+            this.comment = comment;
+            this.suiteName = suiteName;
+            this.suiteType = suiteType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.suiteConfiguration(suiteName, suiteType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceSuite(suiteName);
+        }
+    }
+
+    private static class SuiteRegistration implements Statement, ExpressionValue {
+        final String suiteName;
+        final String suiteType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        SuiteRegistration(@Nullable String comment, String suiteName, String suiteType) {
+            this.comment = comment;
+            this.suiteName = suiteName;
+            this.suiteType = suiteType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.suiteRegistration(suiteName, suiteType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceSuite(suiteName);
         }
     }
 
@@ -1669,7 +1890,15 @@ public class BuildScriptBuilder {
 
         String taskRegistration(String taskName, String taskType);
 
-        String referenceRegisteredTask(String taskName);
+        String taskConfiguration(String taskName, String taskType);
+
+        String suiteRegistration(String taskName, String taskType);
+
+        String suiteConfiguration(String taskName, String taskType);
+
+        String referenceTask(String taskName);
+
+        String referenceSuite(String taskName);
 
         String mapLiteral(Map<String, ExpressionValue> map);
 
@@ -1787,8 +2016,28 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceRegisteredTask(String taskName) {
+        public String taskConfiguration(String taskName, String taskType) {
+            return "val " + taskName + " by tasks.getting(" + taskType + "::class)";
+        }
+
+        @Override
+        public String suiteRegistration(String suiteName, String suiteType) {
+            return "val " + suiteName + " by registering(" + suiteType + "::class)";
+        }
+
+        @Override
+        public String suiteConfiguration(String suiteName, String suiteType) {
+            return "val " + suiteName + " by getting(" + suiteType + "::class)";
+        }
+
+        @Override
+        public String referenceTask(String taskName) {
             return taskName;
+        }
+
+        @Override
+        public String referenceSuite(String suiteName) {
+            return suiteName;
         }
 
         @Override
@@ -1924,8 +2173,28 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceRegisteredTask(String taskName) {
+        public String taskConfiguration(String taskName, String taskType) {
+            return taskName;
+        }
+
+        @Override
+        public String suiteRegistration(String suiteName, String suiteType) {
+            return "register('" + suiteName + "', " + suiteType + ")";
+        }
+
+        @Override
+        public String suiteConfiguration(String suiteName, String suiteType) {
+            return suiteName;
+        }
+
+        @Override
+        public String referenceTask(String taskName) {
             return "tasks." + taskName;
+        }
+
+        @Override
+        public String referenceSuite(String suiteName) {
+            return suiteName;
         }
 
         @Override
