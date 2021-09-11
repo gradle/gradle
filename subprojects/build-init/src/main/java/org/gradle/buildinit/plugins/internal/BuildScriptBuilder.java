@@ -600,12 +600,10 @@ public class BuildScriptBuilder {
 
         @Override
         public String with(Syntax syntax) {
-            final StringBuilder sb = new StringBuilder("{")
-                .append(calls.stream()
-                    .map(call -> call.invocationExpression.with(syntax))
-                    .collect(Collectors.joining("\n", " ", " ")))
-                .append("}");
-            return sb.toString();
+            return "{" + calls.stream()
+                .map(call -> call.invocationExpression.with(syntax))
+                .collect(Collectors.joining("\n", " ", " ")) +
+                "}";
         }
     }
 
@@ -2002,7 +2000,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return "tasks." + selector.taskName;
+            return "tasks.named(\"" + selector.taskName + "\")";
         }
 
         @Override
@@ -2179,7 +2177,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String suiteRegistration(String suiteName, String suiteType) {
-            return "register('" + suiteName + "', " + suiteType + ")";
+            return suiteName;
         }
 
         @Override
