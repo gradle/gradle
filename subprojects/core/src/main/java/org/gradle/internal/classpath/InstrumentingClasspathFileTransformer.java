@@ -146,15 +146,19 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
 
     private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
         classpathWalker.visit(source, entry -> {
-            if (entry.getName().endsWith(".class")) {
-                ClassReader reader = new ClassReader(entry.getContent());
-                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
-                reader.accept(chain.right, 0);
-                byte[] bytes = classWriter.toByteArray();
-                builder.put(chain.left.getPathString(), bytes);
-            } else {
-                builder.put(entry.getName(), entry.getContent());
+            try {
+                if (entry.getName().endsWith(".class")) {
+                    ClassReader reader = new ClassReader(entry.getContent());
+                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
+                    reader.accept(chain.right, 0);
+                    byte[] bytes = classWriter.toByteArray();
+                    builder.put(chain.left.getPathString(), bytes);
+                } else {
+                    builder.put(entry.getName(), entry.getContent());
+                }
+            } catch (Throwable e) {
+                throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);
             }
         });
     }
