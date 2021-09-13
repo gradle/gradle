@@ -40,7 +40,7 @@ public interface FileWatcherUpdater {
     void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
-     * Trigger any armed watch probes.
+     * Trigger armed watch probe at given path.
      */
     void triggerWatchProbe(String path);
 
