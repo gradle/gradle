@@ -26,7 +26,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new NonHierarchicalFileWatcherUpdater(watcher, watchableHierarchies)
+        new NonHierarchicalFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies)
     }
 
     def "only watches directories in hierarchies to watch"() {
