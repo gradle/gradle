@@ -69,8 +69,24 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
 
+    void assertIntegrationTestsDidNotRun(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
+        try {
+            result.assertTestClassesExecuted(className)
+            Assert.fail("Expected to fail to find test class in executed results")
+        } catch (AssertionError e) {
+            ; // Pass
+        }
+    }
+
     void assertTestPassed(String className, String name) {
         def result = new DefaultTestExecutionResult(subprojectDir)
+        result.assertTestClassesExecuted(className)
+        result.testClass(className).assertTestPassed(name)
+    }
+
+    void assertIntegrationTestPassed(String className, String name) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }

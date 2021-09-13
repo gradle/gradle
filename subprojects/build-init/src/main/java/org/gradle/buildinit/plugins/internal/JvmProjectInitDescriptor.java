@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -140,12 +138,20 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         for (String subproject : settings.getSubprojects()) {
             List<String> sourceTemplates = new ArrayList<>();
             List<String> testSourceTemplates = new ArrayList<>();
+            List<String> integrationTestSourceTemplates = new ArrayList<>();
+
             sourceTemplates(subproject, settings, templateFactory, sourceTemplates);
             testSourceTemplates(subproject, settings, templateFactory, testSourceTemplates);
-            templateFactory.whenNoSourcesAvailable(subproject, Stream.concat(
-                sourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t))),
-                testSourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "test", subproject, templateLanguage(t)))
-            ).collect(Collectors.toList())).generate();
+            if (settings.getUseIncubatingAPIs()) {
+                integrationTestSourceTemplates(subproject, settings, templateFactory, integrationTestSourceTemplates);
+            }
+
+            List<TemplateOperation> templateOps = new ArrayList<>(sourceTemplates.size() + testSourceTemplates.size() + integrationTestSourceTemplates.size());
+            sourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t))).forEach(templateOps::add);
+            testSourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "test", subproject, templateLanguage(t))).forEach(templateOps::add);
+            integrationTestSourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "integrationTest", subproject, templateLanguage(t))).forEach(templateOps::add);
+
+            templateFactory.whenNoSourcesAvailable(subproject, templateOps).generate();
         }
     }
 
@@ -164,6 +170,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     protected abstract void sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
 
     protected abstract void testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
+
+    protected abstract void integrationTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
 
     protected void applyApplicationPlugin(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.plugin(
