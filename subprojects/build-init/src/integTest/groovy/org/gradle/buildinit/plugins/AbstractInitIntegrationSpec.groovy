@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assert
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
@@ -56,6 +57,16 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         super.useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         initializeIntoTestDir()
         assertNoDefinedBuild(targetDir)
+    }
+
+    void assertTestsDidNotRun(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir)
+        try {
+            result.assertTestClassesExecuted(className)
+            Assert.fail("Expected to fail to find test class in executed results")
+        } catch (AssertionError e) {
+            ; // Pass
+        }
     }
 
     void assertTestPassed(String className, String name) {

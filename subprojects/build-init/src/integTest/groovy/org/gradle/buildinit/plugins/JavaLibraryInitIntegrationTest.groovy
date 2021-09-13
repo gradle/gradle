@@ -46,16 +46,24 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     def "incubating option adds runnable test suites"() {
-        given:
-        def dslFixture = dslFixtureFor(scriptDsl)
-
         when:
         run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
 
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+
         then:
-        succeeds("test", "integrationTest")
-        dslFixture.assertContainsTestSuite("test")
-        dslFixture.assertContainsTestSuite("integrationTest")
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        succeeds('test')
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
+        if (scriptDsl == GROOVY) {
+            succeeds('clean', 'integrationTest')
+            assertTestsDidNotRun("some.thing.LibraryTest")
+        }
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
