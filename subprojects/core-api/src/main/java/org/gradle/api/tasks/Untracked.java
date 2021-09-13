@@ -32,10 +32,11 @@ import java.lang.annotation.Target;
  * <ul>
  *     <li>The location contains unreadable files like pipes where Gradle cannot track the content.</li>
  *     <li>Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.</li>
+ *     <li>Prevent Gradle from trying to snapshot a potentially large amount of content if an output location is not exclusively owned by the build.</li>
  * </ul>
  *
  * <p>If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
- * For example such a task will always be out of date and never from the build cache.
+ * For example, such a task will always be out of date and never from the build cache.
  *
  * <p>{@link org.gradle.work.InputChanges} cannot be used for a task which has untracked properties,
  * since incremental tasks need to understand their inputs and outputs for them to be correct.
