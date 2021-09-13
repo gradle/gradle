@@ -35,10 +35,30 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Groovy build scripts"() {
         when:
-        run ('init', '--type', 'java-library')
+        run (tasks)
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        tasks << [['init', '--type', 'java-library'],
+                  ['init', '--type', 'java-library', '--incubating']]
+    }
+
+    def "incubating option adds runnable test suites"() {
+        given:
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+
+        then:
+        succeeds("test", "integrationTest")
+        dslFixture.assertContainsTestSuite("test")
+        dslFixture.assertContainsTestSuite("integrationTest")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

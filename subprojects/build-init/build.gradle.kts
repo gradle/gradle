@@ -39,6 +39,9 @@ dependencies {
     testImplementation(testFixtures(project(":platform-native")))
 
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":platform-base"))
+    testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":plugins"))
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)

@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
@@ -104,6 +105,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
+            if (settings.getUseIncubatingAPIs()) {
+                addDefaultTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
+                addIntegrationTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
+            }
+
             addStandardDependencies(buildScriptBuilder, false);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }
@@ -173,6 +179,27 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private void addMavenCentral(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
+    }
+
+    private void addDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
+    }
+
+    private void addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        addTestSuite("integrationTest", buildScriptBuilder, testFramework);
+    }
+
+    private void addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        switch (testFramework) {
+            case JUNIT:
+                buildScriptBuilder.testing().junitSuite(name);
+                break;
+            case JUNIT_JUPITER:
+                buildScriptBuilder.testing().junitPlatformSuite(name);
+                break;
+            default:
+                throw new IllegalArgumentException(testFramework + " is not yet supported.");
+        }
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {

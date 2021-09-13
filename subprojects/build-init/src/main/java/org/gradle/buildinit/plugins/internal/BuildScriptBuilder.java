@@ -280,6 +280,13 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Allows test suites to be added to this script.
+     */
+    public TestingBuilder testing() {
+        return block.testing;
+    }
+
+    /**
      * Adds a top level method invocation statement.
      *
      * @return this
@@ -1205,12 +1212,12 @@ public class BuildScriptBuilder {
 
         @Override
         public void junitSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.Framework.JUNIT, builder));
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder));
         }
 
         @Override
         public void junitPlatformSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.Framework.JUNIT_PLATFORM, builder));
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
         }
     }
 
@@ -1218,7 +1225,7 @@ public class BuildScriptBuilder {
         private final BuildScriptBuilder builder;
 
         private final String name;
-        private final Framework framework;
+        private final TestSuiteFramework framework;
 
         private final DependenciesBlock dependencies = new DependenciesBlock();
         private final TargetsBlock targets;
@@ -1226,7 +1233,7 @@ public class BuildScriptBuilder {
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteSpec(@Nullable String comment, String name, Framework framework, BuildScriptBuilder builder) {
+        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, BuildScriptBuilder builder) {
             super(comment);
             this.builder = builder;
             this.framework = framework;
@@ -1234,7 +1241,7 @@ public class BuildScriptBuilder {
             targets = new TargetsBlock(builder);
 
             isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
-            isDefaultFramework = framework == Framework.getDefault();
+            isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
             if (isDefaultTestSuite) {
                 dependencies.dependency("implementation", null, framework.implementationDependency);
@@ -1282,19 +1289,19 @@ public class BuildScriptBuilder {
             }
         }
 
-        public enum Framework {
-            JUNIT(new MethodInvocationExpression("useJunit"), "junit:junit:4.13"),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJunitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
+        public enum TestSuiteFramework {
+            JUNIT(new MethodInvocationExpression("useJUnit"), "junit:junit:4.13"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
 
             final MethodInvocationExpression method;
             final String implementationDependency;
 
-            Framework(MethodInvocationExpression method, String implementationDependency) {
+            TestSuiteFramework(MethodInvocationExpression method, String implementationDependency) {
                 this.method = method;
                 this.implementationDependency = implementationDependency;
             }
 
-            public static Framework getDefault() {
+            public static TestSuiteFramework getDefault() {
                 return JUNIT_PLATFORM;
             }
         }
@@ -1496,28 +1503,18 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
-            if (builder.useTestSuites) {
-                plugins.add(new PluginSpec("java", null, null));
-            }
             printer.printStatement(plugins);
-            if (builder.useTestSuites) {
-                repositories.mavenCentral(null);
-            }
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
-            if (builder.useTestSuites) {
-                testing.junitPlatformSuite("test");
-                testing.junitPlatformSuite("integrationTest");
+            if (builder.useTestSuites && !builder.getSuites().isEmpty()) {
                 printer.printStatement(testing);
             }
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
-            if (builder.useTestSuites) {
-                for (SuiteSpec suite : builder.getSuites()) {
-                    if (!suite.isDefaultTestSuite()) {
-                        addCheckDependsOn(suite);
-                    }
+            for (SuiteSpec suite : testing.suites) {
+                if (!suite.isDefaultTestSuite()) {
+                    addCheckDependsOn(suite);
                 }
             }
             printer.printStatement(tasks);
