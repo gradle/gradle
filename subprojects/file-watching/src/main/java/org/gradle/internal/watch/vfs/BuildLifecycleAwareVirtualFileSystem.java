@@ -39,13 +39,13 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     boolean afterBuildStarted(WatchMode watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
 
     /**
-     * Register a watchable hierarchy with a given probe.
+     * Register a watchable hierarchy.
      *
      * Only locations within watchable hierarchies will be watched for changes.
      * This method is first called for the root directory of the root project.
      * It is also called for the root directories of included builds, and all other nested builds.
      */
-    void registerWatchableHierarchy(File rootDirectoryForWatching, File watchProbe);
+    void registerWatchableHierarchy(File rootDirectoryForWatching);
 
     /**
      * Called when the build is finished.

@@ -202,7 +202,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileWatcherProbeRegistry createFileWatcherProbeRegistry() {
-            return new DefaultFileWatcherProbeRegistry();
+            // TODO How can we avoid hard-coding ".gradle" here?
+            return new DefaultFileWatcherProbeRegistry(buildDir ->
+                new File(new File(buildDir, ".gradle"), "file-system.probe"));
         }
 
         WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
@@ -240,9 +242,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState -> {
                     File buildRootDir = buildState.getBuildRootDir();
-                    // TODO How can we avoid hard-coding ".gradle" here?
-                    File probeFile = new File(buildRootDir, ".gradle/file-system.probe");
-                    virtualFileSystem.registerWatchableHierarchy(buildRootDir, probeFile);
+                    virtualFileSystem.registerWatchableHierarchy(buildRootDir);
                 }
             );
             return virtualFileSystem;

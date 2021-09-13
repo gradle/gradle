@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry {
@@ -34,13 +35,20 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     private final Map<File, WatchProbe> watchProbesByHierarchy = new ConcurrentHashMap<>();
     private final Map<String, WatchProbe> watchProbesByPath = new ConcurrentHashMap<>();
 
+    private final Function<File, File> probeLocationResolver;
+
+    public DefaultFileWatcherProbeRegistry(Function<File, File> probeLocationResolver) {
+        this.probeLocationResolver = probeLocationResolver;
+    }
+
     @Override
-    public void registerProbe(File watchableHierarchy, File probeFile) {
+    public void registerProbe(File watchableHierarchy) {
         if (watchProbesByHierarchy.containsKey(watchableHierarchy)) {
             // Already registered
             return;
         }
         LOGGER.debug("Registering probe for {}", watchableHierarchy);
+        File probeFile = probeLocationResolver.apply(watchableHierarchy);
         WatchProbe watchProbe = new WatchProbe(watchableHierarchy, probeFile);
         watchProbesByHierarchy.put(watchableHierarchy, watchProbe);
         watchProbesByPath.put(probeFile.getAbsolutePath(), watchProbe);

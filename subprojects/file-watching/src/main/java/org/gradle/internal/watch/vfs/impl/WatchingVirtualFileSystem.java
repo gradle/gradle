@@ -46,8 +46,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
@@ -62,7 +62,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     /**
      * Watchable hierarchies registered before the {@link FileWatcherRegistry} has been started.
      */
-    private final Map<File, File> watchableHierarchiesRegisteredEarly = new LinkedHashMap<>();
+    private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
@@ -161,15 +161,15 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, File watchProbe) {
+    public void registerWatchableHierarchy(File watchableHierarchy) {
         rootReference.update(currentRoot -> {
             if (watchRegistry == null) {
-                watchableHierarchiesRegisteredEarly.put(watchableHierarchy, watchProbe);
+                watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
                 return currentRoot;
             }
             return withWatcherChangeErrorHandling(
                 currentRoot,
-                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, watchProbe, currentRoot)
+                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot)
             );
         });
     }
@@ -270,7 +270,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 }
             });
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode);
-            watchableHierarchiesRegisteredEarly.forEach((watchableHierarchy, probeFile) -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, probeFile, newRoot));
+            watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {

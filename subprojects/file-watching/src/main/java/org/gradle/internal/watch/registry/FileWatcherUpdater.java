@@ -28,9 +28,9 @@ public interface FileWatcherUpdater {
     /**
      * Registers a watchable hierarchy.
      *
-     * @see FileWatcherRegistry#registerWatchableHierarchy(File, File, SnapshotHierarchy)
+     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
 
     /**
      * Updates the watchers after changes to the root.

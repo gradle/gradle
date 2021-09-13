@@ -128,7 +128,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         def newWatcherProbe = new File(newWatchableHierarchy, ".gradle/watch-probe")
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy, watcherProbe)
+        watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy)
         then:
         0 * _
 
@@ -138,13 +138,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.updateVfsOnBuildStarted(_, _) >> rootReference.getRoot()
         1 * watcherRegistry.setDebugLoggingEnabled(false)
-        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, watcherProbe, _)
+        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy, anotherWatcherProbe)
+        watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, anotherWatcherProbe, _)
+        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
         watchingVirtualFileSystem.beforeBuildFinished(WatchMode.ENABLED, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
@@ -154,8 +154,8 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy, newWatcherProbe)
+        watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy)
         then:
-        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, newWatcherProbe, _)
+        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
     }
 }

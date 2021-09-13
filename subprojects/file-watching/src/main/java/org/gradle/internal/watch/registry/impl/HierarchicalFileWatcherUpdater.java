@@ -39,7 +39,7 @@ import java.util.Collection;
  * The build root directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watchable hierarchies:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
  *   directories inside them.

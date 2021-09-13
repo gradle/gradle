@@ -20,7 +20,7 @@ import java.io.File;
 import java.util.stream.Stream;
 
 public interface FileWatcherProbeRegistry {
-    void registerProbe(File hierarchy, File probe);
+    void registerProbe(File hierarchy);
 
     void unregisterProbe(File hierarchy);
 

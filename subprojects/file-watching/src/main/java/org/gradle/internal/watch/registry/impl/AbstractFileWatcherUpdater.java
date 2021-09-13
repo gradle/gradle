@@ -49,9 +49,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        probeRegistry.registerProbe(watchableHierarchy, probeFile);
+        probeRegistry.registerProbe(watchableHierarchy);
         updateWatchedHierarchies(root);
     }
 
