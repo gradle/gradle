@@ -313,6 +313,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         buildStarted()
         then:
         snapshotsAt(notWatchedHierarchy).empty
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
         0 * _
     }
 
