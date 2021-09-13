@@ -268,7 +268,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "unreadable #type not produced by task is ignored"() {
+    def "unreadable #type not produced by task causes a deprecation warning"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -280,27 +280,34 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from '${input.name}'
                 into '${outputDirectory.name}'
-                doNotTrackOutput()
             }
         """
 
         when:
-        succeeds 'copy', "--info"
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
+            "Copying to a directory which contains unreadable content has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Use the method Copy.doNotTrackOutput().")
+        succeeds "copy", "--info"
         then:
         outputDirectory.list().contains input.name
+        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
+        outputContains(expectedError(unreadableOutput))
 
         when:
-        succeeds 'copy'
+        buildFile << "copy.doNotTrackOutput()"
+        succeeds "copy"
         then:
-        executedAndNotSkipped(':copy')
+        executedAndNotSkipped(":copy")
         outputDirectory.list().contains input.name
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
-        type        | create
-        'file'      | { it.createFile() }
-        'directory' | { it.createDir() }
+        type        | create              | expectedError
+        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
+        'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
     }
 }

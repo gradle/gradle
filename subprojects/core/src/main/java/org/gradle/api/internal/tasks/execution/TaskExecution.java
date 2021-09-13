@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.internal.UncheckedException;
@@ -369,13 +370,24 @@ public class TaskExecution implements UnitOfWork {
             throw UncheckedException.throwAsUncheckedException(cause);
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
-        DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
-                propertyType, propertyName, getDisplayName()))
-            .withAdvice("Declare the property as untracked.")
-            .willBecomeAnErrorInGradle8()
-            // TODO: Document
-            .undocumented()
-            .nagUser();
+        boolean isDestinationOfCopy = propertyName.equals("destinationDir") && task instanceof Copy;
+        if (isDestinationOfCopy) {
+            DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
+                .withAdvice("Use the method Copy.doNotTrackOutput().")
+                .willBecomeAnErrorInGradle8()
+                // TODO: Document
+                .undocumented()
+                .nagUser();
+        } else {
+            DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
+                    propertyType, propertyName, getDisplayName()))
+                .withAdvice("Declare the property as untracked.")
+                .willBecomeAnErrorInGradle8()
+                // TODO: Document
+                .undocumented()
+                .nagUser();
+
+        }
     }
 
     @Override
