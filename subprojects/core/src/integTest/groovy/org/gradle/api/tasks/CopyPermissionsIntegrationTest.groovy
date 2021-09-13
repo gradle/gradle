@@ -310,4 +310,38 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
         'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
     }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Issue('https://github.com/gradle/gradle/issues/9576')
+    def "can copy into destination directory with unreadable file when using ignoreExistingContentInDestinationDir"() {
+        given:
+        def input = file("readableFile.txt").createFile()
+
+        def outputDirectory = file("output")
+        def unreadableOutput = file("${outputDirectory.name}/unreadableFile")
+        unreadableOutput.createFile().makeUnreadable()
+
+        buildFile << """
+            task copy(type: Copy) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+                ignoreExistingContentInDestinationDir()
+            }
+        """
+
+        when:
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        outputDirectory.list().contains input.name
+
+        when:
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        outputDirectory.list().contains input.name
+
+        cleanup:
+        unreadableOutput.makeReadable()
+    }
 }

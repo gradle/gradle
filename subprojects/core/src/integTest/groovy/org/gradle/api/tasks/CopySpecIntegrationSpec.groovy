@@ -245,7 +245,10 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         executedAndNotSkipped(":copy")
 
         when:
-        buildFile << "copy.ignoreExistingContentInDestinationDir()"
+        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
+            "Copying to a directory which contains unreadable content has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Use the method Copy.ignoreExistingContentInDestinationDir().")
         run "copy"
         then:
         outputDirectory.list().contains input.name
