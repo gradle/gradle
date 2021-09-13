@@ -276,6 +276,46 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
     }
 
+    def "watching continues when watched hierarchy is confirmed by watch probe"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def fileInWatchableHierarchy = watchableHierarchy.file("file.txt").createFile()
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        vfsHasSnapshotsAt(watchableHierarchy)
+        0 * _
+
+        when:
+        updater.triggerWatchProbe(watchProbeFor(watchableHierarchy).absolutePath)
+        buildStarted()
+        then:
+        vfsHasSnapshotsAt(watchableHierarchy)
+        0 * _
+    }
+
+    def "VFS is invalidated when watched hierarchy is not confirmed by watch probe"() {
+        def notWatchedHierarchy = file("not-watched").createDir()
+        def fileInWatchableHierarchy = notWatchedHierarchy.file("file.txt").createFile()
+
+        def watchableHierarchies = [notWatchedHierarchy]
+        when:
+        registerWatchableHierarchies(watchableHierarchies)
+        addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        vfsHasSnapshotsAt(notWatchedHierarchy)
+        0 * _
+
+        when:
+        buildStarted()
+        then:
+        snapshotsAt(notWatchedHierarchy).empty
+        0 * _
+    }
+
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
@@ -320,6 +360,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         List<?> actualSorted = (actual as List).toSorted()
         List<?> expectedSorted = (expected as List).toSorted()
         return actualSorted == expectedSorted
+    }
+
+    List<FileSystemLocationSnapshot> snapshotsAt(File location) {
+        virtualFileSystem.root.rootSnapshotsUnder(location.absolutePath).toList()
     }
 
     boolean vfsHasSnapshotsAt(File location) {

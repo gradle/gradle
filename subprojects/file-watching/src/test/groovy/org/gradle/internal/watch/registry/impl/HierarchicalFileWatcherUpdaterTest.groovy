@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.stream.Stream
 
-import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
+import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 

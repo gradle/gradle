@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -121,7 +122,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, WatchMode watchMode, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         SnapshotHierarchy newRoot;
         newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
@@ -168,7 +169,16 @@ public class WatchableHierarchies {
         return invalidatedRoot;
     }
 
-    public SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy newRoot = root;
+        newRoot = removeUnprovenHierarchies(invalidator, newRoot);
+        watchProbesByHierarchy.clear();
+        watchProbesByPath.clear();
+        return newRoot;
+    }
+
+    @Nonnull
+    private SnapshotHierarchy removeUnprovenHierarchies(Invalidator invalidator, SnapshotHierarchy root) {
         SnapshotHierarchy newRoot = root;
         for (WatchProbe watchProbe : watchProbesByHierarchy.values()) {
             if (watchProbe.leftArmed()) {
@@ -178,8 +188,6 @@ public class WatchableHierarchies {
                 }
             }
         }
-        watchProbesByHierarchy.clear();
-        watchProbesByPath.clear();
         return newRoot;
     }
 

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
@@ -48,15 +47,17 @@ import java.util.stream.Collectors;
 public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
+    private final FileWatcher fileWatcher;
     private final Multiset<String> watchedDirectories = HashMultiset.create();
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
-        super(fileWatcher, watchableHierarchies);
+        super(FileSystemLocationToWatchValidator.NO_VALIDATION, watchableHierarchies);
+        this.fileWatcher = fileWatcher;
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.stream()
@@ -75,12 +76,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
             });
+        if (changedWatchedDirectories.isEmpty()) {
+            return false;
+        }
         updateWatchedDirectories(changedWatchedDirectories);
-    }
-
-    @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, probeFile, root);
+        return true;
     }
 
     @Override
@@ -90,13 +90,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     @Override
     public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContent(
-            root,
-            watchMode,
-            hierarchy -> hasWatchableContent(hierarchy, root),
-            maximumNumberOfWatchedHierarchies,
-            createInvalidator()
-        );
+        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;
     }
@@ -112,20 +106,16 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    public Collection<File> getWatchedRoots() {
-        return watchableHierarchies.getRecentlyUsedHierarchies();
+    protected void startWatchingHierarchies(Collection<File> hierarchiesToWatch) {
+        // Do nothing, this is already handled via the invalidator
     }
 
-    private boolean hasWatchableContent(File location, SnapshotHierarchy root) {
-        return root.rootSnapshotsUnder(location.toString())
-            .anyMatch(snapshot -> snapshot.getType() != FileType.Missing
-                && !watchableHierarchies.ignoredForWatching(snapshot));
+    @Override
+    protected void stopWatchingHierarchies(Collection<File> hierarchiesToWatch) {
+        // Do nothing, this is already handled via the invalidator
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
-        if (changedWatchDirectories.isEmpty()) {
-            return;
-        }
         Set<File> directoriesToStopWatching = new HashSet<>();
         Set<File> directoriesToStartWatching = new HashSet<>();
         changedWatchDirectories.forEach((absolutePath, value) -> {
