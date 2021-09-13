@@ -37,7 +37,12 @@ class ScalaPluginTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder3 = new TestNameTestDirectoryProvider(getClass())
+
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
+    private final Project project3 = TestUtil.create(temporaryFolder3).rootProject()
+
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
     @Test void appliesTheJavaPluginToTheProject() {
@@ -128,9 +133,24 @@ class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List)) // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+    }
+
+    @Test void addsScalaDoc3TasksToTheProject() {
+        
+        scalaPlugin.apply(project3)
+        project3.repositories.mavenCentral()
+        project3.dependencies.add('implementation', 'org.scala-lang:scala3-library_3:3.0.2')
+
+        def task = project3.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
+        assertThat(task, instanceOf(ScalaDoc.class))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task.destinationDir, equalTo(project3.file("$project3.docsDir/scaladoc")))
+        assertThat(task.source as List, equalTo(project3.sourceSets.main.output as List)) // We take output of main (with tasty files)
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project3.layout.files(project3.sourceSets.main.output, project3.sourceSets.main.compileClasspath)))
+        assertThat(task.title, equalTo(project3.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
     @Test void configuresScalaDocTasksDefinedByTheBuildScript() {

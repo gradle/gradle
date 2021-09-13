@@ -83,4 +83,28 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         // Started Gradle worker daemon (0.399 secs) with fork options DaemonForkOptions{executable=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/bin/java, minHeapSize=null, maxHeapSize=234M, jvmArgs=[], keepAliveMode=DAEMON}.
         outputContains("maxHeapSize=234M")
     }
+
+    def "scaladoc uses scala3"() {
+        classes.baseline()
+        given:
+        buildFile << """
+plugins {
+    id 'scala'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.scala-lang:scala3-library_3:3.0.1'
+}
+
+"""
+        when:
+        succeeds scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc
+    }
 }
