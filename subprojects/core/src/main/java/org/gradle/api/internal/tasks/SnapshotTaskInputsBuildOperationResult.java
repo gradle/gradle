@@ -159,6 +159,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         @Override
         public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
             if (snapshot.getType() == FileType.Directory) {
+                if (propertyAttributes.contains(PropertyAttribute.DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES) && ((DirectorySnapshot) snapshot).getChildren().isEmpty()) {
+                    return SnapshotVisitResult.SKIP_SUBTREE;
+                }
                 return SnapshotVisitResult.CONTINUE;
             }
 

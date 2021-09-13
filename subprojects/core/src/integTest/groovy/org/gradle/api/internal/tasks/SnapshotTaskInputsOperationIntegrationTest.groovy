@@ -220,6 +220,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             dir("src/main/java") {
                 file("A.java") << "class A {}"
                 file("B.java") << "class B {}"
+                dir("emptydir")
                 dir("a") {
                     file("A.java") << "package a; class A {}"
                     dir("a") {
