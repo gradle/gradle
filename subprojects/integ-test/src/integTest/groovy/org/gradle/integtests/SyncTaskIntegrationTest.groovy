@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -400,6 +400,35 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         cleanup:
         ins.close()
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "sync emits a deprecation warning when the output contains unreadable files"() {
+        given:
+        def input = file("readableFile.txt").createFile()
+
+        def outputDirectory = file("output")
+        def unreadableOutput = file("${outputDirectory.name}/unreadableFile")
+        unreadableOutput.createFile().makeUnreadable()
+
+        buildFile << """
+            task sync(type: Sync) {
+                from '${input.name}'
+                into '${outputDirectory.name}'
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
+            "Syncing to a directory which contains unreadable content has been deprecated. " +
+            "This will fail with an error in Gradle 8.0. " +
+            "Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.")
+        run "sync", "--info"
+        then:
+        outputDirectory.list().contains input.name
+        outputContains("Cannot access output property 'destinationDir' of task ':sync'")
+        executedAndNotSkipped(":sync")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")

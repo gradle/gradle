@@ -46,6 +46,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
+import org.gradle.api.tasks.Sync;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -370,10 +371,17 @@ public class TaskExecution implements UnitOfWork {
             throw UncheckedException.throwAsUncheckedException(cause);
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
-        boolean isDestinationOfCopy = propertyName.equals("destinationDir") && task instanceof Copy;
-        if (isDestinationOfCopy) {
+        boolean isDestinationDir = propertyName.equals("destinationDir");
+        if (isDestinationDir && task instanceof Copy) {
             DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
                 .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().")
+                .willBecomeAnErrorInGradle8()
+                // TODO: Document
+                .undocumented()
+                .nagUser();
+        } else if (isDestinationDir && task instanceof Sync) {
+            DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
+                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.")
                 .willBecomeAnErrorInGradle8()
                 // TODO: Document
                 .undocumented()
