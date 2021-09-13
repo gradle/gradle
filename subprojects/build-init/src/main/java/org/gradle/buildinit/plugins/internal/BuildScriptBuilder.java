@@ -87,6 +87,14 @@ public class BuildScriptBuilder {
         return this;
     }
 
+    public boolean isUsingIncubatingAPIs() {
+        return useIncubatingAPIs;
+    }
+
+    public boolean isUsingTestSuites() {
+        return useTestSuites;
+    }
+
     public String getFileNameWithoutExtension() {
         return fileNameWithoutExtension;
     }
