@@ -113,8 +113,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     @Override
     protected void startWatchingHierarchies(Collection<File> hierarchiesToWatch) {
         // Make sure probe directories are watched
+        //noinspection ResultOfMethodCallIgnored
         updateWatchedDirectories(hierarchiesToWatch.stream()
             .map(probeRegistry::getProbeDirectory)
+            // Make sure the directory exists, this can be necessary when
+            // included builds are evaluated with configuration cache
+            .peek(File::mkdirs)
             .collect(Collectors.toMap(File::getAbsolutePath, probeDirectory -> 1))
         );
     }
