@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -47,5 +48,10 @@ public class CachingFileSystemLocationSnapshotHasher implements FileSystemLocati
     @Override
     public HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException {
         return resourceSnapshotterCacheService.hashFile(snapshot, delegate, delegateConfigurationHash);
+    }
+
+    @Override
+    public LineEndingSensitivity getLineEndingSensitivity() {
+        return LineEndingSensitivity.DEFAULT;
     }
 }

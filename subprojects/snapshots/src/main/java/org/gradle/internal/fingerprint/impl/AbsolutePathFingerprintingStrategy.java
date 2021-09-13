@@ -43,7 +43,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
     public AbsolutePathFingerprintingStrategy(DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(IDENTIFIER, directorySensitivity, normalizedContentHasher);
+        super(IDENTIFIER, directorySensitivity, normalizedContentHasher.getLineEndingSensitivity(), normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 

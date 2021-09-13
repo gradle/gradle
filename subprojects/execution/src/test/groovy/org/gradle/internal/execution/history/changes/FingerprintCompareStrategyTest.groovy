@@ -21,8 +21,10 @@ import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
+import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -275,7 +277,7 @@ class FingerprintCompareStrategyTest extends Specification {
             ]
             getRootHashes() >> ImmutableMultimap.of('/dir', HashCode.fromInt(456))
         }
-        def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test")
+        def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test", DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT)
         expect:
         changes(strategy, emptyFingerprint, fingerprint).toList() == [
             DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
@@ -292,7 +294,7 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def "comparing empty fingerprints produces empty (strategy: #strategy)"() {
         expect:
-        changes(strategy, new EmptyCurrentFileCollectionFingerprint("test"), new EmptyCurrentFileCollectionFingerprint("test"),).empty
+        changes(strategy, new EmptyCurrentFileCollectionFingerprint("test", DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT), new EmptyCurrentFileCollectionFingerprint("test", DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT),).empty
 
         where:
         strategy << ALL_STRATEGIES

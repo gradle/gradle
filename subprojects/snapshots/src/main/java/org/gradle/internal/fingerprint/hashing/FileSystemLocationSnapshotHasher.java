@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.hashing;
 
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -30,11 +31,18 @@ public interface FileSystemLocationSnapshotHasher extends ConfigurableNormalizer
     @Nullable
     HashCode hash(FileSystemLocationSnapshot snapshot) throws IOException;
 
+    LineEndingSensitivity getLineEndingSensitivity();
+
     FileSystemLocationSnapshotHasher DEFAULT = new FileSystemLocationSnapshotHasher() {
         @Nullable
         @Override
         public HashCode hash(FileSystemLocationSnapshot snapshot) {
             return snapshot.getHash();
+        }
+
+        @Override
+        public LineEndingSensitivity getLineEndingSensitivity() {
+            return LineEndingSensitivity.DEFAULT;
         }
 
         @Override

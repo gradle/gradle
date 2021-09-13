@@ -56,6 +56,11 @@ public class LineEndingNormalizingResourceHasher implements ResourceHasher {
     }
 
     @Override
+    public LineEndingSensitivity lineEndingSensitivity() {
+        return LineEndingSensitivity.NORMALIZE_LINE_ENDINGS;
+    }
+
+    @Override
     public void appendConfigurationToHasher(Hasher hasher) {
         delegate.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());

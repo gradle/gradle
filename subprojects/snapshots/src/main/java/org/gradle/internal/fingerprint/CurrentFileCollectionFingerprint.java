@@ -38,6 +38,10 @@ public interface CurrentFileCollectionFingerprint extends FileCollectionFingerpr
      */
     String getStrategyIdentifier();
 
+    DirectorySensitivity getStrategyDirectorySensitivity();
+
+    LineEndingSensitivity getStrategyLineEndingSensitivity();
+
     /**
      * Returns the snapshot used to capture these fingerprints.
      */

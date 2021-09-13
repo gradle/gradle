@@ -19,10 +19,12 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -40,9 +42,11 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final FileSystemSnapshot roots;
     private final ImmutableMultimap<String, HashCode> rootHashes;
     private final HashCode strategyConfigurationHash;
+    private final DirectorySensitivity directorySensitivity;
+    private final LineEndingSensitivity lineEndingSensitivity;
     private HashCode hash;
 
-    public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable  FileCollectionFingerprint candidate) {
+    public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable FileCollectionFingerprint candidate) {
         if (roots == FileSystemSnapshot.EMPTY) {
             return strategy.getEmptyFingerprint();
         }
@@ -76,6 +80,8 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     ) {
         this.fingerprints = fingerprints;
         this.identifier = strategy.getIdentifier();
+        this.directorySensitivity = strategy.getDirectorySensitivity();
+        this.lineEndingSensitivity = strategy.getLineEndingSensitivity();
         this.hashingStrategy = strategy.getHashingStrategy();
         this.strategyConfigurationHash = strategy.getConfigurationHash();
         this.roots = roots;
@@ -116,6 +122,16 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     @Override
     public String getStrategyIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public DirectorySensitivity getStrategyDirectorySensitivity() {
+        return directorySensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getStrategyLineEndingSensitivity() {
+        return lineEndingSensitivity;
     }
 
     @Override

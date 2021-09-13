@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
@@ -34,16 +35,19 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
     private final DirectorySensitivity directorySensitivity;
+    private final LineEndingSensitivity lineEndingSensitivity;
     private final HashCode configurationHash;
 
     public AbstractFingerprintingStrategy(
         String identifier,
         DirectorySensitivity directorySensitivity,
+        LineEndingSensitivity lineEndingSensitivity,
         ConfigurableNormalizer contentNormalizer
     ) {
         this.identifier = identifier;
-        this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
         this.directorySensitivity = directorySensitivity;
+        this.lineEndingSensitivity = lineEndingSensitivity;
+        this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier, directorySensitivity, lineEndingSensitivity);
         Hasher hasher = Hashing.newHasher();
         hasher.putString(getClass().getName());
         contentNormalizer.appendConfigurationToHasher(hasher);
@@ -53,6 +57,16 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
     @Override
     public String getIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public DirectorySensitivity getDirectorySensitivity() {
+        return directorySensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getLineEndingSensitivity() {
+        return lineEndingSensitivity;
     }
 
     @Override
@@ -73,10 +87,6 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
 
     private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
         return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
-    }
-
-    protected DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
     }
 
     @Override

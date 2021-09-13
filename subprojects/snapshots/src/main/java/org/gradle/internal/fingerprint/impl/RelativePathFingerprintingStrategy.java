@@ -45,7 +45,7 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
     public RelativePathFingerprintingStrategy(Interner<String> stringInterner, DirectorySensitivity directorySensitivity, FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(IDENTIFIER, directorySensitivity, normalizedContentHasher);
+        super(IDENTIFIER, directorySensitivity, normalizedContentHasher.getLineEndingSensitivity(), normalizedContentHasher);
         this.stringInterner = stringInterner;
         this.normalizedContentHasher = normalizedContentHasher;
     }

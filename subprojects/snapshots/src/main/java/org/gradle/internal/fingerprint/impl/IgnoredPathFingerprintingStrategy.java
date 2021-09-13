@@ -45,7 +45,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     private final FileSystemLocationSnapshotHasher normalizedContentHasher;
 
     public IgnoredPathFingerprintingStrategy(FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(IDENTIFIER, DirectorySensitivity.DEFAULT, normalizedContentHasher);
+        super(IDENTIFIER, DirectorySensitivity.DEFAULT, normalizedContentHasher.getLineEndingSensitivity(), normalizedContentHasher);
         this.normalizedContentHasher = normalizedContentHasher;
     }
 

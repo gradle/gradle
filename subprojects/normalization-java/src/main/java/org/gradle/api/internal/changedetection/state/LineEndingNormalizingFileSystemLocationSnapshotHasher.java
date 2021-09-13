@@ -68,6 +68,11 @@ public class LineEndingNormalizingFileSystemLocationSnapshotHasher implements Fi
             .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshot)));
     }
 
+    @Override
+    public LineEndingSensitivity getLineEndingSensitivity() {
+        return LineEndingSensitivity.NORMALIZE_LINE_ENDINGS;
+    }
+
     private Optional<HashCode> hashContent(FileSystemLocationSnapshot snapshot) throws IOException {
         return snapshot.getType() == FileType.RegularFile ? hasher.hashContent(new File(snapshot.getAbsolutePath())) : Optional.empty();
     }

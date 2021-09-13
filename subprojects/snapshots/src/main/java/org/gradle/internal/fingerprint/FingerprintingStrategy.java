@@ -47,6 +47,16 @@ public interface FingerprintingStrategy {
      */
     String getIdentifier();
 
+    /**
+     * UsedByScansPlugin
+     */
+    DirectorySensitivity getDirectorySensitivity();
+
+    /**
+     * UsedByScansPlugin
+     */
+    LineEndingSensitivity getLineEndingSensitivity();
+
     CurrentFileCollectionFingerprint getEmptyFingerprint();
 
     String normalizePath(FileSystemLocationSnapshot snapshot);

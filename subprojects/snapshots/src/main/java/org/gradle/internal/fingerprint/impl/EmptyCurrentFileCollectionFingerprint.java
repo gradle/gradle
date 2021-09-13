@@ -18,9 +18,11 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -33,9 +35,13 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     private static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
 
     private final String identifier;
+    private final DirectorySensitivity directorySensitivity;
+    private final LineEndingSensitivity lineEndingSensitivity;
 
-    public EmptyCurrentFileCollectionFingerprint(String identifier) {
+    public EmptyCurrentFileCollectionFingerprint(String identifier, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity) {
         this.identifier = identifier;
+        this.directorySensitivity = directorySensitivity;
+        this.lineEndingSensitivity = lineEndingSensitivity;
     }
 
     @Override
@@ -71,6 +77,16 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     @Override
     public String getStrategyIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public DirectorySensitivity getStrategyDirectorySensitivity() {
+        return directorySensitivity;
+    }
+
+    @Override
+    public LineEndingSensitivity getStrategyLineEndingSensitivity() {
+        return lineEndingSensitivity;
     }
 
     @Override

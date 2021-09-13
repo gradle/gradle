@@ -161,6 +161,8 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
              */
             String getPropertyNormalizationStrategyName();
 
+            Set<String> getPropertyAttributes();
+
             String getPath();
 
             String getName();

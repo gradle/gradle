@@ -28,7 +28,9 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinished
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -48,7 +50,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -94,6 +98,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         String propertyName;
         HashCode propertyHash;
         String propertyNormalizationStrategyIdentifier;
+        Set<PropertyAttribute> propertyAttributes;
         String name;
         String path;
         HashCode hash;
@@ -116,6 +121,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         @Override
         public String getPropertyNormalizationStrategyName() {
             return propertyNormalizationStrategyIdentifier;
+        }
+
+        @Override
+        public Set<String> getPropertyAttributes() {
+            return propertyAttributes.stream().map(Enum::name).collect(Collectors.toSet());
         }
 
         @Override
@@ -196,6 +206,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                     state.propertyName = entry.getKey();
                     state.propertyHash = fingerprint.getHash();
                     state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                    Set<PropertyAttribute> propertyAttributes = new TreeSet<>();
+                    propertyAttributes.add(PropertyAttribute.fromFingerprintingStrategy(fingerprint.getStrategyIdentifier()));
+                    propertyAttributes.add(PropertyAttribute.fromDirectorySensitivity(fingerprint.getStrategyDirectorySensitivity()));
+                    propertyAttributes.add(PropertyAttribute.fromLineEndingSensitivity(fingerprint.getStrategyLineEndingSensitivity()));
+                    state.propertyAttributes = propertyAttributes;
                     state.fingerprints = fingerprint.getFingerprints();
 
                     visitor.preProperty(state);
@@ -448,5 +463,34 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             enabled -> Optional.of(enabled.getKey()),
             CachingState.Disabled::getKey
         );
+    }
+
+    enum PropertyAttribute {
+
+        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
+        FINGERPRINTING_STRATEGY_NAME_ONLY,
+        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
+        FINGERPRINTING_STRATEGY_IGNORED_PATH,
+        FINGERPRINTING_STRATEGY_CLASSPATH,
+        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
+
+        DIRECTORY_SENSITIVITY_DEFAULT,
+        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
+
+        LINE_ENDING_SENSITIVITY_DEFAULT,
+        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
+
+        static PropertyAttribute fromFingerprintingStrategy(String fingerprintingStrategy) {
+            return PropertyAttribute.valueOf("FINGERPRINTING_STRATEGY_" + fingerprintingStrategy);
+        }
+
+        static PropertyAttribute fromDirectorySensitivity(DirectorySensitivity directorySensitivity) {
+            return PropertyAttribute.valueOf("DIRECTORY_SENSITIVITY_" + directorySensitivity.name());
+        }
+
+        static PropertyAttribute fromLineEndingSensitivity(LineEndingSensitivity lineEndingSensitivity) {
+            return PropertyAttribute.valueOf("LINE_ENDING_SENSITIVITY_" + lineEndingSensitivity);
+        }
+
     }
 }
