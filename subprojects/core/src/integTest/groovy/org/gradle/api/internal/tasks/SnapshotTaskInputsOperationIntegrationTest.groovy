@@ -259,23 +259,31 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             hash != null
             roots.empty
             normalization == "COMPILE_CLASSPATH"
+            directorySensitivity == "DEFAULT"
+            lineEndingSensitivity == "DEFAULT"
         }
 
         with(aCompileJava["options.sourcepath"] as Map<String, ?>) {
             hash != null
             roots.empty
             normalization == "RELATIVE_PATH"
+            directorySensitivity == "IGNORE_DIRECTORIES"
+            lineEndingSensitivity == "DEFAULT"
         }
 
         with(aCompileJava["options.annotationProcessorPath"] as Map<String, ?>) {
             hash != null
             roots.empty
             normalization == "CLASSPATH"
+            directorySensitivity == "DEFAULT"
+            lineEndingSensitivity == "DEFAULT"
         }
 
         with(aCompileJava.stableSources) {
             hash != null
             normalization == "RELATIVE_PATH"
+            directorySensitivity == "IGNORE_DIRECTORIES"
+            lineEndingSensitivity == "DEFAULT"
             roots.size() == 1
             with(roots[0]) {
                 path == file("a/src/main/java").absolutePath

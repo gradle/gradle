@@ -342,11 +342,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             class Property {
                 private final String hash;
                 private final String normalization;
+                private final String directorySensitivity;
+                private final String lineEndingSensitivity;
                 private final List<Entry> roots = new ArrayList<>();
 
-                public Property(String hash, String normalization) {
+                public Property(String hash, String normalization, String directorySensitivity, String lineEndingSensitivity) {
                     this.hash = hash;
                     this.normalization = normalization;
+                    this.directorySensitivity = directorySensitivity;
+                    this.lineEndingSensitivity = lineEndingSensitivity;
                 }
 
                 public String getHash() {
@@ -355,6 +359,14 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
                 public String getNormalization() {
                     return normalization;
+                }
+
+                public String getDirectorySensitivity() {
+                    return directorySensitivity;
+                }
+
+                public String getLineEndingSensitivity() {
+                    return lineEndingSensitivity;
                 }
 
                 public Collection<Entry> getRoots() {
@@ -402,8 +414,19 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             @Override
             public void preProperty(VisitState state) {
-                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName());
+                property = new Property(
+                    HashCode.fromBytes(state.getPropertyHashBytes()).toString(),
+                    getAttributeMatching(state.getPropertyAttributes(), "FINGERPRINTING_STRATEGY_"),
+                    getAttributeMatching(state.getPropertyAttributes(), "DIRECTORY_SENSITIVITY_"),
+                    getAttributeMatching(state.getPropertyAttributes(), "LINE_ENDING_SENSITIVITY_")
+                );
                 fileProperties.put(state.getPropertyName(), property);
+            }
+
+            private String getAttributeMatching(Set<String> propertyAttributes, String prefix) {
+                return propertyAttributes.stream()
+                    .filter(s -> s.startsWith(prefix)).findFirst().map(s -> s.substring(prefix.length()))
+                    .orElseThrow(() -> new IllegalStateException("Missing attribute starting with prefix " + prefix));
             }
 
             @Override
