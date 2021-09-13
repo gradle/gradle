@@ -75,6 +75,39 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         this.cachingState = cachingState;
     }
 
+    private static final String FINGERPRINTING_STRATEGY_PREFIX = "FINGERPRINTING_STRATEGY_";
+    private static final String DIRECTORY_SENSITIVITY_PREFIX = "DIRECTORY_SENSITIVITY_";
+    private static final String LINE_ENDING_SENSITIVITY_PREFIX = "LINE_ENDING_SENSITIVITY_";
+
+    enum PropertyAttribute {
+
+        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
+        FINGERPRINTING_STRATEGY_NAME_ONLY,
+        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
+        FINGERPRINTING_STRATEGY_IGNORED_PATH,
+        FINGERPRINTING_STRATEGY_CLASSPATH,
+        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
+
+        DIRECTORY_SENSITIVITY_DEFAULT,
+        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
+
+        LINE_ENDING_SENSITIVITY_DEFAULT,
+        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
+
+        static PropertyAttribute fromFingerprintingStrategy(String fingerprintingStrategy) {
+            return PropertyAttribute.valueOf(FINGERPRINTING_STRATEGY_PREFIX + fingerprintingStrategy);
+        }
+
+        static PropertyAttribute fromDirectorySensitivity(DirectorySensitivity directorySensitivity) {
+            return PropertyAttribute.valueOf(DIRECTORY_SENSITIVITY_PREFIX + directorySensitivity.name());
+        }
+
+        static PropertyAttribute fromLineEndingSensitivity(LineEndingSensitivity lineEndingSensitivity) {
+            return PropertyAttribute.valueOf(LINE_ENDING_SENSITIVITY_PREFIX + lineEndingSensitivity.name());
+        }
+
+    }
+
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
         return getBeforeExecutionState()
@@ -416,9 +449,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             public void preProperty(VisitState state) {
                 property = new Property(
                     HashCode.fromBytes(state.getPropertyHashBytes()).toString(),
-                    getAttributeMatching(state.getPropertyAttributes(), "FINGERPRINTING_STRATEGY_"),
-                    getAttributeMatching(state.getPropertyAttributes(), "DIRECTORY_SENSITIVITY_"),
-                    getAttributeMatching(state.getPropertyAttributes(), "LINE_ENDING_SENSITIVITY_")
+                    getAttributeMatching(state.getPropertyAttributes(), FINGERPRINTING_STRATEGY_PREFIX),
+                    getAttributeMatching(state.getPropertyAttributes(), DIRECTORY_SENSITIVITY_PREFIX),
+                    getAttributeMatching(state.getPropertyAttributes(), LINE_ENDING_SENSITIVITY_PREFIX)
                 );
                 fileProperties.put(state.getPropertyName(), property);
             }
@@ -491,32 +524,4 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         );
     }
 
-    enum PropertyAttribute {
-
-        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
-        FINGERPRINTING_STRATEGY_NAME_ONLY,
-        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
-        FINGERPRINTING_STRATEGY_IGNORED_PATH,
-        FINGERPRINTING_STRATEGY_CLASSPATH,
-        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
-
-        DIRECTORY_SENSITIVITY_DEFAULT,
-        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
-
-        LINE_ENDING_SENSITIVITY_DEFAULT,
-        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
-
-        static PropertyAttribute fromFingerprintingStrategy(String fingerprintingStrategy) {
-            return PropertyAttribute.valueOf("FINGERPRINTING_STRATEGY_" + fingerprintingStrategy);
-        }
-
-        static PropertyAttribute fromDirectorySensitivity(DirectorySensitivity directorySensitivity) {
-            return PropertyAttribute.valueOf("DIRECTORY_SENSITIVITY_" + directorySensitivity.name());
-        }
-
-        static PropertyAttribute fromLineEndingSensitivity(LineEndingSensitivity lineEndingSensitivity) {
-            return PropertyAttribute.valueOf("LINE_ENDING_SENSITIVITY_" + lineEndingSensitivity);
-        }
-
-    }
 }
