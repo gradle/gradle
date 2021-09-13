@@ -19,6 +19,7 @@ package org.gradle.internal.watch.registry.impl;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import java.io.File;
@@ -54,10 +55,10 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     public HierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
         FileSystemLocationToWatchValidator locationToWatchValidator,
-        WatchableHierarchies watchableHierarchies,
+        FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
         MovedHierarchyHandler movedHierarchyHandler
     ) {
-        super(locationToWatchValidator, watchableHierarchies);
+        super(locationToWatchValidator, probeRegistry, watchableHierarchies);
         this.fileWatcher = fileWatcher;
         this.movedHierarchyHandler = movedHierarchyHandler;
     }

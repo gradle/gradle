@@ -18,6 +18,7 @@ package org.gradle.internal.watch.registry.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
@@ -33,20 +34,24 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
+    private final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
     protected WatchedHierarchies watchedHierarchies = WatchedHierarchies.EMPTY;
 
     public AbstractFileWatcherUpdater(
         FileSystemLocationToWatchValidator locationToWatchValidator,
+        FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
         this.locationToWatchValidator = locationToWatchValidator;
+        this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
     }
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, File probeFile, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, probeFile, root);
+        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+        probeRegistry.registerProbe(watchableHierarchy, probeFile);
         updateWatchedHierarchies(root);
     }
 
@@ -98,7 +103,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void triggerWatchProbe(String path) {
-        watchableHierarchies.triggerWatchProbe(path);
+        probeRegistry.triggerWatchProbe(path);
     }
 
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
@@ -119,12 +124,13 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             return;
         }
         if (!hierarchiesToStopWatching.isEmpty()) {
+            hierarchiesToStopWatching.forEach(probeRegistry::disarmWatchProbe);
             stopWatchingHierarchies(hierarchiesToStopWatching);
         }
         if (!hierarchiesToStartWatching.isEmpty()) {
             hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
-            hierarchiesToStartWatching.forEach(watchableHierarchies::armWatchProbe);
             startWatchingHierarchies(hierarchiesToStartWatching);
+            hierarchiesToStartWatching.forEach(probeRegistry::armWatchProbe);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchedRoots.size());
     }

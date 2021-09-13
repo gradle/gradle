@@ -30,6 +30,7 @@ import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisit
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.WatchingNotSupportedException;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
@@ -51,8 +52,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     private final Multiset<String> watchedDirectories = HashMultiset.create();
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
 
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, WatchableHierarchies watchableHierarchies) {
-        super(FileSystemLocationToWatchValidator.NO_VALIDATION, watchableHierarchies);
+    public NonHierarchicalFileWatcherUpdater(
+        FileWatcher fileWatcher,
+        FileWatcherProbeRegistry probeRegistry,
+        WatchableHierarchies watchableHierarchies
+    ) {
+        super(FileSystemLocationToWatchValidator.NO_VALIDATION, probeRegistry, watchableHierarchies);
         this.fileWatcher = fileWatcher;
     }
 

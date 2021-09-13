@@ -34,7 +34,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchableHierarchies, { SnapshotHierarchy root ->
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, probeRegistry, watchableHierarchies, { SnapshotHierarchy root ->
             movedPaths.forEach { movedPath ->
                 root = root.invalidate(movedPath.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP)
             }
