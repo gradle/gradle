@@ -31,4 +31,6 @@ public interface FileWatcherProbeRegistry {
     void disarmWatchProbe(File watchableHierarchy);
 
     void triggerWatchProbe(String path);
+
+    File getProbeDirectory(File hierarchy);
 }

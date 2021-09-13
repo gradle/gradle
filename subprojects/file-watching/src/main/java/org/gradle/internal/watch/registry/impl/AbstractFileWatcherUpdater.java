@@ -34,7 +34,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
-    private final FileWatcherProbeRegistry probeRegistry;
+    protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
     protected WatchedHierarchies watchedHierarchies = WatchedHierarchies.EMPTY;
 

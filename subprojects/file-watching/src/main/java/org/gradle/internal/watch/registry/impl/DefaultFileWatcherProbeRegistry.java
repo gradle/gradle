@@ -109,6 +109,15 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         }
     }
 
+    @Override
+    public File getProbeDirectory(File hierarchy) {
+        WatchProbe watchProbe = watchProbesByHierarchy.get(hierarchy);
+        if (watchProbe == null) {
+            throw new IllegalStateException("Cannot find probe for hierarchy: " + hierarchy);
+        }
+        return watchProbe.getProbeFile().getParentFile();
+    }
+
     private static class WatchProbe {
         public enum State {
             /**
@@ -182,6 +191,10 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
 
         public synchronized boolean leftArmed() {
             return state == State.ARMED;
+        }
+
+        public File getProbeFile() {
+            return probeFile;
         }
 
         public File getWatchableHierarchy() {

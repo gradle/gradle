@@ -58,7 +58,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def ignoredForWatching = [] as Set<String>
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
-    def probeLocationResolver = { hierarchy -> new File(hierarchy, ".probe") } as Function<File, File>
+    def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
     def probeRegistry = new DefaultFileWatcherProbeRegistry(probeLocationResolver)
     def watchableHiearchies = new WatchableHierarchies(probeRegistry, watchableFileSystemDetector, watchFilter)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
@@ -78,6 +78,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def setup() {
         updater = createUpdater(watcher, watchableHiearchies)
     }
+
+    abstract int getIfNonHierarchical()
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher, WatchableHierarchies watchableHierarchies)
 
@@ -270,6 +272,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         then:
         vfsHasSnapshotsAt(unwatchableContent)
         1 * watcher.startWatching({ equalIgnoringOrder(it, [unsupportedFileSystemMountPoint]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(unsupportedFileSystemMountPoint)]) })
         0 * _
 
         when:
@@ -288,6 +291,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
         vfsHasSnapshotsAt(watchableHierarchy)
         0 * _
 
@@ -309,6 +313,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
         vfsHasSnapshotsAt(notWatchedHierarchy)
         0 * _
 
@@ -317,6 +322,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         then:
         snapshotsAt(notWatchedHierarchy).empty
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
         0 * _
     }
 

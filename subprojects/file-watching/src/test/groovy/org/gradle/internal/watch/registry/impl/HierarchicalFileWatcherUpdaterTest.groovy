@@ -42,6 +42,9 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         })
     }
 
+    @Override
+    int getIfNonHierarchical() { 0 }
+
     def "does not watch hierarchy to watch if no snapshot is inside"() {
         def watchableHierarchy = file("watchable").createDir()
         def secondWatchableHierarchy = file("watchable2").createDir()

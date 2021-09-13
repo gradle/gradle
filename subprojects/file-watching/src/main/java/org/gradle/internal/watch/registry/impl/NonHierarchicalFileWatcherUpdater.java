@@ -112,12 +112,20 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     @Override
     protected void startWatchingHierarchies(Collection<File> hierarchiesToWatch) {
-        // Do nothing, this is already handled via the invalidator
+        // Make sure probe directories are watched
+        updateWatchedDirectories(hierarchiesToWatch.stream()
+            .map(probeRegistry::getProbeDirectory)
+            .collect(Collectors.toMap(File::getAbsolutePath, probeDirectory -> 1))
+        );
     }
 
     @Override
     protected void stopWatchingHierarchies(Collection<File> hierarchiesToWatch) {
-        // Do nothing, this is already handled via the invalidator
+        // Make sure probe directories are not watched anymore
+        updateWatchedDirectories(hierarchiesToWatch.stream()
+            .map(probeRegistry::getProbeDirectory)
+            .collect(Collectors.toMap(File::getAbsolutePath, probeDirectory -> -1))
+        );
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
