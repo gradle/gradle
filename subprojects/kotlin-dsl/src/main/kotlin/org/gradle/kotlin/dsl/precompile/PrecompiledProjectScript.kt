@@ -16,9 +16,12 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.api.tasks.WorkResult
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec

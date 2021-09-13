@@ -319,6 +319,11 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                     project.sync {
                         from 'source'
                         into 'dest'
+                        preserve {
+                             include 'extraDir/**'
+                             include 'dir1/**'
+                             exclude 'dir1/extra.txt'
+                        }
                     }
                 }
             }

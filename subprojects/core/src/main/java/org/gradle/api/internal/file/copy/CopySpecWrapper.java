@@ -27,7 +27,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -43,13 +45,13 @@ import java.util.regex.Pattern;
  * Prevents users from accessing "internal" methods on implementations.
  */
 @NonExtensible
-public class CopySpecWrapper implements CopySpec {
+public class CopySpecWrapper implements SyncSpec {
 
     @VisibleForTesting
-    final CopySpec delegate;
+    final SyncSpec delegate;
 
     @Inject
-    public CopySpecWrapper(CopySpec delegate) {
+    public CopySpecWrapper(SyncSpec delegate) {
         this.delegate = delegate;
     }
 
@@ -321,5 +323,15 @@ public class CopySpecWrapper implements CopySpec {
     @Override
     public void setFilteringCharset(String charset) {
         delegate.setFilteringCharset(charset);
+    }
+
+    @Override
+    public PatternFilterable getPreserve() {
+        return delegate.getPreserve();
+    }
+
+    @Override
+    public SyncSpec preserve(Action<? super PatternFilterable> action) {
+        return delegate.preserve(action);
     }
 }

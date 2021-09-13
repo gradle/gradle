@@ -30,6 +30,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -1667,7 +1668,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 4.0
      * @return {@link WorkResult} that can be used to check if the sync did any work.
      */
-    WorkResult sync(Action<? super CopySpec> action);
+    WorkResult sync(Action<? super SyncSpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
