@@ -43,6 +43,8 @@ import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
 public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
+    public static final String INVALIDATING_HIERARCHY_MESSAGE = "Invalidating hierarchy because watch probe hasn't been triggered";
+
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final FileWatcherProbeRegistry probeRegistry;
     private final Predicate<String> watchFilter;
@@ -154,7 +156,7 @@ public class WatchableHierarchies {
         return probeRegistry.unprovenHierarchies()
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
                 if (recentlyUsedHierarchies.remove(unprovenHierarchy)) {
-                    LOGGER.warn("Invalidating hierarchy because watch probe hasn't been triggered {}", unprovenHierarchy);
+                    LOGGER.warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);
                     return invalidator.invalidate(unprovenHierarchy.getAbsolutePath(), currentRoot);
                 } else {
                     return currentRoot;
