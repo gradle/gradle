@@ -373,7 +373,7 @@ public class TaskExecution implements UnitOfWork {
         boolean isDestinationOfCopy = propertyName.equals("destinationDir") && task instanceof Copy;
         if (isDestinationOfCopy) {
             DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
-                .withAdvice("Use the method Copy.doNotTrackOutput().")
+                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().")
                 .willBecomeAnErrorInGradle8()
                 // TODO: Document
                 .undocumented()

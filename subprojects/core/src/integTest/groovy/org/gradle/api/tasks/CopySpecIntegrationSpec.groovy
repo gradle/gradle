@@ -238,14 +238,14 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
             "Copying to a directory which contains unreadable content has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.doNotTrackOutput().")
+            "Use the method Copy.ignoreExistingContentInDestinationDir().")
         run "copy"
         then:
         outputDirectory.list().contains input.name
         executedAndNotSkipped(":copy")
 
         when:
-        buildFile << "copy.doNotTrackOutput()"
+        buildFile << "copy.ignoreExistingContentInDestinationDir()"
         run "copy"
         then:
         outputDirectory.list().contains input.name

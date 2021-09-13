@@ -23,7 +23,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>doNotTrackOutput</td>
+                <td>ignoreExistingContentInDestinationDir</td>
             </tr>
         </table>
     </section>

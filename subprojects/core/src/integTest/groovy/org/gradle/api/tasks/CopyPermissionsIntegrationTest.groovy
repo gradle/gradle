@@ -288,7 +288,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
             "Copying to a directory which contains unreadable content has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.doNotTrackOutput().")
+            "Use the method Copy.ignoreExistingContentInDestinationDir().")
         succeeds "copy", "--info"
         then:
         outputDirectory.list().contains input.name
@@ -296,7 +296,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         outputContains(expectedError(unreadableOutput))
 
         when:
-        buildFile << "copy.doNotTrackOutput()"
+        buildFile << "copy.ignoreExistingContentInDestinationDir()"
         succeeds "copy"
         then:
         executedAndNotSkipped(":copy")
