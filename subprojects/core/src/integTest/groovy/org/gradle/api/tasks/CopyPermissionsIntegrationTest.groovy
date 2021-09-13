@@ -295,13 +295,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Cannot access output property 'destinationDir' of task ':copy'")
         outputContains(expectedError(unreadableOutput))
 
-        when:
-        buildFile << "copy.ignoreExistingContentInDestinationDir()"
-        succeeds "copy"
-        then:
-        executedAndNotSkipped(":copy")
-        outputDirectory.list().contains input.name
-
         cleanup:
         unreadableOutput.makeReadable()
 
