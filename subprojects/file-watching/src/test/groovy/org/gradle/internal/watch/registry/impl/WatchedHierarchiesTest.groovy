@@ -31,7 +31,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
 
     def "watches empty directory"() {
         def watchable = Mock(WatchableHierarchies)
-        def dir = new File("/empty")
+        def dir = new File("empty").absoluteFile
 
         when:
         def watched = WatchedHierarchies.resolveWatchedHierarchies(watchable, buildHierarchy([
@@ -44,7 +44,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
 
     def "does not watch directory with only missing files inside"() {
         def watchable = Mock(WatchableHierarchies)
-        def dir = new File("/empty")
+        def dir = new File("empty").absoluteFile
 
         when:
         def watched = WatchedHierarchies.resolveWatchedHierarchies(watchable, buildHierarchy([
