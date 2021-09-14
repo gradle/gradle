@@ -16,15 +16,12 @@
 
 package org.gradle.testing.jacoco.tasks;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
@@ -32,6 +29,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
@@ -58,20 +56,6 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection additionalClassDirs = getProject().files();
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
 
-    public JacocoReportBase() {
-        onlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return Iterables.any(getExecutionData(), new Predicate<File>() {
-                    @Override
-                    public boolean apply(File file) {
-                        return file.exists();
-                    }
-                });
-            }
-        });
-    }
-
     @Inject
     protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
@@ -97,6 +81,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
+    @SkipWhenEmpty
     public ConfigurableFileCollection getExecutionData() {
         return executionData;
     }
