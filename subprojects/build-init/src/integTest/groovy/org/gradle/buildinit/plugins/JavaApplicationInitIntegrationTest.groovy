@@ -42,6 +42,34 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
+    def "incubating option adds runnable test suites"() {
+        when:
+        run ('init', '--type', 'java-application', '--incubating', '--dsl', scriptDsl.id)
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        succeeds('test')
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestsDidNotRun("some.thing.AppIntegTest") // Shouldn't be in /test anyway, but check just to be sure
+        assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
+
+        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
+        if (scriptDsl == GROOVY) {
+            succeeds('clean', 'integrationTest')
+            assertTestsDidNotRun("some.thing.AppTest")
+            assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+            assertIntegrationTestPassed("some.thing.AppIntegTest", "superTest")
+        }
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
