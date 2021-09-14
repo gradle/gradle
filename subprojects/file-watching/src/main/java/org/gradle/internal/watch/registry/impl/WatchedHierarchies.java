@@ -19,6 +19,7 @@ package org.gradle.internal.watch.registry.impl;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -67,7 +68,11 @@ public class WatchedHierarchies {
     private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies, FileHierarchySet watchedHierarchies) {
         return snapshots
             .filter(snapshot -> !watchedHierarchies.contains(snapshot.getAbsolutePath()))
-            .noneMatch(snapshot -> snapshot.getType() != FileType.Missing
-                && !watchableHierarchies.ignoredForWatching(snapshot));
+            .allMatch(snapshot -> isMissing(snapshot) || watchableHierarchies.ignoredForWatching(snapshot));
+    }
+
+    private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
+        // Missing accessed indirectly means we have a dangling symlink in the directory, and that's content we cannot ignore
+        return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
     }
 }
