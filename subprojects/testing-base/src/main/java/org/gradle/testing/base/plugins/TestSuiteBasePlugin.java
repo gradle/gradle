@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.plugins;
+package org.gradle.testing.base.plugins;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.platform.base.TestSuite;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.testing.base.TestingExtension;
+import org.gradle.testing.base.internal.DefaultTestingExtension;
 
 /**
- * This DSL element exists to contain a collection of {@link TestSuite}s.
+ * Base test suite functionality. Makes an extension named "testing" available to the project.
  *
  * @since 7.3
  */
 @Incubating
-public interface TestingExtension {
-    /**
-     * Available test suites in this project.
-     *
-     * The type of test suites available depend on which other plugins are applied.
-     */
-    ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites();
+public class TestSuiteBasePlugin implements Plugin<Project> {
+    @Override
+    public void apply(Project project) {
+        project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
+    }
 }

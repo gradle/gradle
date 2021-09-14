@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.testing.base.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.platform.base.TestSuite;
-import org.gradle.platform.base.plugins.TestingExtension;
+import org.gradle.testing.base.TestSuite;
+import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
