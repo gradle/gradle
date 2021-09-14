@@ -15,11 +15,14 @@
  */
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
+
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -27,13 +30,10 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
-
-
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
-
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.inClassPathMode
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
@@ -46,12 +46,9 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSch
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
-
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
-
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-
 import java.io.File
 import java.util.function.Consumer
 import javax.inject.Inject
@@ -332,6 +329,8 @@ val scriptTemplates by lazy {
 private
 fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPlugin>, kotlinSourceDirectorySet: SourceDirectorySet) {
 
+    scriptPlugins.forEach { validateScriptPlugin(it) }
+
     declareScriptPlugins(scriptPlugins)
 
     generatePluginAdaptersFor(scriptPlugins, kotlinSourceDirectorySet)
@@ -362,6 +361,16 @@ private
 val Project.gradlePlugin
     get() = the<GradlePluginDevelopmentExtension>()
 
+private
+fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
+    if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
+        throw GradleException(String.format("Precompiled plugin should not have prefix: '%s' since it conflicts with core plugins. You should use a different prefix for plugin: '%s.gradle.kts'.", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, scriptPlugin.id))
+    }
+    val existingPlugin = this.plugins.findPlugin(scriptPlugin.id)
+    if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
+        throw GradleException(String.format("Precompiled plugin: '%s.gradle.kts' conflicts with the core plugin: '%s' (%s).", scriptPlugin.id, scriptPlugin.id, existingPlugin.javaClass))
+    }
+}
 
 private
 fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {

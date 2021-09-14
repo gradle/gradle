@@ -721,4 +721,47 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertThat(output, containsString("my-plugin settings plugin applied"))
         }
     }
+
+    @Test
+    fun `should not allow precompiled plugin to conflict with core plugin`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/java.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+        withFile(
+            "build.gradle",
+            """
+            plugins {
+                java
+            }
+            """
+        )
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause("Precompiled plugin: 'java.gradle.kts' conflicts with the core plugin: 'java' (class org.gradle.api.plugins.JavaPlugin).")
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to have org-dot-gradle prefix`() {
+        // given:
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/org.gradle.my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+
+        // when:
+        val error = buildAndFail("help")
+
+        // then:
+        error.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: 'org.gradle.my-plugin.gradle.kts'.")
+    }
 }
