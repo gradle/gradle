@@ -28,6 +28,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.testing.internal.util.RetryUtil;
 import org.hamcrest.Matcher;
+import org.intellij.lang.annotations.Language;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -90,6 +91,11 @@ public class TestFile extends File {
     public TestFile usingNativeTools() {
         useNativeTools = true;
         return this;
+    }
+
+    public TestFile java(@Language("java") String src) {
+        assert getName().endsWith(".java") : getName() + " doesn't look like a Java file.";
+        return setText(src);
     }
 
     Object writeReplace() throws ObjectStreamException {
