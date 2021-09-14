@@ -119,7 +119,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         configureScaladoc(project, scalaRuntime);
     }
 
-    public boolean isScala3(Iterable<File> classpath) {
+    boolean isScala3(Iterable<File> classpath) {
         if (scalaRuntime == null) {
             throw new IllegalStateException("ScalaRuntime hasn't been initialized yet!");
         }

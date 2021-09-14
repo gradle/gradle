@@ -79,10 +79,6 @@ public class ScalaPlugin implements Plugin<Project> {
                 main.getOutput().getAsFileTree().matching(pattern -> pattern.include("**/*.tasty")) : 
                 main.getExtensions().getByType(ScalaSourceDirectorySet.class);
             scalaDoc.setSource(source);
-
-            if (isScala3) {
-                scalaDoc.dependsOn(compileScala);
-            }
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");
