@@ -49,7 +49,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 dependencies {
                     implementation project(":direct")
-                    coverageDataPathForTest project
+                    coverageDataPathForTest project // FIXME
                 }
             """
 
@@ -63,10 +63,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             file("application/src/test/java/application/AdderTest.java").java """
                 import org.junit.Assert;
                 import org.junit.Test;
-                
+
                 public class AdderTest {
-                    @Test 
-                    void testAdd() {
+                    @Test
+                    public void testAdd() {
                         Adder adder = new Adder();
                         Assert.assertEquals(2, adder.add(1, 1));
                         Assert.assertEquals(4, adder.add(2, 2));
@@ -114,5 +114,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":application:testCodeCoverageReport")
         then:
         file("application/build/reports/").assertExists()
+        // TODO check for transitive coverage element present in application's aggregated report
     }
 }
