@@ -153,7 +153,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
                     //noinspection ResultOfMethodCallIgnored
                     probeFile.getParentFile().mkdirs();
                     try (FileOutputStream out = new FileOutputStream(probeFile)) {
-                        out.write(Throwables.getStackTraceAsString(new RuntimeException("Arming")).getBytes(StandardCharsets.UTF_8));
+                        out.write(Throwables.getStackTraceAsString(new RuntimeException("Arming 2")).getBytes(StandardCharsets.UTF_8));
                     }
                     LOGGER.debug("Watch probe has been armed for hierarchy: {}", watchableHierarchy);
                     break;
