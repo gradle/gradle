@@ -60,6 +60,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -164,6 +165,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     private final class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
 
         final InputFilePropertyVisitor visitor;
+        private final List<DirectorySnapshot> replayDirectorySnapshotList = new ArrayList<>();
+        private final Set<DirectorySnapshot> visitedPreDirectories = new HashSet<>();
 
         Map<String, FileSystemLocationFingerprint> fingerprints;
         String propertyName;
@@ -217,7 +220,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 visitor.preRoot(this);
             }
 
-            visitor.preDirectory(this);
+            FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
+            if (fingerprint == null) {
+                // We are not interested in fingerprinting directories.
+                // Do not visit it now (but maybe later if it contains at some point a file)
+                replayDirectorySnapshotList.add(physicalSnapshot);
+            } else {
+                visitor.preDirectory(this);
+                visitedPreDirectories.add(physicalSnapshot);
+            }
         }
 
         @Override
@@ -226,14 +237,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 return SnapshotVisitResult.CONTINUE;
             }
 
-            this.path = snapshot.getAbsolutePath();
-            this.name = snapshot.getName();
-
-            FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
+            FileSystemLocationFingerprint fingerprint = fingerprints.get(snapshot.getAbsolutePath());
             if (fingerprint == null) {
                 return SnapshotVisitResult.CONTINUE;
             }
+            // Replay parent directory stack in order, since we now have a file in the hierarchy
+            clearAndMaybeReplayPreDirectories(true);
 
+            this.path = snapshot.getAbsolutePath();
+            this.name = snapshot.getName();
             this.hash = fingerprint.getNormalizedContentHash();
 
             boolean isRoot = depth == 0;
@@ -251,9 +263,28 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot) {
-            visitor.postDirectory();
+            FileSystemLocationFingerprint fingerprint = fingerprints.get(directorySnapshot.getAbsolutePath());
+            clearAndMaybeReplayPreDirectories(fingerprint != null);
+            if (visitedPreDirectories.remove(directorySnapshot)) {
+                visitor.postDirectory();
+            }
             if (--depth == 0) {
                 visitor.postRoot();
+            }
+        }
+
+        private void clearAndMaybeReplayPreDirectories(boolean replayPreDirectory) {
+            Iterator<DirectorySnapshot> iterator = replayDirectorySnapshotList.iterator();
+            while (iterator.hasNext()) {
+                DirectorySnapshot directorySnapshot = iterator.next();
+                if (replayPreDirectory) {
+                    this.path = directorySnapshot.getAbsolutePath();
+                    this.name = directorySnapshot.getName();
+                    this.hash = null;
+                    visitor.preDirectory(this);
+                    visitedPreDirectories.add(directorySnapshot);
+                }
+                iterator.remove();
             }
         }
 

@@ -207,7 +207,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == null
     }
 
-    def "exposes file inputs"() {
+    def "exposes file inputs, ignoring empty directories"() {
         given:
         withBuildCache()
         settingsFile << "include 'a', 'b'"
@@ -221,6 +221,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                     dir("a") {
                         file("A.java") << "package a.a; class A {}"
                     }
+                }
+                dir("empty") {
+                    dir("empty")
                 }
             }
         }
@@ -335,6 +338,84 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 children.size() == 2
                 children[0].path == "Other.class"
                 children[1].path == "Thing.class"
+            }
+        }
+    }
+
+    def "exposes file inputs, not ignoring empty directories"() {
+        given:
+        withBuildCache()
+        settingsFile << "include 'a'"
+        createDir("a") {
+            file("build.gradle") << """
+                task foo {
+                    inputs.dir('src').ignoreEmptyDirectories(false).withPropertyName('src')
+                    outputs.file('output.txt')
+                    doLast {
+                        file('output.txt') << 'do stuff'
+                    }
+                }
+            """
+            dir("src") {
+                file("A.txt") << "fooA"
+                file("B.txt") << "fooB"
+                dir("a") {
+                    file("A.txt") << "fooA"
+                    dir("a") {
+                        file("A.txt") << "fooA"
+                    }
+                }
+                dir("empty") {
+                    dir("empty")
+                }
+            }
+        }
+
+        when:
+        succeeds("a:foo")
+
+        then:
+        def result = snapshotResults(":a:foo")
+        def aFoo = result.inputFileProperties
+        with(aFoo.src) {
+            hash != null
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_ABSOLUTE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
+            roots.size() == 1
+            with(roots[0]) {
+                path == file("a/src").absolutePath
+                children.size() == 4
+                with(children[0]) {
+                    path == "a"
+                    children.size() == 2
+                    with(children[0]) {
+                        path == "a"
+                        children.size() == 1
+                        with(children[0]) {
+                            path == "A.txt"
+                            hash != null
+                        }
+                    }
+                    with(children[1]) {
+                        path == "A.txt"
+                        hash != null
+                    }
+                }
+                with(children[1]) {
+                    path == "A.txt"
+                    hash != null
+                }
+                with(children[2]) {
+                    path == "B.txt"
+                    hash != null
+                }
+                with(children[3]) {
+                    path == "empty"
+                    children.size() == 1
+                    with(children[0]) {
+                        path == "empty"
+                        children.empty
+                    }
+                }
             }
         }
     }
