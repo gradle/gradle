@@ -282,17 +282,27 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
     }
 
-    def "watching continues when watched hierarchy is confirmed by watch probe"() {
+    def "watching continues for watched hierarchies that are confirmed by watch probe"() {
         def watchableHierarchy = file("watchable").createDir()
         def fileInWatchableHierarchy = watchableHierarchy.file("file.txt").createFile()
 
+        def notWatchedHierarchy = file("not-watched").createDir()
+        def fileInNotWatchedHierarchy = notWatchedHierarchy.file("file.txt").createFile()
+
+        def watchableHierarchies = [watchableHierarchy, notWatchedHierarchy]
+
         when:
-        registerWatchableHierarchies([watchableHierarchy])
+        registerWatchableHierarchies(watchableHierarchies)
         addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
+        addSnapshot(snapshotRegularFile(fileInNotWatchedHierarchy))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
-        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
         vfsHasSnapshotsAt(watchableHierarchy)
+        vfsHasSnapshotsAt(notWatchedHierarchy)
+
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
         0 * _
 
         when:
@@ -300,27 +310,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         buildStarted()
         then:
         vfsHasSnapshotsAt(watchableHierarchy)
-        0 * _
-    }
+        !vfsHasSnapshotsAt(notWatchedHierarchy)
 
-    def "VFS is invalidated when watched hierarchy is not confirmed by watch probe"() {
-        def notWatchedHierarchy = file("not-watched").createDir()
-        def fileInWatchableHierarchy = notWatchedHierarchy.file("file.txt").createFile()
-
-        def watchableHierarchies = [notWatchedHierarchy]
-        when:
-        registerWatchableHierarchies(watchableHierarchies)
-        addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
-        then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
-        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
-        vfsHasSnapshotsAt(notWatchedHierarchy)
-        0 * _
-
-        when:
-        buildStarted()
-        then:
-        snapshotsAt(notWatchedHierarchy).empty
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
         ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
         0 * _
@@ -370,10 +361,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         List<?> actualSorted = (actual as List).toSorted()
         List<?> expectedSorted = (expected as List).toSorted()
         return actualSorted == expectedSorted
-    }
-
-    List<FileSystemLocationSnapshot> snapshotsAt(File location) {
-        virtualFileSystem.root.rootSnapshotsUnder(location.absolutePath).toList()
     }
 
     boolean vfsHasSnapshotsAt(File location) {
