@@ -957,6 +957,53 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds(SAMPLE_TASK)
     }
 
+    def "should not allow precompiled plugin to conflict with core plugin"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        file("buildSrc/src/main/groovy/plugins/java.gradle") << """
+            class TestTask extends DefaultTask {
+                @TaskAction
+                void run() {
+                    println 'from custom task'
+                }
+            }
+
+            task testTask(type: TestTask)
+        """
+
+        when:
+        def failure = fails "help"
+
+        then:
+        failure.assertHasCause("Precompiled plugin: 'java.gradle' conflicts with the core plugin: 'java' (class org.gradle.api.plugins.JavaPlugin).")
+    }
+
+    def "should not allow precompiled plugin to have org.gradle prefix"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << """
+            class TestTask extends DefaultTask {
+                @TaskAction
+                void run() {
+                    println 'from custom task'
+                }
+            }
+
+            task testTask(type: TestTask)
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: '${pluginName}.gradle'.")
+
+        where:
+        pluginName << ["org.gradle.my-plugin", "org.gradle"]
+    }
+
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
         Map<String, String> plugins = [:]
         plugins.putAt(pluginFile, pluginContent)
