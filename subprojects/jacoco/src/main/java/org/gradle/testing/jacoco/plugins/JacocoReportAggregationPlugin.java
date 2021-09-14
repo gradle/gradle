@@ -45,9 +45,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPlugins().withId("jvm-test-suite", p -> {
-            JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-
             Configuration jacocoAggregation = project.getConfigurations().maybeCreate(JACOCO_AGGREGATION_CONFIGURATION_NAME);
+            // Depend on this project for aggregation
+            project.getDependencies().add(JACOCO_AGGREGATION_CONFIGURATION_NAME, project);
 
             ObjectFactory objects = project.getObjects();
 

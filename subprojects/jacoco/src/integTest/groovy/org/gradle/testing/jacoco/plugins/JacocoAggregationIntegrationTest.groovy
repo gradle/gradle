@@ -50,7 +50,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 dependencies {
                     implementation project(":direct")
-                    jacocoAggregation project // TODO FIXME
                 }
             """
 
