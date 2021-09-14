@@ -49,6 +49,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
@@ -114,6 +115,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         this.propertyAttributesByPropertyName = ImmutableMap.copyOf(propertyAttributesByPropertyName);
     }
 
+    @UsedByScanPlugin("The enum value names are transmitted to the GE Gradle Enterprise plugin")
     enum PropertyAttribute {
 
         FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
@@ -132,7 +134,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         static PropertyAttribute fromNormalizerClass(Class<? extends FileNormalizer> normalizerClass) {
             String fingerprintingStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizerClass);
             if (fingerprintingStrategy == null) {
-                throw new IllegalStateException("Could not find a fingerprinting strategy for normalizer " + normalizerClass.getSimpleName());
+                throw new IllegalStateException("Could not find a fingerprinting strategy for normalizer: " + normalizerClass.getSimpleName());
             }
             return PropertyAttribute.valueOf(FINGERPRINTING_STRATEGY_PREFIX + fingerprintingStrategy);
         }
