@@ -75,7 +75,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         addSnapshot(rootDirSnapshot)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile, rootDir]) })
-        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
         0 * _
 
         when:
@@ -89,7 +89,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         invalidate(rootDirSnapshot.children[2])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
-        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(rootDir)]) })
         0 * _
     }
 

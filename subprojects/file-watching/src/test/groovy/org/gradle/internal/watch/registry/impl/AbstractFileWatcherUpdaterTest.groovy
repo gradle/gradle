@@ -300,7 +300,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         buildStarted()
         then:
         vfsHasSnapshotsAt(watchableHierarchy)
-        // 0 * _
+        0 * _
     }
 
     def "VFS is invalidated when watched hierarchy is not confirmed by watch probe"() {
