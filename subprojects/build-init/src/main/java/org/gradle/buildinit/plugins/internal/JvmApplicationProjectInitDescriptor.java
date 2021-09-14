@@ -140,7 +140,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                     templates.add("junitjupiter/AppIntegTest");
                     break;
                 default:
-                    ; // do nothing - no templates to add
+                    // do nothing - no templates to add
             }
         } else {
             if ("app".equals(subproject)) {

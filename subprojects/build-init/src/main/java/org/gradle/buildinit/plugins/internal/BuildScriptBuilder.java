@@ -1255,7 +1255,7 @@ public class BuildScriptBuilder {
                 dependencies.dependency("implementation", null, framework.implementationDependency);
             } else {
                 dependencies.selfDependency("implementation", null);
-                targets.all( true);
+                targets.all(true);
             }
         }
 

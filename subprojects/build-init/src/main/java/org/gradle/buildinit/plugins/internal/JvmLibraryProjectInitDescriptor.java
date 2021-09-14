@@ -89,7 +89,7 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
                 templates.add("junitjupiter/LibraryIntegTest");
                 break;
             default:
-                ; // add nothing
+                // add nothing
         }
     }
 }
