@@ -21,6 +21,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -49,6 +51,8 @@ import java.util.Collection;
  *   - remove everything that isn't watched from the virtual file system.
  */
 public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
+
     private final FileWatcher fileWatcher;
     private final MovedHierarchyHandler movedHierarchyHandler;
 
@@ -89,7 +93,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     @Override
     protected void stopWatchingHierarchies(Collection<File> hierarchiesToStopWatching) {
-        fileWatcher.stopWatching(hierarchiesToStopWatching);
+        if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
+            LOGGER.warn("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
+        }
     }
 
     @Override
