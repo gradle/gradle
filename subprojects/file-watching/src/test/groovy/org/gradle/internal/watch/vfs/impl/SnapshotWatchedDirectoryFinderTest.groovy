@@ -22,23 +22,24 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.watch.registry.impl.SnapshotWatchedDirectoryFinder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class SnapshotWatchedDirectoryFinderTest extends Specification {
+class SnapshotWatchedDirectoryFinderTest extends Specification implements TestSnapshotFixture {
 
     def "resolves directories to watch from snapshot"() {
         when:
         def directoriesToWatch = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).collect { it.getAbsolutePath() } as Set
         then:
-        normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch as Set)
+        normalizePathSeparators(directoriesToWatch) == (expectedDirectoriesToWatch.collect { toAbsolutePath(it) })
 
         where:
-        snapshot                                       | expectedDirectoriesToWatch
-        fileSnapshot('/some/absolute/parent/file')     | ['/some/absolute/parent']
-        directorySnapshot('/some/absolute/parent/dir') | ['/some/absolute/parent', '/some/absolute/parent/dir']
+        snapshot                                                  | expectedDirectoriesToWatch
+        regularFile(toAbsolutePath('some/absolute/parent/file'))  | ['some/absolute/parent']
+        directory(toAbsolutePath('some/absolute/parent/dir'), []) | ['some/absolute/parent', 'some/absolute/parent/dir']
     }
 
     private static RegularFileSnapshot fileSnapshot(String absolutePath) {
@@ -49,7 +50,11 @@ class SnapshotWatchedDirectoryFinderTest extends Specification {
         new DirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), AccessType.DIRECT, Hashing.md5().hashString(absolutePath), [])
     }
 
-    private static Set<String> normalizeLineSeparators(Set<String> paths) {
-        return paths*.replace(File.separatorChar, '/' as char) as Set
+    private static List<String> normalizePathSeparators(Set<String> paths) {
+        return paths*.replace(File.separatorChar, '/' as char)
+    }
+
+    private static String toAbsolutePath(String path) {
+        new File(path).absolutePath
     }
 }
