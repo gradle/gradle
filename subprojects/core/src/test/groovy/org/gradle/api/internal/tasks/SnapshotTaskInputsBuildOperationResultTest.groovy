@@ -52,6 +52,8 @@ import org.gradle.internal.fingerprint.RelativePathInputNormalizer
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.TestSnapshotFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.*
@@ -100,6 +102,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         t.message == 'Could not find a fingerprinting strategy for normalizer: OutputNormalizer'
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "properly visits structure when ignoring directories"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
@@ -164,6 +167,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         0 * visitor._
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "properly visits structure when not ignoring directories"() {
         given:
         def visitor = Mock(SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor)
