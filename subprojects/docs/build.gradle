@@ -229,6 +229,25 @@ samples {
             }
         }
 
+        incubatingJvmMultiProjectWithAdditionalTestTypes {
+            sampleDirectory = samplesRoot.dir("java/incubating/jvm-multi-project-with-additional-test-types")
+            displayName = "Using additional test types with Test Suites"
+            description = "Add an additional test type (e.g. integration tests) to a project using @Incubating Test Suites API."
+            category = "Java"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
+
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+
         jvmMultiProjectWithAdditionalTestTypes {
             sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
             displayName = "Using additional test types"
