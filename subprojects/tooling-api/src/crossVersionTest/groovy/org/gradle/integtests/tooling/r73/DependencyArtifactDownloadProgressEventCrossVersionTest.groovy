@@ -29,6 +29,7 @@ import org.gradle.tooling.events.OperationType
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
     def "generates typed events for downloads during dependency resolution"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
+        modules.useLargeJars()
 
         when:
         def events = ProgressEvents.create()
@@ -43,7 +44,16 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operations.size() == 8
         events.trees == events.operations
         events.operation("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
-        events.operation("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact.uri)
+
+        def downloadB = events.operation("Download ${modules.projectB.artifact.uri}")
+        downloadB.assertIsDownload(modules.projectB.artifact.uri)
+        !downloadB.statusEvents.empty
+        downloadB.statusEvents.each {
+            assert it.event.displayName == "Download ${modules.projectB.artifact.uri}"
+            assert it.event.progress > 0 && it.event.progress <= modules.projectB.artifact.file.length()
+            assert it.event.total == modules.projectB.artifact.file.length()
+        }
+
         events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
         events.operation("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom.uri)
         events.operation("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact.uri)

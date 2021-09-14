@@ -26,6 +26,7 @@ import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent
 import spock.lang.Specification
 
 class ClientBuildEventGeneratorTest extends Specification {
@@ -46,6 +47,7 @@ class ClientBuildEventGeneratorTest extends Specification {
     def "passes events when enabled mapper available for details type"() {
         def mapper1 = Mock(BuildOperationMapper)
         def mapper2 = Mock(BuildOperationMapper)
+        def mappedProgressEvent = Mock(InternalProgressEvent)
 
         given:
         mapper1.isEnabled(subscriptions) >> true
@@ -71,6 +73,8 @@ class ClientBuildEventGeneratorTest extends Specification {
         generator.progress(operationId, progressEvent)
 
         then:
+        1 * mapper2.createProgressEvent(clientDescriptor, progressEvent) >> mappedProgressEvent
+        1 * consumer.progress(mappedProgressEvent)
         0 * _
 
         when:

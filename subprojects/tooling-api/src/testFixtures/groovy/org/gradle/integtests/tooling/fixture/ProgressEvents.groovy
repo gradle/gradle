@@ -108,7 +108,7 @@ class ProgressEvents implements ProgressListener {
                         } else {
                             def duplicateName = operations.find({
                                 !it.failed && // ignore previous operations with the same display name that failed, eg for retry of downloads
-                                it.descriptor.displayName == descriptor.displayName &&
+                                    it.descriptor.displayName == descriptor.displayName &&
                                     it.parent?.descriptor == descriptor.parent
                             })
                             if (duplicateName != null) {
@@ -152,7 +152,7 @@ class ProgressEvents implements ProgressListener {
                 } else {
                     def descriptor = event.descriptor
                     // operation should still be running
-                    assert running.containsKey(descriptor) != null
+                    assert running.containsKey(descriptor)
                     def operation = operations.find { it.descriptor == event.descriptor }
                     otherEvent(event, operation)
                 }
@@ -225,7 +225,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTrees() {
         assertHasZeroOrMoreTrees()
-        return operations.findAll { it.descriptor.parent == null}
+        return operations.findAll { it.descriptor.parent == null }
     }
 
     /**
@@ -355,6 +355,7 @@ class ProgressEvents implements ProgressListener {
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
+        final List<OperationStatus> statusEvents = []
         FinishEvent finishEvent
         OperationResult result
 
@@ -529,6 +530,14 @@ class ProgressEvents implements ProgressListener {
             return parent == null
                 ? false
                 : (predicate.test(parent) || parent.hasAncestor(predicate))
+        }
+    }
+
+    static class OperationStatus {
+        final ProgressEvent event
+
+        OperationStatus(ProgressEvent event) {
+            this.event = event
         }
     }
 

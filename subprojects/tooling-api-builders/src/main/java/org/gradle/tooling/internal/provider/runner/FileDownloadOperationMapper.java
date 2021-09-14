@@ -21,14 +21,18 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.DefaultFileDownloadDescriptor;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultStatusEvent;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressDetails;
+import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import javax.annotation.Nullable;
 import java.net.URI;
@@ -57,6 +61,17 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
     @Override
     public InternalOperationStartedProgressEvent createStartedEvent(DefaultFileDownloadDescriptor descriptor, ExternalResourceReadBuildOperationType.Details details, OperationStartEvent startEvent) {
         return new DefaultOperationStartedProgressEvent(startEvent.getStartTime(), descriptor);
+    }
+
+    @Nullable
+    @Override
+    public InternalProgressEvent createProgressEvent(DefaultFileDownloadDescriptor descriptor, OperationProgressEvent progressEvent) {
+        if (progressEvent.getDetails() instanceof OperationProgressDetails) {
+            OperationProgressDetails details = (OperationProgressDetails) progressEvent.getDetails();
+            return new DefaultStatusEvent(progressEvent.getTime(), descriptor, details.getProgress(), details.getTotal(), details.getUnits());
+        } else {
+            return null;
+        }
     }
 
     @Override

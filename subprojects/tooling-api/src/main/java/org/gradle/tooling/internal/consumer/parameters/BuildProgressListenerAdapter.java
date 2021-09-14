@@ -52,6 +52,7 @@ import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.internal.DefaultScriptPluginIdentifier;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
+import org.gradle.tooling.events.internal.DefaultStatusEvent;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -125,6 +126,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationD
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
@@ -214,10 +216,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     @Override
     public void onEvent(Object event) {
-        doBroadcast(event);
-    }
-
-    private void doBroadcast(Object event) {
         if (event instanceof ProgressEvent) {
             broadcastProgressEvent((ProgressEvent) event);
         } else if (event instanceof InternalTestProgressEvent) {
@@ -225,6 +223,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTestProgressEvent((InternalTestProgressEvent) event);
         } else if (event instanceof InternalProgressEvent) {
             broadcastInternalProgressEvent((InternalProgressEvent) event);
+        } else {
+            throw new IllegalArgumentException("Unexpected event type: " + event);
         }
     }
 
@@ -266,11 +266,27 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
         } else if (descriptor instanceof InternalTestOutputDescriptor) {
             broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
+        } else if (progressEvent instanceof InternalStatusEvent) {
+            broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
             broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
         } else {
             broadcastGenericProgressEvent(progressEvent);
         }
+    }
+
+    private void broadcastStatusEvent(InternalStatusEvent progressEvent) {
+        OperationDescriptor descriptor = descriptorCache.get(progressEvent.getDescriptor().getId());
+        if (descriptor == null) {
+            throw new IllegalStateException(String.format("No operation with id %s in progress.", progressEvent.getDescriptor().getId()));
+        }
+        fileDownloadListeners.getSource().statusChanged(new DefaultStatusEvent(
+            progressEvent.getEventTime(),
+            progressEvent.getDescriptor().getDisplayName(),
+            descriptor,
+            progressEvent.getTotal(),
+            progressEvent.getProgress(),
+            progressEvent.getUnits()));
     }
 
     private void broadcastTaskProgressEvent(InternalProgressEvent event, InternalTaskDescriptor descriptor) {

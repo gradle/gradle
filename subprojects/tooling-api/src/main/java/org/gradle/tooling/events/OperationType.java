@@ -128,6 +128,7 @@ public enum OperationType {
      * The following events are currently issued for this operation type.
      * <ul>
      *     <li>{@link org.gradle.tooling.events.download.FileDownloadStartEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.StatusEvent}</li>
      *     <li>{@link org.gradle.tooling.events.download.FileDownloadFinishEvent}</li>
      * </ul>
      *
