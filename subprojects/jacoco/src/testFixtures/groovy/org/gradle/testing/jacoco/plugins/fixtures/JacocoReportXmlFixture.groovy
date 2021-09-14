@@ -16,25 +16,52 @@
 
 package org.gradle.testing.jacoco.plugins.fixtures
 
+import groovy.transform.ToString
+import groovy.transform.TupleConstructor
 import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
 
 class JacocoReportXmlFixture {
     private final xml
+    private final List<Coverage> classes
 
     JacocoReportXmlFixture(TestFile reportXmlFile) {
         reportXmlFile.assertIsFile()
         def slurper = new XmlSlurper(false, false, true)
         slurper.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
         this.xml = slurper.parse(reportXmlFile)
+        this.classes = []
+        xml*.'package'.each { pkg ->
+            classes.addAll(pkg.'class'.collect {
+                def name = it.@name.toString()
+                def classCounter = it.counter.find { it.@type == "CLASS" }
+                def missed = Integer.parseInt(classCounter.@missed.toString())
+                def covered = Integer.parseInt(classCounter.@covered.toString())
+                return new Coverage(name, covered, missed)
+            })
+        }
     }
 
-    void assertHasClassCoverage(String clazz) {
-        def classes = []
-        xml*.'package'.each { pkg ->
-            classes.addAll(pkg.'class'*.@name*.toString())
-        }
+    void assertHasClassCoverage(String clazz, int covered=1) {
+        def coverage = findClass(clazz)
+        assert coverage
+        assert coverage.covered == covered
+    }
 
-        assert classes.contains(clazz.replace('.', '/'))
+    Coverage findClass(String clazz) {
+        def searchFor = clazz.replace('.', '/')
+        return classes.find(candidate -> candidate.name == searchFor)
+    }
+
+    @ToString
+    @TupleConstructor
+    static class Coverage {
+        String name
+        int covered
+        int missed
+
+        boolean isCompleteCoverage() {
+            missed == 0
+        }
     }
 }
