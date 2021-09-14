@@ -25,10 +25,10 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.platform.base.TestSuite;
 import org.gradle.platform.base.plugins.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
@@ -97,7 +97,8 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
                 // create task to do the aggregation
                 TaskProvider<JacocoReport> codeCoverageReport = project.getTasks().register(testSuite.getName() + "CodeCoverageReport", JacocoReport.class, task -> {
-                    // TODO add group, description
+                    task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                    task.setDescription("Generate code coverage report for projects from " + JACOCO_AGGREGATION_CONFIGURATION_NAME + ".");
                     task.getClassDirectories().from(analyzedClasses);
                     task.getSourceDirectories().from(sourcesPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
                     task.getExecutionData().from(coverageDataPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
