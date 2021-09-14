@@ -17,9 +17,14 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.api.tasks.CompileClasspathNormalizer;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -27,8 +32,19 @@ import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
+import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -44,10 +60,14 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -64,11 +84,66 @@ import java.util.stream.Collectors;
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
+    static final String FINGERPRINTING_STRATEGY_PREFIX = "FINGERPRINTING_STRATEGY_";
+    private static final String DIRECTORY_SENSITIVITY_PREFIX = "DIRECTORY_SENSITIVITY_";
+    private static final String LINE_ENDING_SENSITIVITY_PREFIX = "LINE_ENDING_SENSITIVITY_";
+    private static final Map<Class<? extends FileNormalizer>, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<Class<? extends FileNormalizer>, String>builder()
+        .put(ClasspathNormalizer.class, FingerprintingStrategy.CLASSPATH_IDENTIFIER)
+        .put(CompileClasspathNormalizer.class, FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER)
+        .put(AbsolutePathInputNormalizer.class, AbsolutePathFingerprintingStrategy.IDENTIFIER)
+        .put(RelativePathInputNormalizer.class, RelativePathFingerprintingStrategy.IDENTIFIER)
+        .put(NameOnlyInputNormalizer.class, NameOnlyFingerprintingStrategy.IDENTIFIER)
+        .put(IgnoredPathInputNormalizer.class, IgnoredPathFingerprintingStrategy.IDENTIFIER)
+        .build();
+
     @VisibleForTesting
     final CachingState cachingState;
+    private final Map<String, Set<PropertyAttribute>> propertyAttributesByPropertyName;
 
-    public SnapshotTaskInputsBuildOperationResult(CachingState cachingState) {
+    public SnapshotTaskInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFileProperties) {
         this.cachingState = cachingState;
+        Map<String, Set<PropertyAttribute>> propertyAttributesByPropertyName = new HashMap<>();
+        for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
+            Set<PropertyAttribute> propertyAttributes = new HashSet<>();
+            propertyAttributes.add(PropertyAttribute.fromNormalizerClass(inputFileProperty.getNormalizer()));
+            propertyAttributes.add(PropertyAttribute.fromDirectorySensitivity(inputFileProperty.getDirectorySensitivity()));
+            propertyAttributes.add(PropertyAttribute.fromLineEndingSensitivity(inputFileProperty.getLineEndingNormalization()));
+            propertyAttributesByPropertyName.put(inputFileProperty.getPropertyName(), propertyAttributes);
+        }
+        this.propertyAttributesByPropertyName = ImmutableMap.copyOf(propertyAttributesByPropertyName);
+    }
+
+    enum PropertyAttribute {
+
+        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
+        FINGERPRINTING_STRATEGY_NAME_ONLY,
+        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
+        FINGERPRINTING_STRATEGY_IGNORED_PATH,
+        FINGERPRINTING_STRATEGY_CLASSPATH,
+        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
+
+        DIRECTORY_SENSITIVITY_DEFAULT,
+        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
+
+        LINE_ENDING_SENSITIVITY_DEFAULT,
+        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
+
+        static PropertyAttribute fromNormalizerClass(Class<? extends FileNormalizer> normalizerClass) {
+            String fingerprintingStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizerClass);
+            if (fingerprintingStrategy == null) {
+                throw new IllegalStateException("Could not find a fingerprinting strategy for normalizer " + normalizerClass.getSimpleName());
+            }
+            return PropertyAttribute.valueOf(FINGERPRINTING_STRATEGY_PREFIX + fingerprintingStrategy);
+        }
+
+        static PropertyAttribute fromDirectorySensitivity(DirectorySensitivity directorySensitivity) {
+            return PropertyAttribute.valueOf(DIRECTORY_SENSITIVITY_PREFIX + directorySensitivity.name());
+        }
+
+        static PropertyAttribute fromLineEndingSensitivity(LineEndingSensitivity lineEndingSensitivity) {
+            return PropertyAttribute.valueOf(LINE_ENDING_SENSITIVITY_PREFIX + lineEndingSensitivity.name());
+        }
+
     }
 
     @Override
@@ -86,14 +161,13 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     }
 
     @NonNullApi
-    private static class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
+    private final class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
 
         final InputFilePropertyVisitor visitor;
 
         Map<String, FileSystemLocationFingerprint> fingerprints;
         String propertyName;
         HashCode propertyHash;
-        String propertyNormalizationStrategyIdentifier;
         String name;
         String path;
         HashCode hash;
@@ -114,8 +188,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        public String getPropertyNormalizationStrategyName() {
-            return propertyNormalizationStrategyIdentifier;
+        public Set<String> getPropertyAttributes() {
+            return propertyAttributesByPropertyName.get(propertyName).stream().map(Enum::name).sorted().collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override
@@ -182,6 +256,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 visitor.postRoot();
             }
         }
+
     }
 
     @Override
@@ -195,7 +270,6 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
                     state.propertyName = entry.getKey();
                     state.propertyHash = fingerprint.getHash();
-                    state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
                     state.fingerprints = fingerprint.getFingerprints();
 
                     visitor.preProperty(state);
@@ -290,8 +364,6 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         model.put("inputFileProperties", fileProperties());
 
-        model.put("inputPropertiesLoadedByUnknownClassLoader", getInputPropertiesLoadedByUnknownClassLoader());
-
         Map<String, byte[]> inputValueHashesBytes = getInputValueHashesBytes();
         if (inputValueHashesBytes != null) {
             Map<String, String> inputValueHashes = inputValueHashesBytes.entrySet().stream()
@@ -323,20 +395,20 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             class Property {
                 private final String hash;
-                private final String normalization;
+                private final Set<String> attributes;
                 private final List<Entry> roots = new ArrayList<>();
 
-                public Property(String hash, String normalization) {
+                public Property(String hash, Set<String> attributes) {
                     this.hash = hash;
-                    this.normalization = normalization;
+                    this.attributes = attributes;
                 }
 
                 public String getHash() {
                     return hash;
                 }
 
-                public String getNormalization() {
-                    return normalization;
+                public Set<String> getAttributes() {
+                    return attributes;
                 }
 
                 public Collection<Entry> getRoots() {
@@ -384,7 +456,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             @Override
             public void preProperty(VisitState state) {
-                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName());
+                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyAttributes());
                 fileProperties.put(state.getPropertyName(), property);
             }
 
@@ -449,4 +521,5 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             CachingState.Disabled::getKey
         );
     }
+
 }

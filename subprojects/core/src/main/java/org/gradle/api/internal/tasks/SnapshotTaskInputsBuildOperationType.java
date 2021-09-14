@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,8 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
-        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
+        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {
+        };
     }
 
     /**
@@ -152,19 +153,56 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Calling any method on this outside of a method that received it has undefined behavior.
          */
         interface VisitState {
+            /**
+             * Returns the currently visited property name. Each property has a unique name.
+             */
             String getPropertyName();
 
+            /**
+             * Returns the hash of the currently visited property.
+             */
             byte[] getPropertyHashBytes();
 
             /**
-             * These come from {@link FingerprintingStrategy#getIdentifier()} and must not be changed.
+             * Returns the single {@link #getPropertyAttributes()} with the "FINGERPRINTING_STRATEGY_" prefix for the currently visited location.
+             * <p>
+             *
+             * This is kept for backward compatibility with the Gradle Enterprise Gradle plugin.
+             *
+             * @deprecated Use {@link #getPropertyAttributes()} instead.
              */
-            String getPropertyNormalizationStrategyName();
+            @Deprecated
+            default String getPropertyNormalizationStrategyName() {
+                String prefix = SnapshotTaskInputsBuildOperationResult.FINGERPRINTING_STRATEGY_PREFIX;
+                return getPropertyAttributes().stream()
+                    .filter(s -> s.startsWith(prefix)).findFirst().map(s -> s.substring(prefix.length()))
+                    .orElseThrow(() -> new IllegalStateException("Missing attribute starting with prefix " + prefix));
+            }
 
+            /**
+             * Returns a lexicographically sorted set of attributes for the currently visited location.
+             * <p>
+             * For now, attributes are the 'fingerprinting strategy', the 'directory sensitivity', and the 'line ending sensitivity'.
+             *
+             * @since 7.3
+             */
+            Set<String> getPropertyAttributes();
+
+            /**
+             * Returns the absolute path of the currently visited location.
+             */
             String getPath();
 
+            /**
+             * Returns the name of the currently visited location, as in {@link File#getName()}
+             */
             String getName();
 
+            /**
+             * Returns the normalized content hash of the last visited file.
+             * <p>
+             * Must not be called when the last visited location was a directory.
+             */
             byte[] getHashBytes();
         }
 
@@ -181,6 +219,8 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Ordered by property name, lexicographically.
          * No null values.
          * Never empty.
+         *
+         * This is kept for backward compatibility with the Gradle Enterprise Gradle plugin.
          *
          * @deprecated Always null, since we don't capture inputs when anything is loaded by an unknown classloader.
          */

@@ -101,7 +101,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
@@ -122,7 +121,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes != null
         result.actionClassNames != null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
 
@@ -172,7 +170,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
@@ -207,7 +204,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
@@ -257,24 +253,24 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         with(aCompileJava.classpath) {
             hash != null
             roots.empty
-            normalization == "COMPILE_CLASSPATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.sourcepath"] as Map<String, ?>) {
             hash != null
             roots.empty
-            normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.annotationProcessorPath"] as Map<String, ?>) {
             hash != null
             roots.empty
-            normalization == "CLASSPATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava.stableSources) {
             hash != null
-            normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS']
             roots.size() == 1
             with(roots[0]) {
                 path == file("a/src/main/java").absolutePath
@@ -367,7 +363,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 path == file("inputFile").absolutePath
                 !containsKey("children")
             }
-            normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
     }
 
@@ -399,7 +395,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.classLoaderHash == null
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
