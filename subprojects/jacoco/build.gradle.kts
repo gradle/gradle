@@ -26,6 +26,7 @@ dependencies {
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.jsoup)
+    testFixturesImplementation(libs.groovyXml)
 
     testImplementation(project(":internal-testing"))
     testImplementation(project(":resources"))

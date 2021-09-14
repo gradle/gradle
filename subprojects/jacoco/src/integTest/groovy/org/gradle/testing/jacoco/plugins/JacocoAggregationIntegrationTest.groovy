@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def "can aggregate jacoco execution data from subprojects"() {
@@ -49,11 +50,13 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 dependencies {
                     implementation project(":direct")
-                    coverageDataPathForTest project // FIXME
+                    jacocoAggregation project // TODO FIXME
                 }
             """
 
             file("application/src/main/java/application/Adder.java").java """
+                package application;
+
                 public class Adder {
                     int add(int x, int y) {
                         return x+y;
@@ -61,6 +64,8 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             """
             file("application/src/test/java/application/AdderTest.java").java """
+                package application;
+
                 import org.junit.Assert;
                 import org.junit.Test;
 
@@ -85,12 +90,29 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                     implementation project(":transitive")
                 }
             """
-            file("direct/src/main/java/direct/Direct.java").java """
-                public class Direct {
+            file("direct/src/main/java/direct/Multiplier.java").java """
+                package direct;
+
+                public class Multiplier {
+                    int multiply(int x, int y) {
+                        return x*y;
+                    }
                 }
             """
-            file("direct/src/test/java/direct/DirectTest.java").java """
-                public class DirectTest {
+            file("direct/src/test/java/direct/MultiplierTest.java").java """
+                package direct;
+
+                import org.junit.Assert;
+                import org.junit.Test;
+                
+                public class MultiplierTest {
+                    @Test
+                    public void testMultiply() {
+                        Multiplier multiplier = new Multiplier();
+                        Assert.assertEquals(1, multiplier.multiply(1, 1));
+                        Assert.assertEquals(4, multiplier.multiply(2, 2));
+                        Assert.assertEquals(2, multiplier.multiply(1, 2));
+                    }
                 }
             """
             file("transitive/build.gradle") << """
@@ -99,27 +121,44 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                     id 'jacoco'
                 }
             """
-            file("transitive/src/main/java/transitive/Transitive.java").java """
-                public class Transitive {
+            file("transitive/src/main/java/transitive/Powerize.java").java """
+                package transitive;
 
+                public class Powerize {
+                    int pow(int x, int y) {
+                        return (int)Math.pow(x, y);
+                    }
                 }
             """
-            file("transitive/src/test/java/transitive/TransitiveTest.java").java """
-                public class TransitiveTest {
+            file("transitive/src/test/java/transitive/PowerizeTest.java").java """
+                package transitive;
 
+                import org.junit.Assert;
+                import org.junit.Test;
+                
+                public class PowerizeTest {
+                    @Test
+                    public void testPow() {
+                        Powerize powerize = new Powerize();
+                        Assert.assertEquals(1, powerize.pow(1, 1));
+                        Assert.assertEquals(4, powerize.pow(2, 2));
+                        Assert.assertEquals(1, powerize.pow(1, 2));
+                    }
                 }
             """
         }
         when:
         succeeds(":application:testCodeCoverageReport")
         then:
-//        file("transitive/build/jacoco/test.exec").assertExists() // TODO restore after writing actual test
-//        file("direct/build/jacoco/test.exec").assertExists() // TODO restore after writing actual test
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
         file("application/build/jacoco/test.exec").assertExists()
 
-        file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertExists()
         file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
-        // TODO check for aggregated report
-        // TODO check for transitive coverage element present in application's aggregated report
+
+        def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassCoverage("transitive.Powerize")
     }
 }
