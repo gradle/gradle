@@ -46,7 +46,7 @@ public interface FileWatcherRegistry extends Closeable {
     }
 
     /**
-     * Registers a watchable hierarchy with the given probe.
+     * Registers a watchable hierarchy.
      *
      * The watcher registry will only watch for changes in watchable hierarchies.
      *
