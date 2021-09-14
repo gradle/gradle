@@ -28,6 +28,12 @@ import static org.junit.Assert.assertTrue
 @Unroll
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
+    public static final String COPY_UNREADABLE_DESTINATION_DEPRECATION = "Cannot access a file in the destination directory (see --info log for details). " +
+        "Copying to a directory which contains unreadable content has been deprecated. " +
+        "This will fail with an error in Gradle 8.0. " +
+        "Use the method Copy.ignoreExistingContentInDestinationDir(). " +
+        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecate_unreadable_output"
+
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
         given:
@@ -285,10 +291,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Copying to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.ignoreExistingContentInDestinationDir().")
+        executer.expectDocumentedDeprecationWarning(COPY_UNREADABLE_DESTINATION_DEPRECATION)
         succeeds "copy", "--info"
         then:
         outputDirectory.list().contains input.name

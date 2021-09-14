@@ -420,10 +420,11 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
+        executer.expectDocumentedDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
             "Syncing to a directory which contains unreadable content has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.")
+            "Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead." +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecate_unreadable_output")
         run "sync", "--info"
         then:
         outputDirectory.list().contains input.name
