@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore("Flaky")
+@Ignore("https://github.com/gradle/gradle/issues/18280")
 class CancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client
