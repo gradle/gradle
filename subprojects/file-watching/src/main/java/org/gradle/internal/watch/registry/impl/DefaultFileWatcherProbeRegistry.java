@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import com.google.common.base.Throwables;
+import com.google.common.primitives.Longs;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -153,7 +152,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
                     //noinspection ResultOfMethodCallIgnored
                     probeFile.getParentFile().mkdirs();
                     try (FileOutputStream out = new FileOutputStream(probeFile)) {
-                        out.write(Throwables.getStackTraceAsString(new RuntimeException("Arming 2")).getBytes(StandardCharsets.UTF_8));
+                        out.write(Longs.toByteArray(System.currentTimeMillis()));
                     }
                     LOGGER.debug("Watch probe has been armed for hierarchy: {}", watchableHierarchy);
                     break;
