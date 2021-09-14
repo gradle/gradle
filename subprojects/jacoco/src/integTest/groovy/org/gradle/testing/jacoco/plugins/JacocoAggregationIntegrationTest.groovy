@@ -113,7 +113,13 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds(":application:testCodeCoverageReport")
         then:
-        file("application/build/reports/").assertExists()
+//        file("transitive/build/jacoco/test.exec").assertExists() // TODO restore after writing actual test
+//        file("direct/build/jacoco/test.exec").assertExists() // TODO restore after writing actual test
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertExists()
+        file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+        // TODO check for aggregated report
         // TODO check for transitive coverage element present in application's aggregated report
     }
 }
