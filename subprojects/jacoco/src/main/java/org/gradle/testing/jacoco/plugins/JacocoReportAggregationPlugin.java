@@ -21,6 +21,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
@@ -99,7 +100,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 TaskProvider<JacocoReport> codeCoverageReport = project.getTasks().register(testSuite.getName() + "CodeCoverageReport", JacocoReport.class, task -> {
                     task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     task.setDescription("Generate code coverage report for projects from " + JACOCO_AGGREGATION_CONFIGURATION_NAME + ".");
-                    task.getClassDirectories().from(analyzedClasses);
+                    task.getClassDirectories().from(analyzedClasses.getIncoming().artifactView(view -> view.componentFilter(componentId -> componentId instanceof ProjectComponentIdentifier)).getFiles());
                     task.getSourceDirectories().from(sourcesPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
                     task.getExecutionData().from(coverageDataPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
 

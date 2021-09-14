@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 
 class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
-    def "can aggregate jacoco execution data from subprojects"() {
+    def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
             buildFile << """
                 subprojects {
@@ -146,6 +146,9 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             """
         }
+    }
+
+    def "can aggregate jacoco execution data from subprojects"() {
         when:
         succeeds(":application:testCodeCoverageReport")
         then:
@@ -159,5 +162,18 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("application.Adder")
         report.assertHasClassCoverage("direct.Multiplier")
         report.assertHasClassCoverage("transitive.Powerize")
+    }
+
+    def "aggregated report does not contain external dependencies"() {
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+            }
+        """
+        when:
+        succeeds(":application:testCodeCoverageReport", "application:dependencies")
+        then:
+        def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 }

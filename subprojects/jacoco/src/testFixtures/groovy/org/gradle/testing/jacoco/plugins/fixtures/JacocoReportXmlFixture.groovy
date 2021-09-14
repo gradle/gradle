@@ -34,9 +34,14 @@ class JacocoReportXmlFixture {
         xml*.'package'.each { pkg ->
             classes.addAll(pkg.'class'.collect {
                 def name = it.@name.toString()
-                def classCounter = it.counter.find { it.@type == "CLASS" }
-                def missed = Integer.parseInt(classCounter.@missed.toString())
-                def covered = Integer.parseInt(classCounter.@covered.toString())
+                def missed = 0
+                def covered = 0
+                if (it.counter.size() > 0) {
+                    def classCounter = it.counter.find { it.@type == "CLASS" }
+                    missed = Integer.parseInt(classCounter.@missed.toString())
+                    covered = Integer.parseInt(classCounter.@covered.toString())
+                }
+
                 return new Coverage(name, covered, missed)
             })
         }
@@ -46,6 +51,10 @@ class JacocoReportXmlFixture {
         def coverage = findClass(clazz)
         assert coverage
         assert coverage.covered == covered
+    }
+
+    void assertDoesNotContainClass(String clazz) {
+        assert findClass(clazz) == null
     }
 
     Coverage findClass(String clazz) {
