@@ -67,7 +67,7 @@ public abstract class Try<T> {
 
     /**
      * Return the result if the represented operation was successful.
-     * Throws the original failure otherwise (wrapped in an {@link UncheckedException} if necessary).
+     * Throws the original failure otherwise (wrapped in an {@code UncheckedException} if necessary).
      */
     public abstract T get();
 
