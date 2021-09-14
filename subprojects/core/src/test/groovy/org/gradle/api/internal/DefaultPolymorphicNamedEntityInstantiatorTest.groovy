@@ -92,17 +92,4 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         GradleException e = thrown()
         e.message == "Cannot register a factory for type TestType because a factory for this type is already registered."
     }
-
-    def "copying factories from a different instantiator"() {
-        given:
-        def source = new DefaultPolymorphicNamedEntityInstantiator<Base>(Base, null)
-        def factoryTypes = [TestType, AnotherTestType] as Set
-        factoryTypes.each { source.registerFactory(it, {}) }
-
-        when:
-        instantiator.copyFactoriesFrom(source)
-
-        then:
-        instantiator.creatableTypes == factoryTypes
-    }
 }
