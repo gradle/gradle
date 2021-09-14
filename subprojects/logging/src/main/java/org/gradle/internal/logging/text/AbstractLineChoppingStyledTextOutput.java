@@ -25,12 +25,13 @@ import org.gradle.internal.SystemProperties;
 public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyledTextOutput {
     private final char[] eolChars;
     private final String eol;
-    private int seenCharsFromEol;
+    private SeenFromEol seenFromEol;
     private State currentState = INITIAL_STATE;
 
     protected AbstractLineChoppingStyledTextOutput() {
         eol = SystemProperties.getInstance().getLineSeparator();
         eolChars = eol.toCharArray();
+        seenFromEol = new SeenFromEol(eolChars);
     }
 
     @Override
@@ -40,7 +41,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         while (context.hasChar()) {
             currentState.execute(context);
         }
-        seenCharsFromEol = context.seenCharsFromEol;
+        seenFromEol = context.seenFromEol;
         context.flushLineText();
     }
 
@@ -64,17 +65,18 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
     private class StateContext {
         private final String text;
-        private int pos;
-        private int max;
-        private int start;
-        private int seenCharsFromEol = AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol;
+        private final int max;
+        private final SeenFromEol seenFromEol = AbstractLineChoppingStyledTextOutput.this.seenFromEol;
         private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
         private final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
+
+        private int start;
+        private int pos;
 
         StateContext(String text) {
             this.text = text;
             this.max = text.length();
-            this.pos = -seenCharsFromEol;
+            this.pos = -seenFromEol.size();
             this.start = pos;
         }
 
@@ -86,18 +88,12 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             pos += count;
         }
 
-        boolean isCurrentCharEquals(char value) {
-            char ch;
-            if ((seenCharsFromEol + pos) < 0) {
-                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenCharsFromEol];
-            } else {
-                ch = text.charAt(pos + seenCharsFromEol);
-            }
-            return ch == value;
+        char currentChar() {
+            return text.charAt(pos + seenFromEol.size());
         }
 
         boolean hasChar() {
-            return (pos + seenCharsFromEol) < max;
+            return pos + seenFromEol.size() < max;
         }
 
         void setState(State state) {
@@ -106,7 +102,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
         void reset() {
             start = pos;
-            seenCharsFromEol = 0;
+            seenFromEol.clear();
         }
 
         void flushLineText() {
@@ -116,7 +112,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 String data = "";
                 // Flushing data split across previous and current appending
                 if (start < 0 && pos >= 0) {
-                    data = eol.substring(0, Math.abs(start)) + text.substring(0, pos);
+                    data = seenFromEol.string(0, Math.abs(start)) + text.substring(0, pos);
                 // Flushing data coming only from current appending
                 } else if (start >= 0) {
                     data = text.substring(start, pos);
@@ -140,65 +136,64 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private static final State SYSTEM_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
-            if (context.seenCharsFromEol < context.eolChars.length) {
-                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenCharsFromEol])) {
-                    context.seenCharsFromEol++;
-                    if (context.seenCharsFromEol == context.eolChars.length) {
+            if (!context.seenFromEol.all()) {
+                boolean windows = context.eol.equals("\r\n");
+
+                if (!windows && context.currentChar() == context.eolChars[context.seenFromEol.size()]) {
+                    context.seenFromEol.add(context.currentChar());
+                    if (context.seenFromEol.all()) {
                         context.flushLineText();
                         context.flushEndLine(context.eol);
-                        context.next(context.seenCharsFromEol);
+                        context.next(context.seenFromEol.size());
                         context.reset();
                         context.setState(START_LINE_STATE);
                     }
                     return;
-                } else if (context.seenCharsFromEol == 0) {
-                    WELL_KNOWN_EOL_PARSING_STATE.execute(context);
+                }
+
+                if (context.seenFromEol.none()) {
+                    if (context.currentChar() == '\r') {
+                        context.seenFromEol.add('\r');
+                        context.setState(WINDOWS_EOL_PARSING_STATE);
+                        return;
+                    }
+                    if (context.currentChar() == '\n') {
+                        context.flushLineText();
+                        context.flushEndLine("\n");
+                        context.next();
+                        context.reset();
+                        context.setState(START_LINE_STATE);
+                        return;
+                    }
+                    context.next();
                     return;
                 }
             }
 
-            context.next(context.seenCharsFromEol);
+            context.next(context.seenFromEol.size());
             context.flushLineText();
             context.reset();
-            context.setState(INITIAL_STATE);
         }
     };
 
     private static final State INITIAL_STATE = SYSTEM_EOL_PARSING_STATE;
 
-    private static final State WELL_KNOWN_EOL_PARSING_STATE = new State() {
+    private static final State WINDOWS_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
-            if (context.isCurrentCharEquals('\r')) {
-                context.seenCharsFromEol++;
-                context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
-            } else if (context.isCurrentCharEquals('\n')) {
-                context.flushLineText();
-                context.flushEndLine("\n");
-                context.next();
-                context.reset();
-                context.setState(START_LINE_STATE);
-            } else {
-                context.next();
-                context.setState(INITIAL_STATE);
-            }
-        }
-    };
 
-    private static final State WINDOWS_EOL_PARSING_ODDITY_STATE = new State() {
-        @Override
-        public void execute(StateContext context) {
-            if (context.isCurrentCharEquals('\n')) {
+
+            if (context.currentChar() == '\n') {
                 context.flushLineText();
                 context.flushEndLine("\r\n");
                 context.next(2);
                 context.reset();
                 context.setState(START_LINE_STATE);
-            } else if (context.isCurrentCharEquals('\r')) {
+            } else if (context.currentChar() == '\r') {
                 context.next();
             } else {
                 context.next();
-                context.seenCharsFromEol = 0;
+                context.seenFromEol.clear();
                 context.setState(INITIAL_STATE);
             }
         }
@@ -211,4 +206,39 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             context.setState(INITIAL_STATE);
         }
     };
+
+    private static class SeenFromEol {
+
+        private final char[] seen;
+        private int count;
+
+        SeenFromEol(char[] eol) {
+            this.seen = new char[eol.length];
+            this.count = 0;
+        }
+
+        public void add(char c) {
+            seen[count++] = c;
+        }
+
+        void clear() {
+            count = 0;
+        }
+
+        int size() {
+            return count;
+        }
+
+        boolean all() {
+            return count == seen.length;
+        }
+
+        boolean none() {
+            return count == 0;
+        }
+
+        public String string(int from, int to) {
+            return new String(seen, from, to - from);
+        }
+    }
 }
