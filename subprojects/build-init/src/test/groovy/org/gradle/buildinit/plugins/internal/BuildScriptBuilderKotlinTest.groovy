@@ -474,7 +474,7 @@ tasks.withType<Test>() {
     encoding = "UTF-8"
 }
 
-tasks.named("test") {
+tasks.named<Test>("test") {
     maxParallelForks = 23
 
     // Use TestNG

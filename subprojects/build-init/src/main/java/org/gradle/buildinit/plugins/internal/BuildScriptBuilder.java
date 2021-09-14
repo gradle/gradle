@@ -2005,7 +2005,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return "tasks.named(\"" + selector.taskName + "\")";
+            return "tasks.named<" + selector.taskType + ">(\"" + selector.taskName + "\")";
         }
 
         @Override
