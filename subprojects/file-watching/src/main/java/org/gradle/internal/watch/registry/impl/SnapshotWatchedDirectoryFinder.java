@@ -16,10 +16,10 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
+import java.util.stream.Stream;
 
 public class SnapshotWatchedDirectoryFinder {
 
@@ -31,7 +31,7 @@ public class SnapshotWatchedDirectoryFinder {
      * - parent dir for regular file snapshots
      * - the first existing parent directory for a missing file snapshot
      */
-    public static ImmutableList<File> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
+    public static Stream<File> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
         File path = new File(snapshot.getAbsolutePath());
 
         // For existing files and directories we watch the parent directory,
@@ -41,22 +41,22 @@ public class SnapshotWatchedDirectoryFinder {
         File ancestorToWatch;
         switch (snapshot.getType()) {
             case RegularFile:
-                return ImmutableList.of(path.getParentFile());
+                return Stream.of(path.getParentFile());
             case Directory:
                 ancestorToWatch = path.getParentFile();
                 // If the path already is the root (e.g. C:\ on Windows),
                 // then we can't watch its parent.
                 return ancestorToWatch == null
-                    ? ImmutableList.of(path)
-                    : ImmutableList.of(ancestorToWatch, path);
+                    ? Stream.of(path)
+                    : Stream.of(ancestorToWatch, path);
             case Missing:
-                return ImmutableList.of(findFirstExistingAncestor(path));
+                return Stream.of(findFirstExistingAncestor(path));
             default:
                 throw new AssertionError();
         }
     }
 
-    public static File findFirstExistingAncestor(File path) {
+    private static File findFirstExistingAncestor(File path) {
         File candidate = path;
         while (true) {
             candidate = candidate.getParentFile();
