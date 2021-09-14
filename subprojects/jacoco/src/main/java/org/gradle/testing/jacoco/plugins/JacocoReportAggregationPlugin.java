@@ -106,10 +106,10 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                     task.reports(reports -> {
                         // xml is usually used to integrate code coverage with
                         // other tools like SonarQube, Coveralls or Codecov
-                        reports.getXml().getRequired().set(true);
+                        reports.getXml().getRequired().convention(true);
                         // HTML reports can be used to see code coverage
                         // without any external tools
-                        reports.getHtml().getRequired().set(true);
+                        reports.getHtml().getRequired().convention(true);
                     });
                 });
 
