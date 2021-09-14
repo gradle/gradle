@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -76,7 +77,7 @@ abstract public class JacocoReportAggregationPlugin implements Plugin<Project> {
                 //  wire in sources, runtime,
 
                 // A resolvable configuration to collect JaCoCo coverage data
-                Configuration coverageDataPath = project.getConfigurations().create("coverageDataPathFor" + testSuite.getName(), conf -> {
+                Configuration coverageDataPath = project.getConfigurations().create("coverageDataPathFor" + StringUtils.capitalize(testSuite.getName()), conf -> {
                     conf.setVisible(false);
                     conf.setCanBeConsumed(false);
                     conf.setCanBeResolved(true);
