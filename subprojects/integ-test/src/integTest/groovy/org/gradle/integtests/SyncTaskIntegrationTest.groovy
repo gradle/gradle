@@ -310,8 +310,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         defaultSourceFileTree()
         file('dest').create {
-            file 'extra1.txt'
-            extraDir { file 'extra2.txt' }
+            dir1 { file 'extra1.txt' }
+            extraDir {
+                file 'extra1.txt'
+                file 'extra2.txt'
+            }
+
         }
         buildScript '''
             task syncIt() {
@@ -320,9 +324,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                         from 'source'
                         into 'dest'
                         preserve {
+                             include 'dir1/extra1.txt'
                              include 'extraDir/**'
-                             include 'dir1/**'
-                             exclude 'dir1/extra.txt'
+                             exclude 'extraDir/extra2.txt'
                         }
                     }
                 }
@@ -333,14 +337,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'syncIt'
 
         then:
-        file('dest').assertHasDescendants(
-            'dir1/file1.txt',
-            'dir2/subdir/file2.txt',
-            'dir2/file3.txt',
-            'emptyDir'
-        )
-        file('dest/emptyDir').exists()
-        !file('dest/extra1.txt').exists()
+        file('dest/dir1/extra1.txt').exists()
+        file('dest/extraDir/extra1.txt').exists()
         !file('dest/extraDir/extra2.txt').exists()
     }
 
