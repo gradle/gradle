@@ -16,10 +16,8 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.SyncSpec;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import javax.annotation.Nullable;
