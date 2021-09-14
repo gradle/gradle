@@ -103,7 +103,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 import org.junit.Assert;
                 import org.junit.Test;
-                
+
                 public class MultiplierTest {
                     @Test
                     public void testMultiply() {
@@ -134,7 +134,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
                 import org.junit.Assert;
                 import org.junit.Test;
-                
+
                 public class PowerizeTest {
                     @Test
                     public void testPow() {
@@ -175,5 +175,108 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
+    }
+
+    def 'multiple test suites create multiple aggregation tasks'() {
+        given:
+        // TODO add new test suites to 2 subprojects
+        file("transitive/build.gradle") << """
+            testing {
+                suites {
+                    integTest {
+                        useJUnit()
+                        dependencies {
+                          implementation project
+                        }
+                    }
+                }
+            }
+        """
+
+        file("application/build.gradle") << """
+            testing {
+                suites {
+                    integTest {
+                        useJUnit()
+                        dependencies {
+                            implementation project(':transitive') // necessary to access Divisor when compiling test
+                        }
+                    }
+                }
+            }
+        """
+
+        // TODO add new production class whose only coverage is in integTest
+        file("transitive/src/main/java/transitive/Divisor.java").java """
+                package transitive;
+
+                public class Divisor {
+                    public int div(int x, int y) {
+                        return x / y;
+                    }
+                    public int mod(int x, int y) {
+                        return x % y;
+                    }
+                }
+            """
+
+        // TODO add new integTest classes to 2 subprojects
+        file("application/src/integTest/java/application/DivTest.java").java """
+                package application;
+
+                import org.junit.Assert;
+                import org.junit.Test;
+                import transitive.Divisor;
+
+                public class DivTest {
+                    @Test
+                    public void testDiv() {
+                        Divisor divisor = new Divisor();
+                        Assert.assertEquals(2, divisor.div(4, 2));
+                    }
+                }
+            """
+        file("transitive/src/integTest/java/transitive/ModTest.java").java """
+                package transitive;
+
+                import org.junit.Assert;
+                import org.junit.Test;
+
+                public class ModTest {
+                    @Test
+                    public void testMod() {
+                        Divisor divisor = new Divisor();
+                        Assert.assertEquals(1, divisor.mod(5, 2));
+                    }
+                }
+            """
+
+        // TODO invoke both aggregation tasks and check results
+        when:
+        succeeds(":transitive:integTest") // TODO delete me should not be necessary; direct has no integTest and is "yanked" out of the graph?
+        succeeds(":application:testCodeCoverageReport", ":application:integTestCodeCoverageReport", ":application:dependencies")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("transitive/build/jacoco/integTest.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/integTest.exec").assertDoesNotExist()
+        file("application/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/integTest.exec").assertExists()
+
+        file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+        file("application/build/reports/jacoco/integTestCodeCoverageReport/html/index.html").assertExists()
+
+        def testReport = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        testReport.assertHasClassCoverage("application.Adder")
+        testReport.assertHasClassCoverage("direct.Multiplier")
+        testReport.assertHasClassCoverage("transitive.Powerize")
+        testReport.assertHasClassCoverage("transitive.Divisor", 0)
+
+        def integTestReport = new JacocoReportXmlFixture(file("application/build/reports/jacoco/integTestCodeCoverageReport/integTestCodeCoverageReport.xml"))
+        integTestReport.assertHasClassCoverage("application.Adder", 0)
+        integTestReport.assertHasClassCoverage("direct.Multiplier", 0)
+        integTestReport.assertHasClassCoverage("transitive.Powerize", 0)
+        integTestReport.assertHasClassCoverage("transitive.Divisor")
     }
 }
