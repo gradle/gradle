@@ -55,15 +55,6 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
     }
 
     @Override
-    public void unregisterProbe(File watchableHierarchy) {
-        LOGGER.debug("Unregistering probe for {}", watchableHierarchy);
-        WatchProbe probe = watchProbesByHierarchy.remove(watchableHierarchy);
-        if (probe != null) {
-            watchProbesByPath.remove(probe.probeFile.getAbsolutePath());
-        }
-    }
-
-    @Override
     public Stream<File> unprovenHierarchies() {
         return watchProbesByHierarchy.values().stream()
             .filter(WatchProbe::leftArmed)

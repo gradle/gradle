@@ -22,8 +22,6 @@ import java.util.stream.Stream;
 public interface FileWatcherProbeRegistry {
     void registerProbe(File hierarchy);
 
-    void unregisterProbe(File hierarchy);
-
     Stream<File> unprovenHierarchies();
 
     void armWatchProbe(File watchableHierarchy);
