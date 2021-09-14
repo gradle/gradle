@@ -34,8 +34,8 @@ import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
-    public DarwinFileWatcherRegistryFactory(FileWatcherProbeRegistry probeRegistry, WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(OsxFileEventFunctions.class), probeRegistry, watchableFileSystemDetector, watchFilter);
+    public DarwinFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(OsxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override

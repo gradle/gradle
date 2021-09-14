@@ -25,6 +25,7 @@ import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 
+import java.io.File;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
@@ -33,18 +34,15 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;
-    private final FileWatcherProbeRegistry probeRegistry;
     private final WatchableFileSystemDetector watchableFileSystemDetector;
     private final Predicate<String> watchFilter;
 
     public AbstractFileWatcherRegistryFactory(
         T fileEventFunctions,
-        FileWatcherProbeRegistry probeRegistry,
         WatchableFileSystemDetector watchableFileSystemDetector,
         Predicate<String> watchFilter
     ) {
         this.fileEventFunctions = fileEventFunctions;
-        this.probeRegistry = probeRegistry;
         this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.watchFilter = watchFilter;
     }
@@ -53,6 +51,9 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
     public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
+            // TODO How can we avoid hard-coding ".gradle" here?
+            FileWatcherProbeRegistry probeRegistry = new DefaultFileWatcherProbeRegistry(buildDir ->
+                new File(new File(buildDir, ".gradle"), "file-system.probe"));
             W watcher = createFileWatcher(fileEvents);
             WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, watchableFileSystemDetector, watchFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);

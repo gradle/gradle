@@ -83,10 +83,8 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.VfsRootReference;
-import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.impl.DefaultFileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
@@ -201,12 +199,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
-        FileWatcherProbeRegistry createFileWatcherProbeRegistry() {
-            // TODO How can we avoid hard-coding ".gradle" here?
-            return new DefaultFileWatcherProbeRegistry(buildDir ->
-                new File(new File(buildDir, ".gradle"), "file-system.probe"));
-        }
-
         WatchableFileSystemDetector createWatchableFileSystemDetector(FileSystems fileSystems) {
             return new DefaultWatchableFileSystemDetector(fileSystems);
         }
@@ -218,7 +210,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             ListenerManager listenerManager,
             FileSystem fileSystem,
             GlobalCacheLocations globalCacheLocations,
-            FileWatcherProbeRegistry probeRegistry,
             WatchableFileSystemDetector watchableFileSystemDetector
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
@@ -230,7 +221,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(
                 OperatingSystem.current(),
                 nativeCapabilities,
-                probeRegistry,
                 watchableFileSystemDetector,
                 watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
@@ -296,18 +286,17 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(
             OperatingSystem operatingSystem,
             NativeCapabilities nativeCapabilities,
-            FileWatcherProbeRegistry probeRegistry,
             WatchableFileSystemDetector watchableFileSystemDetector,
             Predicate<String> watchFilter
         ) {
             if (nativeCapabilities.useFileSystemWatching()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory(probeRegistry, watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory(probeRegistry, watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory(probeRegistry, watchableFileSystemDetector, watchFilter));
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchableFileSystemDetector, watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.debug("Native file system watching is not available for this operating system.", e);

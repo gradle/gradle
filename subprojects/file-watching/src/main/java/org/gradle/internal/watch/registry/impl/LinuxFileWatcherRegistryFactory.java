@@ -30,8 +30,8 @@ import java.util.function.Predicate;
 
 public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<LinuxFileEventFunctions, LinuxFileWatcher> {
 
-    public LinuxFileWatcherRegistryFactory(FileWatcherProbeRegistry probeRegistry, WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(LinuxFileEventFunctions.class), probeRegistry, watchableFileSystemDetector, watchFilter);
+    public LinuxFileWatcherRegistryFactory(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
+        super(FileEvents.get(LinuxFileEventFunctions.class), watchableFileSystemDetector, watchFilter);
     }
 
     @Override
