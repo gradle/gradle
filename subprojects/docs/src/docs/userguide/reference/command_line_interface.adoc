@@ -82,7 +82,7 @@ $ gradle test
 
 [NOTE]
 ====
-Some tasks selectors, like `help`, will only run the task on the project they are invoked on and not on all the subprojects.
+Some tasks selectors, like `help` or `dependencies`, will only run the task on the project they are invoked on and not on all the subprojects.
 The main motivation for this is that these tasks print out information that would be hard to process if it combined the information from all projects.
 ====
 
