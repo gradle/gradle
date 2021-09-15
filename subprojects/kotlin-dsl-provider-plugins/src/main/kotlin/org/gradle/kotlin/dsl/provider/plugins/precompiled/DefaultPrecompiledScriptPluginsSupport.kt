@@ -367,18 +367,28 @@ private
 val Project.gradlePlugin
     get() = the<GradlePluginDevelopmentExtension>()
 
+
 private
 fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
+
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(String.format("Precompiled plugin should not have prefix: '%s' since it conflicts with core plugins. You should use a different prefix for plugin: '%s.gradle.kts'. %s",
-            DefaultPluginManager.CORE_PLUGIN_NAMESPACE, scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()))
+        throw GradleException(
+            String.format(
+                "Precompiled plugin can't start with '%s' or be in '%s' package: '%s'.\n\n%s", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
+                this.relativePath(scriptPlugin.scriptFile), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+            )
+        )
     }
     val existingPlugin = this.plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(String.format("Precompiled plugin: '%s.gradle.kts' conflicts with the core plugin: '%s'. %s", scriptPlugin.id, scriptPlugin.id,
-            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()))
+        throw GradleException(
+            String.format(
+                "Precompiled plugin: '%s' conflicts with the core plugin: '%s'.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+            )
+        )
     }
 }
+
 
 private
 fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {

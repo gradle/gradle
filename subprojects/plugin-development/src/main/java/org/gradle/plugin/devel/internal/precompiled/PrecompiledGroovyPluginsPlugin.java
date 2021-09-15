@@ -99,14 +99,13 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
     }
 
     private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
-        Documentation documentationManual = Documentation.userManual("custom_plugins", "precompiled_plugins");
         if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new GradleException(String.format("Precompiled plugin should not have prefix: '%s' since it conflicts with core plugins. You should use a different prefix for plugin: '%s.gradle'. %s",
-                CORE_PLUGIN_NAMESPACE, scriptPlugin.getId(), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
+            throw new GradleException(String.format("Precompiled plugin can't start with '%s': '%s'.\n\n%s",
+                CORE_PLUGIN_NAMESPACE, project.relativePath(scriptPlugin.getFileName()), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
         }
         Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
         if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new GradleException(String.format("Precompiled plugin: '%s.gradle' conflicts with the core plugin: '%s'. %s", scriptPlugin.getId(), scriptPlugin.getId(),
+            throw new GradleException(String.format("Precompiled plugin: '%s' conflicts with the core plugin: '%s'.\n\n%s", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId(),
                 PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
         }
     }

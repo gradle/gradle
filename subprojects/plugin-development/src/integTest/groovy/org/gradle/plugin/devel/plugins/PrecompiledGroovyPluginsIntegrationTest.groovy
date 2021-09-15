@@ -962,46 +962,28 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         given:
         enablePrecompiledPluginsInBuildSrc()
 
-        file("buildSrc/src/main/groovy/plugins/java.gradle") << """
-            class TestTask extends DefaultTask {
-                @TaskAction
-                void run() {
-                    println 'from custom task'
-                }
-            }
-
-            task testTask(type: TestTask)
-        """
+        file("buildSrc/src/main/groovy/plugins/java.gradle") << ""
 
         when:
         def failure = fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin: 'java.gradle' conflicts with the core plugin: 'java'. " +
-            "See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        failure.assertHasCause("Precompiled plugin: 'src/main/groovy/plugins/java.gradle' conflicts with the core plugin: 'java'.\n\n" +
+            "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     def "should not allow precompiled plugin to have org.gradle prefix"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
 
-        file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << """
-            class TestTask extends DefaultTask {
-                @TaskAction
-                void run() {
-                    println 'from custom task'
-                }
-            }
-
-            task testTask(type: TestTask)
-        """
+        file("buildSrc/src/main/groovy/plugins/${pluginName}.gradle") << ""
 
         when:
         fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: '${pluginName}.gradle'."
-            + " See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
+        failure.assertHasCause("Precompiled plugin can't start with 'org.gradle': 'src/main/groovy/plugins/${pluginName}.gradle'.\n\n"
+            + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
