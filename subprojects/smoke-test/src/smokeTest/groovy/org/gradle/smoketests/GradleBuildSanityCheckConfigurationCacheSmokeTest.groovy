@@ -18,11 +18,11 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
 
-class GradleBuildCodeQualityConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
-    def "can run Gradle codeQuality with configuration cache enabled"() {
+class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
+    def "can run Gradle sanityCheck with configuration cache enabled"() {
 
         given:
-        def tasks = [':configuration-cache:codeQuality']
+        def tasks = ['sanityCheck']
 
         when:
         configurationCacheRun(tasks, 0)
@@ -31,7 +31,7 @@ class GradleBuildCodeQualityConfigurationCacheSmokeTest extends AbstractGradleBu
         assertConfigurationCacheStateStored()
 
         when:
-        run([":configuration-cache:clean"])
+        run([":configuration-cache:clean", ":architecture-test:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -44,5 +44,6 @@ class GradleBuildCodeQualityConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
+        result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
     }
 }
