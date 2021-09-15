@@ -64,8 +64,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,11 +121,9 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     private final class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
 
         final InputFilePropertyVisitor visitor;
+        final Deque<DirectorySnapshot> unvisitedDirectories = new ArrayDeque<>();
 
-        private final List<DirectorySnapshot> replayDirectorySnapshotList = new ArrayList<>();
-        private final Set<DirectorySnapshot> visitedPreDirectories = new HashSet<>();
         Map<String, FileSystemLocationFingerprint> fingerprints;
-
         String propertyName;
         HashCode propertyHash;
         String name;
@@ -198,12 +194,12 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             FileSystemLocationFingerprint fingerprint = fingerprints.get(path);
             if (fingerprint == null) {
-                // We are not interested in fingerprinting directories.
-                // Do not visit it now (but maybe later if it contains at some point a file)
-                replayDirectorySnapshotList.add(physicalSnapshot);
+                // This directory is not part of the fingerprint.
+                // Store it to visit later if it contains anything that was fingerprinted
+                unvisitedDirectories.add(physicalSnapshot);
             } else {
+                visitUnvisitedDirectories();
                 visitor.preDirectory(this);
-                visitedPreDirectories.add(physicalSnapshot);
             }
         }
 
@@ -217,8 +213,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             if (fingerprint == null) {
                 return SnapshotVisitResult.CONTINUE;
             }
-            // Replay parent directory stack in order, since we now have a file in the hierarchy
-            clearAndMaybeReplayPreDirectories(true);
+
+            visitUnvisitedDirectories();
 
             this.path = snapshot.getAbsolutePath();
             this.name = snapshot.getName();
@@ -239,32 +235,26 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot) {
-            FileSystemLocationFingerprint fingerprint = fingerprints.get(directorySnapshot.getAbsolutePath());
-            clearAndMaybeReplayPreDirectories(fingerprint != null);
-            if (visitedPreDirectories.remove(directorySnapshot)) {
+            DirectorySnapshot lastUnvisitedDirectory = unvisitedDirectories.pollLast();
+            if (lastUnvisitedDirectory == null) {
                 visitor.postDirectory();
             }
+
             if (--depth == 0) {
                 visitor.postRoot();
             }
         }
 
-        private void clearAndMaybeReplayPreDirectories(boolean replayPreDirectory) {
-            Iterator<DirectorySnapshot> iterator = replayDirectorySnapshotList.iterator();
-            while (iterator.hasNext()) {
-                DirectorySnapshot directorySnapshot = iterator.next();
-                if (replayPreDirectory) {
-                    this.path = directorySnapshot.getAbsolutePath();
-                    this.name = directorySnapshot.getName();
-                    this.hash = null;
-                    visitor.preDirectory(this);
-                    visitedPreDirectories.add(directorySnapshot);
-                }
-                iterator.remove();
+        private void visitUnvisitedDirectories() {
+            DirectorySnapshot unvisited = unvisitedDirectories.poll();
+            while (unvisited != null) {
+                this.path = unvisited.getAbsolutePath();
+                this.name = unvisited.getName();
+                this.hash = null;
+                visitor.preDirectory(this);
+                unvisited = unvisitedDirectories.poll();
             }
         }
-
-
     }
 
     private InputFilePropertySpec propertySpec(String propertyName) {

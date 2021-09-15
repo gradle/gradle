@@ -225,6 +225,12 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 dir("empty") {
                     dir("empty")
                 }
+                dir("nonempty") {
+                    dir("nonempty") {
+                        dir("empty")
+                        file("Z.java") << "package nonempty.nonempty; class Z {}"
+                    }
+                }
             }
         }
 
@@ -277,7 +283,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             roots.size() == 1
             with(roots[0]) {
                 path == file("a/src/main/java").absolutePath
-                children.size() == 3
+                children.size() == 4
                 with(children[0]) {
                     path == "a"
                     children.size() == 2
@@ -301,6 +307,21 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 with(children[2]) {
                     path == "B.java"
                     hash != null
+                }
+                with(children[3]) {
+                    path == "nonempty"
+                    hash == null
+                    children.size() == 1
+                    with(children[0]) {
+                        path == "nonempty"
+                        hash == null
+                        children.size() == 1
+                        with(children[0]) {
+                            path == "Z.java"
+                            hash != null
+                            children == null
+                        }
+                    }
                 }
             }
         }
