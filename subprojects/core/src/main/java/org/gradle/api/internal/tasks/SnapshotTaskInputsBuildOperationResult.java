@@ -61,9 +61,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -86,7 +86,7 @@ import java.util.stream.Collectors;
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
-    static final String FINGERPRINTING_STRATEGY_PREFIX = "FINGERPRINTING_STRATEGY_";
+    private static final String FINGERPRINTING_STRATEGY_PREFIX = "FINGERPRINTING_STRATEGY_";
     private static final String DIRECTORY_SENSITIVITY_PREFIX = "DIRECTORY_SENSITIVITY_";
     private static final String LINE_ENDING_SENSITIVITY_PREFIX = "LINE_ENDING_SENSITIVITY_";
     private static final Map<Class<? extends FileNormalizer>, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<Class<? extends FileNormalizer>, String>builder()
@@ -195,6 +195,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         @Override
         public Set<String> getPropertyAttributes() {
             return propertyAttributesByPropertyName.get(propertyName).stream().map(Enum::name).sorted().collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public String getPropertyNormalizationStrategyName() {
+            String prefix = SnapshotTaskInputsBuildOperationResult.FINGERPRINTING_STRATEGY_PREFIX;
+            return getPropertyAttributes().stream()
+                .filter(s -> s.startsWith(prefix)).findFirst().map(s -> s.substring(prefix.length()))
+                .orElseThrow(() -> new IllegalStateException("Missing attribute starting with prefix " + prefix));
         }
 
         @Override

@@ -172,12 +172,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
              * @deprecated Use {@link #getPropertyAttributes()} instead.
              */
             @Deprecated
-            default String getPropertyNormalizationStrategyName() {
-                String prefix = SnapshotTaskInputsBuildOperationResult.FINGERPRINTING_STRATEGY_PREFIX;
-                return getPropertyAttributes().stream()
-                    .filter(s -> s.startsWith(prefix)).findFirst().map(s -> s.substring(prefix.length()))
-                    .orElseThrow(() -> new IllegalStateException("Missing attribute starting with prefix " + prefix));
-            }
+            String getPropertyNormalizationStrategyName();
 
             /**
              * Returns a lexicographically sorted set of attributes for the currently visited location.
