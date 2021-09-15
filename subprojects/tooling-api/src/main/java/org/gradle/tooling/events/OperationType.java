@@ -122,7 +122,8 @@ public enum OperationType {
     TEST_OUTPUT,
 
     /**
-     * Flag for file download progress events.
+     * Flag for file download progress events. This includes various types of files, for example files downloaded during dependency resolution,
+     * Gradle distribution downloads, and Java toolchain downloads.
      *
      * <p>
      * The following events are currently issued for this operation type.

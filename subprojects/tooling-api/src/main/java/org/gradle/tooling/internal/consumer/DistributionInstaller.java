@@ -22,11 +22,12 @@ import org.gradle.internal.time.Clock;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.StatusEvent;
-import org.gradle.tooling.events.internal.ConsumerOperationDescriptor;
-import org.gradle.tooling.events.internal.DefaultFinishEvent;
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadFinishEvent;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.internal.DefaultFileDownloadStartEvent;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
-import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.internal.DefaultStatusEvent;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.util.GradleVersion;
@@ -61,8 +62,16 @@ public class DistributionInstaller {
 
     public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock) {
         this.progressLoggerFactory = progressLoggerFactory;
-        this.buildProgressListener = buildProgressListener;
+        this.buildProgressListener = getListener(buildProgressListener);
         this.clock = clock;
+    }
+
+    private InternalBuildProgressListener getListener(InternalBuildProgressListener buildProgressListener) {
+        if (buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.FILE_DOWNLOAD)) {
+            return buildProgressListener;
+        } else {
+            return NO_OP;
+        }
     }
 
     /**
@@ -103,8 +112,7 @@ public class DistributionInstaller {
 
         @Override
         public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
-            String eventDisplayName = descriptor.getDisplayName() + " " + downloaded + "/" + contentLength + " bytes downloaded";
-            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), eventDisplayName, descriptor, contentLength, downloaded, "bytes");
+            StatusEvent statusEvent = new DefaultStatusEvent(clock.getCurrentTime(), descriptor, contentLength, downloaded, "bytes");
             // This is called from the download thread. Only forward the events when not cancelled
             currentListener.get().onEvent(statusEvent);
         }
@@ -126,9 +134,9 @@ public class DistributionInstaller {
 
         private void doDownload(URI address, File destination) throws Exception {
             String displayName = "Download " + address;
-            OperationDescriptor descriptor = new ConsumerOperationDescriptor(displayName);
+            FileDownloadOperationDescriptor descriptor = new DefaultFileDownloadOperationDescriptor(displayName, address, null);
             long startTime = clock.getCurrentTime();
-            buildProgressListener.onEvent(new DefaultStartEvent(startTime, displayName + " started", descriptor));
+            buildProgressListener.onEvent(new DefaultFileDownloadStartEvent(startTime, displayName + " started", descriptor));
 
             Throwable failure = null;
             try {
@@ -139,7 +147,7 @@ public class DistributionInstaller {
 
             long endTime = clock.getCurrentTime();
             OperationResult result = failure == null ? new DefaultOperationSuccessResult(startTime, endTime) : new DefaultOperationFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-            buildProgressListener.onEvent(new DefaultFinishEvent(endTime, displayName + " finished", descriptor, result));
+            buildProgressListener.onEvent(new DefaultFileDownloadFinishEvent(endTime, displayName + " finished", descriptor, result));
             if (failure != null) {
                 if (failure instanceof Exception) {
                     throw (Exception) failure;

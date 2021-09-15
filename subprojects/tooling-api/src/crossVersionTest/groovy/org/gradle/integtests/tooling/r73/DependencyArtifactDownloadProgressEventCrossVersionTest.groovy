@@ -49,7 +49,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         downloadB.assertIsDownload(modules.projectB.artifact.uri)
         !downloadB.statusEvents.empty
         downloadB.statusEvents.each {
-            assert it.event.displayName == "Download ${modules.projectB.artifact.uri}"
+            assert it.event.displayName == "Download ${modules.projectB.artifact.uri} ${it.event.progress}/${it.event.total} ${it.event.unit} completed"
             assert it.event.progress > 0 && it.event.progress <= modules.projectB.artifact.file.length()
             assert it.event.total == modules.projectB.artifact.file.length()
         }

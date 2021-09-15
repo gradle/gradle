@@ -282,7 +282,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         fileDownloadListeners.getSource().statusChanged(new DefaultStatusEvent(
             progressEvent.getEventTime(),
-            progressEvent.getDescriptor().getDisplayName(),
             descriptor,
             progressEvent.getTotal(),
             progressEvent.getProgress(),

@@ -55,7 +55,6 @@ class ProgressEvents implements ProgressListener {
     private boolean dirty
     private final List<Operation> operations = new ArrayList<Operation>()
     private static final boolean IS_WINDOWS_OS = OperatingSystem.current().isWindows()
-    boolean skipValidation
 
     /**
      * Creates a {@link ProgressEvents} implementation for the current tooling api client version.
@@ -93,9 +92,8 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    if (!skipValidation && uniqueBuildOperation(descriptor)) {
-                        if (descriptor.displayName in ['Configure settings', 'Configure build', 'Calculate task graph', 'Run tasks']
-                            || descriptor.displayName.contains('/maven-metadata.xml')
+                    if (uniqueBuildOperation(descriptor)) {
+                        if (descriptor.displayName.contains('/maven-metadata.xml')
                             || descriptor.displayName.startsWith('Apply plugin ')
                             || descriptor.displayName.startsWith('Configure project ')
                             || descriptor.displayName.startsWith('Cross-configure project ')
@@ -455,6 +453,7 @@ class ProgressEvents implements ProgressListener {
             assert finishEvent instanceof FileDownloadFinishEvent
             assert descriptor instanceof FileDownloadOperationDescriptor
             assert descriptor.uri == uri
+            assert descriptor.displayName == "Download " + uri
         }
 
         boolean isSuccessful() {
