@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -976,7 +977,8 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         def failure = fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin: 'java.gradle' conflicts with the core plugin: 'java' (class org.gradle.api.plugins.JavaPlugin).")
+        failure.assertHasCause("Precompiled plugin: 'java.gradle' conflicts with the core plugin: 'java'. " +
+            "See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     def "should not allow precompiled plugin to have org.gradle prefix"() {
@@ -998,7 +1000,8 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: '${pluginName}.gradle'.")
+        failure.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: '${pluginName}.gradle'."
+            + " See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]

@@ -29,6 +29,7 @@ import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
@@ -36,6 +37,7 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.inClassPathMode
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport.Companion.PRECOMPILED_SCRIPT_MANUAL
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
@@ -120,6 +122,10 @@ import javax.inject.Inject
  *  to compute its [HashedProjectSchema] and emit the corresponding type-safe accessors
  */
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
+
+    companion object {
+        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")!!
+    }
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
 
@@ -364,11 +370,13 @@ val Project.gradlePlugin
 private
 fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(String.format("Precompiled plugin should not have prefix: '%s' since it conflicts with core plugins. You should use a different prefix for plugin: '%s.gradle.kts'.", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, scriptPlugin.id))
+        throw GradleException(String.format("Precompiled plugin should not have prefix: '%s' since it conflicts with core plugins. You should use a different prefix for plugin: '%s.gradle.kts'. %s",
+            DefaultPluginManager.CORE_PLUGIN_NAMESPACE, scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()))
     }
     val existingPlugin = this.plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(String.format("Precompiled plugin: '%s.gradle.kts' conflicts with the core plugin: '%s' (%s).", scriptPlugin.id, scriptPlugin.id, existingPlugin.javaClass))
+        throw GradleException(String.format("Precompiled plugin: '%s.gradle.kts' conflicts with the core plugin: '%s'. %s", scriptPlugin.id, scriptPlugin.id,
+            PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()))
     }
 }
 

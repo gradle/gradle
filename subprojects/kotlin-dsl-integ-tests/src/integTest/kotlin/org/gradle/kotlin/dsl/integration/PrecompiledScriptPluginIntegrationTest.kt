@@ -8,6 +8,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -743,7 +744,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         val error = buildAndFail("help")
 
-        error.assertHasCause("Precompiled plugin: 'java.gradle.kts' conflicts with the core plugin: 'java' (class org.gradle.api.plugins.JavaPlugin).")
+        error.assertHasCause("Precompiled plugin: 'java.gradle.kts' conflicts with the core plugin: 'java'. " +
+            "See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
     @Test
@@ -762,6 +764,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         // then:
-        error.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: 'org.gradle.my-plugin.gradle.kts'.")
+        error.assertHasCause("Precompiled plugin should not have prefix: 'org.gradle' since it conflicts with core plugins. You should use a different prefix for plugin: 'org.gradle.my-plugin.gradle.kts'. " +
+            "See https://docs.gradle.org/" + GradleVersion.current().version + "/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 }
