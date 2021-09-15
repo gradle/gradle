@@ -60,7 +60,8 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         if (!stage.runsIndependent && prevStage != null) {
             dependency(RelativeId(stageTriggerId(model, prevStage))) {
                 snapshot {
-                    onDependencyFailure = FailureAction.ADD_PROBLEM
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyCancel = FailureAction.FAIL_TO_START
                 }
             }
         }
@@ -82,6 +83,9 @@ fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(buildTypes: Iter
                 if (!buildType.failStage) {
                     onDependencyFailure = FailureAction.IGNORE
                     onDependencyCancel = FailureAction.IGNORE
+                } else {
+                    onDependencyFailure = FailureAction.ADD_PROBLEM
+                    onDependencyCancel = FailureAction.ADD_PROBLEM
                 }
                 snapshotConfig(buildType)
             }
