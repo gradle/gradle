@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -167,6 +168,11 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
         dependencies().dependency(configuration, comment, dependencies);
         return this;
+    }
+
+    public void dependencyForSuite(String suite, String configuration, String comment, String... dependencies) {
+        final SuiteSpec targetSuite = block.testing.suites.stream().filter((SuiteSpec s) -> s.getName().equals(suite)).findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown suite: " + suite));
+        targetSuite.dependencies.dependency(configuration, comment, dependencies);
     }
 
     /**

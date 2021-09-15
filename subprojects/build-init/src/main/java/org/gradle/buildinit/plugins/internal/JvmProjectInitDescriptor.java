@@ -298,9 +298,13 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 break;
             case KOTLINTEST:
-                buildScriptBuilder
-                    .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
-                    .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+                buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
+                if (buildScriptBuilder.isUsingTestSuites()) {
+                    buildScriptBuilder.dependencyForSuite("integrationTest", "implementation", "Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
+                    buildScriptBuilder.dependencyForSuite("integrationTest", "implementation", "Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+                } else {
+                    buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+                }
                 break;
             default:
                 buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));

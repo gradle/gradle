@@ -60,11 +60,13 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
         if (scriptDsl == GROOVY) {
-            succeeds('clean', 'integrationTest')
-            assertTestsDidNotRun("some.thing.AppTest")
-            assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
-            assertIntegrationTestPassed("some.thing.AppIntegTest", "superTest")
+            succeeds('integrationTest')
+        } else {
+            succeeds('check')
         }
+        assertTestsDidNotRun("some.thing.AppTest")
+        assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+        assertIntegrationTestPassed("some.thing.AppIntegTest", "superTest")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
