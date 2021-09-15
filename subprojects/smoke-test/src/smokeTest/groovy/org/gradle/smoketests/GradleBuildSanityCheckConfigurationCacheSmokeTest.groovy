@@ -22,7 +22,19 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
     def "can run Gradle sanityCheck with configuration cache enabled"() {
 
         given:
-        def tasks = ['sanityCheck']
+        // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
+        // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
+        def tasks = [
+            ':configuration-cache:sanityCheck',
+            ":docs:checkstyleApi",
+            ":internal-build-reports:allIncubationReportsZip",
+            ":architecture-test:checkBinaryCompatibility",
+            ":docs:javadocAll",
+            ":architecture-test:test",
+            ":tooling-api:toolingApiShadedJar",
+            ":performance:verifyPerformanceScenarioDefinitions",
+            ":checkSubprojectsInfo",
+        ]
 
         when:
         configurationCacheRun(tasks, 0)
@@ -44,6 +56,13 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:checkstyleApi").outcome == TaskOutcome.SUCCESS
+        result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:javadocAll").outcome == TaskOutcome.SUCCESS
+        result.task(":architecture-test:test").outcome == TaskOutcome.SUCCESS
+        result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.SUCCESS
+        result.task(":performance:verifyPerformanceScenarioDefinitions").outcome == TaskOutcome.SUCCESS
+        result.task(":checkSubprojectsInfo").outcome == TaskOutcome.SUCCESS
     }
 }
