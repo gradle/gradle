@@ -16,10 +16,10 @@
 
 package org.gradle.testing.jacoco.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
@@ -46,49 +46,39 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPlugins().withId("jvm-test-suite", p -> {
-            Configuration jacocoAggregation = project.getConfigurations().maybeCreate(JACOCO_AGGREGATION_CONFIGURATION_NAME);
+            Configuration jacocoAggregation = project.getConfigurations().create(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
+                conf.setDescription("A resolvable configuration to collect source code");
+                conf.setVisible(false);
+                conf.setCanBeConsumed(false);
+                conf.setCanBeResolved(true);
+            });
+            getJvmPluginServices().configureAsRuntimeClasspath(jacocoAggregation);
+
             // Depend on this project for aggregation
             project.getDependencies().add(JACOCO_AGGREGATION_CONFIGURATION_NAME, project);
 
             ObjectFactory objects = project.getObjects();
 
-            Configuration sourcesPath = project.getConfigurations().create("sourcesPath", conf -> {
-                conf.setDescription("A resolvable configuration to collect source code");
-                conf.setVisible(false);
-                conf.setCanBeConsumed(false);
-                conf.setCanBeResolved(true);
-
-                conf.extendsFrom(jacocoAggregation);
-
-                conf.attributes(attributes -> {
+            ArtifactView sourcesPath = jacocoAggregation.getIncoming().artifactView(view -> {
+                view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                view.attributes(attributes -> {
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
                     attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "source-folders"));
                 });
             });
-
-            Configuration analyzedClasses = project.getConfigurations().create("analyzedClasses", conf -> {
-                conf.setDescription("A resolvable configuration to collect source code");
-                conf.setVisible(false);
-                conf.setCanBeConsumed(false);
-                conf.setCanBeResolved(true);
-
-                conf.extendsFrom(jacocoAggregation);
+            ArtifactView analyzedClasses = jacocoAggregation.getIncoming().artifactView(view -> {
+                view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
             });
-            getJvmPluginServices().configureAsRuntimeClasspath(analyzedClasses);
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
             testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
                 // A resolvable configuration to collect JaCoCo coverage data
-                Configuration coverageDataPath = project.getConfigurations().create("coverageDataPathFor" + StringUtils.capitalize(testSuite.getName()), conf -> {
-                    conf.setVisible(false);
-                    conf.setCanBeConsumed(false);
-                    conf.setCanBeResolved(true);
-
-                    conf.extendsFrom(jacocoAggregation);
-
-                    conf.attributes(attributes -> {
+                ArtifactView coverageDataPath = jacocoAggregation.getIncoming().artifactView(view -> {
+                    view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+                    view.lenient(true);
+                    view.attributes(attributes -> {
                         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
                         attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "jacoco-coverage-data"));
@@ -100,9 +90,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 TaskProvider<JacocoReport> codeCoverageReport = project.getTasks().register(testSuite.getName() + "CodeCoverageReport", JacocoReport.class, task -> {
                     task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                     task.setDescription("Generate code coverage report for projects from " + JACOCO_AGGREGATION_CONFIGURATION_NAME + ".");
-                    task.getClassDirectories().from(analyzedClasses.getIncoming().artifactView(view -> view.componentFilter(componentId -> componentId instanceof ProjectComponentIdentifier)).getFiles());
-                    task.getSourceDirectories().from(sourcesPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
-                    task.getExecutionData().from(coverageDataPath.getIncoming().artifactView(view -> view.lenient(true)).getFiles());
+                    task.getClassDirectories().from(analyzedClasses.getFiles());
+                    task.getSourceDirectories().from(sourcesPath.getFiles());
+                    task.getExecutionData().from(coverageDataPath.getFiles());
 
                     task.reports(reports -> {
                         // xml is usually used to integrate code coverage with

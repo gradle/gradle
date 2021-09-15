@@ -150,7 +150,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from subprojects"() {
         when:
-        succeeds(":application:testCodeCoverageReport")
+        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants")
         then:
         file("transitive/build/jacoco/test.exec").assertExists()
         file("direct/build/jacoco/test.exec").assertExists()
@@ -253,7 +253,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         // TODO invoke both aggregation tasks and check results
         when:
-        succeeds(":transitive:integTest") // TODO delete me should not be necessary; direct has no integTest and is "yanked" out of the graph?
         succeeds(":application:testCodeCoverageReport", ":application:integTestCodeCoverageReport", ":application:dependencies")
 
         then:

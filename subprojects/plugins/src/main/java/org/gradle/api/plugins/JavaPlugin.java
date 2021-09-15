@@ -292,7 +292,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
         SourceSetContainer sourceSets = pluginExtension.getSourceSets();
 
-        sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         // The built-in test suite must be configured after the main source set is available due to some
         // special handling in the IntelliJ model builder
@@ -406,6 +406,16 @@ public class JavaPlugin implements Plugin<Project> {
                 return processResources.get().getDestinationDir();
             }
         });
+
+
+        ConfigurationVariant transitiveSourcesElements = runtimeVariants.create("transitiveSourcesElements");
+        transitiveSourcesElements.attributes(attr -> {
+            attr.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+            attr.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+            attr.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, "source-folders"));
+        });
+        sourceSet.getJava().getSrcDirs().forEach(srcDir -> transitiveSourcesElements.artifact(srcDir));
+
     }
 
     private void configureBuild(Project project) {

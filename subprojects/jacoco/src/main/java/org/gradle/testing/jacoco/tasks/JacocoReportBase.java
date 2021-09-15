@@ -29,7 +29,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
@@ -81,7 +80,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    @SkipWhenEmpty
+    // TODO: @SkipWhenEmpty
     public ConfigurableFileCollection getExecutionData() {
         return executionData;
     }
