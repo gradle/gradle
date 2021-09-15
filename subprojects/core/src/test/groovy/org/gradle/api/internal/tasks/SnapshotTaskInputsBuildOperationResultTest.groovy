@@ -56,7 +56,14 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.*
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_CLASSPATH
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_IGNORED_PATH
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_NAME_ONLY
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.FINGERPRINTING_STRATEGY_RELATIVE_PATH
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.from
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute.fromNormalizerClass
 import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
 import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
@@ -99,7 +106,6 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
 
         then:
         def t = thrown(IllegalStateException)
-        t.message == 'Could not find a fingerprinting strategy for normalizer: OutputNormalizer'
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
