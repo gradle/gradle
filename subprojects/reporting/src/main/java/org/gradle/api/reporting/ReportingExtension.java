@@ -15,6 +15,7 @@
  */
 package org.gradle.api.reporting;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -51,11 +52,12 @@ public class ReportingExtension {
 
     private final ProjectInternal project;
     private final DirectoryProperty baseDirectory;
-
+    private final ExtensiblePolymorphicDomainObjectContainer<ReportSpec> reports;
 
     public ReportingExtension(Project project) {
         this.project = (ProjectInternal)project;
         this.baseDirectory = project.getObjects().directoryProperty();
+        this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
         baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
     }
 
@@ -107,6 +109,8 @@ public class ReportingExtension {
         return baseDirectory;
     }
 
+
+
     /**
      * Creates a file object for the given path, relative to {@link #getBaseDir()}.
      * <p>
@@ -129,4 +133,7 @@ public class ReportingExtension {
         }
     }
 
+    public ExtensiblePolymorphicDomainObjectContainer<ReportSpec> getReports() {
+        return reports;
+    }
 }

@@ -23,11 +23,12 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
             buildFile << """
-                subprojects {
+                allprojects {
                     repositories {
                         ${mavenCentralRepository()}
                     }
-
+                }
+                subprojects {
                     plugins.withId("jvm-test-suite") {
                         testing {
                             suites {
@@ -45,14 +46,12 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 plugins {
                     id 'java'
                     id 'jacoco'
-                    id 'org.gradle.jacoco-report-aggregation'
                 }
 
                 dependencies {
                     implementation project(":direct")
                 }
             """
-
             file("application/src/main/java/application/Adder.java").java """
                 package application;
 
@@ -149,6 +148,9 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can aggregate jacoco execution data from subprojects"() {
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+        """
         when:
         succeeds(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
         then:
@@ -165,6 +167,9 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "aggregated report does not contain external dependencies"() {
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+        """
         file("transitive/build.gradle") << """
             dependencies {
                 implementation 'org.apache.commons:commons-io:1.3.2'
@@ -179,7 +184,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def 'multiple test suites create multiple aggregation tasks'() {
         given:
-        // TODO add new test suites to 2 subprojects
         file("transitive/build.gradle") << """
             testing {
                 suites {
@@ -192,8 +196,9 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
         file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
             testing {
                 suites {
                     integTest {
@@ -206,7 +211,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        // TODO add new production class whose only coverage is in integTest
         file("transitive/src/main/java/transitive/Divisor.java").java """
                 package transitive;
 
@@ -220,7 +224,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             """
 
-        // TODO add new integTest classes to 2 subprojects
         file("application/src/integTest/java/application/DivTest.java").java """
                 package application;
 
@@ -251,7 +254,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             """
 
-        // TODO invoke both aggregation tasks and check results
         when:
         succeeds(":application:testCodeCoverageReport", ":application:integTestCodeCoverageReport", ":application:dependencies", ":transitive:outgoingVariants")
 
@@ -277,5 +279,38 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         integTestReport.assertHasClassCoverage("direct.Multiplier", 0)
         integTestReport.assertHasClassCoverage("transitive.Powerize", 0)
         integTestReport.assertHasClassCoverage("transitive.Divisor")
+    }
+
+    def "can aggregate jacoco reports from root project"() {
+        buildFile << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+            
+            dependencies {
+                jacocoAggregation project(":application")
+                jacocoAggregation project(":direct")
+                jacocoAggregation project(":transitive")
+            }
+            
+            reporting {
+                reports {
+                    testCodeCoverageReport(JacocoCoverageReport) {
+                        coverTestSuite = "test"
+                    }
+                }
+            }
+        """
+        when:
+        succeeds(":testCodeCoverageReport")
+        then:
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier")
+        report.assertHasClassCoverage("transitive.Powerize")
     }
 }
