@@ -170,9 +170,9 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             byte[] getPropertyHashBytes();
 
             /**
-             * The “primary” attribute of the current properfy.
+             * The “primary” attribute of the current property.
              *
-             * Used by Gradle Enterprise plugin <= 3.4, retained for backwards compatibility.
+             * Used by Gradle Enterprise plugin < 3.8, retained for backwards compatibility.
              *
              * Returns the name value of one of:
              *
