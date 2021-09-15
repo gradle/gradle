@@ -66,7 +66,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
-        result.task(":docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:javadocAll").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:test").outcome == TaskOutcome.FROM_CACHE
         result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.FROM_CACHE
         result.task(":performance:verifyPerformanceScenarioDefinitions").outcome == TaskOutcome.SUCCESS
