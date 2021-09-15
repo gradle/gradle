@@ -531,8 +531,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     @UsedByScanPlugin("The value names are used as part of build scan data and cannot be changed - new values can be added")
     enum FilePropertyAttribute {
 
-        // note: when adding new values, be sure to indicate which Gradle version started emitting the attribute via comment.
+        // When adding new values, be sure to comment which Gradle version started emitting the attribute.
+        // Additionally, indicate any other relevant constraints with regard to other attributes or changes.
 
+        // Every property has exactly one of the following
         FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
         FINGERPRINTING_STRATEGY_NAME_ONLY,
         FINGERPRINTING_STRATEGY_RELATIVE_PATH,
@@ -540,9 +542,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         FINGERPRINTING_STRATEGY_CLASSPATH,
         FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
 
+        // Every property has exactly one of the following
         DIRECTORY_SENSITIVITY_DEFAULT,
         DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
 
+        // Every property has exactly one of the following
         LINE_ENDING_SENSITIVITY_DEFAULT,
         LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
 
