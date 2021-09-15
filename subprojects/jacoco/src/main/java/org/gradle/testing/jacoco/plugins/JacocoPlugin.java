@@ -122,13 +122,8 @@ public class JacocoPlugin implements Plugin<Project> {
             testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
                 ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> targets = testSuite.getTargets();
                 targets.configureEach(target -> {
-                    Configuration coverageDataElements = project.getConfigurations().create("coverageDataElementsFor" + target.getName(), conf -> {
-                        conf.setVisible(false);
-                        conf.setCanBeConsumed(true);
-                        conf.setCanBeResolved(false);
-
-                        conf.extendsFrom(implementation);
-
+                    Configuration runtimeElements = project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+                    runtimeElements.getOutgoing().getVariants().create("coverageDataElementsFor" + target.getName(), conf -> {
                         conf.attributes(attributes -> {
                             attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
@@ -136,7 +131,7 @@ public class JacocoPlugin implements Plugin<Project> {
                             attributes.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, testSuite.getName()));
                         });
 
-                        conf.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
+                        conf.artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
                     });
                 });
             });

@@ -150,7 +150,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from subprojects"() {
         when:
-        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants")
+        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
         then:
         file("transitive/build/jacoco/test.exec").assertExists()
         file("direct/build/jacoco/test.exec").assertExists()
@@ -171,7 +171,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
-        succeeds(":application:testCodeCoverageReport", "application:dependencies")
+        succeeds(":application:testCodeCoverageReport")
         then:
         def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
@@ -253,7 +253,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         // TODO invoke both aggregation tasks and check results
         when:
-        succeeds(":application:testCodeCoverageReport", ":application:integTestCodeCoverageReport", ":application:dependencies")
+        succeeds(":application:testCodeCoverageReport", ":application:integTestCodeCoverageReport", ":application:dependencies", ":transitive:outgoingVariants")
 
         then:
         file("transitive/build/jacoco/test.exec").assertExists()
