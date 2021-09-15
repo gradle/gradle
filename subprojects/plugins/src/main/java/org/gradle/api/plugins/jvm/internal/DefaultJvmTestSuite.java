@@ -59,6 +59,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration implementation = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
+        // Default to JUnit Platform
+        useJUnitPlatform();
+
         if (!getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             project.getDependencies().addProvider(implementation.getName(), getTestingFramework().map(framework -> {
                 if (framework instanceof JUnitPlatformTestingFramework) {
