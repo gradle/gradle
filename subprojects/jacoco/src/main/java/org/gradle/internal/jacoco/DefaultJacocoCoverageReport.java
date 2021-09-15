@@ -16,16 +16,41 @@
 
 package org.gradle.internal.jacoco;
 
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.plugins.JacocoCoverageReport;
+import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJacocoCoverageReport implements JacocoCoverageReport {
     private final String name;
+    private final TaskProvider<JacocoReport> reportTask;
 
     @Inject
-    public DefaultJacocoCoverageReport(String name) {
+    public DefaultJacocoCoverageReport(String name, TaskContainer tasks) {
         this.name = name;
+        this.reportTask = tasks.register(name, JacocoReport.class, task -> {
+            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            task.getClassDirectories().from(getClasses());
+            task.getSourceDirectories().from(getSources());
+            task.getExecutionData().from(getExecutionData());
+
+            task.reports(reports -> {
+                // xml is usually used to integrate code coverage with
+                // other tools like SonarQube, Coveralls or Codecov
+                reports.getXml().getRequired().convention(true);
+                // HTML reports can be used to see code coverage
+                // without any external tools
+                reports.getHtml().getRequired().convention(true);
+            });
+        });
+    }
+
+    @Override
+    public TaskProvider<JacocoReport> getReportTask() {
+        return reportTask;
     }
 
     @Override

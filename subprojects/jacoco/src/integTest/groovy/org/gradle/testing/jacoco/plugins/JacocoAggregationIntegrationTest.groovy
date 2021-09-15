@@ -294,7 +294,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     testCodeCoverageReport(JacocoCoverageReport) {
-                        coverTestSuite = "test"
+                        executionData.from(JacocoReportAggregationPlugin.resolvableJacocoData(configurations.jacocoAggregation, objects, "test"))
                     }
                 }
             }
