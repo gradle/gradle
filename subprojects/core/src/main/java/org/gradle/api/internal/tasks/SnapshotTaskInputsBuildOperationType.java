@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
@@ -191,12 +191,12 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             /**
              * A description of how the current property was fingerprinted.
              *
-             * Returns one or more of the values of {@link PropertyAttribute}, sorted.
+             * Returns one or more of the values of {@link FilePropertyAttribute}, sorted.
              *
              * This interface does not constrain the compatibility of values.
              * In practice however, such constraints do exist but are managed informally.
-             * For example, consumers can assume that both {@link PropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT}
-             * and {@link PropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES} will not be present.
+             * For example, consumers can assume that both {@link FilePropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT}
+             * and {@link FilePropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES} will not be present.
              * This loose approach is used to allow the various types of normalization supported by Gradle to evolve,
              * and their usage to be conveyed here without changing this interface.
              *
