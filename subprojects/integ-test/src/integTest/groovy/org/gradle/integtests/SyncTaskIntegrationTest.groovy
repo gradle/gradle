@@ -310,6 +310,40 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         defaultSourceFileTree()
         file('dest').create {
+            file 'extra1.txt'
+            extraDir { file 'extra2.txt' }
+        }
+        buildScript '''
+            task syncIt() {
+                doLast {
+                    project.sync {
+                        from 'source'
+                        into 'dest'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'syncIt'
+
+        then:
+        file('dest').assertHasDescendants(
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt',
+            'emptyDir'
+        )
+        file('dest/emptyDir').exists()
+        !file('dest/extra1.txt').exists()
+        !file('dest/extraDir/extra2.txt').exists()
+    }
+
+    @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
+    def "sync action works with preserve"() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
             dir1 { file 'extra1.txt' }
             extraDir {
                 file 'extra1.txt'
@@ -337,9 +371,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'syncIt'
 
         then:
-        file('dest/dir1/extra1.txt').exists()
-        file('dest/extraDir/extra1.txt').exists()
-        !file('dest/extraDir/extra2.txt').exists()
+        file('dest').assertHasDescendants(
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt',
+            'emptyDir',
+            'dir1/extra1.txt',
+            'extraDir/extra1.txt'
+        )
     }
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")

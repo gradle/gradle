@@ -34,7 +34,6 @@ public interface SyncSpec extends CopySpec {
      * Returns the filter that defines which files to preserve in the destination directory.
      *
      * @return the filter defining the files to preserve
-     *
      */
     @Internal
     PatternFilterable getPreserve();
@@ -44,7 +43,6 @@ public interface SyncSpec extends CopySpec {
      *
      * @param action Action for configuring the preserve filter
      * @return this
-     *
      */
     SyncSpec preserve(Action<? super PatternFilterable> action);
 
