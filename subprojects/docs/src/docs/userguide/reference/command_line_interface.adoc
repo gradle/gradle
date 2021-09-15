@@ -74,7 +74,7 @@ $ gradle :my-subproject:taskName
 $ gradle my-subproject:taskName
 ----
 
-You can also run a task for _all_ subprojects by again using a task _selector_ that consists of the task name only.
+You can also run a task for _all_ subprojects by using a task _selector_ that consists of the task name only.
 For example, this will run the "test" task for all subprojects when invoked from the root project directory:
 ----
 $ gradle test
