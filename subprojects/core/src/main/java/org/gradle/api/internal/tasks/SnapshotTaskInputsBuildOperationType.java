@@ -43,8 +43,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
-        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {
-        };
+        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
     }
 
     /**

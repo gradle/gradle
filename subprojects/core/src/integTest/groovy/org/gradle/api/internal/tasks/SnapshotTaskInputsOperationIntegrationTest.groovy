@@ -262,23 +262,27 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         with(aCompileJava.classpath) {
             hash != null
             roots.empty
+            normalization == "COMPILE_CLASSPATH"
             attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.sourcepath"] as Map<String, ?>) {
             hash != null
             roots.empty
+            normalization == "RELATIVE_PATH"
             attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.annotationProcessorPath"] as Map<String, ?>) {
             hash != null
             roots.empty
+            normalization == "CLASSPATH"
             attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava.stableSources) {
             hash != null
+            normalization == "RELATIVE_PATH"
             attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS']
             roots.size() == 1
             with(roots[0]) {
@@ -400,6 +404,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         def aFoo = result.inputFileProperties
         with(aFoo.src) {
             hash != null
+            normalization == "ABSOLUTE_PATH"
             attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_ABSOLUTE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
             roots.size() == 1
             with(roots[0]) {
@@ -465,6 +470,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 path == file("inputFile").absolutePath
                 !containsKey("children")
             }
+            normalization == "RELATIVE_PATH"
             attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
     }

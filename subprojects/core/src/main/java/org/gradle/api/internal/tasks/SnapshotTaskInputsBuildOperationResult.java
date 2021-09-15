@@ -148,11 +148,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         @Override
         public Set<String> getPropertyAttributes() {
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
-            return ImmutableSortedSet.<String>naturalOrder()
-                .add(FilePropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name())
-                .add(FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name())
-                .add(FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name())
-                .build();
+            return ImmutableSortedSet.of(
+                FilePropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name(),
+                FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
+                FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
+            );
         }
 
         @Override
@@ -337,7 +337,6 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     }
 
     @Override
-    @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new TreeMap<>();
 
@@ -401,16 +400,22 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
             class Property {
                 private final String hash;
+                private final String normalization;
                 private final Set<String> attributes;
                 private final List<Entry> roots = new ArrayList<>();
 
-                public Property(String hash, Set<String> attributes) {
+                public Property(String hash, String normalization, Set<String> attributes) {
                     this.hash = hash;
+                    this.normalization = normalization;
                     this.attributes = attributes;
                 }
 
                 public String getHash() {
                     return hash;
+                }
+
+                public String getNormalization() {
+                    return normalization;
                 }
 
                 public Set<String> getAttributes() {
@@ -460,9 +465,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 }
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public void preProperty(VisitState state) {
-                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyAttributes());
+                property = new Property(HashCode.fromBytes(state.getPropertyHashBytes()).toString(), state.getPropertyNormalizationStrategyName(), state.getPropertyAttributes());
                 fileProperties.put(state.getPropertyName(), property);
             }
 
