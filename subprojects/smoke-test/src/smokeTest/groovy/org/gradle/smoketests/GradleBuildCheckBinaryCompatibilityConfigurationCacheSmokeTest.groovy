@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import groovy.test.NotYetImplemented
 import org.gradle.testkit.runner.TaskOutcome
 
 class GradleBuildCheckBinaryCompatibilityConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
-    @NotYetImplemented
     def "can run Gradle checkBinaryCompatibility with configuration cache enabled"() {
 
         given:
