@@ -37,6 +37,11 @@ public interface ScriptBlockBuilder {
     void methodInvocation(@Nullable String comment, BuildScriptBuilder.Expression target, String methodName, Object... methodArgs);
 
     /**
+     * Adds a statement to this block.
+     */
+    void statement(@Nullable String comment, BuildScriptBuilder.Statement statement);
+
+    /**
      * Adds a block statement to this block.
      *
      * @return The body of the block, to which further statements can be added.

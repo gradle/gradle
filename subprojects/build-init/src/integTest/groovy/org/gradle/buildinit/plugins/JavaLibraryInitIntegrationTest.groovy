@@ -35,10 +35,44 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Groovy build scripts"() {
         when:
-        run ('init', '--type', 'java-library')
+        run (tasks)
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        tasks << [['init', '--type', 'java-library'],
+                  ['init', '--type', 'java-library', '--incubating']]
+    }
+
+    def "incubating option adds runnable test suites"() {
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        succeeds('test')
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestsDidNotRun("some.thing.LibraryIntegTest") // Shouldn't be in /test anyway, but check just to be sure
+        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
+
+        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
+        if (scriptDsl == GROOVY) {
+            succeeds('integrationTest')
+        } else {
+            succeeds('check')
+        }
+        assertTestsDidNotRun("some.thing.LibraryTest")
+        assertIntegrationTestsDidNotRun("some.thing.LibraryTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "superTest")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

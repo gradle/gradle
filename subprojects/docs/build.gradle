@@ -229,6 +229,55 @@ samples {
             }
         }
 
+        incubatingJvmMultiProjectWithAdditionalTestTypes {
+            sampleDirectory = samplesRoot.dir("java/incubating/jvm-multi-project-with-additional-test-types")
+            displayName = "(Incubating) Using additional test types with Test Suites"
+            description = "Add an additional test type (e.g. integration tests) to a project using the `@Incubating` Test Suites API."
+            category = "Java"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
+
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+        incubatingJavaModulesMultiProjectWithIntegrationTests {
+            sampleDirectory = samplesRoot.dir("java/incubating/modules-multi-project-with-integration-tests")
+            displayName = "(Incubating) Building Java Modules with Blackbox Tests with Test Suites"
+            description = "Build Java Modules with blackbox integration tests using the `@Incubating` Test Suites API."
+            category = "Java Modules"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+
+                from(templates.javaJunit5IntegrationTestForApplication)
+                from(templates.javaJunit5ModuleInfoForApplication)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+                from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
+            }
+        }
+        incubatingPublishingConventionPlugins {
+            sampleDirectory = samplesRoot.dir("build-organization/incubating/publishing-convention-plugins")
+            displayName = "(Incubating) Sharing build logic in a multi-repo setup with Test Suites"
+            description = "Organize and publish build logic for reuse in other projects using the `@Incubating` Test Suites API."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPluginUtils)
+            }
+        }
+
         jvmMultiProjectWithAdditionalTestTypes {
             sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
             displayName = "Using additional test types"

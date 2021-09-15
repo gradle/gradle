@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
@@ -37,6 +38,36 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "incubating option adds runnable test suites"() {
+        when:
+        run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
+
+        and:
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        succeeds('test')
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestsDidNotRun("some.thing.LibraryIntegTest") // Shouldn't be in /test anyway, but check just to be sure
+        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
+
+        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
+        if (scriptDsl == GROOVY) {
+            succeeds('integrationTest')
+        } else {
+            succeeds('check')
+        }
+        assertTestsDidNotRun("some.thing.LibraryTest")
+        assertIntegrationTestsDidNotRun("some.thing.LibraryTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "superTest")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

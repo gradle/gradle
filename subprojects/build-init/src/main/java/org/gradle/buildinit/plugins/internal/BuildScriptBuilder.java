@@ -23,10 +23,13 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.GFileUtils;
@@ -48,12 +51,16 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Assembles the parts of a build script.
  */
 @SuppressWarnings("UnusedReturnValue")
 public class BuildScriptBuilder {
+    private static final String INCUBATING_APIS_WARNING = "This project uses @Incubating APIs which are subject to change.";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptBuilder.class);
 
     private final BuildInitDsl dsl;
@@ -64,9 +71,14 @@ public class BuildScriptBuilder {
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block;
 
-    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, InsecureProtocolOption insecureProtocolOption) {
+    private final boolean useIncubatingAPIs;
+    private final boolean useTestSuites;
+
+    BuildScriptBuilder(BuildInitDsl dsl, DocumentationRegistry documentationRegistry, String fileNameWithoutExtension, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
+        this.useIncubatingAPIs = useIncubatingAPIs;
+        this.useTestSuites = useIncubatingAPIs;
         this.mavenRepoURLHandler = MavenRepositoryURLHandler.forInsecureProtocolOption(insecureProtocolOption, dsl, documentationRegistry);
         this.block = new TopLevelBlock(this);
     }
@@ -76,8 +88,20 @@ public class BuildScriptBuilder {
         return this;
     }
 
+    public boolean isUsingIncubatingAPIs() {
+        return useIncubatingAPIs;
+    }
+
+    public boolean isUsingTestSuites() {
+        return useTestSuites;
+    }
+
     public String getFileNameWithoutExtension() {
         return fileNameWithoutExtension;
+    }
+
+    public static String getIncubatingApisWarning() {
+        return INCUBATING_APIS_WARNING;
     }
 
     /**
@@ -86,6 +110,10 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder fileComment(String comment) {
         headerLines.addAll(splitComment(comment));
         return this;
+    }
+
+    public List<SuiteSpec> getSuites() {
+        return new ArrayList<>(block.testing.suites);
     }
 
     private static List<String> splitComment(String comment) {
@@ -140,6 +168,11 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder dependency(String configuration, @Nullable String comment, String... dependencies) {
         dependencies().dependency(configuration, comment, dependencies);
         return this;
+    }
+
+    public void dependencyForSuite(String suite, String configuration, String comment, String... dependencies) {
+        final SuiteSpec targetSuite = block.testing.suites.stream().filter((SuiteSpec s) -> s.getName().equals(suite)).findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown suite: " + suite));
+        targetSuite.dependencies.dependency(configuration, comment, dependencies);
     }
 
     /**
@@ -201,7 +234,7 @@ public class BuildScriptBuilder {
      * Creates a property expression, to use as a method argument or the RHS of a property assignment.
      */
     public Expression propertyExpression(Expression expression, String value) {
-        return new ChainedPropertyExpression((ExpressionValue) expression, new LiteralValue(value));
+        return new ChainedPropertyExpression(expressionValue(expression), new LiteralValue(value));
     }
 
     /**
@@ -258,6 +291,13 @@ public class BuildScriptBuilder {
      */
     public DependenciesBuilder dependencies() {
         return block.dependencies;
+    }
+
+    /**
+     * Allows test suites to be added to this script.
+     */
+    public TestingBuilder testing() {
+        return block.testing;
     }
 
     /**
@@ -338,13 +378,73 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Configure an existing task.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskConfiguration taskConfiguration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
+        block.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
+     * Configure an existing task within the given block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskConfiguration taskConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskConfiguration conf = new TaskConfiguration(comment, taskName, taskType);
+        containingBlock.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
      * Registers a task.
      *
      * @return An expression that can be used to refer to the task later.
      */
-    public Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+    public TaskRegistration taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.add(registration);
+        blockContentsBuilder.execute(registration.body);
+        return registration;
+    }
+
+    /**
+     * Registers a task within the containing block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public TaskRegistration taskRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
+        containingBlock.add(registration);
+        blockContentsBuilder.execute(registration.body);
+        return registration;
+    }
+
+    /**
+     * Configure an existing test suite within the given block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public SuiteConfiguration suiteConfiguration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        SuiteConfiguration conf = new SuiteConfiguration(comment, taskName, taskType);
+        containingBlock.add(conf);
+        blockContentsBuilder.execute(conf.body);
+        return conf;
+    }
+
+    /**
+     * Registers a test suite within the containing block.
+     *
+     * @return An expression that can be used to refer to the task later.
+     */
+    public SuiteRegistration suiteRegistration(@Nullable String comment, BlockStatement containingBlock, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        SuiteRegistration registration = new SuiteRegistration(comment, taskName, taskType);
+        containingBlock.add(registration);
         blockContentsBuilder.execute(registration.body);
         return registration;
     }
@@ -364,6 +464,10 @@ public class BuildScriptBuilder {
 
     public TemplateOperation create(Directory targetDirectory) {
         return () -> {
+            if (useIncubatingAPIs) {
+                headerLines.add(INCUBATING_APIS_WARNING);
+            }
+
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
             try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
@@ -404,7 +508,7 @@ public class BuildScriptBuilder {
         String with(Syntax syntax);
     }
 
-    private static class ChainedPropertyExpression implements Expression, ExpressionValue {
+    private static class ChainedPropertyExpression implements ExpressionValue {
         private final ExpressionValue left;
         private final ExpressionValue right;
 
@@ -496,6 +600,34 @@ public class BuildScriptBuilder {
         }
     }
 
+    /**
+     * This class is part of an attempt to provide the minimal functionality needed to script calling methods
+     * which have a no-arg closure as their only parameter.
+     *
+     * TODO: Improve this to be more general, handle more statements than just method calls,
+     * indent multi-statement closures properly, possibly handle args
+     */
+    private static class NoArgClosureExpression implements ExpressionValue {
+        final List<MethodInvocation> calls = new ArrayList<>();
+
+        NoArgClosureExpression(MethodInvocation... calls) {
+            this.calls.addAll(Arrays.asList(calls));
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return "{" + calls.stream()
+                .map(call -> call.invocationExpression.with(syntax))
+                .collect(Collectors.joining("\n", " ", " ")) +
+                "}";
+        }
+    }
+
     private static class MethodInvocationExpression implements ExpressionValue {
         @Nullable
         private final ExpressionValue target;
@@ -506,6 +638,12 @@ public class BuildScriptBuilder {
             this.target = target;
             this.methodName = methodName;
             this.arguments = arguments;
+        }
+
+        MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, NoArgClosureExpression closureArg) {
+            this.target = target;
+            this.methodName = methodName;
+            this.arguments = Collections.singletonList(closureArg);
         }
 
         MethodInvocationExpression(String methodName) {
@@ -525,7 +663,15 @@ public class BuildScriptBuilder {
                 result.append('.');
             }
             result.append(methodName);
-            result.append("(");
+
+            boolean onlyArgIsClosure = arguments.size() == 1 && arguments.get(0) instanceof NoArgClosureExpression;
+
+            if (onlyArgIsClosure) {
+                result.append(' ');
+            } else {
+                result.append("(");
+            }
+
             for (int i = 0; i < arguments.size(); i++) {
                 ExpressionValue argument = arguments.get(i);
                 if (i == 0) {
@@ -535,7 +681,13 @@ public class BuildScriptBuilder {
                     result.append(argument.with(syntax));
                 }
             }
-            result.append(")");
+
+            if (onlyArgIsClosure) {
+                result.append(' ');
+            } else {
+                result.append(")");
+            }
+
             return result.toString();
         }
     }
@@ -581,7 +733,7 @@ public class BuildScriptBuilder {
         final String configuration;
         final List<String> deps;
 
-        DepSpec(String configuration, String comment, List<String> deps) {
+        DepSpec(String configuration, @Nullable String comment, List<String> deps) {
             super(comment);
             this.configuration = configuration;
             this.deps = deps;
@@ -599,7 +751,7 @@ public class BuildScriptBuilder {
         private final String configuration;
         private final String dep;
 
-        PlatformDepSpec(String configuration, String comment, String dep) {
+        PlatformDepSpec(String configuration, @Nullable String comment, String dep) {
             super(comment);
             this.configuration = configuration;
             this.dep = dep;
@@ -610,6 +762,20 @@ public class BuildScriptBuilder {
             printer.println(printer.syntax.dependencySpec(
                 configuration, "platform(" + printer.syntax.string(dep) + ")"
             ));
+        }
+    }
+
+    private static class SelfDepSpec extends AbstractStatement {
+        private final String configuration;
+
+        SelfDepSpec(String configuration, @Nullable String comment) {
+            super(comment);
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(configuration, "project"));
         }
     }
 
@@ -734,7 +900,7 @@ public class BuildScriptBuilder {
     /**
      * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
-    private interface Statement {
+    public interface Statement {
         enum Type {Empty, Single, Group}
 
         @Nullable
@@ -962,6 +1128,11 @@ public class BuildScriptBuilder {
             this.dependencies.put(configuration, new ProjectDepSpec(configuration, comment, projectPath));
         }
 
+        @Override
+        public void selfDependency(String configuration, @Nullable String comment) {
+            this.dependencies.put(configuration, new SelfDepSpec(configuration, comment));
+        }
+
         @Nullable
         @Override
         public String getComment() {
@@ -1014,6 +1185,224 @@ public class BuildScriptBuilder {
                 statements.addAll(dependencies.get(config));
             }
             return statements;
+        }
+    }
+
+    private static class TestingBlock extends BlockStatement implements TestingBuilder, BlockBody {
+        private final BuildScriptBuilder builder;
+        private final List<SuiteSpec> suites = new ArrayList<>();
+
+        TestingBlock(BuildScriptBuilder builder) {
+            super("testing");
+            this.builder = builder;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, this);
+        }
+
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            if (!suites.isEmpty()) {
+                ScriptBlockImpl suitesBlock = new ScriptBlockImpl();
+                for (Statement suite : suites) {
+                    suitesBlock.add(suite);
+                }
+                printer.printBlock("suites", suitesBlock);
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return new ArrayList<>(suites);
+        }
+
+        @Override
+        public void junitSuite(String name) {
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder));
+        }
+
+        @Override
+        public void junitPlatformSuite(String name) {
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
+        }
+    }
+
+    private static class SuiteSpec extends AbstractStatement {
+        private final BuildScriptBuilder builder;
+
+        private final String name;
+        private final TestSuiteFramework framework;
+
+        private final DependenciesBlock dependencies = new DependenciesBlock();
+        private final TargetsBlock targets;
+
+        private final boolean isDefaultTestSuite;
+        private final boolean isDefaultFramework;
+
+        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, BuildScriptBuilder builder) {
+            super(comment);
+            this.builder = builder;
+            this.framework = framework;
+            this.name = name;
+            targets = new TargetsBlock(builder);
+
+            isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
+            isDefaultFramework = framework == TestSuiteFramework.getDefault();
+
+            if (isDefaultTestSuite) {
+                dependencies.dependency("implementation", null, framework.implementationDependency);
+            } else {
+                dependencies.selfDependency("implementation", null);
+                targets.all(true);
+            }
+        }
+
+        private Action<? super ScriptBlockBuilder> buildSuiteConfigurationContents() {
+            return b -> {
+                if (isDefaultTestSuite || !isDefaultFramework) {
+                    b.methodInvocation(null, framework.method.methodName);
+                }
+
+                if (!dependencies.dependencies.isEmpty()) {
+                    b.statement(null, dependencies);
+                }
+
+                if (!targets.targets.isEmpty()) {
+                    b.statement(null, targets);
+                }
+            };
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isDefaultTestSuite() {
+            return isDefaultTestSuite;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            if (isDefaultTestSuite) {
+                printer.printStatement(builder.suiteConfiguration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+            } else {
+                printer.printStatement(builder.suiteRegistration(null, builder.block.testing, name, JvmTestSuite.class.getSimpleName(), buildSuiteConfigurationContents()));
+            }
+        }
+
+        public enum TestSuiteFramework {
+            JUNIT(new MethodInvocationExpression("useJUnit"), "junit:junit:4.13"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
+
+            final MethodInvocationExpression method;
+            final String implementationDependency;
+
+            TestSuiteFramework(MethodInvocationExpression method, String implementationDependency) {
+                this.method = method;
+                this.implementationDependency = implementationDependency;
+            }
+
+            public static TestSuiteFramework getDefault() {
+                return JUNIT_PLATFORM;
+            }
+        }
+    }
+
+    private static class TargetsBlock extends BlockStatement implements TargetsBuilder, BlockBody {
+        private final BuildScriptBuilder builder;
+        private final List<TargetSpec> targets = new ArrayList<>();
+
+        TargetsBlock(BuildScriptBuilder builder) {
+            super("targets");
+            this.builder = builder;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(blockSelector, this);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            if (!targets.isEmpty()) {
+                for (Statement target : targets) {
+                    printer.printStatement(target);
+                }
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return new ArrayList<>(targets);
+        }
+
+        @Override
+        public void all(boolean testTaskShouldRunAfter) {
+            targets.add(new TargetSpec(null, "all", builder, testTaskShouldRunAfter));
+        }
+    }
+
+    private static class TargetSpec extends BlockStatement implements BlockBody {
+        private final BuildScriptBuilder builder;
+        private final String name;
+        private final boolean testTaskShouldRunAfter;
+
+        TargetSpec(@Nullable String comment, String name, BuildScriptBuilder builder, boolean testTaskShouldRunAfter) {
+            super(comment);
+            this.builder = builder;
+            this.name = name;
+            this.testTaskShouldRunAfter = testTaskShouldRunAfter;
+
+            if (testTaskShouldRunAfter) {
+                configureShouldRunAfterTest();
+            }
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(name, this);
+        }
+
+        private void configureShouldRunAfterTest() {
+            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
+            final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
+            final MethodInvocation functionalTestConfiguration = new MethodInvocation(null, new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
+            add(functionalTestConfiguration);
+        }
+
+        @Override
+        public void writeBodyTo(PrettyPrinter printer) {
+            for (Statement statement : body.statements) {
+                printer.printStatement(statement);
+            }
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return body.statements;
         }
     }
 
@@ -1082,6 +1471,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void statement(@Nullable String comment, Statement statement) {
+            statements.add(statement);
+        }
+
+        @Override
         public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
             blockContentsBuilder.execute(block(comment, methodName));
         }
@@ -1109,12 +1503,16 @@ public class BuildScriptBuilder {
         final BlockStatement plugins = new BlockStatement("plugins");
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
+        final TestingBlock testing;
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
+        final BuildScriptBuilder builder;
 
         private TopLevelBlock(BuildScriptBuilder builder) {
             repositories = new RepositoriesBlock(builder);
+            testing = new TestingBlock(builder);
+            this.builder = builder;
         }
 
         @Override
@@ -1122,10 +1520,29 @@ public class BuildScriptBuilder {
             printer.printStatement(plugins);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
+            if (builder.useTestSuites && !builder.getSuites().isEmpty()) {
+                printer.printStatement(testing);
+            }
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
+            for (SuiteSpec suite : testing.suites) {
+                if (!suite.isDefaultTestSuite()) {
+                    addCheckDependsOn(suite);
+                }
+            }
             printer.printStatement(tasks);
+        }
+
+        private void addCheckDependsOn(SuiteSpec suite) {
+            final ExpressionValue testSuites = expressionValue(builder.propertyExpression(builder.propertyExpression("testing"), "suites"));
+            if (builder.dsl == BuildInitDsl.GROOVY) {
+                final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
+                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
+            } else {
+                final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
+                builder.taskMethodInvocation(null, "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
+            }
         }
 
         public List<String> extractComments() {
@@ -1147,6 +1564,45 @@ public class BuildScriptBuilder {
                     comments.add(statement.getComment());
                 }
             }
+        }
+    }
+
+    private static class TaskConfiguration implements Statement, ExpressionValue {
+        final String taskName;
+        final String taskType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        TaskConfiguration(@Nullable String comment, String taskName, String taskType) {
+            this.comment = comment;
+            this.taskName = taskName;
+            this.taskType = taskType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.taskConfiguration(taskName, taskType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceTask(taskName);
         }
     }
 
@@ -1185,7 +1641,85 @@ public class BuildScriptBuilder {
 
         @Override
         public String with(Syntax syntax) {
-            return syntax.referenceRegisteredTask(taskName);
+            return syntax.referenceTask(taskName);
+        }
+    }
+
+    private static class SuiteConfiguration implements Statement, ExpressionValue {
+        final String suiteName;
+        final String suiteType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        SuiteConfiguration(@Nullable String comment, String suiteName, String suiteType) {
+            this.comment = comment;
+            this.suiteName = suiteName;
+            this.suiteType = suiteType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.suiteConfiguration(suiteName, suiteType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceSuite(suiteName);
+        }
+    }
+
+    private static class SuiteRegistration implements Statement, ExpressionValue {
+        final String suiteName;
+        final String suiteType;
+        final String comment;
+        final ScriptBlockImpl body = new ScriptBlockImpl();
+
+        SuiteRegistration(@Nullable String comment, String suiteName, String suiteType) {
+            this.comment = comment;
+            this.suiteName = suiteName;
+            this.suiteType = suiteType;
+        }
+
+        @Nullable
+        @Override
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public Type type() {
+            return Type.Group;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.printBlock(printer.syntax.suiteRegistration(suiteName, suiteType), body);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return syntax.referenceSuite(suiteName);
         }
     }
 
@@ -1365,7 +1899,15 @@ public class BuildScriptBuilder {
 
         String taskRegistration(String taskName, String taskType);
 
-        String referenceRegisteredTask(String taskName);
+        String taskConfiguration(String taskName, String taskType);
+
+        String suiteRegistration(String taskName, String taskType);
+
+        String suiteConfiguration(String taskName, String taskType);
+
+        String referenceTask(String taskName);
+
+        String referenceSuite(String taskName);
 
         String mapLiteral(Map<String, ExpressionValue> map);
 
@@ -1433,6 +1975,7 @@ public class BuildScriptBuilder {
             return config + "(" + notation + ")";
         }
 
+
         @Override
         public String propertyAssignment(PropertyAssignment expression) {
             String propertyName = expression.propertyName;
@@ -1468,7 +2011,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return "tasks." + selector.taskName;
+            return "tasks.named<" + selector.taskType + ">(\"" + selector.taskName + "\")";
         }
 
         @Override
@@ -1482,8 +2025,28 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceRegisteredTask(String taskName) {
+        public String taskConfiguration(String taskName, String taskType) {
+            return "val " + taskName + " by tasks.getting(" + taskType + "::class)";
+        }
+
+        @Override
+        public String suiteRegistration(String suiteName, String suiteType) {
+            return "val " + suiteName + " by registering(" + suiteType + "::class)";
+        }
+
+        @Override
+        public String suiteConfiguration(String suiteName, String suiteType) {
+            return "val " + suiteName + " by getting(" + suiteType + "::class)";
+        }
+
+        @Override
+        public String referenceTask(String taskName) {
             return taskName;
+        }
+
+        @Override
+        public String referenceSuite(String suiteName) {
+            return suiteName;
         }
 
         @Override
@@ -1619,8 +2182,28 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String referenceRegisteredTask(String taskName) {
+        public String taskConfiguration(String taskName, String taskType) {
+            return taskName;
+        }
+
+        @Override
+        public String suiteRegistration(String suiteName, String suiteType) {
+            return suiteName;
+        }
+
+        @Override
+        public String suiteConfiguration(String suiteName, String suiteType) {
+            return suiteName;
+        }
+
+        @Override
+        public String referenceTask(String taskName) {
             return "tasks." + taskName;
+        }
+
+        @Override
+        public String referenceSuite(String suiteName) {
+            return suiteName;
         }
 
         @Override
