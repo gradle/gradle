@@ -65,7 +65,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
 
     def "can convert line ending sensitivity into a PropertyAttribute"(LineEndingSensitivity lineEndingSensitivity) {
         expect:
-        fromLineEndingSensitivity(lineEndingSensitivity)
+        from(lineEndingSensitivity)
 
         where:
         lineEndingSensitivity << LineEndingSensitivity.values()
@@ -73,7 +73,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
 
     def "can convert directory sensitivity into a PropertyAttribute"(DirectorySensitivity directorySensitivity) {
         expect:
-        fromDirectorySensitivity(directorySensitivity)
+        from(directorySensitivity)
 
         where:
         directorySensitivity << DirectorySensitivity.values()

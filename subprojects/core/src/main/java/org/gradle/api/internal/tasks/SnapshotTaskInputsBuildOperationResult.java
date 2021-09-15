@@ -20,8 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.PropertySpec;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.FileNormalizer;
@@ -61,11 +64,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,9 +87,6 @@ import java.util.stream.Collectors;
  */
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
-    private static final String FINGERPRINTING_STRATEGY_PREFIX = "FINGERPRINTING_STRATEGY_";
-    private static final String DIRECTORY_SENSITIVITY_PREFIX = "DIRECTORY_SENSITIVITY_";
-    private static final String LINE_ENDING_SENSITIVITY_PREFIX = "LINE_ENDING_SENSITIVITY_";
     private static final Map<Class<? extends FileNormalizer>, String> FINGERPRINTING_STRATEGIES_BY_NORMALIZER = ImmutableMap.<Class<? extends FileNormalizer>, String>builder()
         .put(ClasspathNormalizer.class, FingerprintingStrategy.CLASSPATH_IDENTIFIER)
         .put(CompileClasspathNormalizer.class, FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER)
@@ -100,53 +98,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @VisibleForTesting
     final CachingState cachingState;
-    private final Map<String, Set<PropertyAttribute>> propertyAttributesByPropertyName;
+    private final Map<String, InputFilePropertySpec> propertySpecsByName;
 
     public SnapshotTaskInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFileProperties) {
         this.cachingState = cachingState;
-        Map<String, Set<PropertyAttribute>> propertyAttributesByPropertyName = new HashMap<>();
-        for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
-            Set<PropertyAttribute> propertyAttributes = new HashSet<>();
-            propertyAttributes.add(PropertyAttribute.fromNormalizerClass(inputFileProperty.getNormalizer()));
-            propertyAttributes.add(PropertyAttribute.fromDirectorySensitivity(inputFileProperty.getDirectorySensitivity()));
-            propertyAttributes.add(PropertyAttribute.fromLineEndingSensitivity(inputFileProperty.getLineEndingNormalization()));
-            propertyAttributesByPropertyName.put(inputFileProperty.getPropertyName(), propertyAttributes);
-        }
-        this.propertyAttributesByPropertyName = ImmutableMap.copyOf(propertyAttributesByPropertyName);
-    }
-
-    @UsedByScanPlugin("The enum value names are transmitted to the GE Gradle Enterprise plugin")
-    enum PropertyAttribute {
-
-        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
-        FINGERPRINTING_STRATEGY_NAME_ONLY,
-        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
-        FINGERPRINTING_STRATEGY_IGNORED_PATH,
-        FINGERPRINTING_STRATEGY_CLASSPATH,
-        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
-
-        DIRECTORY_SENSITIVITY_DEFAULT,
-        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
-
-        LINE_ENDING_SENSITIVITY_DEFAULT,
-        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
-
-        static PropertyAttribute fromNormalizerClass(Class<? extends FileNormalizer> normalizerClass) {
-            String fingerprintingStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizerClass);
-            if (fingerprintingStrategy == null) {
-                throw new IllegalStateException("Could not find a fingerprinting strategy for normalizer: " + normalizerClass.getSimpleName());
-            }
-            return PropertyAttribute.valueOf(FINGERPRINTING_STRATEGY_PREFIX + fingerprintingStrategy);
-        }
-
-        static PropertyAttribute fromDirectorySensitivity(DirectorySensitivity directorySensitivity) {
-            return PropertyAttribute.valueOf(DIRECTORY_SENSITIVITY_PREFIX + directorySensitivity.name());
-        }
-
-        static PropertyAttribute fromLineEndingSensitivity(LineEndingSensitivity lineEndingSensitivity) {
-            return PropertyAttribute.valueOf(LINE_ENDING_SENSITIVITY_PREFIX + lineEndingSensitivity.name());
-        }
-
+        this.propertySpecsByName = Maps.uniqueIndex(inputFileProperties, PropertySpec::getPropertyName);
     }
 
     @Override
@@ -167,10 +123,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     private final class State implements VisitState, FileSystemSnapshotHierarchyVisitor {
 
         final InputFilePropertyVisitor visitor;
+
         private final List<DirectorySnapshot> replayDirectorySnapshotList = new ArrayList<>();
         private final Set<DirectorySnapshot> visitedPreDirectories = new HashSet<>();
-
         Map<String, FileSystemLocationFingerprint> fingerprints;
+
         String propertyName;
         HashCode propertyHash;
         String name;
@@ -194,16 +151,24 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         @Override
         public Set<String> getPropertyAttributes() {
-            return propertyAttributesByPropertyName.get(propertyName).stream().map(Enum::name).sorted().collect(Collectors.toCollection(LinkedHashSet::new));
+            InputFilePropertySpec propertySpec = propertySpec(propertyName);
+            return ImmutableSortedSet.<String>naturalOrder()
+                .add(PropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name())
+                .add(PropertyAttribute.from(propertySpec.getDirectorySensitivity()).name())
+                .add(PropertyAttribute.from(propertySpec.getLineEndingNormalization()).name())
+                .build();
         }
 
         @Override
-        @SuppressWarnings("deprecation")
+        @SuppressWarnings({"deprecation", "RedundantSuppression"})
         public String getPropertyNormalizationStrategyName() {
-            String prefix = SnapshotTaskInputsBuildOperationResult.FINGERPRINTING_STRATEGY_PREFIX;
-            return getPropertyAttributes().stream()
-                .filter(s -> s.startsWith(prefix)).findFirst().map(s -> s.substring(prefix.length()))
-                .orElseThrow(() -> new IllegalStateException("Missing attribute starting with prefix " + prefix));
+            InputFilePropertySpec propertySpec = propertySpec(propertyName);
+            Class<? extends FileNormalizer> normalizer = propertySpec.getNormalizer();
+            String normalizationStrategy = FINGERPRINTING_STRATEGIES_BY_NORMALIZER.get(normalizer);
+            if (normalizationStrategy == null) {
+                throw new IllegalStateException("No strategy name for " + normalizer);
+            }
+            return normalizationStrategy;
         }
 
         @Override
@@ -299,6 +264,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             }
         }
 
+
+    }
+
+    private InputFilePropertySpec propertySpec(String propertyName) {
+        InputFilePropertySpec propertySpec = propertySpecsByName.get(propertyName);
+        if (propertySpec == null) {
+            throw new IllegalStateException("Unknown input property '" + propertyName + "' (known: " + propertySpecsByName.keySet() + ")");
+        }
+        return propertySpec;
     }
 
     @Override
@@ -372,8 +346,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .orElse(null);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public Object getCustomOperationTraceSerializableModel() {
         Map<String, Object> model = new TreeMap<>();
 
@@ -562,6 +536,66 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             enabled -> Optional.of(enabled.getKey()),
             CachingState.Disabled::getKey
         );
+    }
+
+    @UsedByScanPlugin("The value names are used as part of build scan data and cannot be changed - new values can be added")
+    enum PropertyAttribute {
+
+        // note: when adding new values, be sure to indicate which Gradle version started emitting the attribute via comment.
+
+        FINGERPRINTING_STRATEGY_ABSOLUTE_PATH,
+        FINGERPRINTING_STRATEGY_NAME_ONLY,
+        FINGERPRINTING_STRATEGY_RELATIVE_PATH,
+        FINGERPRINTING_STRATEGY_IGNORED_PATH,
+        FINGERPRINTING_STRATEGY_CLASSPATH,
+        FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH,
+
+        DIRECTORY_SENSITIVITY_DEFAULT,
+        DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES,
+
+        LINE_ENDING_SENSITIVITY_DEFAULT,
+        LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS;
+
+        private static final Map<Class<? extends FileNormalizer>, PropertyAttribute> BY_NORMALIZER_CLASS = ImmutableMap.<Class<? extends FileNormalizer>, PropertyAttribute>builder()
+            .put(ClasspathNormalizer.class, FINGERPRINTING_STRATEGY_CLASSPATH)
+            .put(CompileClasspathNormalizer.class, FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH)
+            .put(AbsolutePathInputNormalizer.class, FINGERPRINTING_STRATEGY_ABSOLUTE_PATH)
+            .put(RelativePathInputNormalizer.class, FINGERPRINTING_STRATEGY_RELATIVE_PATH)
+            .put(NameOnlyInputNormalizer.class, FINGERPRINTING_STRATEGY_NAME_ONLY)
+            .put(IgnoredPathInputNormalizer.class, FINGERPRINTING_STRATEGY_IGNORED_PATH)
+            .build();
+
+        private static final Map<DirectorySensitivity, PropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, PropertyAttribute>builder()
+            .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
+            .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
+            .build());
+
+        private static final Map<LineEndingSensitivity, PropertyAttribute> BY_LINE_ENDING_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<LineEndingSensitivity, PropertyAttribute>builder()
+            .put(LineEndingSensitivity.DEFAULT, LINE_ENDING_SENSITIVITY_DEFAULT)
+            .put(LineEndingSensitivity.NORMALIZE_LINE_ENDINGS, LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS)
+            .build());
+
+        private static <T> PropertyAttribute findFor(T value, Map<T, PropertyAttribute> mapping) {
+            PropertyAttribute attribute = mapping.get(value);
+            if (attribute == null) {
+                throw new IllegalStateException("Did not find property attribute mapping for '" + value + "' (from: " + mapping.keySet() + ")");
+            }
+
+            return attribute;
+        }
+
+        static PropertyAttribute fromNormalizerClass(Class<? extends FileNormalizer> normalizerClass) {
+            return findFor(normalizerClass, BY_NORMALIZER_CLASS);
+        }
+
+        static PropertyAttribute from(DirectorySensitivity directorySensitivity) {
+            return findFor(directorySensitivity, BY_DIRECTORY_SENSITIVITY);
+        }
+
+        static PropertyAttribute from(LineEndingSensitivity lineEndingSensitivity) {
+            return findFor(lineEndingSensitivity, BY_LINE_ENDING_SENSITIVITY);
+        }
+
     }
 
 }

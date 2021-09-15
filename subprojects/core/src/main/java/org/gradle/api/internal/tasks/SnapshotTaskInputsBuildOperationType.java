@@ -16,6 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.PropertyAttribute;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -164,20 +170,35 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             byte[] getPropertyHashBytes();
 
             /**
-             * Returns the single {@link #getPropertyAttributes()} with the "FINGERPRINTING_STRATEGY_" prefix for the currently visited location.
-             * <p>
+             * The “primary” attribute of the current properfy.
              *
-             * This is kept for backward compatibility with the Gradle Enterprise Gradle plugin.
+             * Used by Gradle Enterprise plugin <= 3.4, retained for backwards compatibility.
              *
-             * @deprecated Use {@link #getPropertyAttributes()} instead.
+             * Returns the name value of one of:
+             *
+             * <li>{@link FingerprintingStrategy#CLASSPATH_IDENTIFIER}</li>
+             * <li>{@link FingerprintingStrategy#COMPILE_CLASSPATH_IDENTIFIER}</li>
+             * <li>{@link AbsolutePathFingerprintingStrategy#IDENTIFIER}</li>
+             * <li>{@link RelativePathFingerprintingStrategy#IDENTIFIER}</li>
+             * <li>{@link NameOnlyFingerprintingStrategy#IDENTIFIER}</li>
+             * <li>{@link IgnoredPathFingerprintingStrategy#IDENTIFIER}</li>
+             *
+             * @deprecated since 7.3, superseded by {@link #getPropertyAttributes()}
              */
             @Deprecated
             String getPropertyNormalizationStrategyName();
 
             /**
-             * Returns a lexicographically sorted set of attributes for the currently visited location.
-             * <p>
-             * For now, attributes are the 'fingerprinting strategy', the 'directory sensitivity', and the 'line ending sensitivity'.
+             * A description of how the current property was fingerprinted.
+             *
+             * Returns one or more of the values of {@link PropertyAttribute}, sorted.
+             *
+             * This interface does not constrain the compatibility of values.
+             * In practice however, such constraints do exist but are managed informally.
+             * For example, consumers can assume that both {@link PropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT}
+             * and {@link PropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES} will not be present.
+             * This loose approach is used to allow the various types of normalization supported by Gradle to evolve,
+             * and their usage to be conveyed here without changing this interface.
              *
              * @since 7.3
              */
