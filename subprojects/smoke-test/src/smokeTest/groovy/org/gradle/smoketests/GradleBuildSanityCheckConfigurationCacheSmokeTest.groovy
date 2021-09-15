@@ -43,7 +43,14 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         assertConfigurationCacheStateStored()
 
         when:
-        run([":configuration-cache:clean", ":architecture-test:clean"])
+        run([
+            ":configuration-cache:clean",
+            ":docs:clean",
+            ":internal-build-reports:clean",
+            ":architecture-test:clean",
+            ":tooling-api:clean",
+            ":performance:clean",
+        ])
 
         then:
         configurationCacheRun(tasks, 1)
@@ -56,12 +63,12 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
         result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
-        result.task(":docs:checkstyleApi").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
-        result.task(":docs:javadocAll").outcome == TaskOutcome.SUCCESS
-        result.task(":architecture-test:test").outcome == TaskOutcome.SUCCESS
-        result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
+        result.task(":architecture-test:test").outcome == TaskOutcome.FROM_CACHE
+        result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.FROM_CACHE
         result.task(":performance:verifyPerformanceScenarioDefinitions").outcome == TaskOutcome.SUCCESS
         result.task(":checkSubprojectsInfo").outcome == TaskOutcome.SUCCESS
     }
