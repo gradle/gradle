@@ -63,7 +63,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
@@ -353,11 +352,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
         GradleProperties gradleProperties,
-        ListenerManager listenerManager,
-        ConfigurationTimeBarrier configurationTimeBarrier
+        ListenerManager listenerManager
     ) {
         return new DefaultValueSourceProviderFactory(
-            configurationTimeBarrier,
             listenerManager,
             instantiatorFactory,
             isolatableFactory,

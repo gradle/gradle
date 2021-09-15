@@ -211,6 +211,7 @@ public interface Provider<T> {
      *
      * @since 6.5
      */
+    @Deprecated
     Provider<T> forUseAtConfigurationTime();
 
     /**
