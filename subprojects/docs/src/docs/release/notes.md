@@ -59,6 +59,8 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
+--->
+
 <a name="tooling-api"></a>
 ### Tooling API improvements
 
@@ -84,6 +86,7 @@ to be able to compile Scala 3 code. All existing configuration options should st
 language version. To see more about the language features go to 
 [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
+<!--
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
