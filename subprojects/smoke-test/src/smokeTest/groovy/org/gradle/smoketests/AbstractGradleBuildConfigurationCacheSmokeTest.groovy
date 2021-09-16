@@ -59,7 +59,6 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
 
     void configurationCacheRun(List<String> tasks, int daemonId = 0) {
         def ccOptions = [
-            TEST_BUILD_TIMESTAMP,
             "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
         ]
         if (maxConfigurationCacheProblems > 0) {
