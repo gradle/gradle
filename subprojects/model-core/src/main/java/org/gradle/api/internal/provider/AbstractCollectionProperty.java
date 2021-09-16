@@ -40,7 +40,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
-    private CollectionSupplier<T, C> defaultValue = emptySupplier();
 
     AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
         super(host);
@@ -48,7 +47,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.elementType = elementType;
         this.collectionFactory = collectionFactory;
         valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
-        init(defaultValue, noValueSupplier());
+        init(emptySupplier(), noValueSupplier());
     }
 
     private CollectionSupplier<T, C> emptySupplier() {
@@ -99,7 +98,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private void addCollector(Collector<T> collector) {
         assertCanMutate();
-        setSupplier(getExplicitValue(defaultValue).plus(collector));
+        setSupplier(getSupplier().plus(collector));
     }
 
     @Nullable
@@ -118,11 +117,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     public void fromState(ExecutionTimeValue<? extends C> value) {
         if (value.isMissing()) {
-            setSupplier(noValueSupplier());
+            setExplicitSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
+            setExplicitSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
-            setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(value.getChangingValue())));
+            setExplicitSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(value.getChangingValue())));
         }
     }
 
@@ -142,9 +141,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
             discardValue();
-            defaultValue = noValueSupplier();
         } else {
-            setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
+            setExplicitSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
     }
 
@@ -163,7 +161,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
-        setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
+        setExplicitSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
     }
 
     @Override
@@ -180,7 +178,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public HasMultipleValues<T> empty() {
-        setSupplier(emptySupplier());
+        setExplicitSupplier(emptySupplier());
         return this;
     }
 

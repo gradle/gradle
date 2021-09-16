@@ -125,6 +125,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return value;
     }
 
+    protected void setSupplier(S supplier) {
+        assertCanMutate();
+        this.value = supplier;
+    }
+
     protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
         beforeRead(null, consumer);
         return doCalculateValue(consumer);
@@ -217,7 +222,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected abstract S finalValue(S value, ValueConsumer consumer);
 
-    protected void setSupplier(S supplier) {
+    protected void setExplicitSupplier(S supplier) {
         assertCanMutate();
         this.value = state.explicitValue(supplier);
     }

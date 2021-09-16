@@ -207,6 +207,16 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         actual == toMutable(["123"])
     }
 
+    def "appends a single value to convention using add"() {
+        given:
+        property.convention(toMutable(["abc"]))
+        property.add("123")
+        property.add("456")
+
+        expect:
+        assertValueIs(["abc", "123", "456"])
+    }
+
     def "appends a single value using add"() {
         given:
         property.set(toMutable(["abc"]))
@@ -224,6 +234,16 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
 
         expect:
         assertValueIs(["abc", "1"])
+    }
+
+    def "appends a single value to convention from provider using add"() {
+        given:
+        property.convention(toMutable(["abc"]))
+        property.add(Providers.of("123"))
+        property.add(Providers.of("456"))
+
+        expect:
+        assertValueIs(["abc", "123", "456"])
     }
 
     def "appends a single value from provider using add"() {
@@ -334,7 +354,45 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         assertValueIs(["abc", "1"])
     }
 
-    def "providers only called once per query"() {
+    def "convention providers only called once per query"() {
+        def valueProvider = Mock(ProviderInternal)
+        def addProvider = Mock(ProviderInternal)
+        def addAllProvider = Mock(ProviderInternal)
+
+        given:
+        property.convention(valueProvider)
+        property.add(addProvider)
+        property.addAll(addAllProvider)
+
+        when:
+        property.present
+
+        then:
+        1 * valueProvider.calculatePresence(_) >> true
+        1 * addProvider.calculatePresence(_) >> true
+        1 * addAllProvider.calculatePresence(_) >> true
+        0 * _
+
+        when:
+        property.get()
+
+        then:
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(["1"])
+        1 * addProvider.calculateValue(_) >> ValueSupplier.Value.of("2")
+        1 * addAllProvider.calculateValue(_) >> ValueSupplier.Value.of(["3"])
+        0 * _
+
+        when:
+        property.getOrNull()
+
+        then:
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(["1"])
+        1 * addProvider.calculateValue(_) >> ValueSupplier.Value.of("2")
+        1 * addAllProvider.calculateValue(_) >> ValueSupplier.Value.of(["3"])
+        0 * _
+    }
+
+    def "value providers only called once per query"() {
         def valueProvider = Mock(ProviderInternal)
         def addProvider = Mock(ProviderInternal)
         def addAllProvider = Mock(ProviderInternal)
@@ -383,9 +441,10 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         assertValueIs(["1", "2", "3", "4"])
     }
 
-    def "empty collection is used as value when elements added after convention set"() {
+    def "empty collection can be used to isolate elements added after convention set"() {
         given:
         property.convention(["1", "2"])
+        property.empty()
         property.add("3")
 
         expect:
@@ -531,6 +590,18 @@ The value of this property is derived from: <source>""")
         property.getOrElse(null) == null
     }
 
+    def "can set convention to discard added values"() {
+        property.add("abc")
+        property.add(Providers.of("def"))
+        property.addAll("ghi")
+        property.addAll(["jkl"])
+        property.addAll(Providers.of(["mno"]))
+
+        expect:
+        property.convention(toMutable(["123", "456"]))
+        assertValueIs(["123", "456"])
+    }
+
     def "can set value to replace added values"() {
         property.add("abc")
         property.add(Providers.of("def"))
@@ -575,29 +646,33 @@ The value of this property is derived from: <source>""")
         ex.message == "Cannot add a null element to a property of type ${type().simpleName}."
     }
 
-    def "ignores convention after element added"() {
+    def "ignores convention after value set and element added"() {
         expect:
+        property.set([])
         property.add("a")
         property.convention(["other"])
         assertValueIs(["a"])
     }
 
-    def "ignores convention after element added using provider"() {
+    def "ignores convention after value set and element added using provider"() {
         expect:
+        property.set([])
         property.add(Providers.of("a"))
         property.convention(["other"])
         assertValueIs(["a"])
     }
 
-    def "ignores convention after elements added"() {
+    def "ignores convention after value set and elements added"() {
         expect:
+        property.set([])
         property.addAll(["a", "b"])
         property.convention(["other"])
         assertValueIs(["a", "b"])
     }
 
-    def "ignores convention after elements added using provider"() {
+    def "ignores convention after value set and elements added using provider"() {
         expect:
+        property.set([])
         property.addAll(Providers.of(["a", "b"]))
         property.convention(["other"])
         assertValueIs(["a", "b"])
@@ -707,6 +782,23 @@ The value of this property is derived from: <source>""")
         value.getChangingValue().get() == toImmutable(["a", "c"])
     }
 
+    def "has union of producer task with convention from providers unless producer task attached"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def producer = Stub(Task)
+        property.convention(supplierWithProducer(task1))
+        property.addAll(supplierWithProducer(task2))
+        property.add(supplierWithProducer(task3))
+
+        expect:
+        assertHasProducer(property, task1, task2, task3)
+
+        property.attachProducer(owner(producer))
+        assertHasProducer(property, producer)
+    }
+
     def "has union of producer task from providers unless producer task attached"() {
         given:
         def task1 = Stub(Task)
@@ -767,6 +859,27 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
     }
 
+    def "cannot add element after convention finalized"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.finalizeValue()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
     def "cannot add element after value finalized"() {
         given:
         def property = property()
@@ -786,6 +899,27 @@ The value of this property is derived from: <source>""")
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot add element after convention finalized implicitly"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.implicitFinalizeValue()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add element after value finalized implicitly"() {
@@ -809,7 +943,28 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property cannot be changed any further.'
     }
 
-    def "cannot add element after changes disallowed"() {
+    def "cannot add element after convention changes disallowed"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.disallowChanges()
+
+        when:
+        property.add("123")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.add(Stub(PropertyInternal))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add element after value changes disallowed"() {
         given:
         def property = property()
         property.set(someValue())
@@ -828,6 +983,34 @@ The value of this property is derived from: <source>""")
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add elements after convention finalized"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.finalizeValue()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "cannot add elements after value finalized"() {
@@ -858,6 +1041,34 @@ The value of this property is derived from: <source>""")
         e3.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "cannot add elements after convention finalized implicitly"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.implicitFinalizeValue()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "cannot add elements after value finalized implicitly"() {
         given:
         def property = property()
@@ -886,7 +1097,35 @@ The value of this property is derived from: <source>""")
         e3.message == 'The value for this property cannot be changed any further.'
     }
 
-    def "cannot add elements after changes disallowed"() {
+    def "cannot add elements after convention changes disallowed"() {
+        given:
+        def property = property()
+        property.convention(someValue())
+        property.disallowChanges()
+
+        when:
+        property.addAll("123", "456")
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(["123", "456"])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.addAll(Stub(ProviderInternal))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add elements after value changes disallowed"() {
         given:
         def property = property()
         property.set(someValue())

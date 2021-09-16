@@ -86,6 +86,14 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs([:])
     }
 
+    def "can change convention to empty map"() {
+        when:
+        property.convention([a: 'b'])
+        property.empty()
+        then:
+        assertValueIs([:])
+    }
+
     def "can change value to empty map"() {
         when:
         property.set([a: 'b'])
@@ -167,6 +175,16 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         actual == ['k2': 'v2']
     }
 
+    def "adds a single entry to convention using put"() {
+        given:
+        property.convention(['k1': 'v1'])
+        property.put('k2', 'v2')
+        property.put('k3', 'v3')
+
+        expect:
+        assertValueIs(['k1': 'v1', 'k2': 'v2', 'k3': 'v3'])
+    }
+
     def "adds a single entry using put"() {
         given:
         property.set(['k1': 'v1'])
@@ -177,6 +195,15 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs(['k1': 'v1', 'k2': 'v2', 'k3': 'v3'])
     }
 
+    def "put overrides convention entries added earlier"() {
+        given:
+        property.convention(['k': 'v1'])
+        property.put('k', 'v2')
+
+        expect:
+        assertValueIs(['k': 'v2'])
+    }
+
     def "put overrides entries added earlier"() {
         given:
         property.set(['k': 'v1'])
@@ -184,6 +211,16 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         expect:
         assertValueIs(['k': 'v2'])
+    }
+
+    def "adds a single entry to convention from value provider using put"() {
+        given:
+        property.convention('k1': 'v1')
+        property.put('k2', Providers.of('v2'))
+        property.put('k3', Providers.of('v3'))
+
+        expect:
+        assertValueIs(['k1': 'v1', 'k2': 'v2', 'k3': 'v3'])
     }
 
     def "adds a single entry from value provider using put"() {
@@ -224,9 +261,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         ['k1': 'v1', 'k2': 'v2'] | ['k1': 'v1', 'k2': 'v2']
     }
 
-    def "empty map is used when entries added after convention set"() {
+    def "empty map can be used to isolate entries added after convention set"() {
         given:
         property.convention([k1: 'v1'])
+        property.empty()
         property.put('k2', 'v2')
 
         expect:
@@ -262,7 +300,42 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         assertValueIs(['k1': 'v1', 'addedKey': 'addedValue'])
     }
 
-    def "providers only called once per query"() {
+    def "convention providers only called once per query"() {
+        given:
+        def valueProvider = Mock(ProviderInternal)
+        def putProvider = Mock(ProviderInternal)
+        def putAllProvider = Mock(ProviderInternal)
+        and:
+        property.convention(valueProvider)
+        property.put('k2', putProvider)
+        property.putAll(putAllProvider)
+
+        when:
+        property.present
+        then:
+        1 * valueProvider.calculatePresence(_) >> true
+        1 * putProvider.calculatePresence(_) >> true
+        1 * putAllProvider.calculatePresence(_) >> true
+        0 * _
+
+        when:
+        property.get()
+        then:
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
+        0 * _
+
+        when:
+        property.getOrNull()
+        then:
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
+        0 * _
+    }
+
+    def "value providers only called once per query"() {
         given:
         def valueProvider = Mock(ProviderInternal)
         def putProvider = Mock(ProviderInternal)
@@ -411,6 +484,19 @@ The value of this property is derived from: <source>""")
         property.getOrElse(null) == null
     }
 
+    def "can set convention to discard added entries"() {
+        given:
+        property.put('k1', 'v1')
+        property.put('k2', Providers.of('v2'))
+        property.putAll(['k3': 'v3'])
+        property.putAll(Providers.of(['k4': 'v4']))
+
+        when:
+        property.convention(['kk': 'vv'])
+        then:
+        assertValueIs(['kk': 'vv'])
+    }
+
     def "can set null value to remove any added entries"() {
         given:
         property.put('k1', 'v1')
@@ -494,6 +580,55 @@ The value of this property is derived from: <source>""")
         then:
         def ex = thrown NullPointerException
         ex.message == "Cannot add an entry with a null value to a property of type ${type().simpleName}."
+    }
+
+    def "ignores convention after value set and element added"() {
+        given:
+        property.set([:])
+        property.put('k1', 'v1')
+        property.convention(['k':'v'])
+
+        expect:
+        assertValueIs(['k1':'v1'])
+    }
+
+    def "ignores convention after value set and element added using provider"() {
+        given:
+        property.set([:])
+        property.put('k1', Providers.of('v1'))
+        property.convention(['k':'v'])
+
+        expect:
+        assertValueIs(['k1':'v1'])
+    }
+
+    def "ignores convention after value set and elements added"() {
+        given:
+        property.set([:])
+        property.putAll(['k1':'v1', 'k2':'v2'])
+        property.convention(['k':'v'])
+
+        expect:
+        assertValueIs(['k1':'v1', 'k2':'v2'])
+    }
+
+    def "ignores convention after value set and elements added using provider"() {
+        given:
+        property.set([:])
+        property.putAll(Providers.of(['k1':'v1', 'k2':'v2']))
+        property.convention(['k':'v'])
+
+        expect:
+        assertValueIs(['k1':'v1', 'k2':'v2'])
+    }
+
+    def "ignores convention after collection made empty"() {
+        given:
+        property.empty()
+        property.convention(['k':'v'])
+
+        expect:
+        assertValueIs([:])
     }
 
     def "has no producer and fixed execution time value by default"() {
@@ -596,6 +731,23 @@ The value of this property is derived from: <source>""")
         value.getChangingValue().get() == [a: '1b', c: '3']
     }
 
+    def "has union of producer task with convention from providers unless producer task attached"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def producer = Stub(Task)
+        property.convention(supplierWithProducer(task1))
+        property.putAll(supplierWithProducer(task2))
+        property.put('a', supplierWithProducer(task3, '1'))
+
+        expect:
+        assertHasProducer(property, task1, task2, task3)
+
+        property.attachProducer(owner(producer))
+        assertHasProducer(property, producer)
+    }
+
     def "has union of producer task from providers unless producer task attached"() {
         given:
         def task1 = Stub(Task)
@@ -651,6 +803,26 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
     }
 
+    def "cannot add entry after convention finalized"() {
+        given:
+        property.convention(someValue())
+        property.finalizeValue()
+
+        when:
+        property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.put('k2', brokenValueSupplier())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
     def "cannot add entry after value finalized"() {
         given:
         property.set(someValue())
@@ -669,6 +841,26 @@ The value of this property is derived from: <source>""")
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
+    def "cannot add entry after convention finalized implicitly"() {
+        given:
+        property.convention(someValue())
+        property.implicitFinalizeValue()
+
+        when:
+        property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.put('k2', brokenValueSupplier())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
     }
 
     def "cannot add entry after value finalized implicitly"() {
@@ -691,7 +883,27 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property cannot be changed any further.'
     }
 
-    def "cannot add entry after changes disallowed"() {
+    def "cannot add entry after convention changes disallowed"() {
+        given:
+        property.convention(someValue())
+        property.disallowChanges()
+
+        when:
+        property.put('k1', 'v1')
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.put('k2', brokenValueSupplier())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add entry after value changes disallowed"() {
         given:
         property.set(someValue())
         property.disallowChanges()
@@ -709,6 +921,26 @@ The value of this property is derived from: <source>""")
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add entries after convention finalized"() {
+        given:
+        property.convention(someValue())
+        property.finalizeValue()
+
+        when:
+        property.putAll(['k3': 'v3', 'k4': 'v4'])
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property is final and cannot be changed any further.'
+
+        when:
+        property.putAll brokenSupplier()
+
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
     def "cannot add entries after value finalized"() {
@@ -731,6 +963,26 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "ignores add entries after convention finalized implicitly"() {
+        given:
+        property.convention(someValue())
+        property.implicitFinalizeValue()
+
+        when:
+        property.putAll(['k3': 'v3'])
+
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.putAll brokenSupplier()
+
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
     def "ignores add entries after value finalized implicitly"() {
         given:
         property.set(someValue())
@@ -751,7 +1003,25 @@ The value of this property is derived from: <source>""")
         e2.message == 'The value for this property cannot be changed any further.'
     }
 
-    def "cannot add entries after changes disallowed"() {
+    def "cannot add entries after convention changes disallowed"() {
+        given:
+        property.convention(someValue())
+        property.disallowChanges()
+
+        when:
+        property.putAll(['k3': 'v3', 'k4': 'v4'])
+        then:
+        def e = thrown IllegalStateException
+        e.message == 'The value for this property cannot be changed any further.'
+
+        when:
+        property.putAll brokenSupplier()
+        then:
+        def e2 = thrown IllegalStateException
+        e2.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "cannot add entries after value changes disallowed"() {
         given:
         property.set(someValue())
         property.disallowChanges()

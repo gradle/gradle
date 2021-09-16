@@ -44,7 +44,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    private MapSupplier<K, V> defaultValue = emptySupplier();
 
     public DefaultMapProperty(PropertyHost propertyHost, Class<K> keyType, Class<V> valueType) {
         super(propertyHost);
@@ -52,7 +51,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
-        init(defaultValue, noValueSupplier());
+        init(emptySupplier(), noValueSupplier());
     }
 
     private MapSupplier<K, V> emptySupplier() {
@@ -98,7 +97,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     @SuppressWarnings("unchecked")
     public MapProperty<K, V> empty() {
-        setSupplier(emptySupplier());
+        setExplicitSupplier(emptySupplier());
         return this;
     }
 
@@ -120,16 +119,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
         if (entries == null) {
             discardValue();
-            defaultValue = noValueSupplier();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
+            setExplicitSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
+        setExplicitSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
     }
 
     @Override
@@ -176,7 +174,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addCollector(MapCollector<K, V> collector) {
         assertCanMutate();
-        setSupplier(getExplicitValue(defaultValue).plus(collector));
+        setSupplier(getSupplier().plus(collector));
     }
 
     @SuppressWarnings("unchecked")
@@ -219,11 +217,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
         if (value.isMissing()) {
-            setSupplier(noValueSupplier());
+            setExplicitSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
+            setExplicitSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
+            setExplicitSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
         }
     }
 

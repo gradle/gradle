@@ -68,7 +68,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         if (value == null) {
             discardValue();
         } else {
-            setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            setExplicitSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
     }
 
@@ -97,7 +97,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public void set(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
+        setExplicitSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 
     @Override
