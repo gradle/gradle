@@ -198,7 +198,7 @@ public class ScalaRuntime {
      * Determines Scala compiler jar to download.
      *
      * @param scalaVersion version of scala to download the compiler for
-     * @param zincVersion version of zinc to download the compiler for as fallback for Scala 2
+     * @param scalaVersion version of scala to download the compiler for
      * @return compiler dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
