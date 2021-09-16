@@ -89,17 +89,20 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             .withTestKitDir(homeDir)
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
-            runner.withJvmArguments(
-                "-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-                "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
-            )
+            // Set required JVM arguments in gradle.properties so they are picked up
+            // by Kotlin workers, see https://youtrack.jetbrains.com/issue/KT-45545
+            new File(projectDir, "gradle.properties") << """
+                org.gradle.jvmargs=-Dfile.encoding=UTF-8 \
+                   -Xmx8g -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError \
+                   --add-opens jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED  \
+                   --add-opens jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+                   --add-opens jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+            """.stripIndent()
         }
         if (AGP_VERSIONS.isAgpNightly(agpVersion)) {
             def init = AGP_VERSIONS.createAgpNightlyRepositoryInitScript()
