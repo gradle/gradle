@@ -88,6 +88,26 @@ to be able to compile Scala 3 code. All existing configuration options should st
 language version. To see more about the language features go to
 [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
+<a name="plugin-development-improvements"></a>
+## Plugin development improvements
+
+### Allow plugin authors to declare inputs or outputs as untracked
+
+For up-to-date checks and the build cache, Gradle needs to understand the inputs and outputs of a task.
+Though it is not always desirable or possible for Gradle to fully understand the input and output files.
+For example:
+- The location contains unreadable files like pipes where Gradle cannot track the content.
+- Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
+- The build does not own the output location exclusively and Gradle would need to snapshot a potentially large amount of content.
+
+Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) to declare that an input or output property should not be tracked by Gradle.
+Untracked inputs or outputs can be considered as locations Gradle is not supposed to understand.
+This allows implementing the above use-cases by using this new annotation.
+If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
+For example, such a task will always be out of date and never from the build cache.
+
+See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
+
 <!--
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
