@@ -313,4 +313,54 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("direct.Multiplier")
         report.assertHasClassCoverage("transitive.Powerize")
     }
+
+    // TODO
+    //  verification failure, first use
+    //  mechanical failure, first use
+    //  verification failure with small change after successful run
+    //  mechanical failure with small change after successful run
+
+    def 'verification failure on first-use continues creation of aggregated report, but with sparse coverage results'() {
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+        """
+        // TODO insert assertion failure into direct
+        file("direct/src/test/java/direct/MultiplierTest.java").java """
+                package direct;
+
+                import org.junit.Assert;
+                import org.junit.Test;
+
+                public class MultiplierTest {
+                    @Test
+                    public void testMultiply() {
+                        Assert.fail("intentional failure to test jacoco coverage figures");
+                        Multiplier multiplier = new Multiplier();
+                        Assert.assertEquals(1, multiplier.multiply(1, 1));
+                        Assert.assertEquals(4, multiplier.multiply(2, 2));
+                        Assert.assertEquals(2, multiplier.multiply(1, 2));
+                    }
+                }
+            """
+        when:
+        fails(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
+
+        then:
+        file("transitive/build/jacoco/test.exec").assertExists()
+        file("direct/build/jacoco/test.exec").assertExists()
+        file("application/build/jacoco/test.exec").assertExists()
+
+        // TODO make :application:testCodeCoverageReport execute even though
+        file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
+
+        def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
+        report.assertHasClassCoverage("application.Adder")
+        report.assertHasClassCoverage("direct.Multiplier", 0) // direct will _not_ have coverage as its test task has a verification failure
+        report.assertHasClassCoverage("transitive.Powerize")
+    }
+
+    def 'mechanical failure on first-use prevents creation of aggregated report'() {
+
+    }
+
 }
