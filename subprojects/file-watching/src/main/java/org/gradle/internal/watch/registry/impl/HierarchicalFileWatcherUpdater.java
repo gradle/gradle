@@ -94,7 +94,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected void stopWatchingHierarchies(Collection<File> hierarchiesToStopWatching) {
         if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
-            LOGGER.warn("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
+            LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
         }
     }
 
