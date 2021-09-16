@@ -62,7 +62,7 @@ public class ScalaPlugin implements Plugin<Project> {
         configureScaladoc(project, main, compileScala);
     }
 
-    private static void configureScaladoc(final Project project, final SourceSet main, final TaskProvider<AbstractScalaCompile> compileScala) {
+    private static void configureScaladoc(final Project project, final SourceSet main) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
                 ConfigurableFileCollection files = project.files();
