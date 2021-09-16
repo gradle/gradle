@@ -16,16 +16,19 @@
 
 package org.gradle.internal.watch.registry.impl
 
+import org.gradle.internal.file.FileHierarchySet
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
+
+import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.resolveWatchedHierarchies
 
 class WatchedHierarchiesTest extends Specification implements TestSnapshotFixture {
     def "does not watch when there's nothing to watch"() {
         def watchable = Mock(WatchableHierarchies)
         when:
-        def watched = WatchedHierarchies.resolveWatchedHierarchies(watchable, buildHierarchy([]))
+        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([]))
         then:
-        watched.watchedRoots as List == []
+        rootsOf(watched) == []
         1 * watchable.recentlyUsedHierarchies >> []
     }
 
@@ -34,11 +37,11 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def dir = new File("empty").absoluteFile
 
         when:
-        def watched = WatchedHierarchies.resolveWatchedHierarchies(watchable, buildHierarchy([
+        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([
             directory(dir.absolutePath, [])
         ]))
         then:
-        watched.watchedRoots as List == [dir]
+        rootsOf(watched) == [dir.absolutePath]
         1 * watchable.recentlyUsedHierarchies >> [dir]
     }
 
@@ -47,11 +50,17 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def dir = new File("empty").absoluteFile
 
         when:
-        def watched = WatchedHierarchies.resolveWatchedHierarchies(watchable, buildHierarchy([
+        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([
             missing(dir.absolutePath + "/missing.txt")
         ]))
         then:
-        watched.watchedRoots as List == []
+        rootsOf(watched) == []
         1 * watchable.recentlyUsedHierarchies >> [dir]
+    }
+
+    private static List<String> rootsOf(FileHierarchySet set) {
+        def roots = []
+        set.visitRoots((root -> roots.add(root)))
+        return roots
     }
 }
