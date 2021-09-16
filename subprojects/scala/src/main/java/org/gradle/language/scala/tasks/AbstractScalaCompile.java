@@ -39,6 +39,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
@@ -252,6 +253,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * {@inheritDoc}
      */
     @Override
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.NAME_ONLY)
     public FileTree getSource() {
         return super.getSource();

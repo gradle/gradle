@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -103,6 +105,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     /**
      * Source sets that coverage should be reported for.
      */
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getSourceDirectories() {
@@ -121,6 +124,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * Additional class dirs that coverage data should be reported for.
      */
     @Optional
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getAdditionalClassDirs() {
@@ -131,6 +135,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * Additional source dirs for the classes coverage data is being reported for.
      */
     @Optional
+    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getAdditionalSourceDirs() {
