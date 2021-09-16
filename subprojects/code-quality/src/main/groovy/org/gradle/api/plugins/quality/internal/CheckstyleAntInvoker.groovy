@@ -22,6 +22,8 @@ import org.gradle.api.plugins.quality.Checkstyle
 
 class CheckstyleAntInvoker extends Closure<Object> {
 
+    private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
+
     private Checkstyle.CheckstyleActionParameters parameters
 
     CheckstyleAntInvoker(Object owner, Object thisObject, Checkstyle.CheckstyleActionParameters parameters) {
