@@ -245,8 +245,13 @@ fun Project.enableScriptCompilationOf(
 
         kotlinCompileTask {
             dependsOn(generatePrecompiledScriptPluginAccessors)
-            inputs.files(compileClasspath).withNormalizer(ClasspathNormalizer::class.java)
-            inputs.dir(accessorsMetadata).withPathSensitivity(PathSensitivity.RELATIVE).ignoreEmptyDirectories()
+            inputs.files(compileClasspath)
+                .withNormalizer(ClasspathNormalizer::class.java)
+                .withPropertyName("compileClasspath")
+            inputs.dir(accessorsMetadata)
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+                .ignoreEmptyDirectories()
+                .withPropertyName("accessorsMetadata")
             inputs.property("kotlinDslScriptTemplates", scriptTemplates)
 
             val implicitImports = serviceOf<ImplicitImports>()

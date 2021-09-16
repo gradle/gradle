@@ -27,7 +27,6 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -80,7 +79,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
      * {@inheritDoc}
      */
     @Override
-    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();

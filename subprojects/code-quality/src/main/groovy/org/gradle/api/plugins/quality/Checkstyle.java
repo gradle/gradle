@@ -30,7 +30,6 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -160,7 +159,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * executed.</p>
      */
     @Override
-    @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
