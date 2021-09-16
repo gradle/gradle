@@ -18,8 +18,11 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -28,6 +31,8 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.internal.typeconversion.TypeInfo;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.util.Set;
 
@@ -38,7 +43,8 @@ public class ModuleVersionSelectorParsers {
     private static final NotationParserBuilder<Object, ModuleVersionSelector> BUILDER = NotationParserBuilder
             .toType(ModuleVersionSelector.class)
             .fromCharSequence(new StringConverter())
-            .converter(new MapConverter());
+            .converter(new MapConverter())
+            .converter(new ProviderConverter());
 
     public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
         return builder().toFlatteningComposite();
@@ -86,6 +92,19 @@ public class ModuleVersionSelectorParsers {
                                 + "'org.gradle:gradle-core:1.0'");
             }
             result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), parsed.getVersion()));
+        }
+    }
+
+    static class ProviderConverter extends TypedNotationConverter<Provider<MinimalExternalModuleDependency>, DefaultDependencyConstraint> {
+
+        public ProviderConverter() {
+            super(new TypeInfo<>(Provider.class));
+        }
+
+        @Override
+        protected DefaultDependencyConstraint parseType(Provider<MinimalExternalModuleDependency> notation) {
+            MinimalExternalModuleDependency dependency = notation.get();
+            return new DefaultDependencyConstraint(dependency.getModule(), dependency.getVersionConstraint());
         }
     }
 }
