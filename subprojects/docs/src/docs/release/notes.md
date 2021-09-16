@@ -61,6 +61,8 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 --->
 
+## New features and usability improvements
+
 <a name="tooling-api"></a>
 ### Tooling API improvements
 
@@ -69,9 +71,9 @@ and Buildship to integrate Gradle into the IDE.
 
 #### File download progress events
 
-TBD - some build may download many files or very large files, for example when resolving many dependencies, and this 
-may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as 
-dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running. 
+TBD - some build may download many files or very large files, for example when resolving many dependencies, and this
+may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as
+dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running.
 
 <a name="scala"></a>
 ### Scala plugin improvements
@@ -80,10 +82,10 @@ Scala plugin allows users to compile their Scala code using Gradle and the Zinc 
 
 #### Scala 3 support
 
-Newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing 
+Newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing
 Scala 2 code. Due to some large changes in the compiler it was neccessary to adjust the Scala plugin
-to be able to compile Scala 3 code. All existing configuration options should still be usable with the newest 
-language version. To see more about the language features go to 
+to be able to compile Scala 3 code. All existing configuration options should still be usable with the newest
+language version. To see more about the language features go to
 [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
 <!--
