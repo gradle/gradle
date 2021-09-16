@@ -68,7 +68,7 @@ public abstract class DefaultScript extends BasicScript {
     private ProviderFactory providerFactory;
     private LoggingManager loggingManager;
 
-    public ServiceRegistry scriptServices;
+    private ServiceRegistry scriptServices;
 
     @Override
     public void init(final Object target, ServiceRegistry services) {
