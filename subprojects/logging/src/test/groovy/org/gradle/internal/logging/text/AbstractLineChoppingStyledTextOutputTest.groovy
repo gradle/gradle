@@ -25,7 +25,6 @@ import spock.lang.Unroll
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final String NIX_EOL = "\n"
     private static final String WINDOWS_EOL = "\r\n"
-    private static final String MACOS9_EOL = "\r"
     private static final String SYSTEM_EOL = SystemProperties.instance.getLineSeparator();
     private static final def EOLS = [
         ["System", SYSTEM_EOL],
@@ -222,15 +221,21 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     @Unroll
-    def "Mac OS 9 eol aren't detected as new line [#type]"() {
+    def "Carriage return isn't detected as new line [#type]"() {
         System.setProperty("line.separator", eol)
         def output = output()
 
         when:
-        output.text("some${MACOS9_EOL}text")
+        output.text("1\r2\r3\r")
 
         then:
-        result.toString() == "[some\rtext]"
+        result.toString() == "[1\r2\r3]"
+
+        when:
+        output.text("4\r5\r6\r")
+
+        then:
+        result.toString() == "[1\r2\r3][\r4\r5\r6]"
 
         where:
         [type, eol] << EOLS
