@@ -30,6 +30,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.testing.TestVerificationException;
 import org.gradle.internal.Pair;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
@@ -857,10 +858,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
         // Failure
         try {
-            if (!continueOnFailure) {
+            if (continueOnFailure || node.getNodeFailure().getCause() instanceof TestVerificationException) {
+                this.failureCollector.addFailure(node.getNodeFailure());
+            } else {
                 node.rethrowNodeFailure();
             }
-            this.failureCollector.addFailure(node.getNodeFailure());
         } catch (Exception e) {
             // If the failure handler rethrows exception, then execution of other nodes is aborted. (--continue will collect failures)
             abortExecution();
