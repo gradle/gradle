@@ -142,9 +142,9 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             }, new Action<CachedClassLoader>() {
                 @Override
                 public void execute(CachedClassLoader cachedClassLoader) {
-                    ClassLoader classLoader = cachedClassLoader.getClassLoader();
                     Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
                     Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
+                    ClassLoader classLoader = cachedClassLoader.getClassLoader();
 
                     // This looks ugly, very ugly, but that is apparently what Ant does itself
                     ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
