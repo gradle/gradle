@@ -101,7 +101,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
@@ -122,7 +121,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes != null
         result.actionClassNames != null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames != null
     }
 
@@ -172,7 +170,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
@@ -207,11 +204,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
         result.inputValueHashes == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.outputPropertyNames == null
     }
 
-    def "exposes file inputs"() {
+    def "exposes file inputs, ignoring empty directories"() {
         given:
         withBuildCache()
         settingsFile << "include 'a', 'b'"
@@ -224,6 +220,15 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                     file("A.java") << "package a; class A {}"
                     dir("a") {
                         file("A.java") << "package a.a; class A {}"
+                    }
+                }
+                dir("empty") {
+                    dir("empty")
+                }
+                dir("nonempty") {
+                    dir("nonempty") {
+                        dir("empty")
+                        file("Z.java") << "package nonempty.nonempty; class Z {}"
                     }
                 }
             }
@@ -258,27 +263,31 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             hash != null
             roots.empty
             normalization == "COMPILE_CLASSPATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.sourcepath"] as Map<String, ?>) {
             hash != null
             roots.empty
             normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava["options.annotationProcessorPath"] as Map<String, ?>) {
             hash != null
             roots.empty
             normalization == "CLASSPATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_CLASSPATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
 
         with(aCompileJava.stableSources) {
             hash != null
             normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS']
             roots.size() == 1
             with(roots[0]) {
                 path == file("a/src/main/java").absolutePath
-                children.size() == 3
+                children.size() == 4
                 with(children[0]) {
                     path == "a"
                     children.size() == 2
@@ -302,6 +311,21 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 with(children[2]) {
                     path == "B.java"
                     hash != null
+                }
+                with(children[3]) {
+                    path == "nonempty"
+                    hash == null
+                    children.size() == 1
+                    with(children[0]) {
+                        path == "nonempty"
+                        hash == null
+                        children.size() == 1
+                        with(children[0]) {
+                            path == "Z.java"
+                            hash != null
+                            children == null
+                        }
+                    }
                 }
             }
         }
@@ -343,6 +367,85 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    def "exposes file inputs, not ignoring empty directories"() {
+        given:
+        withBuildCache()
+        settingsFile << "include 'a'"
+        createDir("a") {
+            file("build.gradle") << """
+                task foo {
+                    inputs.dir('src').ignoreEmptyDirectories(false).withPropertyName('src')
+                    outputs.file('output.txt')
+                    doLast {
+                        file('output.txt') << 'do stuff'
+                    }
+                }
+            """
+            dir("src") {
+                file("A.txt") << "fooA"
+                file("B.txt") << "fooB"
+                dir("a") {
+                    file("A.txt") << "fooA"
+                    dir("a") {
+                        file("A.txt") << "fooA"
+                    }
+                }
+                dir("empty") {
+                    dir("empty")
+                }
+            }
+        }
+
+        when:
+        succeeds("a:foo")
+
+        then:
+        def result = snapshotResults(":a:foo")
+        def aFoo = result.inputFileProperties
+        with(aFoo.src) {
+            hash != null
+            normalization == "ABSOLUTE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_ABSOLUTE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
+            roots.size() == 1
+            with(roots[0]) {
+                path == file("a/src").absolutePath
+                children.size() == 4
+                with(children[0]) {
+                    path == "a"
+                    children.size() == 2
+                    with(children[0]) {
+                        path == "a"
+                        children.size() == 1
+                        with(children[0]) {
+                            path == "A.txt"
+                            hash != null
+                        }
+                    }
+                    with(children[1]) {
+                        path == "A.txt"
+                        hash != null
+                    }
+                }
+                with(children[1]) {
+                    path == "A.txt"
+                    hash != null
+                }
+                with(children[2]) {
+                    path == "B.txt"
+                    hash != null
+                }
+                with(children[3]) {
+                    path == "empty"
+                    children.size() == 1
+                    with(children[0]) {
+                        path == "empty"
+                        children.empty
+                    }
+                }
+            }
+        }
+    }
+
     def "single root file are represented as roots"() {
         given:
         withBuildCache()
@@ -368,6 +471,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 !containsKey("children")
             }
             normalization == "RELATIVE_PATH"
+            attributes == ['DIRECTORY_SENSITIVITY_DEFAULT', 'FINGERPRINTING_STRATEGY_RELATIVE_PATH', 'LINE_ENDING_SENSITIVITY_DEFAULT']
         }
     }
 
@@ -399,7 +503,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
-        result.inputPropertiesLoadedByUnknownClassLoader == null
         result.classLoaderHash == null
         result.actionClassLoaderHashes == null
         result.actionClassNames == null
