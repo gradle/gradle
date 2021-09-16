@@ -104,6 +104,7 @@ val classycleExtension = extensions.create<ClassycleExtension>("classycle").appl
 
 extensions.findByType<SourceSetContainer>()?.all {
     tasks.register<Classycle>(getTaskName("classycle", null)) {
+        classycleClasspath.from(classycle)
         classesDirs.from(output.classesDirs)
         excludePatterns.set(classycleExtension.excludePatterns)
         reportName.set(this@all.name)
