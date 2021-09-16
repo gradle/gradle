@@ -19,6 +19,8 @@ package org.gradle.internal.logging.text;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
 
+import java.util.Arrays;
+
 /**
  * A {@link StyledTextOutput} that breaks text up into lines.
  */
@@ -64,11 +66,12 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private interface State extends Action<StateContext> {}
 
     private class StateContext {
-        private final String text;
-        private final int max;
-        private final SeenFromEol seenFromEol = AbstractLineChoppingStyledTextOutput.this.seenFromEol;
+        private final SeenFromEol seenFromEol = AbstractLineChoppingStyledTextOutput.this.seenFromEol.copy();
         private final char[] eolChars = AbstractLineChoppingStyledTextOutput.this.eolChars;
         private final String eol = AbstractLineChoppingStyledTextOutput.this.eol;
+
+        private final String text;
+        private final int max;
 
         private int start;
         private int pos;
@@ -88,8 +91,14 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             pos += count;
         }
 
-        char currentChar() {
-            return text.charAt(pos + seenFromEol.size());
+        boolean isCurrentCharEquals(char value) {
+            char ch;
+            if (seenFromEol.size() + pos < 0) {
+                ch = eolChars[pos+AbstractLineChoppingStyledTextOutput.this.seenFromEol.size()];
+            } else {
+                ch = text.charAt(pos + seenFromEol.size());
+            }
+            return ch == value;
         }
 
         boolean hasChar() {
@@ -112,7 +121,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                 String data = "";
                 // Flushing data split across previous and current appending
                 if (start < 0 && pos >= 0) {
-                    data = seenFromEol.string(0, Math.abs(start)) + text.substring(0, pos);
+                    data = seenFromEol.string(Math.abs(start)) + text.substring(0, pos);
                 // Flushing data coming only from current appending
                 } else if (start >= 0) {
                     data = text.substring(start, pos);
@@ -137,10 +146,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
         @Override
         public void execute(StateContext context) {
             if (!context.seenFromEol.all()) {
-                boolean windows = context.eol.equals("\r\n");
-
-                if (!windows && context.currentChar() == context.eolChars[context.seenFromEol.size()]) {
-                    context.seenFromEol.add(context.currentChar());
+                if (!context.eol.equals("\r\n") && context.isCurrentCharEquals(context.eolChars[context.seenFromEol.size()])) {
+                    context.seenFromEol.add();
                     if (context.seenFromEol.all()) {
                         context.flushLineText();
                         context.flushEndLine(context.eol);
@@ -149,23 +156,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
                         context.setState(START_LINE_STATE);
                     }
                     return;
-                }
-
-                if (context.seenFromEol.none()) {
-                    if (context.currentChar() == '\r') {
-                        context.seenFromEol.add('\r');
-                        context.setState(WINDOWS_EOL_PARSING_STATE);
-                        return;
-                    }
-                    if (context.currentChar() == '\n') {
-                        context.flushLineText();
-                        context.flushEndLine("\n");
-                        context.next();
-                        context.reset();
-                        context.setState(START_LINE_STATE);
-                        return;
-                    }
-                    context.next();
+                } else if (context.seenFromEol.none()) {
+                    WELL_KNOWN_EOL_PARSING_STATE.execute(context);
                     return;
                 }
             }
@@ -173,23 +165,41 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             context.next(context.seenFromEol.size());
             context.flushLineText();
             context.reset();
+            context.setState(INITIAL_STATE);
         }
     };
 
     private static final State INITIAL_STATE = SYSTEM_EOL_PARSING_STATE;
 
-    private static final State WINDOWS_EOL_PARSING_STATE = new State() {
+    private static final State WELL_KNOWN_EOL_PARSING_STATE = new State() {
         @Override
         public void execute(StateContext context) {
+            if (context.isCurrentCharEquals('\r')) {
+                context.seenFromEol.add('\r');
+                context.setState(WINDOWS_EOL_PARSING_ODDITY_STATE);
+            } else if (context.isCurrentCharEquals('\n')) {
+                context.flushLineText();
+                context.flushEndLine("\n");
+                context.next();
+                context.reset();
+                context.setState(START_LINE_STATE);
+            } else {
+                context.next();
+                context.setState(INITIAL_STATE);
+            }
+        }
+    };
 
-
-            if (context.currentChar() == '\n') {
+    private static final State WINDOWS_EOL_PARSING_ODDITY_STATE = new State() {
+        @Override
+        public void execute(StateContext context) {
+            if (context.isCurrentCharEquals('\n')) {
                 context.flushLineText();
                 context.flushEndLine("\r\n");
                 context.next(2);
                 context.reset();
                 context.setState(START_LINE_STATE);
-            } else if (context.currentChar() == '\r') {
+            } else if (context.isCurrentCharEquals('\r')) {
                 context.next();
             } else {
                 context.next();
@@ -209,16 +219,33 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
     private static class SeenFromEol {
 
+        private final char[] eol;
         private final char[] seen;
         private int count;
 
         SeenFromEol(char[] eol) {
+            this.eol = eol;
             this.seen = new char[eol.length];
             this.count = 0;
         }
 
+        private SeenFromEol(char[] eol, char[] seen, int count) {
+            this.eol = eol;
+            this.seen = seen;
+            this.count = count;
+        }
+
+        SeenFromEol copy() {
+            return new SeenFromEol(eol, Arrays.copyOf(seen, seen.length), count);
+        }
+
         public void add(char c) {
             seen[count++] = c;
+        }
+
+        public void add() {
+            seen[count] = eol[count];
+            count++;
         }
 
         void clear() {
@@ -237,8 +264,8 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
             return count == 0;
         }
 
-        public String string(int from, int to) {
-            return new String(seen, from, to - from);
+        public String string(int length) {
+            return new String(seen, 0, length);
         }
     }
 }
