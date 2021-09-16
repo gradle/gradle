@@ -68,12 +68,10 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
             try {
                 probe.arm();
             } catch (IOException e) {
-                // TODO Should this be debug instead?
-                LOGGER.warn("Could not arm watch probe for hierarchy {}", watchableHierarchy, e);
+                LOGGER.debug("Could not arm watch probe for hierarchy {}", watchableHierarchy, e);
             }
         } else {
-            // TODO Should this be debug instead?
-            LOGGER.warn("Did not find watchable hierarchy to arm probe for: {}", watchableHierarchy);
+            LOGGER.debug("Did not find watchable hierarchy to arm probe for: {}", watchableHierarchy);
         }
     }
 
@@ -83,8 +81,7 @@ public class DefaultFileWatcherProbeRegistry implements FileWatcherProbeRegistry
         if (probe != null) {
             probe.disarm();
         } else {
-            // TODO Should this be debug instead?
-            LOGGER.warn("Did not find watchable hierarchy to disarm probe for: {}", watchableHierarchy);
+            LOGGER.debug("Did not find watchable hierarchy to disarm probe for: {}", watchableHierarchy);
         }
     }
 
