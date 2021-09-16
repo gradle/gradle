@@ -88,9 +88,20 @@ to be able to compile Scala 3 code. All existing configuration options should st
 language version. To see more about the language features go to
 [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
+### Allow copying single files into directories which contain unreadable files.
+
+Sometimes you want to copy files into a directory which contains unreadable files or which is not exclusively owned by the build.
+For example when you are deploying single files into application servers or installing executables.
+This may fail or be slow since Gradle tries to track all the content in the destination directory.
+
+The `Copy` task now has a method [`Copy.ignoreExistingContentInDestinationDir()`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:ignoreExistingContentInDestinationDir()) that forces Gradle to ignore content in the destination directory.
+This uses the new [untracked](#untracked) feature under the hood.
+See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
+
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
+<a name="untracked"></a>
 ### Allow plugin authors to declare inputs or outputs as untracked
 
 For up-to-date checks and the build cache, Gradle needs to understand the inputs and outputs of a task.
