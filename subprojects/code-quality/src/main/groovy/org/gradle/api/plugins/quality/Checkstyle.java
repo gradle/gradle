@@ -15,15 +15,28 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.antbuilder.ClassPathToClassLoaderCache;
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -40,12 +53,27 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -146,7 +174,93 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @TaskAction
     public void run() {
-        CheckstyleInvoker.invoke(this);
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(worker -> {
+            ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
+            ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
+            ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+
+            List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
+            // Need tools.jar for compile tasks
+            File toolsJar = Jvm.current().getToolsJar();
+            if (toolsJar != null) {
+                antClasspath.add(toolsJar);
+            }
+
+            ClassLoader antLoader = classLoaderFactory.createIsolatedClassLoader("isolated-ant-loader", DefaultClassPath.of(antClasspath));
+            FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
+            loggingLoaderSpec.allowPackage("org.slf4j");
+            loggingLoaderSpec.allowPackage("org.apache.commons.logging");
+            loggingLoaderSpec.allowPackage("org.apache.log4j");
+            loggingLoaderSpec.allowClass(Logger.class);
+            loggingLoaderSpec.allowClass(LogLevel.class);
+            FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader(), loggingLoaderSpec);
+
+            ClassLoader baseAntLoader = new CachingClassLoader(new MultiParentClassLoader(antLoader, loggingLoader));
+
+            // Need gradle core to pick up ant logging adapter, AntBuilder and such
+            ClassPath gradleCoreUrls = moduleRegistry.getModule("gradle-core-api").getImplementationClasspath();
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-datetime").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-groovydoc").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-json").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-templates").getClasspath());
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-xml").getClasspath());
+
+            // Need Transformer (part of AntBuilder API) from base services
+            gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
+            gradleCoreUrls.plus(antClasspath);
+            gradleCoreUrls.plus(getCheckstyleClasspath().getFiles());
+
+            worker.getClasspath().from(gradleCoreUrls.getAsFiles());
+        });
+
+        workQueue.submit(CheckstyleAction.class, parameters -> {
+            parameters.getCheckstyleClasspath().from(getCheckstyleClasspath());
+        });
+    }
+
+    @Inject
+    public WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    public interface CheckstyleActionParameters extends WorkParameters {
+        ConfigurableFileCollection getCheckstyleClasspath();
+
+
+    }
+
+    public static abstract class CheckstyleAction implements WorkAction<CheckstyleActionParameters> {
+
+        @Override
+        public void execute() {
+            ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
+            ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
+            ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+            IsolatedAntBuilder antBuilder = new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
+            antBuilder.withClasspath(getParameters().getCheckstyleClasspath().getFiles()).execute(new Closure<Object>(this, this) {
+                @SuppressWarnings("UnusedDeclaration")
+                public Object doCall(Object it) {
+                    GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
+                    try {
+                        antBuilder.invokeMethod("taskdef", ImmutableMap.of(
+                            "name", "checkstyle",
+                            "classname", "com.puppycrawl.tools.checkstyle.CheckStyleTask"
+                        ));
+                    } catch (RuntimeException ignore) {
+                        antBuilder.invokeMethod("taskdef", ImmutableMap.of(
+                            "name", "checkstyle",
+                            "classname", "com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask"
+                        ));
+                    }
+                    return null;
+                }
+            });
+        }
+
     }
 
     /**
