@@ -181,7 +181,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         });
 
         workQueue.submit(CheckstyleAction.class, parameters -> {
-
+            parameters.getConfig().set(getConfigFile());
+            parameters.getMaxErrors().set(getMaxErrors());
+            parameters.getMaxWarnings().set(getMaxWarnings());
+            parameters.getIgnoreFailures().set(getIgnoreFailures());
+            parameters.getConfigDirectory().set(getConfigDirectory());
+            parameters.getShowViolations().set(isShowViolations());
         });
     }
 
@@ -195,7 +200,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         Property<Integer> getMaxErrors();
         Property<Integer> getMaxWarnings();
         Property<Boolean> getIgnoreFailures();
-        RegularFileProperty getConfigDirectory();
+        DirectoryProperty getConfigDirectory();
         Property<Boolean> getShowViolations();
 
 
