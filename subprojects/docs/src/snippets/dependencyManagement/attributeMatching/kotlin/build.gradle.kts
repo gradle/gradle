@@ -33,8 +33,8 @@ configurations {
     }
     // A configuration meant for consumers that need the implementation of this component
     create("exposedRuntime") {
-        isCanBeResolved = false
-        isCanBeConsumed = true
+        isCanBeResolved = true
+        isCanBeConsumed = false
     }
 }
 // end::setup-configurations[]
