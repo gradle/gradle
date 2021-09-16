@@ -16,17 +16,26 @@
 
 package org.gradle.api.plugins.quality.internal
 
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.plugins.quality.CheckstyleActionParameters
+import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.internal.GFileUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class CheckstyleAntInvoker extends Closure<Object> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckstyleAntInvoker.class);
+
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
+    private final static String CONFIG_LOC_PROPERTY = "config_loc"
 
-    private Checkstyle.CheckstyleActionParameters parameters
+    private CheckstyleActionParameters parameters
 
-    CheckstyleAntInvoker(Object owner, Object thisObject, Checkstyle.CheckstyleActionParameters parameters) {
+    CheckstyleAntInvoker(Object owner, Object thisObject, CheckstyleActionParameters parameters) {
         super(owner, thisObject)
         this.parameters = parameters;
     }
@@ -34,18 +43,26 @@ class CheckstyleAntInvoker extends Closure<Object> {
     @SuppressWarnings("UnusedDeclaration")
     public Object doCall(Object ant) {
 
-//        def source = checkstyleTask.source
-//        def classpath = checkstyleTask.classpath
+        def source = parameters.source.asFileTree
+        def classpath = parameters.classpath
         def showViolations = parameters.showViolations.get()
         def maxErrors = parameters.maxErrors.get()
         def maxWarnings = parameters.maxWarnings.get()
 //        def reports = checkstyleTask.reports
-//        def configProperties = checkstyleTask.configProperties
+        def configProperties = parameters.configProperties.get()
         def ignoreFailures = parameters.ignoreFailures.get()
 //        def logger = checkstyleTask.logger
         def config = parameters.config.get()
         def configDir = parameters.configDirectory.asFile.getOrNull()
-//        def xmlDestination = reports.xml.outputLocation.asFile.get()
+        def isXmlRequired = parameters.isXmlRequired.get()
+        def isHtmlRequired = parameters.isHtmlRequired.get()
+        def xmlOutputLocation = parameters.xmlOuputLocation.get().asFile
+        def stylesheetString = parameters.stylesheetString
+        def htmlOutputLocation = parameters.getHtmlOuputLocation().asFile.get()
+
+        if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
+            xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
+        }
 
         try {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
@@ -63,8 +80,8 @@ class CheckstyleAntInvoker extends Closure<Object> {
                 formatter(type: 'plain', useFile: false)
             }
 
-            if (reports.xml.required.get() || reports.html.required.get()) {
-                formatter(type: 'xml', toFile: xmlDestination)
+            if (isXmlRequired || isHtmlRequired) {
+                formatter(type: 'xml', toFile: xmlOutputLocation)
             }
 
             configProperties.each { key, value ->
@@ -82,6 +99,66 @@ class CheckstyleAntInvoker extends Closure<Object> {
             }
         }
 
+        if (isHtmlRequired) {
+            def stylesheet = stylesheetString.isPresent() ? stylesheetString.get() :
+                Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
+            ant.xslt(in: xmlOutputLocation, out: htmlOutputLocation) {
+                style {
+                    string(value: stylesheet)
+                }
+            }
+        }
+
+        if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
+            GFileUtils.deleteQuietly(xmlOutputLocation)
+        }
+
+        if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
+            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, parseCheckstyleXml(isXmlRequired, xmlOutputLocation)))
+        } else {
+            def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
+            if (violationsExist(reportXml)) {
+                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
+            }
+        }
+
         return null;
+    }
+
+    private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
+        return isXmlRequired ? new XmlParser().parse(xmlOutputLocation) : null
+    }
+
+    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Node reportXml) {
+        return "Checkstyle rule violations were found.${getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation)}${getViolationMessage(reportXml)}"
+    }
+
+    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation) {
+        def outputLocation = isHtmlRequired ? htmlOutputLocation : isXmlRequired ? xmlOutputLocation : null
+        return outputLocation ? " See the report at: ${new ConsoleRenderer().asClickableFileUrl(outputLocation)}" : "\n"
+    }
+
+    private static String getViolationMessage(Node reportXml) {
+        if (violationsExist(reportXml)) {
+            def errorFileCount = getErrorFileCount(reportXml)
+            def violations = reportXml.file.error.countBy { it.@severity }
+            return """
+                    Checkstyle files with violations: $errorFileCount
+                    Checkstyle violations by severity: ${violations}
+                    """.stripIndent()
+        }
+        return "\n"
+    }
+
+    private static boolean violationsExist(Node reportXml) {
+        return reportXml != null && getErrorFileCount(reportXml) > 0
+    }
+
+    private static int getErrorFileCount(Node reportXml) {
+        return reportXml.file.error.groupBy { it.parent().@name }.keySet().size()
+    }
+
+    private static boolean isHtmlReportEnabledOnly(Boolean isXmlRequired, Boolean isHtmlRequired) {
+        return !isXmlRequired && isHtmlRequired
     }
 }
