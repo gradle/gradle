@@ -156,7 +156,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
         }
 
         @Override
-        @SuppressWarnings({"deprecation", "RedundantSuppression"})
+        @Deprecated
         public String getPropertyNormalizationStrategyName() {
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
             Class<? extends FileNormalizer> normalizer = propertySpec.getNormalizer();
