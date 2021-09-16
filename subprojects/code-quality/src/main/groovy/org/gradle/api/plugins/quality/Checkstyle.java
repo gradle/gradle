@@ -15,29 +15,17 @@
  */
 package org.gradle.api.plugins.quality;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAntInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
-import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -54,18 +42,8 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkAction;
-import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
@@ -74,7 +52,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -187,23 +164,22 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             parameters.getIgnoreFailures().set(getIgnoreFailures());
             parameters.getConfigDirectory().set(getConfigDirectory());
             parameters.getShowViolations().set(isShowViolations());
+            parameters.getSource().setFrom(getSource());
+            parameters.getClasspath().setFrom(getClasspath());
+            parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
+            parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
+            parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
+            parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+            parameters.getTemporaryDir().set(getTemporaryDir());
+            parameters.getConfigProperties().set(getConfigProperties());
+            TextResource stylesheet = getReports().getHtml().getStylesheet();
+            parameters.getStylesheetString().set(stylesheet != null ? stylesheet.asString() : null);
         });
     }
 
     @Inject
     public WorkerExecutor getWorkerExecutor() {
         throw new UnsupportedOperationException();
-    }
-
-    public interface CheckstyleActionParameters extends WorkParameters {
-        RegularFileProperty getConfig();
-        Property<Integer> getMaxErrors();
-        Property<Integer> getMaxWarnings();
-        Property<Boolean> getIgnoreFailures();
-        DirectoryProperty getConfigDirectory();
-        Property<Boolean> getShowViolations();
-
-
     }
 
     public static abstract class CheckstyleAction implements WorkAction<CheckstyleActionParameters> {
