@@ -146,7 +146,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def download = events.buildOperations.first()
-        download.assertIsDownload(distUri)
+        download.assertIsDownload(distUri, distribution.binDistribution.length())
         download.successful
 
         !download.statusEvents.empty
@@ -195,7 +195,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         events.buildOperations.size() == 1
 
         def download = events.buildOperations.first()
-        download.assertIsDownload(distUri)
+        download.assertIsDownload(distUri, 0)
         !download.successful
         download.failures.size() == 1
         download.failures.first().message == "Server returned HTTP response code: 500 for URL: ${distUri}"

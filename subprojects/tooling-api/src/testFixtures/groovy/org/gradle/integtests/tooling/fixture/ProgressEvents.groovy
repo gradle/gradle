@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import junit.framework.AssertionFailedError
 import org.gradle.api.specs.Spec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.resource.RemoteArtifact
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
@@ -33,6 +34,7 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDesc
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
+import org.gradle.tooling.events.download.FileDownloadResult
 import org.gradle.tooling.events.download.FileDownloadStartEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
@@ -448,12 +450,18 @@ class ProgressEvents implements ProgressListener {
             assert descriptor instanceof TransformOperationDescriptor
         }
 
-        void assertIsDownload(URI uri) {
+        void assertIsDownload(RemoteArtifact artifact) {
+            assertIsDownload(artifact.uri, artifact.file.length())
+        }
+
+        void assertIsDownload(URI uri, long size) {
             assert startEvent instanceof FileDownloadStartEvent
             assert finishEvent instanceof FileDownloadFinishEvent
             assert descriptor instanceof FileDownloadOperationDescriptor
             assert descriptor.uri == uri
             assert descriptor.displayName == "Download " + uri
+            assert finishEvent.result instanceof FileDownloadResult
+            assert finishEvent.result.bytesDownloaded == size
         }
 
         boolean isSuccessful() {

@@ -43,10 +43,10 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         then:
         events.operations.size() == 8
         events.trees == events.operations
-        events.operation("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
+        events.operation("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom)
 
         def downloadB = events.operation("Download ${modules.projectB.artifact.uri}")
-        downloadB.assertIsDownload(modules.projectB.artifact.uri)
+        downloadB.assertIsDownload(modules.projectB.artifact)
         !downloadB.statusEvents.empty
         downloadB.statusEvents.each {
             assert it.event.displayName == "Download ${modules.projectB.artifact.uri} ${it.event.progress}/${it.event.total} ${it.event.unit} completed"
@@ -54,12 +54,12 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
             assert it.event.total == modules.projectB.artifact.file.length()
         }
 
-        events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
-        events.operation("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom.uri)
-        events.operation("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact.uri)
-        events.operation("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom.uri)
-        events.operation("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri)
-        events.operation("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact.uri)
+        events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData)
+        events.operation("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom)
+        events.operation("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact)
+        events.operation("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom)
+        events.operation("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri, modules.projectD.metaDataFile.length())
+        events.operation("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
     def "generates typed events for failed downloads during dependency resolution"() {
@@ -80,11 +80,11 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
 
         events.operations.size() >= 4
         events.trees == events.operations
-        events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
+        events.operation("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData)
         def brokenDownloads = events.operations("Download ${modules.projectC.pom.uri}")
         brokenDownloads.each {
             assert it.failed
-            it.assertIsDownload(modules.projectC.pom.uri)
+            it.assertIsDownload(modules.projectC.pom.uri, 0)
         }
     }
 
@@ -106,14 +106,14 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         def configureRoot = events.operation("Configure project :")
         configureRoot.parent == null
         configureRoot.child("Configure project :a")
-        configureRoot.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
-        configureRoot.child("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact.uri)
-        configureRoot.child("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
-        configureRoot.child("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom.uri)
-        configureRoot.child("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact.uri)
-        configureRoot.child("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom.uri)
-        configureRoot.child("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri)
-        configureRoot.child("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact.uri)
+        configureRoot.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom)
+        configureRoot.child("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact)
+        configureRoot.child("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData)
+        configureRoot.child("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom)
+        configureRoot.child("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact)
+        configureRoot.child("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom)
+        configureRoot.child("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri, modules.projectD.metaDataFile.length())
+        configureRoot.child("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
     def "attaches parent to events for downloads that happen during task execution"() {
@@ -134,14 +134,14 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.trees.size() == 2
         events.operation("Task :a:compileJava")
         def task = events.operation("Task :resolve")
-        task.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom.uri)
-        task.child("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact.uri)
-        task.child("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData.uri)
-        task.child("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom.uri)
-        task.child("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact.uri)
-        task.child("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom.uri)
-        task.child("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri)
-        task.child("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact.uri)
+        task.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom)
+        task.child("Download ${modules.projectB.artifact.uri}").assertIsDownload(modules.projectB.artifact)
+        task.child("Download ${modules.projectC.rootMetaData.uri}").assertIsDownload(modules.projectC.rootMetaData)
+        task.child("Download ${modules.projectC.pom.uri}").assertIsDownload(modules.projectC.pom)
+        task.child("Download ${modules.projectC.artifact.uri}").assertIsDownload(modules.projectC.artifact)
+        task.child("Download ${modules.projectD.pom.uri}").assertIsDownload(modules.projectD.pom)
+        task.child("Download ${modules.projectD.metaData.uri}").assertIsDownload(modules.projectD.metaData.uri, modules.projectD.metaDataFile.length())
+        task.child("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
     def "does not generate events when file download type is not requested"() {
