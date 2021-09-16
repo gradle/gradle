@@ -648,7 +648,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {
-            throw new GradleException(message);
+            throw new TestVerificationException(message);
         }
     }
 
