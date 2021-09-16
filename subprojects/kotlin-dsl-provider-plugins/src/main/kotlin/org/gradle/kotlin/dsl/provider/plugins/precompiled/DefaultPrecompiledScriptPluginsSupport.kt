@@ -374,7 +374,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw GradleException(
             String.format(
-                "Precompiled plugin can't start with '%s' or be in '%s' package: '%s'.\n\n%s", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
+                "Precompiled plugin can't start with '%s' or be in the '%s' package: '%s'.\n\n%s", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
                 this.relativePath(scriptPlugin.scriptFile), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
             )
         )

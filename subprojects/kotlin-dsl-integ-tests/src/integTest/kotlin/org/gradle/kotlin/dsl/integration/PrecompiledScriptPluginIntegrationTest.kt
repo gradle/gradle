@@ -15,6 +15,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.nio.file.Paths
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -745,7 +746,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin: 'src/main/kotlin/java.gradle.kts' conflicts with the core plugin: 'java'.\n\n"
+            "Precompiled plugin: '${Paths.get("src", "main", "kotlin", "java.gradle.kts")}' conflicts with the core plugin: 'java'.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }
@@ -764,7 +765,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin can't start with 'org.gradle' or be in 'org.gradle' package: 'src/main/kotlin/org.gradle.my-plugin.gradle.kts'.\n\n"
+            "Precompiled plugin can't start with 'org.gradle' or be in the 'org.gradle' package: '${Paths.get("src", "main", "kotlin", "org.gradle.my-plugin.gradle.kts")}'.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }
@@ -785,7 +786,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin can't start with 'org.gradle' or be in 'org.gradle' package: 'src/main/kotlin/org/gradle/my-plugin.gradle.kts'.\n\n"
+            "Precompiled plugin can't start with 'org.gradle' or be in the 'org.gradle' package: '${Paths.get("src", "main", "kotlin", "org", "gradle", "my-plugin.gradle.kts")}'.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }

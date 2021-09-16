@@ -224,7 +224,7 @@ directory or `*.gradle.kts` files in `src/main/kotlin` directory.
 
 [WARNING]
 ====
-There are two important limitations for declaring precompiled script plugins: they cannot be declared in the `org.gradle` package, and they cannot have a name that is equal to a built-in plugin's ID. This ensures that the precompiled script plugins won't be silently ignored.
+Precompiled script plugin names have two important limitations: they cannot start with `org.gradle` and they cannot be the same as a built-in plugin ID. This ensures that the precompiled script plugins won't be silently ignored.
 ====
 
 Precompiled script plugins are compiled into class files and packaged into a jar. For all intents and purposes, they are binary plugins and can be applied by plugin ID, tested and published as binary plugins. In fact, the plugin metadata for

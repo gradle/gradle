@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.plugins
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -24,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+
+import java.nio.file.Paths
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -968,7 +969,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         def failure = fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin: 'src/main/groovy/plugins/java.gradle' conflicts with the core plugin: 'java'.\n\n" +
+        failure.assertHasCause("Precompiled plugin: '${Paths.get('src', 'main', 'groovy', 'plugins', 'java.gradle')}' conflicts with the core plugin: 'java'.\n\n" +
             "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
     }
 
@@ -982,7 +983,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failure.assertHasCause("Precompiled plugin can't start with 'org.gradle': 'src/main/groovy/plugins/${pluginName}.gradle'.\n\n"
+        failure.assertHasCause("Precompiled plugin can't start with 'org.gradle': '${Paths.get('src', 'main', 'groovy', 'plugins', pluginName + '.gradle')}'.\n\n"
             + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details.")
 
         where:
