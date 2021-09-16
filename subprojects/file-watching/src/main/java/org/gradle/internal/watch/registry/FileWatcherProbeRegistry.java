@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  *
  * When the probe is armed, a probe file is created (or re-created) under the hierarchy.
  * This should cause a file system event to be produced by the operating system.
- * We listen to specifically in {@link FileWatcherRegistry}.
+ * We listen to those events specifically in {@link FileWatcherRegistry}.
  * Once the event arrives, {@link #triggerWatchProbe(String)} is called with the path,
  * and the probe becomes triggered (or proven).
  *
