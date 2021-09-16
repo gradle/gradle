@@ -18,7 +18,6 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -305,7 +304,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/nonPreservedDir').isDirectory()
     }
 
-    @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
     def "sync action"() {
         given:
         defaultSourceFileTree()
@@ -315,11 +313,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         buildScript '''
             task syncIt() {
-                doLast {
-                    project.sync {
-                        from 'source'
-                        into 'dest'
-                    }
+                project.sync {
+                    from 'source'
+                    into 'dest'
                 }
             }
         '''.stripIndent()
@@ -339,7 +335,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/extraDir/extra2.txt').exists()
     }
 
-    @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
     def "sync action works with preserve"() {
         given:
         defaultSourceFileTree()
@@ -353,15 +348,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         buildScript '''
             task syncIt() {
-                doLast {
-                    project.sync {
-                        from 'source'
-                        into 'dest'
-                        preserve {
-                             include 'dir1/extra1.txt'
-                             include 'extraDir/**'
-                             exclude 'extraDir/extra2.txt'
-                        }
+                project.sync {
+                    from 'source'
+                    into 'dest'
+                    preserve {
+                         include 'dir1/extra1.txt'
+                         include 'extraDir/**'
+                         exclude 'extraDir/extra2.txt'
                     }
                 }
             }
