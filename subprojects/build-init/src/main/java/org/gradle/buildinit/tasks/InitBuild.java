@@ -103,16 +103,20 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Should the build files be generated to include @Incubating APIs?
+     * Can the generated build use new and unstable features?
      *
-     * This property can be set via command-line option '--incubating'.
+     * When enabled, the generated build will use new patterns, APIs or features that 
+     * may be unstable between minor releases. Use this if you'd like to try out the
+     * latest features of Gradle.
+     * 
+     * By default, init will generate a build that uses stable features and behavior.
      *
      * @since 7.3
      */
     @Input
     @Optional
     @Incubating
-    @Option(option = "incubating", description = "Use new incubating APIs?")
+    @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
     }
