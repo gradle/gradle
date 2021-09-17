@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
@@ -75,6 +76,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -428,6 +430,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             this.outerType = outerType;
             this.injectedServices = injectedServices;
             this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
+
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
@@ -435,7 +438,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     builder.add(new GeneratedConstructorImpl(constructor));
                 }
             }
-            this.constructors = builder.build();
+            this.constructors = Ordering.from(new Comparator<GeneratedConstructor>() {
+                @Override
+                public int compare(GeneratedConstructor o1, GeneratedConstructor o2) {
+                    return Integer.compare(o1.getParameterTypes().length, o2.getParameterTypes().length);
+                }
+            }).sortedCopy(builder.build());
         }
 
         @Override

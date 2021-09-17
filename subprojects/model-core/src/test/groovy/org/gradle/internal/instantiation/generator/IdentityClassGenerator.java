@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation.generator;
 
+import com.google.common.collect.Ordering;
 import org.gradle.api.Describable;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -28,6 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 class IdentityClassGenerator implements ClassGenerator {
@@ -97,7 +99,12 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
                     });
                 }
-                return constructors;
+                return Ordering.from(new Comparator<GeneratedConstructor>() {
+                    @Override
+                    public int compare(GeneratedConstructor o1, GeneratedConstructor o2) {
+                        return Integer.compare(o1.getParameterTypes().length, o2.getParameterTypes().length);
+                    }
+                }).sortedCopy(constructors);
             }
         };
     }
