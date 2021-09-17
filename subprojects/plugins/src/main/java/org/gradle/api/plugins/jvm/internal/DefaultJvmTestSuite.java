@@ -83,7 +83,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             useJUnitJupiter();
         } else {
-            // for the built-in test suite, we don't express an opinion, so we will assume JUnit4 and not add any dependencies
+            // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
             getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
