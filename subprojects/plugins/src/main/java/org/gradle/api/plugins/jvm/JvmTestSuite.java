@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
 
@@ -37,10 +36,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
 
     ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 
-    Property<JvmTestingFramework> getTestingFramework();
-
-    void useJUnitPlatform();
+    void useJUnitJupiter();
+    void useJUnitJupiter(String version);
     void useJUnit();
+    void useJUnit(String version);
+    // TODO: Spock, TestNG?
 
     ComponentDependencies getDependencies();
     void dependencies(Action<? super ComponentDependencies> dependencies);

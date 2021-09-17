@@ -9,33 +9,28 @@ repositories {
     mavenCentral()
 }
 
-val integrationTest by sourceSets.creating
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+        }
 
-configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
-configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project)
+            }
 
-tasks.test {
-    useJUnitPlatform()
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
 }
 
-val integrationTestTask = tasks.register<Test>("integrationTest") {
-    description = "Runs integration tests."
-    group = "verification"
-    useJUnitPlatform()
-
-    testClassesDirs = integrationTest.output.classesDirs
-    classpath = configurations[integrationTest.runtimeClasspathConfigurationName] + integrationTest.output
-
-    shouldRunAfter(tasks.test)
-}
-
-tasks.check {
-    dependsOn(integrationTestTask)
-}
-
-dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
-    "integrationTestImplementation"(project)
+tasks.named("check") {
+    dependsOn(testing.suites.named("integrationTest"))
 }
