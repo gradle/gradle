@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import spock.lang.Unroll
 
 class SamplesJUnitTestSuiteIntegrationTest extends AbstractIntegrationTest {
 
@@ -46,7 +45,7 @@ class SamplesJUnitTestSuiteIntegrationTest extends AbstractIntegrationTest {
 
         // Check tests have run
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(projectDir)
-        result.assertTestClassesExecuted('org.gradle.junit.CategorizedJUnitTest')
+        result.assertTestClassesExecuted('org.gradle.junit.CategorizedJUnitTest') // org.gradle.junit.SimpleJUnitTest is not executed
     }
 
     @Test
@@ -58,6 +57,6 @@ class SamplesJUnitTestSuiteIntegrationTest extends AbstractIntegrationTest {
 
         // Check tests have run
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(projectDir)
-        result.assertTestClassesExecuted('org.gradle.junit.CategorizedJUnitTest')
+        result.assertTestClassesExecuted('org.gradle.junit.CategorizedJUnitTest') // org.gradle.junit.SimpleJUnitTest is not executed
     }
 }
