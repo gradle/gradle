@@ -16,9 +16,9 @@
 
 val testFilteringProperty = "gradle.internal.testselection.enabled"
 val gitBranchName: String? = System.getenv("BUILD_BRANCH")
-if (!System.getProperties().containsKey(testFilteringProperty) && gitBranchName != null) {
-    val protectedBranches = listOf("master", "release")
-    if (!protectedBranches.contains(gitBranchName) && !gitBranchName.startsWith("pre-test/")) {
-        System.setProperty(testFilteringProperty, "true")
-    }
-}
+//if (!System.getProperties().containsKey(testFilteringProperty) && gitBranchName != null) {
+//    val protectedBranches = listOf("master", "release")
+//    if (!protectedBranches.contains(gitBranchName) && !gitBranchName.startsWith("pre-test/")) {
+//        System.setProperty(testFilteringProperty, "true")
+//    }
+//}
