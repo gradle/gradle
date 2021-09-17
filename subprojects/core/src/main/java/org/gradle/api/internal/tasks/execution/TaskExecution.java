@@ -379,7 +379,7 @@ public class TaskExecution implements UnitOfWork {
         }
         builder
             .willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "deprecate_unreadable_output")
+            .withUpgradeGuideSection(7, "declare_unreadable_input_output")
             .nagUser();
     }
 

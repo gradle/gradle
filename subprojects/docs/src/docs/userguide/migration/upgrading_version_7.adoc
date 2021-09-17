@@ -51,8 +51,8 @@ Prior to this version, a dependency substitution target could not be excluded fr
 This was caused by checking for exclusions prior to performing the substitution.
 Now Gradle will also check for exclusion on the substitution result.
 
-[[deprecate_unreadable_output]]
-==== Declaring output directories which contain unreadable content
+[[declare_unreadable_input_output]]
+==== Declaring input or output directories which contain unreadable content
 
 For up-to-date checks Gradle relies on understanding the outputs of a task.
 Gradle used to ignore unreadable files in the outputs to support certain use-cases, although it can't understand them.

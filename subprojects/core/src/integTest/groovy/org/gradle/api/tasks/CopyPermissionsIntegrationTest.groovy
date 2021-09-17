@@ -32,7 +32,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         "Copying to a directory which contains unreadable content has been deprecated. " +
         "This will fail with an error in Gradle 8.0. " +
         "Use the method Copy.ignoreExistingContentInDestinationDir(). " +
-        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#deprecate_unreadable_output"
+        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output"
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
