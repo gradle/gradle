@@ -118,7 +118,6 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
                     formatter.appendType(type);
                     formatter.appendTypes(match.getParameterTypes());
                     formatter.endChildren();
-                    System.out.println(constructors);
                     throw new IllegalArgumentException(formatter.toString());
                 }
             }
