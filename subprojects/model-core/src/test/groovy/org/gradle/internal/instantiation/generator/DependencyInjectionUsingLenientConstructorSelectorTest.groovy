@@ -145,11 +145,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         def inst = instantiator.newInstance(HasSeveralParameters, ["a", 0, false] as Object[])
 
         then:
-        inst.a == "a"
-        inst.b == 0
-        inst.c == 99
-        !inst.d
-        inst.x == "A B D"
+        inst.assertConstructor("String a, int b, boolean d")
     }
 
     def "fails on non-static inner class when outer type not provided as first parameter"() {
@@ -201,28 +197,24 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
     }
 
     static class HasSeveralParameters {
-        private final String a
-        private final int b
-        private final int c
-        private final String x
-        private final boolean d
+        private final String usedConstructor
 
         HasSeveralParameters(String a, int b, String x, boolean d) {
-            this(a, b, -1, d, x)
+            this("String a, int b, String x, boolean d")
         }
         HasSeveralParameters(String a, int b, int c, boolean d) {
-            this(a, b, c, d, "A B C D")
+            this("String a, int b, int c, boolean d")
         }
         HasSeveralParameters(String a, int b, boolean d) {
-            this(a, b, 99, d, "A B D")
+            this("String a, int b, boolean d")
         }
 
-        private HasSeveralParameters(String a, int b, int c, boolean d, String x) {
-            this.a = a
-            this.b = b
-            this.c = c
-            this.d = d
-            this.x = x
+        private HasSeveralParameters(String usedConstructor) {
+            this.usedConstructor = usedConstructor
+        }
+
+        void assertConstructor(String expectedConstructor) {
+            assert usedConstructor == expectedConstructor
         }
     }
     static class HasConstructors {
