@@ -24,9 +24,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.api.tasks.CopyPermissionsIntegrationTest.COPY_UNREADABLE_DESTINATION_DEPRECATION
-
-class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
+class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
@@ -237,14 +235,14 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(COPY_UNREADABLE_DESTINATION_DEPRECATION)
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
         executedAndNotSkipped(":copy")
 
         when:
-        executer.expectDocumentedDeprecationWarning(COPY_UNREADABLE_DESTINATION_DEPRECATION)
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
