@@ -275,7 +275,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
+            task checkConfigurationIsJupiter {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
@@ -283,9 +283,29 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.1.jar" }
                 }
             }
+            task checkConfigurationIsJUnit {
+                dependsOn integTest
+                doLast {
+                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert configurations.integTestRuntimeClasspath.files.size() == 2
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
+                }
+            }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("checkConfigurationIsJupiter")
+
+        buildFile << """
+            testing {
+                suites {
+                    integTest {
+                        useJUnit()
+                    }
+                }
+            }
+        """
+        // Now we're using JUnit again
+        succeeds("checkConfigurationIsJUnit")
     }
 
     def "task configuration overrules test suite configuration"() {
