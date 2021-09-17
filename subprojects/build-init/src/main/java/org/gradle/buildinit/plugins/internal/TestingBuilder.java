@@ -18,5 +18,5 @@ package org.gradle.buildinit.plugins.internal;
 
 public interface TestingBuilder {
     void junitSuite(String name);
-    void junitPlatformSuite(String name);
+    void junitJupiterSuite(String name);
 }

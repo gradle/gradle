@@ -104,7 +104,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
             if (settings.getUseIncubatingAPIs()) {
-                addDefaultTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
+                configureDefaultTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
                 addIntegrationTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
             }
 
@@ -189,7 +189,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
     }
 
-    private void addDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+    private void configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
         addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
     }
 
@@ -203,7 +203,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 buildScriptBuilder.testing().junitSuite(name);
                 break;
             case JUNIT_JUPITER:
-                buildScriptBuilder.testing().junitPlatformSuite(name);
+                buildScriptBuilder.testing().junitJupiterSuite(name);
                 break;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");

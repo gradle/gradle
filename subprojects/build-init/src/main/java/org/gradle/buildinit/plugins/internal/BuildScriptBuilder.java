@@ -1229,7 +1229,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void junitPlatformSuite(String name) {
+        public void junitJupiterSuite(String name) {
             suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
         }
     }
