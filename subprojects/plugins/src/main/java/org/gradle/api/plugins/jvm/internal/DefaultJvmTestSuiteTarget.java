@@ -19,14 +19,8 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -47,15 +41,6 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
         this.testTask = tasks.register(name, Test.class, t -> {
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-
-            Property<JvmTestingFramework> targetTestingFramework = getTestingFramework();
-            t.getTestFrameworkProperty().convention(targetTestingFramework.map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return new JUnitPlatformTestFramework((DefaultTestFilter) t.getFilter());
-                } else {
-                    return new JUnitTestFramework(t, (DefaultTestFilter) t.getFilter());
-                }
-            }));
         });
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuiteTarget;
@@ -33,6 +32,4 @@ import org.gradle.testing.base.TestSuiteTarget;
 @Incubating
 public interface JvmTestSuiteTarget extends TestSuiteTarget {
     TaskProvider<Test> getTestTask();
-
-    Property<JvmTestingFramework> getTestingFramework();
 }

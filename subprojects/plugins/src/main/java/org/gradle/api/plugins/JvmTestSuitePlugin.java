@@ -22,9 +22,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
@@ -55,7 +53,6 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
-        testSuites.registerBinding(TestSuite.class, DefaultJvmTestSuite.class);
         testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         // TODO: Deprecate this behavior?
@@ -67,15 +64,8 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
-        testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
-            testSuite.addDefaultTestTarget();
-            JvmTestingFramework testingFramework = project.getObjects().newInstance(JUnitPlatformTestingFramework.class);
-            testSuite.getTestingFramework().convention(testingFramework);
-            testingFramework.getVersion().convention("5.7.1");
-
+        testSuites.withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
-                target.getTestingFramework().convention(testSuite.getTestingFramework());
-
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
                     test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
@@ -88,7 +78,6 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
 
     private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            suite.useJUnit();
             final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
             final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
 

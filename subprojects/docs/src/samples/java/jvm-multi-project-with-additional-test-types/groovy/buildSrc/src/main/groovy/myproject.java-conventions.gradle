@@ -12,14 +12,10 @@ repositories {
 testing {
     suites {
         test {
-            useJUnitPlatform()
-
-            dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
+            useJUnitJupiter()
         }
 
-        integrationTest {
+        integrationTest(JvmTestSuite) {
             dependencies {
                 implementation project
             }
