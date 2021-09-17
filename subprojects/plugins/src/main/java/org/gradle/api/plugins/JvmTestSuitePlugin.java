@@ -55,7 +55,6 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
-        testSuites.registerBinding(TestSuite.class, DefaultJvmTestSuite.class);
         testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
         // TODO: Deprecate this behavior?
@@ -67,8 +66,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
-        testSuites.withType(DefaultJvmTestSuite.class).all(testSuite -> {
-            testSuite.addDefaultTestTarget();
+        testSuites.withType(JvmTestSuite.class).all(testSuite -> {
             JvmTestingFramework testingFramework = project.getObjects().newInstance(JUnitPlatformTestingFramework.class);
             testSuite.getTestingFramework().convention(testingFramework);
             testingFramework.getVersion().convention("5.7.1");

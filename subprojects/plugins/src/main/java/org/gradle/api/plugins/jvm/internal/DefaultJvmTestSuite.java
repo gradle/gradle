@@ -75,6 +75,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        addDefaultTestTarget();
     }
 
     @Override
