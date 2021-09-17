@@ -175,6 +175,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             TextResource stylesheet = getReports().getHtml().getStylesheet();
             parameters.getStylesheetString().set(stylesheet != null ? stylesheet.asString() : null);
         });
+
+        workQueue.await(); // TODO remove await and adjust integtests
     }
 
     @Inject
