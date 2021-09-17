@@ -16,10 +16,17 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
+
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 
 public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -36,6 +43,12 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(gradle.getStartParameter()));
         gradlePropertiesController.loadGradlePropertiesFrom(settingsLocation.getSettingsDir());
+
+        // Make the GradleProperties values available for use inside of init scripts
+        Map<String, String> gradleProperties = gradlePropertiesController.getGradleProperties().mergeProperties(emptyMap());
+        DynamicObject dynamicObject = ((DynamicObjectAware) gradle).getAsDynamicObject();
+        ((ExtensibleDynamicObject) dynamicObject).addProperties(gradleProperties);
+
         return delegate.findAndLoadSettings(gradle);
     }
 }

@@ -169,6 +169,47 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("subprojects: :sub1 - :sub2")
     }
 
+    def 'init script can consume project properties set on command line or set in the gradle.properties files'() {
+
+        given:
+        file('gradle.properties') << '''
+            rootProp=rootProp
+        '''.stripIndent()
+
+        executer.requireOwnGradleUserHomeDir()
+        new TestFile(executer.gradleUserHomeDir, 'gradle.properties') << '''
+            userProp=userProp
+        '''.stripIndent()
+
+        executer.withArguments(
+            '-PoverrideProp=overrideProp',
+        )
+
+        file('init.gradle') << '''
+            println "property: rootProp=${rootProp}"
+            println "property: userProp=${userProp}"
+            println "property: overrideProp=${overrideProp}"
+        '''.stripIndent()
+
+        executer.usingInitScript(file('init.gradle'))
+
+        file('settings.gradle') << '''
+        '''.stripIndent()
+
+        buildFile << '''
+            task info {
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'info'
+
+        then:
+        output.contains('property: rootProp=rootProp')
+        output.contains('property: userProp=userProp')
+        output.contains('property: overrideProp=overrideProp')
+    }
+
     private static String initScript() {
         """
             gradle.afterProject { p ->
