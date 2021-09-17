@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LibraryIntegTest {
-    @Test public void superTest() {
+    @Test public void gradleWebsiteIsReachable() {
         try {
             final URL url = new URL("https://www.gradle.org");
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();

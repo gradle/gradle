@@ -20,6 +20,9 @@ import groovy.util.slurpersupport.GPathResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
+import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.MatcherAssert.assertThat
+
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
     private GPathResult resultsXml
@@ -47,10 +50,16 @@ class TestNGExecutionResult implements TestExecutionResult {
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
         Set actualTestClasses = getExecutedTestClasses()
         assert actualTestClasses == testClasses as Set
-        this
+        return this
     }
 
-    private Set getExecutedTestClasses() {
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
+        Set actualTestClasses = getExecutedTestClasses()
+        assertThat(actualTestClasses, not(hasItems(testClasses)))
+        return this
+    }
+
+    private Set<String> getExecutedTestClasses() {
         parseResults()
         htmlReportFile().assertIsFile()
         def actualTestClasses = findTestClasses().keySet()
@@ -62,6 +71,10 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     boolean testClassExists(String testClass) {
+        throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
+    }
+
+    boolean testClassDoesntExist(String testClass) {
         throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
     }
 

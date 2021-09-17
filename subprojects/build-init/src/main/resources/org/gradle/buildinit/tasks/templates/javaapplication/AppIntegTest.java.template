@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class AppIntegTest {
-    @Test public void superTest() {
+    @Test public void gradleWebsiteIsReachable() {
         try {
             final URL url = new URL("https://www.gradle.org");
             final HttpURLConnection con = (HttpURLConnection) url.openConnection();

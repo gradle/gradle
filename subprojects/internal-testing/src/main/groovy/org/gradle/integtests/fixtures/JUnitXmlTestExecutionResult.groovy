@@ -42,7 +42,16 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
         Map<String, File> classes = findClasses()
         assertThat(classes.keySet(), equalTo(testClasses as Set))
-        this
+        return this
+    }
+
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
+        if (testResultsDir.exists()) {
+            Map<String, File> classes = findClasses()
+            assertThat(classes.keySet(), not(hasItems(testClasses)))
+            this
+        }
+        return this
     }
 
     String fromFileToTestClass(File junitXmlFile) {
@@ -53,6 +62,14 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     boolean testClassExists(String testClass) {
         def classes = findClasses()
         return (classes.keySet().contains(testClass))
+    }
+
+    boolean testClassDoesntExist(String testClass) {
+        if (!testResultsDir.exists()) {
+            return true
+        } else {
+            return !testClassExists(testClass)
+        }
     }
 
     TestClassExecutionResult testClass(String testClass) {

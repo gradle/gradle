@@ -25,7 +25,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     String projectTypePrompt = "Select type of project to generate:"
     String dslPrompt = "Select build script DSL:"
-    String incubatingPrompt = "Use @Incubating APIs in the generated build?"
+    String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"

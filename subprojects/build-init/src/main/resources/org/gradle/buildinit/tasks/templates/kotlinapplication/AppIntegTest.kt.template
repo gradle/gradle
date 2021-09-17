@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AppIntegTest {
-    @Test fun superTest() {
+    @Test fun gradleWebsiteIsReachable() {
         try {
             val url = URL("https://www.gradle.org")
             val con = url.openConnection() as HttpURLConnection

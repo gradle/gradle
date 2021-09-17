@@ -41,30 +41,34 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     def "incubating option adds runnable test suites"() {
-        when:
-        run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
-
-        and:
         def dslFixture = dslFixtureFor(scriptDsl)
 
+        when:
+        run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
         then:
         dslFixture.assertContainsTestSuite('test')
         dslFixture.assertContainsTestSuite('integrationTest')
 
+        when:
         succeeds('test')
+        then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
         assertTestsDidNotRun("some.thing.LibraryIntegTest") // Shouldn't be in /test anyway, but check just to be sure
         assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
 
+        when:
         // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
         if (scriptDsl == GROOVY) {
-            succeeds('integrationTest')
+            succeeds('clean', 'integrationTest')
         } else {
-            succeeds('check')
+            succeeds('clean', 'check')
         }
-        assertTestsDidNotRun("some.thing.LibraryTest")
+        then:
+        if (scriptDsl == GROOVY) {
+            assertTestsDidNotRun("some.thing.LibraryTest")
+        }
         assertIntegrationTestsDidNotRun("some.thing.LibraryTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
-        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "superTest")
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

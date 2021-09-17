@@ -44,6 +44,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "incubating option adds runnable test suites"() {
         def dslFixture = dslFixtureFor(scriptDsl)
+
         when:
         run ('init', '--type', 'java-application', '--incubating', '--dsl', scriptDsl.id)
         then:
@@ -60,14 +61,16 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         when:
         // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
         if (scriptDsl == GROOVY) {
-            succeeds('integrationTest')
+            succeeds('clean', 'integrationTest')
         } else {
-            succeeds('check')
+            succeeds('clean', 'check')
         }
         then:
-        assertTestsDidNotRun("some.thing.AppTest")
+        if (scriptDsl == GROOVY) {
+            assertTestsDidNotRun("some.thing.AppTest")
+        }
         assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
-        assertIntegrationTestPassed("some.thing.AppIntegTest", "superTest")
+        assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

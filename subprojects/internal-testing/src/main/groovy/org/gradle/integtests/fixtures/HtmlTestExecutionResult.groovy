@@ -26,6 +26,9 @@ import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
+import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.MatcherAssert.assertThat
+
 class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
@@ -37,6 +40,15 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
         indexContainsTestClass(testClasses)
         assertHtmlReportForTestClassExists(testClasses)
+        return this
+    }
+
+    TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
+        def indexFile = new File(htmlReportDirectory, "index.html")
+        if (indexFile.exists()) {
+            List<String> executedTestClasses = getExecutedTestClasses()
+            assertThat(executedTestClasses, not(hasItems(testClasses)))
+        }
         return this
     }
 
@@ -61,6 +73,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     boolean testClassExists(String testClass) {
         return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+    }
+
+    boolean testClassDoesntExist(String testClass) {
+        return !testClassExists(testClass)
     }
 
     TestClassExecutionResult testClass(String testClass) {
