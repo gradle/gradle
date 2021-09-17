@@ -433,7 +433,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file(".gradle").assertDoesNotExist()
     }
 
-    private ExecutionResult runInitWith(BuildInitDsl dsl, boolean useIncubatingAPI = false) {
+    private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
         String[] tasks = ['init', '--dsl', dsl.id]
         if (useIncubatingAPI) {
             tasks += '--incubating'
