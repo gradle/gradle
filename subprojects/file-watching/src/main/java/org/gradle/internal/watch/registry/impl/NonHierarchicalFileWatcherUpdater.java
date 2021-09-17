@@ -17,7 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
@@ -50,7 +49,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     private final FileWatcher fileWatcher;
     private final Multiset<String> watchedDirectories = HashMultiset.create();
-    private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
+    private final Map<String, String> watchedDirectoryForSnapshot = new HashMap<>();
 
     public NonHierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
@@ -68,19 +67,20 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         removedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
-                ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
-                previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
+                String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
+                decrement(previousWatchedRoot, changedWatchedDirectories);
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
-                ImmutableList<String> directoriesToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot)
-                    .map(File::getAbsolutePath)
-                    .filter(watchableHierarchies::isInWatchableHierarchy)
-                    .collect(ImmutableList.toImmutableList());
-                watchedDirectoriesForSnapshot.put(snapshot.getAbsolutePath(), directoriesToWatchForRoot);
-                directoriesToWatchForRoot.forEach(path -> increment(path, changedWatchedDirectories));
+                File directoryToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoryToWatch(snapshot);
+                String pathToWatchForRoot = directoryToWatchForRoot.getAbsolutePath();
+                if (!watchableHierarchies.isInWatchableHierarchy(pathToWatchForRoot)) {
+                    return;
+                }
+                watchedDirectoryForSnapshot.put(snapshot.getAbsolutePath(), pathToWatchForRoot);
+                increment(pathToWatchForRoot, changedWatchedDirectories);
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> increment(path, changedWatchedDirectories)));
             });
         if (changedWatchedDirectories.isEmpty()) {

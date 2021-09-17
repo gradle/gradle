@@ -19,38 +19,29 @@ package org.gradle.internal.watch.registry.impl;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
-import java.util.stream.Stream;
 
 public class SnapshotWatchedDirectoryFinder {
 
     /**
      * Resolves the directories to watch for a snapshot.
      *
-     * The directories to watch are
-     * - root for a directory snapshot
-     * - parent dir for regular file snapshots
-     * - the first existing parent directory for a missing file snapshot
+     * For existing files, we watch the parent directory,
+     * so we learn if the file itself disappears or gets modified.
+     * For directories, we only watch the directory itself, as we get
+     * events for that.
+     * In case of a missing file we need to find the closest existing
+     * ancestor to watch so we can learn if the missing file respawns.
      */
-    public static Stream<File> getDirectoriesToWatch(FileSystemLocationSnapshot snapshot) {
+    public static File getDirectoryToWatch(FileSystemLocationSnapshot snapshot) {
         File path = new File(snapshot.getAbsolutePath());
 
-        // For existing files and directories we watch the parent directory,
-        // so we learn if the entry itself disappears or gets modified.
-        // In case of a missing file we need to find the closest existing
-        // ancestor to watch so we can learn if the missing file respawns.
-        File ancestorToWatch;
         switch (snapshot.getType()) {
             case RegularFile:
-                return Stream.of(path.getParentFile());
+                return path.getParentFile();
             case Directory:
-                ancestorToWatch = path.getParentFile();
-                // If the path already is the root (e.g. C:\ on Windows),
-                // then we can't watch its parent.
-                return ancestorToWatch == null
-                    ? Stream.of(path)
-                    : Stream.of(ancestorToWatch, path);
+                return path;
             case Missing:
-                return Stream.of(findFirstExistingAncestor(path));
+                return findFirstExistingAncestor(path);
             default:
                 throw new AssertionError();
         }
