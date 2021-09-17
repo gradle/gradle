@@ -36,7 +36,7 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         Path optionsFile = parameters.getOptionsFile().map(RegularFile::getAsFile).map(File::toPath).getOrNull();
         try {
             List<String> args = generateArgList(parameters, optionsFile);
-            invokeScalaDoc(args);
+            invokeScalaDoc(args, parameters.getIsScala3().get());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException("Could not generate scaladoc", e);
         } finally {
@@ -70,26 +70,15 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         return args;
     }
 
-    private void invokeScalaDoc(List<String> args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
+    private void invokeScalaDoc(List<String> args, Boolean isScala3) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
         ClassLoader scalaClassLoader = Thread.currentThread().getContextClassLoader();
-        String scalaVersion = getScalaVersion(scalaClassLoader);
 
-        String scaladocFqName = scalaVersion.charAt(0) == '3' ? "dotty.tools.scaladoc.Main" : "scala.tools.nsc.ScalaDoc";
-        String scaladocEntryName = scalaVersion.charAt(0) == '3' ? "run" : "process";
+        String scaladocFqName = isScala3 ? "dotty.tools.scaladoc.Main" : "scala.tools.nsc.ScalaDoc";
+        String scaladocEntryName = isScala3 ? "run" : "process";
 
-        Class<?> scaladocClass = Thread.currentThread().getContextClassLoader().loadClass(scaladocFqName);
+        Class<?> scaladocClass = scalaClassLoader.loadClass(scaladocFqName);
         Method process = scaladocClass.getMethod(scaladocEntryName, String[].class);
         Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
         process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
-    }
-
-    private static String getScalaVersion(ClassLoader scalaClassLoader) {
-        try {
-            Properties props = new Properties();
-            props.load(scalaClassLoader.getResourceAsStream("compiler.properties"));
-            return props.getProperty("version.number");
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to determine scala version");
-        }
     }
 }

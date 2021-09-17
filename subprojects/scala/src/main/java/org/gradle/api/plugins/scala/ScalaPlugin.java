@@ -59,7 +59,7 @@ public class ScalaPlugin implements Plugin<Project> {
         incrementalAnalysisElements.getOutgoing().artifact(
             compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
             
-        configureScaladoc(project, main, compileScala);
+        configureScaladoc(project, main);
     }
 
     private static void configureScaladoc(final Project project, final SourceSet main) {

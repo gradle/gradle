@@ -56,6 +56,7 @@ public class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
+    private Boolean isScala3;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
 
@@ -153,6 +154,20 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
+     * Returns whether it is scala 3.
+     */
+    @Optional
+    @Input
+    public Boolean getIsScala3() {
+        return isScala3;
+    }
+
+    public void setIsScala3(Boolean isScala3) {
+
+        this.isScala3 = isScala3;
+    }
+
+    /**
      * Returns the amount of memory allocated to this task.
      * Ex. 512m, 1G
      *
@@ -198,6 +213,7 @@ public class ScalaDoc extends SourceTask {
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
             parameters.getSources().from(getSource());
+            parameters.getIsScala3().set(getIsScala3());
 
             if (options.isDeprecation()) {
                 parameters.getOptions().add("-deprecation");
