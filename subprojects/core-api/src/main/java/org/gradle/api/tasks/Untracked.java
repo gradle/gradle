@@ -27,8 +27,8 @@ import java.lang.annotation.Target;
 /**
  * Declares that the changes for an input file or output property should not be tracked by Gradle.
  *
- * <p>Untracked inputs or outputs can be considered as locations Gradle is not supposed to understand.
- * Gradle may not understand the locations for different reasons, for example:
+ * <p>For untracked inputs and outputs Gradle will not try to capture their state.
+ * There can be different reasons for not wanting to track the state of some inputs or outputs, for example:
  * <ul>
  *     <li>The location contains unreadable files like pipes where Gradle cannot track the content.</li>
  *     <li>Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.</li>
@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * </ul>
  *
  * <p>If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
- * For example, such a task will always be out of date and never from the build cache.
+ * For example, such a task will always be out of date and never stored in or loaded from the build cache.
  *
  * <p>{@link org.gradle.work.InputChanges} cannot be used for a task which has untracked properties,
  * since incremental tasks need to understand their inputs and outputs for them to be correct.
