@@ -22,10 +22,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.CheckstyleAntInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -41,19 +40,15 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * Runs Checkstyle against some source files.
@@ -182,55 +177,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @Inject
     public WorkerExecutor getWorkerExecutor() {
         throw new UnsupportedOperationException();
-    }
-
-    public static abstract class CheckstyleAction implements WorkAction<CheckstyleActionParameters> {
-
-        @Override
-        public void execute() {
-            Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
-            Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
-            configureAntBuilder(antBuilder, antLogger);
-
-            // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
-            // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-            // because they are not an instanceof its Closure class.
-            Object delegate = new AntBuilderDelegate(antBuilder, Thread.currentThread().getContextClassLoader());
-            ClosureBackedAction.execute(delegate, new CheckstyleAntInvoker(this, this, getParameters()));
-        }
-
-    }
-
-    protected static void configureAntBuilder(Object antBuilder, Object antLogger) {
-        try {
-            Object project = getProject(antBuilder);
-            Class<?> projectClass = project.getClass();
-            ClassLoader cl = projectClass.getClassLoader();
-            Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
-            Method addBuildListener = projectClass.getDeclaredMethod("addBuildListener", buildListenerClass);
-            Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
-            Method getBuildListeners = projectClass.getDeclaredMethod("getBuildListeners");
-            Vector listeners = (Vector) getBuildListeners.invoke(project);
-            removeBuildListener.invoke(project, listeners.get(0));
-            addBuildListener.invoke(project, antLogger);
-        } catch (Exception ex) {
-            throw UncheckedException.throwAsUncheckedException(ex);
-        }
-    }
-
-    private static Object getProject(Object antBuilder) throws Exception {
-        return antBuilder.getClass().getMethod("getProject").invoke(antBuilder);
-    }
-
-    private static Object newInstanceOf(String className) {
-        // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
-        // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
-        try {
-            return Class.forName(className).getConstructor().newInstance();
-        } catch (Exception e) {
-            // should never happen
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     /**

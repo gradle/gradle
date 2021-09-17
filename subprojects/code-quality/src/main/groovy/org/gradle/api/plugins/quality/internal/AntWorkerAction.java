@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality;
+package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;

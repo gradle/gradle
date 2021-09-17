@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality;
+package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -39,6 +39,4 @@ public interface CheckstyleActionParameters extends WorkParameters {
         DirectoryProperty getTemporaryDir();
         MapProperty<String, Object> getConfigProperties();
         Property<String> getStylesheetString();
-
-
     }
