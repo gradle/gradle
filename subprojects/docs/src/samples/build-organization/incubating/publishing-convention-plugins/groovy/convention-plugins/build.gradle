@@ -30,7 +30,7 @@ tasks.named('publish') {
 testing {
     suites {
         test {
-            useJUnitPlatform()
+            useJUnitJupiter()
 
             dependencies {
                 implementation 'org.spockframework:spock-core:2.0-groovy-3.0'

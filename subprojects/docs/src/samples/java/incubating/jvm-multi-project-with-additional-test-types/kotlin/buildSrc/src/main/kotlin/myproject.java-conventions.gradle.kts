@@ -12,7 +12,7 @@ repositories {
 testing {
     suites {
         val test by getting(JvmTestSuite::class) {
-            useJUnitPlatform()
+            useJUnitJupiter()
 
             dependencies {
                 implementation("org.junit.jupiter:junit-jupiter:5.7.1")
