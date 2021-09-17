@@ -4,6 +4,7 @@ plugins {
     id 'groovy-gradle-plugin'
 // end::apply[]
     id 'maven-publish'
+    id 'java'
 // tag::apply[]
 }
 // end::apply[]
@@ -26,6 +27,18 @@ tasks.named('publish') {
 
 // end::publish[]
 
+testing {
+    suites {
+        test {
+            useJUnitPlatform()
+
+            dependencies {
+                implementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+            }
+        }
+    }
+}
+
 // tag::repositories-and-dependencies[]
 repositories {
     gradlePluginPortal() // so that external plugins can be resolved in dependencies section
@@ -33,12 +46,5 @@ repositories {
 
 dependencies {
     implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.2'
-    testImplementation platform("org.spockframework:spock-bom:2.0-groovy-3.0")
-    testImplementation 'org.spockframework:spock-core'
 }
-
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
 // end::repositories-and-dependencies[]
