@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.tasks;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
