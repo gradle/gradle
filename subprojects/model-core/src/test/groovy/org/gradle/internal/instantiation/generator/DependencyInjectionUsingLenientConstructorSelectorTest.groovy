@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class DependencyInjectionUsingLenientConstructorSelectorTest extends Specification {
@@ -131,7 +132,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == """Multiple constructors for parameters ['a']:
+        TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple constructors for parameters ['a']:
   1. candidate: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, boolean)
   2. best match: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, Number)"""
     }
