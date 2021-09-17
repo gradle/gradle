@@ -124,14 +124,31 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         e.cause.message == "No constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a', 'b']"
     }
 
-    def "fails when no constructors are ambiguous"() {
+    def "fails when constructors are ambiguous"() {
         when:
         instantiator.newInstance(HasConstructors, ["a"] as Object[])
 
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Multiple constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a']"
+        e.cause.message == """Multiple constructors for parameters ['a']:
+  1. candidate: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, boolean)
+  2. best match: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, Number)"""
+    }
+
+    def "uses exact match constructor when constructors could be ambiguous with multiple parameters"() {
+        when:
+        // HasSeveralParameters has 3 constructors
+        // 1 with 3 parameters and 2 with 4 parameters
+        // the constructor with 3 parameters is a subset of the 4 parameter constructor
+        def inst = instantiator.newInstance(HasSeveralParameters, ["a", 0, false] as Object[])
+
+        then:
+        inst.a == "a"
+        inst.b == 0
+        inst.c == 99
+        !inst.d
+        inst.x == "A B D"
     }
 
     def "fails on non-static inner class when outer type not provided as first parameter"() {
@@ -182,6 +199,31 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         }
     }
 
+    static class HasSeveralParameters {
+        private final String a
+        private final int b
+        private final int c
+        private final String x
+        private final boolean d
+
+        HasSeveralParameters(String a, int b, String x, boolean d) {
+            this(a, b, -1, d, x)
+        }
+        HasSeveralParameters(String a, int b, int c, boolean d) {
+            this(a, b, c, d, "A B C D")
+        }
+        HasSeveralParameters(String a, int b, boolean d) {
+            this(a, b, 99, d, "A B D")
+        }
+
+        private HasSeveralParameters(String a, int b, int c, boolean d, String x) {
+            this.a = a
+            this.b = b
+            this.c = c
+            this.d = d
+            this.x = x
+        }
+    }
     static class HasConstructors {
         HasConstructors(String param1, Number param2) {
         }
