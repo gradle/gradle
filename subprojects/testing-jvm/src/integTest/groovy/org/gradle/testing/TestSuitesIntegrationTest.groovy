@@ -25,6 +25,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
             
+            repositories {
+                ${mavenCentralRepository()}
+            }
             testing {
                 suites {
                     eagerTest(JvmTestSuite)

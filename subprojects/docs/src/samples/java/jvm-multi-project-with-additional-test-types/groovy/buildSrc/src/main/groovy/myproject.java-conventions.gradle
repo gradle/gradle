@@ -19,7 +19,7 @@ testing {
             }
         }
 
-        integrationTest {
+        integrationTest(JvmTestSuite) {
             dependencies {
                 implementation project
             }
