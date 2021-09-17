@@ -123,7 +123,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         badCode()
 
         expect:
-        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
+        fails("check")
+        failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
@@ -132,6 +133,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+
+        failure.assertHasDescription("Execution failed for task ':checkstyleTest'.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12270")
@@ -152,14 +155,16 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         given:
         defaultLanguage('en')
         badCode()
-        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
+        fails("check")
         failure.assertHasErrorOutput(message)
+        failure.assertHasFailures(2)
 
         when:
         buildFile << "checkstyle { showViolations = false }"
-        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
+        fails("check")
 
         then:
+        failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertNotOutput(message)
@@ -168,6 +173,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+
+        failure.assertHasDescription("Execution failed for task ':checkstyleTest'.")
     }
 
     def "can ignore failures"() {
