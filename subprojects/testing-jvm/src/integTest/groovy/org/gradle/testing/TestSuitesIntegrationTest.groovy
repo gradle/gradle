@@ -307,7 +307,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         // Now we're using JUnit again
         succeeds("checkConfigurationIsJUnit")
     }
-
+    
     def "task configuration overrules test suite configuration"() {
         buildFile << """
             plugins {
@@ -342,6 +342,47 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     // but test suite still adds JUnit Jupiter
                     assert configurations.integTestRuntimeClasspath.files.size() == 8
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.1.jar" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+    }
+
+    def "task configuration overrules test suite configuration with test suite set test framework"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        useJUnit()
+                        targets {
+                            all {
+                                testTask.configure {
+                                    useJUnitPlatform()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn integTest
+                doLast {
+                    // task is configured to use JUnit Jupiter
+                    assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+
+                    // but test suite still adds JUnit4
+                    assert configurations.integTestRuntimeClasspath.files.size() == 2
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.jar" }
                 }
             }
         """
