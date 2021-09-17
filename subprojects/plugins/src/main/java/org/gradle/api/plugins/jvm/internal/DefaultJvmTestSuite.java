@@ -55,11 +55,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         }
     }
 
-
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final ComponentDependencies dependencies;
+    private boolean attachedDependencies;
+    private final Action<Void> attachDependencyAction;
 
     protected abstract Property<TestingFramework> getTestingFramework();
 
@@ -68,30 +69,25 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
 
-        if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            useJUnitJupiter();
-        } else {
-            getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
-        }
-
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
-        dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-            switch(framework.framework) {
-                case NONE:
-                    return getObjectFactory().fileCollection();
-                case JUNIT4:
-                    assert framework.version !=null;
-                    return "junit:junit:" + framework.version;
-                case JUNIT_JUPITER:
-                    assert framework.version !=null;
-                    return "org.junit.jupiter:junit-jupiter:" + framework.version;
-                default:
-                    throw new IllegalStateException("do not know how to handle " + framework);
-            }
-        }));
+        this.attachedDependencies = false;
+        // This complexity is to keep the built-in test suite from automatically adding dependencies
+        // unless a user explicitly calls one of the useXXX methods
+        // Eventually, we should deprecate this behavior and provide a way for users to opt out
+        // We could then always add these dependencies.
+        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencies, implementation);
+
+        if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            useJUnitJupiter();
+        } else {
+            // for the built-in test suite, we don't express an opinion, so we will assume JUnit4 and not add any dependencies
+            // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
+            // and add dependencies automatically.
+            getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
+        }
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
@@ -115,6 +111,25 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }));
             });
         });
+
+    }
+
+    private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
+        if (!attachedDependencies) {
+            dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
+                switch (framework.framework) {
+                    case JUNIT4:
+                        assert framework.version != null;
+                        return "junit:junit:" + framework.version;
+                    case JUNIT_JUPITER:
+                        assert framework.version != null;
+                        return "org.junit.jupiter:junit-jupiter:" + framework.version;
+                    default:
+                        throw new IllegalStateException("do not know how to handle " + framework);
+                }
+            }));
+            attachedDependencies = true;
+        }
     }
 
     @Override
@@ -154,7 +169,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit(String version) {
-        getTestingFramework().set(new TestingFramework(Frameworks.JUNIT4, version));
+        setFrameworkTo(new TestingFramework(Frameworks.JUNIT4, version));
+    }
+
+    private void setFrameworkTo(TestingFramework framework) {
+        getTestingFramework().set(framework);
+        attachDependencyAction.execute(null);
     }
 
     @Override
@@ -164,7 +184,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnitJupiter(String version) {
-        getTestingFramework().set(new TestingFramework(Frameworks.JUNIT_JUPITER, version));
+        setFrameworkTo(new TestingFramework(Frameworks.JUNIT_JUPITER, version));
     }
 
     @Override
