@@ -75,7 +75,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
 
         when:
-        runInitWith scriptDsl, true
+        runInitWith scriptDsl, '--incubating'
 
         then:
         commonFilesGenerated(scriptDsl, dslFixture)
@@ -302,7 +302,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                     groovy
                     kotlin
 
-     --incubating     Use new incubating APIs?
+     --incubating     Allow the generated build to use new features and APIs
 
      --insecure-protocol     How to handle insecure URLs used for Maven Repositories.
                              Available values are:
@@ -434,10 +434,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
-        String[] tasks = ['init', '--dsl', dsl.id]
-        if (useIncubatingAPI) {
-            tasks += '--incubating'
-        }
+        def tasks = ['init', '--dsl', dsl.id]
+        tasks.addAll(initOptions)
         run tasks
     }
 
