@@ -107,7 +107,7 @@ abstract class DistributionTest : Test() {
 
     @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
-    val rerun: Property<Boolean> = project.objects.property<Boolean>().convention(false)
+    val rerun: Property<Boolean> = project.objects.property<Boolean>().convention(true)
 
     @Option(option = "no-rerun", description = "Only run the task when necessary")
     fun setNoRerun(value: Boolean) {
