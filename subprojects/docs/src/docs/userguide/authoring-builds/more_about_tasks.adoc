@@ -667,7 +667,6 @@ Implies `<<#incremental,@Incremental>>`.
 | `@link:{javadocPath}/org/gradle/api/tasks/Untracked.html[Untracked]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
 | Used on an input or output file property to declare that the changes for the property should not be tracked by Gradle.
-  Untracked inputs or outputs can be considered as locations Gradle is not supposed to understand.
   If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
   For example such a task will always be out of date and never from the build cache.
 |===

@@ -104,16 +104,15 @@ See the samples in the user manual about [Deploying single files into applicatio
 <a name="untracked"></a>
 ### Allow plugin authors to declare inputs or outputs as untracked
 
-For up-to-date checks and the build cache, Gradle needs to understand the inputs and outputs of a task.
-Though it is not always desirable or possible for Gradle to fully understand the input and output files.
+For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task.
+Though it is not always desirable or possible for Gradle to fully track the state of the input and output files.
 For example:
 - The location contains unreadable files like pipes where Gradle cannot track the content.
 - Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
-- The build does not own the output location exclusively and Gradle would need to snapshot a potentially large amount of content.
+- The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
-Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) to declare that an input or output property should not be tracked by Gradle.
-Untracked inputs or outputs can be considered as locations Gradle is not supposed to understand.
-This allows implementing the above use-cases by using this new annotation.
+Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) and the method [TaskFilePropertyBuilder.untracked()](javadoc/org/gradle/api/tasks/TaskFilePropertyBuilder.html##untracked--) to declare that Gradle should not track the state of the input or output property.
+This allows implementing the above use-cases.
 If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
 For example, such a task will always be out of date and never from the build cache.
 

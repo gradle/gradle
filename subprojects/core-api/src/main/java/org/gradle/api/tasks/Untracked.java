@@ -40,7 +40,7 @@ import java.lang.annotation.Target;
  * That means that there is no need to specify the normalization for untracked file inputs.
  *
  * <p>{@link org.gradle.work.InputChanges} cannot be used for a task which has untracked properties,
- * since incremental tasks need to understand their inputs and outputs for them to be correct.
+ * since incremental tasks need to track the state of their inputs and outputs for them to be correct.
  *
  * <p>This annotation can be attached to properties annotated with {@link InputFile}, {@link InputFiles}, {@link InputDirectory},
  * {@link OutputFile}, {@link OutputFiles}, {@link OutputDirectory}, or {@link OutputDirectories}.
