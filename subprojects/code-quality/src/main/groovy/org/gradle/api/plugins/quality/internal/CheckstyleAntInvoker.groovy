@@ -40,17 +40,15 @@ class CheckstyleAntInvoker extends Closure<Object> {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public Object doCall(Object ant) {
+    Object doCall(Object ant) {
 
         def source = parameters.source.asFileTree
         def classpath = parameters.classpath
         def showViolations = parameters.showViolations.get()
         def maxErrors = parameters.maxErrors.get()
         def maxWarnings = parameters.maxWarnings.get()
-//        def reports = checkstyleTask.reports
         def configProperties = parameters.configProperties.get()
         def ignoreFailures = parameters.ignoreFailures.get()
-//        def logger = checkstyleTask.logger
         def config = parameters.config.get()
         def configDir = parameters.configDirectory.asFile.getOrNull()
         def isXmlRequired = parameters.isXmlRequired.get()
