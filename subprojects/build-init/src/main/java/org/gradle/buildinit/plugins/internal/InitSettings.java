@@ -38,10 +38,24 @@ public class InitSettings {
     private final Directory target;
     private final InsecureProtocolOption insecureProtocolOption;
 
-    // Temporary constructor until we upgrade gradle/gradle to a nightly
+    /**
+     * Temporary constructor until we upgrade gradle/gradle to a nightly.
+     *
+     * This constructor needs to be left as-is because it's used in the gradle/gradle build to generate samples.
+     * Changing it will break the Gradleception build (where we try to build Gradle with the latest version of Gradle).
+     *
+     * @see "/build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt"
+     */
     public InitSettings(
-            String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
-            BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+        String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+    ) {
+        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
+    }
+
+    public InitSettings(
+        String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
+        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
         this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
     }
