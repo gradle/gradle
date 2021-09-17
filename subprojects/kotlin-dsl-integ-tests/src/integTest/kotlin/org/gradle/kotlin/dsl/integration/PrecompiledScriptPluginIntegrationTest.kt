@@ -9,13 +9,13 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.nio.file.Paths
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -746,7 +746,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin: '${Paths.get("src", "main", "kotlin", "java.gradle.kts")}' conflicts with the core plugin: 'java'.\n\n"
+            "The precompiled plugin (${TextUtil.normaliseFileSeparators("src/main/kotlin/java.gradle.kts")}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }
@@ -765,7 +765,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin can't start with 'org.gradle' or be in the 'org.gradle' package: '${Paths.get("src", "main", "kotlin", "org.gradle.my-plugin.gradle.kts")}'.\n\n"
+            "The precompiled plugin (${TextUtil.normaliseFileSeparators("src/main/kotlin/org.gradle.my-plugin.gradle.kts")}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }
@@ -786,7 +786,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val error = buildAndFail("help")
 
         error.assertHasCause(
-            "Precompiled plugin can't start with 'org.gradle' or be in the 'org.gradle' package: '${Paths.get("src", "main", "kotlin", "org", "gradle", "my-plugin.gradle.kts")}'.\n\n"
+            "The precompiled plugin (${TextUtil.normaliseFileSeparators("src/main/kotlin/org/gradle/my-plugin.gradle.kts")}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
     }

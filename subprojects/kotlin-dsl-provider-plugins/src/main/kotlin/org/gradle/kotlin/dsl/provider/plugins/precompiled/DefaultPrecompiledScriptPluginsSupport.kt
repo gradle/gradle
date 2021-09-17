@@ -374,16 +374,17 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw GradleException(
             String.format(
-                "Precompiled plugin can't start with '%s' or be in the '%s' package: '%s'.\n\n%s", DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
-                this.relativePath(scriptPlugin.scriptFile), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+                "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.\n\n%s", this.relativePath(scriptPlugin.scriptFile),
+                DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
+                PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
             )
         )
     }
-    val existingPlugin = this.plugins.findPlugin(scriptPlugin.id)
+    val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
         throw GradleException(
             String.format(
-                "Precompiled plugin: '%s' conflicts with the core plugin: '%s'.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
+                "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
             )
         )
     }

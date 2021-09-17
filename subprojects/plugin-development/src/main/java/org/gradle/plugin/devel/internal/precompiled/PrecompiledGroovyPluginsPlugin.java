@@ -65,7 +65,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
             .peek(scriptPlugin -> validateScriptPlugin(project, scriptPlugin))
             .collect(Collectors.toList());
 
-        declarePluginMetadata(pluginExtension, scriptPlugins, project);
+        declarePluginMetadata(pluginExtension, scriptPlugins);
 
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
         TaskContainer tasks = project.getTasks();
@@ -100,17 +100,17 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
 
     private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
         if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new GradleException(String.format("Precompiled plugin can't start with '%s': '%s'.\n\n%s",
-                CORE_PLUGIN_NAMESPACE, project.relativePath(scriptPlugin.getFileName()), PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
+            throw new GradleException(String.format("The precompiled plugin (%s) cannot start with '%s'.\n\n%s.",
+                project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
         }
         Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
         if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new GradleException(String.format("Precompiled plugin: '%s' conflicts with the core plugin: '%s'.\n\n%s", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId(),
+            throw new GradleException(String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId(),
                 PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
         }
     }
 
-    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins, final Project project) {
+    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {
         pluginExtension.plugins(pluginDeclarations ->
             scriptPlugins.forEach(scriptPlugin -> pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
     }
