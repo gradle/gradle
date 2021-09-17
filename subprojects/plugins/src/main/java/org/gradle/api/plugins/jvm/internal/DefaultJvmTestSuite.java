@@ -23,59 +23,98 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.ComponentDependencies;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
-import org.gradle.api.plugins.jvm.JUnitTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
+    private enum Frameworks {
+        JUNIT4, JUNIT_JUPITER, NONE;
+    }
+    private static class TestingFramework {
+        private final Frameworks framework;
+        @Nullable
+        private final String version;
+
+        private TestingFramework(Frameworks framework, @Nullable String version) {
+            this.framework = framework;
+            this.version = version;
+        }
+    }
+
+
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final ComponentDependencies dependencies;
+
+    protected abstract Property<TestingFramework> getTestingFramework();
 
     @Inject
     public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
 
+        if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+            useJUnitJupiter();
+        } else {
+            getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
+        }
+
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
 
-        if (!getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-api:" + framework.getVersion().get();
-                } else {
-                    return "junit:junit:" + framework.getVersion().get();
-                }
-            }));
-            dependencies.addProvider(runtimeOnly.getName(), getTestingFramework().map(framework -> {
-                if (framework instanceof JUnitPlatformTestingFramework) {
-                    return "org.junit.jupiter:junit-jupiter-engine:" + framework.getVersion().get();
-                } else {
+        dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
+            switch(framework.framework) {
+                case NONE:
                     return getObjectFactory().fileCollection();
-                }
-            }));
-        }
+                case JUNIT4:
+                    assert framework.version !=null;
+                    return "junit:junit:" + framework.version;
+                case JUNIT_JUPITER:
+                    assert framework.version !=null;
+                    return "org.junit.jupiter:junit-jupiter:" + framework.version;
+                default:
+                    throw new IllegalStateException("do not know how to handle " + framework);
+            }
+        }));
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+
         addDefaultTestTarget();
+
+        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
+            target.getTestTask().configure(task -> {
+                task.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
+                    switch(framework.framework) {
+                        case NONE:
+                        case JUNIT4:
+                            return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
+                        case JUNIT_JUPITER:
+                            return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
+                        default:
+                            throw new IllegalStateException("do not know how to handle " + framework);
+                    }
+                }));
+            });
+        });
     }
 
     @Override
@@ -85,9 +124,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
-
-    @Inject
-    public abstract ProviderFactory getProviders();
 
     public SourceSet getSources() {
         return sourceSet;
@@ -113,16 +149,22 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("4.13");
+        useJUnit("4.13");
     }
 
     @Override
-    public void useJUnitPlatform() {
-        JvmTestingFramework testingFramework = getObjectFactory().newInstance(JUnitPlatformTestingFramework.class);
-        getTestingFramework().convention(testingFramework);
-        testingFramework.getVersion().convention("5.7.1");
+    public void useJUnit(String version) {
+        getTestingFramework().set(new TestingFramework(Frameworks.JUNIT4, version));
+    }
+
+    @Override
+    public void useJUnitJupiter() {
+        useJUnitJupiter("5.7.1");
+    }
+
+    @Override
+    public void useJUnitJupiter(String version) {
+        getTestingFramework().set(new TestingFramework(Frameworks.JUNIT_JUPITER, version));
     }
 
     @Override

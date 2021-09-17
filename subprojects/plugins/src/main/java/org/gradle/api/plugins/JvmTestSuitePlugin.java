@@ -22,9 +22,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.jvm.JUnitPlatformTestingFramework;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestingFramework;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
@@ -67,13 +65,7 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {
-            JvmTestingFramework testingFramework = project.getObjects().newInstance(JUnitPlatformTestingFramework.class);
-            testSuite.getTestingFramework().convention(testingFramework);
-            testingFramework.getVersion().convention("5.7.1");
-
             testSuite.getTargets().all(target -> {
-                target.getTestingFramework().convention(testSuite.getTestingFramework());
-
                 target.getTestTask().configure(test -> {
                     test.getConventionMapping().map("testClassesDirs", () -> testSuite.getSources().getOutput().getClassesDirs());
                     test.getConventionMapping().map("classpath", () -> testSuite.getSources().getRuntimeClasspath());
@@ -86,7 +78,6 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
 
     private void configureBuiltInTest(Project project, TestingExtension testing, JavaPluginExtension java) {
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
-            suite.useJUnit();
             final Callable<FileCollection> mainSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput();
             final Callable<FileCollection> testSourceSetOutput = () -> java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput();
 
