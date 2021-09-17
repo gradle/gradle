@@ -27,6 +27,7 @@ import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -112,7 +113,15 @@ fun Task.findTraceJson(): List<File> {
 
 fun tmpTestFiles() =
     layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter { dir ->
-        Files.walk(dir.toPath()).use { paths -> !paths.allMatch { it.toFile().isDirectory } }
+        val foundPaths = Files.walk(dir.toPath()).use { paths -> paths
+            .filter { !it.toFile().isDirectory }
+            .limit(3)
+            .collect(Collectors.toList())
+        }
+        if (foundPaths.isNotEmpty()) {
+            println("Found non-empty test directory ${dir.absolutePath}:\n    ${foundPaths.joinToString("\n    ") { it.relativize(dir.toPath()).toString() }}")
+        }
+        foundPaths.isNotEmpty()
     } ?: emptyList()
 
 fun executedTasks() = gradle.taskGraph.allTasks.filter { it.project == project && it.state.executed }
