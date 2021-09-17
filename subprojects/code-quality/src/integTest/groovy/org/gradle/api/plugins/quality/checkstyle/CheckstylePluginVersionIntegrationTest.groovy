@@ -123,7 +123,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         badCode()
 
         expect:
-        fails("check")
+        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
@@ -152,14 +152,14 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         given:
         defaultLanguage('en')
         badCode()
-        fails("check")
+        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
         failure.assertHasErrorOutput(message)
 
         when:
         buildFile << "checkstyle { showViolations = false }"
+        fails("check", "-x", "checkstyleTest") // checkstyleMain and checkstyleTest run in parallel and yield two build failures at the end
 
         then:
-        fails("check")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertNotOutput(message)
