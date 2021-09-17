@@ -16,11 +16,11 @@
 
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.classycle.tasks.Classycle
+import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import java.io.FileOutputStream
@@ -48,7 +48,7 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
         val failedTasks = failedTasks()
         val executedTasks = executedTasks()
         val tmpTestFiles = tmpTestFiles()
-        prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
+        prepareReportsForCiPublishing(if (tmpTestFiles.isEmpty()) failedTasks else executedTasks, executedTasks, tmpTestFiles)
         cleanUp(tmpTestFiles)
         if (!isCleanupRunnerStep(gradle!!)) {
             verifyTestFilesCleanup(failedTasks, tmpTestFiles)
