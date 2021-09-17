@@ -37,6 +37,7 @@ import java.lang.annotation.Target;
  *
  * <p>If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
  * For example, such a task will always be out of date and never stored in or loaded from the build cache.
+ * That means that there is no need to specify the normalization for untracked file inputs.
  *
  * <p>{@link org.gradle.work.InputChanges} cannot be used for a task which has untracked properties,
  * since incremental tasks need to understand their inputs and outputs for them to be correct.
