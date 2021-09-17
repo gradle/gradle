@@ -76,7 +76,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -438,12 +437,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     builder.add(new GeneratedConstructorImpl(constructor));
                 }
             }
-            this.constructors = Ordering.from(new Comparator<GeneratedConstructor>() {
-                @Override
-                public int compare(GeneratedConstructor o1, GeneratedConstructor o2) {
-                    return Integer.compare(o1.getParameterTypes().length, o2.getParameterTypes().length);
-                }
-            }).sortedCopy(builder.build());
+            this.constructors = Ordering.from(new ConstructorComparator()).sortedCopy(builder.build());
         }
 
         @Override

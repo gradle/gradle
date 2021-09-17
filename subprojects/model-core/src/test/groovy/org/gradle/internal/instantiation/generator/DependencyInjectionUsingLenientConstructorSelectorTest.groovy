@@ -133,8 +133,8 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
         TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple constructors for parameters ['a']:
-  1. candidate: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, boolean)
-  2. best match: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, Number)"""
+  1. candidate: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, Number)
+  2. best match: DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors(String, boolean)"""
     }
 
     def "uses exact match constructor when constructors could be ambiguous with multiple parameters"() {

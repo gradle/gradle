@@ -29,7 +29,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 class IdentityClassGenerator implements ClassGenerator {
@@ -99,12 +98,7 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
                     });
                 }
-                return Ordering.from(new Comparator<GeneratedConstructor>() {
-                    @Override
-                    public int compare(GeneratedConstructor o1, GeneratedConstructor o2) {
-                        return Integer.compare(o1.getParameterTypes().length, o2.getParameterTypes().length);
-                    }
-                }).sortedCopy(constructors);
+                return Ordering.from(new ConstructorComparator()).sortedCopy(constructors);
             }
         };
     }
