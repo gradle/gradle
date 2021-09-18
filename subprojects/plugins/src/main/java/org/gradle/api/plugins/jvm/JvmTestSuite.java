@@ -29,7 +29,7 @@ import org.gradle.testing.base.TestSuite;
  * Each test suite consists of
  * <ul>
  *     <li>A {@link SourceSet}</li>
- *     <li>A set of {@link ComponentDependencies compile and runtime dependencies}</li>
+ *     <li>A set of {@link JvmComponentDependencies compile and runtime dependencies}</li>
  *     <li>One or more {@link JvmTestSuiteTarget targets}</li>
  *     <li>A testing framework</li>
  * </ul>
@@ -104,10 +104,10 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @return dependency handler
      */
-    ComponentDependencies getDependencies();
+    JvmComponentDependencies getDependencies();
 
     /**
      * Configure dependencies for this component.
      */
-    void dependencies(Action<? super ComponentDependencies> dependencies);
+    void dependencies(Action<? super JvmComponentDependencies> dependencies);
 }

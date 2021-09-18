@@ -30,7 +30,7 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.ComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
@@ -95,7 +95,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final ComponentDependencies dependencies;
+    private final JvmComponentDependencies dependencies;
     private boolean attachedDependencies;
     private final Action<Void> attachDependencyAction;
 
@@ -129,7 +129,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
 
         addDefaultTestTarget();
 
@@ -246,12 +246,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
 
     @Override
-    public ComponentDependencies getDependencies() {
+    public JvmComponentDependencies getDependencies() {
         return dependencies;
     }
 
     @Override
-    public void dependencies(Action<? super ComponentDependencies> action) {
+    public void dependencies(Action<? super JvmComponentDependencies> action) {
         action.execute(dependencies);
     }
 

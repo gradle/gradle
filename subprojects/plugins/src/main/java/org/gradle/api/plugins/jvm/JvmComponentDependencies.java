@@ -34,7 +34,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  */
 @Incubating
-public interface ComponentDependencies {
+public interface JvmComponentDependencies {
     /**
      * Add a dependency to the set of implementation dependencies.
      * <p><br>
