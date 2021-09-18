@@ -36,10 +36,14 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to Groovy build scripts"() {
         when:
-        run('init', '--type', 'java-application')
+        run (tasks)
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        tasks << [['init', '--type', 'java-application'],
+                  ['init', '--type', 'java-application', '--incubating']]
     }
 
     def "incubating option adds runnable test suites"() {
@@ -59,16 +63,9 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
 
         when:
-        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
-        if (scriptDsl == GROOVY) {
-            succeeds('clean', 'integrationTest')
-        } else {
-            succeeds('clean', 'check')
-        }
+        succeeds('clean', 'integrationTest')
         then:
-        if (scriptDsl == GROOVY) {
-            assertTestsDidNotRun("some.thing.AppTest")
-        }
+        assertTestsDidNotRun("some.thing.AppTest")
         assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
         assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
 

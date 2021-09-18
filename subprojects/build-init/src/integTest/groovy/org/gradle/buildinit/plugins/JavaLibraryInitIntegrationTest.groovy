@@ -62,16 +62,9 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
 
         when:
-        // TODO: Kotlin will not have `integrationTest` task available unless `check` is run first to cause it to be created
-        if (scriptDsl == GROOVY) {
-            succeeds('clean', 'integrationTest')
-        } else {
-            succeeds('clean', 'check')
-        }
+        succeeds('clean', 'integrationTest')
         then:
-        if (scriptDsl == GROOVY) {
-            assertTestsDidNotRun("some.thing.LibraryTest")
-        }
+        assertTestsDidNotRun("some.thing.LibraryTest")
         assertIntegrationTestsDidNotRun("some.thing.LibraryTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
         assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
 
