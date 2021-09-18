@@ -108,9 +108,13 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  * }
  *
  * test {
- *   // enable TestNG support (default is JUnit)
+ *   // Discover and execute JUnit4-based tests
+ *   useJUnit()
+ *
+ *   // Discover and execute TestNG-based tests
  *   useTestNG()
- *   // enable JUnit Platform (a.k.a. JUnit 5) support
+ *
+ *   // Discover and execute JUnit Platform-based tests
  *   useJUnitPlatform()
  *
  *   // set a system property for the test JVM(s)
@@ -956,27 +960,31 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests. <p> To configure JUnit specific options, see {@link #useJUnit(groovy.lang.Closure)}.
+     * Specifies that JUnit4 should be used to discover and execute the tests.
+     * <p>
+     * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
         useJUnit(Actions.<JUnitOptions>doNothing());
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied closure configures an instance of {@link
-     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
      *
-     * @param testFrameworkConfigure A closure used to configure the JUnit options.
+     * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
     public void useJUnit(@Nullable Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
     /**
-     * Specifies that JUnit should be used to execute the tests, configuring JUnit specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.junit.JUnitOptions}, which can be used to configure how JUnit runs.
+     * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the JUnit options.
+     * @param testFrameworkConfigure An action used to configure JUnit4 options.
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
@@ -984,19 +992,31 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests. <p> To configure JUnit platform specific options, see {@link #useJUnitPlatform(Action)}.
+     * Specifies that JUnit Platform should be used to discover and execute the tests.
+     * <p><br>
+     * Use this option if your tests use JUnit Jupiter/JUnit5.
+     * <p><br>
+     * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
+     * You may need to use this option even if you are not using JUnit directly.
      *
      * @since 4.6
+     * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
      */
     public void useJUnitPlatform() {
         useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
     }
 
     /**
-     * Specifies that JUnit Platform (a.k.a. JUnit 5) should be used to execute the tests, configuring JUnit platform specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions}, which can be used to configure how JUnit platform runs.
+     * Specifies that JUnit Platform should be used to discover and execute the tests with additional configuration.
+     * <p><br>
+     * Use this option if your tests use JUnit Jupiter/JUnit5.
+     * <p><br>
+     * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
+     * You may need to use this option even if you are not using JUnit directly.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions JUnit Platform specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the JUnit platform options.
+     * @param testFrameworkConfigure A closure used to configure JUnit platform options.
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
@@ -1004,27 +1024,31 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests. <p> To configure TestNG specific options, see {@link #useTestNG(Closure)}.
+     * Specifies that TestNG should be used to discover and execute the tests.
+     * <p>
+     * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
         useTestNG(Actions.<TestFrameworkOptions>doNothing());
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied closure configures an instance of {@link
-     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
      *
-     * @param testFrameworkConfigure A closure used to configure the TestNG options.
+     * @param testFrameworkConfigure A closure used to configure TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
         useTestNG(configureUsing(testFrameworkConfigure));
     }
 
     /**
-     * Specifies that TestNG should be used to execute the tests, configuring TestNG specific options. <p> The supplied action configures an instance of {@link
-     * org.gradle.api.tasks.testing.testng.TestNGOptions}, which can be used to configure how TestNG runs.
+     * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
+     * <p>
+     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
      *
-     * @param testFrameworkConfigure An action used to configure the TestNG options.
+     * @param testFrameworkConfigure An action used to configure TestNG options.
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {

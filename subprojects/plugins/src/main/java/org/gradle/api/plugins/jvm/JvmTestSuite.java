@@ -33,6 +33,9 @@ import org.gradle.testing.base.TestSuite;
  *     <li>One or more {@link JvmTestSuiteTarget targets}</li>
  *     <li>A testing framework</li>
  * </ul>
+ * <p>
+ * Based on the testing framework declared, Gradle will automatically add the appropriate dependencies and configure the underlying test task.
+ * </p>
  * 
  * @since 7.3
  */
