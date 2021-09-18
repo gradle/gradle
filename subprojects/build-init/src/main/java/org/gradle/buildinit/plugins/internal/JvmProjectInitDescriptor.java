@@ -104,8 +104,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
             if (settings.getUseIncubatingAPIs()) {
-                configureDefaultTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
-                addIntegrationTestSuite(buildScriptBuilder, BuildInitTestFramework.JUNIT_JUPITER);
+                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
+                addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
             }
 
             addStandardDependencies(buildScriptBuilder, false);
