@@ -35,12 +35,18 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURA
 import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)
- * various different target environments.</p>
+ * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
+ * <p>
+ * This plugin provides conventions for several things:
+ * <ul>
+ *     <li>A built-in {@code test} test suite which represents the {@link Test} task in the Java plugin.</li>
+ *     <li>All other {@code JvmTestSuite} will use the JUnit Jupiter testing framework unless specified otherwise.</li>
+ *     <li>A single test suite target is added to each {@code JvmTestSuite}.</li>
  *
- * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ * </ul>
  *
  * @since 7.3
+ * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
  */
 @Incubating
 public class JvmTestSuitePlugin implements Plugin<Project> {

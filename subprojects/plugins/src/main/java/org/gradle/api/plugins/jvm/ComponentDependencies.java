@@ -21,18 +21,77 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
- * This DSL element exists to contain any dependencies needed to compile and run a {@link JvmTestSuite}.
+ * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
+ *
+ * <ul>
+ *     <li><code>implementation</code> dependencies are used at compilation and runtime.</li>
+ *     <li><code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.</li>
+ *     <li><code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.</li>
+ * </ul>
  *
  * @since 7.3
+ *
+ * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  */
 @Incubating
 public interface ComponentDependencies {
+    /**
+     * Add a dependency to the set of implementation dependencies.
+     * <p><br>
+     * <code>implementation</code> dependencies are used at compilation and runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
     void implementation(Object dependencyNotation);
+    /**
+     * Add a dependency to the set of implementation dependencies with additional configuration.
+     * <p><br>
+     * <code>implementation</code> dependencies are used at compilation and runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @param configuration additional configuration for the provided dependency
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
     void implementation(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);
 
-    void runtimeOnly(Object dependencyNotation);
-    void runtimeOnly(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);
-
+    /**
+     * Add a dependency to the set of compileOnly dependencies.
+     * <p><br>
+     * <code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
     void compileOnly(Object dependencyNotation);
+    /**
+     * Add a dependency to the set of compileOnly dependencies with additional configuration.
+     * <p><br>
+     * <code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @param configuration additional configuration for the provided dependency
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
     void compileOnly(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);
+
+    /**
+     * Add a dependency to the set of runtimeOnly dependencies.
+     * <p><br>
+     * <code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
+    void runtimeOnly(Object dependencyNotation);
+    /**
+     * Add a dependency to the set of runtimeOnly dependencies with additional configuration.
+     * <p><br>
+     * <code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.
+     *
+     * @param dependencyNotation dependency to add
+     * @param configuration additional configuration for the provided dependency
+     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     */
+    void runtimeOnly(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);
 }
