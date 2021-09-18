@@ -261,7 +261,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 if (!buildScriptBuilder.isUsingTestSuites()) {
                     buildScriptBuilder.taskMethodInvocation(
                         "Use JUnit Platform for unit tests.",
-                        "test", "Test", "useJUnitJupiter");
+                        "test", "Test", "useJUnitPlatform");
                 }
                 break;
             case TESTNG:
@@ -281,7 +281,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 if (!buildScriptBuilder.isUsingTestSuites()) {
                     buildScriptBuilder.taskMethodInvocation(
                         "Use JUnit Platform for unit tests.",
-                        "test", "Test", "useJUnitJupiter");
+                        "test", "Test", "useJUnitPlatform");
                 }
                 break;
             case SCALATEST:

@@ -2187,12 +2187,12 @@ public class BuildScriptBuilder {
 
         @Override
         public String suiteRegistration(String suiteName, String suiteType) {
-            return suiteName;
+            return suiteName + "(" + suiteType + ")";
         }
 
         @Override
         public String suiteConfiguration(String suiteName, String suiteType) {
-            return suiteName;
+            return suiteName + "(" + suiteType + ")";
         }
 
         @Override
