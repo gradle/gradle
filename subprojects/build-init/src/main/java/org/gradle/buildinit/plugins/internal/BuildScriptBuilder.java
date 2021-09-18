@@ -1304,7 +1304,7 @@ public class BuildScriptBuilder {
 
         public enum TestSuiteFramework {
             JUNIT(new MethodInvocationExpression("useJUnit"), "junit:junit:4.13"),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitPlatform"), "org.junit.jupiter:junit-jupiter:5.7.2");
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), "org.junit.jupiter:junit-jupiter:5.7.2");
 
             final MethodInvocationExpression method;
             final String implementationDependency;
