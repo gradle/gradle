@@ -10,11 +10,7 @@ plugins {
 testing {
     suites {
         val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-
-            dependencies {
-                implementation("org.junit.jupiter:junit-jupiter:5.7.1")
-            }
+            useJUnitJupiter("5.7.1")
         }
 
         val integrationTest by registering(JvmTestSuite::class) {
