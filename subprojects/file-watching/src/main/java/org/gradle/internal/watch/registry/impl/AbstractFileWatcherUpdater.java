@@ -179,15 +179,23 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         void validateLocationToWatch(File location);
     }
 
+    /**
+     * Resolves the watched {@link FileHierarchySet} and collects the roots of each hierarchy
+     * that needs to be watched.
+     *
+     * We need both because with nested hierarchies the outermost hierarchy will "hide" all
+     * inner hierarchies in the {@link FileHierarchySet}, yet we will still need to prove
+     * even the inner hierarchies.
+     */
     @VisibleForTesting
-    static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot, ImmutableSet.Builder<File> watchedRoots) {
+    static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot, ImmutableSet.Builder<File> rootsToProbe) {
         FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
         for (File watchableHierarchy : watchableHierarchies.getRecentlyUsedHierarchies()) {
             String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
             if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies)) {
                 continue;
             }
-            watchedRoots.add(watchableHierarchy);
+            rootsToProbe.add(watchableHierarchy);
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
         }
         return watchedHierarchies;
