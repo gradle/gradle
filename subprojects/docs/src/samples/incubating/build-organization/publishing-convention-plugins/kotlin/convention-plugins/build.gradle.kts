@@ -28,7 +28,7 @@ tasks.publish {
 
 testing {
     suites {
-        test {
+        val test by getting(JvmTestSuite::class) {
             useJUnit()
         }
     }
