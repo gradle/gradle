@@ -121,12 +121,17 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private void updateWatchedHierarchies(SnapshotHierarchy root) {
         ImmutableSet<File> oldWatchedRoots = watchedRoots;
         ImmutableSet<File> oldProbedRoots = probedRoots;
-        ImmutableSet.Builder<File> probedRootsBuilder = ImmutableSet.builder();
-        watchedHierarchies = resolveWatchedHierarchies(watchableHierarchies, root, probedRootsBuilder);
-        probedRoots = probedRootsBuilder.build();
+
+        watchedHierarchies = resolveWatchedHierarchies(watchableHierarchies, root);
+
         ImmutableSet.Builder<File> watchedRootsBuilder = ImmutableSet.builder();
         watchedHierarchies.visitRoots(absolutePath -> watchedRootsBuilder.add(new File(absolutePath)));
         watchedRoots = watchedRootsBuilder.build();
+
+        // Probe every hierarchy that is watched, even ones nested inside others
+        probedRoots = watchableHierarchies.getRecentlyUsedHierarchies().stream()
+            .filter(watchedHierarchies::contains)
+            .collect(ImmutableSet.toImmutableSet());
 
         if (oldWatchedRoots.equals(watchedRoots) && oldProbedRoots.equals(probedRoots)) {
             // Nothing changed
@@ -179,23 +184,14 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         void validateLocationToWatch(File location);
     }
 
-    /**
-     * Resolves the watched {@link FileHierarchySet} and collects the roots of each hierarchy
-     * that needs to be watched.
-     *
-     * We need both because with nested hierarchies the outermost hierarchy will "hide" all
-     * inner hierarchies in the {@link FileHierarchySet}, yet we will still need to prove
-     * even the inner hierarchies.
-     */
     @VisibleForTesting
-    static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot, ImmutableSet.Builder<File> rootsToProbe) {
+    static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
         for (File watchableHierarchy : watchableHierarchies.getRecentlyUsedHierarchies()) {
             String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
             if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies)) {
                 continue;
             }
-            rootsToProbe.add(watchableHierarchy);
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
         }
         return watchedHierarchies;

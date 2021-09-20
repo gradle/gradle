@@ -201,7 +201,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "keeps watching outermost hierarchy until there is some content left"() {
+    def "keeps watching outermost hierarchy until there is no content left"() {
         def firstDir = file("first").createDir()
         def secondDir = file("second").createDir()
         def directoryWithinFirst = file("first/within").createDir()
