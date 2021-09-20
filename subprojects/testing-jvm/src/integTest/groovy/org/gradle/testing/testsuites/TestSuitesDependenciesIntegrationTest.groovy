@@ -16,16 +16,15 @@
 
 package org.gradle.testing.testsuites
 
-import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
 
 class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
-  def 'suites do not share dependencies by default'() {
-      given:
-      buildFile << """
+    def 'suites do not share dependencies by default'() {
+        given:
+        buildFile << """
         plugins {
           id 'java'
         }
@@ -50,7 +49,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         }
         """
 
-      file('src/test/java/example/UnitTest.java') << '''
+        file('src/test/java/example/UnitTest.java') << '''
             package example;
 
             import org.apache.commons.lang3.StringUtils;
@@ -65,7 +64,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
 
-      file('src/integTest/java/it/IntegrationTest.java') << '''
+        file('src/integTest/java/it/IntegrationTest.java') << '''
             package it;
 
             import org.apache.commons.lang3.StringUtils; // compilation fails here; commons-lang3 is not automatically "inherited" by integTests
@@ -80,16 +79,16 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
 
-      when:
-      fails 'check'
+        when:
+        fails 'check'
 
-      then:
-      failureCauseContains('Compilation failed; see the compiler error output for details.')
-  }
+        then:
+        failureCauseContains('Compilation failed; see the compiler error output for details.')
+    }
 
-  def 'default test suite has project dependency by default; others do not'() {
-      given:
-      buildFile << """
+    def 'default test suite has project dependency by default; others do not'() {
+        given:
+        buildFile << """
         plugins {
           id 'java'
         }
