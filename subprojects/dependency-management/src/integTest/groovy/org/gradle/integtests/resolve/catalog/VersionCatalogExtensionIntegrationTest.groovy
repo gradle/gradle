@@ -1352,6 +1352,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     libs {
                         alias("lib").to("org:test:1.0")
                         alias("lib2").to("org:test2:1.0")
+                        alias("plug").toPluginId("org.test2").version("1.0")
                         bundle("all", ["lib", "lib2"])
                     }
                     other {
@@ -1373,6 +1374,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert lib.present
                     assert lib.get() instanceof Provider
                     assert !libs.findDependency('missing').present
+                    assert libs.findPlugin('plug').present
                     assert libs.findBundle('all').present
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
@@ -1386,6 +1388,51 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert other.bundleAliases == []
                     assert other.versionAliases == ['ver']
 
+                }
+            }
+        """
+
+        when:
+        run 'verifyCatalogs'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can access versions with find methods without normalized aliases with optional API"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my-ver", "1.1")
+                        alias("my-lib").to("org:test:1.0")
+                        alias("my-plug").toPluginId("org.test2").version("1.0")
+                        bundle("my-all", ["my-lib"])
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def catalogs = project.extensions.getByType(VersionCatalogsExtension)
+            tasks.register("verifyCatalogs") {
+                doLast {
+                    def libs = catalogs.named("libs")
+                    assert libs.findVersion('my-ver').present
+                    assert libs.findVersion('my_ver').present
+                    assert libs.findVersion('my.ver').present
+
+                    assert libs.findDependency('my-lib').present
+                    assert libs.findDependency('my_lib').present
+                    assert libs.findDependency('my.lib').present
+
+                    assert libs.findBundle('my-all').present
+                    assert libs.findBundle('my_all').present
+                    assert libs.findBundle('my.all').present
+
+                    assert libs.findPlugin('my-plug').present
+                    assert libs.findPlugin('my_plug').present
+                    assert libs.findPlugin('my.plug').present
                 }
             }
         """

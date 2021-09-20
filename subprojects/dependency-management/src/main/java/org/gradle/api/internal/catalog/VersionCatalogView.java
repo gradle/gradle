@@ -31,6 +31,8 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
+import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
+
 public class VersionCatalogView implements VersionCatalog {
 
     private final DefaultVersionCatalog config;
@@ -46,32 +48,36 @@ public class VersionCatalogView implements VersionCatalog {
 
     @Override
     public final Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
-        if (config.getDependencyAliases().contains(alias)) {
-            return Optional.of(dependencyFactory.create(alias));
+        String normalizedAlias = normalize(alias);
+        if (config.getDependencyAliases().contains(normalizedAlias)) {
+            return Optional.of(dependencyFactory.create(normalizedAlias));
         }
         return Optional.empty();
     }
 
     @Override
     public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
-        if (config.getBundleAliases().contains(bundle)) {
-            return Optional.of(new BundleFactory(providerFactory, config).createBundle(bundle));
+        String normalizedBundle = normalize(bundle);
+        if (config.getBundleAliases().contains(normalizedBundle)) {
+            return Optional.of(new BundleFactory(providerFactory, config).createBundle(normalizedBundle));
         }
         return Optional.empty();
     }
 
     @Override
     public final Optional<VersionConstraint> findVersion(String name) {
-        if (config.getVersionAliases().contains(name)) {
-            return Optional.of(new VersionFactory(providerFactory, config).findVersionConstraint(name));
+        String normalizedName = normalize(name);
+        if (config.getVersionAliases().contains(normalizedName)) {
+            return Optional.of(new VersionFactory(providerFactory, config).findVersionConstraint(normalizedName));
         }
         return Optional.empty();
     }
 
     @Override
     public Optional<Provider<PluginDependency>> findPlugin(String alias) {
-        if (config.getPluginAliases().contains(alias)) {
-            return Optional.of(new PluginFactory(providerFactory, config).createPlugin(alias));
+        String normalizedAlias = normalize(alias);
+        if (config.getPluginAliases().contains(normalizedAlias)) {
+            return Optional.of(new PluginFactory(providerFactory, config).createPlugin(normalizedAlias));
         }
         return Optional.empty();
     }
