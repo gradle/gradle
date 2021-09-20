@@ -213,13 +213,13 @@ trait VersionCatalogErrorMessages {
             this
         }
 
-        ReservedAlias shouldNotEndWith(String forbidden) {
-            this.message = "It shouldn't end with '${forbidden}'"
+        ReservedAlias shouldNotBeEqualTo(String forbidden) {
+            this.message = "Prefix for dependency shouldn't be equal to '${forbidden}'"
             this
         }
 
-        ReservedAlias reservedAliasSuffix(String... suffixes) {
-            this.solution = "Use a different alias which doesn't end with ${oxfordListOf(suffixes as List, 'or')}"
+        ReservedAlias reservedAliasPrefix(String... suffixes) {
+            this.solution = "Use a different alias which prefix is not equal to ${oxfordListOf(suffixes as List, 'or')}"
             this
         }
 
