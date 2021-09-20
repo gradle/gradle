@@ -62,7 +62,7 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
             case Missing:
                 return DefaultFileMetadata.missing(accessType);
             case Other:
-                throw new UncheckedIOException("Unsupported file type for " + f.getAbsolutePath() + ": " + stat.getType());
+                throw new UncheckedIOException("Unsupported file type for " + f.getAbsolutePath());
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }
