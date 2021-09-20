@@ -662,7 +662,13 @@ Implies `<<#incremental,@Incremental>>`.
 
 | `@link:{javadocPath}/org/gradle/work/NormalizeLineEndings.html[NormalizeLineEndings]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
-| Used with `@InputFiles`, `@InputDirectory` or `@Classpath` to instruct Gradle to normalize line endings when calculating up-to-date checks or build cache keys.  For example, switching a file between Unix line endings and Windows line endings (or vice-versa) will not make the task out-of-date.
+| Used with `@InputFiles`, `@InputDirectory` or `@Classpath` to instruct Gradle to normalize line endings when calculating up-to-date checks or build cache keys. For example, switching a file between Unix line endings and Windows line endings (or vice-versa) will not make the task out-of-date.
+
+| `@link:{javadocPath}/org/gradle/api/tasks/Untracked.html[Untracked]`
+| `File` or `Iterable&lt;File&gt;`+++*+++
+| Used on an input or output file property to declare that the changes for the property should not be tracked by Gradle.
+  If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
+  For example such a task will always be out of date and never from the build cache.
 |===
 
 [NOTE]
@@ -1156,6 +1162,30 @@ The `{ false }` closure ensures that `alwaysInstrumentClasses` will always be ex
 You can of course put more complex logic into the closure. You could check whether a particular record in a database table exists or has changed for example. Just be aware that up-to-date checks should _save_ you time. Don’t add checks that cost as much or more time than the standard execution of the task. In fact, if a task ends up running frequently anyway, because it’s rarely up to date, then it may not be worth having an up-to-date check at all. Remember that your checks will always run if the task is in the execution task graph.
 
 One common mistake is to use `upToDateWhen()` instead of `Task.onlyIf()`. If you want to skip a task on the basis of some condition unrelated to the task inputs and outputs, then you should use `onlyIf()`. For example, in cases where you want to skip a task when a particular property is set or not set.
+
+[[sec:untracked_external_tool]]
+==== Integrate an external tool which does its own up-to-date checking
+
+Sometimes you want to integrate an external tool like Git or Npm, both of which do their own up-to-date checking.
+In that case it doesn't make much sense for Gradle to also do up-to-date checks.
+You can disable Gradle's up-to-date checks by using the `@link:{javadocPath}/org/gradle/api/tasks/Untracked.html[Untracked]` annotation on the output directory of the task wrapping the tool.
+
+For example, let's say you want to implement a task which clones a Git repository.
+
+.Task for Git clone
+====
+[source,java]
+.buildSrc/src/main/java/org/example/GitClone.java
+----
+include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/GitClone.java[tag=git-clone]
+----
+
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=git-clone]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=git-clone]"]
+====
+- (1) Declare the output of the task as untracked.
+- (2) Use the output directory to run the external tool.
+- (3) Add the task and configure the output directory in your build.
 
 [[sec:configure_input_normalization]]
 ==== Configure input normalization

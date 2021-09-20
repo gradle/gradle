@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
-class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
+class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
@@ -235,20 +235,14 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Copying to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.ignoreExistingContentInDestinationDir().")
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
         executedAndNotSkipped(":copy")
 
         when:
-        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Copying to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.ignoreExistingContentInDestinationDir().")
+        expectUnreadableCopyDestinationDeprecationWarning()
         run "copy"
         then:
         outputDirectory.list().contains input.name
