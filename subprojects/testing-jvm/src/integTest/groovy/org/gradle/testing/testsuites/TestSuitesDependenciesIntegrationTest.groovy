@@ -16,6 +16,7 @@
 
 package org.gradle.testing.testsuites
 
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
@@ -84,6 +85,43 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
       then:
       failureCauseContains('Compilation failed; see the compiler error output for details.')
+  }
+
+  def 'default test suite has project dependency by default; others do not'() {
+      given:
+      buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        dependencies {
+            // production code requires commons-lang3 at runtime, which will leak into tests' runtime classpaths
+            implementation 'org.apache.commons:commons-lang3:3.11'
+        }
+
+        testing {
+            suites {
+                integTest(JvmTestSuite)
+            }
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+                dependsOn test, integTest
+                doLast {
+                    assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                    assert !configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'integTest does not implicitly depend on the production project'
+                }
+            }
+        """
+
+      expect:
+      succeeds 'checkConfiguration'
   }
 
 }
