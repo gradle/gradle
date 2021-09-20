@@ -19,7 +19,7 @@ package org.gradle.testing.testsuites
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
 
-class TestSuitesHavingMultipleFrameworksIntegrationTest extends AbstractIntegrationSpec {
+class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
 
     def 'can use separate JUnit frameworks for unit versus integration tests'() {
         given:
