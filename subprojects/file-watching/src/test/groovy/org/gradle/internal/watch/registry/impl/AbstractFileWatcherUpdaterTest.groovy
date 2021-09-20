@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
 import org.gradle.internal.watch.vfs.WatchMode
@@ -59,7 +60,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def watchableFileSystemDetector = Stub(WatchableFileSystemDetector)
     def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
-    def probeRegistry = new DefaultFileWatcherProbeRegistry(probeLocationResolver)
+    def probeRegistry = Stub(FileWatcherProbeRegistry)
     def watchableHiearchies = new WatchableHierarchies(probeRegistry, watchableFileSystemDetector, watchFilter)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
     FileWatcherUpdater updater
@@ -284,9 +285,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def "watching continues for watched hierarchies that are confirmed by watch probe"() {
         def watchableHierarchy = file("watchable").createDir()
+        def watchableHierarchyProbeDir = file(watchableHierarchy, ".gradle")
         def fileInWatchableHierarchy = watchableHierarchy.file("file.txt").createFile()
 
         def notWatchedHierarchy = file("not-watched").createDir()
+        def notWatchedHierarchyProbeDir = file(notWatchedHierarchy, ".gradle")
         def fileInNotWatchedHierarchy = notWatchedHierarchy.file("file.txt").createFile()
 
         def watchableHierarchies = [watchableHierarchy, notWatchedHierarchy]
@@ -294,26 +297,33 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         registerWatchableHierarchies(watchableHierarchies)
         addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
-        addSnapshot(snapshotRegularFile(fileInNotWatchedHierarchy))
         then:
         vfsHasSnapshotsAt(watchableHierarchy)
-        vfsHasSnapshotsAt(notWatchedHierarchy)
-
         1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
-        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(watchableHierarchy)]) })
-        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(watchableHierarchy) >> watchableHierarchyProbeDir
         0 * _
 
         when:
-        updater.triggerWatchProbe(watchProbeFor(watchableHierarchy).absolutePath)
+        addSnapshot(snapshotRegularFile(fileInNotWatchedHierarchy))
+        then:
+        vfsHasSnapshotsAt(notWatchedHierarchy)
+
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
+        ifNonHierarchical * watcher.startWatching({ equalIgnoringOrder(it, [notWatchedHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(notWatchedHierarchy) >> notWatchedHierarchyProbeDir
+        0 * _
+
+        when:
         buildStarted()
         then:
         vfsHasSnapshotsAt(watchableHierarchy)
         !vfsHasSnapshotsAt(notWatchedHierarchy)
 
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchy]) })
-        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [probeRegistry.getProbeDirectory(notWatchedHierarchy)]) })
+        ifNonHierarchical * watcher.stopWatching({ equalIgnoringOrder(it, [notWatchedHierarchyProbeDir]) })
+        _ * probeRegistry.getProbeDirectory(notWatchedHierarchy) >> notWatchedHierarchyProbeDir
+        _ * probeRegistry.unprovenHierarchies() >> Stream.of(notWatchedHierarchy)
         0 * _
     }
 

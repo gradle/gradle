@@ -99,6 +99,16 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
+    protected void startWatchingProbeForHierarchy(File hierarchyToWatch) {
+        // No need to start watching anything, probe directory is under the watched hierarchy
+    }
+
+    @Override
+    protected void stopWatchingProbeForHierarchy(File hierarchyToWatch) {
+        // No need to stop watching anything, probe directory is under the watched hierarchy
+    }
+
+    @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }

@@ -17,6 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
@@ -42,7 +43,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
@@ -114,24 +114,30 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     @Override
     protected void startWatchingHierarchies(Collection<File> hierarchiesToWatch) {
-        // Make sure probe directories are watched
-        //noinspection ResultOfMethodCallIgnored
-        updateWatchedDirectories(hierarchiesToWatch.stream()
-            .map(probeRegistry::getProbeDirectory)
-            // Make sure the directory exists, this can be necessary when
-            // included builds are evaluated with configuration cache
-            .peek(File::mkdirs)
-            .collect(Collectors.toMap(File::getAbsolutePath, probeDirectory -> 1))
-        );
+        // No need to start watching anything, we already did that while handling VFS change
     }
 
     @Override
     protected void stopWatchingHierarchies(Collection<File> hierarchiesToWatch) {
+        // No need to stop watching anything, we already did that while handling VFS change
+    }
+
+    @Override
+    protected void startWatchingProbeForHierarchy(File hierarchyToWatch) {
+        // Make sure probe directories are watched
+        File probeDirectory = probeRegistry.getProbeDirectory(hierarchyToWatch);
+        // Make sure the directory exists, this can be necessary when
+        // included builds are evaluated with configuration cache
+        //noinspection ResultOfMethodCallIgnored
+        probeDirectory.mkdirs();
+        updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
+    }
+
+    @Override
+    protected void stopWatchingProbeForHierarchy(File hierarchyToWatch) {
         // Make sure probe directories are not watched anymore
-        updateWatchedDirectories(hierarchiesToWatch.stream()
-            .map(probeRegistry::getProbeDirectory)
-            .collect(Collectors.toMap(File::getAbsolutePath, probeDirectory -> -1))
-        );
+        File probeDirectory = probeRegistry.getProbeDirectory(hierarchyToWatch);
+        updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

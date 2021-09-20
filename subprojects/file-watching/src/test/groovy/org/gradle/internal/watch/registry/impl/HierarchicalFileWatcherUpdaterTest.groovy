@@ -201,7 +201,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "starts watching hierarchy to watch which was beneath another hierarchy to watch"() {
+    def "keeps watching outermost hierarchy until there is some content left"() {
         def firstDir = file("first").createDir()
         def secondDir = file("second").createDir()
         def directoryWithinFirst = file("first/within").createDir()
@@ -215,9 +215,16 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        addSnapshotInWatchableHierarchy(directoryWithinFirst)
+        def snapshot = addSnapshotInWatchableHierarchy(directoryWithinFirst)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [firstDir]) })
+        0 * _
+
+        when:
+        updater.triggerWatchProbe(watchProbeFor(secondDir).absolutePath)
+        updater.triggerWatchProbe(watchProbeFor(firstDir).absolutePath)
+        updater.triggerWatchProbe(watchProbeFor(directoryWithinFirst).absolutePath)
+        then:
         0 * _
 
         when:
@@ -226,11 +233,19 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
+        buildStarted()
+        then:
+        0 * _
+
+        when:
         registerWatchableHierarchies([directoryWithinFirst, secondDir])
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
+        0 * _
+
+        when:
+        invalidate(snapshot.absolutePath)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
         0 * _
     }
 
