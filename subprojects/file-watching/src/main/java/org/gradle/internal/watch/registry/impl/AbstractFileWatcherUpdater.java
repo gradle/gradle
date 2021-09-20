@@ -129,7 +129,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         watchedRoots = watchedRootsBuilder.build();
 
         // Probe every hierarchy that is watched, even ones nested inside others
-        probedRoots = watchableHierarchies.getRecentlyUsedHierarchies().stream()
+        probedRoots = watchableHierarchies.stream()
             .filter(watchedHierarchies::contains)
             .collect(ImmutableSet.toImmutableSet());
 
@@ -186,15 +186,10 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @VisibleForTesting
     static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
-        FileHierarchySet watchedHierarchies = DefaultFileHierarchySet.of();
-        for (File watchableHierarchy : watchableHierarchies.getRecentlyUsedHierarchies()) {
-            String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
-            if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies)) {
-                continue;
-            }
-            watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
-        }
-        return watchedHierarchies;
+        return watchableHierarchies.stream()
+            .map(File::getPath)
+            .filter(watchableHierarchy -> !hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
+            .reduce(DefaultFileHierarchySet.of(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
     private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {

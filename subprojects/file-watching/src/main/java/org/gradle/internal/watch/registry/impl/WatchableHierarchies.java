@@ -34,9 +34,9 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
 
@@ -178,8 +178,8 @@ public class WatchableHierarchies {
         }
     }
 
-    public Collection<File> getRecentlyUsedHierarchies() {
-        return recentlyUsedHierarchies;
+    public Stream<File> stream() {
+        return recentlyUsedHierarchies.stream();
     }
 
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {

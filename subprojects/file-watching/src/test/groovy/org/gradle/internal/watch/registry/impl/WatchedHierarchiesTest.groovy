@@ -20,6 +20,8 @@ import org.gradle.internal.file.FileHierarchySet
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import spock.lang.Specification
 
+import java.util.stream.Stream
+
 import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.resolveWatchedHierarchies
 
 class WatchedHierarchiesTest extends Specification implements TestSnapshotFixture {
@@ -29,7 +31,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def watched = resolveWatchedHierarchies(watchable, buildHierarchy([]))
         then:
         rootsOf(watched) == []
-        1 * watchable.recentlyUsedHierarchies >> []
+        1 * watchable.stream() >> Stream.of()
     }
 
     def "watches empty directory"() {
@@ -42,7 +44,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         ]))
         then:
         rootsOf(watched) == [dir.absolutePath]
-        1 * watchable.recentlyUsedHierarchies >> [dir]
+        1 * watchable.stream() >> Stream.of(dir)
     }
 
     def "does not watch directory with only missing files inside"() {
@@ -55,7 +57,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         ]))
         then:
         rootsOf(watched) == []
-        1 * watchable.recentlyUsedHierarchies >> [dir]
+        1 * watchable.stream() >> Stream.of(dir)
     }
 
     def "watches only outermost hierarchy"() {
@@ -70,7 +72,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         ]))
         then:
         rootsOf(watched) == [parent.absolutePath]
-        1 * watchable.recentlyUsedHierarchies >> [parent, child, grandchild]
+        1 * watchable.stream() >> Stream.of(parent, child, grandchild)
     }
 
     private static List<String> rootsOf(FileHierarchySet set) {
