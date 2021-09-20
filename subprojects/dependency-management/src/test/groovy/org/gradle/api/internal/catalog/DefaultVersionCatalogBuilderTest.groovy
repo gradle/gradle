@@ -87,21 +87,72 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         InvalidUserDataException ex = thrown()
         verify(ex.message, reservedAlias {
             inCatalog('libs')
-            alias(name).shouldNotEndWith(suffix)
-            reservedAliasSuffix('bundle', 'bundles', 'version', 'versions', 'plugin', 'plugins')
+            alias(name).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
         })
 
         where:
-        name          | suffix
-        "bundles"     | "bundles"
-        "versions"    | "versions"
-        "plugins"     | "plugins"
-        "fooBundle"   | "bundle"
-        "fooVersion"  | "version"
-        "fooPlugin"   | "plugin"
-        "foo.plugin"  | "plugin"
-        "foo.bundle"  | "bundle"
-        "foo.version" | "version"
+        name                  | prefix
+        "bundles"             | "bundles"
+        "versions"            | "versions"
+        "plugins"             | "plugins"
+        "bundles-my"          | "bundles"
+        "versions_my"         | "versions"
+        "plugins.my"          | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    @Unroll
+    def "allows using #name as a dependency alias"() {
+        when:
+        builder.alias(name).to("org:foo:1.0")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        name << [
+            "version",
+            "bundle",
+            "plugin",
+            "my-bundles",
+            "my-versions",
+            "my-plugins",
+            "my-bundle",
+            "my-plugin",
+            "my-version",
+            "myBundles",
+            "myPlugins",
+            "myVersions",
+            "bundlesOfMe",
+            "pluginsOfMe",
+            "versionsOfMe",
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    @Unroll
+    def "allows using #name for versions and plugins"() {
+        when:
+        builder.alias(name).toPluginId("org.foo").version("1.0")
+        builder.version(name, "1.0")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        name << [
+            "bundles",
+            "versions",
+            "plugins",
+            "bundles-my",
+            "versions_my",
+            "plugins.my"
+        ]
     }
 
     @VersionCatalogProblemTestFor(

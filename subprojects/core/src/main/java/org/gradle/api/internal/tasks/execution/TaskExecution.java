@@ -48,6 +48,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -364,30 +365,23 @@ public class TaskExecution implements UnitOfWork {
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
+        DeprecationMessageBuilder<?> builder;
         if (isDestinationDir && task instanceof Copy) {
-            DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
-                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().")
-                .willBecomeAnErrorInGradle8()
-                // TODO: Document
-                .undocumented()
-                .nagUser();
+            builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
+                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().");
         } else if (isDestinationDir && task instanceof Sync) {
-            DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
-                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.")
-                .willBecomeAnErrorInGradle8()
-                // TODO: Document
-                .undocumented()
-                .nagUser();
+            builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
+                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.");
         } else {
-            DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
+            builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
                     propertyType, propertyName, getDisplayName()))
-                .withAdvice("Declare the property as untracked.")
-                .willBecomeAnErrorInGradle8()
-                // TODO: Document
-                .undocumented()
-                .nagUser();
+                .withAdvice("Declare the property as untracked.");
 
         }
+        builder
+            .willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "declare_unreadable_input_output")
+            .nagUser();
     }
 
     @Override

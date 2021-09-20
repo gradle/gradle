@@ -1352,6 +1352,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     libs {
                         alias("lib").to("org:test:1.0")
                         alias("lib2").to("org:test2:1.0")
+                        alias("plug").toPluginId("org.test2").version("1.0")
                         bundle("all", ["lib", "lib2"])
                     }
                     other {
@@ -1373,6 +1374,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert lib.present
                     assert lib.get() instanceof Provider
                     assert !libs.findDependency('missing').present
+                    assert libs.findPlugin('plug').present
                     assert libs.findBundle('all').present
                     assert !libs.findBundle('missing').present
                     assert other.findVersion('ver').present
@@ -1386,6 +1388,51 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                     assert other.bundleAliases == []
                     assert other.versionAliases == ['ver']
 
+                }
+            }
+        """
+
+        when:
+        run 'verifyCatalogs'
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can access versions with find methods without normalized aliases with optional API"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("my-ver", "1.1")
+                        alias("my-lib").to("org:test:1.0")
+                        alias("my-plug").toPluginId("org.test2").version("1.0")
+                        bundle("my-all", ["my-lib"])
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            def catalogs = project.extensions.getByType(VersionCatalogsExtension)
+            tasks.register("verifyCatalogs") {
+                doLast {
+                    def libs = catalogs.named("libs")
+                    assert libs.findVersion('my-ver').present
+                    assert libs.findVersion('my_ver').present
+                    assert libs.findVersion('my.ver').present
+
+                    assert libs.findDependency('my-lib').present
+                    assert libs.findDependency('my_lib').present
+                    assert libs.findDependency('my.lib').present
+
+                    assert libs.findBundle('my-all').present
+                    assert libs.findBundle('my_all').present
+                    assert libs.findBundle('my.all').present
+
+                    assert libs.findPlugin('my-plug').present
+                    assert libs.findPlugin('my_plug').present
+                    assert libs.findPlugin('my.plug').present
                 }
             }
         """
@@ -1738,6 +1785,104 @@ Second: 1.1"""
         ]
     }
 
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "disallows aliases for dependency which prefix clash with reserved words"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("$reservedName").to("org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            alias(reservedName).shouldNotBeEqualTo(prefix)
+            reservedAliasPrefix('bundles', 'plugins', 'versions')
+        })
+
+        where:
+        reservedName  | prefix
+        "bundles"     | "bundles"
+        "versions"    | "versions"
+        "plugins"     | "plugins"
+        "bundles-my"  | "bundles"
+        "versions-my" | "versions"
+        "plugins-my"  | "plugins"
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "aliases for dependencies, plugins and versions do not clash with version catalog methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").to("org:lib1:1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundleAliases",
+            "versionAliases",
+            "pluginAliases",
+            "dependencyAliases",
+            "findPlugin",
+            "findDependency",
+            "findVersion",
+            "findBundle"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    def "allow aliases for plugins and versions which have are reserved words for dependencies"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("$reservedName", "1.0")
+                        alias("$reservedName").toPluginId("org:lib1").version("1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        noExceptionThrown()
+
+        where:
+        reservedName << [
+            "bundles",
+            "versions",
+            "plugins"
+        ]
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/16768")
     def "the artifact notation doesn't require to set 'name'"() {
         settingsFile << """
@@ -1797,6 +1942,7 @@ Second: 1.1"""
                             prefer "1.1.0"
                             reject "1.0.5"
                         }
+                        alias("lib3").to("org", "test3").withoutVersion()
                         bundle("all", ["lib", "lib2"])
                         alias('greeter').toPluginId('com.acme.greeter').version('1.4')
                         alias('greeter2').toPluginId('com.acme.greeter2').version {
@@ -1822,6 +1968,9 @@ Second: 1.1"""
                     catalog.findDependency("lib2").ifPresent {
                         println("Found dependency: '\${it.get().toString()}'.")
                     }
+                    catalog.findDependency("lib3").ifPresent {
+                        println("Found dependency: '\${it.get().toString()}'.")
+                    }
                     catalog.findBundle("all").ifPresent {
                         println("Found bundle: '\${it.get().toString()}'.")
                     }
@@ -1842,6 +1991,7 @@ Second: 1.1"""
         outputContains "Found version: '1.5'."
         outputContains "Found dependency: 'org:test:1.0'."
         outputContains "Found dependency: 'org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        outputContains "Found dependency: 'org:test3'."
         outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
         outputContains "Found plugin: 'com.acme.greeter:1.4'."
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."

@@ -26,7 +26,7 @@ import spock.lang.Unroll
 import static org.junit.Assert.assertTrue
 
 @Unroll
-class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
+class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements UnreadableCopyDestinationFixture {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "file permissions are preserved in copy action"() {
@@ -285,10 +285,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Copying to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use the method Copy.ignoreExistingContentInDestinationDir().")
+        expectUnreadableCopyDestinationDeprecationWarning()
         succeeds "copy", "--info"
         then:
         outputDirectory.list().contains input.name

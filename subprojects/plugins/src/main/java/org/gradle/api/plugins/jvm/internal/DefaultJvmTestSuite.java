@@ -38,7 +38,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -79,16 +78,18 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             }
         }
     }
+
     private static class TestingFramework {
         private final Frameworks framework;
-        @Nullable
         private final String version;
 
-        private TestingFramework(Frameworks framework, @Nullable String version) {
+        private TestingFramework(Frameworks framework, String version) {
+            Preconditions.checkNotNull(version);
             this.framework = framework;
             this.version = version;
         }
     }
+    private final static TestingFramework NO_OPINION = new TestingFramework(Frameworks.NONE, "unset");
 
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
@@ -118,10 +119,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             useJUnitJupiter();
         } else {
-            // for the built-in test suite, we don't express an opinion, so we will assume JUnit4 and not add any dependencies
+            // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
-            getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
+            getTestingFramework().convention(NO_OPINION);
         }
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
