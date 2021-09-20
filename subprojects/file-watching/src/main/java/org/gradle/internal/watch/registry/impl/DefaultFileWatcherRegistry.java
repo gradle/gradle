@@ -98,8 +98,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
                                     LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
-                                    for (File watchedRoot : fileWatcherUpdater.getWatchedRoots()) {
-                                        handler.handleChange(OVERFLOW, watchedRoot.toPath());
+                                    for (File watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
+                                        handler.handleChange(OVERFLOW, watchedHierarchy.toPath());
                                     }
                                 } else {
                                     LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
@@ -176,7 +176,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedRoots().size();
+        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {
