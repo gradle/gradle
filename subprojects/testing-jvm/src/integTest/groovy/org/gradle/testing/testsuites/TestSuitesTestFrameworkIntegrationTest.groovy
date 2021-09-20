@@ -17,6 +17,7 @@
 package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 
 class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
@@ -78,6 +79,11 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTaskExecuted(':test')
         result.assertTaskExecuted(':integTest')
+
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
+        unitTestResults.assertTestClassesExecuted('example.UnitTest')
+        def integTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/integTest')
+        integTestResults.assertTestClassesExecuted('it.IntegrationTest')
     }
 
     def 'can use JUnit for unit tests and TestNG for integration tests'() {
@@ -159,5 +165,10 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTaskExecuted(':test')
         result.assertTaskExecuted(':integTest')
+
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
+        unitTestResults.assertTestClassesExecuted('example.UnitTest')
+        def integTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/integTest')
+        integTestResults.assertTestClassesExecuted('it.IntegrationTest')
     }
 }
