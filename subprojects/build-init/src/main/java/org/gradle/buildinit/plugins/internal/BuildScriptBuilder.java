@@ -28,6 +28,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
@@ -1232,6 +1233,11 @@ public class BuildScriptBuilder {
         public void junitJupiterSuite(String name) {
             suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
         }
+
+        @Override
+        public void spockSuite(String name) {
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder));
+        }
     }
 
     private static class SuiteSpec extends AbstractStatement {
@@ -1257,7 +1263,7 @@ public class BuildScriptBuilder {
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
             if (isDefaultTestSuite) {
-                dependencies.dependency("implementation", null, framework.implementationDependency);
+                dependencies.dependency("implementation", null, framework.getImplementationDependency());
             } else {
                 dependencies.selfDependency("implementation", null);
                 targets.all(true);
@@ -1303,19 +1309,28 @@ public class BuildScriptBuilder {
         }
 
         public enum TestSuiteFramework {
-            JUNIT(new MethodInvocationExpression("useJUnit"), "junit:junit:4.13"),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), "org.junit.jupiter:junit-jupiter:5.7.2");
+            JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER),
+            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK);
 
             final MethodInvocationExpression method;
-            final String implementationDependency;
+            final DefaultJvmTestSuite.Frameworks framework;
 
-            TestSuiteFramework(MethodInvocationExpression method, String implementationDependency) {
+            TestSuiteFramework(MethodInvocationExpression method, DefaultJvmTestSuite.Frameworks framework) {
                 this.method = method;
-                this.implementationDependency = implementationDependency;
+                this.framework = framework;
             }
 
             public static TestSuiteFramework getDefault() {
                 return JUNIT_PLATFORM;
+            }
+
+            public MethodInvocationExpression getMethodInvocation() {
+                return method;
+            }
+
+            public String getImplementationDependency() {
+                return framework.getDependency();
             }
         }
     }

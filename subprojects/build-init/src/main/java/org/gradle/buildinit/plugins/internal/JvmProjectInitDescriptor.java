@@ -205,6 +205,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             case JUNIT_JUPITER:
                 buildScriptBuilder.testing().junitJupiterSuite(name);
                 break;
+            case SPOCK:
+                buildScriptBuilder.testing().spockSuite(name);
+                break;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");
         }

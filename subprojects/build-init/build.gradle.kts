@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
+    implementation(project(":testing-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)

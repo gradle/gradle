@@ -194,7 +194,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run(['init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id] + incubating)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -211,6 +211,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        incubating << [[], ['--incubating']]
     }
 
     @Unroll
