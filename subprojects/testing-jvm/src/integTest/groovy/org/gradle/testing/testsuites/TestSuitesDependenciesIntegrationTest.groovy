@@ -118,7 +118,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
             suites {
                 integTest(JvmTestSuite) {
                     dependencies {
-                        implementation project(':')
+                        implementation project
                     }
                 }
             }
@@ -131,7 +131,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
             doLast {
-                assert configurations.testCompileClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies' // TODO possible bug; why is commons-lang3 present?
+                assert configurations.testCompileClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
                 assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
                 assert configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'integTest explicitly depends on the production project'
             }
@@ -168,7 +168,7 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation project(':')
+                        implementation project
                         implementation 'com.google.guava:guava:29.0-jre'
                         compileOnly  'javax.servlet:servlet-api:2.5'
                         runtimeOnly 'mysql:mysql-connector-java:6.0.6'
@@ -195,7 +195,8 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
                 def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
 
-                assert integTestCompileClasspathFileNames.containsAll(/*'commons-lang3-3.11.jar', */'servlet-api-2.5.jar', 'guava-29.0-jre.jar') // TODO possible bug; why is commons-lang3 present in testCompileClasspathFileNames but not integTestCompileClasspathFileNames?
+                assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
+                assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
                 assert !integTestCompileClasspathFileNames.contains('mysql-connector-java-6.0.6.jar'): 'runtimeOnly dependency'
                 assert integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-29.0-jre.jar', 'mysql-connector-java-6.0.6.jar')
                 assert !integTestRuntimeClasspathFileNames.contains('servlet-api-2.5.jar'): 'compileOnly dependency'
