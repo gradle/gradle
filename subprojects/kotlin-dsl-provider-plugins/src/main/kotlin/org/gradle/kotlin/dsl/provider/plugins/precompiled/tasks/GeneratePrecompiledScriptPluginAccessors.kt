@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -104,6 +105,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     abstract val metadataOutputDir: DirectoryProperty
 
     @get:InputDirectory
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val compiledPluginsBlocksDir: DirectoryProperty
 
@@ -112,6 +114,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
+    @get:IgnoreEmptyDirectories
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
