@@ -20,7 +20,6 @@ import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteListener {
@@ -33,7 +32,7 @@ public class LocationsWrittenByCurrentBuild implements FileSystemAccess.WriteLis
             producedByCurrentBuild.updateAndGet(currentValue -> {
                 FileHierarchySet newValue = currentValue;
                 for (String location : locations) {
-                    newValue = newValue.plus(new File(location));
+                    newValue = newValue.plus(location);
                 }
                 return newValue;
             });

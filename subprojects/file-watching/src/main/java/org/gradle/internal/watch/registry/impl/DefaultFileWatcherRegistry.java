@@ -32,7 +32,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
@@ -84,6 +83,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
+                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
@@ -98,8 +98,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
                                     LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
-                                    for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
-                                        handler.handleChange(OVERFLOW, watchedHierarchy);
+                                    for (File watchedRoot : fileWatcherUpdater.getWatchedRoots()) {
+                                        handler.handleChange(OVERFLOW, watchedRoot.toPath());
                                     }
                                 } else {
                                     LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
@@ -176,7 +176,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
+        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedRoots().size();
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {

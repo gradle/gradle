@@ -24,14 +24,15 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.vfs.WatchMode;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -42,7 +43,10 @@ import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
 public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
+    public static final String INVALIDATING_HIERARCHY_MESSAGE = "Invalidating hierarchy because watch probe hasn't been triggered";
+
     private final WatchableFileSystemDetector watchableFileSystemDetector;
+    private final FileWatcherProbeRegistry probeRegistry;
     private final Predicate<String> watchFilter;
 
     /**
@@ -58,39 +62,43 @@ public class WatchableHierarchies {
      * Those are the mount points of file systems which do not support watching.
      */
     private FileHierarchySet unsupportedHierarchies = DefaultFileHierarchySet.of();
-    private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
+    private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
 
-    public WatchableHierarchies(WatchableFileSystemDetector watchableFileSystemDetector, Predicate<String> watchFilter) {
+    public WatchableHierarchies(
+        FileWatcherProbeRegistry probeRegistry,
+        WatchableFileSystemDetector watchableFileSystemDetector,
+        Predicate<String> watchFilter
+    ) {
+        this.probeRegistry = probeRegistry;
         this.watchableFileSystemDetector = watchableFileSystemDetector;
         this.watchFilter = watchFilter;
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
-        String watchableHierarchyPathString = watchableHierarchyPath.toString();
-        if (!watchFilter.test(watchableHierarchyPathString)) {
+        String watchableHierarchyPath = watchableHierarchy.getAbsolutePath();
+        if (!watchFilter.test(watchableHierarchyPath)) {
             throw new IllegalStateException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
-                watchableHierarchyPathString
+                watchableHierarchyPath
             ));
         }
-        if (unsupportedHierarchies.contains(watchableHierarchyPathString)) {
+        if (unsupportedHierarchies.contains(watchableHierarchyPath)) {
             LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
             return;
         }
-        if (!watchableHierarchies.contains(watchableHierarchyPathString)) {
-            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPathString, root);
-            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
+        if (!watchableHierarchies.contains(watchableHierarchyPath)) {
+            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPath, root);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
             watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
         } else {
-            recentlyUsedHierarchies.remove(watchableHierarchyPath);
-            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
+            recentlyUsedHierarchies.remove(watchableHierarchy);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
         }
         LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContent(SnapshotHierarchy root, WatchMode watchMode, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         SnapshotHierarchy newRoot;
         newRoot = removeWatchedHierarchiesOverLimit(root, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
@@ -103,11 +111,12 @@ public class WatchableHierarchies {
 
     private SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
-        root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
+        root.rootSnapshots()
+            .forEach(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
+    private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maximumNumberOfWatchedHierarchies;
@@ -118,11 +127,11 @@ public class WatchableHierarchies {
                 maximumNumberOfWatchedHierarchies
             );
             for (int i = 0; i < toRemove; i++) {
-                Path locationToRemove = recentlyUsedHierarchies.removeLast();
+                File locationToRemove = recentlyUsedHierarchies.removeLast();
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies.stream().map(Path::toFile)::iterator);
+        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
         return result;
     }
 
@@ -134,6 +143,25 @@ public class WatchableHierarchies {
                 "You can override this by explicitly enabling file system watching.");
         }
         return invalidatedRoot;
+    }
+
+    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy newRoot = root;
+        newRoot = removeUnprovenHierarchies(newRoot, invalidator);
+        return newRoot;
+    }
+
+    @Nonnull
+    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator) {
+        return probeRegistry.unprovenHierarchies()
+            .reduce(root, (currentRoot, unprovenHierarchy) -> {
+                if (recentlyUsedHierarchies.remove(unprovenHierarchy)) {
+                    LOGGER.warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);
+                    return invalidator.invalidate(unprovenHierarchy.getAbsolutePath(), currentRoot);
+                } else {
+                    return currentRoot;
+                }
+            }, nonCombining());
     }
 
     private SnapshotHierarchy invalidateUnsupportedFileSystems(SnapshotHierarchy root, Invalidator invalidator) {
@@ -150,20 +178,21 @@ public class WatchableHierarchies {
         }
     }
 
-    public Collection<Path> getWatchableHierarchies() {
+    public Collection<File> getRecentlyUsedHierarchies() {
         return recentlyUsedHierarchies;
     }
 
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
-        vfsRoot.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
-            if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
+        vfsRoot.rootSnapshotsUnder(watchableHierarchy)
+            .filter(snapshotRoot -> !isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot))
+            .findAny()
+            .ifPresent(snapshotRoot -> {
                 throw new IllegalStateException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
                     watchableHierarchy
                 ));
-            }
-        });
+            });
     }
 
     public boolean ignoredForWatching(FileSystemLocationSnapshot snapshot) {
@@ -227,6 +256,7 @@ public class WatchableHierarchies {
         }
 
         private boolean shouldBeRemoved(FileSystemLocationSnapshot snapshot) {
+            //noinspection UnnecessaryParentheses
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
                 (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
         }
@@ -243,4 +273,5 @@ public class WatchableHierarchies {
     public interface Invalidator {
         SnapshotHierarchy invalidate(String absolutePath, SnapshotHierarchy currentRoot);
     }
+
 }

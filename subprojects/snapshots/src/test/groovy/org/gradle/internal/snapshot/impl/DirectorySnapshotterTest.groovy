@@ -325,7 +325,7 @@ class DirectorySnapshotterTest extends Specification {
 
         then:
         ! actuallyFiltered.get()
-        snapshot.children.size == 3
+        snapshot.children.size() == 3
         snapshot.children.every { it.class == MissingFileSnapshot }
         snapshot.children.every { it.accessType == AccessType.VIA_SYMLINK }
         0 * _

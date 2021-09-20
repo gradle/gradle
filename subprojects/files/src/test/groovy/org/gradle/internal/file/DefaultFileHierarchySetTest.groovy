@@ -46,7 +46,6 @@ class DefaultFileHierarchySetTest extends Specification {
         !set.contains(tmpDir.file("any"))
     }
 
-
     def "creates from collection containing single file"() {
         def dir = tmpDir.createDir("dir")
 
@@ -126,6 +125,20 @@ class DefaultFileHierarchySetTest extends Specification {
         ['C:\\', 'C:\\any']      | 'E:\\any\\thing'  | false
         ['C:\\any1', 'D:\\any2'] | 'C:\\any1\\thing' | true
         ['C:\\any1', 'D:\\any2'] | 'D:\\any2\\thing' | true
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def 'can handle complicated roots'() {
+        expect:
+        rootsOf(DefaultFileHierarchySet.of([
+            "/tulry/nested-cli/nested-cli-nested/buildSrc",
+            "/tulry/nested-cli/buildSrc/buildSrc",
+            "/tulry/nested/buildSrc"
+        ].collect({ new File(it) }))) == [
+            "/tulry/nested-cli/nested-cli-nested/buildSrc",
+            "/tulry/nested-cli/buildSrc/buildSrc",
+            "/tulry/nested/buildSrc"
+        ]
     }
 
     @Requires(TestPrecondition.UNIX)
@@ -331,5 +344,45 @@ class DefaultFileHierarchySetTest extends Specification {
                 dir2
                 dir3
         """.stripIndent().trim()
+    }
+
+    def "creating from file is the same as from path"() {
+        def dir = tmpDir.createDir("dir")
+        def dir2 = tmpDir.createDir("dir2")
+
+        when:
+        def fromFile = DefaultFileHierarchySet.of(dir)
+        def fromPath = DefaultFileHierarchySet.fromPath(dir.absolutePath)
+
+        then:
+        fromFile.flatten() == fromPath.flatten()
+
+        when:
+        fromFile = fromFile.plus(dir2)
+        fromPath = fromPath.plus(dir2.absolutePath)
+
+        then:
+        fromFile.flatten() == fromPath.flatten()
+    }
+
+    def "root paths are calculated correctly"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def dir1Child = dir1.file("child")
+        def commonDir2 = parent.createDir("common/dir2")
+        def commonDir3 = parent.createDir("common/dir3")
+
+        expect:
+        rootsOf(DefaultFileHierarchySet.of()) == []
+        rootsOf(DefaultFileHierarchySet.of(dir1)) == [dir1.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of([dir1, dir1Child])) == [dir1.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of(commonDir2)) == [commonDir2.absolutePath]
+        rootsOf(DefaultFileHierarchySet.of([dir1, commonDir2, commonDir3])) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
+    }
+
+    private static List<String> rootsOf(FileHierarchySet set) {
+        def roots = []
+        set.visitRoots((root -> roots.add(root)))
+        return roots
     }
 }
