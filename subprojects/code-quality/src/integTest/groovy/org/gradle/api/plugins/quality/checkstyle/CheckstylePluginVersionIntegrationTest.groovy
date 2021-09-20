@@ -26,6 +26,7 @@ import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
