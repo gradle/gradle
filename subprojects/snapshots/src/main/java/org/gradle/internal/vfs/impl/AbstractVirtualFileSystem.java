@@ -35,13 +35,13 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return rootReference.getRoot().getSnapshot(absolutePath);
+    public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return rootReference.getRoot().findSnapshot(absolutePath);
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        return rootReference.getRoot().getMetadata(absolutePath);
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
+        return rootReference.getRoot().findMetadata(absolutePath);
     }
 
     @Override

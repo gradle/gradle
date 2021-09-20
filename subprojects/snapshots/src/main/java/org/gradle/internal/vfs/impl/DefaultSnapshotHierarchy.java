@@ -59,7 +59,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         if (relativePath.length() == 0) {
             return rootNode.getSnapshot();
@@ -131,7 +131,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+        public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
             return Optional.empty();
         }
 

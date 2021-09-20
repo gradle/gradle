@@ -29,15 +29,15 @@ import java.util.stream.Stream;
 public interface SnapshotHierarchy {
 
     /**
-     * Returns the snapshot stored at the absolute path.
+     * Returns the metadata stored at the absolute path if it exists.
      */
-    Optional<MetadataSnapshot> getMetadata(String absolutePath);
+    Optional<MetadataSnapshot> findMetadata(String absolutePath);
 
     /**
-     * Returns the snapshot stored at the absolute path.
+     * Returns the snapshot stored at the absolute path if one exists.
      */
-    default Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return getMetadata(absolutePath)
+    default Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return findMetadata(absolutePath)
             .filter(FileSystemLocationSnapshot.class::isInstance)
             .map(FileSystemLocationSnapshot.class::cast);
     }
