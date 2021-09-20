@@ -179,12 +179,16 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     protected abstract void startWatchingHierarchies(Collection<File> hierarchiesToWatch);
+
     protected abstract void startWatchingProbeForHierarchy(File hierarchyToWatch);
+
     protected abstract void stopWatchingHierarchies(Collection<File> hierarchiesToWatch);
+
     protected abstract void stopWatchingProbeForHierarchy(File hierarchyToWatch);
 
     public interface FileSystemLocationToWatchValidator {
-        FileSystemLocationToWatchValidator NO_VALIDATION = location -> {};
+        FileSystemLocationToWatchValidator NO_VALIDATION = location -> {
+        };
 
         void validateLocationToWatch(File location);
     }
@@ -193,13 +197,13 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         return watchableHierarchies.stream()
             .map(File::getPath)
-            .filter(watchableHierarchy -> !hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
+            .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
             .reduce(DefaultFileHierarchySet.of(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
-    private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
+    private static boolean hasWatchableContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
         return snapshots
-            .allMatch(snapshot -> isMissing(snapshot) || watchableHierarchies.ignoredForWatching(snapshot));
+            .anyMatch(snapshot -> !isMissing(snapshot) && !watchableHierarchies.ignoredForWatching(snapshot));
     }
 
     private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
