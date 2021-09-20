@@ -38,6 +38,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
