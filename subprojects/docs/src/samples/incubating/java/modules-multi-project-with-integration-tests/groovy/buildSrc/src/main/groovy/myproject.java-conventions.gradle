@@ -12,11 +12,7 @@ repositories {
 testing {
     suites {
         test {
-            useJUnitJupiter()
-
-            dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
-            }
+            useJUnitJupiter('5.7.1')
         }
 
         integrationTest(JvmTestSuite) {
