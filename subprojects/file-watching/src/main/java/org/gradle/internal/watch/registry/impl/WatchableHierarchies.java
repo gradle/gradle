@@ -17,7 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.NativeException;
-import org.gradle.internal.file.DefaultFileHierarchySet;
+import net.rubygrapefruit.platform.file.FileSystemInfo;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -54,14 +54,14 @@ public class WatchableHierarchies {
      *
      * Those are normally project root directories from the current builds and from previous builds.
      */
-    private FileHierarchySet watchableFiles = DefaultFileHierarchySet.of();
+    private FileHierarchySet watchableFiles = FileHierarchySet.empty();
 
     /**
      * Files in locations that do not support watching.
      *
      * Those are the mount points of file systems that do not support watching.
      */
-    private FileHierarchySet unwatchableFiles = DefaultFileHierarchySet.of();
+    private FileHierarchySet unwatchableFiles = FileHierarchySet.empty();
 
     /**
      * Hierarchies in usage order, most recent first.
@@ -135,7 +135,8 @@ public class WatchableHierarchies {
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        this.watchableFiles = DefaultFileHierarchySet.of(hierarchies);
+        this.watchableFiles = hierarchies.stream()
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
         return result;
     }
 
@@ -221,7 +222,7 @@ public class WatchableHierarchies {
      */
     public void updateUnsupportedFileSystems(WatchMode watchMode) {
         unwatchableFiles = shouldWatchUnsupportedFileSystems(watchMode)
-            ? DefaultFileHierarchySet.of()
+            ? FileHierarchySet.empty()
             : detectUnsupportedHierarchies();
     }
 
@@ -232,14 +233,11 @@ public class WatchableHierarchies {
     private FileHierarchySet detectUnsupportedHierarchies() {
         try {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
-                .reduce(
-                    DefaultFileHierarchySet.of(),
-                    (fileHierarchySet, fileSystemInfo) -> fileHierarchySet.plus(fileSystemInfo.getMountPoint()),
-                    nonCombining()
-                );
+                .map(FileSystemInfo::getMountPoint)
+                .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, nonCombining());
         } catch (NativeException e) {
             LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched. Reason: {}", e.getMessage());
-            return DefaultFileHierarchySet.of();
+            return FileHierarchySet.empty();
         }
     }
 

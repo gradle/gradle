@@ -24,7 +24,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultFileHierarchySetTest extends Specification {
+class FileHierarchySetTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -32,7 +32,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir = tmpDir.createDir("dir")
 
         expect:
-        def set = DefaultFileHierarchySet.of(dir)
+        def set = from(dir)
         set.contains(dir)
         set.contains(dir.file("child"))
         !set.contains(dir.parentFile)
@@ -42,7 +42,7 @@ class DefaultFileHierarchySetTest extends Specification {
 
     def "creates from empty collection"() {
         expect:
-        def set = DefaultFileHierarchySet.of([])
+        def set = from()
         !set.contains(tmpDir.file("any"))
     }
 
@@ -50,7 +50,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir = tmpDir.createDir("dir")
 
         expect:
-        def set = DefaultFileHierarchySet.of([dir])
+        def set = from(dir)
         set.contains(dir)
         set.contains(dir.file("child"))
         !set.contains(dir.parentFile)
@@ -65,7 +65,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir3 = parent.createDir("common/dir3")
 
         expect:
-        def set = DefaultFileHierarchySet.of([dir1, dir2, dir3])
+        def set = from(dir1, dir2, dir3)
         set.contains(dir1)
         set.contains(dir2)
         set.contains(dir3)
@@ -85,7 +85,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir2 = dir1.createDir("dir2")
 
         expect:
-        def set = DefaultFileHierarchySet.of([dir2, dir1])
+        def set = from(dir2, dir1)
         set.contains(dir1)
         set.contains(dir2)
         set.contains(dir1.file("child"))
@@ -101,7 +101,7 @@ class DefaultFileHierarchySetTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "creates from file system root files"() {
         expect:
-        def set = DefaultFileHierarchySet.of(Arrays.asList(File.listRoots()))
+        def set = from(File.listRoots())
         set.contains(tmpDir.file("any"))
     }
 
@@ -109,7 +109,7 @@ class DefaultFileHierarchySetTest extends Specification {
     @Unroll
     def 'can handle more root dirs'() {
         expect:
-        DefaultFileHierarchySet.of(pathList.collect { new File(it) }).contains(target) == result
+        from(pathList.collect { new File(it) }).contains(target) == result
 
         where:
         pathList                 | target            | result
@@ -130,7 +130,7 @@ class DefaultFileHierarchySetTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def 'can handle complicated roots'() {
         expect:
-        rootsOf(DefaultFileHierarchySet.of([
+        rootsOf(from([
             "/tulry/nested-cli/nested-cli-nested/buildSrc",
             "/tulry/nested-cli/buildSrc/buildSrc",
             "/tulry/nested/buildSrc"
@@ -145,7 +145,7 @@ class DefaultFileHierarchySetTest extends Specification {
     @Unroll
     def 'can handle more dirs on Unix'() {
         expect:
-        DefaultFileHierarchySet.of(pathList.collect { new File(it) }).contains(target) == result
+        from(pathList.collect { new File(it) }).contains(target) == result
 
         where:
         pathList                       | target               | result
@@ -169,7 +169,7 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     def "can add dir to empty set"() {
-        def empty = DefaultFileHierarchySet.of([])
+        def empty = from()
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
 
@@ -191,7 +191,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def tooMany = parent.createDir("dir12")
         def tooFew = parent.createDir("dir")
         def child = dir1.createDir("child1")
-        def single = DefaultFileHierarchySet.of([dir1])
+        def single = from(dir1)
 
         expect:
         def s1 = single.plus(dir2)
@@ -258,7 +258,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir3 = parent.createDir("dir3")
         def other = parent.createDir("dir4")
         def child = dir1.createDir("child1")
-        def multi = DefaultFileHierarchySet.of([dir1, dir2])
+        def multi = from(dir1, dir2)
 
         expect:
         def s1 = multi.plus(dir3)
@@ -307,7 +307,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir6 = parent.createDir("dir6")
 
         expect:
-        def s1 = DefaultFileHierarchySet.of([dir1dir2dir3, dir1dir5])
+        def s1 = from(dir1dir2dir3, dir1dir5)
         s1.flatten() == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
 
         def s2 = s1.plus(dir1dir2dir4)
@@ -334,7 +334,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir1 = parent.createDir("dir1")
         def dir2 = parent.createDir("common/dir2")
         def dir3 = parent.createDir("common/dir3")
-        def set = DefaultFileHierarchySet.of([dir1, dir2, dir3])
+        def set = from(dir1, dir2, dir3)
 
         expect:
         set.toString() == """
@@ -346,25 +346,6 @@ class DefaultFileHierarchySetTest extends Specification {
         """.stripIndent().trim()
     }
 
-    def "creating from file is the same as from path"() {
-        def dir = tmpDir.createDir("dir")
-        def dir2 = tmpDir.createDir("dir2")
-
-        when:
-        def fromFile = DefaultFileHierarchySet.of(dir)
-        def fromPath = DefaultFileHierarchySet.fromPath(dir.absolutePath)
-
-        then:
-        fromFile.flatten() == fromPath.flatten()
-
-        when:
-        fromFile = fromFile.plus(dir2)
-        fromPath = fromPath.plus(dir2.absolutePath)
-
-        then:
-        fromFile.flatten() == fromPath.flatten()
-    }
-
     def "root paths are calculated correctly"() {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("dir1")
@@ -373,11 +354,23 @@ class DefaultFileHierarchySetTest extends Specification {
         def commonDir3 = parent.createDir("common/dir3")
 
         expect:
-        rootsOf(DefaultFileHierarchySet.of()) == []
-        rootsOf(DefaultFileHierarchySet.of(dir1)) == [dir1.absolutePath]
-        rootsOf(DefaultFileHierarchySet.of([dir1, dir1Child])) == [dir1.absolutePath]
-        rootsOf(DefaultFileHierarchySet.of(commonDir2)) == [commonDir2.absolutePath]
-        rootsOf(DefaultFileHierarchySet.of([dir1, commonDir2, commonDir3])) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
+        rootsOf(from()) == []
+        rootsOf(from(dir1)) == [dir1.absolutePath]
+        rootsOf(from(dir1, dir1Child)) == [dir1.absolutePath]
+        rootsOf(from(commonDir2)) == [commonDir2.absolutePath]
+        rootsOf(from(dir1, commonDir2, commonDir3)) == [dir1.absolutePath, commonDir2.absolutePath, commonDir3.absolutePath]
+    }
+
+    private static FileHierarchySet from(File... roots) {
+        from(roots as List)
+    }
+
+    private static FileHierarchySet from(Iterable<File> roots) {
+        def set = FileHierarchySet.empty()
+        for (def root : roots) {
+            set = set.plus(root)
+        }
+        return set
     }
 
     private static List<String> rootsOf(FileHierarchySet set) {

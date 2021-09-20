@@ -18,7 +18,6 @@ package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
@@ -44,7 +43,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
-    protected FileHierarchySet watchedFiles = DefaultFileHierarchySet.of();
+    protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
     private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
@@ -198,7 +197,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         return watchableHierarchies.stream()
             .map(File::getPath)
             .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
-            .reduce(DefaultFileHierarchySet.of(), FileHierarchySet::plus, Combiners.nonCombining());
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
     private static boolean hasWatchableContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {

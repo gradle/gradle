@@ -16,8 +16,7 @@
 
 package org.gradle.internal.file;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import org.gradle.internal.watch.registry.impl.Combiners;
 
 import java.io.File;
 import java.util.List;
@@ -26,12 +25,9 @@ public class DefaultReservedFileSystemLocationRegistry implements ReservedFileSy
     private final FileHierarchySet reservedFileSystemLocations;
 
     public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedFileSystemLocations) {
-        this.reservedFileSystemLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedFileSystemLocations, new Function<ReservedFileSystemLocation, File>() {
-            @Override
-            public File apply(ReservedFileSystemLocation input) {
-                return input.getReservedFileSystemLocation().get().getAsFile();
-            }
-        }));
+        this.reservedFileSystemLocations = registeredReservedFileSystemLocations.stream()
+            .map(input -> input.getReservedFileSystemLocation().get().getAsFile())
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
     }
 
     @Override
