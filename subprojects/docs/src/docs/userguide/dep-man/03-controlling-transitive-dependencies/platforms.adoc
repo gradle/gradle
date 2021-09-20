@@ -90,14 +90,13 @@ Some keywords are reserved, so they cannot be used as an alias. Next words canno
 - class
 - convention
 
-Additional to that next words cannot be used as a suffix of an alias:
+Additional to that next words cannot be used as a first subgroup of an alias for dependencies (for bundles, versions and plugins this restriction doesn't apply):
 
 - bundles
 - versions
-- version
-- bundle
-- plugin
 - plugins
+
+So for example for dependencies an alias `versions-dependency` is not valid, but `versionsDependency` or `dependency-versions` are valid.
 ====
 
 [[sec:common-version-numbers]]
