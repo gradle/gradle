@@ -70,7 +70,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         return watchableHierarchies.getRecentlyUsedHierarchies().stream().anyMatch(watchableHierarchy -> {
-            boolean hasSnapshotsToWatch = root.hasDescendantsUnder(watchableHierarchy.toString());
+            boolean hasSnapshotsToWatch = root.hasDescendantsUnder(watchableHierarchy.getPath());
             if (watchedHierarchies.contains(watchableHierarchy)) {
                 // Need to stop watching this hierarchy
                 return !hasSnapshotsToWatch;
