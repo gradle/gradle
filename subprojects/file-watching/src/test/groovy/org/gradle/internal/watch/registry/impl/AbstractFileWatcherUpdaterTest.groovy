@@ -285,11 +285,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def "watching continues for watched hierarchies that are confirmed by watch probe"() {
         def watchableHierarchy = file("watchable").createDir()
-        def watchableHierarchyProbeDir = file(watchableHierarchy, ".gradle")
+        def watchableHierarchyProbeDir = watchableHierarchy.file(".gradle")
         def fileInWatchableHierarchy = watchableHierarchy.file("file.txt").createFile()
 
         def notWatchedHierarchy = file("not-watched").createDir()
-        def notWatchedHierarchyProbeDir = file(notWatchedHierarchy, ".gradle")
+        def notWatchedHierarchyProbeDir = notWatchedHierarchy.file(".gradle")
         def fileInNotWatchedHierarchy = notWatchedHierarchy.file("file.txt").createFile()
 
         def watchableHierarchies = [watchableHierarchy, notWatchedHierarchy]
