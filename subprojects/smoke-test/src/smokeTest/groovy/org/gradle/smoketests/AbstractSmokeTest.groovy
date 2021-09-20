@@ -66,6 +66,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.lint
         static nebulaLint = "17.0.0"
 
+        // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
+        static ideaExt = "1.0.1"
+
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215

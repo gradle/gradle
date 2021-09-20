@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.smoketests
 
-import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
-
-/**
- * Defines a framework for running automated tests (JUnit 4/5, TestNG) which will be used by a {@link JvmTestSuiteTarget} of a {@link JvmTestSuite}.
- *
- * @since 7.3
- */
-@Incubating
-public interface JvmTestingFramework {
-    Property<String> getVersion();
+class IdeaExtSmokeTest extends AbstractSmokeTest {
+    def "can use org.jetbrains.gradle.plugin.idea-ext"() {
+        buildFile << """
+            plugins {
+                id "org.jetbrains.gradle.plugin.idea-ext" version "${TestedVersions.ideaExt}"
+                id "java"
+            }
+        """
+        expect:
+        runner("help").build()
+    }
 }

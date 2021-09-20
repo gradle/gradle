@@ -41,10 +41,6 @@ public interface FingerprintingStrategy {
      */
     FingerprintHashingStrategy getHashingStrategy();
 
-    /**
-     * UsedByScansPlugin
-     * Names are expected as part of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType.Result.VisitState.getPropertyNormalizationStrategyName().
-     */
     String getIdentifier();
 
     CurrentFileCollectionFingerprint getEmptyFingerprint();

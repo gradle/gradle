@@ -23,6 +23,8 @@ import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
 import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
+import java.io.File
+import java.io.FileFilter
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -73,6 +75,11 @@ fun cleanUp(filesToCleanUp: List<File>) {
     }
 }
 
+fun File.nonEmptyDirectoryDebugMessage(): String {
+    val atMostTwoFiles = listFiles(FileFilter { isFile })?.toList()?.take(2) ?: emptyList()
+    return "$absolutePath: ${atMostTwoFiles.joinToString { it.absolutePath }}"
+}
+
 fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<File>) {
     if (failedTasks.any { it is Test }) {
         println("Leftover files: $tmpTestFiles")
@@ -80,10 +87,11 @@ fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<File>) {
     }
 
     if (tmpTestFiles.isNotEmpty()) {
+        val errorMessage = "Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.nonEmptyDirectoryDebugMessage() }}"
         if (testFilesCleanup.reportOnly.get()) {
-            println("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+            println(errorMessage)
         } else {
-            throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.absolutePath }}")
+            throw GradleException(errorMessage)
         }
     }
 }

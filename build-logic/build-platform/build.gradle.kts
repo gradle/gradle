@@ -15,18 +15,18 @@ dependencies {
     constraints {
         // Gradle Plugins
         api("com.gradle:gradle-enterprise-gradle-plugin:3.7")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.1.1") // Sync with `settings.gradle.kts`
+        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.2") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.19.1")
-        api("com.gradle.publish:plugin-publish-plugin:0.14.0")
+        api("com.gradle.publish:plugin-publish-plugin:0.16.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
-        api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
+        api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.3.1")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.1.0")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.7.0")
-        api("com.diffplug.spotless:spotless-plugin-gradle:5.10.2")
+        api("com.diffplug.spotless:spotless-plugin-gradle:5.15.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:0.71.0")
 
         // Java Libraries
