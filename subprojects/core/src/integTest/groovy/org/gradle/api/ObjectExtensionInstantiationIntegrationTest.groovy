@@ -128,7 +128,9 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
-        failure.assertHasCause("Multiple constructors of type Thing match parameters: ['a', 'b']")
+        failure.assertHasCause("""Multiple constructors for parameters ['a', 'b']:
+  1. candidate: Thing(String, String, ProjectLayout)
+  2. best match: Thing(String, String, ObjectFactory)""")
     }
 
     def "fails when too many construction parameters provided"() {

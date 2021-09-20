@@ -121,6 +121,7 @@
          <trusted-key id="6214760097dc5cfad0175ac2c9fbaa83a8753994" group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          <trusted-key id="8a10792983023d5d14c93b488d7f1bec1e2ecae7" group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          <trusted-key id="666a4692ce11b7b3f4eb7b3410066a9707090cf9" group="org.javassist" name="javassist"/>
+         <trusted-key id="66ca61ea0fc7e9ea1216f83396b88eacd463b90b" group="com.diffplug.spotless"/>
          <trusted-key id="694621a7227d8d5289699830abe9f3126bb741c1">
             <trusting group="com.google.guava"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
@@ -159,6 +160,7 @@
             <trusting group="^org[.]rnorth($|([.].*))" regex="true"/>
             <trusting group="org.testcontainers"/>
             <trusting group="^com[.]diffplug($|([.].*))" regex="true"/>
+            <trusting group="com.diffplug.durian"/>
          </trusted-key>
          <trusted-key id="8a10792983023d5d14c93b488d7f1bec1e2ecae7">
             <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
