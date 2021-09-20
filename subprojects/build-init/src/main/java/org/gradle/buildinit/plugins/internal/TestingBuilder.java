@@ -20,4 +20,5 @@ public interface TestingBuilder {
     void junitSuite(String name);
     void junitJupiterSuite(String name);
     void spockSuite(String name);
+    void kotlinTestSuite(String name);
 }

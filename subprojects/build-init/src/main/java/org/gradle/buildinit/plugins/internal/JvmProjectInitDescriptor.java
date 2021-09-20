@@ -208,6 +208,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             case SPOCK:
                 buildScriptBuilder.testing().spockSuite(name);
                 break;
+            case KOTLINTEST:
+                buildScriptBuilder.testing().kotlinTestSuite(name);
+                break;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");
         }
@@ -306,6 +309,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     buildScriptBuilder.dependencyForSuite("integrationTest", "implementation", "Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
                     buildScriptBuilder.dependencyForSuite("integrationTest", "implementation", "Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
                 } else {
+                    buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
                     buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
                 }
                 break;

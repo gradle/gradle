@@ -1207,7 +1207,6 @@ public class BuildScriptBuilder {
             printer.printBlock(blockSelector, this);
         }
 
-
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
             if (!suites.isEmpty()) {
@@ -1237,6 +1236,11 @@ public class BuildScriptBuilder {
         @Override
         public void spockSuite(String name) {
             suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder));
+        }
+
+        @Override
+        public void kotlinTestSuite(String name) {
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder));
         }
     }
 
@@ -1311,7 +1315,8 @@ public class BuildScriptBuilder {
         public enum TestSuiteFramework {
             JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4),
             JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER),
-            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK);
+            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK),
+            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST);
 
             final MethodInvocationExpression method;
             final DefaultJvmTestSuite.Frameworks framework;

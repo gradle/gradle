@@ -33,14 +33,13 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "defaults to kotlin build scripts"() {
         when:
-        run (tasks)
+        run (['init', '--type', 'kotlin-library'] + incubating)
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
 
         where:
-        tasks << [['init', '--type', 'kotlin-library'],
-                  ['init', '--type', 'kotlin-library', '--incubating']]
+        incubating << [[], ['--incubating']]
     }
 
     def "incubating option adds runnable test suites"() {

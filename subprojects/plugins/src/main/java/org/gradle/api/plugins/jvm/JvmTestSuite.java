@@ -42,7 +42,9 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useJUnit(String version);
     void useSpock();
     void useSpock(String version);
-    // TODO: TestNG, Kotlintest?
+    void useKotlinTest();
+    void useKotlinTest(String version);
+    // TODO: TestNG?
 
     ComponentDependencies getDependencies();
     void dependencies(Action<? super ComponentDependencies> dependencies);

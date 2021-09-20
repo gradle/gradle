@@ -46,6 +46,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JUNIT4("junit:junit", "4.13"),
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
         SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.5.31"),
         NONE(null, null);
 
         @Nullable
@@ -134,8 +135,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(task -> {
                 task.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
                     switch(framework.framework) {
-                        case NONE:
-                        case JUNIT4:
+                        case NONE: // fall-through
+                        case JUNIT4: // fall-through
+                        case KOTLIN_TEST:
                             return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
@@ -146,7 +148,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }));
             });
         });
-
     }
 
     private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
@@ -155,7 +156,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 switch (framework.framework) {
                     case JUNIT4: // fall-through
                     case JUNIT_JUPITER: // fall-through
-                    case SPOCK:
+                    case SPOCK: // fall-through
+                    case KOTLIN_TEST:
                         return framework.framework.getDependency(framework.version);
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
@@ -223,6 +225,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public void useSpock(String version) {
         setFrameworkTo(new TestingFramework(Frameworks.SPOCK, version));
+    }
+
+    @Override
+    public void useKotlinTest() {
+        useKotlinTest(Frameworks.KOTLIN_TEST.defaultVersion);
+    }
+
+    @Override
+    public void useKotlinTest(String version) {
+        setFrameworkTo(new TestingFramework(Frameworks.KOTLIN_TEST, version));
     }
 
     private void setFrameworkTo(TestingFramework framework) {
