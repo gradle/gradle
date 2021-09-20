@@ -112,6 +112,11 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
+    public FileHierarchySet getWatchedFiles() {
+        return watchedFiles;
+    }
+
+    @Override
     public void triggerWatchProbe(String path) {
         probeRegistry.triggerWatchProbe(path);
     }

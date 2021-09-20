@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.registry;
 
+import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.vfs.WatchMode;
@@ -111,4 +112,11 @@ public interface FileWatcherUpdater {
      * @see FileWatcherUpdater
      */
     Collection<File> getWatchedHierarchies();
+
+    /**
+     * The files actually being watched right now.
+     *
+     * @see FileWatcherUpdater
+     */
+    FileHierarchySet getWatchedFiles();
 }
