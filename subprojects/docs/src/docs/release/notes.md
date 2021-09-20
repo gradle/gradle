@@ -19,7 +19,9 @@ Include only their name, impactful features should be called out separately belo
 [yinghao niu](https://github.com/towith),
 [Björn Kautler](https://github.com/Vampire),
 [Alexis Tual](https://github.com/alextu),
-[Tomasz Godzik](https://github.com/tgodzik)
+[Tomasz Godzik](https://github.com/tgodzik),
+[Matthew Haughton](https://github.com/3flex)
+
 
 ## Upgrade instructions
 
