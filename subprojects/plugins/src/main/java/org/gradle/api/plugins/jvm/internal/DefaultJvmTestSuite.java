@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -37,7 +38,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -46,14 +46,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
     private static class TestingFramework {
         private final Frameworks framework;
-        @Nullable
         private final String version;
 
-        private TestingFramework(Frameworks framework, @Nullable String version) {
+        private TestingFramework(Frameworks framework, String version) {
+            Preconditions.checkNotNull(version);
             this.framework = framework;
             this.version = version;
         }
     }
+    private final static TestingFramework NO_OPINION = new TestingFramework(Frameworks.NONE, "unset");
 
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
@@ -86,7 +87,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
-            getTestingFramework().convention(new TestingFramework(Frameworks.NONE, null));
+            getTestingFramework().convention(NO_OPINION);
         }
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
@@ -119,10 +120,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
                 switch (framework.framework) {
                     case JUNIT4:
-                        assert framework.version != null;
                         return "junit:junit:" + framework.version;
                     case JUNIT_JUPITER:
-                        assert framework.version != null;
                         return "org.junit.jupiter:junit-jupiter:" + framework.version;
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
