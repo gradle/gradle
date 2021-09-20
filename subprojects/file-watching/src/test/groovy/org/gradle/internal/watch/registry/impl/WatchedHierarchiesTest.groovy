@@ -22,13 +22,13 @@ import spock.lang.Specification
 
 import java.util.stream.Stream
 
-import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.resolveWatchedHierarchies
+import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.resolveWatchedFiles
 
 class WatchedHierarchiesTest extends Specification implements TestSnapshotFixture {
     def "does not watch when there's nothing to watch"() {
         def watchable = Mock(WatchableHierarchies)
         when:
-        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([]))
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([]))
         then:
         rootsOf(watched) == []
         1 * watchable.stream() >> Stream.of()
@@ -39,7 +39,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def dir = new File("empty").absoluteFile
 
         when:
-        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
             directory(dir.absolutePath, [])
         ]))
         then:
@@ -52,7 +52,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def dir = new File("empty").absoluteFile
 
         when:
-        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
             missing(dir.absolutePath + "/missing.txt")
         ]))
         then:
@@ -67,7 +67,7 @@ class WatchedHierarchiesTest extends Specification implements TestSnapshotFixtur
         def grandchild = new File(child, "grandchild").absoluteFile
 
         when:
-        def watched = resolveWatchedHierarchies(watchable, buildHierarchy([
+        def watched = resolveWatchedFiles(watchable, buildHierarchy([
             regularFile(new File(grandchild, "missing.txt").absolutePath)
         ]))
         then:

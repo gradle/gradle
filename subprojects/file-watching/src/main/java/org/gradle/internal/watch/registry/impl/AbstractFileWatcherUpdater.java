@@ -123,21 +123,21 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
 
     private void updateWatchedHierarchies(SnapshotHierarchy root) {
-        ImmutableSet<File> oldWatchedRoots = watchedHierarchies;
-        ImmutableSet<File> oldProbedRoots = probedHierarchies;
+        ImmutableSet<File> oldWatchedHierarchies = watchedHierarchies;
+        ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
 
-        watchedFiles = resolveWatchedHierarchies(watchableHierarchies, root);
+        watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
 
-        ImmutableSet.Builder<File> watchedRootsBuilder = ImmutableSet.builder();
-        watchedFiles.visitRoots(absolutePath -> watchedRootsBuilder.add(new File(absolutePath)));
-        watchedHierarchies = watchedRootsBuilder.build();
+        ImmutableSet.Builder<File> watchedHierarchiesBuilder = ImmutableSet.builder();
+        watchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
+        watchedHierarchies = watchedHierarchiesBuilder.build();
 
         // Probe every hierarchy that is watched, even ones nested inside others
         probedHierarchies = watchableHierarchies.stream()
             .filter(watchedFiles::contains)
             .collect(ImmutableSet.toImmutableSet());
 
-        if (oldWatchedRoots.equals(watchedHierarchies) && oldProbedRoots.equals(probedHierarchies)) {
+        if (oldWatchedHierarchies.equals(watchedHierarchies) && oldProbedHierarchies.equals(probedHierarchies)) {
             // Nothing changed
             return;
         }
@@ -145,18 +145,18 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         if (watchedHierarchies.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
-        List<File> hierarchiesToStopWatching = oldWatchedRoots.stream()
-            .filter(oldWatchedRoot -> !watchedHierarchies.contains(oldWatchedRoot))
-            .collect(Collectors.toCollection(() -> new ArrayList<>(oldWatchedRoots.size())));
+        List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
+            .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
+            .collect(Collectors.toCollection(() -> new ArrayList<>(oldWatchedHierarchies.size())));
         List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
-            .filter(newWatchedRoot -> !oldWatchedRoots.contains(newWatchedRoot))
+            .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
             .collect(Collectors.toCollection(() -> new ArrayList<>(watchedHierarchies.size())));
 
-        oldProbedRoots.stream()
-            .filter(oldProbedRoot -> !probedHierarchies.contains(oldProbedRoot))
-            .forEach(probedRoot -> {
-                stopWatchingProbeForHierarchy(probedRoot);
-                probeRegistry.disarmWatchProbe(probedRoot);
+        oldProbedHierarchies.stream()
+            .filter(oldProbedHierarchy -> !probedHierarchies.contains(oldProbedHierarchy))
+            .forEach(probedHierarchy -> {
+                stopWatchingProbeForHierarchy(probedHierarchy);
+                probeRegistry.disarmWatchProbe(probedHierarchy);
             });
 
         if (!hierarchiesToStopWatching.isEmpty()) {
@@ -168,10 +168,10 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         }
 
         probedHierarchies.stream()
-            .filter(newProbedRoot -> !oldProbedRoots.contains(newProbedRoot))
-            .forEach(probedRoot -> {
-                startWatchingProbeForHierarchy(probedRoot);
-                probeRegistry.armWatchProbe(probedRoot);
+            .filter(newProbedHierarchy -> !oldProbedHierarchies.contains(newProbedHierarchy))
+            .forEach(probedHierarchy -> {
+                startWatchingProbeForHierarchy(probedHierarchy);
+                probeRegistry.armWatchProbe(probedHierarchy);
             });
 
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
@@ -193,7 +193,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @VisibleForTesting
-    static FileHierarchySet resolveWatchedHierarchies(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
+    static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         return watchableHierarchies.stream()
             .map(File::getPath)
             .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
