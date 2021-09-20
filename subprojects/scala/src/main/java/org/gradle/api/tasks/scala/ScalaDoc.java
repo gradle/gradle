@@ -155,16 +155,13 @@ public class ScalaDoc extends SourceTask {
 
     /**
      * Returns whether it is scala 3.
+     * @since 7.3
      */
+    @Incubating
     @Optional
     @Input
     public Boolean getIsScala3() {
         return isScala3;
-    }
-
-    public void setIsScala3(Boolean isScala3) {
-
-        this.isScala3 = isScala3;
     }
 
     /**

@@ -21,13 +21,11 @@ import org.gradle.internal.process.ArgWriter;
 import org.gradle.workers.WorkAction;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters> {
     @Override
