@@ -113,4 +113,9 @@ public class InitSettings {
     public boolean getUseIncubatingAPIs() {
         return useIncubatingAPIs;
     }
+
+    @Incubating
+    public boolean getUseTestSuites() {
+        return useIncubatingAPIs; // The only Incubating API used, for now
+    }
 }

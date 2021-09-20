@@ -103,7 +103,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
-            if (settings.getUseIncubatingAPIs()) {
+            if (settings.getUseTestSuites()) {
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
                 addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
             }
@@ -142,7 +142,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
             sourceTemplates(subproject, settings, templateFactory, sourceTemplates);
             testSourceTemplates(subproject, settings, templateFactory, testSourceTemplates);
-            if (settings.getUseIncubatingAPIs()) {
+            if (settings.getUseTestSuites()) {
                 integrationTestSourceTemplates(subproject, settings, templateFactory, integrationTestSourceTemplates);
             }
 
