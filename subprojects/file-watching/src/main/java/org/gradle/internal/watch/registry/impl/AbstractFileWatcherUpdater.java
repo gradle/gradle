@@ -168,7 +168,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
                 continue;
             }
 
-            if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies, watchedHierarchies)) {
+            if (hasNoContent(vfsRoot.rootSnapshotsUnder(watchableHierarchyPath), watchableHierarchies)) {
                 continue;
             }
             watchedHierarchies = watchedHierarchies.plus(watchableHierarchy);
@@ -176,12 +176,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         return watchedHierarchies;
     }
 
-    private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies, FileHierarchySet watchedHierarchies) {
+    private static boolean hasNoContent(Stream<FileSystemLocationSnapshot> snapshots, WatchableHierarchies watchableHierarchies) {
         return snapshots
-            .allMatch(snapshot -> isMissing(snapshot)
-                || watchableHierarchies.ignoredForWatching(snapshot)
-                || watchedHierarchies.contains(snapshot.getAbsolutePath())
-            );
+            .allMatch(snapshot -> isMissing(snapshot) || watchableHierarchies.ignoredForWatching(snapshot));
     }
 
     private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
