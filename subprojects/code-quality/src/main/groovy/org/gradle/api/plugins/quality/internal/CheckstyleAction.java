@@ -16,27 +16,33 @@
 
 package org.gradle.api.plugins.quality.internal;
 
-import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import com.google.common.base.Suppliers;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.workers.WorkAction;
 
 import java.lang.reflect.Method;
 import java.util.Vector;
+import java.util.function.Supplier;
 
 public abstract class CheckstyleAction implements WorkAction<CheckstyleActionParameters> {
 
+    private static final Supplier<DefaultIsolatedAntBuilder> BUILDER = Suppliers.memoize(() -> {
+        ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
+        ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+        return new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory(), moduleRegistry);
+    });
+
     @Override
     public void execute() {
-        Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
-        Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
-        configureAntBuilder(antBuilder, antLogger);
-
-        // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
-        // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-        // because they are not an instanceof its Closure class.
-        Object delegate = new AntBuilderDelegate(antBuilder, Thread.currentThread().getContextClassLoader());
-        ClosureBackedAction.execute(delegate, new CheckstyleAntInvoker(this, this, getParameters()));
+        BUILDER.get().withClasspath(getParameters().getClasspath()).execute(new CheckstyleAntInvoker(this, this, getParameters()));
     }
 
     private static void configureAntBuilder(Object antBuilder, Object antLogger) {

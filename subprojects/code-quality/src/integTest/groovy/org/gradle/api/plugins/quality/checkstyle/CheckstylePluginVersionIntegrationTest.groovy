@@ -26,6 +26,7 @@ import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -149,6 +150,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
+    @IgnoreRest
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"
 
