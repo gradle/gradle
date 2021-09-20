@@ -3,6 +3,10 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 This sample shows how build logic can be organized into reusable pieces and published to a repository for reuse in other projects
 for multi-repo setups.
 
+NOTE: This sample shows how to adopt an link:sample_publishing_convention_plugins.html[existing sample] for use with Test Suites.
+
+IMPORTANT: Test Suites are an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+
 == Use case
 
 As an example, let's say an organization produces two types of Java software - services and libraries.

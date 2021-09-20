@@ -2,7 +2,12 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 
 This is an link:sample_java_modules_multi_project.html[extension of this sample] that adds blackbox integration tests.
 
+NOTE: This sample shows how to adopt an link:sample_java_modules_multi_project_with_integration_tests.html[existing sample] for use with Test Suites.
+
+IMPORTANT: Test Suites are an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+
 Here, the link:{userManualPath}/test_suite_plugin.html[Test Suite Plugin] creates an additional source set _integrationTest_ with a `module-info.java`.
+
 
 ```
 src

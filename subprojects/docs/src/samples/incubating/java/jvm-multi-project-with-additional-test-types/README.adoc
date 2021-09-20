@@ -2,6 +2,10 @@ NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com
 
 This sample shows how to add additional test types to a JVM project in Gradle. Your project may have many different kinds of tests--unit tests, integration tests, functional tests, etc. A JVM project in Gradle has a single `Test` task, but other tasks can be added to represent each of these test types using the link:{userManualPath}/test_suite_plugin.html[Test Suite Plugin].
 
+NOTE: This sample shows how to adopt an link:sample_jvm_multi_project_with_additional_test_types.html[existing sample] for use with Test Suites.
+
+IMPORTANT: Test Suites are an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+
 In this sample, we are testing Java projects with JUnit5; however, this applies to other JVM languages as well.
 
 Concretely, we add a _convention plugin_ in `buildSrc` to share the integration test setup between multiple subprojects:

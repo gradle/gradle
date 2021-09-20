@@ -230,10 +230,10 @@ samples {
         }
 
         incubatingJvmMultiProjectWithAdditionalTestTypes {
-            sampleDirectory = samplesRoot.dir("java/incubating/jvm-multi-project-with-additional-test-types")
-            displayName = "(Incubating) Using additional test types with Test Suites"
+            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-additional-test-types")
+            displayName = "Using additional test types with Test Suites (Incubating)"
             description = "Add an additional test type (e.g. integration tests) to a project using the `@Incubating` Test Suites API."
-            category = "Java"
+            category = "Incubating"
 
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -248,10 +248,10 @@ samples {
             }
         }
         incubatingJavaModulesMultiProjectWithIntegrationTests {
-            sampleDirectory = samplesRoot.dir("java/incubating/modules-multi-project-with-integration-tests")
-            displayName = "(Incubating) Building Java Modules with Blackbox Tests with Test Suites"
+            sampleDirectory = samplesRoot.dir("incubating/java/modules-multi-project-with-integration-tests")
+            displayName = "Building Java Modules with Blackbox Tests with Test Suites (Incubating)"
             description = "Build Java Modules with blackbox integration tests using the `@Incubating` Test Suites API."
-            category = "Java Modules"
+            category = "Incubating"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
@@ -269,10 +269,10 @@ samples {
             }
         }
         incubatingPublishingConventionPlugins {
-            sampleDirectory = samplesRoot.dir("build-organization/incubating/publishing-convention-plugins")
-            displayName = "(Incubating) Sharing build logic in a multi-repo setup with Test Suites"
+            sampleDirectory = samplesRoot.dir("incubating/build-organization/publishing-convention-plugins")
+            displayName = "Sharing build logic in a multi-repo setup with Test Suites (Incubating)"
             description = "Organize and publish build logic for reuse in other projects using the `@Incubating` Test Suites API."
-            category = "Build organization"
+            category = "Incubating"
             common {
                 from(templates.precompiledScriptPluginUtils)
             }

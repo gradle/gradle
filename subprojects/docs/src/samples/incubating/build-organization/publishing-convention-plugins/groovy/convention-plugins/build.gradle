@@ -1,29 +1,39 @@
 // tag::apply[]
 // tag::publish[]
 plugins {
-    `kotlin-dsl`
+    id 'groovy-gradle-plugin'
 // end::apply[]
-    `maven-publish`
+    id 'maven-publish'
+    id 'java'
 // tag::apply[]
 }
 // end::apply[]
 
-group = "com.myorg.conventions"
-version = "1.0"
+group = 'com.myorg.conventions'
+version = '1.0'
 
 publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
-            url = uri(layout.buildDirectory.dir("repo"))
+            url = layout.buildDirectory.dir("repo")
         }
     }
 }
 
-tasks.publish {
-    dependsOn("check")
+tasks.named('publish') {
+    dependsOn('check')
 }
+
 // end::publish[]
+
+testing {
+    suites {
+        test {
+            useSpock()
+        }
+    }
+}
 
 // tag::repositories-and-dependencies[]
 repositories {
@@ -31,7 +41,6 @@ repositories {
 }
 
 dependencies {
-    implementation("gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.2")
-    testImplementation("junit:junit:4.13")
+    implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.2'
 }
 // end::repositories-and-dependencies[]
