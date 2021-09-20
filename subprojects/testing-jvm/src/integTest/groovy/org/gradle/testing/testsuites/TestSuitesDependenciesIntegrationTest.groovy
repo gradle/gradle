@@ -47,43 +47,20 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         tasks.named('check') {
             dependsOn testing.suites.integTest
         }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                assert configurations.testCompileClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert !configurations.integTestCompileClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
+                assert !configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
+            }
+        }
         """
 
-        file('src/test/java/example/UnitTest.java') << '''
-            package example;
-
-            import org.apache.commons.lang3.StringUtils;
-            import org.junit.Assert;
-            import org.junit.Test;
-
-            public class UnitTest {
-                @Test
-                public void unitTest() {
-                    Assert.assertTrue(StringUtils.isEmpty(""));
-                }
-            }
-        '''
-
-        file('src/integTest/java/it/IntegrationTest.java') << '''
-            package it;
-
-            import org.apache.commons.lang3.StringUtils; // compilation fails here; commons-lang3 is not automatically "inherited" by integTests
-            import org.junit.Assert;
-            import org.junit.Test;
-
-            public class IntegrationTest {
-                @Test
-                public void integrationTest() {
-                    Assert.assertTrue(StringUtils.isEmpty("")); // compilation also fails here; commons-lang3 is not automatically "inherited" by integTests
-                }
-            }
-        '''
-
-        when:
-        fails 'check'
-
-        then:
-        failureCauseContains('Compilation failed; see the compiler error output for details.')
+        expect:
+        succeeds 'checkConfiguration'
     }
 
     def 'default test suite has project dependency by default; others do not'() {
