@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.internal;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.StatusEvent;
+import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 
-/**
- * Base implementation of the {@code StatusEvent} interface.
- */
-public class DefaultStatusEvent extends BaseProgressEvent implements StatusEvent {
-
-    private final long total;
+public class DefaultStatusEvent extends AbstractProgressEvent<DefaultFileDownloadDescriptor> implements InternalStatusEvent {
     private final long progress;
-    private final String unit;
+    private final long total;
+    private final String units;
 
-    public DefaultStatusEvent(long eventTime, OperationDescriptor descriptor, long total, long progress, String unit) {
-        super(eventTime, descriptor.getDisplayName(), descriptor);
-        this.total = total;
+    public DefaultStatusEvent(long eventTime, DefaultFileDownloadDescriptor descriptor, long progress, long total, String units) {
+        super(eventTime, descriptor);
         this.progress = progress;
-        this.unit = unit;
+        this.total = total;
+        this.units = units;
     }
 
     @Override
     public String getDisplayName() {
-        return getDescriptor().getDisplayName() + " " + progress + "/" + total + " " + unit + " completed";
+        return getDescriptor().getDisplayName();
     }
 
     @Override
@@ -51,7 +46,7 @@ public class DefaultStatusEvent extends BaseProgressEvent implements StatusEvent
     }
 
     @Override
-    public String getUnit() {
-        return unit;
+    public String getUnits() {
+        return units;
     }
 }

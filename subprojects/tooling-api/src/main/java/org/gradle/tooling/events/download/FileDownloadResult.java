@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.configuration;
+package org.gradle.tooling.events.download;
 
-import org.gradle.tooling.events.FinishEvent;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationResult;
 
 /**
- * An event that informs about a project configuration operation having finished its execution.
+ * The result of a file download operation.
  *
- * @since 5.1
+ * @since 7.3
  */
-public interface ProjectConfigurationFinishEvent extends ProjectConfigurationProgressEvent, FinishEvent {
-    @Override
-    ProjectConfigurationOperationResult getResult();
+@Incubating
+public interface FileDownloadResult extends OperationResult {
+    /**
+     * Returns the total download size. Note that this might not be the same as the file size.
+     */
+    long getBytesDownloaded();
 }

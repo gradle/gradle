@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.download;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.api.Incubating;
-import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
 
-/**
- * An event that indicates the completion of a file download.
- *
- * @since 7.3
- */
-@Incubating
-public interface FileDownloadFinishEvent extends FileDownloadProgressEvent, FinishEvent {
+import java.util.List;
+
+public class DefaultFileDownloadFailureResult extends DefaultFailureResult implements InternalFileDownloadResult {
+    private final long bytesDownloaded;
+
+    public DefaultFileDownloadFailureResult(long startTime, long endTime, List<DefaultFailure> failures, long bytesDownloaded) {
+        super(startTime, endTime, failures);
+        this.bytesDownloaded = bytesDownloaded;
+    }
+
     @Override
-    FileDownloadResult getResult();
+    public long getBytesDownloaded() {
+        return bytesDownloaded;
+    }
 }

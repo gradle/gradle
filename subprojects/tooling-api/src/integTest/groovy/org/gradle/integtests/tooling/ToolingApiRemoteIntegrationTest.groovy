@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.tooling
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ProgressEventsWithStatus
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -29,6 +28,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -40,12 +40,14 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
 @LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
-    @Rule BlockingHttpServer server = new BlockingHttpServer()
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
+    @Rule
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
+        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
         server.start()
         toolingApi.requireIsolatedUserHome()
         settingsFile.touch()
@@ -134,7 +136,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        def events = ProgressEvents.create()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -144,15 +146,16 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def download = events.buildOperations.first()
+        download.assertIsDownload(distUri, distribution.binDistribution.length())
         download.successful
-        download.descriptor.displayName == "Download " + distUri
 
         !download.statusEvents.empty
 
         download.statusEvents.each { statusEvent ->
-            assert statusEvent.displayName == "Download $distUri $statusEvent.progress/$statusEvent.total bytes downloaded"
-            assert statusEvent.total == distribution.binDistribution.length()
-            assert statusEvent.progress <= distribution.binDistribution.length()
+            def event = statusEvent.event
+            assert event.displayName == "Download $distUri ${event.progress}/${event.total} bytes completed"
+            assert event.total == distribution.binDistribution.length()
+            assert event.progress <= distribution.binDistribution.length()
         }
 
         // Build execution is sibling of download
@@ -176,7 +179,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        def events = ProgressEvents.create()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
                 .forTasks("help")
@@ -192,10 +195,33 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         events.buildOperations.size() == 1
 
         def download = events.buildOperations.first()
+        download.assertIsDownload(distUri, 0)
         !download.successful
-        download.descriptor.displayName == "Download " + distUri
         download.failures.size() == 1
         download.failures.first().message == "Server returned HTTP response code: 500 for URL: ${distUri}"
+    }
+
+    def "does not receive distribution download progress events when not requested"() {
+        given:
+        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
+
+        and:
+        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
+        toolingApi.withConnector { GradleConnector connector ->
+            connector.useDistribution(distUri)
+        }
+
+        when:
+        def events = ProgressEvents.create()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .addProgressListener(events, EnumSet.complementOf(EnumSet.of(OperationType.FILE_DOWNLOAD)))
+                .run()
+        }
+
+        then:
+        !events.operations.any { it.download }
     }
 
     def "can cancel distribution download"() {
@@ -221,7 +247,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        def events = new ProgressEventsWithStatus()
+        def events = ProgressEvents.create()
         def handler = new TestResultHandler()
         toolingApi.withConnection { ProjectConnection connection ->
             connection.newBuild()
@@ -261,7 +287,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/15405')
-    @Requires(TestPrecondition.NOT_WINDOWS) // cannot delete files when daemon is running
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    // cannot delete files when daemon is running
     def "calling disconnect on existing connection does not re-trigger wrapper download"() {
         setup:
         server.expect(server.get("/custom-dist.zip").expectUserAgent(matchesNameAndVersion("Gradle Tooling API", GradleVersion.current().getVersion())).sendFile(distribution.binDistribution))

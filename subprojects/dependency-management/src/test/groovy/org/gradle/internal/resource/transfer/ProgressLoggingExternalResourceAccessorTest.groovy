@@ -90,9 +90,9 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1024])
             "result"
         }
-        1 * context.progress('1.5 KiB/4 KiB downloaded')
-        1 * context.progress('3 KiB/4 KiB downloaded')
-        1 * context.progress('4 KiB/4 KiB downloaded')
+        1 * context.progress(1562, 4096, 'bytes', '1.5 KiB/4 KiB downloaded')
+        1 * context.progress(3162, 4096, 'bytes', '3 KiB/4 KiB downloaded')
+        1 * context.progress(4096, 4096, 'bytes', '4 KiB/4 KiB downloaded')
         0 * context.progress(_)
     }
 
@@ -110,7 +110,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1600])
             "result"
         }
-        1 * context.progress('1.5 KiB/4 KiB downloaded')
+        1 * context.progress(1600, 4096, 'bytes', '1.5 KiB/4 KiB downloaded')
         0 * context.progress(_)
     }
 
@@ -153,9 +153,9 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
             inputStream.read(new byte[1024])
             "result"
         }
-        1 * context.progress('1.5 KiB downloaded')
-        1 * context.progress('3 KiB downloaded')
-        1 * context.progress('4 KiB downloaded')
+        1 * context.progress(1562, -1, 'bytes', '1.5 KiB downloaded')
+        1 * context.progress(3162, -1, 'bytes', '3 KiB downloaded')
+        1 * context.progress(4096, -1, 'bytes', '4 KiB downloaded')
         0 * context.progress(_)
     }
 

@@ -117,6 +117,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                         context.progress(status);
                     }
 
+                    @Override
+                    public void progress(long progress, long total, String units, String status) {
+                        assertNotFinished();
+                        context.progress(progress, total, units, status);
+                    }
+
                     private void finish() {
                         finished = true;
                         try {
@@ -228,6 +234,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
+        public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
+            delegate.progress(descriptor, progress, total, units, status);
+        }
+
+        @Override
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
             delegate.stop(descriptor, operationState, parent, context);
             LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
@@ -271,6 +282,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             }
 
             @Override
+            public void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status) {
+            }
+
+            @Override
             public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
             }
 
@@ -282,6 +297,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
 
         void progress(BuildOperationDescriptor descriptor, String status);
+
+        void progress(BuildOperationDescriptor descriptor, long progress, long total, String units, String status);
 
         void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context);
 
@@ -340,6 +357,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void progress(String status) {
             listener.progress(descriptor, status);
+        }
+
+        @Override
+        public void progress(long progress, long total, String units, String status) {
+            listener.progress(descriptor, progress, total, units, status);
         }
     }
 }
