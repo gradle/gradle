@@ -15,8 +15,8 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
 
 addDependenciesAndConfigurations("smoke")
 
-val smokeTestImplementation: Configuration by configurations.getting
-val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
+val smokeTestImplementation: Configuration by configurations
+val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
     smokeTestImplementation(project(":base-services"))
@@ -127,8 +127,8 @@ tasks {
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
-    val smokeTestCompileClasspath: Configuration by configurations.getting
-    val smokeTestRuntimeClasspath: Configuration by configurations.getting
+    val smokeTestCompileClasspath: Configuration by configurations
+    val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
         testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
         testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
