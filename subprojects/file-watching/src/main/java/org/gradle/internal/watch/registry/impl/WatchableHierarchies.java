@@ -17,7 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.NativeException;
-import org.gradle.internal.file.DefaultFileHierarchySet;
+import net.rubygrapefruit.platform.file.FileSystemInfo;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -34,9 +34,9 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.watch.registry.impl.Combiners.nonCombining;
 
@@ -50,19 +50,23 @@ public class WatchableHierarchies {
     private final Predicate<String> watchFilter;
 
     /**
-     * Hierarchies which can be watched.
+     * Files that can be watched.
      *
      * Those are normally project root directories from the current builds and from previous builds.
      */
-    private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
+    private FileHierarchySet watchableFiles = FileHierarchySet.empty();
 
     /**
-     * Hierarchies which do not support watching.
+     * Files in locations that do not support watching.
      *
-     * Those are the mount points of file systems which do not support watching.
+     * Those are the mount points of file systems that do not support watching.
      */
-    private FileHierarchySet unsupportedHierarchies = DefaultFileHierarchySet.of();
-    private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
+    private FileHierarchySet unwatchableFiles = FileHierarchySet.empty();
+
+    /**
+     * Hierarchies in usage order, most recent first.
+     */
+    private final Deque<File> hierarchies = new ArrayDeque<>();
 
     public WatchableHierarchies(
         FileWatcherProbeRegistry probeRegistry,
@@ -82,19 +86,19 @@ public class WatchableHierarchies {
                 watchableHierarchyPath
             ));
         }
-        if (unsupportedHierarchies.contains(watchableHierarchyPath)) {
+        if (unwatchableFiles.contains(watchableHierarchyPath)) {
             LOGGER.info("Not watching {} since the file system is not supported", watchableHierarchy);
             return;
         }
-        if (!watchableHierarchies.contains(watchableHierarchyPath)) {
+        if (!watchableFiles.contains(watchableHierarchyPath)) {
             checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPath, root);
-            recentlyUsedHierarchies.addFirst(watchableHierarchy);
-            watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
+            hierarchies.addFirst(watchableHierarchy);
+            watchableFiles = watchableFiles.plus(watchableHierarchy);
         } else {
-            recentlyUsedHierarchies.remove(watchableHierarchy);
-            recentlyUsedHierarchies.addFirst(watchableHierarchy);
+            hierarchies.remove(watchableHierarchy);
+            hierarchies.addFirst(watchableHierarchy);
         }
-        LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
+        LOGGER.info("Now considering {} as hierarchies to watch", hierarchies);
     }
 
     @CheckReturnValue
@@ -117,21 +121,22 @@ public class WatchableHierarchies {
     }
 
     private SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<File> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
-        recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
+        hierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
-        int toRemove = recentlyUsedHierarchies.size() - maximumNumberOfWatchedHierarchies;
+        int toRemove = hierarchies.size() - maximumNumberOfWatchedHierarchies;
         if (toRemove > 0) {
             LOGGER.info(
                 "Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system",
-                recentlyUsedHierarchies.size(),
+                hierarchies.size(),
                 maximumNumberOfWatchedHierarchies
             );
             for (int i = 0; i < toRemove; i++) {
-                File locationToRemove = recentlyUsedHierarchies.removeLast();
+                File locationToRemove = hierarchies.removeLast();
                 result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
+        this.watchableFiles = hierarchies.stream()
+            .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, Combiners.nonCombining());
         return result;
     }
 
@@ -155,7 +160,7 @@ public class WatchableHierarchies {
     private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator) {
         return probeRegistry.unprovenHierarchies()
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
-                if (recentlyUsedHierarchies.remove(unprovenHierarchy)) {
+                if (hierarchies.remove(unprovenHierarchy)) {
                     LOGGER.warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);
                     return invalidator.invalidate(unprovenHierarchy.getAbsolutePath(), currentRoot);
                 } else {
@@ -178,8 +183,11 @@ public class WatchableHierarchies {
         }
     }
 
-    public Collection<File> getRecentlyUsedHierarchies() {
-        return recentlyUsedHierarchies;
+    /**
+     * Hierarchies in usage order, most recent first.
+     */
+    public Stream<File> stream() {
+        return hierarchies.stream();
     }
 
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
@@ -200,7 +208,7 @@ public class WatchableHierarchies {
     }
 
     public boolean isInWatchableHierarchy(String path) {
-        return watchableHierarchies.contains(path);
+        return watchableFiles.contains(path);
     }
 
     public boolean shouldWatch(FileSystemLocationSnapshot snapshot) {
@@ -213,8 +221,8 @@ public class WatchableHierarchies {
      * Depending on the watch mode, actually detecting the unsupported file systems may not be necessary.
      */
     public void updateUnsupportedFileSystems(WatchMode watchMode) {
-        unsupportedHierarchies = shouldWatchUnsupportedFileSystems(watchMode)
-            ? DefaultFileHierarchySet.of()
+        unwatchableFiles = shouldWatchUnsupportedFileSystems(watchMode)
+            ? FileHierarchySet.empty()
             : detectUnsupportedHierarchies();
     }
 
@@ -225,14 +233,11 @@ public class WatchableHierarchies {
     private FileHierarchySet detectUnsupportedHierarchies() {
         try {
             return watchableFileSystemDetector.detectUnsupportedFileSystems()
-                .reduce(
-                    DefaultFileHierarchySet.of(),
-                    (fileHierarchySet, fileSystemInfo) -> fileHierarchySet.plus(fileSystemInfo.getMountPoint()),
-                    nonCombining()
-                );
+                .map(FileSystemInfo::getMountPoint)
+                .reduce(FileHierarchySet.empty(), FileHierarchySet::plus, nonCombining());
         } catch (NativeException e) {
             LOGGER.warn("Unable to list file systems to check whether they can be watched. Assuming all file systems can be watched. Reason: {}", e.getMessage());
-            return DefaultFileHierarchySet.of();
+            return FileHierarchySet.empty();
         }
     }
 
