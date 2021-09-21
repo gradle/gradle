@@ -104,19 +104,17 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected void armWatchProbeForHierarchy(File probedHierarchy) {
+    protected void armWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
         // Make sure probe directories are watched
-        File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
-        super.armWatchProbeForHierarchy(probedHierarchy);
+        super.armWatchProbeForHierarchy(probedHierarchy, probeDirectory);
     }
 
     @Override
-    protected void disarmWatchProbeForHierarchy(File probedHierarchy) {
+    protected void disarmWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
         // Make sure probe directories are not watched anymore
-        File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
-        super.disarmWatchProbeForHierarchy(probedHierarchy);
+        super.disarmWatchProbeForHierarchy(probedHierarchy, probeDirectory);
     }
 
     @Override

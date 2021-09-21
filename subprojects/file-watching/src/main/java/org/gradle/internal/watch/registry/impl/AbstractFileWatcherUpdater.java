@@ -120,11 +120,21 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
         oldProbedHierarchies.stream()
             .filter(oldProbedHierarchy -> !probedHierarchies.contains(oldProbedHierarchy))
-            .forEach(this::disarmWatchProbeForHierarchy);
+            .forEach(probedHierarchy -> {
+                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
+                disarmWatchProbeForHierarchy(probedHierarchy, probeDirectory);
+            });
 
         probedHierarchies.stream()
             .filter(newProbedHierarchy -> !oldProbedHierarchies.contains(newProbedHierarchy))
-            .forEach(this::armWatchProbeForHierarchy);
+            .forEach(probedHierarchy -> {
+                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
+                // Make sure the directory exists, this can be necessary when
+                // included builds are evaluated with configuration cache
+                //noinspection ResultOfMethodCallIgnored
+                probeDirectory.mkdirs();
+                armWatchProbeForHierarchy(probedHierarchy, probeDirectory);
+            });
     }
 
     protected FileHierarchySet updateWatchedHierarchies(SnapshotHierarchy root) {
@@ -132,17 +142,12 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void armWatchProbeForHierarchy(File probedHierarchy) {
-        File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
-        // Make sure the directory exists, this can be necessary when
-        // included builds are evaluated with configuration cache
-        //noinspection ResultOfMethodCallIgnored
-        probeDirectory.mkdirs();
+    protected void armWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
         probeRegistry.armWatchProbe(probedHierarchy);
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void disarmWatchProbeForHierarchy(File probedHierarchy) {
+    protected void disarmWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
         probeRegistry.disarmWatchProbe(probedHierarchy);
     }
 
