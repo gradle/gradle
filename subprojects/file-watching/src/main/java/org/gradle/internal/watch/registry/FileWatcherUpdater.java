@@ -107,11 +107,9 @@ public interface FileWatcherUpdater {
     SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies);
 
     /**
-     * Returns the actual watched hierarchies.
-     *
-     * @see FileWatcherUpdater
+     * Returns the number of locations being watched.
      */
-    Collection<File> getWatchedHierarchies();
+    int getNumberOfWatchedLocations();
 
     /**
      * The files actually being watched right now.

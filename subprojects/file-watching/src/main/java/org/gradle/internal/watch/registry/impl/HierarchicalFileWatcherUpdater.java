@@ -16,16 +16,22 @@
 
 package org.gradle.internal.watch.registry.impl;
 
+import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
+import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Updater for hierarchical file watchers.
@@ -54,7 +60,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
     private final FileWatcher fileWatcher;
+    private final FileSystemLocationToWatchValidator locationToWatchValidator;
     private final MovedHierarchyHandler movedHierarchyHandler;
+    private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
 
     public HierarchicalFileWatcherUpdater(
         FileWatcher fileWatcher,
@@ -62,8 +70,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         FileWatcherProbeRegistry probeRegistry, WatchableHierarchies watchableHierarchies,
         MovedHierarchyHandler movedHierarchyHandler
     ) {
-        super(locationToWatchValidator, probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies);
         this.fileWatcher = fileWatcher;
+        this.locationToWatchValidator = locationToWatchValidator;
         this.movedHierarchyHandler = movedHierarchyHandler;
     }
 
@@ -82,35 +91,61 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
+        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
+        LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
+        return newRoot;
+    }
+
+    @Override
+    protected FileHierarchySet updateWatchedHierarchies(SnapshotHierarchy root) {
+        FileHierarchySet newWatchedFiles = super.updateWatchedHierarchies(root);
+
+        ImmutableSet<File> oldWatchedHierarchies = watchedHierarchies;
+        ImmutableSet.Builder<File> watchedHierarchiesBuilder = ImmutableSet.builder();
+        newWatchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
+        watchedHierarchies = watchedHierarchiesBuilder.build();
+
+        if (!oldWatchedHierarchies.equals(watchedHierarchies)) {
+            if (watchedHierarchies.isEmpty()) {
+                LOGGER.info("Not watching anything anymore");
+            }
+
+            List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
+                .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(oldWatchedHierarchies.size())));
+            if (!hierarchiesToStopWatching.isEmpty()) {
+                if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
+                    LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
+                }
+            }
+
+            List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
+                .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(watchedHierarchies.size())));
+            if (!hierarchiesToStartWatching.isEmpty()) {
+                hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
+                fileWatcher.startWatching(hierarchiesToStartWatching);
+            }
+
+            LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+        }
+        return newWatchedFiles;
+    }
+
+    @Override
     protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         return movedHierarchyHandler.handleMovedHierarchies(root);
     }
 
     @Override
-    protected void startWatchingHierarchies(Collection<File> hierarchiesToStartWatching) {
-        fileWatcher.startWatching(hierarchiesToStartWatching);
-    }
-
-    @Override
-    protected void stopWatchingHierarchies(Collection<File> hierarchiesToStopWatching) {
-        if (!fileWatcher.stopWatching(hierarchiesToStopWatching)) {
-            LOGGER.debug("Couldn't stop watching directories: {}", hierarchiesToStopWatching);
-        }
-    }
-
-    @Override
-    protected void startWatchingProbeForHierarchy(File hierarchyToWatch) {
-        // No need to start watching anything, probe directory is under the watched hierarchy
-    }
-
-    @Override
-    protected void stopWatchingProbeForHierarchy(File hierarchyToWatch) {
-        // No need to stop watching anything, probe directory is under the watched hierarchy
-    }
-
-    @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
+    }
+
+    @Override
+    public int getNumberOfWatchedLocations() {
+        return watchedHierarchies.size();
     }
 
     public interface MovedHierarchyHandler {
@@ -120,5 +155,12 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
          * roots from the VFS at the start of every build.
          */
         SnapshotHierarchy handleMovedHierarchies(SnapshotHierarchy root);
+    }
+
+    public interface FileSystemLocationToWatchValidator {
+        FileSystemLocationToWatchValidator NO_VALIDATION = location -> {
+        };
+
+        void validateLocationToWatch(File location);
     }
 }

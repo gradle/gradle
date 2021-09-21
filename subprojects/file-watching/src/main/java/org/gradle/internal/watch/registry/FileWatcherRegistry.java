@@ -102,6 +102,6 @@ public interface FileWatcherRegistry extends Closeable {
         Optional<Throwable> getErrorWhileReceivingFileChanges();
         boolean isUnknownEventEncountered();
         int getNumberOfReceivedEvents();
-        int getNumberOfWatchedHierarchies();
+        int getNumberOfWatchedLocations();
     }
 }

@@ -175,7 +175,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        int numberOfWatchedHierarchies = fileWatcherUpdater.getWatchedHierarchies().size();
+        int numberOfWatchedLocations = fileWatcherUpdater.getNumberOfWatchedLocations();
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {
@@ -193,8 +193,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
             }
 
             @Override
-            public int getNumberOfWatchedHierarchies() {
-                return numberOfWatchedHierarchies;
+            public int getNumberOfWatchedLocations() {
+                return numberOfWatchedLocations;
             }
         };
     }

@@ -31,7 +31,6 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
-import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +54,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        super(FileSystemLocationToWatchValidator.NO_VALIDATION, probeRegistry, watchableHierarchies);
+        super(probeRegistry, watchableHierarchies);
         this.fileWatcher = fileWatcher;
     }
 
@@ -95,13 +94,6 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        SnapshotHierarchy newRoot = super.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
-        LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
-        return newRoot;
-    }
-
-    @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
@@ -112,31 +104,24 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected void startWatchingHierarchies(Collection<File> hierarchiesToWatch) {
-        // No need to start watching anything, we already did that while handling VFS change
-    }
-
-    @Override
-    protected void stopWatchingHierarchies(Collection<File> hierarchiesToWatch) {
-        // No need to stop watching anything, we already did that while handling VFS change
-    }
-
-    @Override
-    protected void startWatchingProbeForHierarchy(File hierarchyToWatch) {
+    protected void armWatchProbeForHierarchy(File probedHierarchy) {
         // Make sure probe directories are watched
-        File probeDirectory = probeRegistry.getProbeDirectory(hierarchyToWatch);
-        // Make sure the directory exists, this can be necessary when
-        // included builds are evaluated with configuration cache
-        //noinspection ResultOfMethodCallIgnored
-        probeDirectory.mkdirs();
+        File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
+        super.armWatchProbeForHierarchy(probedHierarchy);
     }
 
     @Override
-    protected void stopWatchingProbeForHierarchy(File hierarchyToWatch) {
+    protected void disarmWatchProbeForHierarchy(File probedHierarchy) {
         // Make sure probe directories are not watched anymore
-        File probeDirectory = probeRegistry.getProbeDirectory(hierarchyToWatch);
+        File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
+        super.disarmWatchProbeForHierarchy(probedHierarchy);
+    }
+
+    @Override
+    public int getNumberOfWatchedLocations() {
+        return watchedDirectories.entrySet().size();
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
@@ -157,10 +142,9 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 }
             }
         });
-        if (watchedDirectories.isEmpty()) {
-            LOGGER.info("Not watching anything anymore");
-        }
+
         LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+
         try {
             if (!directoriesToStopWatching.isEmpty()) {
                 if (!fileWatcher.stopWatching(directoriesToStopWatching)) {
