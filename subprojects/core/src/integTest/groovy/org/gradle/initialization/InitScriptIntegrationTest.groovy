@@ -66,6 +66,31 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Project hello evaluated")
     }
 
+    def 'init script can access properties'() {
+        given:
+        file('init.gradle') << '''
+            properties.forEach { name, value ->
+                println "property: ${name}=${value}"
+            }
+        '''.stripIndent()
+
+        executer.usingInitScript(file('init.gradle'))
+
+        file('settings.gradle') << '''
+        '''.stripIndent()
+
+        buildFile << '''
+            task info {
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'info'
+
+        then:
+        output.contains("property:")
+    }
+
     def 'init scripts passed in the Gradle user home are applied to buildSrc'() {
         given:
         settingsFile << "rootProject.name = 'hello'"

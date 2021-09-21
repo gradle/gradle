@@ -437,7 +437,17 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         continue;
                     }
                 }
-                properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
+                if (metaProperty instanceof MultipleSetterProperty) {
+                    MultipleSetterProperty multipleSetterProperty = (MultipleSetterProperty) metaProperty;
+                    if (multipleSetterProperty.getGetter() == null) {
+                        continue;
+                    }
+                }
+                try {
+                    properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
+                } catch (IllegalStateException ignored) {
+                    // Ignore dynamic properties that are inaccessible at runtime.
+                }
             }
             if (bean instanceof PropertyMixIn) {
                 PropertyMixIn propertyMixIn = (PropertyMixIn) bean;
