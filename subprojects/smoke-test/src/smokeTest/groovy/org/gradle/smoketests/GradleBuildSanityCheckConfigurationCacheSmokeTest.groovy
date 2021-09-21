@@ -22,9 +22,6 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
 
     def "can run Gradle sanityCheck with configuration cache enabled"() {
 
-        // TODO spotless plugin, see https://github.com/diffplug/spotless/pull/720#issuecomment-921216440
-        maxConfigurationCacheProblems = 1
-
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
