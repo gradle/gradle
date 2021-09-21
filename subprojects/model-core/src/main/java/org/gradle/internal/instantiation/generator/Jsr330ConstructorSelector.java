@@ -23,10 +23,10 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
+    private final CrossBuildInMemoryCache<Class<?>, CachedConstructorResult> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
+    public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, CachedConstructorResult> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }
@@ -50,17 +50,18 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
 
     @Override
     public <T> ClassGenerator.GeneratedConstructor<? extends T> forType(final Class<T> type) throws UnsupportedOperationException {
-        CachedConstructor constructor = constructorCache.get(type, () -> {
+        // We cache only constructor index, so we don't keep reference to implClass in constructor cache and GC can claim it faster
+        ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
+        CachedConstructorResult constructor = constructorCache.get(type, () -> {
             try {
                 validateType(type);
-                ClassGenerator.GeneratedClass<?> implClass = classGenerator.generate(type);
-                ClassGenerator.GeneratedConstructor<?> generatedConstructor = InjectUtil.selectConstructor(implClass, type);
-                return CachedConstructor.of(generatedConstructor);
+                int generatedConstructorIndex = InjectUtil.selectConstructor(implClass, type);
+                return CachedConstructorResult.of(generatedConstructorIndex);
             } catch (RuntimeException e) {
-                return CachedConstructor.of(e);
+                return CachedConstructorResult.of(e);
             }
         });
-        return Cast.uncheckedCast(constructor.getConstructor());
+        return Cast.uncheckedCast(constructor.getConstructor(implClass));
     }
 
     private static <T> void validateType(Class<T> type) {
@@ -72,28 +73,28 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
         }
     }
 
-    public static class CachedConstructor {
-        private final ClassGenerator.GeneratedConstructor<?> constructor;
+    public static class CachedConstructorResult {
+        private final Integer constructorIndex;
         private final RuntimeException error;
 
-        private CachedConstructor(ClassGenerator.GeneratedConstructor<?> constructor, RuntimeException error) {
-            this.constructor = constructor;
+        private CachedConstructorResult(Integer constructorIndex, RuntimeException error) {
+            this.constructorIndex = constructorIndex;
             this.error = error;
         }
 
-        public ClassGenerator.GeneratedConstructor<?> getConstructor() {
+        public ClassGenerator.GeneratedConstructor<?> getConstructor(ClassGenerator.GeneratedClass<?> implClass) {
             if (error != null) {
                 throw error;
             }
-            return constructor;
+            return implClass.getConstructors().get(constructorIndex);
         }
 
-        public static CachedConstructor of(ClassGenerator.GeneratedConstructor<?> ctor) {
-            return new CachedConstructor(ctor, null);
+        public static CachedConstructorResult of(Integer ctorIndex) {
+            return new CachedConstructorResult(ctorIndex, null);
         }
 
-        public static CachedConstructor of(RuntimeException err) {
-            return new CachedConstructor(null, err);
+        public static CachedConstructorResult of(RuntimeException err) {
+            return new CachedConstructorResult(null, err);
         }
     }
 }

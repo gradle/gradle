@@ -32,16 +32,16 @@ class InjectUtil {
      * @param type the type to find the injectable constructor of.
      * @param reportAs errors are reported against this type, useful when the real type is generated, and we'd like to show the original type in messages instead.
      */
-    public static <T> ClassGenerator.GeneratedConstructor<T> selectConstructor(ClassGenerator.GeneratedClass<T> type, Class<?> reportAs) {
+    public static <T> int selectConstructor(ClassGenerator.GeneratedClass<T> type, Class<?> reportAs) {
         List<ClassGenerator.GeneratedConstructor<T>> constructors = type.getConstructors();
 
         if (constructors.size() == 1) {
             ClassGenerator.GeneratedConstructor<T> constructor = constructors.get(0);
             if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
-                return constructor;
+                return 0;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
-                return constructor;
+                return 0;
             }
             if (constructor.getParameterTypes().length == 0) {
                 TreeFormatter formatter = new TreeFormatter();
@@ -58,10 +58,11 @@ class InjectUtil {
             }
         }
 
-        List<ClassGenerator.GeneratedConstructor<T>> injectConstructors = new ArrayList<ClassGenerator.GeneratedConstructor<T>>();
-        for (ClassGenerator.GeneratedConstructor<T> constructor : constructors) {
+        List<Integer> injectConstructors = new ArrayList<>();
+        for (int i = 0; i < constructors.size(); i++) {
+            ClassGenerator.GeneratedConstructor<T> constructor = constructors.get(i);
             if (constructor.getAnnotation(Inject.class) != null) {
-                injectConstructors.add(constructor);
+                injectConstructors.add(i);
             }
         }
 
