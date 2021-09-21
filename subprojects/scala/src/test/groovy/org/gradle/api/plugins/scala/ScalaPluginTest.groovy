@@ -37,11 +37,7 @@ class ScalaPluginTest {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    @Rule
-    public TestNameTestDirectoryProvider temporaryFolder3 = new TestNameTestDirectoryProvider(getClass())
-
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
-    private final Project project3 = TestUtil.create(temporaryFolder3).rootProject()
 
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
@@ -139,19 +135,18 @@ class ScalaPluginTest {
     }
 
     @Test void addsScalaDoc3TasksToTheProject() {
-        
-        scalaPlugin.apply(project3)
-        project3.repositories.mavenCentral()
-        project3.dependencies.add('implementation', 'org.scala-lang:scala3-library_3:3.0.1')
+        scalaPlugin.apply(project)
+        project.repositories.mavenCentral()
+        project.dependencies.add('implementation', 'org.scala-lang:scala3-library_3:3.0.1')
 
-        def task = project3.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
+        def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project3.file("$project3.docsDir/scaladoc")))
+        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         // This assertion is a little tricky, because `task.source` is an empty list since we didn't compile these files, so we check here if [] == []
-        assertThat(task.source as List, equalTo(project3.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List)) // We take output of main (with tasty files)
-        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project3.layout.files(project3.sourceSets.main.output, project3.sourceSets.main.compileClasspath)))
-        assertThat(task.title, equalTo(project3.extensions.getByType(ReportingExtension).apiDocTitle))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List)) // We take output of main (with tasty files)
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
     @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
