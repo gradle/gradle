@@ -33,6 +33,8 @@ import java.util.Set;
  * @since 7.3
  */
 public class DefaultScalaCompileOptionsConfigurer implements ScalaCompileOptionsConfigurer {
+    private static final VersionParser versionParser = new VersionParser();
+    private static final DefaultVersionComparator comparator = new DefaultVersionComparator();
 
     @Override
     public void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
@@ -68,10 +70,14 @@ public class DefaultScalaCompileOptionsConfigurer implements ScalaCompileOptions
             return String.format("-target:jvm-1.%s", jvmVersion);
         }
 
-        VersionParser versionParser = new VersionParser();
-        DefaultVersionComparator comparator = new DefaultVersionComparator();
-        int comparisonResult = comparator.compare(new VersionInfo(versionParser.transform(scalaVersion)), new VersionInfo(versionParser.transform("2.13.1")));
-        if(comparisonResult < 0) {
+        VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
+        int compareWith2_11_3 = comparator.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.11.3")));
+        if(compareWith2_11_3 < 0) {
+            return "-target:jvm-1.7";
+        }
+
+        int compareWith2_13_1 = comparator.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1")));
+        if(compareWith2_13_1 < 0) {
             return "-target:jvm-1.8";
         }
 
