@@ -15,8 +15,8 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
 
 addDependenciesAndConfigurations("smoke")
 
-val smokeTestImplementation: Configuration by configurations.getting
-val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
+val smokeTestImplementation: Configuration by configurations
+val smokeTestDistributionRuntimeOnly: Configuration by configurations
 
 dependencies {
     smokeTestImplementation(project(":base-services"))
@@ -94,23 +94,27 @@ tasks {
 
     val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
 
+    val santaTrackerTestPattern = "org.gradle.smoketests.AndroidSantaTracker*SmokeTest"
+
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
-        configureForSmokeTest(santaTracker)
+        configureForSmokeTest()
         useJUnitPlatform {
             filter {
                 excludeTestsMatching(gradleBuildTestPattern)
+                excludeTestsMatching(santaTrackerTestPattern)
             }
         }
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
-        configureForSmokeTest(santaTracker)
         systemProperty("org.gradle.integtest.executer", "configCache")
+        configureForSmokeTest()
         useJUnitPlatform {
             filter {
                 excludeTestsMatching(gradleBuildTestPattern)
+                excludeTestsMatching(santaTrackerTestPattern)
             }
         }
     }
@@ -124,11 +128,32 @@ tasks {
             }
         }
     }
+
+    register<SmokeTest>("santaTrackerSmokeTest") {
+        description = "Runs Santa Tracker Smoke tests"
+        configureForSmokeTest(santaTracker)
+        useJUnitPlatform {
+            filter {
+                includeTestsMatching(santaTrackerTestPattern)
+            }
+        }
+    }
+
+    register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
+        description = "Runs Santa Tracker Smoke tests with the configuration cache"
+        configureForSmokeTest(santaTracker)
+        systemProperty("org.gradle.integtest.executer", "configCache")
+        useJUnitPlatform {
+            filter {
+                includeTestsMatching(santaTrackerTestPattern)
+            }
+        }
+    }
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
-    val smokeTestCompileClasspath: Configuration by configurations.getting
-    val smokeTestRuntimeClasspath: Configuration by configurations.getting
+    val smokeTestCompileClasspath: Configuration by configurations
+    val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
         testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
         testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
