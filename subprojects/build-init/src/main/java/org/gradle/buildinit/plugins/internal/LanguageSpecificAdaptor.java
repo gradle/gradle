@@ -130,7 +130,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     private BuildScriptBuilder buildSrcSetup(InitSettings settings) {
-        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "buildSrc/build", settings.getUseIncubatingAPIs());
+        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "buildSrc/build", settings.isUseIncubatingAPIs());
         buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
             String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin";
@@ -144,7 +144,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildFile, settings.getUseIncubatingAPIs());
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildFile, settings.isUseIncubatingAPIs());
         descriptor.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }
@@ -152,7 +152,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(),
             "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
-            settings.getUseIncubatingAPIs());
+            settings.isUseIncubatingAPIs());
         descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
         return buildScriptBuilder;
     }

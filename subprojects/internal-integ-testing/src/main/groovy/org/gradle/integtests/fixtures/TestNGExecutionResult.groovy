@@ -74,7 +74,7 @@ class TestNGExecutionResult implements TestExecutionResult {
         throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
     }
 
-    boolean testClassDoesntExist(String testClass) {
+    boolean testClassDoesNotExist(String testClass) {
         throw new UnsupportedOperationException("Unsupported. Implement if you need it.")
     }
 

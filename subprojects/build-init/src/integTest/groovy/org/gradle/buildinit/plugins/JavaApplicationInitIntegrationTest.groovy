@@ -34,19 +34,20 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "defaults to Groovy build scripts"() {
+    @Unroll
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
         when:
-        run (tasks)
+        run (['init', '--type', 'java-application'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
 
         where:
-        tasks << [['init', '--type', 'java-application'],
-                  ['init', '--type', 'java-application', '--incubating']]
+        incubating << [true, false]
     }
 
-    def "incubating option adds runnable test suites"() {
+    @Unroll
+    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
@@ -59,14 +60,14 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds('test')
         then:
         assertTestPassed("some.thing.AppTest", "appHasAGreeting")
-        assertTestsDidNotRun("some.thing.AppIntegTest") // Shouldn't be in /test anyway, but check just to be sure
+        assertTestsDoNotExist("some.thing.AppIntegTest")
         assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
 
         when:
         succeeds('clean', 'integrationTest')
         then:
         assertTestsDidNotRun("some.thing.AppTest")
-        assertIntegrationTestsDidNotRun("some.thing.AppTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+        assertIntegrationTestsDoNotExist("some.thing.AppTest")
         assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
 
         where:

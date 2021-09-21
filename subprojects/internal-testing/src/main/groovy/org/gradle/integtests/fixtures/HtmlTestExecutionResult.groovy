@@ -75,7 +75,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
     }
 
-    boolean testClassDoesntExist(String testClass) {
+    boolean testClassDoesNotExist(String testClass) {
         return !testClassExists(testClass)
     }
 

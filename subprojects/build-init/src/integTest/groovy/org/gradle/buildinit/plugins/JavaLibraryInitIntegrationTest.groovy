@@ -33,19 +33,20 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    def "defaults to Groovy build scripts"() {
+    @Unroll
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
         when:
-        run (tasks)
+        run (['init', '--type', 'java-library'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
 
         where:
-        tasks << [['init', '--type', 'java-library'],
-                  ['init', '--type', 'java-library', '--incubating']]
+        incubating << [true, false]
     }
 
-    def "incubating option adds runnable test suites"() {
+    @Unroll
+    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
         when:
@@ -58,14 +59,14 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
-        assertTestsDidNotRun("some.thing.LibraryIntegTest") // Shouldn't be in /test anyway, but check just to be sure
+        assertTestsDoNotExist("some.thing.LibraryIntegTest")
         assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
 
         when:
         succeeds('clean', 'integrationTest')
         then:
         assertTestsDidNotRun("some.thing.LibraryTest")
-        assertIntegrationTestsDidNotRun("some.thing.LibraryTest") // Shouldn't be in /integrationTest anyway, but check just to be sure
+        assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
         assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
 
         where:

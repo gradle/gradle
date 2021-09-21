@@ -58,9 +58,19 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         assertNoDefinedBuild(targetDir)
     }
 
+    void assertTestsDoNotExist(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir)
+        assert result.testClassDoesNotExist(className)
+    }
+
     void assertTestsDidNotRun(String className) {
         def result = new DefaultTestExecutionResult(subprojectDir)
         result.assertTestClassesNotExecuted(className)
+    }
+
+    void assertIntegrationTestsDoNotExist(String className) {
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
+        assert result.testClassDoesNotExist(className)
     }
 
     void assertIntegrationTestsDidNotRun(String className) {

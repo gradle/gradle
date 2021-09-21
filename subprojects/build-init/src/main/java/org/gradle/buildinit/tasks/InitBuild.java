@@ -105,10 +105,10 @@ public class InitBuild extends DefaultTask {
     /**
      * Can the generated build use new and unstable features?
      *
-     * When enabled, the generated build will use new patterns, APIs or features that 
+     * When enabled, the generated build will use new patterns, APIs or features that
      * may be unstable between minor releases. Use this if you'd like to try out the
      * latest features of Gradle.
-     * 
+     *
      * By default, init will generate a build that uses stable features and behavior.
      *
      * @since 7.3
@@ -235,12 +235,7 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        boolean useIncubatingAPIs;
-        if (this.useIncubatingAPIs.isPresent()) {
-            useIncubatingAPIs = this.useIncubatingAPIs.get();
-        } else {
-            useIncubatingAPIs = inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
-        }
+        boolean useIncubatingAPIs = this.useIncubatingAPIs.getOrElse(inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false));
 
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {

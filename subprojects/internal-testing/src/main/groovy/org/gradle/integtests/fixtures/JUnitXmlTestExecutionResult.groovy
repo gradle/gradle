@@ -64,7 +64,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         return (classes.keySet().contains(testClass))
     }
 
-    boolean testClassDoesntExist(String testClass) {
+    boolean testClassDoesNotExist(String testClass) {
         if (!testResultsDir.exists()) {
             return true
         } else {

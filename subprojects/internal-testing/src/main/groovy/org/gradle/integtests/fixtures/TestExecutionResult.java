@@ -43,5 +43,5 @@ public interface TestExecutionResult {
 
     boolean testClassExists(String testClass);
 
-    boolean testClassDoesntExist(String testClass);
+    boolean testClassDoesNotExist(String testClass);
 }

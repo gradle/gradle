@@ -71,7 +71,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         return testClassResults.inject { a, b -> a && b }
     }
 
-    boolean testClassDoesntExist(String testClass) {
+    boolean testClassDoesNotExist(String testClass) {
         return !results || !testClassExists(testClass)
     }
 
