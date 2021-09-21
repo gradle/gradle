@@ -224,6 +224,44 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "pipe as output file emits deprecation message"() {
+        executer.beforeExecute {
+            executer.withStackTraceChecksDisabled()
+            executer.expectDeprecationWarning("Cannot access output property 'outputFile' of task ':producer' (see --info log for details). " +
+                "Accessing unreadable inputs or outputs has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the property as untracked.")
+        }
+
+        def rootDir = createDir("build")
+        def unreadableFile = rootDir.file("unreadable")
+        unreadableFile.createNamedPipe()
+
+        buildFile("""
+            abstract class Producer extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.get().asFile
+                }
+            }
+
+            tasks.register("producer", Producer) {
+                outputFile = project.layout.buildDirectory.file("unreadable")
+            }
+        """)
+
+        when:
+        run "producer", "--info"
+        then:
+        executedAndNotSkipped(":producer")
+        outputContains("Cannot access output property 'outputFile' of task ':producer'")
+        outputContains("org.gradle.api.UncheckedIOException: Unsupported file type for ${unreadableFile.absolutePath}")
+    }
+
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "task producing unreadable content via tracked property is not stored in cache"() {
         executer.beforeExecute {
