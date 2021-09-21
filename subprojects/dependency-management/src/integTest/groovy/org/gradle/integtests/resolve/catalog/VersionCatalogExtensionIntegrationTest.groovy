@@ -1998,7 +1998,53 @@ Second: 1.1"""
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
-    def "support version catalogs in resolutionStrategy"() {
+    def "supports version catalogs in force method of resolutionStrategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        alias("myLib-subgroup").to("org.gradle.test:lib2:3.0.5")
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "3.0.5").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "3.0.5").publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                implementation "org.gradle.test:lib2:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.myLib)
+                        force(libs.myLib.subgroup)
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5")
+                edge("org.gradle.test:lib2:3.0.6", "org.gradle.test:lib2:3.0.5")
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "doesn't support rich versions from version catalogs in force method of resolutionStrategy"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -2012,31 +2058,22 @@ Second: 1.1"""
             }
         """
 
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "3.0.5").publish()
-
         buildFile << """
             apply plugin: 'java-library'
             dependencies {
                 implementation "org.gradle.test:lib:3.0.6"
                 configurations.all {
                     resolutionStrategy {
-                           force(libs.myLib)
+                        force(libs.myLib)
                     }
                 }
             }
         """
 
         when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-        lib.rootMetaData.expectGet()
-        run ':checkDeps'
+        fails ':checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5")
-            }
-        }
+        failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'.")
     }
 }

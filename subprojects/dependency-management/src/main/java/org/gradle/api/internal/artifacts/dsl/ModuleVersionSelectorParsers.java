@@ -20,9 +20,10 @@ import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -40,22 +41,21 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class ModuleVersionSelectorParsers {
 
-    private static final NotationParserBuilder<Object, ModuleVersionSelector> BUILDER = NotationParserBuilder
+    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser(String dslContext) {
+        return builder(dslContext).toFlatteningComposite();
+    }
+
+    public static NotationParser<Object, ModuleVersionSelector> parser(String dslContext) {
+        return builder(dslContext).toComposite();
+    }
+
+    private static NotationParserBuilder<Object, ModuleVersionSelector> builder(String dslContext) {
+        return NotationParserBuilder
             .toType(ModuleVersionSelector.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter())
-            .converter(new ProviderConverter());
-
-    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser() {
-        return builder().toFlatteningComposite();
-    }
-
-    public static NotationParser<Object, ModuleVersionSelector> parser() {
-        return builder().toComposite();
-    }
-
-    private static NotationParserBuilder<Object, ModuleVersionSelector> builder() {
-        return BUILDER;
+            .converter(new ProviderConvertibleConverter(dslContext))
+            .converter(new ProviderConverter(dslContext));
     }
 
     static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
@@ -95,16 +95,54 @@ public class ModuleVersionSelectorParsers {
         }
     }
 
-    static class ProviderConverter extends TypedNotationConverter<Provider<MinimalExternalModuleDependency>, DefaultDependencyConstraint> {
+    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<MinimalExternalModuleDependency>, ModuleVersionSelector> {
 
-        public ProviderConverter() {
-            super(new TypeInfo<>(Provider.class));
+        private final ProviderConverter providerConverter;
+
+        public ProviderConvertibleConverter(String caller) {
+            super(new TypeInfo<>(ProviderConvertible.class));
+            this.providerConverter = new ProviderConverter(caller);
         }
 
         @Override
-        protected DefaultDependencyConstraint parseType(Provider<MinimalExternalModuleDependency> notation) {
-            MinimalExternalModuleDependency dependency = notation.get();
-            return new DefaultDependencyConstraint(dependency.getModule(), dependency.getVersionConstraint());
+        protected ModuleVersionSelector parseType(ProviderConvertible<MinimalExternalModuleDependency> notation) {
+            return providerConverter.parseType(notation.asProvider());
         }
+
+    }
+
+    static class ProviderConverter extends TypedNotationConverter<Provider<MinimalExternalModuleDependency>, ModuleVersionSelector> {
+
+        private final String caller;
+
+        public ProviderConverter(String caller) {
+            super(new TypeInfo<>(Provider.class));
+            this.caller = caller;
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Version catalog type-safe accessors for entries without rich versions.");
+        }
+
+        @Override
+        protected ModuleVersionSelector parseType(Provider<MinimalExternalModuleDependency> notation) {
+            MinimalExternalModuleDependency dependency = notation.get();
+            if (isNotRequiredVersionOnly(dependency.getVersionConstraint())) {
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Rich versions are not supported for '" + caller + "'.");
+            } else if (dependency.getVersionConstraint().getRequiredVersion().isEmpty()) {
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Version cannot be empty for '" + caller + "'.");
+            } else {
+                return newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
+            }
+        }
+
+        private boolean isNotRequiredVersionOnly(VersionConstraint constraint) {
+            return !constraint.getPreferredVersion().isEmpty()
+                || !constraint.getStrictVersion().isEmpty()
+                || !constraint.getRejectedVersions().isEmpty()
+                || constraint.getBranch() != null;
+        }
+
     }
 }
