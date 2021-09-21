@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -50,11 +51,13 @@ public abstract class FileHierarchySet {
     /**
      * Returns a set that contains the union of this set and the given path. If the given path is a directory, the set will contain the directory itself, plus all its descendants.
      */
+    @CheckReturnValue
     public abstract FileHierarchySet plus(File path);
 
     /**
      * Returns a set that contains the union of this set and the given absolute path. The set contains the path itself, plus all its descendants.
      */
+    @CheckReturnValue
     public abstract FileHierarchySet plus(String absolutePath);
 
     /**
