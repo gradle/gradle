@@ -137,11 +137,11 @@ public class IdeaScalaConfigurer {
         ScalaRuntime runtime = scalaProject.getExtensions().findByType(ScalaRuntime.class);
         if (runtime != null) {
             FileCollection scalaClasspath = runtime.inferScalaClasspath(files);
-            File compilerJar = runtime.findScalaJar(scalaClasspath, "compiler");
+            File compilerJar = ScalaRuntime.findScalaJar(scalaClasspath, "compiler");
             if (compilerJar == null) {
-                compilerJar = runtime.findScalaJar(scalaClasspath, "compiler_3");
+                compilerJar = ScalaRuntime.findScalaJar(scalaClasspath, "compiler_3");
             }
-            String scalaVersion = compilerJar != null ? runtime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
+            String scalaVersion = compilerJar != null ? ScalaRuntime.getScalaVersion(compilerJar) : DEFAULT_SCALA_PLATFORM_VERSION;
             return createScalaSdkFromScalaVersion(scalaVersion, scalaClasspath, useScalaSdk);
         } else {
             // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.

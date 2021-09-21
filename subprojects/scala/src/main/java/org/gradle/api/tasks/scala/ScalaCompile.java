@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.scala.internal.DefaultScalaCompileOptionsConfigurer;
+import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
@@ -43,12 +45,13 @@ public class ScalaCompile extends AbstractScalaCompile {
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
-
+    private final ScalaCompileOptionsConfigurer scalaCompileOptionsConfigurer;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Inject
     public ScalaCompile() {
         super(new ScalaCompileOptions());
+        this.scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer();
     }
 
     @Nested
@@ -91,6 +94,7 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
+        scalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));

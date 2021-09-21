@@ -155,7 +155,7 @@ public class ScalaRuntime {
      * @return a Scala Jar file with the specified appendix
      */
     @Nullable
-    public File findScalaJar(Iterable<File> classpath, String appendix) {
+    public static File findScalaJar(Iterable<File> classpath, String appendix) {
         for (File file : classpath) {
             Matcher matcher = SCALA_JAR_PATTERN.matcher(file.getName());
             if (matcher.matches() && matcher.group(1).equals(appendix)) {
@@ -177,7 +177,7 @@ public class ScalaRuntime {
      * @return the version of the Scala Jar file
      */
     @Nullable
-    public String getScalaVersion(File scalaJar) {
+    public static String getScalaVersion(File scalaJar) {
         Matcher matcher = SCALA_JAR_PATTERN.matcher(scalaJar.getName());
         return matcher.matches() ? matcher.group(2) : null;
     }
