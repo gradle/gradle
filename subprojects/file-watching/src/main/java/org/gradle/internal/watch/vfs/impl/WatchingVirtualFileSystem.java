@@ -114,9 +114,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events since last build while watching {} locations",
                                 statisticsSinceLastBuild.getNumberOfReceivedEvents(),
-                                statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
+                                statisticsSinceLastBuild.getNumberOfWatchedLocations());
                             LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
                                 statisticsSinceLastBuild.getRetainedRegularFiles(),
                                 statisticsSinceLastBuild.getRetainedDirectories(),
@@ -200,9 +200,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events during the current build while watching {} locations",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
-                                statisticsDuringBuild.getNumberOfWatchedHierarchies());
+                                statisticsDuringBuild.getNumberOfWatchedLocations());
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
                                 statisticsDuringBuild.getRetainedRegularFiles(),
                                 statisticsDuringBuild.getRetainedDirectories(),

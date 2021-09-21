@@ -137,6 +137,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             });
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected FileHierarchySet updateWatchedHierarchies(SnapshotHierarchy root) {
         return resolveWatchedFiles(watchableHierarchies, root);
     }
@@ -152,7 +153,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @VisibleForTesting
-    protected static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
+    static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
         return watchableHierarchies.stream()
             .map(File::getPath)
             .filter(watchableHierarchy -> hasWatchableContent(vfsRoot.rootSnapshotsUnder(watchableHierarchy), watchableHierarchies))
