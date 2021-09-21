@@ -22,5 +22,6 @@ enum class JvmCategory(
 ) : Jvm {
     MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
     MAX_VERSION(JvmVendor.oracle, JvmVersion.java16),
+    SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.oracle, JvmVersion.java11),
     EXPERIMENTAL_VERSION(JvmVendor.oracle, JvmVersion.java17)
 }
