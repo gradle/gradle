@@ -134,9 +134,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Disabling caching by default
+
+The [`@DisableCachingByDefault` annotation](userguide/build_cache.html#sec:task_output_caching_disabled_by_default) is now a stable feature.
 
 ## Fixed issues
 
