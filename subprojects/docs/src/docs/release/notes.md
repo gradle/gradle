@@ -100,6 +100,14 @@ The `Copy` task now has a method [`Copy.ignoreExistingContentInDestinationDir()`
 This uses the new [untracked](#untracked) feature under the hood.
 See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
 
+### More robust file system watching
+
+When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system.
+To do this it tries to rely on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
+However, these events can be unreliable in some environments, which could cause Gradle to ignore some changes.
+To prevent this, Gradle now makes a change to the file system whenever it first starts watching something.
+If a file system event does not arrive about the change by the start of the next build, Gradle concludes that file system events are unreliable, and will fall back to checking files involved in the build for changes.  
+
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
