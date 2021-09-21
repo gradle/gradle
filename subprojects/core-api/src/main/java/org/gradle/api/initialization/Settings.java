@@ -71,6 +71,8 @@ import java.io.File;
  *
  * <li>Provided on the command-line using the -P option.</li>
  *
+ * These properties are available via the <code>rootProject.properties</code> map.
+ *
  * </ul>
  */
 @HasInternalProtocol

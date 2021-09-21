@@ -169,6 +169,166 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("subprojects: :sub1 - :sub2")
     }
 
+    @Issue('GRADLE-13362')
+    def "can read rootProject.properties in settingsEvaluated block in init script"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        createProject()
+
+        file("gradle.properties") << """
+            color=yellow
+        """
+
+        file("init.gradle") << """
+            settingsEvaluated { settings ->
+                println "color=" + rootProject.properties['color']
+            }
+        """
+
+        file('build.gradle').text = """
+            plugins {
+                id 'java'
+            }
+
+            task hello() {
+                doLast {
+                    println "Hello from main project"
+                }
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        when:
+        succeeds 'hello'
+
+        then:
+        output.contains("color=yellow")
+    }
+
+    @Issue('GRADLE-13362')
+    def "can read settings.rootProject.properties in settingsEvaluated block in init script"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        createProject()
+
+        file("gradle.properties") << """
+            color=yellow
+        """
+
+        file("init.gradle") << """
+            settingsEvaluated { settings ->
+                println "color=" + settings.rootProject.properties['color']
+            }
+        """
+
+        file('build.gradle').text = """
+            plugins {
+                id 'java'
+            }
+
+            task hello() {
+                doLast {
+                    println "Hello from main project"
+                }
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        when:
+        succeeds 'hello'
+
+        then:
+        output.contains("color=yellow")
+    }
+
+    @Issue('GRADLE-13362')
+    def "can read rootProject.properties in eachPlugin block in init script"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        createProject()
+
+        file("gradle.properties") << """
+            color=yellow
+        """
+
+        file("init.gradle") << """
+            settingsEvaluated { settings ->
+                settings.pluginManagement {
+                    resolutionStrategy {
+                        eachPlugin {
+                            println "color=" + rootProject.properties['color']
+                        }
+                    }
+                }
+            }
+        """
+
+        file('build.gradle').text = """
+            plugins {
+                id 'java'
+            }
+
+            task hello() {
+                doLast {
+                    println "Hello from main project"
+                }
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        when:
+        succeeds 'hello'
+
+        then:
+        output.contains("color=yellow")
+    }
+
+    @Issue('GRADLE-13362')
+    def "can read settings.rootProject.properties in eachPlugin block in init script"() {
+        given:
+        settingsFile << "rootProject.name = 'hello'"
+        createProject()
+
+        file("gradle.properties") << """
+            color=yellow
+        """
+
+        file("init.gradle") << """
+            settingsEvaluated { settings ->
+                settings.pluginManagement {
+                    resolutionStrategy {
+                        eachPlugin {
+                            println "color=" + settings.rootProject.properties['color']
+                        }
+                    }
+                }
+            }
+        """
+
+        file('build.gradle').text = """
+            plugins {
+                id 'java'
+            }
+
+            task hello() {
+                doLast {
+                    println "Hello from main project"
+                }
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+
+        when:
+        succeeds 'hello'
+
+        then:
+        output.contains("color=yellow")
+    }
+
     private static String initScript() {
         """
             gradle.afterProject { p ->
