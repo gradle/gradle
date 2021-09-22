@@ -48,7 +48,7 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
         when:
-        graph.withNewTaskGraph {
+        graph.withNewTaskGraph { g ->
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
@@ -59,9 +59,9 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
         when:
-        graph.withNewTaskGraph {
-            graph.prepareTaskGraph {
-                graph.populateTaskGraphs()
+        graph.withNewTaskGraph { g ->
+            g.prepareTaskGraph {
+                g.populateTaskGraphs()
             }
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
@@ -73,11 +73,11 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
 
     def "cannot schedule tasks when graph has started task execution"() {
         when:
-        graph.withNewTaskGraph {
-            graph.prepareTaskGraph {
-                graph.populateTaskGraphs()
+        graph.withNewTaskGraph { g ->
+            g.prepareTaskGraph {
+                g.populateTaskGraphs()
             }
-            graph.startTaskExecution()
+            g.startTaskExecution()
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
@@ -88,12 +88,12 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
 
     def "cannot schedule tasks when graph has completed task execution"() {
         when:
-        graph.withNewTaskGraph {
-            graph.prepareTaskGraph {
-                graph.populateTaskGraphs()
+        graph.withNewTaskGraph { g ->
+            g.prepareTaskGraph {
+                g.populateTaskGraphs()
             }
-            graph.startTaskExecution()
-            graph.awaitTaskCompletion()
+            g.startTaskExecution()
+            g.awaitTaskCompletion()
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 

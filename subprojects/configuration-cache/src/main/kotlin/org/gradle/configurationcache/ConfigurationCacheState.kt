@@ -62,6 +62,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -109,13 +110,13 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(createBuild: (File?, String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild) {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
         configureBuild(buildState)
-        calculateRootTaskGraph(buildState)
+        calculateRootTaskGraph(buildState, graph)
     }
 
     private
@@ -130,14 +131,13 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(state: CachedBuildState) {
-        val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
-        taskGraph.prepareTaskGraph {
+    fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
+        graph.prepareTaskGraph {
             state.build.state.populateWorkGraph {
                 it.addNodes(state.workGraph)
                 state.children.forEach(::addNodesForChildBuilds)
             }
-            taskGraph.populateTaskGraphs()
+            graph.populateTaskGraphs()
             state.build.state.workGraph.prepareForExecution(true)
         }
     }

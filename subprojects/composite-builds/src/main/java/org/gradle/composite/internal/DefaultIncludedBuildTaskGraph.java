@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -33,6 +34,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -50,11 +52,13 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private State state = State.NotCreated;
     private IncludedBuildControllers includedBuilds;
 
-    public DefaultIncludedBuildTaskGraph(ExecutorFactory executorFactory,
-                                         BuildOperationExecutor buildOperationExecutor,
-                                         BuildStateRegistry buildRegistry,
-                                         ProjectStateRegistry projectStateRegistry,
-                                         WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildTaskGraph(
+        ExecutorFactory executorFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildStateRegistry buildRegistry,
+        ProjectStateRegistry projectStateRegistry,
+        WorkerLeaseService workerLeaseService
+    ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildRegistry = buildRegistry;
         this.projectStateRegistry = projectStateRegistry;
@@ -68,7 +72,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
-    public <T> T withNewTaskGraph(Supplier<T> action) {
+    public <T> T withNewTaskGraph(Function<BuildTreeWorkGraph, T> action) {
         Thread currentOwner;
         State currentState;
         IncludedBuildControllers currentControllers;
@@ -91,7 +95,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
 
         try {
-            return action.get();
+            return action.apply(new DefaultBuildTreeWorkGraph());
         } finally {
             includedBuilds.close();
             synchronized (this) {
@@ -102,8 +106,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
     }
 
-    @Override
-    public void prepareTaskGraph(Runnable action) {
+    private void prepareTaskGraph(Runnable action) {
         withState(() -> {
             expectInState(State.NotPrepared);
             state = State.QueuingTasks;
@@ -154,8 +157,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         });
     }
 
-    @Override
-    public void populateTaskGraphs() {
+    private void populateTaskGraphs() {
         withState(() -> {
             assertCanQueueTask();
             includedBuilds.populateTaskGraphs();
@@ -164,8 +166,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         });
     }
 
-    @Override
-    public void startTaskExecution() {
+    private void startTaskExecution() {
         withState(() -> {
             expectInState(State.ReadyToRun);
             state = State.Running;
@@ -174,8 +175,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         });
     }
 
-    @Override
-    public ExecutionResult<Void> awaitTaskCompletion() {
+    private ExecutionResult<Void> awaitTaskCompletion() {
         return withState(() -> {
             expectInState(State.Running);
             try {
@@ -184,13 +184,6 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                 state = State.Finished;
             }
         });
-    }
-
-    @Override
-    public void runScheduledTasks() {
-        startTaskExecution();
-        ExecutionResult<Void> result = awaitTaskCompletion();
-        result.rethrow();
     }
 
     @Override
@@ -241,6 +234,28 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                 }
                 owner = currentOwner;
             }
+        }
+    }
+
+    private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph {
+        @Override
+        public void prepareTaskGraph(Runnable action) {
+            DefaultIncludedBuildTaskGraph.this.prepareTaskGraph(action);
+        }
+
+        @Override
+        public void populateTaskGraphs() {
+            DefaultIncludedBuildTaskGraph.this.populateTaskGraphs();
+        }
+
+        @Override
+        public void startTaskExecution() {
+            DefaultIncludedBuildTaskGraph.this.startTaskExecution();
+        }
+
+        @Override
+        public ExecutionResult<Void> awaitTaskCompletion() {
+            return DefaultIncludedBuildTaskGraph.this.awaitTaskCompletion();
         }
     }
 

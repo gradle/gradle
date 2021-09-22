@@ -25,12 +25,13 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
-import java.util.function.Supplier
+import java.util.function.Function
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
     def taskGraph = Mock(IncludedBuildTaskGraph)
+    def workGraph = Mock(BuildTreeWorkGraph)
     def workPreparer = Mock(BuildTreeWorkPreparer)
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def modelCreator = Mock(BuildTreeModelCreator)
@@ -47,11 +48,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         controller.scheduleAndRunTasks()
 
         then:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks()
-        1 * workExecutor.execute() >> ExecutionResult.succeeded()
+        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -68,10 +69,10 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks() >> { throw failure }
+        1 * workPreparer.scheduleRequestedTasks(workGraph) >> { throw failure }
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -88,11 +89,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks()
-        1 * workExecutor.execute() >> ExecutionResult.failed(failure)
+        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -107,11 +108,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks()
-        1 * workExecutor.execute() >> ExecutionResult.succeeded()
+        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> reportableFailure
@@ -127,9 +128,9 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
-        1 * workPreparer.scheduleRequestedTasks()
-        1 * workExecutor.execute() >> ExecutionResult.succeeded()
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
         1 * modelCreator.fromBuildModel(action) >> "result"
@@ -150,9 +151,9 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
-        1 * workPreparer.scheduleRequestedTasks()
-        1 * workExecutor.execute() >> ExecutionResult.failed(failure)
+        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
         0 * action._
 
         and:

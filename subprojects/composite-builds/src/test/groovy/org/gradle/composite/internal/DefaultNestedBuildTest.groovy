@@ -28,6 +28,7 @@ import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeState
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.Path
@@ -46,7 +47,6 @@ class DefaultNestedBuildTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
 
     DefaultNestedBuild build() {
@@ -55,8 +55,7 @@ class DefaultNestedBuildTest extends Specification {
         _ * buildDefinition.name >> "nested"
         sessionServices.add(Stub(BuildOperationExecutor))
         sessionServices.add(exceptionAnalyzer)
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
-        sessionServices.add(includedBuildTaskGraph)
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(Stub(BuildTreeWorkGraph)))
         _ * tree.services >> sessionServices
         _ * controller.gradle >> gradle
 
@@ -91,7 +90,6 @@ class DefaultNestedBuildTest extends Specification {
             '<result>'
         }
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
-        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
     }
 
@@ -112,7 +110,6 @@ class DefaultNestedBuildTest extends Specification {
             '<result>'
         }
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
-        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         0 * controller.finishBuild(_, _)
     }
 

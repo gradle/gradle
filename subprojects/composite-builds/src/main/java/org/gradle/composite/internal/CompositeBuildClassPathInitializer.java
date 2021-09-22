@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.ExecutionResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,14 +50,16 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             }
         }
         if (!tasksToBuild.isEmpty()) {
-            includedBuildTaskGraph.withNewTaskGraph(() -> {
-                includedBuildTaskGraph.prepareTaskGraph(() -> {
+            includedBuildTaskGraph.withNewTaskGraph(graph -> {
+                graph.prepareTaskGraph(() -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
                         includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();
                     }
-                    includedBuildTaskGraph.populateTaskGraphs();
+                    graph.populateTaskGraphs();
                 });
-                includedBuildTaskGraph.runScheduledTasks();
+                graph.startTaskExecution();
+                ExecutionResult<Void> result = graph.awaitTaskCompletion();
+                result.rethrow();
                 return null;
             });
         }

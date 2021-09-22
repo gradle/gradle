@@ -45,7 +45,7 @@ class DefaultBuildTreeLifecycleControllerFactory(
         // (that is, it assumes it is only applied to the root build)
         val rootBuild = targetBuild.gradle.isRootBuild
 
-        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild, taskGraph)
+        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild)
         val workPreparer = if (buildModelParameters.isConfigurationCache && rootBuild) {
             ConfigurationCacheAwareBuildTreeWorkPreparer(defaultWorkPreparer, cache)
         } else {

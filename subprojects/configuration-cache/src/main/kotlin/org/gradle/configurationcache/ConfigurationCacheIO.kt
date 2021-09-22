@@ -31,6 +31,7 @@ import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -65,10 +66,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph) {
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(host::createBuild)
+                readRootBuildState(graph, host::createBuild)
             }
         }
     }

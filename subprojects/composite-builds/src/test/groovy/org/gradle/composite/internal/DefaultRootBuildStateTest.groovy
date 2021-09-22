@@ -30,6 +30,7 @@ import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeState
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -47,7 +48,6 @@ class DefaultRootBuildStateTest extends Specification {
     def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def includedBuildTaskGraph = Mock(IncludedBuildTaskGraph)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     DefaultRootBuildState build
 
@@ -56,11 +56,10 @@ class DefaultRootBuildStateTest extends Specification {
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def sessionServices = new DefaultServiceRegistry()
         sessionServices.add(new TestBuildOperationExecutor())
-        sessionServices.add(includedBuildTaskGraph)
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
         sessionServices.add(Stub(BuildStateRegistry))
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory())
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(Stub(BuildTreeWorkGraph)))
 
         _ * controller.gradle >> gradle
         _ * gradle.services >> sessionServices
@@ -99,7 +98,6 @@ class DefaultRootBuildStateTest extends Specification {
 
         1 * lifecycleListener.beforeComplete()
         0 * controller._
-        0 * includedBuildTaskGraph._
         0 * lifecycleListener._
     }
 
@@ -134,9 +132,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * controller.scheduleRequestedTasks()
-        1 * includedBuildTaskGraph.startTaskExecution()
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
-        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 
         and:
@@ -207,7 +203,6 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * controller.executeTasks() >> ExecutionResult.failed(failure)
-        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
 
         and:
@@ -221,7 +216,6 @@ class DefaultRootBuildStateTest extends Specification {
             controller.scheduleAndRunTasks()
         }
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
-        1 * includedBuildTaskGraph.awaitTaskCompletion() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 
         build.run(action)
