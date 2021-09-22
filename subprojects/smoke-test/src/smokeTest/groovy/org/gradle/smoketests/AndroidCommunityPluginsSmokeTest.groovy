@@ -44,7 +44,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (FLADLE_PLUGIN_ID): Versions.of('0.14.1'),
             (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.3.3'),
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.33-beta'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.38.1'),
             (SENTRY_PLUGIN_ID): Versions.of('1.7.36'),
         ]
     }
@@ -157,8 +157,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.33-beta"
-                        implementation "com.google.dagger:hilt-compiler:2.33-beta"
+                        implementation "com.google.dagger:hilt-android:2.38.1"
+                        implementation "com.google.dagger:hilt-compiler:2.38.1"
                     }
                 """
                 break
