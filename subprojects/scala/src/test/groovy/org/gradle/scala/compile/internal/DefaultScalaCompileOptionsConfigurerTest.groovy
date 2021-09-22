@@ -95,6 +95,21 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
         ]
     }
 
+    def 'does not configure target jvm if scala compiler already has a target'() {
+        given:
+        ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
+        scalaCompileOptions.additionalParameters = ['-target:8']
+        Set<File> classpath = [new File("scala-library-2.13.1.jar")]
+
+        when:
+        scalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
+
+        then:
+        scalaCompileOptions.additionalParameters
+        scalaCompileOptions.additionalParameters.find { it == '-target:8' }
+        !scalaCompileOptions.additionalParameters.find { it == '-target:17' }
+    }
+
     private static JavaInstallationMetadata createToolchain(Integer javaVersion) {
         new JavaInstallationMetadata() {
             @Override
