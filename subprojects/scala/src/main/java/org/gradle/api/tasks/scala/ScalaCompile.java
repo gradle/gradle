@@ -16,16 +16,19 @@
 package org.gradle.api.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.ScalaRuntime;
-import org.gradle.api.tasks.scala.internal.DefaultScalaCompileOptionsConfigurer;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -46,14 +49,14 @@ public class ScalaCompile extends AbstractScalaCompile {
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
-    private final ScalaCompileOptionsConfigurer scalaCompileOptionsConfigurer;
+    private final Property<ScalaRuntime> scalaRuntime;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Inject
     public ScalaCompile() {
         super(new ScalaCompileOptions());
-        ScalaRuntime scalaRuntime = getProject().getExtensions().getByType(ScalaRuntime.class);
-        this.scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer(scalaRuntime);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
     }
 
     @Nested
@@ -94,9 +97,21 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.scalaCompilerPlugins = scalaCompilerPlugins;
     }
 
+
+    /**
+     * Returns the Scala Runtime extension
+     *
+     * @since 7.3
+     */
+    @Internal
+    @Incubating
+    public Property<ScalaRuntime> getScalaRuntime() {
+        return scalaRuntime;
+    }
+
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        scalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
+        ScalaCompileOptionsConfigurer.configure(getScalaRuntime().getOrNull(), getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));
