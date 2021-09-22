@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -183,7 +184,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 if (watchMode.isEnabled()) {
                     if (reasonForNotWatchingFiles != null) {
                         // Log exception again so it doesn't get lost.
-                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
+                        logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD, watchMode);
                         reasonForNotWatchingFiles = null;
                     }
                     SnapshotHierarchy newRoot;
@@ -274,7 +275,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
             closeUnderLock();
             return currentRoot.empty();
         }
@@ -323,24 +324,29 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         try {
             return supplier.get();
         } catch (Exception ex) {
-            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
+            logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD, null);
             return stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
         }
     }
 
-    private void logWatchingError(Exception exception, String fileWatchingErrorMessage) {
-        if (exception instanceof InotifyInstanceLimitTooLowException) {
-            LOGGER.warn("{}. The inotify instance limit is too low. See {} for more details.",
-                fileWatchingErrorMessage,
-                daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
-            );
-        } else if (exception instanceof InotifyWatchesLimitTooLowException) {
-            LOGGER.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
-        } else if (exception instanceof WatchingNotSupportedException) {
-            // No stacktrace here, since this is a known shortcoming of our implementation
-            LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
-        } else {
-            LOGGER.warn(fileWatchingErrorMessage, exception);
+    private void logWatchingError(Exception exception, String fileWatchingErrorMessage, @Nullable WatchMode watchMode) {
+        // Only log warnings when watching is explicitly enabled or on the info log.
+        // Since we don't know the watch mode during the build, we'll only log on info there.
+        boolean shouldLogWarnings = watchMode == WatchMode.ENABLED || LOGGER.isInfoEnabled();
+        if (shouldLogWarnings) {
+            if (exception instanceof InotifyInstanceLimitTooLowException) {
+                LOGGER.warn("{}. The inotify instance limit is too low. See {} for more details.",
+                    fileWatchingErrorMessage,
+                    daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
+                );
+            } else if (exception instanceof InotifyWatchesLimitTooLowException) {
+                LOGGER.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
+            } else if (exception instanceof WatchingNotSupportedException) {
+                // No stacktrace here, since this is a known shortcoming of our implementation
+                    LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
+            } else {
+                LOGGER.warn(fileWatchingErrorMessage, exception);
+            }
         }
         reasonForNotWatchingFiles = exception;
     }
