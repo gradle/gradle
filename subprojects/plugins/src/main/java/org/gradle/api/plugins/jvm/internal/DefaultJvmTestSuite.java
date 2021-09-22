@@ -47,6 +47,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
         SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
         KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.5.31"),
+        TEST_NG("org.testng:testng", "7.4.0"),
         NONE(null, null);
 
         @Nullable
@@ -137,12 +138,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(task -> {
                 task.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
                     switch(framework.framework) {
-                        case NONE: // fall-through
+                        case NONE: // all test tasks REQUIRE a test framework, so use JUnit Platform if no framework set, fall-through
                         case JUNIT4: // fall-through
                         case KOTLIN_TEST:
                             return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
                         case JUNIT_JUPITER: // fall-through
-                        case SPOCK:
+                        case SPOCK: // fall-through
+                        case TEST_NG:
                             return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
                         default:
                             throw new IllegalStateException("do not know how to handle " + framework);
@@ -159,8 +161,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     case JUNIT4: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK: // fall-through
-                    case KOTLIN_TEST:
+                    case KOTLIN_TEST: // fall-through
+                    case TEST_NG:
                         return framework.framework.getDependency(framework.version);
+                    case NONE:
+                        return null;
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
                 }
@@ -237,6 +242,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public void useKotlinTest(String version) {
         setFrameworkTo(new TestingFramework(Frameworks.KOTLIN_TEST, version));
+    }
+
+    @Override
+    public void useTestNG() {
+        useTestNG(Frameworks.TEST_NG.defaultVersion);
+    }
+
+    @Override
+    public void useTestNG(String version) {
+        setFrameworkTo(new TestingFramework(Frameworks.TEST_NG, version));
     }
 
     private void setFrameworkTo(TestingFramework framework) {

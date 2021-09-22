@@ -247,14 +247,18 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("checkConfiguration")
 
-        where:
+        where: // When testing a custom version, this should be a different version that the default
         testingFrameworkDeclaration | testingFrameworkType       | testingFrameworkDep
         'useJUnit()'                | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.Frameworks.JUNIT4.getDefaultVersion()}.jar"
-        'useJUnitJupiter()'         | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar"
         'useJUnit("4.12")'          | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter("5.7.2")'  | JUnitPlatformTestFramework | "junit-jupiter-5.7.2.jar"
+        'useJUnitJupiter()'         | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar"
+        'useJUnitJupiter("5.7.1")'  | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
         'useSpock()'                | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
-        'useSpock("2.0-groovy-3.0")'| JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
+        'useSpock("2.0-groovy-3.0")'| JUnitPlatformTestFramework | "spock-core-2.0-groovy-3.0.jar" // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
+        'useKotlinTest()'           | JUnitTestFramework         | "kotlin-test-junit-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'   | JUnitTestFramework         | "kotlin-test-junit-1.5.30.jar"
+        'useTestNG()'               | JUnitPlatformTestFramework | "testng-${DefaultJvmTestSuite.Frameworks.TEST_NG.getDefaultVersion()}.jar"
+        'useTestNG("7.3.0")'        | JUnitPlatformTestFramework | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -308,7 +312,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         // Now we're using JUnit again
         succeeds("checkConfigurationIsJUnit")
     }
-    
+
     def "task configuration overrules test suite configuration"() {
         buildFile << """
             plugins {
@@ -355,7 +359,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java'
             }
-            
+
             repositories {
                 ${mavenCentralRepository()}
             }
