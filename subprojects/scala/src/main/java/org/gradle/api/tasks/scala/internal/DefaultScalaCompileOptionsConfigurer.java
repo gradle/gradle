@@ -29,6 +29,7 @@ import java.util.Set;
 
 /**
  * Configures scala compile options to include the proper jvm target.
+ * Gradle tool is not responsible for understanding if the version of Scala selected is compatible with the toolchain
  * Does not configure if Java Toolchain feature is not in use
  * @since 7.3
  */
@@ -72,21 +73,12 @@ public class DefaultScalaCompileOptionsConfigurer implements ScalaCompileOptions
     }
 
     private String determineTargetParameter(String scalaVersion, Integer jvmVersion) {
-        if(jvmVersion < 8) {
-            return String.format("-target:jvm-1.%s", jvmVersion);
-        }
-
         VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
-        int compareWith2_11_3 = comparator.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.11.3")));
-        if(compareWith2_11_3 < 0) {
-            return "-target:jvm-1.7";
-        }
-
         int compareWith2_13_1 = comparator.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1")));
         if(compareWith2_13_1 < 0) {
-            return "-target:jvm-1.8";
+            return String.format("-target:jvm-1.%s", jvmVersion);
+        } else {
+            return String.format("-target:%s", jvmVersion);
         }
-
-        return String.format("-target:%s", jvmVersion);
     }
 }

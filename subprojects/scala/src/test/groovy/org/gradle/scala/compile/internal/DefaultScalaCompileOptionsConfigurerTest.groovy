@@ -55,16 +55,16 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
         7           | '2.10.0'            | '-target:jvm-1.7'
         6           | '2.11.0'            | '-target:jvm-1.6'
         7           | '2.11.0'            | '-target:jvm-1.7'
-        8           | '2.10.0'            | '-target:jvm-1.7'
-        8           | '2.11.0'            | '-target:jvm-1.7'
+        8           | '2.10.0'            | '-target:jvm-1.8'
+        8           | '2.11.0'            | '-target:jvm-1.8'
         8           | '2.11.12'           | '-target:jvm-1.8'
         8           | '2.12.0'            | '-target:jvm-1.8'
         8           | '2.12.14'           | '-target:jvm-1.8'
         8           | '2.13.0'            | '-target:jvm-1.8'
-        11          | '2.11.12'           | '-target:jvm-1.8'
-        11          | '2.12.0'            | '-target:jvm-1.8'
-        11          | '2.12.14'           | '-target:jvm-1.8'
-        11          | '2.13.0'            | '-target:jvm-1.8'
+        11          | '2.11.12'           | '-target:jvm-1.11'
+        11          | '2.12.0'            | '-target:jvm-1.11'
+        11          | '2.12.14'           | '-target:jvm-1.11'
+        11          | '2.13.0'            | '-target:jvm-1.11'
         8           | '2.13.1'            | '-target:8'
         9           | '2.13.1'            | '-target:9'
         11          | '2.13.1'            | '-target:11'
@@ -83,7 +83,7 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
         then:
         !scalaCompileOptions.additionalParameters
 
-        0 * scalaRuntime.findScalaJar(_,_)
+        0 * scalaRuntime.findScalaJar(_, _)
         0 * scalaRuntime.getScalaVersion(_)
     }
 
@@ -99,7 +99,7 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
         then:
         !scalaCompileOptions.additionalParameters
 
-        1 * scalaRuntime.findScalaJar(_,_) >> null
+        1 * scalaRuntime.findScalaJar(_, _) >> null
         0 * scalaRuntime.getScalaVersion(_)
 
         where:
