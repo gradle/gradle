@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -71,7 +70,7 @@ public abstract class AbstractBuildState implements BuildState {
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
         BuildLifecycleController buildController = getBuildController();
         buildController.prepareToScheduleTasks();
         buildController.populateWorkGraph(action);

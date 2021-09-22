@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
@@ -132,10 +131,12 @@ class ConfigurationCacheState(
 
     private
     fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
-        graph.prepareTaskGraph {
-            state.build.state.populateWorkGraph {
+        graph.prepareTaskGraph { builder ->
+            builder.withWorkGraph(state.build.state) {
                 it.addNodes(state.workGraph)
-                state.children.forEach(::addNodesForChildBuilds)
+            }
+            for (child in state.children) {
+                addNodesForChildBuilds(child)
             }
             graph.populateTaskGraphs()
             state.build.state.workGraph.prepareForExecution(true)

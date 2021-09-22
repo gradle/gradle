@@ -17,13 +17,16 @@ package org.gradle.internal.build;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.model.StateTransitionController;
@@ -31,6 +34,8 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
@@ -111,13 +116,13 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        populateWorkGraph(taskGraph -> modelController.scheduleRequestedTasks());
+    public void addRequestedTasks(BuildTreeWorkGraph.Builder builder) {
+        builder.withWorkGraph(gradle.getOwner(), graph -> graph.addRequestedTasks());
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
+    public void populateWorkGraph(Consumer<? super WorkGraphBuilder> action) {
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, tasks -> action.accept(new DefaultWorkGraphBuilder(tasks))));
     }
 
     @Override
@@ -182,6 +187,31 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
+        private final TaskExecutionGraphInternal taskGraph;
+
+        public DefaultWorkGraphBuilder(TaskExecutionGraphInternal taskGraph) {
+            this.taskGraph = taskGraph;
+        }
+
+        @Override
+        public void addRequestedTasks() {
+            modelController.scheduleRequestedTasks();
+        }
+
+        @Override
+        public void addEntryTasks(List<? extends Task> tasks) {
+            for (Task task : tasks) {
+                taskGraph.addEntryTasks(Collections.singletonList(task));
+            }
+        }
+
+        @Override
+        public void addNodes(List<? extends Node> nodes) {
+            taskGraph.addNodes(nodes);
         }
     }
 }

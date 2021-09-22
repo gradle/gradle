@@ -16,7 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
+
+import java.util.function.Consumer;
 
 /**
  * Represents a set of work to be executed across a build tree.
@@ -25,10 +29,10 @@ public interface BuildTreeWorkGraph {
     /**
      * Schedules tasks using the given action and prepare the work graphs for execution.
      */
-    void prepareTaskGraph(Runnable action);
+    void prepareTaskGraph(Consumer<? super Builder> action);
 
     /**
-     * Finish populating work graph, once all entry point tasks have been scheduled using {@link #prepareTaskGraph(Runnable)}.
+     * Finish populating work graph, once all entry point tasks have been scheduled using {@link #prepareTaskGraph(Consumer)}.
      * This may fire user hooks to notify build logic that all tasks have been scheduled.
      */
     void populateTaskGraphs();
@@ -42,4 +46,11 @@ public interface BuildTreeWorkGraph {
      * Blocks until all scheduled tasks have completed.
      */
     ExecutionResult<Void> awaitTaskCompletion();
+
+    interface Builder {
+        /**
+         * Adds nodes to the work graph for the given build.
+         */
+        void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
+    }
 }

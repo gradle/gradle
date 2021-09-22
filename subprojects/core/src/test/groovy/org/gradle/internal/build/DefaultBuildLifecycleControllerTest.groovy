@@ -76,7 +76,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
 
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
         def executionResult = controller.executeTasks()
         executionResult.failures.empty
 
@@ -95,12 +95,12 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
 
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
         def executionResult = controller.executeTasks()
         executionResult.failures.empty
 
         controller.prepareToScheduleTasks()
-        controller.populateWorkGraph { }
+        controller.populateWorkGraph {}
         def executionResult2 = controller.executeTasks()
         executionResult2.failures.empty
 
@@ -187,7 +187,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     void testCannotScheduleTasksWhenNotPrepared() {
         when:
         def controller = controller()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
 
         then:
         def t = thrown IllegalStateException
@@ -224,7 +224,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
 
         then:
         def t = thrown RuntimeException
@@ -247,7 +247,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
         def executionResult = controller.executeTasks()
 
         then:
@@ -272,7 +272,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
         def executionResult = controller.executeTasks()
 
         then:
@@ -295,7 +295,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         and:
         def controller = controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
         controller.executeTasks()
 
         when:
@@ -317,7 +317,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         and:
         def controller = controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
 
         when:
         def executionResult = controller.executeTasks()
@@ -365,7 +365,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         controller.finishBuild(null)
 
         when:
-        controller.scheduleRequestedTasks()
+        controller.populateWorkGraph { b -> b.addRequestedTasks() }
 
         then:
         thrown IllegalStateException

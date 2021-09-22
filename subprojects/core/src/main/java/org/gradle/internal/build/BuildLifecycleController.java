@@ -15,12 +15,15 @@
  */
 package org.gradle.internal.build;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.Node;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -52,22 +55,21 @@ public interface BuildLifecycleController extends Stoppable {
     void prepareToScheduleTasks();
 
     /**
-     * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
+     * Adds the requested tasks for this build to the given graph.
      */
-    void scheduleRequestedTasks();
+    void addRequestedTasks(BuildTreeWorkGraph.Builder builder);
 
     /**
      * Populates the work graph of this build.
      * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
      */
-    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
+    void populateWorkGraph(Consumer<? super WorkGraphBuilder> action);
 
     void finalizeWorkGraph(boolean workScheduled);
 
     /**
      * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
-     * Must call {@link #prepareToScheduleTasks()} and optionally any of {@link #scheduleRequestedTasks()} or {@link #populateWorkGraph(Consumer)} prior to calling this method.
+     * Must call {@link #prepareToScheduleTasks()} and optionally {@link #populateWorkGraph(Consumer)} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks();
 
@@ -84,4 +86,21 @@ public interface BuildLifecycleController extends Stoppable {
      * <p>Adds a listener to this build instance. Receives events for this build only.
      */
     void addListener(Object listener);
+
+    interface WorkGraphBuilder {
+        /**
+         * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
+         */
+        void addRequestedTasks();
+
+        /**
+         * Adds the given tasks and their dependencies to the work graph for this build.
+         */
+        void addEntryTasks(List<? extends Task> tasks);
+
+        /**
+         * Adds the given nodes to the work graph for this build.
+         */
+        void addNodes(List<? extends Node> nodes);
+    }
 }

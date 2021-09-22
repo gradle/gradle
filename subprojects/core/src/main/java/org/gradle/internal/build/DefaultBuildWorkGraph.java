@@ -24,7 +24,6 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +69,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
         projectStateRegistry.withMutableStateOfAllProjects(() -> {
             controller.prepareToScheduleTasks();
             controller.populateWorkGraph(taskGraph -> {
-                for (Task task : tasks) {
-                    taskGraph.addEntryTasks(Collections.singletonList(task));
-                }
+                taskGraph.addEntryTasks(tasks);
             });
         });
     }

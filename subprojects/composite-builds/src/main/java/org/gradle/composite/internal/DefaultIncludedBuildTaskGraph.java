@@ -18,6 +18,8 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
@@ -34,6 +36,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -106,14 +109,14 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
     }
 
-    private void prepareTaskGraph(Runnable action) {
+    private void prepareTaskGraph(Consumer<? super BuildTreeWorkGraph.Builder> action) {
         withState(() -> {
             expectInState(State.NotPrepared);
             state = State.QueuingTasks;
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    action.run();
+                    action.accept(new DefaultBuildTreeWorkGraphBuilder());
                     context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
                     });
                 }
@@ -237,9 +240,16 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
     }
 
+    private static class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
+        @Override
+        public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+            target.populateWorkGraph(action);
+        }
+    }
+
     private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph {
         @Override
-        public void prepareTaskGraph(Runnable action) {
+        public void prepareTaskGraph(Consumer<? super Builder> action) {
             DefaultIncludedBuildTaskGraph.this.prepareTaskGraph(action);
         }
 

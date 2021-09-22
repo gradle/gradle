@@ -19,7 +19,6 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
@@ -110,5 +109,5 @@ public interface BuildState {
     /**
      * Populates the task graph of this build using the given action.
      */
-    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
+    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 }
