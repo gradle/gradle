@@ -54,8 +54,8 @@ public class ModuleVersionSelectorParsers {
             .toType(ModuleVersionSelector.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter())
-            .converter(new ProviderConvertibleConverter(dslContext))
-            .converter(new ProviderConverter(dslContext));
+            .converter(new ProviderConverter(dslContext))
+            .converter(new ProviderConvertibleConverter(dslContext));
     }
 
     static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
@@ -95,7 +95,7 @@ public class ModuleVersionSelectorParsers {
         }
     }
 
-    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<MinimalExternalModuleDependency>, ModuleVersionSelector> {
+    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<?>, ModuleVersionSelector> {
 
         private final ProviderConverter providerConverter;
 
@@ -105,13 +105,18 @@ public class ModuleVersionSelectorParsers {
         }
 
         @Override
-        protected ModuleVersionSelector parseType(ProviderConvertible<MinimalExternalModuleDependency> notation) {
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Version catalog type-safe accessors.");
+        }
+
+        @Override
+        protected ModuleVersionSelector parseType(ProviderConvertible<?> notation) {
             return providerConverter.parseType(notation.asProvider());
         }
 
     }
 
-    static class ProviderConverter extends TypedNotationConverter<Provider<MinimalExternalModuleDependency>, ModuleVersionSelector> {
+    static class ProviderConverter extends TypedNotationConverter<Provider<?>, ModuleVersionSelector> {
 
         private final String caller;
 
@@ -122,12 +127,18 @@ public class ModuleVersionSelectorParsers {
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Version catalog type-safe accessors for entries without rich versions.");
+            visitor.candidate("Version catalog type-safe accessors.");
         }
 
         @Override
-        protected ModuleVersionSelector parseType(Provider<MinimalExternalModuleDependency> notation) {
-            MinimalExternalModuleDependency dependency = notation.get();
+        protected ModuleVersionSelector parseType(Provider<?> notation) {
+            Class<?> providerTargetClass = getProviderTargetClass(notation);
+            if (!MinimalExternalModuleDependency.class.isAssignableFrom(providerTargetClass)) {
+                String notationAsString = notation.getOrNull() == null ? null : notation.get().toString();
+                throw new InvalidUserDataException("Cannot convert a version catalog entry '" + notationAsString + "' to an object of type ModuleVersionSelector. " +
+                    "Only dependency accessors are supported but not plugin, bundle or version accessors for '" + caller + "'.");
+            }
+            MinimalExternalModuleDependency dependency = (MinimalExternalModuleDependency) notation.get();
             if (isNotRequiredVersionOnly(dependency.getVersionConstraint())) {
                 throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Rich versions are not supported for '" + caller + "'.");
             } else if (dependency.getVersionConstraint().getRequiredVersion().isEmpty()) {
@@ -135,6 +146,13 @@ public class ModuleVersionSelectorParsers {
             } else {
                 return newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
             }
+        }
+
+        @SuppressWarnings("ConstantConditions")
+        private Class<?> getProviderTargetClass(Provider<?> notation) {
+            return notation.getOrNull() == null
+                ? null
+                : notation.get().getClass();
         }
 
         private boolean isNotRequiredVersionOnly(VersionConstraint constraint) {

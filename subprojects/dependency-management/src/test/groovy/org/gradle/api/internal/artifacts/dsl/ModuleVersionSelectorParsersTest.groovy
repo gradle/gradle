@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultPluginDependency
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.internal.typeconversion.UnsupportedNotationException
@@ -158,7 +159,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v.version  == '1.0'
     }
 
-    def "allows provider as an input"() {
+    def "allows provider of type MinimalExternalModuleDependency as an input"() {
         given:
         def provider = Stub(Provider.class)
         def dependency =  Stub(MinimalExternalModuleDependency.class)
@@ -176,7 +177,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v.version  == '1.0'
     }
 
-    def "allows provider convertible as an input"() {
+    def "allows provider convertible of type MinimalExternalModuleDependency as an input"() {
         given:
         def providerConvertible = Stub(ProviderConvertible.class)
         def provider = Stub(Provider.class)
@@ -196,13 +197,42 @@ class ModuleVersionSelectorParsersTest extends Specification {
         v.version  == '1.0'
     }
 
+    def "reports unsupported provider type"() {
+        given:
+        def provider = Stub(Provider.class)
+        def dependency = new DefaultPluginDependency("pluginId", new DefaultMutableVersionConstraint("1.0"))
+        provider.get() >> dependency
+
+        when:
+        parser("force()").parseNotation(provider)
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
+    }
+
+    def "reports unsupported provider convertible type"() {
+        given:
+        def providerConvertible = Stub(ProviderConvertible.class)
+        def provider = Stub(Provider.class)
+        def dependency = new DefaultPluginDependency("pluginId", new DefaultMutableVersionConstraint("1.0"))
+        providerConvertible.asProvider() >> provider
+        provider.get() >> dependency
+
+        when:
+        parser("force()").parseNotation(providerConvertible)
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
+    }
+
     def "reports unsupported versions if rich constraints are used"() {
         given:
         def provider = Stub(Provider.class)
         def defaultMutableVersion = new DefaultMutableVersionConstraint("1.0")
         defaultMutableVersion.prefer("1.2")
         def dependency = new DefaultMinimalDependency(DefaultModuleIdentifier.newId("org.foo", "bar"), defaultMutableVersion)
-        dependency.versionConstraint >> defaultMutableVersion
         provider.get() >> dependency
 
         when:
@@ -218,7 +248,6 @@ class ModuleVersionSelectorParsersTest extends Specification {
         def provider = Stub(Provider.class)
         def defaultMutableVersion = new DefaultMutableVersionConstraint("")
         def dependency = new DefaultMinimalDependency(DefaultModuleIdentifier.newId("org.foo", "bar"), defaultMutableVersion)
-        dependency.versionConstraint >> defaultMutableVersion
         provider.get() >> dependency
 
         when:

@@ -2076,4 +2076,44 @@ Second: 1.1"""
         then:
         failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'.")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "fails if plugin, version or bundle is used in force of resolution strategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("myVersion", "1.0")
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        bundle("myBundle", ["myLib"])
+                        alias("myPlugin").toPluginId("org.gradle.test").version("1.0")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.$catalogEntry)
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot convert a version catalog entry '$catalogEntryAsString' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'.")
+
+        where:
+        catalogEntry         | catalogEntryAsString
+        "versions.myVersion" | "1.0"
+        "plugins.myPlugin"   | "org.gradle.test:1.0"
+        "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
 }
