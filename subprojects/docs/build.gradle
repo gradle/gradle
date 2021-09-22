@@ -553,6 +553,7 @@ tasks.named("docsTest") { task ->
         // Do not execute Java Module tests on JVM < 9
         if (!javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.incubating.*.java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
     }
