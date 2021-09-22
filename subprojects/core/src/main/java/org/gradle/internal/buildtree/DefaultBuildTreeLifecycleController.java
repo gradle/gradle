@@ -21,7 +21,7 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.StateTransitionController;
+import org.gradle.internal.model.StateTransitionController;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build
+package org.gradle.internal.model
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 

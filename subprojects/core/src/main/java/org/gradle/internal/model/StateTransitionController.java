@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.internal.model;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.ExecutionResult;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;

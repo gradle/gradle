@@ -26,6 +26,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;

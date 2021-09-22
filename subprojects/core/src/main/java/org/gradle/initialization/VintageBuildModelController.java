@@ -19,7 +19,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.internal.build.BuildModelController;
-import org.gradle.internal.build.StateTransitionController;
+import org.gradle.internal.model.StateTransitionController;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
