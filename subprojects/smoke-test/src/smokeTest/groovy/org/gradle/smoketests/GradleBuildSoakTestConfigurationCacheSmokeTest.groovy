@@ -41,6 +41,6 @@ class GradleBuildSoakTestConfigurationCacheSmokeTest extends AbstractGradleBuild
 
         then:
         assertConfigurationCacheStateLoaded()
-        result.task(":soak:forkingIntegTest").outcome == TaskOutcome.SUCCESS
+        result.task(":soak:forkingIntegTest").outcome == TaskOutcome.FROM_CACHE
     }
 }
