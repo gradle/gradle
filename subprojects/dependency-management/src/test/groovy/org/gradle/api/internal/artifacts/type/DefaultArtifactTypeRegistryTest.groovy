@@ -20,7 +20,6 @@ package org.gradle.api.internal.artifacts.type
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.ArtifactAttributes
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -142,7 +141,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
     def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {
         expect:
-        registry.mapAttributesFor(artifactFile).getAttribute(ArtifactAttributes.ARTIFACT_FORMAT) == type
+        registry.mapAttributesFor(artifactFile).getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) == type
 
         where:
         artifactFile    | type

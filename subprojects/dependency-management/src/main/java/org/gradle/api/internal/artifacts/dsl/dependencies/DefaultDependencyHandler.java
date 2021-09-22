@@ -68,7 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
@@ -315,7 +315,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private void configureSchema() {
-        attributesSchema.attribute(ARTIFACT_FORMAT);
+        attributesSchema.attribute(ARTIFACT_TYPE_ATTRIBUTE);
     }
 
     @Override
