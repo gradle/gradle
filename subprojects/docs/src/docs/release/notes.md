@@ -20,6 +20,7 @@ Include only their name, impactful features should be called out separately belo
 [Björn Kautler](https://github.com/Vampire),
 [Alexis Tual](https://github.com/alextu),
 [Tomasz Godzik](https://github.com/tgodzik),
+[Kristian Kraljic](https://github.com/kristian),
 [Matthew Haughton](https://github.com/3flex)
 
 
