@@ -747,6 +747,34 @@ public class BuildScriptBuilder {
         }
     }
 
+    private static class GradleApiDepSpec extends AbstractStatement {
+        private final String configuration;
+
+        GradleApiDepSpec(String configuration, @Nullable String comment) {
+            super(comment);
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(configuration, "gradleApi()"));
+        }
+    }
+
+    private static class GradleTestKitDepSpec extends AbstractStatement {
+        private final String configuration;
+
+        GradleTestKitDepSpec(String configuration, @Nullable String comment) {
+            super(comment);
+            this.configuration = configuration;
+        }
+
+        @Override
+        public void writeCodeTo(PrettyPrinter printer) {
+            printer.println(printer.syntax.dependencySpec(configuration, "gradleTestKit()"));
+        }
+    }
+
     private static class PlatformDepSpec extends AbstractStatement {
         private final String configuration;
         private final String dep;
@@ -1119,6 +1147,16 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void gradleApiDependency(String configuration, @Nullable String comment) {
+            this.dependencies.put(configuration, new GradleApiDepSpec(configuration, comment));
+        }
+
+        @Override
+        public void gradleTestKitDependency(String configuration, @Nullable String comment) {
+            this.dependencies.put(configuration, new GradleTestKitDepSpec(configuration, comment));
+        }
+
+        @Override
         public void platformDependency(String configuration, @Nullable String comment, String dependency) {
             this.dependencies.put(configuration, new PlatformDepSpec(configuration, comment, dependency));
         }
@@ -1224,27 +1262,35 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void junitSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder));
+        public SuiteSpec junitSuite(String name) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void junitJupiterSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder));
+        public SuiteSpec junitJupiterSuite(String name) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void spockSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder));
+        public SuiteSpec spockSuite(String name) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder);
+            suites.add(spec);
+            return spec;
         }
 
         @Override
-        public void kotlinTestSuite(String name) {
-            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder));
+        public SuiteSpec kotlinTestSuite(String name) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder);
+            suites.add(spec);
+            return spec;
         }
     }
 
-    private static class SuiteSpec extends AbstractStatement {
+    public static class SuiteSpec extends AbstractStatement {
         private final BuildScriptBuilder builder;
 
         private final String name;
@@ -1296,6 +1342,14 @@ public class BuildScriptBuilder {
 
         public boolean isDefaultTestSuite() {
             return isDefaultTestSuite;
+        }
+
+        public void addGradleTestKit() {
+            dependencies.gradleTestKitDependency("implementation", null);
+        }
+
+        public void addGradleApi() {
+            dependencies.gradleApiDependency("implementation", null);
         }
 
         @Override

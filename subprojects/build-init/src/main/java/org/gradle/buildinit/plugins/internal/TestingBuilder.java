@@ -16,9 +16,11 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder.SuiteSpec;
+
 public interface TestingBuilder {
-    void junitSuite(String name);
-    void junitJupiterSuite(String name);
-    void spockSuite(String name);
-    void kotlinTestSuite(String name);
+    SuiteSpec junitSuite(String name);
+    SuiteSpec junitJupiterSuite(String name);
+    SuiteSpec spockSuite(String name);
+    SuiteSpec kotlinTestSuite(String name);
 }

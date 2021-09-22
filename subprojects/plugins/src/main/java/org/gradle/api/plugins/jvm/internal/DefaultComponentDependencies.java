@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.plugins.jvm.ComponentDependencies;
@@ -79,5 +80,15 @@ public class DefaultComponentDependencies implements ComponentDependencies {
     @Override
     public void compileOnly(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration) {
         addToConfiguration(compileOnly, dependencyNotation, configuration);
+    }
+
+    @Override
+    public Dependency gradleTestKit() {
+        return getDependencyHandler().gradleTestKit();
+    }
+
+    @Override
+    public Dependency gradleApi() {
+        return getDependencyHandler().gradleApi();
     }
 }

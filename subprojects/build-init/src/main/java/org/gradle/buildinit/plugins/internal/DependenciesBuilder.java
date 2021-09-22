@@ -28,4 +28,7 @@ public interface DependenciesBuilder {
     void dependency(String configuration, @Nullable String comment, String... dependencies);
 
     void dependencyConstraint(String configuration, @Nullable String comment, String... dependencies);
+
+    void gradleApiDependency(String configuration, @Nullable String comment);
+    void gradleTestKitDependency(String configuration, @Nullable String comment);
 }

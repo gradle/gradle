@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
@@ -35,4 +36,18 @@ public interface ComponentDependencies {
 
     void compileOnly(Object dependencyNotation);
     void compileOnly(Object dependencyNotation, Action<? super ExternalModuleDependency> configuration);
+
+    /**
+     * Creates a dependency on the API of the current version of Gradle.
+     *
+     * @return The dependency.
+     */
+    Dependency gradleApi();
+
+    /**
+     * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
+     *
+     * @return The dependency.
+     */
+    Dependency gradleTestKit();
 }

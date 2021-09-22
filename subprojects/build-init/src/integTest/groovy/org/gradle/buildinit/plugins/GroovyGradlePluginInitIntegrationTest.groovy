@@ -23,6 +23,8 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+
 
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
@@ -30,10 +32,22 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     String subprojectName() { 'plugin' }
 
     @Unroll
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
-    def "creates sample source if no source present with #scriptDsl build scripts"() {
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
         when:
-        run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
+        run (['init', '--type', 'groovy-gradle-plugin'] + (incubating ? ['--incubating'] : []) )
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
+    }
+
+    @Unroll
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    def "creates sample source if no source present with #scriptDsl build scripts, when incubating flag = #incubating"() {
+        when:
+        run(['init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id] + (incubating ? ['--incubating'] : []))
 
         then:
         subprojectDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
@@ -52,6 +66,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        incubating << [true, false]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")

@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Collections;
@@ -39,5 +41,28 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.empty();
+    }
+
+    protected void configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
+    }
+
+    protected void addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        addTestSuite("integrationTest", buildScriptBuilder, testFramework);
+    }
+
+    protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        switch (testFramework) {
+            case JUNIT:
+                return buildScriptBuilder.testing().junitSuite(name);
+            case JUNIT_JUPITER:
+                return buildScriptBuilder.testing().junitJupiterSuite(name);
+            case SPOCK:
+                return buildScriptBuilder.testing().spockSuite(name);
+            case KOTLINTEST:
+                return buildScriptBuilder.testing().kotlinTestSuite(name);
+            default:
+                throw new IllegalArgumentException(testFramework + " is not yet supported.");
+        }
     }
 }

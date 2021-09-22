@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
@@ -187,33 +186,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private void addMavenCentral(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
-    }
-
-    private void configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
-    }
-
-    private void addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        addTestSuite("integrationTest", buildScriptBuilder, testFramework);
-    }
-
-    private void addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        switch (testFramework) {
-            case JUNIT:
-                buildScriptBuilder.testing().junitSuite(name);
-                break;
-            case JUNIT_JUPITER:
-                buildScriptBuilder.testing().junitJupiterSuite(name);
-                break;
-            case SPOCK:
-                buildScriptBuilder.testing().spockSuite(name);
-                break;
-            case KOTLINTEST:
-                buildScriptBuilder.testing().kotlinTestSuite(name);
-                break;
-            default:
-                throw new IllegalArgumentException(testFramework + " is not yet supported.");
-        }
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
