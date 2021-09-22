@@ -17,6 +17,7 @@
 package org.gradle.scala.compile.internal
 
 import org.gradle.api.file.Directory
+import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.DefaultScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
@@ -28,13 +29,15 @@ import spock.lang.Unroll
 @Subject(DefaultScalaCompileOptionsConfigurer)
 class DefaultScalaCompileOptionsConfigurerTest extends Specification {
 
-    private final DefaultScalaCompileOptionsConfigurer scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer()
+    private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
+    private final DefaultScalaCompileOptionsConfigurer scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer(scalaRuntime)
 
     @Unroll
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-        Set<File> classpath = [new File("scala-library-${scalaLibraryVersion}.jar")]
+        File scalaLibrary = new File("scala-library-${scalaLibraryVersion}.jar")
+        Set<File> classpath = [scalaLibrary]
 
         when:
         scalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath)
@@ -42,6 +45,9 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
         then:
         !scalaCompileOptions.additionalParameters.empty
         scalaCompileOptions.additionalParameters.find { it == expectedTarget }
+
+        1 * scalaRuntime.findScalaJar(_, _) >> scalaLibrary
+        1 * scalaRuntime.getScalaVersion(scalaLibrary) >> scalaLibraryVersion
 
         where:
         javaVersion | scalaLibraryVersion | expectedTarget
@@ -68,25 +74,33 @@ class DefaultScalaCompileOptionsConfigurerTest extends Specification {
     def 'does not configure target jvm if toolchain is not present'() {
         given:
         ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-        Set<File> classpath = [new File("scala-library-2.10.0.jar")]
+        File scalaLibrary = new File("scala-library-2.11.0.jar")
+        Set<File> classpath = [scalaLibrary]
 
         when:
         scalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
+
+        0 * scalaRuntime.findScalaJar(_,_)
+        0 * scalaRuntime.getScalaVersion(_)
     }
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
         ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
-        Set<File> classpath = [new File(scalaFileName)]
+        File scalaLibrary = new File("scala-invalid-2.11.0.jar")
+        Set<File> classpath = [scalaLibrary]
 
         when:
         scalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
+
+        1 * scalaRuntime.findScalaJar(_,_) >> null
+        0 * scalaRuntime.getScalaVersion(_)
 
         where:
         scalaFileName << [

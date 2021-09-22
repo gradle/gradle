@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.scala.internal.DefaultScalaCompileOptionsConfigurer;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -51,7 +52,8 @@ public class ScalaCompile extends AbstractScalaCompile {
     @Inject
     public ScalaCompile() {
         super(new ScalaCompileOptions());
-        this.scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer();
+        ScalaRuntime scalaRuntime = getProject().getExtensions().getByType(ScalaRuntime.class);
+        this.scalaCompileOptionsConfigurer = new DefaultScalaCompileOptionsConfigurer(scalaRuntime);
     }
 
     @Nested

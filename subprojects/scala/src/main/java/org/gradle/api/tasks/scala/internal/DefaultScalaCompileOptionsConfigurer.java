@@ -36,18 +36,24 @@ public class DefaultScalaCompileOptionsConfigurer implements ScalaCompileOptions
     private static final VersionParser versionParser = new VersionParser();
     private static final DefaultVersionComparator comparator = new DefaultVersionComparator();
 
+    private final ScalaRuntime scalaRuntime;
+
+    public DefaultScalaCompileOptionsConfigurer(ScalaRuntime scalaRuntime) {
+        this.scalaRuntime = scalaRuntime;
+    }
+
     @Override
     public void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
 
-        File scalaJar = ScalaRuntime.findScalaJar(scalaClasspath, "library");
+        File scalaJar = scalaRuntime.findScalaJar(scalaClasspath, "library");
         if(scalaJar == null) {
             return;
         }
 
-        String scalaVersion = ScalaRuntime.getScalaVersion(scalaJar);
+        String scalaVersion = scalaRuntime.getScalaVersion(scalaJar);
         if(scalaVersion == null) {
             return;
         }
