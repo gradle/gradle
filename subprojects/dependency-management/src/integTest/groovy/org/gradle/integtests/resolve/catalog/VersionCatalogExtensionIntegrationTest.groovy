@@ -1997,4 +1997,123 @@ Second: 1.1"""
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "supports version catalogs in force method of resolutionStrategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        alias("myLib-subgroup").to("org.gradle.test:lib2:3.0.5")
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "3.0.5").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "3.0.5").publish()
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                implementation "org.gradle.test:lib2:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.myLib)
+                        force(libs.myLib.subgroup)
+                    }
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5")
+                edge("org.gradle.test:lib2:3.0.6", "org.gradle.test:lib2:3.0.5")
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "doesn't support rich versions from version catalogs in force method of resolutionStrategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("myLib").to("org.gradle.test", "lib").version {
+                            strictly "[3.0, 4.0["
+                            prefer "3.0.5"
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.myLib)
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17874")
+    def "fails if plugin, version or bundle is used in force of resolution strategy"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("myVersion", "1.0")
+                        alias("myLib").to("org.gradle.test:lib:3.0.5")
+                        bundle("myBundle", ["myLib"])
+                        alias("myPlugin").toPluginId("org.gradle.test").version("1.0")
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation "org.gradle.test:lib:3.0.6"
+                configurations.all {
+                    resolutionStrategy {
+                        force(libs.$catalogEntry)
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Cannot convert a version catalog entry '$catalogEntryAsString' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'.")
+
+        where:
+        catalogEntry         | catalogEntryAsString
+        "versions.myVersion" | "1.0"
+        "plugins.myPlugin"   | "org.gradle.test:1.0"
+        "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
 }
