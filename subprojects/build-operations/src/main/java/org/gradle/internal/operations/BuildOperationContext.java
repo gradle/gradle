@@ -45,4 +45,9 @@ public interface BuildOperationContext {
      * Indicates some progress of this build operation.
      */
     void progress(String status);
+
+    /**
+     * Indicates some progress of this build operation.
+     */
+    void progress(long progress, long total, String units, String status);
 }

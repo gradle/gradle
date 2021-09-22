@@ -23,6 +23,7 @@ dependencies {
     testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":tooling-api")))
     testImplementation(testFixtures(project(":launcher")))
+    testImplementation(testFixtures(project(":snapshots")))
 
     testImplementation(libs.commonsIo)
 

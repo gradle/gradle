@@ -17,7 +17,7 @@ java {
 }
 // end::toolchain[]
 
-tasks.test {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 

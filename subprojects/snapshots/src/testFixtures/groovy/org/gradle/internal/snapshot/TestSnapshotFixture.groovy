@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 
 import javax.annotation.Nullable
 
@@ -28,7 +29,7 @@ import static org.gradle.internal.file.impl.DefaultFileMetadata.file
 
 trait TestSnapshotFixture {
 
-    private final Random pseudoRandom = new Random(1234);
+    private final Random pseudoRandom = new Random(1234)
 
     FileSystemLocationSnapshot directory(String absolutePath, FileMetadata.AccessType accessType = DIRECT, Long hashCode = null, List<FileSystemLocationSnapshot> children) {
         new DirectorySnapshot(
@@ -54,5 +55,18 @@ trait TestSnapshotFixture {
             FilenameUtils.getName(absolutePath),
             HashCode.fromLong(hashCode ?: pseudoRandom.nextLong()),
             file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
+    }
+
+    FileSystemLocationSnapshot missing(String absolutePath, FileMetadata.AccessType accessType = DIRECT) {
+        new MissingFileSnapshot(
+            absolutePath,
+            accessType
+        )
+    }
+
+    static SnapshotHierarchy buildHierarchy(CaseSensitivity caseSensitivity = CaseSensitivity.CASE_INSENSITIVE, List<FileSystemLocationSnapshot> snapshots) {
+        SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(caseSensitivity)
+        snapshots.each { snapshot -> root = root.store(snapshot.absolutePath, snapshot, SnapshotHierarchy.NodeDiffListener.NOOP)}
+        return root
     }
 }

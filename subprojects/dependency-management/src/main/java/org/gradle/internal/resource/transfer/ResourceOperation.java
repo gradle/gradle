@@ -16,7 +16,6 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.operations.BuildOperationContext;
 
 import static org.gradle.internal.util.NumberUtil.KIB_BASE;
@@ -26,14 +25,11 @@ public class ResourceOperation {
     public enum Type {
         download,
         upload;
-
-        public String getCapitalized() {
-            return StringUtils.capitalize(toString());
-        }
     }
 
     private final BuildOperationContext context;
     private final Type operationType;
+    private long contentLengthBytes;
     private String contentLengthString;
 
     private long loggedKBytes;
@@ -45,6 +41,7 @@ public class ResourceOperation {
     }
 
     public void setContentLength(long contentLength) {
+        this.contentLengthBytes = contentLength;
         if (contentLength <= 0) {
             this.contentLengthString = String.format(" %sed", operationType);
         } else {
@@ -62,7 +59,7 @@ public class ResourceOperation {
         if (processedKiB > loggedKBytes) {
             loggedKBytes = processedKiB;
             String progressMessage = formatBytes(totalProcessedBytes) + contentLengthString;
-            context.progress(progressMessage);
+            context.progress(totalProcessedBytes, contentLengthBytes, "bytes", progressMessage);
         }
     }
 }

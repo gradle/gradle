@@ -113,7 +113,6 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         // configuration cache registers all build directories at startup so the cache fingerprint can be checked
         def expectedWatchableCount = GradleContextualExecuter.isConfigCache() ? 3 : 2
         assertWatchableHierarchies([ImmutableSet.of(consumer, includedBuild)] * expectedWatchableCount)
-
         when:
         includedBuild.file("src/main/java/NewClass.java")  << "public class NewClass {}"
         withWatchFs().run("assemble")

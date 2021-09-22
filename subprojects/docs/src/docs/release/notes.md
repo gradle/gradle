@@ -19,7 +19,9 @@ Include only their name, impactful features should be called out separately belo
 [yinghao niu](https://github.com/towith),
 [Björn Kautler](https://github.com/Vampire),
 [Alexis Tual](https://github.com/alextu),
-[Tomasz Godzik](https://github.com/tgodzik)
+[Tomasz Godzik](https://github.com/tgodzik),
+[Matthew Haughton](https://github.com/3flex)
+
 
 ## Upgrade instructions
 
@@ -98,6 +100,14 @@ The `Copy` task now has a method [`Copy.ignoreExistingContentInDestinationDir()`
 This uses the new [untracked](#untracked) feature under the hood.
 See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
 
+### More robust file system watching
+
+When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system.
+To do this it tries to rely on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
+However, these events can be unreliable in some environments, which could cause Gradle to ignore some changes.
+To prevent this, Gradle now makes a change to the file system whenever it first starts watching something.
+If a file system event for this change does not arrive by the start of the next build, Gradle concludes that file system events are unreliable, and will fall back to checking the file system for files involved in the build for changes.  
+
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
@@ -132,9 +142,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Disabling caching by default
+
+The [`@DisableCachingByDefault` annotation](userguide/build_cache.html#sec:task_output_caching_disabled_by_default) is now a stable feature.
 
 ## Fixed issues
 

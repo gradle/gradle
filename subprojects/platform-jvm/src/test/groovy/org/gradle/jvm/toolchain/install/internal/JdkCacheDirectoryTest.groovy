@@ -60,13 +60,16 @@ class JdkCacheDirectoryTest extends Specification {
         def install3 = new File(temporaryFolder, "jdks/jdk-mac/Contents/Home").tap { mkdirs() }
         new File(temporaryFolder, "jdks/jdk-mac/provisioned.ok").createNewFile()
 
+        def install4 = new File(temporaryFolder, "jdks/jdk-mac-2/some-jdk-folder/Contents/Home").tap { mkdirs() }
+        new File(temporaryFolder, "jdks/jdk-mac-2/provisioned.ok").createNewFile()
+
         new File(temporaryFolder, "jdks/notReady").tap { mkdirs() }
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
 
         then:
-        homes.containsAll([install1, install2, install3])
+        homes.containsAll([install1, install2, install3, install4])
     }
 
     def "provisions jdk from tar.gz archive"() {
@@ -94,6 +97,18 @@ class JdkCacheDirectoryTest extends Specification {
         println installedJdk
         new File(installedJdk, "file").exists()
         new File(installedJdk, "provisioned.ok").exists()
+    }
+
+    def "provisions jdk from tar.gz archive with MacOS symlinks"() {
+        def jdkArchive = resources.getResource("jdk-with-symlinks.tar.gz")
+        def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager())
+
+        when:
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive)
+
+        then:
+        installedJdk.exists()
+        new File(installedJdk, "bin/file").exists()
     }
 
     private GradleUserHomeDirProvider newHomeDirProvider() {
