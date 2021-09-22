@@ -20,6 +20,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
@@ -31,20 +32,22 @@ public class VintageBuildModelController implements BuildModelController {
     private final TaskSchedulingPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
-    private final StateTransitionController<Stage> controller = new StateTransitionController<>(Stage.Created);
+    private final StateTransitionController<Stage> state;
 
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
         TaskSchedulingPreparer taskSchedulingPreparer,
         SettingsPreparer settingsPreparer,
-        TaskExecutionPreparer taskExecutionPreparer
+        TaskExecutionPreparer taskExecutionPreparer,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
         this.taskGraphPreparer = taskSchedulingPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
+        this.state = controllerFactory.newController(Stage.Created);
     }
 
     @Override
@@ -86,18 +89,18 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     private void prepareSettings() {
-        controller.transitionIfNotPreviously(Stage.Created, Stage.LoadSettings, () -> settingsPreparer.prepareSettings(gradle));
+        state.transitionIfNotPreviously(Stage.Created, Stage.LoadSettings, () -> settingsPreparer.prepareSettings(gradle));
     }
 
     private void prepareProjects() {
-        controller.transitionIfNotPreviously(Stage.LoadSettings, Stage.Configure, () -> projectsPreparer.prepareProjects(gradle));
+        state.transitionIfNotPreviously(Stage.LoadSettings, Stage.Configure, () -> projectsPreparer.prepareProjects(gradle));
     }
 
     private void prepareTaskGraph() {
-        controller.transitionIfNotPreviously(Stage.Configure, Stage.ScheduleTasks, () -> taskGraphPreparer.prepareForTaskScheduling(gradle));
+        state.transitionIfNotPreviously(Stage.Configure, Stage.ScheduleTasks, () -> taskGraphPreparer.prepareForTaskScheduling(gradle));
     }
 
     private void prepareTaskExecution() {
-        controller.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle));
+        state.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle));
     }
 }

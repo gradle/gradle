@@ -27,6 +27,7 @@ import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
@@ -50,7 +51,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
     private final BuildModelController modelController;
-    private final StateTransitionController<State> controller = new StateTransitionController<>(State.Configure);
+    private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
 
@@ -63,7 +64,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices
+        BuildScopeServices buildServices,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
@@ -74,6 +76,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
+        this.state = controllerFactory.newController(State.Configure);
     }
 
     @Override
@@ -83,25 +86,25 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // - have the threads use some specific immutable view of the build model state instead of requiring direct access to the build model.
         // - not have a thread blocked around task execution, so that other threads can use the build model.
         // - maybe split the states into one for the build model and one for the task graph.
-        controller.assertNotInState(State.Finished);
+        state.assertNotInState(State.Finished);
         return gradle;
     }
 
     @Override
     public SettingsInternal getLoadedSettings() {
         // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
     }
 
     @Override
     public void prepareToScheduleTasks() {
-        controller.maybeTransition(State.Configure, State.TaskSchedule, () -> {
+        state.maybeTransition(State.Configure, State.TaskSchedule, () -> {
             hasTasks = true;
             modelController.prepareToScheduleTasks();
         });
@@ -114,7 +117,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        controller.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
     }
 
     @Override
@@ -134,12 +137,12 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public ExecutionResult<Void> executeTasks() {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
-        return controller.tryTransition(State.TaskSchedule, State.Configure, () -> workExecutor.execute(gradle));
+        return state.tryTransition(State.TaskSchedule, State.Configure, () -> workExecutor.execute(gradle));
     }
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return controller.finish(State.Finished, stageFailures -> {
+        return state.finish(State.Finished, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
@@ -174,7 +177,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void stop() {
-        controller.assertInState(State.Finished);
+        state.assertInState(State.Finished);
         try {
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {

@@ -20,16 +20,19 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Manages the transition between states of some object with mutable state. Adds validation to ensure that the object is in an expected state
- * and also that a transition cannot happen while another transition is currently happening (either by another thread or the thread that is currently
- * running a transition).
+ * Manages the transition between states of some object with mutable state.
+ *
+ * Adds validation to ensure that the object is in an expected state and also that a transition cannot happen while another transition
+ * is currently happening (either by another thread or the thread that is currently running a transition).
  */
+@ThreadSafe
 public class StateTransitionController<T extends StateTransitionController.State> {
     private final Set<T> achievedStates = new HashSet<>();
     private T state;

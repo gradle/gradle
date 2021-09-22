@@ -22,6 +22,7 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,13 +33,13 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         NotStarted, Complete
     }
 
-    private final StateTransitionController<State> state = new StateTransitionController<>(State.NotStarted);
     private final BuildLifecycleController buildLifecycleController;
     private final IncludedBuildTaskGraph taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
+    private final StateTransitionController<State> state;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
@@ -46,7 +47,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         BuildTreeWorkPreparer workPreparer,
         BuildTreeWorkExecutor workExecutor,
         BuildTreeModelCreator modelCreator,
-        BuildTreeFinishExecutor finishExecutor
+        BuildTreeFinishExecutor finishExecutor,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.buildLifecycleController = buildLifecycleController;
         this.taskGraph = taskGraph;
@@ -54,6 +56,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
+        this.state = controllerFactory.newController(State.NotStarted);
     }
 
     @Override
