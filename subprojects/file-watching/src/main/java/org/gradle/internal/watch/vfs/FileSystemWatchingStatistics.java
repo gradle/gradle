@@ -18,7 +18,7 @@ package org.gradle.internal.watch.vfs;
 
 public interface FileSystemWatchingStatistics {
     int getNumberOfReceivedEvents();
-    int getNumberOfWatchedLocations();
+    int getNumberOfWatchedHierarchies();
 
     int getRetainedRegularFiles();
     int getRetainedDirectories();

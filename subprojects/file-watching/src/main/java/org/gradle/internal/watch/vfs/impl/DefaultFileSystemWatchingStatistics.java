@@ -43,8 +43,8 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
     }
 
     @Override
-    public int getNumberOfWatchedLocations() {
-        return fileWatchingStatistics.getNumberOfWatchedLocations();
+    public int getNumberOfWatchedHierarchies() {
+        return fileWatchingStatistics.getNumberOfWatchedHierarchies();
     }
 
     @Override

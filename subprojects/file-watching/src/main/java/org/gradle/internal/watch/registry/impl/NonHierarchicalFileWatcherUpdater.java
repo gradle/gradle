@@ -119,11 +119,6 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
     }
 
-    @Override
-    public int getNumberOfWatchedLocations() {
-        return watchedDirectories.entrySet().size();
-    }
-
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
         Set<File> directoriesToStopWatching = new HashSet<>();
         Set<File> directoriesToStartWatching = new HashSet<>();

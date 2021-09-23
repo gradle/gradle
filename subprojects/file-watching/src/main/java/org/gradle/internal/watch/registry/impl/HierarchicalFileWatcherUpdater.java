@@ -149,11 +149,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
-    @Override
-    public int getNumberOfWatchedLocations() {
-        return watchedHierarchies.size();
-    }
-
     public interface MovedHierarchyHandler {
         /**
          * On Windows when watched hierarchies are moved, the OS does not send a notification,

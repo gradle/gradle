@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
@@ -175,7 +176,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        int numberOfWatchedLocations = fileWatcherUpdater.getNumberOfWatchedLocations();
+        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger(0);
+        fileWatcherUpdater.getWatchedFiles().visitRoots(root -> numberOfWatchedHierarchies.incrementAndGet());
         return new FileWatchingStatistics() {
             @Override
             public Optional<Throwable> getErrorWhileReceivingFileChanges() {
@@ -193,8 +195,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
             }
 
             @Override
-            public int getNumberOfWatchedLocations() {
-                return numberOfWatchedLocations;
+            public int getNumberOfWatchedHierarchies() {
+                return numberOfWatchedHierarchies.get();
             }
         };
     }
