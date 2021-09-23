@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer;
@@ -94,6 +95,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles) {
+        // The changes already happened in `handleVirtualFileSystemContentsChanged`.
+    }
+
+    @Override
     protected WatchableHierarchies.Invalidator createInvalidator() {
         return (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
@@ -104,17 +110,13 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
-    protected void armWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
-        // Make sure probe directories are watched
+    protected void startWatchingProbeDirectory(File probeDirectory) {
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
-        super.armWatchProbeForHierarchy(probedHierarchy, probeDirectory);
     }
 
     @Override
-    protected void disarmWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
-        // Make sure probe directories are not watched anymore
+    protected void stopWatchingProbeDirectory(File probeDirectory) {
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), -1));
-        super.disarmWatchProbeForHierarchy(probedHierarchy, probeDirectory);
     }
 
     @Override

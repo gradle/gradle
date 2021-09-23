@@ -97,9 +97,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    protected FileHierarchySet updateWatchedHierarchies(SnapshotHierarchy root) {
-        FileHierarchySet newWatchedFiles = super.updateWatchedHierarchies(root);
-
+    protected void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles) {
         ImmutableSet<File> oldWatchedHierarchies = watchedHierarchies;
         ImmutableSet.Builder<File> watchedHierarchiesBuilder = ImmutableSet.builder();
         newWatchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
@@ -129,12 +127,21 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
             LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
         }
-        return newWatchedFiles;
     }
 
     @Override
     protected SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root) {
         return movedHierarchyHandler.handleMovedHierarchies(root);
+    }
+
+    @Override
+    protected void startWatchingProbeDirectory(File probeDirectory) {
+        // We already started watching the hierarchy.
+    }
+
+    @Override
+    protected void stopWatchingProbeDirectory(File probeDirectory) {
+        // We already stopped watching the hierarchy.
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -107,7 +106,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
 
     private void update(SnapshotHierarchy root) {
-        watchedFiles = updateWatchedHierarchies(root);
+        watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
+        updateWatchesOnChangedWatchedFiles(watchedFiles);
 
         // Probe every hierarchy that is watched, even ones nested inside others
         ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
@@ -122,7 +122,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             .filter(oldProbedHierarchy -> !probedHierarchies.contains(oldProbedHierarchy))
             .forEach(probedHierarchy -> {
                 File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
-                disarmWatchProbeForHierarchy(probedHierarchy, probeDirectory);
+                probeRegistry.disarmWatchProbe(probedHierarchy);
+                stopWatchingProbeDirectory(probeDirectory);
             });
 
         probedHierarchies.stream()
@@ -133,24 +134,16 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
                 // included builds are evaluated with configuration cache
                 //noinspection ResultOfMethodCallIgnored
                 probeDirectory.mkdirs();
-                armWatchProbeForHierarchy(probedHierarchy, probeDirectory);
+                startWatchingProbeDirectory(probeDirectory);
+                probeRegistry.armWatchProbe(probedHierarchy);
             });
     }
 
-    @OverridingMethodsMustInvokeSuper
-    protected FileHierarchySet updateWatchedHierarchies(SnapshotHierarchy root) {
-        return resolveWatchedFiles(watchableHierarchies, root);
-    }
+    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles);
 
-    @OverridingMethodsMustInvokeSuper
-    protected void armWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
-        probeRegistry.armWatchProbe(probedHierarchy);
-    }
+    protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
-    @OverridingMethodsMustInvokeSuper
-    protected void disarmWatchProbeForHierarchy(File probedHierarchy, File probeDirectory) {
-        probeRegistry.disarmWatchProbe(probedHierarchy);
-    }
+    protected abstract void stopWatchingProbeDirectory(File probeDirectory);
 
     @VisibleForTesting
     static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {
