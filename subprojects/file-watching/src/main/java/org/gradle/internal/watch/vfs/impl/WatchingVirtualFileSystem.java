@@ -40,6 +40,7 @@ import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -59,6 +60,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
+    private Logger warningLogger = LOGGER;
 
     /**
      * Watchable hierarchies registered before the {@link FileWatcherRegistry} has been started.
@@ -95,6 +97,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
+        warningLogger = watchMode == WatchMode.ENABLED || LOGGER.isInfoEnabled() ? LOGGER : NOPLogger.NOP_LOGGER;
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -241,6 +244,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
+        // Log problems to daemon log
+        warningLogger = LOGGER;
     }
 
     /**
@@ -330,23 +335,18 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     private void logWatchingError(Exception exception, String fileWatchingErrorMessage, @Nullable WatchMode watchMode) {
-        // Only log warnings when watching is explicitly enabled or on the info log.
-        // Since we don't know the watch mode during the build, we'll only log on info there.
-        boolean shouldLogWarnings = watchMode == WatchMode.ENABLED || LOGGER.isInfoEnabled();
-        if (shouldLogWarnings) {
-            if (exception instanceof InotifyInstanceLimitTooLowException) {
-                LOGGER.warn("{}. The inotify instance limit is too low. See {} for more details.",
-                    fileWatchingErrorMessage,
-                    daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
-                );
-            } else if (exception instanceof InotifyWatchesLimitTooLowException) {
-                LOGGER.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
-            } else if (exception instanceof WatchingNotSupportedException) {
-                // No stacktrace here, since this is a known shortcoming of our implementation
-                    LOGGER.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
-            } else {
-                LOGGER.warn(fileWatchingErrorMessage, exception);
-            }
+        if (exception instanceof InotifyInstanceLimitTooLowException) {
+            warningLogger.warn("{}. The inotify instance limit is too low. See {} for more details.",
+                fileWatchingErrorMessage,
+                daemonDocumentationIndex.getLinkToSection("sec:inotify_instances_limit")
+            );
+        } else if (exception instanceof InotifyWatchesLimitTooLowException) {
+            warningLogger.warn("{}. The inotify watches limit is too low.", fileWatchingErrorMessage);
+        } else if (exception instanceof WatchingNotSupportedException) {
+            // No stacktrace here, since this is a known shortcoming of our implementation
+            warningLogger.warn("{}. {}.", fileWatchingErrorMessage, exception.getMessage());
+        } else {
+            warningLogger.warn(fileWatchingErrorMessage, exception);
         }
         reasonForNotWatchingFiles = exception;
     }
@@ -360,7 +360,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
-        LOGGER.error("Stopping file watching and invalidating VFS after an error happened");
+        warningLogger.error("Stopping file watching and invalidating VFS after an error happened");
         return stopWatchingAndInvalidateHierarchy(currentRoot);
     }
 
@@ -379,11 +379,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     private boolean hasDroppedStateBecauseOfErrorsReceivedWhileWatching(FileWatcherRegistry.FileWatchingStatistics statistics) {
         if (statistics.isUnknownEventEncountered()) {
-            LOGGER.warn("Dropped VFS state due to lost state");
+            warningLogger.warn("Dropped VFS state due to lost state");
             return true;
         }
         if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
-            LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
+            warningLogger.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
             return true;
         }
         return false;
