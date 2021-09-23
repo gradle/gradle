@@ -151,8 +151,8 @@ private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOw
         functionalTestBuildType.dependencies {
             dependency(dependency) {
                 snapshot {
-                    onDependencyFailure = FailureAction.CANCEL
-                    onDependencyCancel = FailureAction.CANCEL
+                    onDependencyFailure = FailureAction.FAIL_TO_START
+                    onDependencyCancel = FailureAction.FAIL_TO_START
                 }
             }
         }

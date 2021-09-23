@@ -16,31 +16,18 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.tooling.events.OperationDescriptor
+
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.StatusEvent
 
+// This is a separate class because StatusEvent is not available for all versions of the tooling API
 class ProgressEventsWithStatus extends ProgressEvents {
     @Override
-    protected Operation newOperation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
-        return new OperationWithStatus(startEvent, parent, descriptor)
-    }
-
-    @Override
-    protected void otherEvent(ProgressEvent event, ProgressEvents.Operation operation) {
+    protected void otherEvent(ProgressEvent event, Operation operation) {
         if (event instanceof StatusEvent) {
-            operation.statusEvents.add(event)
+            operation.statusEvents.add(new OperationStatus(event))
         } else {
-            super.otherEvent(event)
-        }
-    }
-
-    static class OperationWithStatus extends ProgressEvents.Operation {
-        final List<StatusEvent> statusEvents = []
-
-        OperationWithStatus(StartEvent startEvent, ProgressEvents.Operation parent, OperationDescriptor descriptor) {
-            super(startEvent, parent, descriptor)
+            super.otherEvent(event, operation)
         }
     }
 }

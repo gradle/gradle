@@ -16,7 +16,9 @@
 
 package org.gradle.api.artifacts.type;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 
@@ -28,6 +30,14 @@ import java.util.Set;
  * @since 4.0
  */
 public interface ArtifactTypeDefinition extends HasAttributes, Named {
+    /**
+     * The attribute that represents the type of the artifact.
+     *
+     * @since 7.3
+     */
+    @Incubating
+    Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class);
+
     /**
      * Represents a JAR file.
      *

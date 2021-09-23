@@ -29,6 +29,8 @@ import org.gradle.caching.configuration.BuildCache
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
+import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
+import org.gradle.configurationcache.CachedProjectState.Companion.configureProjectFromCachedState
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
@@ -192,7 +194,9 @@ class ConfigurationCacheState(
         }
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
-            writeRelevantProjectsFor(scheduledNodes, gradle.serviceOf())
+            val relevantProjects = getRelevantProjectsFor(scheduledNodes, gradle.serviceOf())
+            writeRelevantProjects(relevantProjects)
+            writeProjectStates(gradle, relevantProjects)
             writeRequiredBuildServicesOf(gradle, buildTreeState)
             writeWorkGraphOf(gradle, scheduledNodes)
         }
@@ -217,6 +221,7 @@ class ConfigurationCacheState(
 
         initProjectProvider(build::getProject)
 
+        readProjectStates(gradle)
         readRequiredBuildServicesOf(gradle)
 
         val workGraph = readWorkGraph(gradle)
@@ -261,6 +266,28 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readRequiredBuildServicesOf(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             read()
+        }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeProjectStates(gradle: GradleInternal, relevantProjects: List<Project>) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            // Do not serialize trivial states to speed up deserialization.
+            val nonTrivialProjectStates = relevantProjects.asSequence()
+                .map { project -> project.computeCachedState() }
+                .filterNotNull()
+                .toList()
+
+            writeCollection(nonTrivialProjectStates)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readProjectStates(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            readCollection {
+                configureProjectFromCachedState(read() as CachedProjectState)
+            }
         }
     }
 
@@ -539,8 +566,12 @@ class ConfigurationCacheState(
     }
 
     private
-    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry) {
-        val relevantProjects = fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
+    fun getRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<Project> {
+        return fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
+    }
+
+    private
+    fun Encoder.writeRelevantProjects(relevantProjects: List<Project>) {
         writeCollection(relevantProjects) { project ->
             writeString(project.path)
             writeFile(project.projectDir)

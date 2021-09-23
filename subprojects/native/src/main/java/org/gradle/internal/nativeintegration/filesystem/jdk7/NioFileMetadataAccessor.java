@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -50,7 +51,7 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
             return DefaultFileMetadata.directory(accessType);
         }
         if (attributes.isOther()) {
-            return DefaultFileMetadata.missing(accessType);
+            throw new UncheckedIOException("Unsupported file type for " + file.getAbsolutePath());
         }
         return DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }

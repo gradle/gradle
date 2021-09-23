@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import javax.annotation.CheckReturnValue;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * An immutable hierarchy of snapshots of the file system.
@@ -28,15 +29,15 @@ import java.util.Optional;
 public interface SnapshotHierarchy {
 
     /**
-     * Returns the snapshot stored at the absolute path.
+     * Returns the metadata stored at the absolute path if it exists.
      */
-    Optional<MetadataSnapshot> getMetadata(String absolutePath);
+    Optional<MetadataSnapshot> findMetadata(String absolutePath);
 
     /**
-     * Returns the snapshot stored at the absolute path.
+     * Returns the snapshot stored at the absolute path if one exists.
      */
-    default Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return getMetadata(absolutePath)
+    default Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return findMetadata(absolutePath)
             .filter(FileSystemLocationSnapshot.class::isInstance)
             .map(FileSystemLocationSnapshot.class::cast);
     }
@@ -61,13 +62,15 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
+    /**
+     * Returns all root snapshots in the hierarchy.
+     */
+    Stream<FileSystemLocationSnapshot> rootSnapshots();
 
-    void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor);
-
-    interface SnapshotVisitor {
-        void visitSnapshotRoot(FileSystemLocationSnapshot snapshot);
-    }
+    /**
+     * Returns all root snapshots in the hierarchy below {@code absolutePath}.
+     */
+    Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath);
 
     /**
      * Receives diff when a {@link SnapshotHierarchy} is updated.

@@ -44,7 +44,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == children
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == children.values()
+        addedNodes == children.stream().map(ChildMap.Entry::getValue).toList()
         interaction { noMoreInteractions() }
 
         where:
@@ -60,7 +60,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
         interaction { noMoreInteractions() }
 
         where:
@@ -77,7 +77,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
 
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
@@ -97,7 +97,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         resultRoot instanceof PartialDirectoryNode
         resultRoot.children == childrenWithSelectedChildRemoved()
         removedNodes == [initialRoot.getSnapshot().get()]
-        addedNodes == childrenWithSelectedChildRemoved().values()
+        addedNodes == childrenWithSelectedChildRemoved().stream().map(ChildMap.Entry::getValue).toList()
 
         interaction {
             invalidateDescendantOfSelectedChild(null)

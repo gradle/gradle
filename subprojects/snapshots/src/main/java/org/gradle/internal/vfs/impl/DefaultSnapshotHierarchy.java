@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PartialDirectoryNode;
@@ -29,6 +30,7 @@ import org.gradle.internal.snapshot.UnknownFileSystemNode;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
@@ -57,7 +59,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         if (relativePath.length() == 0) {
             return rootNode.getSnapshot();
@@ -102,13 +104,13 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {
-        rootNode.accept(snapshotVisitor);
+    public Stream<FileSystemLocationSnapshot> rootSnapshots() {
+        return rootNode.rootSnapshots();
     }
 
     @Override
-    public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {
-        getNode(absolutePath).accept(snapshotVisitor);
+    public Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath) {
+        return getNode(absolutePath).rootSnapshots();
     }
 
     private ReadOnlyFileSystemNode getNode(String absolutePath) {
@@ -129,7 +131,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+        public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
             return Optional.empty();
         }
 
@@ -161,9 +163,14 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {}
+        public Stream<FileSystemLocationSnapshot> rootSnapshots() {
+            return Stream.empty();
+        }
 
         @Override
-        public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {}
+        public Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath) {
+            return Stream.empty();
+        }
+
     }
 }

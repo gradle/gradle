@@ -381,9 +381,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
         if (buildDirs.isNotEmpty()) {
-            buildDirs.forEach(
-                virtualFileSystem::registerWatchableHierarchy
-            )
+            buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
         }
     }
 

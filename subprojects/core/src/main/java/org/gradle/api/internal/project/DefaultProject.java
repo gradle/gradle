@@ -121,6 +121,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -1403,7 +1404,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     @Override
-    public abstract InputNormalizationHandler getNormalization();
+    public abstract InputNormalizationHandlerInternal getNormalization();
 
     @Override
     public void normalization(Action<? super InputNormalizationHandler> configuration) {

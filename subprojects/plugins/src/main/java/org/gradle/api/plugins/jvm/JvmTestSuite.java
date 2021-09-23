@@ -31,14 +31,44 @@ import org.gradle.testing.base.TestSuite;
  */
 @Incubating
 public interface JvmTestSuite extends TestSuite, Buildable {
+    /**
+     * Returns the {@link SourceSet} containing tests for this suite.
+     * @return the {@link SourceSet} containing tests for this suite.
+     */
     SourceSet getSources();
-    void sources(Action<? super SourceSet> configuration);
 
+    /**
+     * Configures the {@link SourceSet} containing tests for this suite.
+     * @param sourceSet an action to execute against the {@link SourceSet}
+     */
+    void sources(Action<? super SourceSet> sourceSet);
+
+    /**
+     * Returns the container of {@link JvmTestSuiteTarget} objects part of this suite.
+     * @return the container of {@link JvmTestSuiteTarget} objects part of this suite.
+     */
     ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 
+    /**
+     * Configures this suite to use the JUnit Jupiter platform libraries.  Defaults to version {@code 5.7.1}
+     */
     void useJUnitJupiter();
+
+    /**
+     * Configures this suite to use the JUnit Jupiter platform libraries.
+     * @param version the version of JUnit Jupiter platform to use, ex. {@code 5.7.1}
+     */
     void useJUnitJupiter(String version);
+
+    /**
+     * Configures this suite to use JUnit 4 libraries.  Defaults to version {@code 4.13}
+     */
     void useJUnit();
+
+    /**
+     * Configures this suite to use JUnit 4 libraries.
+     * @param version the version of JUnit 4 to use, ex. {@code 4.13}
+     */
     void useJUnit(String version);
     void useSpock();
     void useSpock(String version);
@@ -47,6 +77,15 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useTestNG();
     void useTestNG(String version);
 
+    /**
+     * Returns the container for any dependencies needed to compile and run a {@link JvmTestSuite}.
+     * @return the container for any dependencies needed to compile and run a {@link JvmTestSuite}.
+     */
     ComponentDependencies getDependencies();
+
+    /**
+     * Configures the container for any dependencies needed to compile and run a {@link JvmTestSuite}.
+     * @param dependencies an action to execute against the container
+     */
     void dependencies(Action<? super ComponentDependencies> dependencies);
 }

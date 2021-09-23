@@ -67,7 +67,6 @@ import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.S
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
@@ -420,7 +419,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
     }
 
     val firstErrorLine
-        get() = errors.firstNotNullResult { it.location?.line }
+        get() = errors.asSequence().mapNotNull { it.location?.line }.firstOrNull()
 
     override val message: String
         get() = (

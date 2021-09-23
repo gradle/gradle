@@ -161,8 +161,8 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     // Compile All has to succeed before anything else is started
     dependency(RelativeId(compileAllId)) {
         snapshot {
-            onDependencyFailure = FailureAction.CANCEL
-            onDependencyCancel = FailureAction.CANCEL
+            onDependencyFailure = FailureAction.FAIL_TO_START
+            onDependencyCancel = FailureAction.FAIL_TO_START
         }
     }
     // Get the build receipt from sanity check to reuse the timestamp

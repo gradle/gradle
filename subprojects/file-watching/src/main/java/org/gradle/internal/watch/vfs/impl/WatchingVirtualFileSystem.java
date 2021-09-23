@@ -58,7 +58,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
-    private final Set<File> watchableHierarchies = new LinkedHashSet<>();
+
+    /**
+     * Watchable hierarchies registered before the {@link FileWatcherRegistry} has been started.
+     */
+    private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
@@ -160,7 +164,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public void registerWatchableHierarchy(File watchableHierarchy) {
         rootReference.update(currentRoot -> {
             if (watchRegistry == null) {
-                watchableHierarchies.add(watchableHierarchy);
+                watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
                 return currentRoot;
             }
             return withWatcherChangeErrorHandling(
@@ -175,7 +179,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                watchableHierarchies.clear();
+                watchableHierarchiesRegisteredEarly.clear();
                 if (watchMode.isEnabled()) {
                     if (reasonForNotWatchingFiles != null) {
                         // Log exception again so it doesn't get lost.
@@ -266,8 +270,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 }
             });
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode);
-            watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
-            watchableHierarchies.clear();
+            watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
+            watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
