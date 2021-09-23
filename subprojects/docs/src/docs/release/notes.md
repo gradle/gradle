@@ -109,6 +109,10 @@ However, these events can be unreliable in some environments, which could cause 
 To prevent this, Gradle now makes a change to the file system whenever it first starts watching something.
 If a file system event for this change does not arrive by the start of the next build, Gradle concludes that file system events are unreliable, and will fall back to checking the file system for files involved in the build for changes.  
 
+### Input normalization support in configuration cache
+The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization
+rules when the configuration cache is enabled, leading to fewer rebuilds.
+
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
