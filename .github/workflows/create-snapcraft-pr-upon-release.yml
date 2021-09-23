@@ -1,0 +1,30 @@
+name: Update Gradle version in snapcrafters/gradle repository
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  Publish-PR-for-new-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout forked repository
+        uses: actions/checkout@v2
+        with:
+          repository: gradle/snapcrafters-gradle
+          token: ${{ secrets.PAM_FOR_CREATING_PR_AFTER_FINAL_PROMOTION }}
+      - name: Create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAM_FOR_CREATING_PR_AFTER_FINAL_PROMOTION }}
+        run: |
+          version=$(echo ${GITHUB_REF#refs/*/} | tr -d v | sed 's/.0$//')
+          git remote add upstream https://github.com/snapcrafters/gradle
+          git fetch upstream master:upstream-master
+          git reset --hard upstream-master
+          git checkout -b "update-release/$version"
+          sed -i "s/https:\/\/services.gradle.org\/distributions\/gradle-.*.bin.zip/https:\/\/services.gradle.org\/distributions\/gradle-$version-bin.zip/g" snap/snapcraft.yaml
+          git add --all
+          git config user.name "Donat Csikos"
+          git config user.email "donat@gradle.com"
+          git commit -m"Update version to version"
+          git push --set-upstream origin "update-release/$version"
+          hub pull-request -m"Update Gradle to $version" --base snapcrafters:master --head "update-release/$version"
