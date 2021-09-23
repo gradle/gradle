@@ -29,8 +29,8 @@ import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
-import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
+import org.gradle.internal.watch.registry.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
@@ -114,7 +114,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events since last build while watching {} locations",
                                 statisticsSinceLastBuild.getNumberOfReceivedEvents(),
                                 statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
@@ -200,7 +200,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
-                            LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
+                            LOGGER.warn("Received {} file system events during the current build while watching {} locations",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",

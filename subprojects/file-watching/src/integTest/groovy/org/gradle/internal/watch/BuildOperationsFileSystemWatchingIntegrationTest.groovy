@@ -59,7 +59,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         def finishedResult = buildFinishedResult()
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
-        finishedResult.statistics.numberOfWatchedHierarchies == 1
+        finishedResult.statistics.numberOfWatchedHierarchies > 0
         retainedFiles(finishedResult)
 
         when:
@@ -76,7 +76,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
 
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
-        finishedResult.statistics.numberOfWatchedHierarchies == 1
+        finishedResult.statistics.numberOfWatchedHierarchies > 0
         retainedFiles(finishedResult)
     }
 

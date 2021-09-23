@@ -26,33 +26,22 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.vfs.WatchMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
-
-    private final FileSystemLocationToWatchValidator locationToWatchValidator;
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
-    private ImmutableSet<File> watchedHierarchies = ImmutableSet.of();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
-        FileSystemLocationToWatchValidator locationToWatchValidator,
         FileWatcherProbeRegistry probeRegistry,
         WatchableHierarchies watchableHierarchies
     ) {
-        this.locationToWatchValidator = locationToWatchValidator;
         this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
     }
@@ -61,7 +50,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
         probeRegistry.registerProbe(watchableHierarchy);
-        updateWatchedHierarchies(root);
+        update(root);
     }
 
     @Override
@@ -70,7 +59,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator());
         newRoot = doUpdateVfsOnBuildStarted(newRoot);
         if (root != newRoot) {
-            updateWatchedHierarchies(newRoot);
+            update(newRoot);
         }
         return newRoot;
     }
@@ -82,7 +71,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         boolean contentsChanged = handleVirtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
         if (contentsChanged) {
-            updateWatchedHierarchies(root);
+            update(root);
         }
     }
 
@@ -99,15 +88,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         );
 
         if (root != newRoot) {
-            updateWatchedHierarchies(newRoot);
+            update(newRoot);
         }
-        LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
-    }
-
-    @Override
-    public Collection<File> getWatchedHierarchies() {
-        return watchedHierarchies;
     }
 
     @Override
@@ -122,75 +105,45 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
 
-    private void updateWatchedHierarchies(SnapshotHierarchy root) {
-        ImmutableSet<File> oldWatchedHierarchies = watchedHierarchies;
-        ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
-
+    private void update(SnapshotHierarchy root) {
         watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
-
-        ImmutableSet.Builder<File> watchedHierarchiesBuilder = ImmutableSet.builder();
-        watchedFiles.visitRoots(absolutePath -> watchedHierarchiesBuilder.add(new File(absolutePath)));
-        watchedHierarchies = watchedHierarchiesBuilder.build();
+        updateWatchesOnChangedWatchedFiles(watchedFiles);
 
         // Probe every hierarchy that is watched, even ones nested inside others
+        ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
         probedHierarchies = watchableHierarchies.stream()
             .filter(watchedFiles::contains)
             .collect(ImmutableSet.toImmutableSet());
-
-        if (oldWatchedHierarchies.equals(watchedHierarchies) && oldProbedHierarchies.equals(probedHierarchies)) {
-            // Nothing changed
+        if (oldProbedHierarchies.equals(probedHierarchies)) {
             return;
         }
-
-        if (watchedHierarchies.isEmpty()) {
-            LOGGER.info("Not watching anything anymore");
-        }
-        List<File> hierarchiesToStopWatching = oldWatchedHierarchies.stream()
-            .filter(oldWatchedHierarchy -> !watchedHierarchies.contains(oldWatchedHierarchy))
-            .collect(Collectors.toCollection(() -> new ArrayList<>(oldWatchedHierarchies.size())));
-        List<File> hierarchiesToStartWatching = watchedHierarchies.stream()
-            .filter(newWatchedHierarchy -> !oldWatchedHierarchies.contains(newWatchedHierarchy))
-            .collect(Collectors.toCollection(() -> new ArrayList<>(watchedHierarchies.size())));
 
         oldProbedHierarchies.stream()
             .filter(oldProbedHierarchy -> !probedHierarchies.contains(oldProbedHierarchy))
             .forEach(probedHierarchy -> {
-                stopWatchingProbeForHierarchy(probedHierarchy);
+                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
                 probeRegistry.disarmWatchProbe(probedHierarchy);
+                stopWatchingProbeDirectory(probeDirectory);
             });
-
-        if (!hierarchiesToStopWatching.isEmpty()) {
-            stopWatchingHierarchies(hierarchiesToStopWatching);
-        }
-        if (!hierarchiesToStartWatching.isEmpty()) {
-            hierarchiesToStartWatching.forEach(locationToWatchValidator::validateLocationToWatch);
-            startWatchingHierarchies(hierarchiesToStartWatching);
-        }
 
         probedHierarchies.stream()
             .filter(newProbedHierarchy -> !oldProbedHierarchies.contains(newProbedHierarchy))
             .forEach(probedHierarchy -> {
-                startWatchingProbeForHierarchy(probedHierarchy);
+                File probeDirectory = probeRegistry.getProbeDirectory(probedHierarchy);
+                // Make sure the directory exists, this can be necessary when
+                // included builds are evaluated with configuration cache
+                //noinspection ResultOfMethodCallIgnored
+                probeDirectory.mkdirs();
+                startWatchingProbeDirectory(probeDirectory);
                 probeRegistry.armWatchProbe(probedHierarchy);
             });
-
-        LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
     }
 
-    protected abstract void startWatchingHierarchies(Collection<File> hierarchiesToWatch);
+    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles);
 
-    protected abstract void startWatchingProbeForHierarchy(File hierarchyToWatch);
+    protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
-    protected abstract void stopWatchingHierarchies(Collection<File> hierarchiesToWatch);
-
-    protected abstract void stopWatchingProbeForHierarchy(File hierarchyToWatch);
-
-    public interface FileSystemLocationToWatchValidator {
-        FileSystemLocationToWatchValidator NO_VALIDATION = location -> {
-        };
-
-        void validateLocationToWatch(File location);
-    }
+    protected abstract void stopWatchingProbeDirectory(File probeDirectory);
 
     @VisibleForTesting
     static FileHierarchySet resolveWatchedFiles(WatchableHierarchies watchableHierarchies, SnapshotHierarchy vfsRoot) {

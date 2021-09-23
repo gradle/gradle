@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.CheckReturnValue;
 import java.util.Optional;
 
 /**
@@ -28,10 +29,12 @@ public interface FileSystemNode extends ReadOnlyFileSystemNode {
      *
      * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
      */
+    @CheckReturnValue
     FileSystemNode store(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * Invalidates part of the node.
      */
+    @CheckReturnValue
     Optional<FileSystemNode> invalidate(VfsRelativePath targetPath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
 }

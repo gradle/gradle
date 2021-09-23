@@ -42,11 +42,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
-    private final VfsRootReference rootReference;
-
     public WatchingNotSupportedVirtualFileSystem(VfsRootReference rootReference) {
         super(rootReference);
-        this.rootReference = rootReference;
     }
 
     @Override
