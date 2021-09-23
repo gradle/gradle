@@ -34,12 +34,44 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "defaults to Groovy build scripts"() {
+    @Unroll
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
         when:
-        run('init', '--type', 'java-application')
+        run (['init', '--type', 'java-application'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
+    }
+
+    @Unroll
+    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-application', '--incubating', '--dsl', scriptDsl.id)
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+        assertTestsDoNotExist("some.thing.AppIntegTest")
+        assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
+
+        when:
+        succeeds('clean', 'integrationTest')
+        then:
+        assertTestsDidNotRun("some.thing.AppTest")
+        assertIntegrationTestsDoNotExist("some.thing.AppTest")
+        assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

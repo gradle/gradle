@@ -31,12 +31,44 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    def "defaults to kotlin build scripts"() {
+    @Unroll
+    def "defaults to kotlin build scripts, when incubating flag = #incubating"() {
         when:
-        run ('init', '--type', 'kotlin-library')
+        run (['init', '--type', 'kotlin-library'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
+    }
+
+    @Unroll
+    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestsDoNotExist("some.thing.LibraryIntegTest")
+        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
+
+        when:
+        succeeds('clean', 'integrationTest')
+        then:
+        assertTestsDidNotRun("some.thing.LibraryTest")
+        assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

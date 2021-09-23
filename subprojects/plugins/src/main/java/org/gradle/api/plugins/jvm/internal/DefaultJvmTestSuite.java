@@ -38,12 +38,48 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    private enum Frameworks {
-        JUNIT4, JUNIT_JUPITER, NONE;
+    public enum Frameworks {
+        JUNIT4("junit:junit", "4.13"),
+        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
+        SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.5.31"),
+        NONE(null, null);
+
+        @Nullable
+        private final String module;
+        @Nullable
+        private final String defaultVersion;
+
+        Frameworks(@Nullable String module, @Nullable String defaultVersion) {
+            Preconditions.checkArgument(module != null && defaultVersion != null || module == null && defaultVersion == null, "Either module and version must both be null, or neither be null.");
+            this.module = module;
+            this.defaultVersion = defaultVersion;
+        }
+
+        @Nullable
+        public String getDefaultVersion() {
+            return defaultVersion;
+        }
+
+        @Nullable
+        public String getDependency() {
+            return getDependency(getDefaultVersion());
+        }
+
+        @Nullable
+        public String getDependency(String version) {
+            if (null != module) {
+                return module + ":" + version;
+            } else {
+                return null;
+            }
+        }
     }
+
     private static class TestingFramework {
         private final Frameworks framework;
         private final String version;
@@ -101,10 +137,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(task -> {
                 task.getTestFrameworkProperty().convention(getTestingFramework().map(framework -> {
                     switch(framework.framework) {
-                        case NONE:
-                        case JUNIT4:
+                        case NONE: // fall-through
+                        case JUNIT4: // fall-through
+                        case KOTLIN_TEST:
                             return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
-                        case JUNIT_JUPITER:
+                        case JUNIT_JUPITER: // fall-through
+                        case SPOCK:
                             return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
                         default:
                             throw new IllegalStateException("do not know how to handle " + framework);
@@ -112,17 +150,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }));
             });
         });
-
     }
 
     private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
         if (!attachedDependencies) {
             dependencies.addProvider(implementation.getName(), getTestingFramework().map(framework -> {
                 switch (framework.framework) {
-                    case JUNIT4:
-                        return "junit:junit:" + framework.version;
-                    case JUNIT_JUPITER:
-                        return "org.junit.jupiter:junit-jupiter:" + framework.version;
+                    case JUNIT4: // fall-through
+                    case JUNIT_JUPITER: // fall-through
+                    case SPOCK: // fall-through
+                    case KOTLIN_TEST:
+                        return framework.framework.getDependency(framework.version);
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
                 }
@@ -163,7 +201,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit() {
-        useJUnit("4.13");
+        useJUnit(Frameworks.JUNIT4.defaultVersion);
     }
 
     @Override
@@ -171,20 +209,41 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         setFrameworkTo(new TestingFramework(Frameworks.JUNIT4, version));
     }
 
-    private void setFrameworkTo(TestingFramework framework) {
-        getTestingFramework().set(framework);
-        attachDependencyAction.execute(null);
-    }
-
     @Override
     public void useJUnitJupiter() {
-        useJUnitJupiter("5.7.1");
+        useJUnitJupiter(Frameworks.JUNIT_JUPITER.defaultVersion);
     }
 
     @Override
     public void useJUnitJupiter(String version) {
         setFrameworkTo(new TestingFramework(Frameworks.JUNIT_JUPITER, version));
     }
+
+    @Override
+    public void useSpock() {
+        useSpock(Frameworks.SPOCK.defaultVersion);
+    }
+
+    @Override
+    public void useSpock(String version) {
+        setFrameworkTo(new TestingFramework(Frameworks.SPOCK, version));
+    }
+
+    @Override
+    public void useKotlinTest() {
+        useKotlinTest(Frameworks.KOTLIN_TEST.defaultVersion);
+    }
+
+    @Override
+    public void useKotlinTest(String version) {
+        setFrameworkTo(new TestingFramework(Frameworks.KOTLIN_TEST, version));
+    }
+
+    private void setFrameworkTo(TestingFramework framework) {
+        getTestingFramework().set(framework);
+        attachDependencyAction.execute(null);
+    }
+
 
     @Override
     public ComponentDependencies getDependencies() {

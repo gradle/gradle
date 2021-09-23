@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.bsh)
 
     testImplementation(project(":base-services-groovy"))
+    testImplementation(project(":plugins"))
     testImplementation(libs.guice) {
         because("This is for TestNG")
     }

@@ -17,10 +17,16 @@ package org.gradle.buildinit.plugins.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JvmTestSuitePlugin
+import org.gradle.api.plugins.jvm.JvmTestSuite
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.hamcrest.Matcher
+
+import javax.annotation.Nullable
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
@@ -96,6 +102,68 @@ class ScriptDslFixture {
                 return containsString("$target = \"$string\"")
             default:
                 return containsString("$target = '$string'")
+        }
+    }
+
+    private String blockTitleForSuite(suiteName) {
+        switch (scriptDsl) {
+            case KOTLIN:
+                String delegateName = (suiteName == JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME) ? "getting" : "registering"
+                return "val $suiteName by $delegateName(${JvmTestSuite.class.simpleName}::class)"
+            case GROOVY:
+                return suiteName
+            default:
+                throw new IllegalStateException("Unknown scriptDsl type: " + scriptDsl);
+        }
+    }
+
+    @Nullable
+    private String extractTopLevelBlockContents(String blockTitle, String text) {
+        def allLines = text.readLines()
+        def linesContainingBlock = allLines.findIndexValues { it.trim().startsWith(blockTitle) }
+        if (linesContainingBlock.size() != 1) {
+            return null;
+        }
+
+        int startIdx = linesContainingBlock[0] + 1;
+        int endIdx = allLines.size()
+
+        int openBraces = 1
+        for (int idx = startIdx; idx < allLines.size(); idx++) {
+            if (allLines[idx].contains("{")) {
+                openBraces++
+            }
+            if (allLines[idx].contains("}")) {
+                openBraces--
+            }
+            if (openBraces == 0) {
+                endIdx = idx - 1
+                break
+            }
+        }
+
+        if (endIdx == allLines.size()) {
+            return null
+        } else {
+            return allLines[startIdx..endIdx].join('\n').trim()
+        }
+    }
+
+    Matcher<String> assertContainsTestSuite(String suiteName, File buildFile = getBuildFile()) {
+        String testingBlock = extractTopLevelBlockContents("testing", buildFile.text)
+        String suitesBlock = testingBlock ? extractTopLevelBlockContents("suites", testingBlock) : null
+        String targetBlock = suitesBlock ? extractTopLevelBlockContents(blockTitleForSuite(suiteName), suitesBlock) : null
+
+        return new BaseMatcher<String>() {
+            @Override
+            boolean matches(Object item) {
+                return targetBlock
+            }
+
+            @Override
+            void describeTo(Description description) {
+                description.appendText("file ${buildFile.name} contains a test suite named: $suiteName")
+            }
         }
     }
 

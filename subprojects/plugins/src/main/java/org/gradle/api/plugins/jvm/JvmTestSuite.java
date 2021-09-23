@@ -70,8 +70,11 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version the version of JUnit 4 to use, ex. {@code 4.13}
      */
     void useJUnit(String version);
-
-    // TODO: Spock, TestNG?
+    void useSpock();
+    void useSpock(String version);
+    void useKotlinTest();
+    void useKotlinTest(String version);
+    // TODO: TestNG?
 
     /**
      * Returns the container for any dependencies needed to compile and run a {@link JvmTestSuite}.

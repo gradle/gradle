@@ -74,7 +74,9 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
         });
         buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
         if(getTestFrameworks().contains(BuildInitTestFramework.SPOCK) || getTestFrameworks().contains(BuildInitTestFramework.JUNIT_JUPITER)) {
-            buildScriptBuilder.taskMethodInvocation("Use JUnit Platform for unit tests.", "test", "Test", "useJUnitPlatform");
+            if (!buildScriptBuilder.isUsingTestSuites()) {
+                buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
+            }
         }
     }
 

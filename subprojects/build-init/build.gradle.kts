@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
+    implementation(project(":testing-base"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -39,6 +40,10 @@ dependencies {
     testImplementation(testFixtures(project(":platform-native")))
 
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":platform-base"))
+    testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":plugins"))
+    testFixturesImplementation(project(":testing-base"))
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)

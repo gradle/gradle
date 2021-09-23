@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -28,6 +29,7 @@ import java.util.List;
 
 public class InitSettings {
     private final BuildInitDsl dsl;
+    private final boolean useIncubatingAPIs;
     private final String packageName;
     private final BuildInitTestFramework testFramework;
     private final String projectName;
@@ -36,19 +38,34 @@ public class InitSettings {
     private final Directory target;
     private final InsecureProtocolOption insecureProtocolOption;
 
-    // Temporary constructor until we upgrade gradle/gradle to a nightly
+    /**
+     * Temporary constructor until we upgrade gradle/gradle to a nightly.
+     *
+     * This constructor needs to be left as-is because it's used in the gradle/gradle build to generate samples.
+     * Changing it will break the Gradleception build (where we try to build Gradle with the latest version of Gradle).
+     *
+     * @see "/build-logic/build-init-samples/src/main/kotlin/gradlebuild/samples/SamplesGenerator.kt"
+     */
     public InitSettings(
-            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
-            BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+        String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
     ) {
-        this(projectName, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
+        this(projectName, false, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
     }
 
     public InitSettings(
-            String projectName, List<String> subprojects, ModularizationOption modularizationOption,
+        String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
+        BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target
+    ) {
+        this(projectName, useIncubatingAPIs, subprojects, modularizationOption, dsl, packageName, testFramework, InsecureProtocolOption.WARN, target);
+    }
+
+    public InitSettings(
+            String projectName, boolean useIncubatingAPIs, List<String> subprojects, ModularizationOption modularizationOption,
             BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, InsecureProtocolOption insecureProtocolOption, Directory target
     ) {
         this.projectName = projectName;
+        this.useIncubatingAPIs = useIncubatingAPIs;
         this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
             Collections.singletonList(subprojects.get(0)) : subprojects;
         this.modularizationOption = modularizationOption;
@@ -90,5 +107,15 @@ public class InitSettings {
     @Nullable
     public InsecureProtocolOption getInsecureProtocolOption() {
         return insecureProtocolOption;
+    }
+
+    @Incubating
+    public boolean isUseIncubatingAPIs() {
+        return useIncubatingAPIs;
+    }
+
+    @Incubating
+    public boolean isUseTestSuites() {
+        return useIncubatingAPIs; // The only Incubating API used, for now
     }
 }

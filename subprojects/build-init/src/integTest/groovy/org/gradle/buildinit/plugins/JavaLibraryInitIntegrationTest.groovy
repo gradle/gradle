@@ -33,12 +33,44 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    def "defaults to Groovy build scripts"() {
+    @Unroll
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
         when:
-        run ('init', '--type', 'java-library')
+        run (['init', '--type', 'java-library'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
+    }
+
+    @Unroll
+    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+        then:
+        dslFixture.assertContainsTestSuite('test')
+        dslFixture.assertContainsTestSuite('integrationTest')
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestsDoNotExist("some.thing.LibraryIntegTest")
+        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
+
+        when:
+        succeeds('clean', 'integrationTest')
+        then:
+        assertTestsDidNotRun("some.thing.LibraryTest")
+        assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
@@ -163,7 +195,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)
+        run(['init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id] + incubating)
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants("my/lib/Library.java")
@@ -180,6 +212,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        incubating << [[], ['--incubating']]
     }
 
     @Unroll

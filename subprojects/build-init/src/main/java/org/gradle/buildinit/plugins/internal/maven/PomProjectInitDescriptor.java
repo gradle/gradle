@@ -112,6 +112,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
                     .submit(Maven2GradleWorkAction.class, params -> {
                         params.getWorkingDir().set(initSettings.getTarget());
                         params.getDsl().set(initSettings.getDsl());
+                        params.getUseIncubatingAPIs().set(initSettings.isUseIncubatingAPIs());
                         params.getMavenSettings().set(settings);
                         params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
                     });
