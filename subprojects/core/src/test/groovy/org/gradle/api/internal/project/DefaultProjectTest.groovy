@@ -92,7 +92,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.normalization.InputNormalizationHandler
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestClosure
@@ -147,7 +147,7 @@ class DefaultProjectTest extends Specification {
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
     Instantiator instantiatorMock = Stub(Instantiator)
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
-    InputNormalizationHandler inputNormalizationHandler = Stub(InputNormalizationHandler)
+    InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
     ProjectConfigurationActionContainer configureActions = Stub(ProjectConfigurationActionContainer)
     PluginManagerInternal pluginManager = Stub(PluginManagerInternal)
     PluginContainer pluginContainer = Stub(PluginContainer)
@@ -195,7 +195,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ComponentMetadataHandler) >> moduleHandlerMock
         serviceRegistryMock.get((Type) ConfigurationTargetIdentifier) >> configurationTargetIdentifier
         serviceRegistryMock.get((Type) SoftwareComponentContainer) >> softwareComponentsMock
-        serviceRegistryMock.get((Type) InputNormalizationHandler) >> inputNormalizationHandler
+        serviceRegistryMock.get((Type) InputNormalizationHandlerInternal) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
