@@ -36,7 +36,6 @@ tasks {
     withType<KotlinCompile>().configureEach {
         val launcher = javaToolchains.launcherFor(java.toolchain)
         configureKotlinCompilerForGradleBuild(launcher)
-        kotlinOptions.allWarningsAsErrors = true
         if (name == "compileTestKotlin") {
             // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
             classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
@@ -67,6 +66,7 @@ tasks {
 fun KotlinCompile.configureKotlinCompilerForGradleBuild(launcher: Provider<JavaLauncher>) {
     kotlinOptions {
         incremental = true
+        allWarningsAsErrors = true
         apiVersion = "1.4"
         languageVersion = "1.4"
         freeCompilerArgs += listOf(
@@ -76,6 +76,6 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild(launcher: Provider<JavaL
             "-Xskip-metadata-version-check"
         )
         jvmTarget = "1.8"
-        jdkHome = launcher.get().metadata.installationPath.asFile.absolutePath
+        kotlinJavaToolchain.toolchain.use(launcher)
     }
 }
