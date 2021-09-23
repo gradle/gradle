@@ -40,7 +40,6 @@ import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -97,7 +96,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public boolean afterBuildStarted(WatchMode watchMode, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
-        warningLogger = watchMode == WatchMode.ENABLED || LOGGER.isInfoEnabled() ? LOGGER : NOPLogger.NOP_LOGGER;
+        warningLogger = watchMode.loggerForWarnings(LOGGER);
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
