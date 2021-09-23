@@ -41,6 +41,7 @@ Some plugins will break with this new version of Gradle, for example because the
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
+- Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.9.html[Groovy 3.0.9].
 
 ==== Application order of plugins in the `plugins` block
 
