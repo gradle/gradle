@@ -22,7 +22,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
@@ -39,17 +40,18 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-abstract class AbstractIncludedBuildController implements IncludedBuildController, Stoppable {
+abstract class AbstractBuildController implements BuildController, Stoppable {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
-    private final CompositeBuildParticipantBuildState build;
+    private final BuildState build;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
+    private boolean somethingScheduled = false;
     private State state = State.DiscoveringTasks;
 
-    public AbstractIncludedBuildController(CompositeBuildParticipantBuildState build) {
+    public AbstractBuildController(BuildState build) {
         this.build = build;
     }
 
@@ -68,7 +70,15 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     @Override
     public void queueForExecution(ExportedTaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
+        somethingScheduled = true;
         queuedForExecution.add(taskNode);
+    }
+
+    @Override
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+        assertInState(State.DiscoveringTasks);
+        somethingScheduled = true;
+        build.getWorkGraph().populateWorkGraph(action);
     }
 
     @Override
@@ -84,10 +94,10 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
             return false;
         }
 
-        build.getWorkGraph().schedule(queuedForExecution);
+        boolean added = build.getWorkGraph().schedule(queuedForExecution);
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
-        return true;
+        return added;
     }
 
     @Override
@@ -107,7 +117,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        build.getWorkGraph().prepareForExecution(false);
+        build.getWorkGraph().prepareForExecution();
 
         state = State.ReadyToRun;
     }
@@ -116,7 +126,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     public void startTaskExecution(ExecutorService executorService) {
         assertInState(State.ReadyToRun);
         state = State.RunningTasks;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             doStartTaskExecution(executorService);
         }
     }
@@ -125,7 +135,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     public ExecutionResult<Void> awaitTaskCompletion() {
         assertInState(State.RunningTasks);
         ExecutionResult<Void> result;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             List<Throwable> failures = new ArrayList<>();
             doAwaitTaskCompletion(failures::add);
             result = ExecutionResult.maybeFailed(failures);

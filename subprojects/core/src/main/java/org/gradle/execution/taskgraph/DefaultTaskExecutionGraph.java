@@ -70,7 +70,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private enum GraphState {
-        EMPTY, DIRTY, POPULATED
+        DIRTY, POPULATED
     }
 
     private final PlanExecutor planExecutor;
@@ -85,7 +85,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private GraphState graphState = GraphState.EMPTY;
+    private GraphState graphState = GraphState.DIRTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
 
@@ -350,9 +350,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private void ensurePopulated() {
         switch (graphState) {
-            case EMPTY:
-                throw new IllegalStateException(
-                    "Task information is not available, as this task execution graph has not been populated.");
             case DIRTY:
                 executionPlan.determineExecutionPlan();
                 allTasks = null;

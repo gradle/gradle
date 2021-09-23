@@ -53,7 +53,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private final ManagedExecutor executorService;
     private Thread owner;
     private State state = State.NotCreated;
-    private IncludedBuildControllers includedBuilds;
+    private BuildControllers controllers;
 
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
@@ -67,18 +67,18 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         this.projectStateRegistry = projectStateRegistry;
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
-        this.includedBuilds = createControllers();
+        this.controllers = createControllers();
     }
 
-    private DefaultIncludedBuildControllers createControllers() {
-        return new DefaultIncludedBuildControllers(executorService, buildRegistry, projectStateRegistry, workerLeaseService);
+    private DefaultBuildControllers createControllers() {
+        return new DefaultBuildControllers(executorService, buildRegistry, projectStateRegistry, workerLeaseService);
     }
 
     @Override
-    public <T> T withNewTaskGraph(Function<BuildTreeWorkGraph, T> action) {
+    public <T> T withNewTaskGraph(Function<? super BuildTreeWorkGraph, T> action) {
         Thread currentOwner;
         State currentState;
-        IncludedBuildControllers currentControllers;
+        BuildControllers currentControllers;
         synchronized (this) {
             if (state != State.Running) {
                 if (owner != null && owner != Thread.currentThread()) {
@@ -91,20 +91,20 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             // Allow this to proceed, but this should become an error at some point
             currentOwner = owner;
             currentState = state;
-            currentControllers = includedBuilds;
+            currentControllers = controllers;
             owner = Thread.currentThread();
             state = State.NotPrepared;
-            includedBuilds = createControllers();
+            controllers = createControllers();
         }
 
         try {
             return action.apply(new DefaultBuildTreeWorkGraph());
         } finally {
-            includedBuilds.close();
+            controllers.close();
             synchronized (this) {
                 owner = currentOwner;
                 state = currentState;
-                includedBuilds = currentControllers;
+                controllers = currentControllers;
             }
         }
     }
@@ -138,7 +138,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
         return withState(() -> {
             assertCanLocateTask();
-            IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+            BuildController buildController = controllers.getBuildController(targetBuild);
             return new TaskBackedResource(buildController, buildController.locateTask(task));
         });
     }
@@ -147,12 +147,12 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
         return withState(() -> {
             assertCanLocateTask();
-            IncludedBuildController buildController = includedBuilds.getBuildController(targetBuild);
+            BuildController buildController = controllers.getBuildController(targetBuild);
             return new TaskBackedResource(buildController, buildController.locateTask(taskPath));
         });
     }
 
-    private void queueForExecution(IncludedBuildController buildController, ExportedTaskNode taskNode) {
+    private void queueForExecution(BuildController buildController, ExportedTaskNode taskNode) {
         withState(() -> {
             assertCanQueueTask();
             buildController.queueForExecution(taskNode);
@@ -163,7 +163,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private void populateTaskGraphs() {
         withState(() -> {
             assertCanQueueTask();
-            includedBuilds.populateTaskGraphs();
+            controllers.populateTaskGraphs();
             state = State.Populated;
             return null;
         });
@@ -173,7 +173,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         withState(() -> {
             expectInState(State.ReadyToRun);
             state = State.Running;
-            includedBuilds.startTaskExecution();
+            controllers.startTaskExecution();
             return null;
         });
     }
@@ -182,7 +182,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         return withState(() -> {
             expectInState(State.Running);
             try {
-                return includedBuilds.awaitTaskCompletion();
+                return controllers.awaitTaskCompletion();
             } finally {
                 state = State.Finished;
             }
@@ -191,7 +191,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(includedBuilds, executorService);
+        CompositeStoppable.stoppable(controllers, executorService);
     }
 
     private void assertCanLocateTask() {
@@ -240,10 +240,10 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
     }
 
-    private static class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
+    private class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
         @Override
         public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            target.populateWorkGraph(action);
+            controllers.getBuildController(target.getBuildIdentifier()).populateWorkGraph(action);
         }
     }
 
@@ -270,10 +270,10 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     private class TaskBackedResource implements IncludedBuildTaskResource {
-        private final IncludedBuildController buildController;
+        private final BuildController buildController;
         private final ExportedTaskNode taskNode;
 
-        public TaskBackedResource(IncludedBuildController buildController, ExportedTaskNode taskNode) {
+        public TaskBackedResource(BuildController buildController, ExportedTaskNode taskNode) {
             this.buildController = buildController;
             this.taskNode = taskNode;
         }

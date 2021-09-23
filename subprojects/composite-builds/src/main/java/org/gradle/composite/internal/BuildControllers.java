@@ -20,7 +20,7 @@ import org.gradle.internal.build.ExecutionResult;
 
 import java.io.Closeable;
 
-interface IncludedBuildControllers extends Closeable {
+interface BuildControllers extends Closeable {
     /**
      * Finish populating task graphs, once all entry point tasks have been scheduled.
      */
@@ -36,7 +36,7 @@ interface IncludedBuildControllers extends Closeable {
      */
     ExecutionResult<Void> awaitTaskCompletion();
 
-    IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+    BuildController getBuildController(BuildIdentifier buildIdentifier);
 
     @Override
     void close();

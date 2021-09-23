@@ -136,17 +136,20 @@ class ConfigurationCacheState(
                 it.addNodes(state.workGraph)
             }
             for (child in state.children) {
-                addNodesForChildBuilds(child)
+                addNodesForChildBuilds(child, builder)
             }
             graph.populateTaskGraphs()
-            state.build.state.workGraph.prepareForExecution(true)
         }
     }
 
     private
-    fun addNodesForChildBuilds(state: CachedBuildState) {
-        state.build.gradle.taskGraph.addNodes(state.workGraph)
-        state.children.forEach(::addNodesForChildBuilds)
+    fun addNodesForChildBuilds(state: CachedBuildState, builder: BuildTreeWorkGraph.Builder) {
+        builder.withWorkGraph(state.build.state) {
+            it.addNodes(state.workGraph)
+        }
+        for (child in state.children) {
+            addNodesForChildBuilds(child, builder)
+        }
     }
 
     private

@@ -31,7 +31,6 @@ public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
         graph.prepareTaskGraph(builder -> {
             buildController.addRequestedTasks(builder);
             graph.populateTaskGraphs();
-            buildController.finalizeWorkGraph(true);
         });
     }
 }

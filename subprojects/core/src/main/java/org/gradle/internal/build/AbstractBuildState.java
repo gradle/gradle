@@ -22,8 +22,6 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
-import java.util.function.Consumer;
-
 public abstract class AbstractBuildState implements BuildState {
     @Override
     public DisplayName getDisplayName() {
@@ -67,12 +65,5 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public SettingsInternal getLoadedSettings() throws IllegalStateException {
         return getBuildController().getLoadedSettings();
-    }
-
-    @Override
-    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-        BuildLifecycleController buildController = getBuildController();
-        buildController.prepareToScheduleTasks();
-        buildController.populateWorkGraph(action);
     }
 }

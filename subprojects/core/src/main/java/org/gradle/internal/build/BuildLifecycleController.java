@@ -61,15 +61,18 @@ public interface BuildLifecycleController extends Stoppable {
 
     /**
      * Populates the work graph of this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times.
      */
     void populateWorkGraph(Consumer<? super WorkGraphBuilder> action);
 
-    void finalizeWorkGraph(boolean workScheduled);
+    /**
+     * Finalizes the work graph after it has not been populated.
+     */
+    void finalizeWorkGraph();
 
     /**
      * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
-     * Must call {@link #prepareToScheduleTasks()} and optionally {@link #populateWorkGraph(Consumer)} prior to calling this method.
+     * Must call {@link #prepareToScheduleTasks()}, then {@link #populateWorkGraph(Consumer)} zero or more times, then {@link #finalizeWorkGraph()} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks();
 

@@ -16,16 +16,55 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.build.BuildWorkGraph
+import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.work.WorkerLeaseService
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class DefaultIncludedBuildTaskGraphTest extends Specification {
-    def graph = new DefaultIncludedBuildTaskGraph(Stub(ExecutorFactory), new TestBuildOperationExecutor(), Stub(BuildStateRegistry), Stub(ProjectStateRegistry), Stub(WorkerLeaseService))
+class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
+    def buildStateRegistry = Mock(BuildStateRegistry)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, Stub(ProjectStateRegistry), Stub(WorkerLeaseService))
+
+    def "does nothing when nothing scheduled"() {
+        when:
+        graph.withNewTaskGraph { g ->
+            g.prepareTaskGraph { b ->
+                g.populateTaskGraphs()
+            }
+            g.startTaskExecution()
+            g.awaitTaskCompletion().rethrow()
+        }
+
+        then:
+        0 * _
+    }
+
+    def "finalizes graph for a build when something scheduled"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def workGraph = Mock(BuildWorkGraph)
+        def build = build(id, workGraph)
+
+        when:
+        graph.withNewTaskGraph { g ->
+            g.prepareTaskGraph { b ->
+                b.withWorkGraph(build) {}
+                g.populateTaskGraphs()
+            }
+            g.startTaskExecution()
+            g.awaitTaskCompletion().rethrow()
+        }
+
+        then:
+        1 * workGraph.populateWorkGraph(_)
+        1 * workGraph.prepareForExecution()
+    }
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
@@ -47,9 +86,13 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
     }
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def build = build(id)
+
         when:
         graph.withNewTaskGraph { g ->
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(id, ":task").queueForExecution()
         }
 
         then:
@@ -100,5 +143,13 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Work graph is in an unexpected state: Finished"
+    }
+
+    BuildState build(BuildIdentifier id, BuildWorkGraph workGraph = null) {
+        def build = Mock(IncludedBuildState)
+        _ * build.buildIdentifier >> id
+        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraph))
+        _ * buildStateRegistry.getBuild(id) >> build
+        return build
     }
 }

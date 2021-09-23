@@ -131,7 +131,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
 
         and:
-        1 * controller.scheduleRequestedTasks()
+        1 * controller.populateWorkGraph(_)
         1 * controller.executeTasks() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 

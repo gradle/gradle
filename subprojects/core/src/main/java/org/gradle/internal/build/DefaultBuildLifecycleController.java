@@ -44,6 +44,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         Configure,
         // Scheduling tasks for execution
         TaskSchedule,
+        ReadyToRun,
         // build has finished and should do no further work
         Finished
     }
@@ -126,23 +127,19 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void finalizeWorkGraph(boolean workScheduled) {
-        if (workScheduled) {
+    public void finalizeWorkGraph() {
+        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
             TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             taskGraph.populate();
-        }
-        finalizeGradleServices(gradle);
-    }
-
-    private void finalizeGradleServices(GradleInternal gradle) {
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
-        buildOutputCleanupRegistry.resolveOutputs();
+            BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
+            buildOutputCleanupRegistry.resolveOutputs();
+        });
     }
 
     @Override
     public ExecutionResult<Void> executeTasks() {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
-        return state.tryTransition(State.TaskSchedule, State.Configure, () -> workExecutor.execute(gradle));
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle));
     }
 
     @Override

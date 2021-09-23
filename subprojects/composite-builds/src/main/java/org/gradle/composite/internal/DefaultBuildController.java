@@ -18,8 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseRegistry;
@@ -33,8 +33,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-class DefaultIncludedBuildController extends AbstractIncludedBuildController {
-    private final IncludedBuildState includedBuild;
+class DefaultBuildController extends AbstractBuildController {
+    private final CompositeBuildParticipantBuildState build;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final WorkerLeaseService workerLeaseService;
@@ -45,9 +45,9 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     private boolean finished;
     private final List<Throwable> executionFailures = new ArrayList<>();
 
-    public DefaultIncludedBuildController(IncludedBuildState includedBuild, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
-        super(includedBuild);
-        this.includedBuild = includedBuild;
+    public DefaultBuildController(CompositeBuildParticipantBuildState build, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+        super(build);
+        this.build = build;
         this.projectStateRegistry = projectStateRegistry;
         this.parentLease = workerLeaseService.getCurrentWorkerLease();
         this.workerLeaseService = workerLeaseService;
@@ -106,7 +106,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     }
 
     private void doBuild() {
-        ExecutionResult<Void> result = includedBuild.getWorkGraph().execute();
+        ExecutionResult<Void> result = build.getWorkGraph().execute();
         executionFinished(result);
     }
 
@@ -139,7 +139,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
         public void run() {
             CurrentBuildOperationRef.instance().set(parentBuildOperation);
             try {
-                DefaultIncludedBuildController.this.run();
+                DefaultBuildController.this.run();
             } finally {
                 CurrentBuildOperationRef.instance().set(null);
             }

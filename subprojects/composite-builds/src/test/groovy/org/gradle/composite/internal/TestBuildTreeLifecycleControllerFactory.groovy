@@ -109,7 +109,9 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         @Override
         void scheduleAndRunTasks() {
             targetBuild.prepareToScheduleTasks()
-            targetBuild.scheduleRequestedTasks()
+            targetBuild.populateWorkGraph {
+                it.addRequestedTasks()
+            }
             def result = workExecutor.execute(workGraph)
             buildTreeFinishExecutor.finishBuildTree(result.failures)
             result.rethrow()
