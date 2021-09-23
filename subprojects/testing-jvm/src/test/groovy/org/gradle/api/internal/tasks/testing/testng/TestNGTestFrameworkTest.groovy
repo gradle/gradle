@@ -45,7 +45,6 @@ public class TestNGTestFrameworkTest extends Specification {
 
         then:
         processor instanceof TestNGTestClassProcessor
-        framework.testTaskPath == testTask.path
         framework.detector
     }
 
