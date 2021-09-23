@@ -100,7 +100,21 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useSpock(String version);
     void useKotlinTest();
     void useKotlinTest(String version);
-    // TODO: TestNG?
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of TestNG to use.  Defaults to version {@code 7.4.0}
+     * </p>
+     */
+    void useTestNG();
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
+     *
+     * @param version version of TestNG to use
+     */
+    void useTestNG(String version);
 
     /**
      * Dependency handler for this component.
