@@ -913,15 +913,6 @@ Only builds that reuse the configuration cache currently execute all tasks in pa
 
 See link:{gradle-issues}14624[gradle/gradle#14624].
 
-[[config_cache:not_yet_implemented:normalization]]
-=== Custom input normalization
-
-Custom <<more_about_tasks#sec:configure_input_normalization, input normalization>> is not captured when using the configuration cache.
-If your build has configuration for input normalization, i.e. `normalization { }`, it will be ignored, no problem will be reported.
-Builds reusing the configuration cache might see build cache misses but will stay reliable.
-
-See link:{gradle-issues}13706[gradle/gradle#13706].
-
 [[config_cache:not_yet_implemented:source_dependencies]]
 === Source dependencies
 
