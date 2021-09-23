@@ -76,6 +76,6 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild(launcher: Provider<JavaL
             "-Xskip-metadata-version-check"
         )
         jvmTarget = "1.8"
-        jdkHome = launcher.get().metadata.installationPath.asFile.absolutePath
+        kotlinJavaToolchain.toolchain.use(launcher)
     }
 }
