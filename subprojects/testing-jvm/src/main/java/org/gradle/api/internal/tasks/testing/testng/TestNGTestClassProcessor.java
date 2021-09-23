@@ -47,7 +47,7 @@ import java.util.Set;
 
 import static org.gradle.api.tasks.testing.testng.TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY;
 
-public class TestNGTestClassProcessor implements TestClassProcessor {
+    public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGSpec options;

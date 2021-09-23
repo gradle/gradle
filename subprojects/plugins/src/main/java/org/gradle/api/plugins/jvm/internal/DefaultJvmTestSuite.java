@@ -244,6 +244,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         attachDependencyAction.execute(null);
     }
 
+
     @Override
     public ComponentDependencies getDependencies() {
         return dependencies;
