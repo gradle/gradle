@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -109,6 +111,12 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (options.getThreadCount() > 0) {
             testNg.setThreadCount(options.getThreadCount());
         }
+
+        // moved reflective method verification to here to avoid throwaway classloader previously used in TestNGTestFramework
+        verifyConfigFailurePolicy(testNg);
+        verifyPreserveOrder(testNg);
+        verifyGroupByInstances(testNg);
+
         invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), DEFAULT_CONFIG_FAILURE_POLICY);
         invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
         invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
@@ -149,6 +157,33 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                 // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
                 throw e;
             }
+        }
+    }
+
+    private void verifyConfigFailurePolicy(TestNG testNg) {
+        if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
+            verifyMethodExists(testNg, "setConfigFailurePolicy", String.class,
+                String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
+        }
+    }
+
+    private void verifyPreserveOrder(TestNG testNg) {
+        if (options.getPreserveOrder()) {
+            verifyMethodExists(testNg, "setPreserveOrder", boolean.class, "Preserving the order of tests is not supported by this version of TestNG.");
+        }
+    }
+
+    private void verifyGroupByInstances(TestNG testNg) {
+        if (options.getGroupByInstances()) {
+            verifyMethodExists(testNg, "setGroupByInstances", boolean.class, "Grouping tests by instances is not supported by this version of TestNG.");
+        }
+    }
+
+    private void verifyMethodExists(TestNG testNg, String methodName, Class<?> parameterType, String failureMessage) {
+        try {
+            testNg.getClass().getMethod(methodName, parameterType);
+        } catch (java.lang.NoSuchMethodException e) {
+            throw new InvalidUserDataException(failureMessage, e);
         }
     }
 

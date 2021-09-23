@@ -17,11 +17,8 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -50,22 +47,19 @@ public class TestNGTestFramework implements TestFramework {
     private final TestNGOptions options;
     private final TestNGDetector detector;
     private final DefaultTestFilter filter;
-    private final ObjectFactory objects;
-    private final String testTaskPath;
-    private final FileCollection testTaskClasspath;
     private final Factory<File> testTaskTemporaryDir;
-    private transient ClassLoader testClassLoader;
 
     @UsedByScanPlugin("test-retry")
     public TestNGTestFramework(final Test testTask, FileCollection classpath, DefaultTestFilter filter, ObjectFactory objects) {
         this.filter = filter;
-        this.objects = objects;
-        this.testTaskPath = testTask.getPath();
-        this.testTaskClasspath = classpath;
         this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
         options = objects.newInstance(TestNGOptions.class);
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+    }
+
+    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter) {
+        this(testTask, null, filter, testTask.getProject().getObjects());
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
@@ -79,55 +73,9 @@ public class TestNGTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        verifyConfigFailurePolicy();
-        verifyPreserveOrder();
-        verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = new TestNGSpec(options, filter);
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
-    }
-
-    private void verifyConfigFailurePolicy() {
-        if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
-            verifyMethodExists("setConfigFailurePolicy", String.class,
-                String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy()));
-        }
-    }
-
-    private void verifyPreserveOrder() {
-        if (options.getPreserveOrder()) {
-            verifyMethodExists("setPreserveOrder", boolean.class, "Preserving the order of tests is not supported by this version of TestNG.");
-        }
-    }
-
-    private void verifyGroupByInstances() {
-        if (options.getGroupByInstances()) {
-            verifyMethodExists("setGroupByInstances", boolean.class, "Grouping tests by instances is not supported by this version of TestNG.");
-        }
-    }
-
-    private void verifyMethodExists(String methodName, Class<?> parameterType, String failureMessage) {
-        try {
-            createTestNg().getMethod(methodName, parameterType);
-        } catch (NoSuchMethodException e) {
-            throw new InvalidUserDataException(failureMessage, e);
-        }
-    }
-
-    private Class<?> createTestNg() {
-        if (testClassLoader == null) {
-            TestClassLoaderFactory factory = objects.newInstance(
-                TestClassLoaderFactory.class,
-                testTaskPath,
-                testTaskClasspath
-            );
-            testClassLoader = factory.create();
-        }
-        try {
-            return testClassLoader.loadClass("org.testng.TestNG");
-        } catch (ClassNotFoundException e) {
-            throw new GradleException("Could not load TestNG.", e);
-        }
     }
 
     @Override
