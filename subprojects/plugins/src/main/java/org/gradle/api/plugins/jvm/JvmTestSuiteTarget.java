@@ -31,5 +31,10 @@ import org.gradle.testing.base.TestSuiteTarget;
  */
 @Incubating
 public interface JvmTestSuiteTarget extends TestSuiteTarget {
+
+    /**
+     * Returns a {@link TaskProvider} for this target's {@link Test} task
+     * @return a {@link TaskProvider} for this target's {@link Test} task
+     */
     TaskProvider<Test> getTestTask();
 }

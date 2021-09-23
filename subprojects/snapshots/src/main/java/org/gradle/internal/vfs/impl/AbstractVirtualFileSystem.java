@@ -35,13 +35,13 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return rootReference.getRoot().getSnapshot(absolutePath);
+    public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
+        return rootReference.getRoot().findSnapshot(absolutePath);
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        return rootReference.getRoot().getMetadata(absolutePath);
+    public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
+        return rootReference.getRoot().findMetadata(absolutePath);
     }
 
     @Override
@@ -66,7 +66,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
         rootReference.update(root -> updateNotifyingListeners(diffListener -> {
-            root.visitSnapshotRoots(diffListener::nodeRemoved);
+            root.rootSnapshots()
+                .forEach(diffListener::nodeRemoved);
             return root.empty();
         }));
     }

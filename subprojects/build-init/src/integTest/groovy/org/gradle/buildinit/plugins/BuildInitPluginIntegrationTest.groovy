@@ -430,7 +430,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle").assertIsFile()
         targetDir.file("build.gradle").assertIsFile()
-        targetDir.file(".gradle").assertDoesNotExist()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {

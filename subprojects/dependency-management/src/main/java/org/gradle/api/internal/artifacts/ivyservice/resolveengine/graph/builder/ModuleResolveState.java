@@ -320,7 +320,7 @@ class ModuleResolveState implements CandidateModule {
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
-        if (!alreadyReused && selectors.size() != 0) {
+        if (!alreadyReused && selectors.size() != 0 && selected != null) {
             maybeUpdateSelection();
         }
     }

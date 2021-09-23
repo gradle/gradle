@@ -22,9 +22,6 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
 
     def "can run Gradle sanityCheck with configuration cache enabled"() {
 
-        // TODO spotless plugin, see https://github.com/diffplug/spotless/pull/720#issuecomment-921216440
-        maxConfigurationCacheProblems = 1
-
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
@@ -62,16 +59,16 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         then:
         assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.SUCCESS
+        result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.UP_TO_DATE
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
-        result.task(":docs:javadocAll").outcome == TaskOutcome.SUCCESS
-        result.task(":architecture-test:test").outcome == TaskOutcome.SUCCESS
+        result.task(":docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
+        result.task(":architecture-test:test").outcome == TaskOutcome.FROM_CACHE
         result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.SUCCESS
         result.task(":performance:verifyPerformanceScenarioDefinitions").outcome == TaskOutcome.SUCCESS
         result.task(":checkSubprojectsInfo").outcome == TaskOutcome.SUCCESS

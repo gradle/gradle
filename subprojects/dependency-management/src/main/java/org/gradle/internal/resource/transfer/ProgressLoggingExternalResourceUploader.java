@@ -94,13 +94,16 @@ public class ProgressLoggingExternalResourceUploader extends AbstractProgressLog
         public void run(BuildOperationContext context) throws IOException {
             ResourceOperation uploadOperation = createResourceOperation(context, ResourceOperation.Type.upload);
             uploadOperation.setContentLength(resource.getContentLength());
-            delegate.upload(new ProgressLoggingReadableContent(resource, uploadOperation), destination);
-            context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
-                @Override
-                public long getBytesWritten() {
-                    return uploadOperation.getTotalProcessedBytes();
-                }
-            });
+            try {
+                delegate.upload(new ProgressLoggingReadableContent(resource, uploadOperation), destination);
+            } finally {
+                context.setResult(new ExternalResourceWriteBuildOperationType.Result() {
+                    @Override
+                    public long getBytesWritten() {
+                        return uploadOperation.getTotalProcessedBytes();
+                    }
+                });
+            }
         }
 
         @Override

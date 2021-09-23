@@ -60,6 +60,8 @@ data class CIBuildModel(
                 SpecificBuild.Gradleception,
                 SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.SantaTrackerSmokeTests,
+                SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                 SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
@@ -399,6 +401,16 @@ enum class SpecificBuild {
     SmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
+        }
+    },
+    SantaTrackerSmokeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "santaTrackerSmokeTest")
+        }
+    },
+    ConfigCacheSantaTrackerSmokeTests {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, "configCacheSantaTrackerSmokeTest")
         }
     },
     GradleBuildSmokeTests {

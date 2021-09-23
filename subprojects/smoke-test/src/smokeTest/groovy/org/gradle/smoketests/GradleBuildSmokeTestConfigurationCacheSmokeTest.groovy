@@ -41,6 +41,6 @@ class GradleBuildSmokeTestConfigurationCacheSmokeTest extends AbstractGradleBuil
 
         then:
         assertConfigurationCacheStateLoaded()
-        result.task(":smoke-test:smokeTest").outcome == TaskOutcome.SUCCESS
+        result.task(":smoke-test:smokeTest").outcome == TaskOutcome.FROM_CACHE
     }
 }

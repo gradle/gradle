@@ -32,7 +32,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Optional;
@@ -84,6 +83,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
+                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
                                 handler.handleChange(convertType(type), Paths.get(absolutePath));
                             }
 
@@ -97,10 +97,9 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
                                 if (absolutePath == null) {
-                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched hierarchies", type);
-                                    for (Path watchedHierarchy : fileWatcherUpdater.getWatchedHierarchies()) {
-                                        handler.handleChange(OVERFLOW, watchedHierarchy);
-                                    }
+                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
+                                    fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
+                                        handler.handleChange(OVERFLOW, Paths.get(watchedRoot)));
                                 } else {
                                     LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
                                     handler.handleChange(OVERFLOW, Paths.get(absolutePath));

@@ -24,18 +24,21 @@ import javax.annotation.Nullable;
 /**
  * Implementation of the {@link OperationDescriptor} interface, for those operations which are performed by the provider.
  */
-public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorWrapper {
-
+public class DefaultOperationDescriptor implements OperationDescriptor {
     private final String name;
     private final String displayName;
     private final OperationDescriptor parent;
-    private InternalOperationDescriptor internalDescriptor;
 
     public DefaultOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent) {
         this.name = internalDescriptor.getName();
         this.displayName = internalDescriptor.getDisplayName();
         this.parent = parent;
-        this.internalDescriptor = internalDescriptor;
+    }
+
+    public DefaultOperationDescriptor(String name, String displayName, OperationDescriptor parent) {
+        this.name = name;
+        this.displayName = displayName;
+        this.parent = parent;
     }
 
     @Override
@@ -57,10 +60,5 @@ public class DefaultOperationDescriptor implements OperationDescriptor, Operatio
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    @Override
-    public InternalOperationDescriptor getInternalOperationDescriptor() {
-        return internalDescriptor;
     }
 }

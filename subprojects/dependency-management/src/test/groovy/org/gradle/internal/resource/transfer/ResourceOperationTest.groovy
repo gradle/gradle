@@ -49,8 +49,8 @@ class ResourceOperationTest extends Specification {
         operation.logProcessedBytes(512 * 1)
         operation.logProcessedBytes(512 * 2)
         then:
-        1 * context.progress("1 KiB/10 KiB downloaded")
-        1 * context.progress("2 KiB/10 KiB downloaded")
+        1 * context.progress(1024, 10240, "bytes", "1 KiB/10 KiB downloaded")
+        1 * context.progress(2048, 10240, "bytes", "2 KiB/10 KiB downloaded")
         0 * context.progress(_)
     }
 
@@ -62,7 +62,7 @@ class ResourceOperationTest extends Specification {
         operation.logProcessedBytes(1000)
         operation.logProcessedBytes(1000)
         then:
-        1 * context.progress("1.9 KiB/1.9 KiB downloaded")
+        1 * context.progress(2000, 2000, "bytes", "1.9 KiB/1.9 KiB downloaded")
         0 * context.progress(_)
     }
 
@@ -73,7 +73,7 @@ class ResourceOperationTest extends Specification {
         when:
         operation.logProcessedBytes(1024)
         then:
-        1 * context.progress(message)
+        1 * context.progress(1024, 10240, "bytes", message)
         where:
         type          | message
         Type.download | "1 KiB/10 KiB downloaded"
@@ -87,7 +87,7 @@ class ResourceOperationTest extends Specification {
         when:
         operation.logProcessedBytes(1024)
         then:
-        1 * context.progress("1 KiB uploaded")
+        1 * context.progress(1024, -1, "bytes", "1 KiB uploaded")
     }
 }
 

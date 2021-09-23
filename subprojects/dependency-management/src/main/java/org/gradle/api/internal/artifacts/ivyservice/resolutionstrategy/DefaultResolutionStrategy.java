@@ -59,6 +59,10 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
+
+    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
+    private static final NotationParser<Object, Set<ModuleVersionSelector>> FORCED_MODULES_PARSER = ModuleVersionSelectorParsers.multiParser("force()");
+
     private final Set<Object> forcedModules = new LinkedHashSet<>();
     private Set<ModuleVersionSelector> parsedForcedModules;
     private ConflictResolution conflictResolution = ConflictResolution.latest;
@@ -81,7 +85,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
 
-    private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
     public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules,
                                      VcsResolver vcsResolver,
@@ -123,7 +126,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public Set<ModuleVersionSelector> getForcedModules() {
         if (parsedForcedModules == null) {
-            parsedForcedModules = ModuleVersionSelectorParsers.multiParser().parseNotation(forcedModules);
+            parsedForcedModules = FORCED_MODULES_PARSER.parseNotation(forcedModules);
         }
         return Collections.unmodifiableSet(parsedForcedModules);
     }

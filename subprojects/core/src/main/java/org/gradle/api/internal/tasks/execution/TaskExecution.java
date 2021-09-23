@@ -360,7 +360,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     private void nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
-        if (!(cause instanceof UncheckedIOException)) {
+        if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             throw UncheckedException.throwAsUncheckedException(cause);
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);

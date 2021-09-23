@@ -192,6 +192,7 @@ We suggest adding tests to ensure that the task inputs are relocatable, i.e. tha
 
 In order to handle volatile inputs for your tasks consider <<more_about_tasks.adoc#sec:configure_input_normalization,configuring input normalization>>.
 
+[[sec:task_output_caching_disabled_by_default]]
 === Marking tasks as non-cacheable by default
 
 There are certain tasks that don't benefit from using the build cache.

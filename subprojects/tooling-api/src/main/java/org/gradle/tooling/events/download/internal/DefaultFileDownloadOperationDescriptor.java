@@ -31,6 +31,11 @@ public class DefaultFileDownloadOperationDescriptor extends DefaultOperationDesc
         this.uri = descriptor.getUri();
     }
 
+    public DefaultFileDownloadOperationDescriptor(String name, URI uri, OperationDescriptor parent) {
+        super(name, name, parent);
+        this.uri = uri;
+    }
+
     @Override
     public URI getUri() {
         return uri;

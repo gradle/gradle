@@ -121,7 +121,7 @@ include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle
 
 Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<#sec:configure_scala_classpath,Automatic configuration of Scala classpath>>.]
 
-If Scala is used for production code, the `scala-library` dependency should be added to the `compile` configuration:
+If Scala is used for production code, the `scala-library` dependency should be added to the `implementation` configuration:
 
 .Declaring a Scala dependency for production code
 ====
@@ -137,7 +137,7 @@ include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle"]
 include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts"]
 ====
 
-If Scala is only used for test code, the `scala-library` dependency should be added to the `testCompile` configuration:
+If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
 
 .Declaring a Scala dependency for test code
 ====

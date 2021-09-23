@@ -16,18 +16,13 @@
 
 package org.gradle.tooling.events.download.internal;
 
-import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.download.FileDownloadFinishEvent;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 
-public class DefaultFileDownloadFinishEvent extends DefaultFinishEvent implements FileDownloadFinishEvent {
-    public DefaultFileDownloadFinishEvent(long eventTime, String displayName, FileDownloadOperationDescriptor descriptor, OperationResult result) {
+public class DefaultFileDownloadFinishEvent extends DefaultFinishEvent<FileDownloadOperationDescriptor, FileDownloadResult> implements FileDownloadFinishEvent {
+    public DefaultFileDownloadFinishEvent(long eventTime, String displayName, FileDownloadOperationDescriptor descriptor, FileDownloadResult result) {
         super(eventTime, displayName, descriptor, result);
-    }
-
-    @Override
-    public FileDownloadOperationDescriptor getDescriptor() {
-        return (FileDownloadOperationDescriptor) super.getDescriptor();
     }
 }

@@ -83,6 +83,22 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
 
+        if (action.getStartParameter().getProjectCacheDir() != null) {
+            // We'd like to create the probe in the `.gradle` directory under the build root,
+            // but if project cache is somewhere else, then we don't want to put trash in there
+            // See https://github.com/gradle/gradle/issues/17262
+            switch (watchFileSystemMode) {
+                case ENABLED:
+                    throw new IllegalStateException("Cannot probe file system watching when project cache directory is set");
+                case DEFAULT:
+                    LOGGER.info("Cannot probe file system watching when project cache directory is set, disabling file system watching");
+                    watchFileSystemMode = WatchMode.DISABLED;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(watchFileSystemMode, verboseVfsLogging, debugWatchLogging, buildOperationRunner);
         LOGGER.info("File system watching is {}", actuallyWatching ? "active" : "inactive");
         //noinspection Convert2Lambda
