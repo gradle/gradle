@@ -49,17 +49,27 @@ public class TestNGTestFramework implements TestFramework {
     private final DefaultTestFilter filter;
     private final Factory<File> testTaskTemporaryDir;
 
+    /**
+     *
+     * @deprecated Use {@link TestNGTestFramework#TestNGTestFramework(Test, DefaultTestFilter)} instead.
+     *
+     * @param testTask the test task which will use the TestNG framework
+     * @param classpath unused
+     * @param filter the test filter
+     * @param objects unused
+     */
+    @Deprecated
     @UsedByScanPlugin("test-retry")
     public TestNGTestFramework(final Test testTask, FileCollection classpath, DefaultTestFilter filter, ObjectFactory objects) {
-        this.filter = filter;
-        this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
-        options = objects.newInstance(TestNGOptions.class);
-        conventionMapOutputDirectory(options, testTask.getReports().getHtml());
-        detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        this(testTask, filter);
     }
 
     public TestNGTestFramework(final Test testTask, DefaultTestFilter filter) {
-        this(testTask, null, filter, testTask.getProject().getObjects());
+        this.filter = filter;
+        this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
+        options = testTask.getProject().getObjects().newInstance(TestNGOptions.class);
+        conventionMapOutputDirectory(options, testTask.getReports().getHtml());
+        detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
