@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -203,6 +204,30 @@ public interface MinimalJavadocOptions {
     void setSourceNames(@Nullable List<String> sourceNames);
 
     MinimalJavadocOptions sourceNames(String... sourceNames);
+
+    /**
+     * The --release
+     *
+     * @since 7.3
+     */
+    @Incubating @Optional @Input
+    Integer getRelease();
+
+    /**
+     * The --release
+     *
+     * @since 7.3
+     */
+    @Incubating
+    void setRelease(Integer release);
+
+    /**
+     * The --release
+     *
+     * @since 7.3
+     */
+    @Incubating
+    MinimalJavadocOptions release(Integer release);
 
     void contributeCommandLineOptions(ExecSpec execHandleBuilder);
 }

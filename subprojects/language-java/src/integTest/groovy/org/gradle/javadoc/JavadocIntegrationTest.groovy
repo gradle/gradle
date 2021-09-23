@@ -296,6 +296,60 @@ Joe!""")
         succeeds("javadoc")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/18274")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "supports release option for javadoc task"() {
+        buildFile << """
+            apply plugin: 'java'
+
+            javadoc {
+                options.release = 11
+            }
+        """
+        writeSourceFile()
+
+        expect:
+        succeeds("javadoc")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18274")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "supports release option for javadoc task in kotlin-dsl"() {
+        buildKotlinFile << """
+            plugins {
+                java
+            }
+
+            tasks.javadoc {
+                options.release = 11
+            }
+        """
+        writeSourceFile()
+
+        expect:
+        succeeds("javadoc")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18274")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "fails with invalid release option"() {
+        Integer version = 1
+        buildFile << """
+            apply plugin: 'java'
+
+            javadoc {
+                options.release = $version
+            }
+        """
+        writeSourceFile()
+
+        when:
+        fails("javadoc")
+
+        then:
+        failure.hasErrorOutput("error: release version $version not supported")
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

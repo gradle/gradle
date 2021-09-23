@@ -91,6 +91,7 @@ public class StandardJavadocDocletOptionsTest {
         assertEmpty(options.getNoQualifiers());
         assertTrue(options.isNoTimestamp());
         assertFalse(options.isNoComment());
+        assertNull(options.getRelease());
     }
 
     @Test
@@ -438,6 +439,13 @@ public class StandardJavadocDocletOptionsTest {
     public void testFluentNoComment() {
         assertEquals(options, options.noComment());
         assertTrue(options.isNoComment());
+    }
+
+    @Test
+    public void testFluentRelease() {
+        final Integer release = 11;
+        assertEquals(options, options.release(release));
+        assertEquals(release, options.getRelease());
     }
 
     @After

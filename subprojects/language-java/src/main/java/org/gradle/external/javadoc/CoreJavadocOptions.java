@@ -49,6 +49,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<Boolean> breakIterator;
     private final JavadocOptionFileOption<String> locale;
     private final JavadocOptionFileOption<String> encoding;
+    private final JavadocOptionFileOption<String> release;
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
     private List<String> jFlags = new ArrayList<String>();
     private List<File> optionFiles = new ArrayList<File>();
@@ -73,6 +74,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         breakIterator = addBooleanOption("breakiterator");
         locale = addStringOption("locale");
         encoding = addStringOption("encoding");
+        release = addStringOption("-release");
 
         sourceNames = optionFile.getSourceNames();
     }
@@ -93,6 +95,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         breakIterator = optionFile.getOption("breakiterator");
         locale = optionFile.getOption("locale");
         encoding = optionFile.getOption("encoding");
+        release = optionFile.getOption("-release");
 
         sourceNames = optionFile.getSourceNames();
         jFlags = original.jFlags;
@@ -535,6 +538,22 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public MinimalJavadocOptions sourceNames(String... sourceNames) {
         this.sourceNames.getValue().addAll(Arrays.asList(sourceNames));
+        return this;
+    }
+
+    @Override
+    public Integer getRelease() {
+        return release.getValue() == null ? null : Integer.valueOf(release.getValue());
+    }
+
+    @Override
+    public void setRelease(Integer release) {
+        this.release.setValue(release == null ? null : release.toString());
+    }
+
+    @Override
+    public MinimalJavadocOptions release(Integer release) {
+        setRelease(release);
         return this;
     }
 
