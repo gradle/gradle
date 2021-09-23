@@ -7,7 +7,7 @@ plugins {
 // end::plugins_block[]
 
 // tag::gradle-plugin[]
-group = "org.myorg" // <1>
+group = "io.github.johndoe" // <1>
 version = "1.0"     // <2>
 
 gradlePlugin {
