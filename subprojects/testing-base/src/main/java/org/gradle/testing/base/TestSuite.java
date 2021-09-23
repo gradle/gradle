@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Base test suite component.
+ * Base test suite component. A test suite is a collection of tests.
  *
  * @since 7.3
  */

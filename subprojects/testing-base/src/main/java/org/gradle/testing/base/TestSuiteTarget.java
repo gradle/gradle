@@ -22,6 +22,8 @@ import org.gradle.api.Named;
 /**
  * Base test suite target.
  *
+ * A test suite target is a collection of tests that run in a particular context (operating system, Java runtime, etc).
+ *
  * @since 7.3
  */
 @Incubating
