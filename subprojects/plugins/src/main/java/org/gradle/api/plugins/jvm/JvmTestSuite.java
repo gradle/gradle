@@ -70,11 +70,28 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version the version of JUnit 4 to use, ex. {@code 4.13}
      */
     void useJUnit(String version);
+
+    /**
+     * Configures this suite to use the Spock Framework for testing.  Defaults to version {@code 2.0-groovy-3.0}
+     */
     void useSpock();
+
+    /**
+     * Configures this suite to use the Spock Framework for testing.
+     * @param version the version of Spock to use, ex. {@code 2.0-groovy-3.0}
+     */
     void useSpock(String version);
+
+    /**
+     * Configures this suite to use the kotlin.test library for testing.
+     */
     void useKotlinTest();
+
+    /**
+     * Configures this suite to use the kotlin.test library for testing.
+     * @param version the version of kotlin.test to use, ex. {@code 1.5.31}
+     */
     void useKotlinTest(String version);
-    // TODO: TestNG?
 
     /**
      * Returns the container for any dependencies needed to compile and run a {@link JvmTestSuite}.
