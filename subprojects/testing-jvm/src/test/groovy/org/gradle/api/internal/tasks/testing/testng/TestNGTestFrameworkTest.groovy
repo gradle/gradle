@@ -27,7 +27,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 
-public class TestNGTestFrameworkTest extends Specification {
+class TestNGTestFrameworkTest extends Specification {
 
     @Shared ObjectFactory objects = TestUtil.objectFactory()
 
