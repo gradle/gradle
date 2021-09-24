@@ -52,7 +52,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         file("src/test/groovy/Test.groovy") << functionalTest(true, true)
 
         then:
-        succeeds 'dependencies', 'build'
+        succeeds 'build'
         executedAndNotSkipped ':test'
         new JUnitXmlTestExecutionResult(projectDir).totalNumberOfTestClassesExecuted > 0
     }
