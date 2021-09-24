@@ -19,11 +19,12 @@ package org.gradle.plugin.devel;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -60,7 +61,7 @@ import java.util.Set;
 public class GradlePluginDevelopmentExtension {
 
     private SourceSet pluginSourceSet;
-    private Set<SourceSet> testSourceSets = Collections.emptySet();
+    private SourceSetContainer testSourceSets;
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
     private boolean automatedPublishing = true;
 
@@ -71,6 +72,7 @@ public class GradlePluginDevelopmentExtension {
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
+        this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
         testSourceSets(testSourceSets);
     }
 
@@ -84,14 +86,28 @@ public class GradlePluginDevelopmentExtension {
     }
 
     /**
-     * Provides the source sets executing the functional tests with TestKit.
+     * Adds a source set to the collection which will be using TestKit.
      * <p>
-     * Calling this method multiple times with different source sets is not additive.
+     * Calling this method multiple times with different source sets is additive.
      *
      * @param testSourceSets the test source sets
      */
     public void testSourceSets(SourceSet... testSourceSets) {
-        this.testSourceSets = Collections.unmodifiableSet(new HashSet<SourceSet>(Arrays.asList(testSourceSets)));
+        this.testSourceSets.addAll(Arrays.asList(testSourceSets));
+    }
+
+    /**
+     * Lazily adds source sets to the collection which will be using TestKit.
+     * <p>
+     * Calling this method multiple times with different source set providers is additive.
+     *
+     * @param testSourceSets the test source set {@link Provider}s to include
+     */
+    @SafeVarargs
+    public final void testSourceSets(Provider<SourceSet>... testSourceSets) {
+        for (Provider<SourceSet> testSourceSet : testSourceSets) {
+            this.testSourceSets.addLater(testSourceSet);
+        }
     }
 
     /**

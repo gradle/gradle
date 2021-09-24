@@ -116,6 +116,121 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
+    def "configuration of test source sets by extension is additive"() {
+        given:
+        buildFile << """
+            sourceSets {
+                integrationTest {
+                    java {
+                        srcDir 'src/integration/java'
+                    }
+                }
+
+                functionalTest {
+                    java {
+                        srcDir 'src/functional/java'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                testSourceSets sourceSets.functionalTest
+            }
+
+            gradlePlugin {
+                testSourceSets sourceSets.integrationTest
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assertFunctionalTestHasTestKit', 'assertIntegrationTestHasTestKit'
+    }
+
+    def "configuration of test source can be done lazily"() {
+        given:
+        buildFile << """
+            def functionalTest = sourceSets.register('functionalTest') {
+                java {
+                    srcDir 'src/functional/java'
+                }
+            }
+
+            gradlePlugin {
+                testSourceSets functionalTest
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+        """
+
+        expect:
+        succeeds 'assertFunctionalTestHasTestKit'
+    }
+
+    def "can mix lazy and non-lazy configuration of test source"() {
+        given:
+        buildFile << """
+            def integrationTest = sourceSets.create('integrationTest') {
+                java {
+                    srcDir 'src/integration/java'
+                }
+            }
+
+            def functionalTest = sourceSets.register('functionalTest') {
+                java {
+                    srcDir 'src/functional/java'
+                }
+            }
+
+            gradlePlugin {
+                testSourceSets integrationTest
+                testSourceSets functionalTest
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+        """
+
+        expect:
+        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
+    }
+
     private String compileDependency(String configurationName, MavenModule module) {
         """
             repositories {
