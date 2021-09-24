@@ -18,7 +18,6 @@ package org.gradle.api.services
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.logging.LoggingOutput
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
@@ -556,7 +555,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             FileSystemOperations,
             ObjectFactory,
             ProviderFactory,
-            LoggingOutput
         ].collect { it.name }
     }
 
