@@ -60,7 +60,7 @@
             <body>
                 <xsl:call-template name="body.attributes"/>
                 <xsl:call-template name="header.navigation"></xsl:call-template>
-                <div class="main-container">
+                <main class="main-content">
                     <nav class="docs-navigation">
                         <div class="search-container">
                             <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
@@ -71,12 +71,10 @@
                             <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
                         </ul>
                     </nav>
-                    <main class="main-content">
-                        <xsl:copy-of select="$content"/>
-                        <aside class="secondary-navigation"></aside>
-                    </main>
-                    <xsl:call-template name="footer.navigation"></xsl:call-template>
-                </div>
+                    <xsl:copy-of select="$content"/>
+                    <aside class="secondary-navigation"></aside>
+                </main>
+                <xsl:call-template name="footer.navigation"></xsl:call-template>
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
