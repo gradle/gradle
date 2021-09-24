@@ -36,8 +36,13 @@ class TestNGCoverage {
         buildFile << """
             apply plugin: 'java'
             ${RepoScriptBlockUtil.mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:${version}" }
-            test.useTestNG()
+            testing {
+                suites {
+                    test {
+                        useTestNG('${version}')
+                    }
+                }
+            }
         """
     }
 }

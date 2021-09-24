@@ -59,10 +59,20 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
-            test {
-                useTestNG {
-                    $property $modification
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        $property $modification
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         """
@@ -81,7 +91,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'threadCount'         | '= 2'
         'listeners'           | '= ["org.testng.reporters.FailedReporter"]'
         'useDefaultListeners' | '= true'
-        'configFailurePolicy' | '= "continue"'
+        //'configFailurePolicy' | '= "continue"' // See https://github.com/gradle/gradle/issues/10507; API removed in TestNG v7
         'preserveOrder'       | '= true'
         'groupByInstances'    | '= true'
     }
@@ -102,10 +112,20 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testImplementation "org.testng:testng:${TestNGCoverage.NEWEST}" }
-            test {
-                useTestNG {
-                    $property $modification
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        $property $modification
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         """

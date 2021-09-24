@@ -30,14 +30,17 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation "org.testng:testng:6.3.1"
+            testing {
+                suites {
+                    test {
+                        useTestNG('6.3.1')
+                    }
+                }
             }
-            test.useTestNG()
         """
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
-            
+
             public class FooTest {
                 public FooTest() { throw new NullPointerException(); }
                 @Test public void foo() {}
