@@ -60,6 +60,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
         finishedResult.statistics.numberOfWatchedHierarchies > 0
+        !finishedResult.stateInvalidatedAtStartOfBuild
         retainedFiles(finishedResult)
 
         when:
@@ -71,12 +72,14 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         then:
         startedResult.watchingEnabled
         !startedResult.startedWatching
+        !finishedResult.stateInvalidatedAtStartOfBuild
         startedResult.statistics.numberOfReceivedEvents > 0
         retainedFiles(startedResult)
 
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
         finishedResult.statistics.numberOfWatchedHierarchies > 0
+        finishedResult.statistics.numberOfWatchedHierarchies == 1
         retainedFiles(finishedResult)
     }
 
