@@ -211,6 +211,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             case KOTLINTEST:
                 buildScriptBuilder.testing().kotlinTestSuite(name);
                 break;
+            case TESTNG:
+                buildScriptBuilder.testing().testNG(name);
+                break;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");
         }

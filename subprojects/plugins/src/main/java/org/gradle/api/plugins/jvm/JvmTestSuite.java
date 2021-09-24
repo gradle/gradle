@@ -70,7 +70,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use.  Defaults to version {@code 5.7.1}
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.1}
      * </p>
      */
     void useJUnitJupiter();
@@ -96,11 +96,51 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version version of JUnit4 to use
      */
     void useJUnit(String version);
+
+    /**
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.0-groovy-3.0}
+     * </p>
+     */
     void useSpock();
+
+    /**
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
+     *
+     * @param version the version of Spock to use
+     */
     void useSpock(String version);
+
+    /**
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.5.31}
+     * </p>
+     */
     void useKotlinTest();
+
+    /**
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
+     *
+     * @param version the version of kotlin.test to use
+     */
     void useKotlinTest(String version);
-    // TODO: TestNG?
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
+     * </p>
+     */
+    void useTestNG();
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
+     *
+     * @param version version of TestNG to use
+     */
+    void useTestNG(String version);
 
     /**
      * Dependency handler for this component.

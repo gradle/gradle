@@ -1242,6 +1242,11 @@ public class BuildScriptBuilder {
         public void kotlinTestSuite(String name) {
             suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder));
         }
+
+        @Override
+        public void testNG(String name) {
+            suites.add(new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, builder));
+        }
     }
 
     private static class SuiteSpec extends AbstractStatement {
@@ -1316,7 +1321,8 @@ public class BuildScriptBuilder {
             JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4),
             JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER),
             SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK),
-            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST);
+            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST),
+            TEST_NG(new MethodInvocationExpression("useTestNG"), DefaultJvmTestSuite.Frameworks.TESTNG);
 
             final MethodInvocationExpression method;
             final DefaultJvmTestSuite.Frameworks framework;
