@@ -16,17 +16,10 @@
 package org.gradle.api.tasks.scala
 
 import org.apache.commons.io.FileUtils
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.AbstractConventionTaskTest
-import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import org.gradle.util.internal.WrapUtil
 
 class ScalaCompileTest extends AbstractConventionTaskTest {
@@ -34,12 +27,34 @@ class ScalaCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_2 = "pattern2"
     public static final String TEST_PATTERN_3 = "pattern3"
 
-    public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl/*")
-    public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl/*")
-
     protected File srcDir
     protected File destDir
     protected File depCacheDir
+
+    private ScalaCompile scalaCompile
+    private scalaCompiler = Mock(Compiler)
+
+    AbstractCompile getCompile() {
+        return scalaCompile
+    }
+
+    @Override
+    ConventionTask getTask() {
+        return scalaCompile
+    }
+
+    def setup() {
+        destDir = project.file("destDir")
+        depCacheDir = project.file("depCache")
+        srcDir = project.file("src")
+        srcDir.mkdirs()
+
+        scalaCompile = createTask(ScalaCompile)
+        scalaCompile.setCompiler(scalaCompiler)
+
+        FileUtils.touch(new File(srcDir, "incl/file.scala"))
+        FileUtils.touch(new File(srcDir, "incl/file.java"))
+    }
 
     def "default values"() {
         given:
@@ -77,89 +92,5 @@ class ScalaCompileTest extends AbstractConventionTaskTest {
         and:
         compile.is(compile.exclude(TEST_PATTERN_3))
         compile.getExcludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
-    }
-
-    private ScalaCompile scalaCompile
-
-    private scalaCompiler = Mock(Compiler)
-    private scalaClasspath = Mock(FileTreeInternal)
-    private scalaCompilerPlugins = Mock(FileTreeInternal)
-
-    AbstractCompile getCompile() {
-        return scalaCompile
-    }
-
-    @Override
-    ConventionTask getTask() {
-        return scalaCompile
-    }
-
-    def setup() {
-        destDir = project.file("destDir")
-        depCacheDir = project.file("depCache")
-        srcDir = project.file("src")
-        srcDir.mkdirs()
-
-        scalaCompile = createTask(ScalaCompile)
-        scalaCompile.setCompiler(scalaCompiler)
-
-        FileUtils.touch(new File(srcDir, "incl/file.scala"))
-        FileUtils.touch(new File(srcDir, "incl/file.java"))
-    }
-
-    def "execute doing work"() {
-        given:
-        setUpMocksAndAttributes(scalaCompile)
-        scalaClasspath.isEmpty() >> false
-
-        when:
-        execute(scalaCompile)
-
-        then:
-        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> WorkResults.didWork(true)
-    }
-
-    def "moans if scalaClasspath is empty"() {
-        given:
-        setUpMocksAndAttributes(scalaCompile)
-        scalaClasspath.isEmpty() >> true
-
-        when:
-        execute(scalaCompile)
-
-        then:
-        TaskExecutionException e = thrown()
-        e.cause instanceof InvalidUserDataException
-        e.cause.message.contains("'testTask.scalaClasspath' must not be empty")
-    }
-
-    def "sets annotation processor path"() {
-        ScalaJavaJointCompileSpec compileSpec = null
-        def file = new File('foo.jar')
-
-        given:
-        setUpMocksAndAttributes(scalaCompile)
-        scalaCompile.getOptions().setAnnotationProcessorPath(TestFiles.fixed(file))
-
-        when:
-        execute(scalaCompile)
-
-        then:
-        1 * scalaCompiler.execute(_ as ScalaJavaJointCompileSpec) >> { ScalaJavaJointCompileSpec compilerSpecArg ->
-            compileSpec = compilerSpecArg
-            return WorkResults.didWork(true)
-        }
-        compileSpec.getAnnotationProcessorPath() == [file]
-    }
-
-    protected void setUpMocksAndAttributes(final ScalaCompile compile) {
-        super.setUpMocksAndAttributes(compile)
-        compile.setScalaClasspath(scalaClasspath)
-        compile.setZincClasspath(compile.getClasspath())
-        compile.setScalaCompilerPlugins(scalaCompilerPlugins)
-        scalaCompilerPlugins.iterator() >> Collections.emptyIterator()
-        BaseScalaCompileOptions options = compile.getScalaCompileOptions()
-        options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"))
-        options.getIncrementalOptions().setClassfileBackupDir(new File("classfileBackupDir"))
     }
 }
