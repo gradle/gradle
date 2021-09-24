@@ -96,9 +96,27 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version version of JUnit4 to use
      */
     void useJUnit(String version);
+
+    /**
+     * Configures this suite to use the <a href="https://spockframework.org/">Spock Framework</a> for testing.  Defaults to version {@code 2.0-groovy-3.0}
+     */
     void useSpock();
+
+    /**
+     * Configures this suite to use the <a href="https://spockframework.org/">Spock Framework</a> for testing.
+     * @param version the version of Spock to use, ex. {@code 2.0-groovy-3.0}
+     */
     void useSpock(String version);
+
+    /**
+     * Configures this suite to use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> library for testing.
+     */
     void useKotlinTest();
+
+    /**
+     * Configures this suite to use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> library for testing.
+     * @param version the version of kotlin.test to use, ex. {@code 1.5.31}
+     */
     void useKotlinTest(String version);
 
     /**
