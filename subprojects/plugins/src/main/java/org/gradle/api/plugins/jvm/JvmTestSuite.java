@@ -70,7 +70,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use.  Defaults to version {@code 5.7.1}
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.1}
      * </p>
      */
     void useJUnitJupiter();
@@ -98,31 +98,39 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useJUnit(String version);
 
     /**
-     * Configures this suite to use the <a href="https://spockframework.org/">Spock Framework</a> for testing.  Defaults to version {@code 2.0-groovy-3.0}
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.0-groovy-3.0}
+     * </p>
      */
     void useSpock();
 
     /**
-     * Configures this suite to use the <a href="https://spockframework.org/">Spock Framework</a> for testing.
-     * @param version the version of Spock to use, ex. {@code 2.0-groovy-3.0}
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
+     *
+     * @param version the version of Spock to use
      */
     void useSpock(String version);
 
     /**
-     * Configures this suite to use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> library for testing.
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
+     * <p>
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.5.31}
+     * </p>
      */
     void useKotlinTest();
 
     /**
-     * Configures this suite to use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> library for testing.
-     * @param version the version of kotlin.test to use, ex. {@code 1.5.31}
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
+     *
+     * @param version the version of kotlin.test to use
      */
     void useKotlinTest(String version);
 
     /**
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
      * <p>
-     *     Gradle will provide the version of TestNG to use.  Defaults to version {@code 7.4.0}
+     *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
      * </p>
      */
     void useTestNG();
