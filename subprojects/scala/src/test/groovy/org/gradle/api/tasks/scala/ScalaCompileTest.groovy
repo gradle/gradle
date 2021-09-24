@@ -21,21 +21,70 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
+import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.AbstractCompile
-import org.gradle.api.tasks.compile.AbstractCompileTest
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
+import org.gradle.util.internal.WrapUtil
 
-class ScalaCompileTest extends AbstractCompileTest {
+class ScalaCompileTest extends AbstractConventionTaskTest {
+    public static final String TEST_PATTERN_1 = "pattern1"
+    public static final String TEST_PATTERN_2 = "pattern2"
+    public static final String TEST_PATTERN_3 = "pattern3"
+
+    public static final List<String> TEST_INCLUDES = WrapUtil.toList("incl/*")
+    public static final List<String> TEST_EXCLUDES = WrapUtil.toList("excl/*")
+
+    protected File srcDir
+    protected File destDir
+    protected File depCacheDir
+
+    def "default values"() {
+        given:
+        def compile = getCompile()
+
+        expect:
+        compile.getDestinationDir() == null
+        compile.getDestinationDirectory().getOrNull() == null
+        compile.getSourceCompatibility() == null
+        compile.getTargetCompatibility() == null
+        compile.getSource().isEmpty()
+    }
+
+    def "test includes"() {
+        given:
+        AbstractCompile compile = getCompile()
+
+        expect:
+        compile.is(compile.include(TEST_PATTERN_1, TEST_PATTERN_2))
+        compile.getIncludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+
+        and:
+        compile.is(compile.include(TEST_PATTERN_3))
+        compile.getIncludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+    }
+
+    def "test excludes"() {
+        given:
+        AbstractCompile compile = getCompile()
+
+        expect:
+        compile.is(compile.exclude(TEST_PATTERN_1, TEST_PATTERN_2))
+        compile.getExcludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+
+        and:
+        compile.is(compile.exclude(TEST_PATTERN_3))
+        compile.getExcludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+    }
+
     private ScalaCompile scalaCompile
 
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
     private scalaCompilerPlugins = Mock(FileTreeInternal)
 
-    @Override
     AbstractCompile getCompile() {
         return scalaCompile
     }
@@ -46,6 +95,11 @@ class ScalaCompileTest extends AbstractCompileTest {
     }
 
     def setup() {
+        destDir = project.file("destDir")
+        depCacheDir = project.file("depCache")
+        srcDir = project.file("src")
+        srcDir.mkdirs()
+
         scalaCompile = createTask(ScalaCompile)
         scalaCompile.setCompiler(scalaCompiler)
 
