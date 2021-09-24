@@ -76,13 +76,12 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
         if (!newInputs.getFileFingerprints().isEmpty()) {
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, newInputs.getFileFingerprints());
-
             if (newInputs.getFileFingerprints().values().stream()
                 .allMatch(CurrentFileCollectionFingerprint::isEmpty)
             ) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, newInputs.getFileFingerprints());
                 return executeWithNoEmptySources(work, withSources(context, knownValueSnapshots, inputFileProperties));
             }
         } else {
