@@ -49,7 +49,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownSnapshot = Mock(ValueSnapshot)
     def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    Optional skipOutcome
+    Optional<ExecutionOutcome> skipOutcome
 
     @Override
     protected PreviousExecutionContext createContext() {
@@ -65,8 +65,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def "delegates when work has no source properties"() {
+        def delegateResult = Mock(CachingResult)
+
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
         _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
@@ -81,14 +83,15 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of())
 
-        1 * delegate.execute(work, _ as PreviousExecutionContext) >> { UnitOfWork work, PreviousExecutionContext delegateContext ->
-            assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
-            assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint]
-        }
+        then:
+        1 * delegate.execute(work, {
+            it.inputProperties as Map == ["known": knownSnapshot]
+            it.inputFileProperties as Map == ["known-file": knownFileFingerprint]
+        }) >> delegateResult
         0 * _
 
-        then:
         !skipOutcome.present
+        result == delegateResult
     }
 
     def "delegates when work has sources"() {
