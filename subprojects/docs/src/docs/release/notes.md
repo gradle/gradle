@@ -66,6 +66,10 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 ## New features and usability improvements
 
+### Support for Java 17
+
+Gradle 7.3 supports compiling, testing and running on Java 17.
+
 <a name="tooling-api"></a>
 ### Tooling API improvements
 
