@@ -18,7 +18,6 @@ package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.testing.fixture.TestNGCoverage
 
 class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
 
@@ -101,17 +100,7 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
                     useJUnit()
                 }
                 integTest(JvmTestSuite) {
-                    // useTestNG() // TODO not implemented yet
-                    dependencies {
-                        implementation "org.testng:testng:${TestNGCoverage.NEWEST}"
-                    }
-                    targets {
-                        all {
-                            testTask.configure {
-                                useTestNG() // TODO remove once JvmTestSuite#useTestNG is implemented
-                            }
-                        }
-                    }
+                    useTestNG()
                 }
             }
         }
