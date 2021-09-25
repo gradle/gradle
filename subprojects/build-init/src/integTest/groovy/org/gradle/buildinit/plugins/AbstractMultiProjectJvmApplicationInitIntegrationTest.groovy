@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
@@ -26,7 +25,9 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
-class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+    abstract BuildInitDsl getBuildDsl()
+
     @Override
     String subprojectName() {
         return null
@@ -97,12 +98,18 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrat
         outputContains("Hello World!")
 
         where:
-        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], ScriptDslFixture.SCRIPT_DSLS].combinations()
+        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], getBuildDsl()].combinations()
     }
 
-    def "can explicitly configure application not to split projects"() {
+    def "can explicitly configure application not to split projects with #scriptDsl build scripts"() {
+        given:
+        def dsl = scriptDsl as BuildInitDsl
+
         expect:
-        succeeds('init', '--type', "java-application", '--dsl', 'groovy')
+        succeeds('init', '--type', "java-application", '--dsl', dsl.id)
+
+        where:
+        scriptDsl << getBuildDsl()
     }
 
     void assertTestPassed(String subprojectName, String className, String name) {
@@ -110,5 +117,4 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrat
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
-
 }
