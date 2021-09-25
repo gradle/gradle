@@ -883,6 +883,20 @@ The value of this property is derived from: <source>""")
         e.message == "Cannot query the value of this provider because it has no value available."
     }
 
+    @Issue('gradle/gradle#11036')
+    def "getting key set from provider throws NullPointerException if property has null key"() {
+        given:
+        property.putAll(Providers.of(Collections.singletonMap(null, 'value')))
+        def keySetProvider = property.keySet()
+
+        when:
+        keySetProvider.get()
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == 'Cannot get the value of a property of type java.util.Set with element type java.lang.String as the source value contains a null element.'
+    }
+
     def "keySet provider tracks value of property"() {
         when:
         def keySetProvider = property.keySet()
