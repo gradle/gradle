@@ -11,20 +11,20 @@ The same is true for builds run on CI: the faster they are, the faster you can r
 All this means that it’s worth investing some time and effort into making your build as fast as possible.
 This section offers several avenues you can explore to make a build faster, along with plenty of detail on what sorts of things can degrade the performance of a build and why.
 
-== Build scans
+== Build Scan™ service
 
-https://gradle.com/build-scans[Build scans] are a persistent, shareable record of what happened when running a build.
-With build scans, you gain deep insights about your build to identify and fix performance bottlenecks.
+https://gradle.com/build-scans[Build Scan™] is a persistent, shareable record of what happened when running a build.
+With the Build Scan™ service, you gain deep insights about your build to identify and fix performance bottlenecks.
 
-If you are using Gradle 4.3+, you can easily create a build scan by using the `--scan` command line option, e.g. `gradle build --scan`.
-For older Gradle versions, see the https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan Plugin User Manual] on how to enable build scans.
+If you are using Gradle 4.3+, you can easily create a Build Scan™ by using the `--scan` command line option, e.g. `gradle build --scan`.
+For older Gradle versions, see the https://docs.gradle.com/build-scan-plugin/#getting_set_up[Build Scan™ Plugin User Manual] on how to enable build scans.
 
-Gradle displays the URL where your build scan is available at the end of the build execution:
+Gradle displays the URL where your Build Scan™ is available at the end of the build execution:
 
-image::performance/build-scan-url.png[title="Build scan link at end of the build output"]
+image::performance/build-scan-url.png[title="Build Scan™ link at end of the build output"]
 
 Next, this section will cover some quick improvements that can increase your build's performance.
-After that will be a deeper dive into profiling your build with build scans.
+After that will be a deeper dive into profiling your build with Build Scan™.
 
 == Easy improvements
 
@@ -72,7 +72,7 @@ You can also make building in parallel the default for a project by adding the f
 org.gradle.parallel=true
 ----
 
-Build scans give you a visual timeline of task execution and a quick impression on the current degree of parallelism, allowing you to identify and remove bottlenecks.
+Build Scan™ gives you a visual timeline of task execution and a quick impression on the current degree of parallelism, allowing you to identify and remove bottlenecks.
 
 For example, in the following example build you can see long-running tasks at the beginning and end of the build where they are the only tasks being executed:
 
@@ -98,19 +98,19 @@ Since Gradle 7.0 file system watching is enabled by default on operating systems
 
 Read more about this feature in the <<gradle_daemon.adoc#sec:daemon_watch_fs,corresponding section>>.
 
-== Profiling with build scans
+== Profiling with Build Scan™
 
-When using build scans in the context of profiling a build, the main area of interest in the early stages of diagnosis is the performance page.
-To get there, click _"Performance"_&nbsp; in the left hand navigation menu, or follow the link highlighted in the following screenshot of the build scan home page:
+When using Build Scan™ in the context of profiling a build, the main area of interest in the early stages of diagnosis is the performance page.
+To get there, click _"Performance"_&nbsp; in the left hand navigation menu, or follow the link highlighted in the following screenshot of the Build Scan™ home page:
 
-image::performance/build-scan-home.png[title="Performance page link on build scan home page"]
+image::performance/build-scan-home.png[title="Performance page link on Build Scan™ home page"]
 
 The performance page gives you a breakdown of how long different stages of your build took to complete.
 As you can see from the following screenshot, you get to see how long Gradle took to start up, configure the build's projects, resolve dependencies, and execute the tasks.
 You also get details about environmental properties, such as whether a daemon was used or not.
 
 [[build-scan-performance]]
-image::performance/build-scan-performance-page.png[title="Build scan performance page"]
+image::performance/build-scan-performance-page.png[title="Build Scan™ performance page"]
 
 In addition to the top-level performance summary of your build execution, you can drill down further into individual aspects that affect build performance in the different tabs of the performance page.
 
@@ -123,7 +123,7 @@ That means any expensive work performed during configuration will slow every inv
 In the above xref:build-scan-performance[], you can see that build configuration is taking over 16 seconds.
 Clicking on the _"Configuration"_&nbsp; tab at the top of the page will break this stage down into its component parts, exposing what is causing any slowness.
 
-image::performance/build-scan-configuration-breakdown.png[title="Build scan configuration breakdown"]
+image::performance/build-scan-configuration-breakdown.png[title="Build Scan™ configuration breakdown"]
 
 Here you can see the scripts and plugins that were applied to the project in descending order of how long they took to apply.
 The slowest plugin and script applications are good candidates for optimization, and you can dig further into those items in the list.
@@ -142,7 +142,7 @@ Some plugins have a greater impact than others.
 That doesn’t mean you should avoid using plugins, but you should take care to only apply them where they’re needed.
 For example, it’s easy to apply plugins to all projects via `allprojects {}` or `subprojects {}` even if not every project needs them.
 
-In the above build scan example, you can see that the script `script-a.gradle` is applied to 3 projects inside the build:
+In the above Build Scan™ example, you can see that the script `script-a.gradle` is applied to 3 projects inside the build:
 
 image::performance/script-a-application.png[title="Showing the application of script-a.gradle to the build"]
 
@@ -205,7 +205,7 @@ By default, Gradle will only perform the check once every 24 hours, but this can
 Look out for `cacheDynamicVersionsFor` and `cacheChangingModulesFor` in your build files and initialization scripts in case they are set to very short periods or disabled completely.
 Otherwise you may be condemning your build users to frequent slower-than-normal builds rather than a single slower-than-normal build a day.
 
-You can find all dependencies with dynamic versions via build scans:
+You can find all dependencies with dynamic versions via Build Scan™:
 
 image::performance/dependency-dynamic-versions.png[title="Find dependencies with dynamic versions"]
 
@@ -240,7 +240,7 @@ include::sample[dir="snippets/performance/resolveAtBuildTime/kotlin",files="buil
 Note that the `from()` declaration doesn’t resolve the dependencies because you’re using the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configuration>> itself as an argument, not its files.
 The `Copy` task handles the resolution of the configuration itself during task execution, which is exactly what you want.
 
-The "Dependency resolution" tab on the performance page of a build scan explicitly shows how dependency resolution time is split across project configuration and task execution:
+The "Dependency resolution" tab on the performance page of a Build Scan™ explicitly shows how dependency resolution time is split across project configuration and task execution:
 
 image::performance/bad-dependency-resolution.png[title="Dependency resolution at configuration time"]
 
@@ -276,13 +276,13 @@ That's why it has a powerful API for customizing how the dependency resolution w
 Simple customizations -- such as forcing specific versions of a dependency or substituting one dependency for another -- don't have a big impact on dependency resolution times.
 But if custom logic involves downloading and parsing extra POMs, for example, then the impact can be significant.
 
-You should use build scans or profile reports to check that any custom dependency resolution logic you have in your build doesn't adversely affect dependency resolution times in a big way.
+You should use Build Scan™ or profile reports to check that any custom dependency resolution logic you have in your build doesn't adversely affect dependency resolution times in a big way.
 And note that this could be custom logic you have written yourself or it could be part of a plugin that you're using.
 
 === Identify slow or unexpected dependency downloads
 
 Slow dependency downloads (potentially caused by a slow internet connection, overloaded repository server, or similar) can impact your overall build performance.
-Build scans provide a "Network Activity" tab on the "Performance" page that lists helpful information such as the time spent downloading dependencies, overall transfer rate of dependency downloads across your build, and a list of downloads sorted by download time.
+Build Scan™ provides a "Network Activity" tab on the "Performance" page that lists helpful information such as the time spent downloading dependencies, overall transfer rate of dependency downloads across your build, and a list of downloads sorted by download time.
 
 Here you can see two slow dependency downloads that took 20 and 40 seconds and slowed down the overall performance in the build:
 
@@ -330,11 +330,11 @@ You can also make your own tasks integrate with incremental build.
 The basic idea is to mark the task’s properties that have an impact on whether a task needs to run.
 You can learn more <<more_about_tasks.adoc#sec:up_to_date_checks,in the section about incremental tasks>>.
 
-You can easily identify good candidates for participation in incremental builds, and learn why tasks were not up to date when you expected them to be by looking at the timeline view in a build scan:
+You can easily identify good candidates for participation in incremental builds, and learn why tasks were not up to date when you expected them to be by looking at the timeline view in a Build Scan™:
 
 image::performance/timeline.png[title="The timeline view can help with incremental build inspection"]
 
-As you can see in the build scan above, the task was not up-to-date because one of its inputs _"timestamp"_&nbsp; has changed, and is forcing the task to be re-run.
+As you can see in the Build Scan™ above, the task was not up-to-date because one of its inputs _"timestamp"_&nbsp; has changed, and is forcing the task to be re-run.
 
 The tasks can also be sorted by longest duration first, making it easy to pick out the slowest tasks.
 Pick the slowest of your custom tasks and make it participate in incremental builds, then measure again and repeat.
@@ -353,7 +353,7 @@ This can significantly decrease build times for both CI and developer builds.
 For extensive information about leveraging the build cache in your build, check out the documentation about <<build_cache_use_cases.adoc#use_cases_cache,using the build cache>>.
 It covers the different scenarios caching can improve, and detailed discussions of the different caveats you need to be aware of when enabling caching for a build.
 
-Again, build scans can help you investigate how well your tasks are caching.
+Again, Build Scan™ can help you investigate how well your tasks are caching.
 In the performance screen, there is a tab titled _"Build cache"_:
 
 image::performance/cache-performance.png[title="Inspecting the performance of the build cache for a build"]
@@ -368,7 +368,7 @@ image::performance/task-execution-cacheable.png[title="A task oriented view of p
 image::performance/timeline-not-cacheable.png[title="Timeline screen with 'not cacheable' tasks only"]
 
 Subsequently sorting by task duration on the Timeline screen will highlight tasks with great potential for time saving.
-The build scan above shows that `:task1` and `:task3` could be improved and made cacheable, and clearly states the reason why they were considered not cacheable.
+The Build Scan™ above shows that `:task1` and `:task3` could be improved and made cacheable, and clearly states the reason why they were considered not cacheable.
 
 == Daemon
 
@@ -404,11 +404,11 @@ The following suggestions are specific to projects using the `java` plugin or on
 
 A significant proportion of the build time for many projects consists of the test tasks that run.
 These could be a mixture of unit and integration tests, with the latter often being significantly slower.
-Build scans can help you identify the slowest tests, which should be the primary focus of your performance improvements.
+Build Scan™ can help you identify the slowest tests, which should be the primary focus of your performance improvements.
 
 image::performance/tests-longest.png[title="Tests screen, with tests by project, sorted by duration"]
 
-As shown above, build scans provide an interactive test report, across all projects in which tests ran.
+As shown above, Build Scan™ provides an interactive test report, across all projects in which tests ran.
 
 Gradle has a few ways to help your tests complete faster:
 
@@ -459,7 +459,7 @@ Just be aware that forking a VM is a relatively expensive operation, so a small 
 Gradle will automatically create test reports by default regardless of whether you want to look at them.
 That report generation takes time, slowing down the overall build.
 Reports are definitely useful, but do you need them every time you run the build? Perhaps you only care if the tests succeed or not.
-Also, if you're using build scans, you don't need to generate reports locally.
+Also, if you're using Build Scan™, you don't need to generate reports locally.
 
 To disable the test reports, simply add this configuration:
 
@@ -595,13 +595,13 @@ Sometimes your build can be slow even though your build scripts are doing everyt
 This often comes down to inefficiencies in plugins and custom tasks or constrained resources.
 The best way to find these kinds of bottlenecks is using the https://github.com/gradle/gradle-profiler[Gradle Profiler].
 The Gradle Profiler allows you to define scenarios like "Running 'assemble' after making an ABI-breaking change" and then automatically runs your build several times to warm it up and collect profiling data.
-It can be used to produce build scans or together with other major profilers like JProfiler and YourKit.
+It can be used to produce Build Scan™ or together with other major profilers like JProfiler and YourKit.
 Using these method-level profilers can often help you find inefficient algorithms in custom plugins.
 If you find that something in Gradle itself is slowing down your build, don't hesitate to send a profiler snapshot at performance@gradle.com.
 
 === Profile report
 
-If you don't have internet access or have some other reason not to use build scans, you can use the `--profile` command-line option:
+If you don't have internet access or have some other reason not to use Build Scan™, you can use the `--profile` command-line option:
 
 [listing.terminal]
 ----
@@ -611,14 +611,14 @@ $ gradle --profile <tasks>
 This will result in the generation of an HTML report that you can find in the _build/reports/profile_ directory of the _root_ project.
 Each profile report has a timestamp in its name to avoid overwriting existing ones.
 
-The report displays a breakdown of the time taken to run the build, though much less detailed than a build scan.
+The report displays a breakdown of the time taken to run the build, though much less detailed than a Build Scan™.
 Here’s a screenshot of a real profile report showing the different categories that Gradle uses:
 
 image::performance/gradle-profile-report.png[title="An example profile report", alt="Sample Gradle profile report"]
 
 === Understanding the performance categories
 
-Both build scans and the local profile reports break build execution down into the same categories, which are explained in more details below.
+Both Build Scan™ and the local profile reports break build execution down into the same categories, which are explained in more details below.
 
 ==== Startup
 
@@ -670,5 +670,5 @@ And as far as the configuration phase goes, you should now have a good idea of t
 With task execution, you have more control since you can avoid running tasks or running them too often.
 You can also code your own tasks to be as efficient as possible.
 
-You can also leverage build scans to gain deep insights into performance hotspots during configuration and execution in your build.
+You can also leverage Build Scan™ to gain deep insights into performance hotspots during configuration and execution in your build.
 Furthermore, build scans allow you to easily share specific aspects of your build and collaborate about them with your colleagues.

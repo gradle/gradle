@@ -48,7 +48,7 @@ BUILD SUCCESSFUL
 The project provides the link:{user-manual}gradle_wrapper.html[Gradle Wrapper] as part of the repository.
 It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
 
-=== Build scan integration
+=== Build Scan™ integration
 
 The sample project is equipped with support for generating https://scans.gradle.com/[build scans].
 Running the build with the command line option `--scan` renders a link in the console.
@@ -100,7 +100,7 @@ Next, we can set up the project and run a build in TeamCity.
 == Create a TeamCity build
 
 Setting up a new Gradle build in TeamCity requires just a few clicks:
-TeamCity comes bundled with a Gradle plugin, so you do not need to install plugins additionally. However, it is recommended that you install the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan plugin].
+TeamCity comes bundled with a Gradle plugin, so you do not need to install plugins additionally. However, it is recommended that you install the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan™ plugin].
 
 On the *Administration | Projects* page click _Create project_,
 use the option _From the repository URL_ and enter the URL of the GitHub repository: `https://github.com/gradle/gradle-site-plugin.git`.
@@ -121,7 +121,7 @@ image::ci-systems/teamcity-step-added.png[]
 Click _Edit_, on the page that opens click _Advanced options_.
 Using the Wrapper to execute the build is considered good practice with Gradle,
 and on automatic detection this option is selected by default.
-We’ll want to generate a build scan,
+We’ll want to generate a Build Scan™,
 so we’ll enter the `--scan` option in _Additional Gradle command line parameters_ field.
 
 image::ci-systems/teamcity-scan.png[]
@@ -146,11 +146,11 @@ image::ci-systems/teamcity-tests.png[]
 The information on parameters and environment of the build is available
 on the _Parameters_ tab of the build results.
 
-If you installed the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan plugin], you will see a link to the build scan in the Build Results view:
+If you installed the https://plugins.jetbrains.com/plugin/9326-gradle-build-scan-integration[Gradle Build Scan™ plugin], you will see a link to the Build Scan™ in the Build Results view:
 
 image::ci-systems/teamcity-build-scan-plugin.png[]
 
-Otherwise, the link to the link:https://scans.gradle.com[build scan] for the given build is available in the build log:
+Otherwise, the link to the link:https://scans.gradle.com[Build Scan™] for the given build is available in the build log:
 
 image::ci-systems/teamcity-log-link.png[]
 

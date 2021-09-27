@@ -213,7 +213,7 @@ Running `gradle projects` gives you a list of the sub-projects of the selected p
 $ gradle projects
 ----
 
-You also get a project report within build scans. Learn more about https://scans.gradle.com/[creating build scans].
+You also get a project report within Build Scan™. Learn more about https://scans.gradle.com/[creating Build Scan™].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -251,7 +251,7 @@ This information includes the full task path, the task type, possible command li
 
 === Reporting dependencies
 
-Build scans give a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
+A Build Scan™ gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
 
 ----
 $ gradle myTask --scan
@@ -259,7 +259,7 @@ $ gradle myTask --scan
 
 This will give you a link to a web-based report, where you can find dependency information like this.
 
-image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
+image::gradle-core-test-build-scan-dependencies.png[Build Scan™ dependencies report]
 
 Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
 
@@ -322,7 +322,7 @@ Print out the full (very verbose) stacktrace for any exceptions. See also <<#sec
 Print out the stacktrace also for user exceptions (e.g. compile error).  See also <<#sec:command_line_logging, logging options>>.
 
 `--scan`::
-Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
+Create a https://gradle.com/build-scans[Build Scan™] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
 Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
@@ -355,9 +355,9 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 Generates a high-level performance report in the `$buildDir/reports/profile` directory. `--scan` is preferred.
 
 `--scan`::
-Generate a build scan with detailed performance diagnostics.
+Generate a Build Scan™ with detailed performance diagnostics.
 
-image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
+image::gradle-core-test-build-scan-performance.png[Build Scan™ performance report]
 
 `--watch-fs`, `--no-watch-fs`::
 Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.

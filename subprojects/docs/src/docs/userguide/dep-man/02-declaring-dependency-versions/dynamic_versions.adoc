@@ -33,9 +33,9 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamic
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
 ====
 
-A link:https://scans.gradle.com/[build scan] can effectively visualize dynamic dependency versions and their respective, selected versions.
+A link:https://scans.gradle.com/[Build Scan™] can effectively visualize dynamic dependency versions and their respective, selected versions.
 
-.Dynamic dependencies in build scan
+.Dynamic dependencies in Build Scan™
 image::dependency-management-dynamic-dependency-build-scan.png[]
 
 By default, Gradle caches dynamic versions of dependencies for 24 hours. Within this time frame, Gradle does not try to resolve newer versions from the declared repositories.

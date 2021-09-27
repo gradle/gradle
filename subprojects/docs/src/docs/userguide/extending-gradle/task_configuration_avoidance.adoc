@@ -67,8 +67,8 @@ We also cover some <<#sec:task_configuration_avoidance_troubleshooting, troubles
 === General
 1. [[task_configuration_avoidance_guideline_use_help_task]] **Use `help` task as a benchmark during the migration.**
 The `help` task is the perfect candidate to benchmark your migration process.
-In a build that uses only the configuration avoidance API, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a build scan would show no tasks created immediately or created during configuration], and only the tasks that were actually executed would be created.
-Be mindful of <<#task_configuration_avoidance_pitfall_build_scan_plugin, the version of the build scan plugin in use>>.
+In a build that uses only the configuration avoidance API, https://scans.gradle.com/s/o7qmlmmrsfxz4/performance/configuration?openScriptsAndPlugins=WzFd[a Build Scan™ would show no tasks created immediately or created during configuration], and only the tasks that were actually executed would be created.
+Be mindful of <<#task_configuration_avoidance_pitfall_build_scan_plugin, the version of the Build Scan™ plugin in use>>.
 
 2. [[task_configuration_avoidance_guideline_only_mutate_task_object]] **Only mutate the current task inside a configuration action.**
 Because the task configuration action can now run immediately, later or never, mutating anything other than the current task can cause indeterminate behavior in your build.
@@ -188,21 +188,22 @@ At this point, you should change anywhere that you are creating tasks to instead
 
 For all steps above, be aware of the <<#sec:task_configuration_avoidance_pitfalls, common pitfalls around deferred configuration>>.
 
-After making these changes, you should see improvement in the number of tasks that are eagerly created at configuration time.  Use <<#sec:task_configuration_avoidance_troubleshooting, build scans>> to understand what tasks are still being created eagerly and where this is happening.
+After making these changes, you should see improvement in the number of tasks that are eagerly created at configuration time.
+Use a <<#sec:task_configuration_avoidance_troubleshooting, Build Scan™>> to understand what tasks are still being created eagerly and where this is happening.
 
 [[sec:task_configuration_avoidance_troubleshooting]]
 === Troubleshooting
 * **What tasks are being realized?**
 As we keep developing the feature, more reporting, and troubleshooting information will be made available to answer this question.
-In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[build scan is the best way to answer this question].
+In the meantime, https://gradle.com/enterprise/releases/2018.3#reduce-configuration-time-by-leveraging-task-creation-avoidance[Build Scan™ is the best way to answer this question].
 Follow these steps:
 
-  a. https://scans.gradle.com/[Create a build scan].
+  a. https://scans.gradle.com/[Create a Build Scan™].
   Execute the Gradle command using the `--scan` flag.
 
   b. Navigate to the configuration performance tab.
 +
-.Navigate to configuration performance tab in build scan
+.Navigate to configuration performance tab in Build Scan™
 image::taskConfigurationAvoidance-navigate-to-performance.png[]
 +
     1. Navigate to the performance card from the left side menu.
@@ -210,7 +211,7 @@ image::taskConfigurationAvoidance-navigate-to-performance.png[]
 
   c. All the information requires will be presented.
 +
-.Configuration performance tab in build scan annotated
+.Configuration performance tab in Build Scan™ annotated
 image::taskConfigurationAvoidance-performance-annotated.png[]
 +
     1. Total tasks present when each task is created or not.
@@ -335,7 +336,7 @@ task("anEagerTask") {
 =====
 ====
 
-* [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The build scan plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the build scan plugin in your build to use the latest version.
+* [[task_configuration_avoidance_pitfall_build_scan_plugin]] **The Build Scan™ plugin `buildScanPublishPrevious` task is eager until version 1.15.** Upgrade the Build Scan™ plugin in your build to use the latest version.
 
 [[sec:task_configuration_avoidance_backward_compatibility_migration]]
 ==== Supporting older versions of Gradle

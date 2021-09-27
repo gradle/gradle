@@ -50,7 +50,7 @@ Actively using Gradle is a great way to learn about it, so once you've installed
  * link:../samples/sample_building_cpp_libraries.html[Building C++ libraries]
  * link:../samples/sample_building_swift_applications.html[Building Swift applications]
  * link:../samples/sample_building_swift_libraries.html[Building Swift libraries]
- * link:https://scans.gradle.com/[Creating build scans]
+ * link:https://scans.gradle.com/[Creating a Build Scan™]
 
 There are more samples available on the link:../samples/index.html[samples pages].
 

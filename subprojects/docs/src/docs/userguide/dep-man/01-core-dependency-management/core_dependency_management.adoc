@@ -53,8 +53,8 @@ Gradle automatically resolves those additional modules, so called _transitive de
 If needed, you can <<dependency_constraints.adoc#dependency-constraints,customize the behavior the handling of transitive dependencies>> to your project's requirements.
 
 Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell.
-Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks.
+Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[Build Scan™] or built-in tasks.
 Learn more in <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,Viewing and debugging dependencies>>.
 
-.Build scan dependencies report
+.Build Scan™ dependencies report
 image::gradle-core-test-build-scan-dependencies.png[]

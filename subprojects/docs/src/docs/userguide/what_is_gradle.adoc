@@ -35,7 +35,9 @@ You can readily extend Gradle to provide your own task types or even build model
 IDE support::
 Several major IDEs allow you to import Gradle builds and interact with them: Android Studio, IntelliJ IDEA, Eclipse, and NetBeans. Gradle also has support for generating the solution files required to load a project into Visual Studio.
 Insight::
-https://scans.gradle.com/[Build scans] provide extensive information about a build run that you can use to identify build issues. They are particularly good at helping you to identify problems with a build's performance. You can also share build scans with others, which is particularly useful if you need to ask for advice in fixing an issue with the build.
+https://scans.gradle.com/[Build Scan™] provides extensive information about a build run that you can use to identify build issues.
+Scans are particularly good at helping you to identify problems with a build's performance.
+You can also share build scans with others, which is particularly useful if you need to ask for advice in fixing an issue with the build.
 
 [[five_things]]
 == Five things you need to know about Gradle
@@ -100,7 +102,8 @@ Maven's concept of a build lifecycle is loosely similar to Gradle's <<base_plugi
 
 Well-designed build scripts consist mostly of <<authoring_maintainable_build_scripts#sec:avoid_imperative_logic_in_scripts,declarative configuration rather than imperative logic>>. That configuration is understandably evaluated during the configuration phase. Even so, many such builds also have task actions — for example via `doLast {}` and `doFirst {}` blocks — which are evaluated during the execution phase. This is important because code evaluated during the configuration phase won't see changes that happen during the execution phase.
 
-Another important aspect of the configuration phase is that everything involved in it is evaluated _every time the build runs_. That is why it's best practice to <<authoring_maintainable_build_scripts#sec:minimize_logic_executed_configuration_phase,avoid expensive work during the configuration phase>>. https://scans.gradle.com/[Build scans] can help you identify such hotspots, among other things.
+Another important aspect of the configuration phase is that everything involved in it is evaluated _every time the build runs_. That is why it's best practice to <<authoring_maintainable_build_scripts#sec:minimize_logic_executed_configuration_phase,avoid expensive work during the configuration phase>>.
+https://scans.gradle.com/[Build Scan™] can help you identify such hotspots, among other things.
 
 === 4. Gradle is extensible in more ways than one
 

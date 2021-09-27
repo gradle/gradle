@@ -80,10 +80,10 @@ Common dependency resolution issues such as resolving version conflicts are cove
 
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
-.Debugging dependency conflicts with build scans
+.Debugging dependency conflicts with Build Scan™
 image::troubleshooting-dependency-management-build-scan.png[]
 
-The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual build scan] with filtering criteria is available for exploration.
+The link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[actual Build Scan™] with filtering criteria is available for exploration.
 
 [[sec:troubleshooting_performance]]
 == Troubleshooting slow Gradle builds
@@ -122,9 +122,9 @@ Additional logs from the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> can 
 
 === Task executed when it should have been UP-TO-DATE
 
-`--info` logs explain why a task was executed, though build scans do this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+`--info` logs explain why a task was executed, though Build Scan™ do this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
 
-.Debugging incremental build with a build scan
+.Debugging incremental build with a Build Scan™
 image::troubleshooting-task-execution-build-scan.png[]
 
 You can learn what the task outcomes mean from <<more_about_tasks.adoc#sec:task_outcomes,this listing>>.
@@ -170,7 +170,7 @@ A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913
 
 We have observed this can occur when network address translation (NAT) masquerade is used. When NAT masquerade is enabled, connections that should be considered local to the machine are masked to appear from external IP addresses. Gradle refuses to connect to any external IP address as a security precaution.
 
-The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses. 
+The solution to this problem is to adjust your network configuration such that local connections are not modified to appear as from external addresses.
 
 You can monitor the detected network setup and the connection requests in the daemon log file (`<GRADLE_USER_HOME>/daemon/<Gradle version>/daemon-<PID>.out.log`).
 

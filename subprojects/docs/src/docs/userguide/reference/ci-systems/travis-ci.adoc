@@ -47,7 +47,7 @@ BUILD SUCCESSFUL
 The project provides the link:{user-manual}gradle_wrapper.html[Gradle Wrapper] as part of the repository.
 It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
 
-=== Build scan integration
+=== Build Scan™ integration
 
 The sample project is equipped with support for generating link:https://scans.gradle.com/[build scans].
 Running the build with the command line option `--scan` renders a link in the console.
@@ -93,7 +93,7 @@ After activating the repository from the dashboard, the project is ready to be b
 
 image::ci-systems/travis-enable-project.png[Enabling a project]
 
-NOTE: Configuring link:https://scans.gradle.com/[build scans] is especially helpful on cloud CI systems like Travis CI because it has additional environment and test results information that are difficult to obtain otherwise.
+NOTE: Configuring link:https://scans.gradle.com/[Build Scan™] is especially helpful on cloud CI systems like Travis CI because it has additional environment and test results information that are difficult to obtain otherwise.
 
 === Enable caching of downloaded artifacts
 

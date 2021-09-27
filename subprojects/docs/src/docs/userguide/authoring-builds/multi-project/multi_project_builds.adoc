@@ -157,5 +157,5 @@ This is already the de-facto pattern for many large projects.
 Besides, Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,name abbreviation for kebab case names>>.
 
 3. _Define the root project name in the settings file_:
-The ´rootProject.name´ effectively assigns a name to the build as a whole, which is used in reports like build scans.
+The ´rootProject.name´ effectively assigns a name to the build as a whole, which is used in reports like a Build Scan™.
 If the root project name is not set, the name will be the container directory name, which can be unstable (i.e. you can check out your project to any directory).

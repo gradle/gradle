@@ -4,20 +4,20 @@
 Gradle provides sufficient tooling to navigate large dependency graphs and mitigate situations that can lead to link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell].
 Users can choose to render the full graph of dependencies as well as identify the selection reason and origin for a dependency.
 The origin of a dependency can be a declared dependency in the build script or a transitive dependency in graph plus their corresponding configuration.
-Gradle offers both capabilities through visual representation via build scans and as command line tooling.
+Gradle offers both capabilities through visual representation via Build Scan™ and as command line tooling.
 
 [[sec:debugging-build-scans]]
-== Build scans
+== Build scan™
 
 [NOTE]
 ====
-If you do not know what link:https://scans.gradle.com/[build scan]s are, be sure to check them out!
+If you do not know what a link:https://scans.gradle.com/[Build Scan™] is, be sure to check it out!
 ====
 
-A build scan can visualize dependencies as a navigable, searchable tree.
+A Build Scan™ can visualize dependencies as a navigable, searchable tree.
 Additional context information can be rendered by clicking on a specific dependency in the graph.
 
-.Dependency tree in a build scan
+.Dependency tree in a Build Scan™
 image::dependency-management-dependencies-report-build-scan.png[]
 
 [[sec:listing_dependencies]]
@@ -89,9 +89,9 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies-depend
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
 ====
 
-The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
+The dependency tree in a link:https://scans.gradle.com/[Build Scan™] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
 
-.Dependency insight capabilities in a build scan
+.Dependency insight capabilities in a Build Scan™
 image::dependency-management-dependency-insight-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line.

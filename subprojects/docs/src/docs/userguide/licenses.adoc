@@ -28,6 +28,6 @@ Gradle user manual and DSL references are licensed under link:http://creativecom
 
 
 [[licenses:build_scan_plugin]]
-== Gradle Build Scan Plugin
+== Gradle Build Scan™ Plugin
 
-Use of the link:https://scans.gradle.com/plugin/[build scan plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].
+Use of the link:https://scans.gradle.com/plugin/[Build Scan™ plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].

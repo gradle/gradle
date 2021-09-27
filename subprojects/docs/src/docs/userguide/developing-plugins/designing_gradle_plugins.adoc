@@ -31,8 +31,8 @@ resolving dependencies by iterating over them, making HTTP calls or writing to f
 The section on <<performance.adoc#performance_gradle,optimizing Gradle build performance>> will give you additional code examples, pitfalls and recommendations.
 
 As you write plugin code ask yourself whether the code shouldn’t rather be run during the execution phase.
-If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[build scan] to identify bottlenecks.
-The link:https://github.com/gradle/gradle-profiler[Gradle profiler] can help with automating build scan generation and gathering more low-level information.
+If you suspect issues with your plugin code, try creating a link:https://scans.gradle.com/[Build Scan™] to identify bottlenecks.
+The link:https://github.com/gradle/gradle-profiler[Gradle profiler] can help with automating Build Scan™ generation and gathering more low-level information.
 
 === Convention over configuration
 
