@@ -77,7 +77,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
-        task.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+        configureToolchains(task);
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
@@ -112,6 +112,12 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
                 }))
             );
         }));
+    }
+
+    private void configureToolchains(Checkstyle task) {
+        if (hasJavaExtension()) {
+            task.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+        }
     }
 
     @Override

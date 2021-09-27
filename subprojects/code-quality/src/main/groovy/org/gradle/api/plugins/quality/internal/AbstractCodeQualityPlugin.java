@@ -71,13 +71,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected  <C> Provider<C> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<C>> toolMapper) {
-        final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
-        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
+        final JavaPluginExtension extension = getJavaPluginExtension();
+        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
-    }
-
-    private <C> C extensionOf(ExtensionAware extensionAware, Class<C> type) {
-        return extensionAware.getExtensions().getByType(type);
     }
 
     protected abstract String getToolName();
@@ -248,5 +244,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected JavaPluginExtension getJavaPluginExtension() {
         return project.getExtensions().getByType(JavaPluginExtension.class);
+    }
+
+    protected boolean hasJavaExtension() {
+        return project.getExtensions().findByType(JavaPluginExtension.class) != null;
     }
 }
