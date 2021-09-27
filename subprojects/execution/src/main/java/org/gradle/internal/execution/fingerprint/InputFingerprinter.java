@@ -141,24 +141,25 @@ public interface InputFingerprinter {
     }
 
     interface Result {
+        /**
+         * Returns the values snapshotted just now.
+         */
         ImmutableSortedMap<String, ValueSnapshot> getValueSnapshots();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
-    }
 
-    static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(
-        ImmutableSortedMap<K, V> a,
-        ImmutableSortedMap<K, V> b
-    ) {
-        if (a.isEmpty()) {
-            return b;
-        } else if (b.isEmpty()) {
-            return a;
-        } else {
-            return ImmutableSortedMap.<K, V>naturalOrder()
-                .putAll(a)
-                .putAll(b)
-                .build();
-        }
+        /**
+         * Returns all the value snapshots, including previously known ones.
+         */
+        ImmutableSortedMap<String, ValueSnapshot> getAllValueSnapshots();
+
+        /**
+         * Returns the files fingerprinted just now.
+         */
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints();
+
+        /**
+         * Returns all the file fingerprints, including the previously known ones.
+         */
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getAllFileFingerprints();
     }
 
     class InputFingerprintingException extends RuntimeException {

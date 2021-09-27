@@ -48,14 +48,16 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def knownSnapshot = Mock(ValueSnapshot)
     def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot>of()
+    def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
     Optional<ExecutionOutcome> skipOutcome
 
     @Override
     protected PreviousExecutionContext createContext() {
         Stub(PreviousExecutionContext) {
-            getInputProperties() >> ImmutableSortedMap.of()
-            getInputFileProperties() >> ImmutableSortedMap.of()
+            getInputProperties() >> { knownInputProperties }
+            getInputFileProperties() >> { knownInputFileProperties }
         }
     }
 
@@ -66,21 +68,23 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def "delegates when work has no source properties"() {
         def delegateResult = Mock(CachingResult)
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
         when:
         def result = step.execute(work, context)
 
         then:
-        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
-        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            knownInputProperties,
+            knownInputFileProperties,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
             ImmutableSortedMap.of(),
+            knownInputFileProperties,
             ImmutableSortedMap.of())
 
         then:
@@ -95,20 +99,23 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def "delegates when work has sources"() {
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
         when:
         step.execute(work, context)
 
         then:
-        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
-        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            knownInputProperties,
+            knownInputFileProperties,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
             ImmutableSortedMap.of(),
+            knownInputFileProperties,
             ImmutableSortedMap.of("source-file", sourceFileFingerprint))
 
         then:
@@ -126,20 +133,23 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def "skips when work has empty sources"() {
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
         when:
         step.execute(work, context)
 
         then:
-        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
-        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            knownInputProperties,
+            knownInputFileProperties,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
             ImmutableSortedMap.of(),
+            knownInputFileProperties,
             ImmutableSortedMap.of("source-file", sourceFileFingerprint))
 
         then:
@@ -168,6 +178,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             ImmutableSortedMap.of(),
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of("source-file", sourceFileFingerprint))
 

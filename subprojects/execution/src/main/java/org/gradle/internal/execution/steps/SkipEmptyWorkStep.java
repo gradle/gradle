@@ -48,7 +48,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.union;
 public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
 
@@ -82,8 +81,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             ) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, sourceFileProperties);
-                return executeWithNoEmptySources(work, context, inputFileProperties);
+                return executeWithNoEmptySources(work, context, newInputs.getAllFileFingerprints());
             }
         } else {
             return executeWithNoEmptySources(work, context);
@@ -175,8 +173,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         };
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties = union(context.getInputFileProperties(), sourceFileProperties);
+    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties) {
         return executeWithNoEmptySources(work, new PreviousExecutionContext() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {

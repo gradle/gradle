@@ -128,17 +128,26 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         public Result complete() {
-            return new InputFingerprints(valueSnapshotsBuilder.build(), fingerprintsBuilder.build());
+            return new InputFingerprints(knownCurrentValueSnapshots, valueSnapshotsBuilder.build(), knownCurrentFingerprints, fingerprintsBuilder.build());
         }
     }
 
     @VisibleForTesting
     public static class InputFingerprints implements InputFingerprinter.Result {
+        private final ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots;
         private final ImmutableSortedMap<String, ValueSnapshot> valueSnapshots;
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints;
 
-        public InputFingerprints(ImmutableSortedMap<String, ValueSnapshot> valueSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints) {
+        public InputFingerprints(
+            ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
+            ImmutableSortedMap<String, ValueSnapshot> valueSnapshots,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileFingerprints
+        ) {
+            this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
             this.valueSnapshots = valueSnapshots;
+            this.knownCurrentFingerprints = knownCurrentFingerprints;
             this.fileFingerprints = fileFingerprints;
         }
 
@@ -146,8 +155,31 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             return valueSnapshots;
         }
 
+        @Override
+        public ImmutableSortedMap<String, ValueSnapshot> getAllValueSnapshots() {
+            return union(knownCurrentValueSnapshots, valueSnapshots);
+        }
+
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFileFingerprints() {
             return fileFingerprints;
+        }
+
+        @Override
+        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getAllFileFingerprints() {
+            return union(knownCurrentFingerprints, fileFingerprints);
+        }
+
+        private static <K extends Comparable<?>, V> ImmutableSortedMap<K, V> union(ImmutableSortedMap<K, V> a, ImmutableSortedMap<K, V> b) {
+            if (a.isEmpty()) {
+                return b;
+            } else if (b.isEmpty()) {
+                return a;
+            } else {
+                return ImmutableSortedMap.<K, V>naturalOrder()
+                    .putAll(a)
+                    .putAll(b)
+                    .build();
+            }
         }
     }
 }
