@@ -25,4 +25,6 @@ public interface AfterExecutionState extends InputExecutionState, OutputExecutio
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
     OriginMetadata getOriginMetadata();
+
+    boolean isReused();
 }

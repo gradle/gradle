@@ -39,7 +39,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
-public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
+public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, AfterExecutionResult> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super C, ? extends Result> delegate;
@@ -57,13 +57,13 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     }
 
     @Override
-    public CurrentSnapshotResult execute(UnitOfWork work, C context) {
+    public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
         final Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
             .flatMap(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
 
-        return new CurrentSnapshotResult() {
+        return new AfterExecutionResult() {
             @Override
             public Optional<AfterExecutionState> getAfterExecutionState() {
                 return afterExecutionState;
@@ -77,11 +77,6 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
             @Override
             public Duration getDuration() {
                 return duration;
-            }
-
-            @Override
-            public boolean isReused() {
-                return false;
             }
         };
     }
@@ -99,7 +94,7 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
                     // which is currently the _only_ thing this value is used for.
                     Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
                     OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata);
+                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.of(afterExecutionState);
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {

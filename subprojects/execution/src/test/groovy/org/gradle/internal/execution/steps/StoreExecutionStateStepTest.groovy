@@ -44,7 +44,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
     def step = new StoreExecutionStateStep<BeforeExecutionContext>(delegate)
-    def delegateResult = Mock(CurrentSnapshotResult)
+    def delegateResult = Mock(AfterExecutionResult)
 
     @Override
     protected BeforeExecutionContext createContext() {

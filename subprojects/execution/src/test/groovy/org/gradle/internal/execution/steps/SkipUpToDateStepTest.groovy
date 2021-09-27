@@ -55,7 +55,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     }
 
     def "executes when outputs are not up to date"() {
-        def delegateResult = Mock(CurrentSnapshotResult)
+        def delegateResult = Mock(AfterExecutionResult)
         def delegateOutcome = Try.successful(Mock(ExecutionResult))
         def delegateAfterExecutionState = Mock(AfterExecutionState)
 
@@ -64,7 +64,6 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
         then:
         result.executionReasons == ["change"]
-        !result.reusedOutputOriginMetadata.present
 
         _ * context.changes >> Optional.of(changes)
         _ * context.rebuildReasons >> ImmutableList.of("change")

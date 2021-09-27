@@ -30,15 +30,18 @@ public class DefaultAfterExecutionState implements AfterExecutionState {
     private final BeforeExecutionState beforeExecutionState;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
     private final OriginMetadata originMetadata;
+    private final boolean reused;
 
     public DefaultAfterExecutionState(
         BeforeExecutionState beforeExecutionState,
         ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
-        OriginMetadata originMetadata
+        OriginMetadata originMetadata,
+        boolean reused
     ) {
         this.beforeExecutionState = beforeExecutionState;
         this.outputFileLocationSnapshots = outputFileLocationSnapshots;
         this.originMetadata = originMetadata;
+        this.reused = reused;
     }
 
     @Override
@@ -69,5 +72,10 @@ public class DefaultAfterExecutionState implements AfterExecutionState {
     @Override
     public OriginMetadata getOriginMetadata() {
         return originMetadata;
+    }
+
+    @Override
+    public boolean isReused() {
+        return reused;
     }
 }

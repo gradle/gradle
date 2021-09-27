@@ -38,9 +38,9 @@ import java.util.Optional;
 public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
-    private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
+    private final Step<? super C, ? extends AfterExecutionResult> delegate;
 
-    public SkipUpToDateStep(Step<? super C, ? extends CurrentSnapshotResult> delegate) {
+    public SkipUpToDateStep(Step<? super C, ? extends AfterExecutionResult> delegate) {
         this.delegate = delegate;
     }
 
@@ -65,7 +65,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
             beforeExecutionState,
             previousExecutionState.getOutputFilesProducedByWork(),
-            previousExecutionState.getOriginMetadata());
+            previousExecutionState.getOriginMetadata(),
+            true);
         return new UpToDateResult() {
             @Override
             public ImmutableList<String> getExecutionReasons() {
@@ -106,7 +107,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
     private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
         logExecutionReasons(reasons, work);
-        CurrentSnapshotResult result = delegate.execute(work, context);
+        AfterExecutionResult result = delegate.execute(work, context);
         return new UpToDateResult() {
             @Override
             public ImmutableList<String> getExecutionReasons() {
@@ -120,9 +121,9 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.isReused()
-                    ? result.getAfterExecutionState().map(AfterExecutionState::getOriginMetadata)
-                    : Optional.empty();
+                return result.getAfterExecutionState()
+                    .filter(AfterExecutionState::isReused)
+                    .map(AfterExecutionState::getOriginMetadata);
             }
 
             @Override

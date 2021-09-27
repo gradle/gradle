@@ -47,7 +47,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def outputChangeListener = Mock(OutputChangeListener)
 
     def step = new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
-    def delegateResult = Mock(CurrentSnapshotResult)
+    def delegateResult = Mock(AfterExecutionResult)
 
     @Override
     protected IncrementalChangesContext createContext() {
@@ -66,7 +66,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
-        result.reused
+        result.afterExecutionState.get().reused
         result.afterExecutionState.get().originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
 
@@ -152,7 +152,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         interaction { withValidCacheKey() }
 
@@ -177,7 +176,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         interaction { withValidCacheKey() }
 
@@ -247,7 +245,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
-        !result.reused
 
         _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(work, context) >> delegateResult
