@@ -31,12 +31,15 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     @Override
     String subprojectName() { 'plugin' }
 
-    def "defaults to kotlin build scripts"() {
+    def "defaults to kotlin build scripts, when incubating flag = #incubating"() {
         when:
-        run ('init', '--type', 'kotlin-gradle-plugin')
+        run (['init', '--type', 'kotlin-gradle-plugin'] + (incubating ? ['--incubating'] : []) )
 
         then:
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
     }
 
     @Unroll

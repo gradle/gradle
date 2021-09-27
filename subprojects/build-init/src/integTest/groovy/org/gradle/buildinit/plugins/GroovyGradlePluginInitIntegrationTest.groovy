@@ -65,8 +65,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
 
         where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-        incubating << [true, false]
+        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [true, false]].combinations()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")

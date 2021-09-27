@@ -22,11 +22,25 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+
 
 class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'plugin' }
+
+    @Unroll
+    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
+        when:
+        run (['init', '--type', 'java-gradle-plugin'] + (incubating ? ['--incubating'] : []) )
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
+    }
 
     @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
