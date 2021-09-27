@@ -66,8 +66,8 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            _ * getOriginMetadata() >> originMetadata
         })
-        1 * delegateResult.originMetadata >> originMetadata
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
 
@@ -87,11 +87,11 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            1 * getOriginMetadata() >> originMetadata
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.empty()
-        1 * delegateResult.originMetadata >> originMetadata
 
         then:
         interaction { expectStore(false, outputFilesProducedByWork) }
@@ -111,12 +111,12 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
         then:
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            _ * getOriginMetadata() >> originMetadata
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
-        1 * delegateResult.originMetadata >> originMetadata
 
         then:
         interaction { expectStore(false, outputFilesProducedByWork) }
@@ -161,10 +161,10 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
         1 * executionHistoryStore.store(
             identity.uniqueId,
-            originMetadata,
             successful,
             { AfterExecutionState executionState ->
                 executionState.outputFilesProducedByWork == finalOutputs
+                executionState.originMetadata == originMetadata
             }
         )
     }

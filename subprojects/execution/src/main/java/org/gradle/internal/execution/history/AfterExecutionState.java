@@ -17,9 +17,12 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 public interface AfterExecutionState extends InputExecutionState, OutputExecutionState {
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
+
+    OriginMetadata getOriginMetadata();
 }

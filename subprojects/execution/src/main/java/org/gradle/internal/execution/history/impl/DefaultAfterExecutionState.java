@@ -18,6 +18,7 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -28,13 +29,16 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 public class DefaultAfterExecutionState implements AfterExecutionState {
     private final BeforeExecutionState beforeExecutionState;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots;
+    private final OriginMetadata originMetadata;
 
     public DefaultAfterExecutionState(
         BeforeExecutionState beforeExecutionState,
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileLocationSnapshots,
+        OriginMetadata originMetadata
     ) {
         this.beforeExecutionState = beforeExecutionState;
         this.outputFileLocationSnapshots = outputFileLocationSnapshots;
+        this.originMetadata = originMetadata;
     }
 
     @Override
@@ -60,5 +64,10 @@ public class DefaultAfterExecutionState implements AfterExecutionState {
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFilesProducedByWork() {
         return outputFileLocationSnapshots;
+    }
+
+    @Override
+    public OriginMetadata getOriginMetadata() {
+        return originMetadata;
     }
 }

@@ -53,7 +53,6 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
                         if (shouldStore) {
                             history.store(
                                 context.getIdentity().getUniqueId(),
-                                result.getOriginMetadata(),
                                 result.getExecutionResult().isSuccessful(),
                                 afterExecutionState
                             );

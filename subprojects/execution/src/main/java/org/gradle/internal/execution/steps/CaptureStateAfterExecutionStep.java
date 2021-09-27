@@ -59,28 +59,14 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
     @Override
     public CurrentSnapshotResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        Timer timer = Time.startTimer();
+        final Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .flatMap(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState));
-        long snapshotOutputDuration = timer.getElapsedMillis();
-
-        // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
-        // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
-        // which is currently the _only_ thing this value is used for.
-        Duration duration = result.getDuration();
-        Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
-
-        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
+            .flatMap(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
 
         return new CurrentSnapshotResult() {
             @Override
             public Optional<AfterExecutionState> getAfterExecutionState() {
                 return afterExecutionState;
-            }
-
-            @Override
-            public OriginMetadata getOriginMetadata() {
-                return originMetadata;
             }
 
             @Override
@@ -100,12 +86,20 @@ public class CaptureStateAfterExecutionStep<C extends BeforeExecutionContext> ex
         };
     }
 
-    private Optional<AfterExecutionState> captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState) {
+    private Optional<AfterExecutionState> captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
         return operation(
             operationContext -> {
                 try {
+                    Timer timer = Time.startTimer();
                     ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork);
+                    long snapshotOutputDuration = timer.getElapsedMillis();
+
+                    // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+                    // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+                    // which is currently the _only_ thing this value is used for.
+                    Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
+                    OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
+                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata);
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return Optional.of(afterExecutionState);
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {

@@ -67,7 +67,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
         result.reused
-        result.originMetadata == cachedOriginMetadata
+        result.afterExecutionState.get().originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
@@ -265,8 +265,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
+            1 * getOriginMetadata() >> originMetadata
         })
-        1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
         1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }

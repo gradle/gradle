@@ -16,16 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.caching.internal.origin.OriginMetadata;
-
 public interface CurrentSnapshotResult extends SnapshotResult {
-    /**
-     * Returns the origin metadata of the finished work's output.
-     * The metadata could refer to the current execution if the work had to be executed,
-     * or to another build if the work was reused.
-     */
-    OriginMetadata getOriginMetadata();
-
     /**
      * Did we reuse the output from some previous execution?
      */

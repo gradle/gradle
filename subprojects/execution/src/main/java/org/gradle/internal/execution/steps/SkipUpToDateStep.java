@@ -64,8 +64,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         PreviousExecutionState previousExecutionState = context.getPreviousExecutionState().get();
         AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
             beforeExecutionState,
-            previousExecutionState.getOutputFilesProducedByWork()
-        );
+            previousExecutionState.getOutputFilesProducedByWork(),
+            previousExecutionState.getOriginMetadata());
         return new UpToDateResult() {
             @Override
             public ImmutableList<String> getExecutionReasons() {
@@ -121,7 +121,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
                 return result.isReused()
-                    ? Optional.of(result.getOriginMetadata())
+                    ? result.getAfterExecutionState().map(AfterExecutionState::getOriginMetadata)
                     : Optional.empty();
             }
 

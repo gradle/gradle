@@ -92,7 +92,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
                         beforeExecutionState,
-                        cacheHit.getResultingSnapshots());
+                        cacheHit.getResultingSnapshots(),
+                        originMetadata);
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
@@ -112,11 +113,6 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         @Override
                         public Duration getDuration() {
                             return originMetadata.getExecutionTime();
-                        }
-
-                        @Override
-                        public OriginMetadata getOriginMetadata() {
-                            return originMetadata;
                         }
 
                         @Override
@@ -163,7 +159,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> result.getAfterExecutionState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), result.getOriginMetadata().getExecutionTime())),
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
