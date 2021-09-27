@@ -1274,9 +1274,11 @@ public class BuildScriptBuilder {
             isDefaultTestSuite = JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME.equals(name);
             isDefaultFramework = framework == TestSuiteFramework.getDefault();
 
-            if (isDefaultTestSuite) {
+            if (!isDefaultFramework) {
                 dependencies.dependency("implementation", null, framework.getImplementationDependency());
-            } else {
+            }
+
+            if (!isDefaultTestSuite) {
                 dependencies.selfDependency("implementation", null);
                 targets.all(true);
             }
