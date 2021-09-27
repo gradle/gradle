@@ -138,17 +138,90 @@ For example, such a task will always be out of date and never from the build cac
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
 
-Initializing new plugin projects using the [Build Init plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#initialize-new-projects-with-build-init-using-incubating-apis).
+Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#enabling-incubating-features-in-new-projects).
 
 ## Test Suites
 
-Note that this API is [incubating](userguide/feature_lifecycle.html) and will likely change in future releases as functionality is improved and expanded.
+When [testing Java & JVM projects](userguide/java_testing.html), users may want to group related tests which are _used for different purposes_ together so that they can be configured and run at distinct points in the build.  For example, users may wish to define a group of _unit tests_ (assumed to be the default test type), as well as _integration tests_, and _functional tests_.  
 
-## Initialize New Projects with Build Init Using Incubating APIs
+The [Test Suite Plugin](userguide/test_suite_plugin.html) is a new core plugin supplied with Gradle 7.3 which will simplify the creation of such groups of tests, which we refer to as **Test Suites**.  Note that these are not to be confused with [JUnit 4 Suites](https://junit.org/junit4/javadoc/4.13/org/junit/runners/Suite.html).
 
-The `--incubating` flag can be used to initialize new project using features marked as `@Incubating`.
+### Background
 
-Initially, this flag only 
+All Java projects are made up of a very flat and loosely connected set of objects:
+
+- Top-level extensions (e.g., java, application)
+- Configurations and dependencies
+- Publications
+- Source sets
+- Tasks
+
+Previously, grouping tests correctly required thorough knowledge of how to modify and connect these container objects.  Build script authors wishing to divide tests into different groups faced problems that required them to understand how these separate objects interact with one another.
+
+The goal of Test Suites is to provide a new DSL that will allow users to describe their testing setup at a higher level of abstraction without worrying so much about the details of wiring together all the these conceptual pieces.  Test Suites are a first-class concept which can be referred to directly in build scripts, rather than merely an implied grouping.
+
+The core [Java Plugin](userguide/java_plugin.html#java_plugin) will automatically add support for Test Suites to a build, but users must "opt-in" to usage of Test Suites by defining them using the new DSL.
+
+### Integration Test DSL Example
+
+To create a group of tests used for _integration testing_, which requires the main project available on the runtime classes, would by convention live in the `src/integrationTest/<IMPLEMENTATION LANGUAGE>` directory, and which should only run after the _unit tests_ (located in the default `src/test/<IMPLEMENTATION LANGUAGE>` directory) complete successfully, a build script using Test Suites would apply the `test-suites` plugin and include the following:
+
+```
+testing {
+   suites {
+       test {
+           useJUnitPlatform()
+       }
+ 
+       integrationTest {
+           dependencies {
+               implementation project
+           }
+ 
+           targets {
+               all {
+                   testTask.configure {
+                       shouldRunAfter(test)
+                   }
+               }
+           }
+       }
+   }
+}
+ 
+tasks.named('check') {
+   dependsOn(testing.suites.integrationTest)
+}
+```
+
+This will create a new `integrationTest` task in addition to the default `test` task, which will be run automatically as part of the `check` lifecycle task.
+
+### How to Group Tests
+
+While it is imagined that most users will want to group tests according to a
+[Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html), nothing in the design of Test Suites requires doing so.  You are free to create suites based on test speed, application layers, test coverage domain, test runtime environment or configuration details or other requirements.
+
+Future work will likely include the ability to configure multiple targets per suite and provide additional options for test task configuration via the Test Suites DSL.
+
+See the [user manual](userguide/test_suite_plugin.html) for further information.  Note that this API is [incubating](userguide/feature_lifecycle.html) and will likely change in future releases as functionality is improved and expanded.
+
+## Enabling Incubating Features in New Projects
+
+When you initialize new Gradle projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin), an option is now available to generate project build scripts which use new and experimental features marked as `@Incubating`.
+
+Currently, the only new feature this option will enable is [Test Suites](#test-suites), but we hope to continue to make use of the flag to demonstrate other new and changed APIs as they arrive.
+
+### Interactive Usage
+
+If you run the `init` task interactively, and select to create an `application`, `library` or `Gradle plugin` project, Gradle will later prompt you as below:
+
+```Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]    ```
+
+Responding `yes` will cause Gradle to create scripts using `@Incubating` features, responding `no` will continue to exclude these and only use stable APIs in generated builds.
+
+### Non-Interactive Usage
+
+The `--incubating` flag can be supplied to the plugin's `init` task when specifying the `--type` argument to instruct it to run in non-interactive mode.
 
 <!--
 
