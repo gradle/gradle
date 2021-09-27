@@ -22,6 +22,7 @@ Include only their name, impactful features should be called out separately belo
 [Kristian Kraljic](https://github.com/kristian),
 [Matthew Haughton](https://github.com/3flex),
 [Raphael Fuchs](https://github.com/REPLicated),
+[Sebastian Schuberth](https://github.com/sschuberth),
 [Xin Wang](https://github.com/scaventz)
 
 
