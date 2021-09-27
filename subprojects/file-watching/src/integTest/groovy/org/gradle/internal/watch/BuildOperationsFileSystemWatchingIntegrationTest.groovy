@@ -79,7 +79,6 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
         finishedResult.statistics.numberOfWatchedHierarchies > 0
-        finishedResult.statistics.numberOfWatchedHierarchies == 1
         retainedFiles(finishedResult)
     }
 
