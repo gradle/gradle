@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
+import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.Property;
@@ -168,7 +169,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         if (shouldRunWithProcessIsolation()) {
             runWithProcessIsolation();
         } else {
-            CheckstyleInvoker.invoke(this);
+            runWithIsolatedAntBuilder();
         }
     }
 
@@ -189,23 +190,31 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             spec.getClasspath().setFrom(getCheckstyleClasspath());
         });
 
-        workQueue.submit(CheckstyleAction.class, parameters -> {
-            parameters.getConfig().set(getConfigFile());
-            parameters.getMaxErrors().set(getMaxErrors());
-            parameters.getMaxWarnings().set(getMaxWarnings());
-            parameters.getIgnoreFailures().set(getIgnoreFailures());
-            parameters.getConfigDirectory().set(getConfigDirectory());
-            parameters.getShowViolations().set(isShowViolations());
-            parameters.getSource().setFrom(getSource());
-            parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
-            parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
-            parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
-            parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
-            parameters.getTemporaryDir().set(getTemporaryDir());
-            parameters.getConfigProperties().set(getConfigProperties());
-            TextResource stylesheet = getReports().getHtml().getStylesheet();
-            parameters.getStylesheetString().set(stylesheet != null ? stylesheet.asString() : null);
-        });
+        workQueue.submit(CheckstyleAction.class, this::setupParameters);
+    }
+
+    private void runWithIsolatedAntBuilder() {
+        CheckstyleActionParameters parameters = setupParameters(getObjectFactory().newInstance(CheckstyleActionParameters.class));
+        getAntBuilder().withClasspath(getCheckstyleClasspath()).execute(new CheckstyleInvoker(this, this, parameters));
+    }
+
+    private CheckstyleActionParameters setupParameters(CheckstyleActionParameters parameters) {
+        parameters.getConfig().set(getConfigFile());
+        parameters.getMaxErrors().set(getMaxErrors());
+        parameters.getMaxWarnings().set(getMaxWarnings());
+        parameters.getIgnoreFailures().set(getIgnoreFailures());
+        parameters.getConfigDirectory().set(getConfigDirectory());
+        parameters.getShowViolations().set(isShowViolations());
+        parameters.getSource().setFrom(getSource());
+        parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
+        parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
+        parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
+        parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+        parameters.getTemporaryDir().set(getTemporaryDir());
+        parameters.getConfigProperties().set(getConfigProperties());
+        TextResource stylesheet = getReports().getHtml().getStylesheet();
+        parameters.getStylesheetString().set(stylesheet != null ? stylesheet.asString() : null);
+        return parameters;
     }
 
     @Inject

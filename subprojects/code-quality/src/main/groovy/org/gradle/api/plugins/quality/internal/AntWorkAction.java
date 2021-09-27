@@ -16,5 +16,79 @@
 
 package org.gradle.api.plugins.quality.internal;
 
-public class AntWorkAction {
+import groovy.lang.Closure;
+import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.ant.AntLoggingAdapter;
+import org.gradle.api.internal.project.ant.BasicAntBuilder;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.lang.reflect.Method;
+import java.util.Vector;
+
+public abstract class AntWorkAction<T extends WorkParameters> implements WorkAction<T> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntWorkAction.class);
+
+    @Override
+    public void execute() {
+        LOGGER.info("Running {} with toolchain '{}'.", getActionName(), Jvm.current().getJavaHome().getAbsolutePath());
+        AntBuilder antBuilder = new BasicAntBuilder();
+        AntLoggingAdapter antLogger = new AntLoggingAdapter();
+        try {
+            configureAntBuilder(antBuilder, antLogger);
+            Object delegate = new AntBuilderDelegate(antBuilder, Thread.currentThread().getContextClassLoader());
+            ClosureBackedAction.execute(delegate, getAntClosure());
+        } finally {
+            disposeBuilder(antBuilder, antLogger);
+        }
+    }
+
+    protected abstract String getActionName();
+
+    protected abstract Closure<Object> getAntClosure();
+
+    private void configureAntBuilder(AntBuilder antBuilder, AntLoggingAdapter antLogger) {
+        try {
+            Object project = getProject(antBuilder);
+            Class<?> projectClass = project.getClass();
+            ClassLoader cl = projectClass.getClassLoader();
+            Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
+            Method addBuildListener = projectClass.getDeclaredMethod("addBuildListener", buildListenerClass);
+            Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
+            Method getBuildListeners = projectClass.getDeclaredMethod("getBuildListeners");
+            Vector<?> listeners = (Vector<?>) getBuildListeners.invoke(project);
+            removeBuildListener.invoke(project, listeners.get(0));
+            addBuildListener.invoke(project, antLogger);
+        } catch (Exception ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
+        }
+    }
+
+    private void disposeBuilder(Object antBuilder, Object antLogger) {
+        try {
+            Object project = getProject(antBuilder);
+            Class<?> projectClass = project.getClass();
+            ClassLoader cl = projectClass.getClassLoader();
+            Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
+            Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
+            removeBuildListener.invoke(project, antLogger);
+            antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
+        } catch (Exception ex) {
+            throw UncheckedException.throwAsUncheckedException(ex);
+        }
+    }
+
+    private Object getProject(Object antBuilder) throws Exception {
+        return antBuilder.getClass().getMethod("getProject").invoke(antBuilder);
+    }
+
 }
