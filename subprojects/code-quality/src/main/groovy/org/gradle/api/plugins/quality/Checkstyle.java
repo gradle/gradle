@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -26,7 +27,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -43,9 +44,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -72,7 +71,13 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
-    private final Provider<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
+
+    public Checkstyle() {
+        this.configDirectory = getObjectFactory().directoryProperty();
+        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
+        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
+    }
 
     /**
      * The Checkstyle configuration file to use.
@@ -87,14 +92,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     public void setConfigFile(File configFile) {
         setConfig(getProject().getResources().getText().fromFile(configFile));
-    }
-
-    public Checkstyle() {
-        this.configDirectory = getObjectFactory().directoryProperty();
-        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
-        this.javaLauncher = getProject().getExtensions().getByType(JavaToolchainService.class).launcherFor(it -> {
-            it.getLanguageVersion().set(JavaLanguageVersion.of(8));
-        });
     }
 
     @Inject
@@ -156,16 +153,26 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return reports;
     }
 
+    /**
+     * Optional JavaLauncher for toolchain support
+     * @since 7.4
+     */
+    @Incubating
+    @Internal
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @TaskAction
     public void run() {
-        if (isNewProcessNeeded()) {
-            runInAnotherProcess();
+        if (shouldRunWithProcessIsolation()) {
+            runWithProcessIsolation();
         } else {
             CheckstyleInvoker.invoke(this);
         }
     }
 
-    private boolean isNewProcessNeeded() {
+    private boolean shouldRunWithProcessIsolation() {
         if (!javaLauncher.isPresent()) {
             return false;
         }
@@ -174,11 +181,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         return !currentJdk.equals(requestedJdk);
     }
 
-    private void runInAnotherProcess() {
+    private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             if(javaLauncher.isPresent()) {
                 spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             }
+            spec.getClasspath().setFrom(getCheckstyleClasspath());
         });
 
         workQueue.submit(CheckstyleAction.class, parameters -> {
@@ -189,7 +197,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             parameters.getConfigDirectory().set(getConfigDirectory());
             parameters.getShowViolations().set(isShowViolations());
             parameters.getSource().setFrom(getSource());
-            parameters.getClasspath().from(getCheckstyleClasspath());
             parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
             parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
             parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
