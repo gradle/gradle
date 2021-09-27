@@ -3,10 +3,7 @@ The Gradle team is excited to announce Gradle @version@.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
+
 [Attix Zhang](https://github.com/attix-zhang),
 [anatawa12](https://github.com/anatawa12),
 [Anil Kumar Myla](https://github.com/anilkumarmyla),
@@ -35,36 +32,6 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
-
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
-
-<!-- 
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
---->
 
 ## New features and usability improvements
 
@@ -138,14 +105,6 @@ If a task has any untracked properties, then Gradle does not do any optimization
 For example, such a task will always be out of date and never from the build cache.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
-
-<!--
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
