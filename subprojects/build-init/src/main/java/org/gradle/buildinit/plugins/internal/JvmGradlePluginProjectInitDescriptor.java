@@ -64,8 +64,6 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
             configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
 
             final BuildScriptBuilder.SuiteSpec functionalTestSuite = addTestSuite("functionalTest", buildScriptBuilder, settings.getTestFramework());
-            functionalTestSuite.addGradleTestKit();
-            functionalTestSuite.addGradleApi();
             functionalTestSourceSet = buildScriptBuilder.containerElementExpression("sourceSets", "functionalTest");
         } else {
             functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
