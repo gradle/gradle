@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
@@ -92,6 +93,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
@@ -478,11 +480,22 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutput) {
-        FileCollection relevantInputs = skipOutput == null
-            ? context.getTaskProperties().getInputFiles()
-            : context.getTaskProperties().getSourceFiles();
-        taskInputsListeners.broadcastFileSystemInputsOf(task, (FileCollectionInternal) relevantInputs);
+    public void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutcome) {
+        taskInputsListeners.broadcastFileSystemInputsOf(task, new CompositeFileCollection() {
+            @Override
+            public String getDisplayName() {
+                return TaskExecution.this.getDisplayName() + " relevant file inputs";
+            }
+
+            @Override
+            protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+                for (InputFilePropertySpec filePropertySpec : context.getTaskProperties().getInputFileProperties()) {
+                    if (skipOutcome == null || filePropertySpec.isSkipWhenEmpty()) {
+                        visitor.accept(filePropertySpec.getPropertyFiles());
+                    }
+                }
+            }
+        });
     }
 
     @Override
