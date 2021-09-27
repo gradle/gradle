@@ -129,7 +129,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                 statisticsSinceLastBuild.getRetainedMissingFiles()
                             );
                             if (stateInvalidatedAtStartOfBuild) {
-                                LOGGER.warn("Parts of the virtual file system have been removed since they didn't support watching");
+                                LOGGER.warn("Parts of the virtual file system have been invalidated since they didn't support watching");
                             }
                         }
                     }
