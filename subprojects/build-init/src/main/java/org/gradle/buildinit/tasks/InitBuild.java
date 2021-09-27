@@ -235,7 +235,7 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        boolean useIncubatingAPIs = this.useIncubatingAPIs.getOrElse(inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false));
+        boolean useIncubatingAPIs = this.useIncubatingAPIs.orElse(getProject().provider(() -> inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false))).get();
 
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {

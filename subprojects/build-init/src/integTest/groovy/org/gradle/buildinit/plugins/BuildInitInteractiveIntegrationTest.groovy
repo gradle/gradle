@@ -33,11 +33,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "prompts user when run from an interactive session"() {
+    def "prompts user when run from an interactive session, when incubating flag = #incubating"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
-        executer.withTasks("init")
+        executer.withTasks(['init'] + (incubating ? ['--incubating'] : []))
         def handle = executer.start()
 
         // Select 'basic'
@@ -59,11 +59,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'no'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(incubatingPrompt)
+        if (!incubating) {
+            // Select 'no'
+            ConcurrentTestUtil.poll(60) {
+                assert handle.standardOutput.contains(incubatingPrompt)
+            }
+            handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
         }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -75,6 +77,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+
+        where:
+        incubating << [true, false]
     }
 
     def "user can provide details for JVM based build"() {

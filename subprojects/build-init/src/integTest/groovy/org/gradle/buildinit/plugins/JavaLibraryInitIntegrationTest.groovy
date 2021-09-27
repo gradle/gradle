@@ -123,7 +123,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    def "creates sample source using testng instead of junit with #scriptDsl build scripts, when incubating flag = #incubating\""() {
+    def "creates sample source using testng instead of junit with #scriptDsl build scripts, when incubating flag = #incubating"() {
         when:
         run(['init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id]  + (incubating ? ['--incubating'] : []))
 
