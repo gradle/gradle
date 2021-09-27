@@ -26,6 +26,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import java.io.File;
 import java.util.Map;
@@ -76,6 +77,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        task.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
