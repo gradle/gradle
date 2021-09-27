@@ -16,21 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 
 public class DefaultBuildTreeWorkExecutor implements BuildTreeWorkExecutor {
-    private final BuildLifecycleController buildController;
-
-    public DefaultBuildTreeWorkExecutor(BuildLifecycleController buildController) {
-        this.buildController = buildController;
-    }
-
     @Override
     public ExecutionResult<Void> execute(BuildTreeWorkGraph graph) {
-        graph.startTaskExecution();
-        ExecutionResult<Void> buildResult = buildController.executeTasks();
-        ExecutionResult<Void> includedBuildsResult = graph.awaitTaskCompletion();
-        return buildResult.withFailures(includedBuildsResult);
+        return graph.runWork();
     }
 }

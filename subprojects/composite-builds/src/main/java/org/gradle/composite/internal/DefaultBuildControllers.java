@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -55,13 +54,7 @@ class DefaultBuildControllers implements BuildControllers {
         }
 
         BuildState build = buildRegistry.getBuild(buildId);
-        BuildController newBuildController;
-        if (build instanceof IncludedBuildState) {
-            newBuildController = new DefaultBuildController((IncludedBuildState) build, projectStateRegistry, workerLeaseService);
-        } else {
-            // Build's task execution is coordinated by something else (but should not be)
-            newBuildController = new RootBuildController(build);
-        }
+        BuildController newBuildController = new DefaultBuildController(build, projectStateRegistry, workerLeaseService);
         controllers.put(buildId, newBuildController);
         return newBuildController;
     }

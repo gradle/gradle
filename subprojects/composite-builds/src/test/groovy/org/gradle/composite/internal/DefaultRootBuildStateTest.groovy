@@ -49,6 +49,7 @@ class DefaultRootBuildStateTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
+    def workGraph = Mock(BuildTreeWorkGraph)
     DefaultRootBuildState build
 
     def setup() {
@@ -59,7 +60,7 @@ class DefaultRootBuildStateTest extends Specification {
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(Stub(DefaultDeploymentRegistry))
         sessionServices.add(Stub(BuildStateRegistry))
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(Stub(BuildTreeWorkGraph)))
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
 
         _ * controller.gradle >> gradle
         _ * gradle.services >> sessionServices
@@ -132,7 +133,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * controller.populateWorkGraph(_)
-        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 
         and:
@@ -202,7 +203,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
 
         and:
-        1 * controller.executeTasks() >> ExecutionResult.failed(failure)
+        1 * workGraph.runWork() >> ExecutionResult.failed(failure)
         1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
 
         and:
@@ -215,7 +216,7 @@ class DefaultRootBuildStateTest extends Specification {
         action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
         }
-        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 
         build.run(action)

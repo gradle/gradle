@@ -138,7 +138,6 @@ class ConfigurationCacheState(
             for (child in state.children) {
                 addNodesForChildBuilds(child, builder)
             }
-            graph.populateTaskGraphs()
         }
     }
 

@@ -48,6 +48,7 @@ class DefaultNestedBuildTest extends Specification {
     def buildIdentifier = Mock(BuildIdentifier)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
+    def workGraph = Mock(BuildTreeWorkGraph)
 
     DefaultNestedBuild build() {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
@@ -55,7 +56,7 @@ class DefaultNestedBuildTest extends Specification {
         _ * buildDefinition.name >> "nested"
         sessionServices.add(Stub(BuildOperationExecutor))
         sessionServices.add(exceptionAnalyzer)
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(Stub(BuildTreeWorkGraph)))
+        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
         _ * tree.services >> sessionServices
         _ * controller.gradle >> gradle
 
@@ -89,7 +90,7 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
         1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
     }
 
@@ -109,7 +110,7 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        1 * controller.executeTasks() >> ExecutionResult.succeeded()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
         0 * controller.finishBuild(_, _)
     }
 

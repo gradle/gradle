@@ -27,25 +27,18 @@ import java.util.function.Consumer;
  */
 public interface BuildTreeWorkGraph {
     /**
-     * Schedules tasks using the given action and prepare the work graphs for execution.
+     * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link  #runWork()} is called.
+     *
+     * <p>This can be called only once for a given graph.</p>
      */
     void prepareTaskGraph(Consumer<? super Builder> action);
 
     /**
-     * Finish populating work graph, once all entry point tasks have been scheduled using {@link #prepareTaskGraph(Consumer)}.
-     * This may fire user hooks to notify build logic that all tasks have been scheduled.
+     * Runs any scheduled work, blocking until complete. Does nothing when {@link #prepareTaskGraph(Consumer)} has not been called to schedule the work.
+     *
+     * <p>This can be called only once for a given graph.</p>
      */
-    void populateTaskGraphs();
-
-    /**
-     * Starts running any scheduled work. Does nothing when {@link #populateTaskGraphs()} has not been called to schedule the work.
-     */
-    void startTaskExecution();
-
-    /**
-     * Blocks until all scheduled tasks have completed.
-     */
-    ExecutionResult<Void> awaitTaskCompletion();
+    ExecutionResult<Void> runWork();
 
     interface Builder {
         /**

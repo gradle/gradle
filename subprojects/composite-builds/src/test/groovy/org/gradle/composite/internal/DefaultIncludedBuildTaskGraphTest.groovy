@@ -16,29 +16,37 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraph
+import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def buildStateRegistry = Mock(BuildStateRegistry)
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, Stub(ProjectStateRegistry), Stub(WorkerLeaseService))
+    def projectStateRegistry = new TestProjectStateRegistry()
+    def workerLeaseService = new TestWorkerLeaseService()
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, projectStateRegistry, workerLeaseService)
 
     def "does nothing when nothing scheduled"() {
         when:
         graph.withNewTaskGraph { g ->
             g.prepareTaskGraph { b ->
-                g.populateTaskGraphs()
             }
-            g.startTaskExecution()
-            g.awaitTaskCompletion().rethrow()
+            g.runWork().rethrow()
         }
 
         then:
@@ -55,15 +63,14 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         graph.withNewTaskGraph { g ->
             g.prepareTaskGraph { b ->
                 b.withWorkGraph(build) {}
-                g.populateTaskGraphs()
             }
-            g.startTaskExecution()
-            g.awaitTaskCompletion().rethrow()
+            g.runWork().rethrow()
         }
 
         then:
         1 * workGraph.populateWorkGraph(_)
         1 * workGraph.prepareForExecution()
+        1 * workGraph.execute() >> ExecutionResult.succeeded()
     }
 
     def "cannot schedule tasks when graph has not been created"() {
@@ -104,7 +111,6 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         when:
         graph.withNewTaskGraph { g ->
             g.prepareTaskGraph {
-                g.populateTaskGraphs()
             }
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
@@ -115,28 +121,34 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     }
 
     def "cannot schedule tasks when graph has started task execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def workGraph = Mock(BuildWorkGraph)
+        def build = build(id, workGraph)
+
+        workGraph.execute() >> {
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        }
+
         when:
         graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph {
-                g.populateTaskGraphs()
+            g.prepareTaskGraph { b ->
+                b.withWorkGraph(build) {}
             }
-            g.startTaskExecution()
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            g.runWork().rethrow()
         }
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: Running"
+        e.message == "This task graph is already in use."
     }
 
     def "cannot schedule tasks when graph has completed task execution"() {
         when:
         graph.withNewTaskGraph { g ->
             g.prepareTaskGraph {
-                g.populateTaskGraphs()
             }
-            g.startTaskExecution()
-            g.awaitTaskCompletion()
+            g.runWork()
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
@@ -151,5 +163,57 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraph))
         _ * buildStateRegistry.getBuild(id) >> build
         return build
+    }
+
+    class TestProjectStateRegistry implements ProjectStateRegistry {
+        @Override
+        Collection<? extends ProjectState> getAllProjects() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ProjectState stateFor(Project project) throws IllegalArgumentException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void registerProjects(BuildState build, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void withMutableStateOfAllProjects(Runnable runnable) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        def <T> T withMutableStateOfAllProjects(Factory<T> factory) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        def <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void blocking(Runnable runnable) {
+            runnable.run()
+        }
     }
 }

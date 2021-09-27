@@ -23,7 +23,6 @@ import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.ExecutionResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,11 +54,8 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
                         includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();
                     }
-                    graph.populateTaskGraphs();
                 });
-                graph.startTaskExecution();
-                ExecutionResult<Void> result = graph.awaitTaskCompletion();
-                result.rethrow();
+                graph.runWork().rethrow();
                 return null;
             });
         }

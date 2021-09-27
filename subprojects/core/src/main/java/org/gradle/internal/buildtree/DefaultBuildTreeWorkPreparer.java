@@ -28,9 +28,6 @@ public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     @Override
     public void scheduleRequestedTasks(BuildTreeWorkGraph graph) {
         buildController.prepareToScheduleTasks();
-        graph.prepareTaskGraph(builder -> {
-            buildController.addRequestedTasks(builder);
-            graph.populateTaskGraphs();
-        });
+        graph.prepareTaskGraph(buildController::addRequestedTasks);
     }
 }

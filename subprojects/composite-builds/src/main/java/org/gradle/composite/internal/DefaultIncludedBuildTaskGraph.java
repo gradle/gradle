@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
     private enum State {
-        NotCreated, NotPrepared, QueuingTasks, Populated, ReadyToRun, Running, Finished
+        NotCreated, NotPrepared, QueuingTasks, ReadyToRun, Running, Finished
     }
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -109,7 +109,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         }
     }
 
-    private void prepareTaskGraph(Consumer<? super BuildTreeWorkGraph.Builder> action) {
+    private void doPrepareTaskGraph(Consumer<? super BuildTreeWorkGraph.Builder> action) {
         withState(() -> {
             expectInState(State.NotPrepared);
             state = State.QueuingTasks;
@@ -117,6 +117,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                 @Override
                 public void run(BuildOperationContext context) {
                     action.accept(new DefaultBuildTreeWorkGraphBuilder());
+                    controllers.populateTaskGraphs();
                     context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
                     });
                 }
@@ -128,7 +129,6 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                         });
                 }
             });
-            expectInState(State.Populated);
             state = State.ReadyToRun;
             return null;
         });
@@ -160,28 +160,12 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         });
     }
 
-    private void populateTaskGraphs() {
-        withState(() -> {
-            assertCanQueueTask();
-            controllers.populateTaskGraphs();
-            state = State.Populated;
-            return null;
-        });
-    }
-
-    private void startTaskExecution() {
-        withState(() -> {
+    private ExecutionResult<Void> doRunWork() {
+        return withState(() -> {
             expectInState(State.ReadyToRun);
             state = State.Running;
-            controllers.startTaskExecution();
-            return null;
-        });
-    }
-
-    private ExecutionResult<Void> awaitTaskCompletion() {
-        return withState(() -> {
-            expectInState(State.Running);
             try {
+                controllers.startTaskExecution();
                 return controllers.awaitTaskCompletion();
             } finally {
                 state = State.Finished;
@@ -202,9 +186,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     private void assertCanQueueTask() {
-        if (state != State.QueuingTasks && state != State.Populated) {
-            throw unexpectedState();
-        }
+        expectInState(State.QueuingTasks);
     }
 
     private void expectInState(State expectedState) {
@@ -250,22 +232,12 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph {
         @Override
         public void prepareTaskGraph(Consumer<? super Builder> action) {
-            DefaultIncludedBuildTaskGraph.this.prepareTaskGraph(action);
+            doPrepareTaskGraph(action);
         }
 
         @Override
-        public void populateTaskGraphs() {
-            DefaultIncludedBuildTaskGraph.this.populateTaskGraphs();
-        }
-
-        @Override
-        public void startTaskExecution() {
-            DefaultIncludedBuildTaskGraph.this.startTaskExecution();
-        }
-
-        @Override
-        public ExecutionResult<Void> awaitTaskCompletion() {
-            return DefaultIncludedBuildTaskGraph.this.awaitTaskCompletion();
+        public ExecutionResult<Void> runWork() {
+            return doRunWork();
         }
     }
 

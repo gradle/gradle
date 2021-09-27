@@ -97,7 +97,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
         BuildStateRegistry buildStateRegistry = buildServices.get(BuildStateRegistry.class);
-        BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor(buildLifecycleController);
+        BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
         workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
