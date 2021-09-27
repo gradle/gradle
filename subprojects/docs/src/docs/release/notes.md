@@ -138,15 +138,17 @@ For example, such a task will always be out of date and never from the build cac
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
 
-Initializing new plugin projects using the <<build_init_plugin#build_init_plugin,build init plugin>> can also benefit from [the `--incubating` option](#Initialize New Projects Using `@Incubating` APIs)
+Initializing new plugin projects using the [Build Init plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#initialize-new-projects-with-build-init-using-incubating-apis).
 
 ## Test Suites
 
-Note that this API is <<feature_lifecycle.adoc#feature_lifecycle,incubating>> and will likely change in future releases as functionality is improved and expanded.
+Note that this API is [incubating](userguide/feature_lifecycle.html) and will likely change in future releases as functionality is improved and expanded.
 
-## Initialize New Projects Using `@Incubating` APIs
+## Initialize New Projects with Build Init Using Incubating APIs
 
-The `--incubating` flag.
+The `--incubating` flag can be used to initialize new project using features marked as `@Incubating`.
+
+Initially, this flag only 
 
 <!--
 
