@@ -164,9 +164,9 @@ public class ExecutionGradleServices {
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
             new SkipEmptyWorkStep<>(
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
