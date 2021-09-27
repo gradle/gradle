@@ -83,7 +83,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
                 return skipExecutionWithEmptySources(work, context);
             } else {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = union(knownFileFingerprints, sourceFileProperties);
-                return executeWithNoEmptySources(work, withSources(context, knownValueSnapshots, inputFileProperties));
+                return executeWithNoEmptySources(work, context, inputFileProperties);
             }
         } else {
             return executeWithNoEmptySources(work, context);
@@ -175,13 +175,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         };
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        work.broadcastRelevantFileSystemInputs(null);
-        return delegate.execute(work, context);
-    }
+    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties) {
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties = union(context.getInputFileProperties(), sourceFileProperties);
+        return executeWithNoEmptySources(work, new PreviousExecutionContext() {
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return newInputFileProperties;
+            }
 
-    private static PreviousExecutionContext withSources(PreviousExecutionContext context, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties) {
-        return new PreviousExecutionContext() {
             @Override
             public Optional<PreviousExecutionState> getPreviousExecutionState() {
                 return context.getPreviousExecutionState();
@@ -199,12 +200,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
             @Override
             public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return inputProperties;
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return inputFileProperties;
+                return context.getInputProperties();
             }
 
             @Override
@@ -221,7 +217,12 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             public WorkValidationContext getValidationContext() {
                 return context.getValidationContext();
             }
-        };
+        });
+    }
+
+    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+        work.broadcastRelevantFileSystemInputs(null);
+        return delegate.execute(work, context);
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
