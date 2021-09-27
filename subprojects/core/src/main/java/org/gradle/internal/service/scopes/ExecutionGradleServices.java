@@ -161,6 +161,8 @@ public class ExecutionGradleServices {
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
+            new RecordOutputsStep<>(outputFilesRepository,
+            new StoreExecutionStateStep<>(
             new SkipEmptyWorkStep<>(
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
@@ -168,8 +170,6 @@ public class ExecutionGradleServices {
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
-            new RecordOutputsStep<>(outputFilesRepository,
-            new StoreExecutionStateStep<>(
             new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,

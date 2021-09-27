@@ -747,13 +747,13 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
+            new StoreExecutionStateStep<>(
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new StoreExecutionStateStep<>(
             new CaptureStateAfterExecutionStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
             new CreateOutputsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,

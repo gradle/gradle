@@ -24,18 +24,18 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import static org.gradle.internal.ExtendedOptional.extend;
 
-public class StoreExecutionStateStep<C extends BeforeExecutionContext> implements Step<C, AfterExecutionResult> {
-    private final Step<? super C, ? extends AfterExecutionResult> delegate;
+public class StoreExecutionStateStep<C extends PreviousExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
+    private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
-        Step<? super C, ? extends AfterExecutionResult> delegate
+        Step<? super C, ? extends R> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
-    public AfterExecutionResult execute(UnitOfWork work, C context) {
-        AfterExecutionResult result = delegate.execute(work, context);
+    public R execute(UnitOfWork work, C context) {
+        R result = delegate.execute(work, context);
         context.getHistory()
             .ifPresent(history -> extend(result.getAfterExecutionState())
                 .ifPresentOrElse(
