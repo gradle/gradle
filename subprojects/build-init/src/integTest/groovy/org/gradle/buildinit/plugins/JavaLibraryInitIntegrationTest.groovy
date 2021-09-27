@@ -123,9 +123,9 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    def "creates sample source using testng instead of junit with #scriptDsl build scripts"() {
+    def "creates sample source using testng instead of junit with #scriptDsl build scripts, when incubating flag = #incubating\""() {
         when:
-        run('init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id)
+        run(['init', '--type', 'java-library', '--test-framework', 'testng', '--dsl', scriptDsl.id]  + (incubating ? ['--incubating'] : []))
 
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -144,6 +144,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        incubating << [true, false]
     }
 
     @Unroll

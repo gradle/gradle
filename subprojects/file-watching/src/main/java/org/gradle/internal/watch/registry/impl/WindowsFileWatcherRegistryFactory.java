@@ -32,7 +32,7 @@ import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
-import static org.gradle.internal.watch.registry.impl.AbstractFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
+import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
 
 public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions, WindowsFileWatcher> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistryFactory.class);

@@ -153,6 +153,9 @@
             <trusting group="org.codenarc"/>
             <trusting group="org.gmetrics"/>
          </trusted-key>
+         <trusted-key id="a55830120aed177e1aa4f66a431b8f80403a7dc1">
+            <trusting group="com.github.javaparser"/>
+         </trusted-key>
          <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61">
             <trusting group="^org[.]jetbrains($|([.].*))" regex="true"/>
             <trusting group="com.github.javaparser"/>

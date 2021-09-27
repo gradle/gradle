@@ -16,10 +16,28 @@
 
 package org.gradle.internal.watch.vfs;
 
+import org.slf4j.Logger;
+import org.slf4j.helpers.NOPLogger;
+
 public enum WatchMode {
-    ENABLED(true, "enabled"),
-    DEFAULT(true, "enabled if available"),
-    DISABLED(false, "disabled");
+    ENABLED(true, "enabled") {
+        @Override
+        public Logger loggerForWarnings(Logger currentLogger) {
+            return currentLogger;
+        }
+    },
+    DEFAULT(true, "enabled if available") {
+        @Override
+        public Logger loggerForWarnings(Logger currentLogger) {
+            return currentLogger.isInfoEnabled() ? currentLogger : NOPLogger.NOP_LOGGER;
+        }
+    },
+    DISABLED(false, "disabled") {
+        @Override
+        public Logger loggerForWarnings(Logger currentLogger) {
+            return NOPLogger.NOP_LOGGER;
+        }
+    };
 
     private final boolean enabled;
     private final String description;
@@ -32,6 +50,8 @@ public enum WatchMode {
     public boolean isEnabled() {
         return enabled;
     }
+
+    public abstract Logger loggerForWarnings(Logger currentLogger);
 
     public String getDescription() {
         return description;

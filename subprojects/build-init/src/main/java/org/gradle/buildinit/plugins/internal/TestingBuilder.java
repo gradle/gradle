@@ -23,4 +23,5 @@ public interface TestingBuilder {
     SuiteSpec junitJupiterSuite(String name);
     SuiteSpec spockSuite(String name);
     SuiteSpec kotlinTestSuite(String name);
+    SuiteSpec testNG(String name);
 }

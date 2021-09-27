@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.registry;
+package org.gradle.internal.watch.registry.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;

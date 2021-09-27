@@ -4,7 +4,7 @@ plugins {
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.8"
+val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")

@@ -150,18 +150,18 @@ public class WatchableHierarchies {
         return invalidatedRoot;
     }
 
-    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
         SnapshotHierarchy newRoot = root;
-        newRoot = removeUnprovenHierarchies(newRoot, invalidator);
+        newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode);
         return newRoot;
     }
 
     @Nonnull
-    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator) {
+    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
         return probeRegistry.unprovenHierarchies()
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
                 if (hierarchies.remove(unprovenHierarchy)) {
-                    LOGGER.warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);
+                    watchMode.loggerForWarnings(LOGGER).warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);
                     return invalidator.invalidate(unprovenHierarchy.getAbsolutePath(), currentRoot);
                 } else {
                     return currentRoot;

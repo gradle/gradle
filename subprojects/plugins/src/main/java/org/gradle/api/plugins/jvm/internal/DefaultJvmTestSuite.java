@@ -27,10 +27,11 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.ComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
@@ -47,6 +48,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
         SPOCK("org.spockframework:spock-core", "2.0-groovy-3.0"),
         KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.5.31"),
+        TESTNG("org.testng:testng", "7.4.0"),
         NONE(null, null);
 
         @Nullable
@@ -95,7 +97,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final ComponentDependencies dependencies;
+    private final JvmComponentDependencies dependencies;
     private boolean attachedDependencies;
     private final Action<Void> attachDependencyAction;
 
@@ -129,7 +131,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, implementation, compileOnly, runtimeOnly);
+        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly);
 
         addDefaultTestTarget();
 
@@ -144,6 +146,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
                             return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
+                        case TESTNG:
+                            return new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory());
                         default:
                             throw new IllegalStateException("do not know how to handle " + framework);
                     }
@@ -159,6 +163,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     case JUNIT4: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK: // fall-through
+                    case TESTNG: // fall-through
                     case KOTLIN_TEST:
                         return framework.framework.getDependency(framework.version);
                     default:
@@ -239,19 +244,28 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         setFrameworkTo(new TestingFramework(Frameworks.KOTLIN_TEST, version));
     }
 
+    @Override
+    public void useTestNG() {
+        useTestNG(Frameworks.TESTNG.defaultVersion);
+    }
+
+    @Override
+    public void useTestNG(String version) {
+        setFrameworkTo(new TestingFramework(Frameworks.TESTNG, version));
+    }
+
     private void setFrameworkTo(TestingFramework framework) {
         getTestingFramework().set(framework);
         attachDependencyAction.execute(null);
     }
 
-
     @Override
-    public ComponentDependencies getDependencies() {
+    public JvmComponentDependencies getDependencies() {
         return dependencies;
     }
 
     @Override
-    public void dependencies(Action<? super ComponentDependencies> action) {
+    public void dependencies(Action<? super JvmComponentDependencies> action) {
         action.execute(dependencies);
     }
 

@@ -21,6 +21,7 @@ Include only their name, impactful features should be called out separately belo
 [Tomasz Godzik](https://github.com/tgodzik),
 [Kristian Kraljic](https://github.com/kristian),
 [Matthew Haughton](https://github.com/3flex),
+[Raphael Fuchs](https://github.com/REPLicated),
 [Xin Wang](https://github.com/scaventz)
 
 
@@ -65,6 +66,10 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 --->
 
 ## New features and usability improvements
+
+### Support for Java 17
+
+Gradle 7.3 supports compiling, testing and running on Java 17.
 
 <a name="tooling-api"></a>
 ### Tooling API improvements
