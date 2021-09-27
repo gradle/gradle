@@ -1073,6 +1073,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18262")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "should compile sources from source with -sourcepath option for modules"() {
         given:
         buildFile << """
