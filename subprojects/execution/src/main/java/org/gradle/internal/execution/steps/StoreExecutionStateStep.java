@@ -22,8 +22,6 @@ import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import static org.gradle.internal.ExtendedOptional.extend;
-
 public class StoreExecutionStateStep<C extends PreviousExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
@@ -37,8 +35,8 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
         context.getHistory()
-            .ifPresent(history -> extend(result.getAfterExecutionState())
-                .ifPresentOrElse(
+            .ifPresent(history -> result.getAfterExecutionState()
+                .ifPresent(
                     afterExecutionState -> {
                         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
                         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
@@ -57,8 +55,7 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
                                 afterExecutionState
                             );
                         }
-                    },
-                    () -> history.remove(context.getIdentity().getUniqueId())
+                    }
                 )
             );
         return result;
