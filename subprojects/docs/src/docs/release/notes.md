@@ -86,6 +86,14 @@ If a file system event for this change does not arrive by the start of the next 
 The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization
 rules when the configuration cache is enabled, leading to fewer rebuilds.
 
+### Declarative test suites in JVM projects
+
+TBD 
+
+### Generate new projects with new but unstable features
+
+TBD 
+
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
