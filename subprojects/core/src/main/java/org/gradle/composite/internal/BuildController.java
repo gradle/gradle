@@ -15,7 +15,6 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
@@ -25,24 +24,12 @@ import java.util.function.Consumer;
 
 public interface BuildController {
     /**
-     * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
-     */
-    ExportedTaskNode locateTask(TaskInternal task);
-
-    /**
-     * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
-     */
-    ExportedTaskNode locateTask(String taskPath);
-
-    /**
      * Adds tasks and nodes to the work graph of this build.
      */
     void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
     /**
-     * Queues the given task for execution. Does not schedule the task, use {@link  #scheduleQueuedTasks()} for this.
+     * Queues the given task for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.
      */
     void queueForExecution(ExportedTaskNode taskNode);
 
@@ -57,7 +44,7 @@ public interface BuildController {
     /**
      * Prepares the work graph, once all tasks have been scheduled.
      */
-    void prepareForExecution();
+    void finalizeWorkGraph();
 
     /**
      * Must call {@link #scheduleQueuedTasks()} prior to calling this method.

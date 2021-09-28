@@ -25,7 +25,17 @@ import java.util.function.Consumer;
  */
 public interface IncludedBuildTaskResource {
     enum State {
-        WAITING, SUCCESS, FAILED;
+        Waiting(false), Success(true), Failed(true);
+
+        private final boolean complete;
+
+        State(boolean complete) {
+            this.complete = complete;
+        }
+
+        public boolean isComplete() {
+            return complete;
+        }
     }
 
     /**

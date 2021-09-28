@@ -50,6 +50,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
+    // Lock protects the following state
     private final Object lock = new Object();
     private DefaultBuildTreeWorkGraph current;
 
@@ -68,7 +69,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     private DefaultBuildControllers createControllers() {
-        return new DefaultBuildControllers(executorService, buildRegistry, projectStateRegistry, workerLeaseService);
+        return new DefaultBuildControllers(executorService, projectStateRegistry, workerLeaseService);
     }
 
     @Override
@@ -87,11 +88,13 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             workGraph = new DefaultBuildTreeWorkGraph();
             current = workGraph;
         }
-
         try {
-            return action.apply(workGraph);
+            try {
+                return action.apply(workGraph);
+            } finally {
+                workGraph.close();
+            }
         } finally {
-            workGraph.close();
             synchronized (this) {
                 current = previous;
             }
@@ -101,16 +104,18 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
         return withState(workGraph -> {
-            BuildController buildController = workGraph.controller(targetBuild);
-            return new TaskBackedResource(workGraph, buildController, buildController.locateTask(task));
+            BuildState build = buildRegistry.getBuild(targetBuild);
+            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(task);
+            return new TaskBackedResource(workGraph, build, taskNode);
         });
     }
 
     @Override
     public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
         return withState(workGraph -> {
-            BuildController buildController = workGraph.controller(targetBuild);
-            return new TaskBackedResource(workGraph, buildController, buildController.locateTask(taskPath));
+            BuildState build = buildRegistry.getBuild(targetBuild);
+            ExportedTaskNode taskNode = build.getWorkGraph().locateTask(taskPath);
+            return new TaskBackedResource(workGraph, build, taskNode);
         });
     }
 
@@ -145,7 +150,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         @Override
         public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            owner.controllers.getBuildController(target.getBuildIdentifier()).populateWorkGraph(action);
+            owner.controllers.getBuildController(target).populateWorkGraph(action);
         }
     }
 
@@ -159,16 +164,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             controllers = createControllers();
         }
 
-        BuildController controller(BuildIdentifier buildIdentifier) {
-            assertIsOwner();
-            assertCanLocateTask();
-            return controllers.getBuildController(buildIdentifier);
-        }
-
-        public void queueForExecution(BuildController buildController, ExportedTaskNode taskNode) {
+        public void queueForExecution(BuildState build, ExportedTaskNode taskNode) {
             assertIsOwner();
             assertCanQueueTask();
-            buildController.queueForExecution(taskNode);
+            controllers.getBuildController(build).queueForExecution(taskNode);
         }
 
         @Override
@@ -180,7 +179,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 @Override
                 public void run(BuildOperationContext context) {
                     action.accept(new DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph.this));
-                    controllers.populateTaskGraphs();
+                    controllers.populateWorkGraphs();
                     context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
                     });
                 }
@@ -201,8 +200,8 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             expectInState(State.ReadyToRun);
             state = State.Running;
             try {
-                controllers.startTaskExecution();
-                return controllers.awaitTaskCompletion();
+                controllers.startExecution();
+                return controllers.awaitCompletion();
             } finally {
                 state = State.Finished;
             }
@@ -212,13 +211,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         public void close() {
             assertIsOwner();
             controllers.close();
-        }
-
-        private void assertCanLocateTask() {
-            if (state == State.NotPrepared) {
-                return;
-            }
-            assertCanQueueTask();
         }
 
         private void assertCanQueueTask() {
@@ -244,18 +236,18 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
     private static class TaskBackedResource implements IncludedBuildTaskResource {
         private final DefaultBuildTreeWorkGraph workGraph;
-        private final BuildController buildController;
+        private final BuildState build;
         private final ExportedTaskNode taskNode;
 
-        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildController buildController, ExportedTaskNode taskNode) {
+        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildState build, ExportedTaskNode taskNode) {
             this.workGraph = workGraph;
-            this.buildController = buildController;
+            this.build = build;
             this.taskNode = taskNode;
         }
 
         @Override
         public void queueForExecution() {
-            workGraph.queueForExecution(buildController, taskNode);
+            workGraph.queueForExecution(build, taskNode);
         }
 
         @Override
@@ -268,5 +260,4 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             return taskNode.getTaskState();
         }
     }
-
 }

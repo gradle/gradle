@@ -111,11 +111,15 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     }
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def build = build(id)
+
         when:
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(id, ":task").queueForExecution()
         }
 
         then:
@@ -149,12 +153,16 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     }
 
     def "cannot schedule tasks when graph has completed task execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def build = build(id)
+
         when:
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
             g.runWork()
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(id, ":task").queueForExecution()
         }
 
         then:

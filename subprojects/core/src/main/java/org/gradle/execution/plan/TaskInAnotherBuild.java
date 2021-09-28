@@ -51,7 +51,7 @@ public class TaskInAnotherBuild extends TaskNode {
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
-    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
+    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.Waiting;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -136,22 +136,22 @@ public class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public boolean isSuccessful() {
-        return state == IncludedBuildTaskResource.State.SUCCESS;
+        return state == IncludedBuildTaskResource.State.Success;
     }
 
     @Override
     public boolean isFailed() {
-        return state == IncludedBuildTaskResource.State.FAILED;
+        return state == IncludedBuildTaskResource.State.Failed;
     }
 
     @Override
     public boolean isComplete() {
-        if (state != IncludedBuildTaskResource.State.WAITING) {
+        if (super.isComplete() || state.isComplete()) {
             return true;
         }
 
         state = target.getTaskState();
-        return state != IncludedBuildTaskResource.State.WAITING;
+        return state.isComplete();
     }
 
     @Override

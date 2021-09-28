@@ -37,6 +37,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController controller;
     private boolean tasksScheduled;
+    private DefaultBuildWorkGraph current;
 
     public DefaultBuildWorkGraphController(TaskExecutionGraphInternal taskGraph, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
         this.taskGraph = taskGraph;
@@ -58,27 +59,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
     @Override
     public BuildWorkGraph newWorkGraph() {
-        return new BuildWorkGraph() {
-            @Override
-            public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
-                return doSchedule(taskNodes);
+        synchronized (lock) {
+            if (current != null) {
+                throw new IllegalStateException("This build's work graph is currently in use by another thread.");
             }
-
-            @Override
-            public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-                doPopulateWorkGraph(action);
-            }
-
-            @Override
-            public void prepareForExecution() {
-                doPrepareForExecution();
-            }
-
-            @Override
-            public ExecutionResult<Void> execute() {
-                return doExecute();
-            }
-        };
+            current = new DefaultBuildWorkGraph();
+            return current;
+        }
     }
 
     private boolean doSchedule(Collection<ExportedTaskNode> taskNodes) {
@@ -114,7 +101,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         if (tasksScheduled) {
             controller.finalizeWorkGraph();
         }
-        updateTasksPriorToExecution();
     }
 
     private ExecutionResult<Void> doExecute() {
@@ -127,12 +113,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         } finally {
             updateTasksAfterExecution();
             tasksScheduled = false;
-        }
-    }
-
-    private void updateTasksPriorToExecution() {
-        for (DefaultExportedTaskNode value : nodesByPath.values()) {
-            value.beforeExecution();
         }
     }
 
@@ -165,7 +145,35 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     private enum TaskState {
-        Idle, NotScheduled, Scheduled, Finished
+        NotScheduled, Scheduled, Finished
+    }
+
+    private class DefaultBuildWorkGraph implements BuildWorkGraph {
+        @Override
+        public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
+            return doSchedule(taskNodes);
+        }
+
+        @Override
+        public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+            doPopulateWorkGraph(action);
+        }
+
+        @Override
+        public void prepareForExecution() {
+            doPrepareForExecution();
+        }
+
+        @Override
+        public ExecutionResult<Void> execute() {
+            try {
+                return doExecute();
+            } finally {
+                synchronized (lock) {
+                    current = null;
+                }
+            }
+        }
     }
 
     // This should be backed by a TaskNode to determine the actual execution state,
@@ -173,7 +181,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
         TaskInternal task;
-        TaskState state = TaskState.Idle;
+        TaskState state = TaskState.NotScheduled;
 
         DefaultExportedTaskNode(String taskPath) {
             this.taskPath = taskPath;
@@ -201,30 +209,27 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public IncludedBuildTaskResource.State getTaskState() {
             synchronized (lock) {
                 if (state == TaskState.NotScheduled) {
-                    return IncludedBuildTaskResource.State.SUCCESS;
-                }
-                if (state == TaskState.Idle) {
-                    return IncludedBuildTaskResource.State.WAITING;
+                    return IncludedBuildTaskResource.State.Waiting;
                 }
 
                 getTask();
                 if (task.getState().getFailure() != null) {
-                    return IncludedBuildTaskResource.State.FAILED;
+                    return IncludedBuildTaskResource.State.Failed;
                 } else if (task.getState().getExecuted()) {
-                    return IncludedBuildTaskResource.State.SUCCESS;
+                    return IncludedBuildTaskResource.State.Success;
                 } else if (state == TaskState.Finished) {
                     // Here "failed" means "output is not available, so do not run dependents"
-                    return IncludedBuildTaskResource.State.FAILED;
+                    return IncludedBuildTaskResource.State.Failed;
                 } else {
                     // Scheduled but not completed
-                    return IncludedBuildTaskResource.State.WAITING;
+                    return IncludedBuildTaskResource.State.Waiting;
                 }
             }
         }
 
         public boolean whenScheduled() {
             synchronized (lock) {
-                if (state != TaskState.Finished) {
+                if (state == TaskState.NotScheduled) {
                     state = TaskState.Scheduled;
                     return true;
                 } else {
@@ -233,20 +238,10 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
         }
 
-        public void beforeExecution() {
-            synchronized (lock) {
-                if (state == TaskState.Idle) {
-                    state = TaskState.NotScheduled;
-                }
-            }
-        }
-
         public void afterExecution() {
             synchronized (lock) {
                 if (state == TaskState.Scheduled) {
                     state = TaskState.Finished;
-                } else if (state == TaskState.NotScheduled) {
-                    state = TaskState.Idle;
                 }
             }
         }
