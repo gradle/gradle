@@ -217,6 +217,7 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
             is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
                 if (result.isWatchingEnabled) {
                     buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStateInvalidatedAtStart", result.isStateInvalidatedAtStartOfBuild.toString())
                     result.statistics?.let {
                         buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
                         buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
