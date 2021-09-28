@@ -69,10 +69,10 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
                 String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
                 String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");
                 String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
-                suiteSpec.getDependencies().dependency("implementation", "Use Scalatest for testing our library",
+                suiteSpec.implementation("Use Scalatest for testing our library",
                         "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion,
                         "org.scalatestplus:junit-4-13_" + scalaVersion + ":" + scalaTestPlusJunitVersion);
-                suiteSpec.getDependencies().dependency("runtimeOnly", "Need scala-xml at test runtime",
+                suiteSpec.runtimeOnly("Need scala-xml at test runtime",
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 return suiteSpec;
             default:
