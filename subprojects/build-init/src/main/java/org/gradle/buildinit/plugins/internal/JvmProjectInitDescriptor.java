@@ -102,13 +102,14 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
                 .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
 
+            addStandardDependencies(buildScriptBuilder, false);
+
             if (settings.isUseTestSuites()) {
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
                 addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
+            } else {
+                addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
-
-            addStandardDependencies(buildScriptBuilder, false);
-            addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }
     }
 
@@ -120,7 +121,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin);
             addStandardDependencies(buildScriptBuilder, true);
             addDependencyConstraints(buildScriptBuilder);
-            addTestFramework(settings.getTestFramework(), buildScriptBuilder);
 
             if (settings.isUseTestSuites()) {
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
@@ -135,6 +135,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     String scalaCoordinates = "org.scala-lang:scala-library:" + scalaLibraryVersion;
                     buildScriptBuilder.dependencyForSuite(integrationTest, "implementation", null, scalaCoordinates);
                 }
+            } else {
+                addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
         } else {
             buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
@@ -247,36 +249,30 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         .testImplementationDependency("Use the latest Groovy version for Spock testing",
                             "org.codehaus.groovy:groovy:" + libraryVersionProvider.getVersion("groovy"));
                 }
-                if (!buildScriptBuilder.isUsingTestSuites()) {
-                    buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
-                            "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
-                            "junit:junit:" + libraryVersionProvider.getVersion("junit"));
-                    buildScriptBuilder.taskMethodInvocation(
-                        "Use JUnit Platform for unit tests.",
-                        "test", "Test", "useJUnitPlatform");
-                }
+                buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
+                        "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
+                        "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.taskMethodInvocation(
+                    "Use JUnit Platform for unit tests.",
+                    "test", "Test", "useJUnitPlatform");
                 break;
             case TESTNG:
-                if (!buildScriptBuilder.isUsingTestSuites()) {
-                    buildScriptBuilder
-                        .testImplementationDependency(
-                            "Use TestNG framework, also requires calling test.useTestNG() below",
-                            "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
-                        .taskMethodInvocation(
-                            "Use TestNG for unit tests.",
-                            "test", "Test", "useTestNG");
-                }
+                buildScriptBuilder
+                    .testImplementationDependency(
+                        "Use TestNG framework, also requires calling test.useTestNG() below",
+                        "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
+                    .taskMethodInvocation(
+                        "Use TestNG for unit tests.",
+                        "test", "Test", "useTestNG");
                 break;
             case JUNIT_JUPITER:
-                if (!buildScriptBuilder.isUsingTestSuites()) {
-                    buildScriptBuilder.testImplementationDependency(
-                            "Use JUnit Jupiter for testing.",
-                            "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"));
+                buildScriptBuilder.testImplementationDependency(
+                        "Use JUnit Jupiter for testing.",
+                        "org.junit.jupiter:junit-jupiter:" + libraryVersionProvider.getVersion("junit-jupiter"));
 
-                    buildScriptBuilder.taskMethodInvocation(
-                        "Use JUnit Platform for unit tests.",
-                        "test", "Test", "useJUnitPlatform");
-                }
+                buildScriptBuilder.taskMethodInvocation(
+                    "Use JUnit Platform for unit tests.",
+                    "test", "Test", "useJUnitPlatform");
                 break;
             case SCALATEST:
                 String scalaVersion = libraryVersionProvider.getVersion("scala");
@@ -292,10 +288,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 break;
             case KOTLINTEST:
-                if (!buildScriptBuilder.isUsingTestSuites()) {
-                    buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
-                    buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
-                }
+                buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
+                buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
                 break;
             default:
                 buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
