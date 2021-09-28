@@ -61,6 +61,8 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
                 return buildScriptBuilder.testing().spockSuite(name);
             case KOTLINTEST:
                 return buildScriptBuilder.testing().kotlinTestSuite(name);
+            case TESTNG:
+                return buildScriptBuilder.testing().testNG(name);
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");
         }
