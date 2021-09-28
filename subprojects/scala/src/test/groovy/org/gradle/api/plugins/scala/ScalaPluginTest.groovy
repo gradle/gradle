@@ -134,21 +134,6 @@ class ScalaPluginTest {
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
-    @Test void addsScalaDoc3TasksToTheProject() {
-        scalaPlugin.apply(project)
-        project.repositories.mavenCentral()
-        project.dependencies.add('implementation', 'org.scala-lang:scala3-library_3:3.0.1')
-
-        def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
-        assertThat(task, instanceOf(ScalaDoc.class))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        // This assertion is a little tricky, because `task.source` is an empty list since we didn't compile these files, so we check here if [] == []
-        assertThat(task.source as List, equalTo(project.sourceSets.main.output.findAll { it.name.endsWith(".tasty") } as List)) // We take output of main (with tasty files)
-        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-    }
-
     @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 

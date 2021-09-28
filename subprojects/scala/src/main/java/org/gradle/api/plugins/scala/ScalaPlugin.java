@@ -71,8 +71,7 @@ public class ScalaPlugin implements Plugin<Project> {
                 return files;
             });
 
-            ScalaBasePlugin scalaBasePlugin = project.getPlugins().findPlugin(ScalaBasePlugin.class);
-            boolean isScala3 = scalaBasePlugin.isScala3(main.getCompileClasspath().getFiles());
+            boolean isScala3 = scalaDoc.getScalaRuntime().get().findScalaJar(main.getCompileClasspath().getFiles(), "library_3") != null;
 
             // Scaladoc 2 operates on source files, while Scaladoc 3 operates on generated TASTy files by the compiler
             FileTree source = isScala3 ? 

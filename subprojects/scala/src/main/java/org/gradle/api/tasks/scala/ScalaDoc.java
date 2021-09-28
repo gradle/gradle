@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
@@ -59,10 +60,13 @@ public class ScalaDoc extends SourceTask {
     private Boolean isScala3;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
+    private final Property<ScalaRuntime> scalaRuntime;
 
     public ScalaDoc() {
-        this.maxMemory = getObjectFactory().property(String.class);
-        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.maxMemory = objectFactory.property(String.class);
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
     }
 
     @Inject
@@ -154,14 +158,14 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns whether it is scala 3.
+     * Returns the Scala Runtime extension
+     *
      * @since 7.3
      */
+    @Internal
     @Incubating
-    @Optional
-    @Input
-    public Boolean getIsScala3() {
-        return isScala3;
+    public Property<ScalaRuntime> getScalaRuntime() {
+        return scalaRuntime;
     }
 
     /**
@@ -210,7 +214,7 @@ public class ScalaDoc extends SourceTask {
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
             parameters.getSources().from(getSource());
-            parameters.getIsScala3().set(getIsScala3());
+            parameters.getIsScala3().set(getScalaRuntime().get().findScalaJar(getScalaClasspath(), "library_3") != null);
 
             if (options.isDeprecation()) {
                 parameters.getOptions().add("-deprecation");
