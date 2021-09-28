@@ -131,7 +131,7 @@ class ConfigurationCacheState(
 
     private
     fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
-        graph.prepareTaskGraph { builder ->
+        graph.scheduleWork { builder ->
             builder.withWorkGraph(state.build.state) {
                 it.addNodes(state.workGraph)
             }

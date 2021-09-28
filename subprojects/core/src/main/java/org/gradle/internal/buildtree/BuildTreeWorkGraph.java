@@ -31,10 +31,10 @@ public interface BuildTreeWorkGraph {
      *
      * <p>This can be called only once for a given graph.</p>
      */
-    void prepareTaskGraph(Consumer<? super Builder> action);
+    void scheduleWork(Consumer<? super Builder> action);
 
     /**
-     * Runs any scheduled work, blocking until complete. Does nothing when {@link #prepareTaskGraph(Consumer)} has not been called to schedule the work.
+     * Runs any scheduled work, blocking until complete. Does nothing when {@link #scheduleWork(Consumer)} has not been called to schedule the work.
      *
      * <p>This can be called only once for a given graph.</p>
      */

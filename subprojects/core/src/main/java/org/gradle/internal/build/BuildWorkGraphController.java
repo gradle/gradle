@@ -19,7 +19,6 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.TaskInternal;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * Allows the work graph for a particular build in the build tree to be populated and executed.
@@ -28,34 +27,19 @@ public interface BuildWorkGraphController {
     /**
      * Locates a future task node in this build's work graph, for use from some other build's work graph.
      *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
+     * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
      */
     ExportedTaskNode locateTask(TaskInternal task);
 
     /**
      * Locates a future task node in this build's work graph, for use from some other build's work graph.
      *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
+     * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
      */
     ExportedTaskNode locateTask(String taskPath);
 
     /**
-     * Schedules the given tasks and all of their dependencies in this build's work graph.
+     * Creates a new, empty work graph for this build.
      */
-    boolean schedule(Collection<ExportedTaskNode> taskNodes);
-
-    /**
-     * Adds tasks and other nodes to this build's work graph.
-     */
-    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
-
-    /**
-     * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
-     */
-    void prepareForExecution();
-
-    /**
-     * Runs all currently scheduled tasks.
-     */
-    ExecutionResult<Void> execute();
+    BuildWorkGraph newWorkGraph();
 }

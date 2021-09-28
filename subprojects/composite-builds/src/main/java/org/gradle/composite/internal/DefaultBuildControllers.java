@@ -65,7 +65,7 @@ class DefaultBuildControllers implements BuildControllers {
         while (tasksDiscovered) {
             tasksDiscovered = false;
             for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
-                if (buildController.populateTaskGraph()) {
+                if (buildController.scheduleQueuedTasks()) {
                     tasksDiscovered = true;
                 }
             }
@@ -78,7 +78,7 @@ class DefaultBuildControllers implements BuildControllers {
     @Override
     public void startTaskExecution() {
         for (BuildController buildController : controllers.values()) {
-            buildController.startTaskExecution(executorService);
+            buildController.startExecution(executorService);
         }
     }
 
@@ -86,7 +86,7 @@ class DefaultBuildControllers implements BuildControllers {
     public ExecutionResult<Void> awaitTaskCompletion() {
         ExecutionResult<Void> result = ExecutionResult.succeeded();
         for (BuildController buildController : controllers.values()) {
-            result = result.withFailures(buildController.awaitTaskCompletion());
+            result = result.withFailures(buildController.awaitCompletion());
         }
         return result;
     }

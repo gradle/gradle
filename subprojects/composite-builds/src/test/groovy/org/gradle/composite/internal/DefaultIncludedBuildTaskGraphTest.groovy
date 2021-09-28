@@ -28,6 +28,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.build.IncludedBuildState
@@ -44,7 +45,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "does nothing when nothing scheduled"() {
         when:
         graph.withNewWorkGraph { g ->
-            g.prepareTaskGraph { b ->
+            g.scheduleWork { b ->
             }
             g.runWork().rethrow()
         }
@@ -56,18 +57,20 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "finalizes graph for a build when something scheduled"() {
         given:
         def id = Stub(BuildIdentifier)
-        def workGraph = Mock(BuildWorkGraphController)
-        def build = build(id, workGraph)
+        def workGraphController = Mock(BuildWorkGraphController)
+        def workGraph = Mock(BuildWorkGraph)
+        def build = build(id, workGraphController)
 
         when:
         graph.withNewWorkGraph { g ->
-            g.prepareTaskGraph { b ->
+            g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
             g.runWork().rethrow()
         }
 
         then:
+        1 * workGraphController.newWorkGraph() >> workGraph
         1 * workGraph.populateWorkGraph(_)
         1 * workGraph.prepareForExecution()
         1 * workGraph.execute() >> ExecutionResult.succeeded()
@@ -110,7 +113,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has been prepared for execution"() {
         when:
         graph.withNewWorkGraph { g ->
-            g.prepareTaskGraph {
+            g.scheduleWork {
             }
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
@@ -123,16 +126,18 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has started task execution"() {
         given:
         def id = Stub(BuildIdentifier)
-        def workGraph = Mock(BuildWorkGraphController)
-        def build = build(id, workGraph)
+        def workGraphController = Mock(BuildWorkGraphController)
+        def workGraph = Mock(BuildWorkGraph)
+        def build = build(id, workGraphController)
 
+        workGraphController.newWorkGraph() >> workGraph
         workGraph.execute() >> {
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
         when:
         graph.withNewWorkGraph { g ->
-            g.prepareTaskGraph { b ->
+            g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
             g.runWork().rethrow()
@@ -146,7 +151,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has completed task execution"() {
         when:
         graph.withNewWorkGraph { g ->
-            g.prepareTaskGraph {
+            g.scheduleWork {
             }
             g.runWork()
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()

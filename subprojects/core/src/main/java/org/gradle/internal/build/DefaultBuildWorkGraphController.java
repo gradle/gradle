@@ -57,7 +57,31 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     @Override
-    public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
+    public BuildWorkGraph newWorkGraph() {
+        return new BuildWorkGraph() {
+            @Override
+            public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
+                return doSchedule(taskNodes);
+            }
+
+            @Override
+            public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+                doPopulateWorkGraph(action);
+            }
+
+            @Override
+            public void prepareForExecution() {
+                doPrepareForExecution();
+            }
+
+            @Override
+            public ExecutionResult<Void> execute() {
+                return doExecute();
+            }
+        };
+    }
+
+    private boolean doSchedule(Collection<ExportedTaskNode> taskNodes) {
         List<Task> tasks = new ArrayList<>();
         for (ExportedTaskNode taskNode : taskNodes) {
             DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
@@ -80,23 +104,20 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         return true;
     }
 
-    @Override
-    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+    private void doPopulateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
         tasksScheduled = true;
         controller.prepareToScheduleTasks();
         controller.populateWorkGraph(action);
     }
 
-    @Override
-    public void prepareForExecution() {
+    private void doPrepareForExecution() {
         if (tasksScheduled) {
             controller.finalizeWorkGraph();
         }
         updateTasksPriorToExecution();
     }
 
-    @Override
-    public ExecutionResult<Void> execute() {
+    private ExecutionResult<Void> doExecute() {
         try {
             if (tasksScheduled) {
                 return controller.executeTasks();

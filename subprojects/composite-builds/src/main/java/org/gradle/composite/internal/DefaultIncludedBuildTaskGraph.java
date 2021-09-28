@@ -172,7 +172,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public void prepareTaskGraph(Consumer<? super Builder> action) {
+        public void scheduleWork(Consumer<? super Builder> action) {
             assertIsOwner();
             expectInState(State.NotPrepared);
             state = State.Preparing;

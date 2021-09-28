@@ -50,7 +50,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         }
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
-                graph.prepareTaskGraph(builder -> {
+                graph.scheduleWork(builder -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
                         buildTreeWorkGraphController.locateTask(task.left, task.right).queueForExecution();
                     }
