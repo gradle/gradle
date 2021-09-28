@@ -40,13 +40,11 @@ The build of Gradle enables the configuration cache by default as an experiment.
 
 Most frequent use cases when contributing support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
 
-The build is configured to fail if a problem is found. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
+The build is configured to fail if a task that is known to have problems is scheduled. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
 
-Tasks known to have problems:
+Tasks known to have problems are listed in the build logic. You can find this list at:
 
-- Core reporting tasks such as `dependencies`, `projects`, `properties` etc...
-- Documentation tasks such as `:docs:userguide*`, `:docs:*Sample*` and `:docs:*Snippet*` thus `:docs:docs`, `:docs:serveDocs`, `:docs:docsTest` and building the `-all` distribution. See `GradleBuildDocumentationConfigurationCacheSmokeTest` for what is supported in `:docs`.
-- Tasks from third parties plugins such as Spotless, Gradle Doctor etc...
+    build-logic-settings/cc-experiment-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
 
 For more information on the configuration cache, see the [user manual](https://docs.gradle.org/current/userguide/configuration_cache.html).
 

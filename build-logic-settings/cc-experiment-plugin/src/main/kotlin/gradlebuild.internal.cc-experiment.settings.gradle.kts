@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.initialization.StartParameterBuildOptions
+
+val startParameterInternal =
+    gradle.startParameter as StartParameterInternal
 
 val isConfigurationCacheEnabled: Boolean =
-    (gradle.startParameter as StartParameterInternal).configurationCache.get()
+    startParameterInternal.configurationCache.get()
 
-if (isConfigurationCacheEnabled) {
+val isConfigurationCacheProblemsFail: Boolean =
+    startParameterInternal.configurationCacheProblems == StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.FAIL
+
+if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
 
     val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         when {
@@ -30,27 +37,77 @@ if (isConfigurationCacheEnabled) {
                 "dependencyInsight",
                 "properties",
                 "projects",
-                "idea",
                 "kotlinDslAccessorsReport",
                 "outgoingVariants",
                 "javaToolchains",
+                "components",
+                "dependantComponents",
+                "model",
             ) -> true
             task.name.startsWith("publish") -> true
+            task.name.startsWith("idea") -> true
 
             // gradle/gradle build tasks
+            task.name in listOf(
+                "updateInitPluginTemplateVersionFile",
+                "buildshipEclipseProject",
+                "resolveAllDependencies",
+            ) -> true
             task.name.endsWith("Wrapper") -> true
             task.path.startsWith(":docs") -> {
                 when {
+                    task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
                     task.name.startsWith("userguide") -> true
                     task.name.contains("Sample") -> true
+                    task.name.contains("Snippet") -> true
                     else -> false
                 }
             }
-            task.name.contains("Performance") && task.name.contains("Test") -> true
+            task.path.startsWith(":performance") -> true
+            task.path.startsWith(":build-scan-performance") -> true
+            task.path.startsWith(":internal-android-performance-testing") -> true
 
             // Third parties tasks
-            task.name in listOf("login") -> true
+
+            // Publish plugin
+            task.name == "login" -> true
+
+            // Kotlin/JS
+            task.name in listOf("generateExternals") -> true
+
+            // JMH plugin
+            task.name in listOf("jmh", "jmhJar", "jmhReport") -> true
+
+            // Spotless plugin
             task.name.startsWith("spotless") -> true
+
+            // Gradle Doctor plugin
+            task.name in listOf(
+                "buildHealth",
+                "projectHealth",
+                "graph", "graphMain",
+                "projectGraphReport",
+                "ripples",
+                "aggregateAdvice",
+            ) -> true
+            task.name.startsWith("abiAnalysis") -> true
+            task.name.startsWith("advice") -> true
+            task.name.startsWith("analyzeClassUsage") -> true
+            task.name.startsWith("analyzeJar") -> true
+            task.name.startsWith("artifactsReport") -> true
+            task.name.startsWith("constantUsageDetector") -> true
+            task.name.startsWith("createVariantFiles") -> true
+            task.name.startsWith("findDeclaredProcs") -> true
+            task.name.startsWith("findUnusedProcs") -> true
+            task.name.startsWith("generalsUsageDetector") -> true
+            task.name.startsWith("importFinder") -> true
+            task.name.startsWith("inlineMemberExtractor") -> true
+            task.name.startsWith("locateDependencies") -> true
+            task.name.startsWith("misusedDependencies") -> true
+            task.name.startsWith("reason") -> true
+            task.name.startsWith("redundantKaptCheck") -> true
+            task.name.startsWith("redundantPluginAlert") -> true
+            task.name.startsWith("serviceLoader") -> true
 
             else -> false
         }
@@ -59,9 +116,12 @@ if (isConfigurationCacheEnabled) {
     gradle.taskGraph.whenReady {
         val unsupportedTasks = allTasks.filter(unsupportedTasksPredicate)
         if (unsupportedTasks.isNotEmpty()) {
+            val maxDisplayed = 5
+            val displayedTasks = unsupportedTasks.takeLast(maxDisplayed).reversed().joinToString(separator = ", ") { it.path } +
+                if (unsupportedTasks.size > maxDisplayed) " and more..."
+                else ""
             throw GradleException(
-                "Tasks unsupported with the configuration cache requested!\n" +
-                    "  ${unsupportedTasks.map { it.path }}\n" +
+                "Tasks unsupported with the configuration cache were scheduled: $displayedTasks\n" +
                     "\n" +
                     "  The gradle/gradle build enables the configuration cache as an experiment.\n" +
                     "  It seems you are using a feature of this build that is not yet supported.\n" +
