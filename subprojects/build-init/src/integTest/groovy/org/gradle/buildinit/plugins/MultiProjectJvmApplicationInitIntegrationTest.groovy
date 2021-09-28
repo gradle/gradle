@@ -118,3 +118,17 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         result.testClass(className).assertTestPassed(name)
     }
 }
+
+class GroovyDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+}
+
+class KotlinDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+}
