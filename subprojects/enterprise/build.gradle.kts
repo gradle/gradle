@@ -17,6 +17,8 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":snapshots"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
 
     testImplementation(project(":resources"))
 

@@ -16,8 +16,22 @@
 
 package org.gradle.internal.tasks;
 
-public interface TaskProperty {
+import java.io.File;
 
-    String getPropertyName();
-    
+public interface TestTaskProperties {
+
+    boolean isUsingJUnitPlatform();
+
+    long getForkEvery();
+
+    TestTaskFilters getFilters();
+
+    TestTaskForkOptions getForkOptions();
+
+    Iterable<File> getCandidateClassFiles();
+
+    Iterable<InputFileProperty> getInputFileProperties();
+
+    Iterable<OutputFileProperty> getOutputFileProperties();
+
 }

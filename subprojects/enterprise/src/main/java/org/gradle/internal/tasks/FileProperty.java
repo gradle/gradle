@@ -18,7 +18,9 @@ package org.gradle.internal.tasks;
 
 import java.io.File;
 
-public interface FileProperty extends TaskProperty {
+public interface FileProperty {
+
+    String getPropertyName();
 
     Iterable<File> getFiles();
 

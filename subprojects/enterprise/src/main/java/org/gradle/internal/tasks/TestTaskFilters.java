@@ -16,12 +16,22 @@
 
 package org.gradle.internal.tasks;
 
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import java.util.Set;
 
-@UsedByScanPlugin("test-distribution")
-public interface TaskPropertiesService {
+public interface TestTaskFilters {
 
-    TestTaskProperties collectProperties(Test task);
+    Set<String> getIncludePatterns();
+
+    Set<String> getExcludePatterns();
+
+    Set<String> getCommandLineIncludePatterns();
+
+    Set<String> getIncludeTags();
+
+    Set<String> getExcludeTags();
+
+    Set<String> getIncludeEngines();
+
+    Set<String> getExcludeEngines();
 
 }

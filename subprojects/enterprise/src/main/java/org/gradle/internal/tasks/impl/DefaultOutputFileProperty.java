@@ -20,13 +20,13 @@ import org.gradle.internal.tasks.OutputFileProperty;
 
 import java.io.File;
 
-public class DefaultOutputFileProperty implements OutputFileProperty {
+class DefaultOutputFileProperty implements OutputFileProperty {
 
     private final String propertyName;
     private final Iterable<File> files;
     private final TreeType treeType;
 
-    public DefaultOutputFileProperty(String propertyName, Iterable<File> files, TreeType treeType) {
+    DefaultOutputFileProperty(String propertyName, Iterable<File> files, TreeType treeType) {
         this.propertyName = propertyName;
         this.files = files;
         this.treeType = treeType;

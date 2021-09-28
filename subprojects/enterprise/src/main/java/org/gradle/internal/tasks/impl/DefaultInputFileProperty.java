@@ -20,12 +20,12 @@ import org.gradle.internal.tasks.InputFileProperty;
 
 import java.io.File;
 
-public class DefaultInputFileProperty implements InputFileProperty {
+class DefaultInputFileProperty implements InputFileProperty {
 
     private final String propertyName;
     private final Iterable<File> files;
 
-    public DefaultInputFileProperty(String propertyName, Iterable<File> files) {
+    DefaultInputFileProperty(String propertyName, Iterable<File> files) {
         this.propertyName = propertyName;
         this.files = files;
     }
