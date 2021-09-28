@@ -24,6 +24,4 @@ import org.gradle.internal.service.scopes.Scopes
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
-
-    val hasProblems: Boolean
 }

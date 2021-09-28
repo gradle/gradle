@@ -14,52 +14,62 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.operations.BuildOperationListenerManager
-import org.gradle.internal.operations.OperationFinishEvent
-import org.gradle.internal.operations.OperationIdentifier
-import org.gradle.internal.operations.OperationProgressEvent
-import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
-import org.gradle.kotlin.dsl.support.serviceOf
 
-plugins {
-    id("com.gradle.enterprise")
-}
+val isConfigurationCacheEnabled: Boolean =
+    (gradle.startParameter as StartParameterInternal).configurationCache.get()
 
-if ((gradle.startParameter as StartParameterInternal).configurationCache.get()) {
-    gradleEnterprise {
-        buildScan {
-            val buildOpListenerManager = gradle.serviceOf<BuildOperationListenerManager>()
-            val configCacheProblems = gradle.serviceOf<ProblemsListener>()
-            background {
-                buildOpListenerManager.addListener(object : BuildOperationListener {
+if (isConfigurationCacheEnabled) {
 
-                    override fun started(op: BuildOperationDescriptor, event: OperationStartEvent) = Unit
-                    override fun progress(id: OperationIdentifier, event: OperationProgressEvent) = Unit
+    val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
+        when {
 
-                    override fun finished(op: BuildOperationDescriptor, event: OperationFinishEvent) {
-                        when (event.result) {
-                            is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
-                                buildOpListenerManager.removeListener(this)
-                                // TODO if (!configCacheProblems.hasProblems) return
-                                value("configuration-cache:problems", "true")
-                                printProblemsHelp()
-                            }
-                        }
-                    }
+            // Core tasks
+            task.name in listOf(
+                "buildEnvironment",
+                "dependencies",
+                "dependencyInsight",
+                "properties",
+                "projects",
+                "idea",
+                "kotlinDslAccessorsReport",
+                "outgoingVariants"
+            ) -> true
+            task.name.startsWith("publish") -> true
 
-                    private
-                    fun printProblemsHelp() {
-                        val prefix = "CC>"
-                        println("$prefix The gradle/gradle build enables the configuration cache as an experiment. It seems you are using a feature of this build that is not yet supported.")
-                        println("$prefix You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.")
-                        println("$prefix Please see further instructions in CONTRIBUTING.md")
-                    }
-                })
+            // gradle/gradle build tasks
+            task.name.endsWith("Wrapper") -> true
+            task.path.startsWith(":docs") -> {
+                when {
+                    task.name.startsWith("userguide") -> true
+                    task.name.contains("Sample") -> true
+                    else -> false
+                }
             }
+            task.name.contains("Performance") && task.name.contains("Test") -> true
+
+            // Third parties tasks
+            task.name in listOf("login") -> true
+            task.name.startsWith("spotless") -> true
+
+            else -> false
+        }
+    }
+
+    gradle.taskGraph.whenReady {
+        val unsupportedTasks = allTasks.filter(unsupportedTasksPredicate)
+        if (unsupportedTasks.isNotEmpty()) {
+            throw GradleException(
+                "Tasks unsupported with the configuration cache requested!\n" +
+                    "  ${unsupportedTasks.map { it.path }}\n" +
+                    "\n" +
+                    "  The gradle/gradle build enables the configuration cache as an experiment.\n" +
+                    "  It seems you are using a feature of this build that is not yet supported.\n" +
+                    "\n" +
+                    "  You can disable the configuration cache with `--no-configuration-cache`.\n" +
+                    "  You can ignore problems with `--configuration-cache-problems=warn`.\n" +
+                    "\n" +
+                    "  Please see further instructions in CONTRIBUTING.md"
+            )
         }
     }
 }

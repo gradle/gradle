@@ -72,9 +72,6 @@ class ConfigurationCacheProblems(
         listenerManager.addListener(postBuildHandler)
     }
 
-    override val hasProblems: Boolean
-        get() = summarizer.get().problemCount > 0
-
     override fun close() {
         listenerManager.removeListener(postBuildHandler)
     }
