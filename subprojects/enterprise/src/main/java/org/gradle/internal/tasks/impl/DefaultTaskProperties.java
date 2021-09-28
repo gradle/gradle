@@ -24,19 +24,19 @@ import java.util.Set;
 
 public class DefaultTaskProperties implements TaskProperties {
 
-    private final Set<InputFileProperty> inputFiles;
-    private final Set<OutputFileProperty> outputFiles;
+    private final Set<InputFileProperty> inputFileProperties;
+    private final Set<OutputFileProperty> outputFileProperties;
 
-    DefaultTaskProperties(Set<InputFileProperty> inputFiles, Set<OutputFileProperty> outputFiles) {
-        this.inputFiles = inputFiles;
-        this.outputFiles = outputFiles;
+    DefaultTaskProperties(Set<InputFileProperty> inputFileProperties, Set<OutputFileProperty> outputFileProperties) {
+        this.inputFileProperties = inputFileProperties;
+        this.outputFileProperties = outputFileProperties;
     }
 
-    public Set<InputFileProperty> getInputFiles() {
-        return inputFiles;
+    public Set<InputFileProperty> getInputFileProperties() {
+        return inputFileProperties;
     }
 
-    public Set<OutputFileProperty> getOutputFiles() {
-        return outputFiles;
+    public Set<OutputFileProperty> getOutputFileProperties() {
+        return outputFileProperties;
     }
 }

@@ -53,8 +53,8 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
 
     @Override
     public TaskProperties collectProperties(Task task) {
-        ImmutableSet.Builder<InputFileProperty> inputFiles = ImmutableSet.builder();
-        ImmutableSet.Builder<OutputFileProperty> outputFiles = ImmutableSet.builder();
+        ImmutableSet.Builder<InputFileProperty> inputFileProperties = ImmutableSet.builder();
+        ImmutableSet.Builder<OutputFileProperty> outputFileProperties = ImmutableSet.builder();
         TaskPropertyUtils.visitProperties(propertyWalker, (TaskInternal) task, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputFileProperty(
@@ -70,7 +70,7 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
                 ContentTracking contentTracking
             ) {
                 FileCollection files = resolveLeniently(value);
-                inputFiles.add(new DefaultInputFileProperty(propertyName, files));
+                inputFileProperties.add(new DefaultInputFileProperty(propertyName, files));
             }
 
             @Override
@@ -85,10 +85,10 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
                 OutputFileProperty.TreeType treeType = filePropertyType.getOutputType() == TreeType.DIRECTORY
                     ? OutputFileProperty.TreeType.DIRECTORY
                     : OutputFileProperty.TreeType.FILE;
-                outputFiles.add(new DefaultOutputFileProperty(propertyName, files, treeType));
+                outputFileProperties.add(new DefaultOutputFileProperty(propertyName, files, treeType));
             }
         });
-        return new DefaultTaskProperties(inputFiles.build(), outputFiles.build());
+        return new DefaultTaskProperties(inputFileProperties.build(), outputFileProperties.build());
     }
 
     private FileCollection resolveLeniently(PropertyValue value) {

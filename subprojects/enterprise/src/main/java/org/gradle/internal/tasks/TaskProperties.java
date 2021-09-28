@@ -20,8 +20,8 @@ import java.util.Set;
 
 public interface TaskProperties {
 
-    Set<InputFileProperty> getInputFiles();
+    Set<InputFileProperty> getInputFileProperties();
 
-    Set<OutputFileProperty> getOutputFiles();
+    Set<OutputFileProperty> getOutputFileProperties();
 
 }
