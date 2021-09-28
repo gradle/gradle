@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
@@ -32,15 +32,15 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.tasks.InputFileProperty;
-import org.gradle.internal.tasks.OutputFileProperty;
-import org.gradle.internal.tasks.TaskPropertiesService;
-import org.gradle.internal.tasks.TestTaskFilters;
-import org.gradle.internal.tasks.TestTaskForkOptions;
-import org.gradle.internal.tasks.TestTaskProperties;
+import org.gradle.internal.enterprise.test.InputFileProperty;
+import org.gradle.internal.enterprise.test.OutputFileProperty;
+import org.gradle.internal.enterprise.test.TaskPropertiesService;
+import org.gradle.internal.enterprise.test.TestTaskFilters;
+import org.gradle.internal.enterprise.test.TestTaskProperties;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 
 import javax.annotation.Nullable;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.tasks.TestTaskFilters;
+import org.gradle.internal.enterprise.test.TestTaskFilters;
 
 import java.util.Set;
 

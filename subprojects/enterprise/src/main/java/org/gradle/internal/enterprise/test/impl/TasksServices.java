@@ -14,29 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
-import org.gradle.internal.tasks.InputFileProperty;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
-import java.io.File;
-
-class DefaultInputFileProperty implements InputFileProperty {
-
-    private final String propertyName;
-    private final Iterable<File> files;
-
-    DefaultInputFileProperty(String propertyName, Iterable<File> files) {
-        this.propertyName = propertyName;
-        this.files = files;
-    }
+public class TasksServices extends AbstractPluginServiceRegistry {
 
     @Override
-    public String getPropertyName() {
-        return propertyName;
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultTaskPropertiesService.class);
     }
 
-    @Override
-    public Iterable<File> getFiles() {
-        return files;
-    }
 }

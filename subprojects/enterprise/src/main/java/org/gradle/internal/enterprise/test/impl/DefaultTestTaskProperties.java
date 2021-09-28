@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.tasks.InputFileProperty;
-import org.gradle.internal.tasks.OutputFileProperty;
-import org.gradle.internal.tasks.TestTaskFilters;
-import org.gradle.internal.tasks.TestTaskForkOptions;
-import org.gradle.internal.tasks.TestTaskProperties;
+import org.gradle.internal.enterprise.test.InputFileProperty;
+import org.gradle.internal.enterprise.test.TestTaskFilters;
+import org.gradle.internal.enterprise.test.TestTaskForkOptions;
+import org.gradle.internal.enterprise.test.TestTaskProperties;
+import org.gradle.internal.enterprise.test.OutputFileProperty;
 
 import java.io.File;
 

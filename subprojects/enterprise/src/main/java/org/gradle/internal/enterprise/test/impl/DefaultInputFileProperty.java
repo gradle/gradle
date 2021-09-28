@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test.impl;
 
-public interface OutputFileProperty extends FileProperty {
+import org.gradle.internal.enterprise.test.InputFileProperty;
 
-    TreeType getTreeType();
+import java.io.File;
 
-    enum TreeType {
-        FILE,
-        DIRECTORY
+class DefaultInputFileProperty implements InputFileProperty {
+
+    private final String propertyName;
+    private final Iterable<File> files;
+
+    DefaultInputFileProperty(String propertyName, Iterable<File> files) {
+        this.propertyName = propertyName;
+        this.files = files;
     }
 
+    @Override
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    @Override
+    public Iterable<File> getFiles() {
+        return files;
+    }
 }

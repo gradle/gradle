@@ -15,6 +15,6 @@
  */
 
 @NonNullApi
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test;
 
 import org.gradle.api.NonNullApi;

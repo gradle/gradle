@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test;
 
-import org.gradle.api.NonNullApi;
+import java.util.Set;
+
+public interface TestTaskFilters {
+
+    Set<String> getIncludePatterns();
+
+    Set<String> getExcludePatterns();
+
+    Set<String> getCommandLineIncludePatterns();
+
+    Set<String> getIncludeTags();
+
+    Set<String> getExcludeTags();
+
+    Set<String> getIncludeEngines();
+
+    Set<String> getExcludeEngines();
+
+}

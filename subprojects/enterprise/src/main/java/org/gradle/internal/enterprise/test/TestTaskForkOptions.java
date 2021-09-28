@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test;
 
-public interface InputFileProperty extends FileProperty {
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+public interface TestTaskForkOptions {
+
+    File getWorkingDir();
+
+    String getExecutable();
+
+    Iterable<File> getClasspath();
+
+    Iterable<File> getModulePath();
+
+    List<String> getJvmArgs();
+
+    Map<String, String> getEnvironment();
+
 }

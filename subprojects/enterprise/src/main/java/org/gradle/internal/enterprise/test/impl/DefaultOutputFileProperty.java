@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
-import org.gradle.internal.tasks.OutputFileProperty;
+import org.gradle.internal.enterprise.test.OutputFileProperty;
 
 import java.io.File;
 

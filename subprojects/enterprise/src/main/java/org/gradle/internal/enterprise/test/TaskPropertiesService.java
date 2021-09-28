@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test;
 
-import java.io.File;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
-public interface FileProperty {
+public interface TaskPropertiesService {
 
-    String getPropertyName();
-
-    Iterable<File> getFiles();
+    @UsedByScanPlugin("test-distribution")
+    TestTaskProperties collectProperties(Test task);
 
 }

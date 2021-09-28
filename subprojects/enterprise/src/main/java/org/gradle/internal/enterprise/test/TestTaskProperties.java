@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test;
 
 import java.io.File;
 

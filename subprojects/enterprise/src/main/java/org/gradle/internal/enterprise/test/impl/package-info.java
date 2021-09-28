@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+@NonNullApi
+package org.gradle.internal.enterprise.test.impl;
 
-import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-
-public class TasksServices extends AbstractPluginServiceRegistry {
-
-    @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultTaskPropertiesService.class);
-    }
-
-}
+import org.gradle.api.NonNullApi;

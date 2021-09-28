@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks.impl;
+package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.tasks.TestTaskForkOptions;
+import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 
 import java.io.File;
 import java.util.List;

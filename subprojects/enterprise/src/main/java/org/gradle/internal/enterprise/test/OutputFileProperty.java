@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.tasks;
+package org.gradle.internal.enterprise.test;
 
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.scan.UsedByScanPlugin;
+public interface OutputFileProperty extends FileProperty {
 
-@UsedByScanPlugin("test-distribution")
-public interface TaskPropertiesService {
+    TreeType getTreeType();
 
-    TestTaskProperties collectProperties(Test task);
+    enum TreeType {
+        FILE,
+        DIRECTORY
+    }
 
 }
