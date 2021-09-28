@@ -26,9 +26,11 @@ import java.util.Optional;
 
 public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
+    public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.documentationRegistry = documentationRegistry;
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -61,9 +63,9 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
 
         final BuildScriptBuilder.Expression functionalTestSourceSet;
         if (settings.isUseTestSuites()) {
-            configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
+            configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
 
-            addTestSuite("functionalTest", buildScriptBuilder, settings.getTestFramework());
+            addTestSuite("functionalTest", buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
             functionalTestSourceSet = buildScriptBuilder.containerElementExpression("sourceSets", "functionalTest");
         } else {
             functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");

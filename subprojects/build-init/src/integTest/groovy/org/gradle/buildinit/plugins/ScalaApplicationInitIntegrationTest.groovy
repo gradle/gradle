@@ -28,9 +28,9 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     String subprojectName() { 'app' }
 
     @Unroll
-    def "creates sample source if no source present with #scriptDsl build scripts"() {
+    def "creates sample source if no source present with #scriptDsl build scripts when incubating=#incubating"() {
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
+        run(['init', '--type', 'scala-application', '--dsl', scriptDsl.id] + (incubating ? ['--incubating'] : []))
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -52,7 +52,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains("Hello, world!")
 
         where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [true, false]].combinations()
     }
 
     @Unroll

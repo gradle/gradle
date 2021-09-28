@@ -43,15 +43,15 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         return Optional.empty();
     }
 
-    protected BuildScriptBuilder.SuiteSpec configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        return addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
+    protected BuildScriptBuilder.SuiteSpec configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
+        return addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework, libraryVersionProvider);
     }
 
-    protected BuildScriptBuilder.SuiteSpec addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        return addTestSuite("integrationTest", buildScriptBuilder, testFramework);
+    protected BuildScriptBuilder.SuiteSpec addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
+        return addTestSuite("integrationTest", buildScriptBuilder, testFramework, libraryVersionProvider);
     }
 
-    protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+    protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
         switch (testFramework) {
             case JUNIT:
                 return buildScriptBuilder.testing().junitSuite(name);
@@ -63,6 +63,18 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
                 return buildScriptBuilder.testing().kotlinTestSuite(name);
             case TESTNG:
                 return buildScriptBuilder.testing().testNG(name);
+            case SCALATEST:
+                BuildScriptBuilder.SuiteSpec suiteSpec = buildScriptBuilder.testing().junitSuite(name);
+                String scalaVersion = libraryVersionProvider.getVersion("scala");
+                String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
+                String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");
+                String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
+                suiteSpec.getDependencies().dependency("implementation", "Use Scalatest for testing our library",
+                        "org.scalatest:scalatest_" + scalaVersion + ":" + scalaTestVersion,
+                        "org.scalatestplus:junit-4-13_" + scalaVersion + ":" + scalaTestPlusJunitVersion);
+                suiteSpec.getDependencies().dependency("runtimeOnly", "Need scala-xml at test runtime",
+                        "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
+                return suiteSpec;
             default:
                 throw new IllegalArgumentException(testFramework + " is not yet supported.");
         }

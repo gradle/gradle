@@ -67,7 +67,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         assertTestsDidNotRun("some.thing.LibraryTest")
         assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
-        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "gradleWebsiteIsReachable")
+        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

@@ -1108,7 +1108,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
+    public static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
         final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
         final ListMultimap<String, Statement> constraints = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
@@ -1318,6 +1318,10 @@ public class BuildScriptBuilder {
         @Override
         public Type type() {
             return Type.Group;
+        }
+
+        public DependenciesBlock getDependencies() {
+            return dependencies;
         }
 
         @Override

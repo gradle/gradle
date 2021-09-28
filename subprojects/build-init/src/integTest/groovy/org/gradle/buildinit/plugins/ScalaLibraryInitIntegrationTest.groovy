@@ -28,9 +28,9 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     String subprojectName() { 'lib' }
 
     @Unroll
-    def "creates sample source if no source present with #scriptDsl build scripts"() {
+    def "creates sample source if no source present with #scriptDsl build scripts when incubating=#incubating"() {
         when:
-        run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
+        run(['init', '--type', 'scala-library', '--dsl', scriptDsl.id] + (incubating ? ['--incubating'] : []) )
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
@@ -46,7 +46,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertTestPassed("some.thing.LibrarySuite", "someLibraryMethod is always true")
 
         where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [true, false]].combinations()
     }
 
     @Unroll

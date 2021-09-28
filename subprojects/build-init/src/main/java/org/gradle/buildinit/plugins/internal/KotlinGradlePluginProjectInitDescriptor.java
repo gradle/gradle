@@ -27,7 +27,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
     public KotlinGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
+        super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
 

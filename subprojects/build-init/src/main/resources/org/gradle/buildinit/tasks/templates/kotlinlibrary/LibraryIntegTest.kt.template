@@ -3,7 +3,7 @@
  */
 ${packageDecl.statement}
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class LibraryIntegTest {
     @Test fun someLibraryMethodReturnsTrue() {

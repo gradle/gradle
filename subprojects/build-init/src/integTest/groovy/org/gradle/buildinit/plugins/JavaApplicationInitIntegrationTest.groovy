@@ -68,7 +68,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         assertTestsDidNotRun("some.thing.AppTest")
         assertIntegrationTestsDoNotExist("some.thing.AppTest")
-        assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
+        assertIntegrationTestPassed("some.thing.AppIntegTest", "appCanRunInEnvironment")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

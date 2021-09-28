@@ -27,7 +27,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
     public JavaGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
+        super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
 

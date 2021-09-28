@@ -105,8 +105,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             addStandardDependencies(buildScriptBuilder, false);
 
             if (settings.isUseTestSuites()) {
-                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
-                addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
+                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
+                addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
             } else {
                 addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
@@ -123,9 +123,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             addDependencyConstraints(buildScriptBuilder);
 
             if (settings.isUseTestSuites()) {
-                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
+                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
 
-                BuildScriptBuilder.SuiteSpec integrationTest = addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
+                BuildScriptBuilder.SuiteSpec integrationTest = addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
                 if (getLanguage() == Language.GROOVY) {
                     String groovyVersion = libraryVersionProvider.getVersion("groovy");
                     String groovyAllCoordinates = "org.codehaus.groovy:groovy-all:" + groovyVersion;
