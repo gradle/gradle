@@ -38,7 +38,7 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 
 The build of Gradle enables the configuration cache by default as an experiment.
 
-Most frequent use cases when contributing support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
+Most use cases support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
 
 The build is configured to fail if a task that is known to have problems is scheduled. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
 
