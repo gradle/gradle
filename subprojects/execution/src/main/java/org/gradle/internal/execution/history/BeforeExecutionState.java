@@ -24,9 +24,12 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import java.util.Optional;
 
 /**
- * The execution state before the current execution.
+ * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} before execution.
  */
 public interface BeforeExecutionState extends InputExecutionState {
+    /**
+     * {@inheritDoc}
+     */
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 

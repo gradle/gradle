@@ -20,6 +20,11 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+/**
+ * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} after it has been executed.
+ *
+ * Execution here might also mean being up-to-date or loaded from cache.
+ */
 public interface AfterExecutionState extends InputExecutionState, OutputExecutionState {
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
