@@ -34,6 +34,22 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 
 ## Making Changes
 
+### Configuration cache enabled by default
+
+The build of Gradle enables the configuration cache by default as an experiment.
+
+Most frequent use cases when contributing support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
+
+The build is configured to fail if a problem is found. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
+
+Tasks known to have problems:
+
+- Core reporting tasks such as `dependencies`, `projects`, `properties` etc...
+- Documentation tasks such as `:docs:userguide*`, `:docs:*Sample*` and `:docs:*Snippet*` thus `:docs:docs`, `:docs:serveDocs`, `:docs:docsTest` and building the `-all` distribution. See `GradleBuildDocumentationConfigurationCacheSmokeTest` for what is supported in `:docs`.
+- Tasks from third parties plugins such as Spotless, Gradle Doctor etc...
+
+For more information on the configuration cache, see the [user manual](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
 ### Installing from source
 
 To create an install from the source tree you can run either of the following:
