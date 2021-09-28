@@ -45,7 +45,7 @@ If you're currently using Maven, see a visual link:{website}/maven-vs-gradle/[Gr
 
 Gradle supports many major IDEs, including **Android Studio, Eclipse, IntelliJ IDEA, Visual Studio 2019, and XCode**.
 You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> in your terminal or through your continuous integration server.
-link:https://scans.gradle.com/[Gradle build scans] help you understand build results, improve build performance, and collaborate to fix problems faster.
+link:https://scans.gradle.com/[Gradle Build Scan™] help you understand build results, improve build performance, and collaborate to fix problems faster.
 
 ++++
 <div class="ui-logos">
