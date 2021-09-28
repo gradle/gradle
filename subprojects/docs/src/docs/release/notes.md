@@ -35,34 +35,33 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features and usability improvements
 
+<a name="java17"></a>
 ### Support for Java 17
 
 Gradle 7.3 supports compiling, testing and running on Java 17.
 
-<a name="tooling-api"></a>
-### Tooling API improvements
-
-TBD - The tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
-and Buildship to integrate Gradle into the IDE.
-
-#### File download progress events
-
-TBD - some build may download many files or very large files, for example when resolving many dependencies, and this
-may cause Gradle builds to be slow. This release adds new events that notify the embedding IDE as files such as
-dependency artifacts are downloaded. This allows the IDE to show better progress information Gradle is running.
-
 <a name="scala"></a>
-### Scala plugin improvements
+### Scala 3 support
 
 Scala plugin allows users to compile their Scala code using Gradle and the Zinc incremental compiler underneath.
-
-#### Scala 3 support
 
 Newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing
 Scala 2 code. Due to some large changes in the compiler it was neccessary to adjust the Scala plugin
 to be able to compile Scala 3 code. All existing configuration options should still be usable with the newest
 language version. To see more about the language features go to
 [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
+
+<a name="test-suites"></a>
+### Declarative test suites in JVM projects (incubating)
+
+TBD - description of test suites feature, link to new chapter and short example here
+
+### Discover new APIs with `gradle init`
+
+TBD - `--incubating` flag lets you generate projects with new but unstable APIs
+
+<a name="test-suites"></a>
+## Reliability improvements
 
 ### Allow copying single files into directories which contain unreadable files.
 
@@ -77,22 +76,28 @@ See the samples in the user manual about [Deploying single files into applicatio
 ### More robust file system watching
 
 When running an incremental build, Gradle needs to understand what has changed since the previous build on the file system.
+
 To do this it tries to rely on the operating system's [file system events](userguide/gradle_daemon.html#sec:daemon_watch_fs) whenever possible.
 However, these events can be unreliable in some environments, which could cause Gradle to ignore some changes.
-To prevent this, Gradle now makes a change to the file system whenever it first starts watching something.
+
+To prevent this, Gradle now makes a change to the file system whenever it first starts watching a directory on that file system.
 If a file system event for this change does not arrive by the start of the next build, Gradle concludes that file system events are unreliable, and will fall back to checking the file system for files involved in the build for changes.  
 
 ### Input normalization support in configuration cache
-The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization
-rules when the configuration cache is enabled, leading to fewer rebuilds.
 
-### Declarative test suites in JVM projects
+The [input normalization](userguide/more_about_tasks.html#sec:configure_input_normalization) is now correctly tracked by the experimental [configuration cache](userguide/configuration_cache.html). Task up-to-date checks now consider normalization rules when the configuration cache is enabled, leading to fewer rebuilds.
 
-TBD 
+<a name="tooling-api"></a>
+## Tooling API improvements
 
-### Generate new projects with new but unstable features
+The Tooling API allows applications to embed Gradle. This API is used by IDEs such as IDEA, Android Studio
+and Buildship to integrate Gradle into the IDE.
 
-TBD 
+### File download progress events
+
+When a build downloads many files or very large files, for example when resolving dependencies, Gradle may appear to be unresponsive due to the lack of any logging or console output. 
+
+This release adds new events that notify the IDE as files are downloaded. This allows the IDE to show better progress information while Gradle is running and during IDE import/sync.
 
 <a name="plugin-development-improvements"></a>
 ## Plugin development improvements
@@ -100,17 +105,18 @@ TBD
 <a name="untracked"></a>
 ### Allow plugin authors to declare inputs or outputs as untracked
 
-For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task.
-Though it is not always desirable or possible for Gradle to fully track the state of the input and output files.
+For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task. It is not always desirable or possible for Gradle to fully track the state of the input and output files.
+
 For example:
 - The location contains unreadable files like pipes where Gradle cannot track the content.
 - Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
 - The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
 Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) and the method [TaskFilePropertyBuilder.untracked()](javadoc/org/gradle/api/tasks/TaskFilePropertyBuilder.html##untracked--) to declare that Gradle should not track the state of the input or output property.
-This allows implementing the above use-cases.
-If a task has any untracked properties, then Gradle does not do any optimizations for running the task.
-For example, such a task will always be out of date and never from the build cache.
+This allows tasks to implement the above use-cases.
+
+If a task has any untracked properties, then Gradle does not do any optimizations when running the task. 
+For example, such a task will always be out of date and never come from the build cache.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
 
