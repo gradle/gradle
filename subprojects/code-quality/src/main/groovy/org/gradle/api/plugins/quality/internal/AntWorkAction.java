@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
@@ -30,7 +29,6 @@ import org.gradle.workers.WorkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.lang.reflect.Method;
 import java.util.Vector;
 
