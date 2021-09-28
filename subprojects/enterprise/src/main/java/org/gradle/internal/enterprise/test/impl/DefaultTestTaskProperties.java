@@ -19,10 +19,10 @@ package org.gradle.internal.enterprise.test.impl;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.enterprise.test.InputFileProperty;
+import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
-import org.gradle.internal.enterprise.test.OutputFileProperty;
 
 import java.io.File;
 
