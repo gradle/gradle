@@ -197,12 +197,13 @@ fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.
 }
 
 fun Project.extractWatchFsData() {
-    gradle.serviceOf<BuildOperationListenerManager>().let { listenerManager ->
-        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, buildScan))
+    val listenerManager = gradle.serviceOf<BuildOperationListenerManager>()
+    buildScan?.background {
+        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, this))
     }
 }
 
-open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension?) : BuildOperationListener {
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
 
     override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
     }
@@ -215,13 +216,13 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
             is RunBuildBuildOperationType.Result -> buildOperationListenerManager.removeListener(this)
             is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
                 if (result.isWatchingEnabled) {
-                    buildScan?.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
                     result.statistics?.let {
-                        buildScan?.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
-                        buildScan?.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
-                        buildScan?.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
-                        buildScan?.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
-                        buildScan?.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
+                        buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
+                        buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
+                        buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
+                        buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                        buildScan.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
                     }
                 }
             }
