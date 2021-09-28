@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tasks.impl;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.tasks.InputFileProperty;
 import org.gradle.internal.tasks.OutputFileProperty;
 import org.gradle.internal.tasks.TaskProperties;
@@ -24,10 +25,10 @@ import java.util.Set;
 
 public class DefaultTaskProperties implements TaskProperties {
 
-    private final Set<InputFileProperty> inputFileProperties;
-    private final Set<OutputFileProperty> outputFileProperties;
+    private final ImmutableSet<InputFileProperty> inputFileProperties;
+    private final ImmutableSet<OutputFileProperty> outputFileProperties;
 
-    DefaultTaskProperties(Set<InputFileProperty> inputFileProperties, Set<OutputFileProperty> outputFileProperties) {
+    DefaultTaskProperties(ImmutableSet<InputFileProperty> inputFileProperties, ImmutableSet<OutputFileProperty> outputFileProperties) {
         this.inputFileProperties = inputFileProperties;
         this.outputFileProperties = outputFileProperties;
     }
