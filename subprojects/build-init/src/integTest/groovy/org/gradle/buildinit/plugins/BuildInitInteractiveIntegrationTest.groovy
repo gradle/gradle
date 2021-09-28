@@ -33,11 +33,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'app' }
 
-    def "prompts user when run from an interactive session, when incubating flag = #incubating"() {
+    def "prompts user when run from an interactive session"() {
         when:
         executer.withForceInteractive(true)
         executer.withStdinPipe()
-        executer.withTasks(['init'] + (incubating ? ['--incubating'] : []))
+        executer.withTasks("init")
         def handle = executer.start()
 
         // Select 'basic'
@@ -59,13 +59,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
-        if (!incubating) {
-            // Select 'no'
-            ConcurrentTestUtil.poll(60) {
-                assert handle.standardOutput.contains(incubatingPrompt)
-            }
-            handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
         }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -77,9 +75,25 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
 
-        where:
-        incubating << [true, false]
+    def "does not prompt for options provided on the command-line"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--incubating", "--dsl", "kotlin", "--type", "basic")
+        def handle = executer.start()
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
     def "user can provide details for JVM based build"() {
