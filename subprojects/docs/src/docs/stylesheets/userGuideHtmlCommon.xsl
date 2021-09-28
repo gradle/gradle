@@ -211,7 +211,7 @@
                     <div class="site-footer__link-group">
                         <header><strong>Products</strong></header>
                         <ul class="site-footer__links-list">
-                            <li itemprop="name"><a href="https://gradle.com/build-scans" itemprop="url">Build Scans</a></li>
+                            <li itemprop="name"><a href="https://gradle.com/build-scans" itemprop="url">Build Scan™</a></li>
                             <li itemprop="name"><a href="https://gradle.com/build-cache" itemprop="url">Build Cache</a></li>
                             <li itemprop="name"><a href="https://gradle.com/enterprise/resources" itemprop="url">Enterprise Docs</a></li>
                         </ul>
