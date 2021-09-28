@@ -156,9 +156,9 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         skipOutcome.get() == SHORT_CIRCUITED
     }
 
-    def "skips when work has empty sources and removes previous outputs"() {
-        def previousExecutionState = Stub(PreviousExecutionState)
+    def "skips when work has empty sources and previous outputs (#description)"() {
         def previousOutputFile = file("output.txt").createFile()
+        def previousExecutionState = Stub(PreviousExecutionState)
         def outputFileSnapshots = snapshot(previousOutputFile)
         def outputFileSnapshot = outputFileSnapshots.output
 
@@ -191,153 +191,59 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
 
         and:
-        1 * outputsCleaner.didWork >> true
+        1 * outputsCleaner.didWork >> didWork
         0 * _
 
         then:
-        skipOutcome.get() == EXECUTED_NON_INCREMENTALLY
-    }
+        skipOutcome.get() == outcome
 
-    // TODO Convert these tests
-/*
-    def "does not delete previous output when they are not safe to delete"() {
-        given:
-        def previousFile = temporaryFolder.createFile("output.txt")
-        def previousOutputFiles = fingerprint(previousFile)
-
-        when:
-        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
-
-        then:
-        outcome.get() == ExecutionOutcome.SHORT_CIRCUITED
-
-        and:
-        1 * sourceFiles.empty >> true
-
-        then:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
-
-        then:
-        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
-
-        then:
-        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
-
-        then:
-        previousFile.exists()
-        0 * _
-    }
-
-    def "does not delete non-empty directories"() {
-        given:
-        def outputFiles = []
-
-        def outputDir = temporaryFolder.createDir("rootDir")
-        outputFiles << outputDir.file("some-output.txt")
-
-        def subDir = outputDir.createDir("subDir")
-        outputFiles << subDir.file("in-subdir.txt")
-
-        def outputFile = temporaryFolder.createFile("output.txt")
-        outputFiles << outputFile
-
-        outputFiles.each {
-            it << "output ${it.name}"
-        }
-
-        def previousOutputFiles = fingerprint(outputDir, outputFile)
-
-        def overlappingFile = subDir.file("overlap")
-        overlappingFile << "overlapping file"
-
-        when:
-        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
-
-        then:
-        outcome.get() == ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-
-        and:
-        1 * sourceFiles.empty >> true
-
-        then:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(outputDir, outputFile))
-
-        then:
-        _ * cleanupRegistry.isOutputOwnedByBuild(subDir) >> true
-        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir) >> true
-        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir.parentFile) >> false
-        outputFiles.each {
-            1 * cleanupRegistry.isOutputOwnedByBuild(it) >> true
-        }
-        outputDir.exists()
-        subDir.exists()
-        overlappingFile.exists()
-        outputFiles.each {
-            assert !it.exists()
-        }
-
-        then:
-        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
-
-        then:
-        0 * _
+        where:
+        didWork | outcome
+        true    | EXECUTED_NON_INCREMENTALLY
+        false   | SHORT_CIRCUITED
+        description = didWork ? "removed files" : "no files removed"
     }
 
     def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
-        given:
-        def previousFile = temporaryFolder.createFile("output.txt")
-        def previousOutputFiles = fingerprint(previousFile)
+        def previousExecutionState = Stub(PreviousExecutionState)
+        def previousOutputFile = file("output.txt").createFile()
+        def outputFileSnapshots = snapshot(previousOutputFile)
+        def outputFileSnapshot = outputFileSnapshots.output
+        def ioException = new IOException("Couldn't delete file")
 
         when:
-        skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, previousOutputFiles)
+        step.execute(work, context)
+
+        then:
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
+        _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
+        _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+
+        1 * sourceFileFingerprint.empty >> true
+
+        and:
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+
+        and:
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
 
         then:
         def ex = thrown Exception
-        ex.message.contains("Couldn't delete ${previousFile.absolutePath}")
-
-        and:
-        1 * sourceFiles.empty >> true
-
-        then:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
-
-        then: "deleting the previous file fails"
-        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
-            // Convert file into directory here, so that deletion in DefaultEmptySourceTaskSkipper fails
-            assert previousFile.delete()
-            previousFile.file("subdir/inSubdir.txt") << "inSubdir"
-            return true
-        }
+        ex.message.contains("Couldn't delete file")
+        ex.cause == ioException
     }
-
-    def "does not skip when sourceFiles are not empty"() {
-        when:
-        def outcome = skipper.skipIfEmptySources(task, true, inputFiles, sourceFiles, [:])
-
-        then:
-        !outcome.present
-
-        and:
-        1 * sourceFiles.empty >> false
-
-        then:
-        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
-        0 * _
-    }
-
-    def "does not skip when it has not declared any source files"() {
-        when:
-        def outcome = skipper.skipIfEmptySources(task, false, inputFiles, sourceFiles, [:])
-
-        then:
-        !outcome.present
-
-        and:
-        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
-        0 * _
-    }
-
- */
 
     private static Set<String> rootPaths(File... files) {
         files*.absolutePath as Set
