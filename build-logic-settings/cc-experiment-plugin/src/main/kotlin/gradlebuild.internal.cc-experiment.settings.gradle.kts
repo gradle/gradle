@@ -30,6 +30,10 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
     val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         when {
 
+            // Working tasks that would otherwise be matched by filters below
+            task.name in listOf("publishLocalPublicationToLocalRepository", "validateExternalPlugins") -> false
+            task.name.startsWith("validatePluginWithId") -> false
+
             // Core tasks
             task.name in listOf(
                 "buildEnvironment",
