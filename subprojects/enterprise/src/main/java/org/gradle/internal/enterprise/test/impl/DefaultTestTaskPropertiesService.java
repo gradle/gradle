@@ -34,7 +34,7 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
-import org.gradle.internal.enterprise.test.TaskPropertiesService;
+import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
@@ -52,14 +52,14 @@ import java.util.function.Function;
 import static java.util.Objects.requireNonNull;
 import static org.gradle.internal.Cast.uncheckedCast;
 
-public class DefaultTaskPropertiesService implements TaskPropertiesService {
+public class DefaultTestTaskPropertiesService implements TestTaskPropertiesService {
 
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private final JvmVersionDetector jvmVersionDetector;
 
     @Inject
-    public DefaultTaskPropertiesService(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, JvmVersionDetector jvmVersionDetector) {
+    public DefaultTestTaskPropertiesService(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, JvmVersionDetector jvmVersionDetector) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         this.jvmVersionDetector = jvmVersionDetector;
