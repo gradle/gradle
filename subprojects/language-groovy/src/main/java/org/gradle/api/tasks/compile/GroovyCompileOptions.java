@@ -293,6 +293,11 @@ public class GroovyCompileOptions extends AbstractOptions {
         this.optimizationOptions = optimizationOptions;
     }
 
+    /**
+     * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
+     *
+     * @see <a href="https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set)">CompilerConfiguration</a>
+     */
     @Input
     public SetProperty<String> getDisabledGlobalASTTransformations() {
         return disabledGlobalASTTransformations;
