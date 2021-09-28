@@ -28,6 +28,7 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
 
     private final File workingDir;
     private final String executable;
+    private final int javaMajorVersion;
     private final Iterable<File> classpath;
     private final Iterable<File> modulePath;
     private final List<String> jvmArgs;
@@ -36,6 +37,7 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
     DefaultTestTaskForkOptions(
         File workingDir,
         String executable,
+        int javaMajorVersion,
         Iterable<File> classpath,
         Iterable<File> modulePath,
         List<String> jvmArgs,
@@ -43,6 +45,7 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
     ) {
         this.workingDir = workingDir;
         this.executable = executable;
+        this.javaMajorVersion = javaMajorVersion;
         this.classpath = classpath;
         this.modulePath = modulePath;
         this.jvmArgs = ImmutableList.copyOf(jvmArgs);
@@ -57,6 +60,11 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
     @Override
     public String getExecutable() {
         return executable;
+    }
+
+    @Override
+    public int getJavaMajorVersion() {
+        return javaMajorVersion;
     }
 
     @Override

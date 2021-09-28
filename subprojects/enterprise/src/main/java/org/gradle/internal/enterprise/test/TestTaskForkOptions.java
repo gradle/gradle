@@ -26,6 +26,8 @@ public interface TestTaskForkOptions {
 
     String getExecutable();
 
+    int getJavaMajorVersion();
+
     Iterable<File> getClasspath();
 
     Iterable<File> getModulePath();

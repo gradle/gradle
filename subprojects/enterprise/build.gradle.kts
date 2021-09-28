@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":file-collections"))
+    implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":logging"))
     implementation(project(":model-core"))

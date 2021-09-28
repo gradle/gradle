@@ -41,6 +41,7 @@ import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TaskPropertiesService;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 
 import javax.annotation.Nullable;
@@ -55,11 +56,13 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
 
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
+    private final JvmVersionDetector jvmVersionDetector;
 
     @Inject
-    public DefaultTaskPropertiesService(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskPropertiesService(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, JvmVersionDetector jvmVersionDetector) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     @Override
@@ -138,13 +141,19 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
     private TestTaskForkOptions collectForkOptions(Test task) {
         JvmTestExecutionSpec executionSpec = task.createTestExecutionSpec();
         DefaultJavaForkOptions forkOptions = (DefaultJavaForkOptions) executionSpec.getJavaForkOptions();
+        String executable = forkOptions.getExecutable();
         return new DefaultTestTaskForkOptions(
             forkOptions.getWorkingDir(),
-            forkOptions.getExecutable(),
+            executable,
+            detectJavaVersion(executable),
             requireNonNull(uncheckedCast(executionSpec.getClasspath())),
             requireNonNull(uncheckedCast(executionSpec.getModulePath())),
             forkOptions.getAllJvmArgs(),
             forkOptions.getActualEnvironment()
         );
+    }
+
+    private int detectJavaVersion(String executable) {
+        return Integer.parseInt(jvmVersionDetector.getJavaVersion(executable).getMajorVersion());
     }
 }
