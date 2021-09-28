@@ -19,6 +19,7 @@ package gradlebuild.docs;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -47,11 +49,14 @@ public abstract class GenerateDocInfo extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getDestinationDirectory();
 
+    @Inject
+    protected abstract FileSystemOperations getFs();
+
     @TaskAction
     public void generate() {
         // TODO: This could probably use InputChanges API
         File destinationDirectory = getDestinationDirectory().get().getAsFile();
-        getProject().delete(destinationDirectory);
+        getFs().delete(spec -> spec.delete(destinationDirectory));
         destinationDirectory.mkdirs();
 
         Path adocDir = getDocumentationRoot().get().getAsFile().toPath();
