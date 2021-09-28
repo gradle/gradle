@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.initialization.StartParameterBuildOptions
 
 val startParameterInternal =
@@ -31,7 +32,10 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
         when {
 
             // Working tasks that would otherwise be matched by filters below
-            task.name in listOf("publishLocalPublicationToLocalRepository", "validateExternalPlugins") -> false
+            task.name in listOf(
+                "publishLocalPublicationToLocalRepository",
+                "validateExternalPlugins",
+            ) -> false
             task.name.startsWith("validatePluginWithId") -> false
 
             // Core tasks
@@ -48,8 +52,11 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
                 "dependantComponents",
                 "model",
             ) -> true
-            task.name.startsWith("publish") -> true
-            task.name.startsWith("idea") -> true
+            task.name.startsWithAnyOf(
+                "publish",
+                "idea",
+            ) -> true
+            task is GradleBuild -> true
 
             // gradle/gradle build tasks
             task.name in listOf(
@@ -58,18 +65,20 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
                 "resolveAllDependencies",
             ) -> true
             task.name.endsWith("Wrapper") -> true
-            task.path.startsWith(":docs") -> {
-                when {
-                    task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
-                    task.name.startsWith("userguide") -> true
-                    task.name.contains("Sample") -> true
-                    task.name.contains("Snippet") -> true
-                    else -> false
-                }
-            }
-            task.path.startsWith(":performance") -> true
-            task.path.startsWith(":build-scan-performance") -> true
-            task.path.startsWith(":internal-android-performance-testing") -> true
+            task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
+            task.name.startsWith("userguide") -> true
+            task.name.contains("Sample") -> true
+            task.name.contains("Snippet") -> true
+            task.typeSimpleName in listOf(
+                "KtsProjectGeneratorTask",
+                "JavaExecProjectGeneratorTask",
+                "JvmProjectGeneratorTask",
+                "NativeProjectGeneratorTask",
+                "MonolithicNativeProjectGeneratorTask",
+                "NativeProjectWithDepsGeneratorTask",
+                "CppMultiProjectGeneratorTask",
+                "BuildBuilderGenerator",
+            ) -> true
 
             // Third parties tasks
 
@@ -94,24 +103,26 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
                 "ripples",
                 "aggregateAdvice",
             ) -> true
-            task.name.startsWith("abiAnalysis") -> true
-            task.name.startsWith("advice") -> true
-            task.name.startsWith("analyzeClassUsage") -> true
-            task.name.startsWith("analyzeJar") -> true
-            task.name.startsWith("artifactsReport") -> true
-            task.name.startsWith("constantUsageDetector") -> true
-            task.name.startsWith("createVariantFiles") -> true
-            task.name.startsWith("findDeclaredProcs") -> true
-            task.name.startsWith("findUnusedProcs") -> true
-            task.name.startsWith("generalsUsageDetector") -> true
-            task.name.startsWith("importFinder") -> true
-            task.name.startsWith("inlineMemberExtractor") -> true
-            task.name.startsWith("locateDependencies") -> true
-            task.name.startsWith("misusedDependencies") -> true
-            task.name.startsWith("reason") -> true
-            task.name.startsWith("redundantKaptCheck") -> true
-            task.name.startsWith("redundantPluginAlert") -> true
-            task.name.startsWith("serviceLoader") -> true
+            task.name.startsWithAnyOf(
+                "abiAnalysis",
+                "advice",
+                "analyzeClassUsage",
+                "analyzeJar",
+                "artifactsReport",
+                "constantUsageDetector",
+                "createVariantFiles",
+                "findDeclaredProcs",
+                "findUnusedProcs",
+                "generalsUsageDetector",
+                "importFinder",
+                "inlineMemberExtractor",
+                "locateDependencies",
+                "misusedDependencies",
+                "reason",
+                "redundantKaptCheck",
+                "redundantPluginAlert",
+                "serviceLoader",
+            ) -> true
 
             else -> false
         }
@@ -138,3 +149,10 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
         }
     }
 }
+
+
+fun String.startsWithAnyOf(vararg prefixes: String): Boolean =
+    prefixes.any { prefix -> startsWith(prefix) }
+
+val Task.typeSimpleName: String
+    get() = DslObject(this).declaredType.simpleName
