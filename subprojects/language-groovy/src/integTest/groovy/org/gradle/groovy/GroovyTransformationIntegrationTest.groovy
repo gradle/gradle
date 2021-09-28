@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ GroovyCoverage.SUPPORTS_PARAMETERS })
+@TargetCoverage({ GroovyCoverage.SUPPORTS_DISABLING_AST_TRANSFORMATIONS })
 @Issue('https://github.com/gradle/gradle/issues/1031')
 class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
 
