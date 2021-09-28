@@ -32,7 +32,8 @@ if (isConfigurationCacheEnabled) {
                 "projects",
                 "idea",
                 "kotlinDslAccessorsReport",
-                "outgoingVariants"
+                "outgoingVariants",
+                "javaToolchains",
             ) -> true
             task.name.startsWith("publish") -> true
 
