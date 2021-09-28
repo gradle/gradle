@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release adds [support for building projects with Java 17](#java17), [introduces a declarative test suite API](#test-suites) for JVM projects and updates the Scala plugin to support [Scala 3](#scala).
+
+There are also changes to make builds [more reliable](#reliability), provide [additional details to IDEs when downloading dependencies](#tooling-api), improve [untracked files in custom plugins](#untracked), several [bug fixes](#fixed-issues) and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -60,7 +62,7 @@ TBD - description of test suites feature, link to new chapter and short example 
 
 TBD - `--incubating` flag lets you generate projects with new but unstable APIs
 
-<a name="test-suites"></a>
+<a name="reliability"></a>
 ## Reliability improvements
 
 ### Allow copying single files into directories which contain unreadable files.
@@ -99,7 +101,6 @@ When a build downloads many files or very large files, for example when resolvin
 
 This release adds new events that notify the IDE as files are downloaded. This allows the IDE to show better progress information while Gradle is running and during IDE import/sync.
 
-<a name="plugin-development-improvements"></a>
 ## Plugin development improvements
 
 <a name="untracked"></a>
