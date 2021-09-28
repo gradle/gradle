@@ -26,7 +26,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
@@ -48,12 +48,12 @@ import java.util.Set;
 @ServiceScope(Scopes.Gradle.class)
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
-    private final IncludedBuildTaskGraph taskGraph;
+    private final BuildTreeWorkGraphController taskGraph;
     private final GradleInternal thisBuild;
     private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
 
-    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, IncludedBuildTaskGraph taskGraph) {
+    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, BuildTreeWorkGraphController taskGraph) {
         this.thisBuild = thisBuild;
         this.documentationRegistry = documentationRegistry;
         this.taskGraph = taskGraph;

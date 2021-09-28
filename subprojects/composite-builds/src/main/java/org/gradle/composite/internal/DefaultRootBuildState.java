@@ -32,8 +32,8 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraph;
-import org.gradle.internal.build.DefaultBuildWorkGraph;
+import org.gradle.internal.build.BuildWorkGraphController;
+import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
@@ -59,7 +59,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final BuildWorkGraph workGraph;
+    private final BuildWorkGraphController workGraph;
     private boolean completed;
 
     DefaultRootBuildState(
@@ -82,7 +82,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
-        this.workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        this.workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
     }
 
     @Override
@@ -96,7 +96,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public BuildWorkGraph getWorkGraph() {
+    public BuildWorkGraphController getWorkGraph() {
         return workGraph;
     }
 

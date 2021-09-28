@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
-public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
+public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphController, Closeable {
     private enum State {
         NotPrepared, Preparing, ReadyToRun, Running, Finished
     }

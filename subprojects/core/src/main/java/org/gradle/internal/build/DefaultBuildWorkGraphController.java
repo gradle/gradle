@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class DefaultBuildWorkGraph implements BuildWorkGraph {
+public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
     private final Object lock = new Object();
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new HashMap<>();
     private final TaskExecutionGraphInternal taskGraph;
@@ -38,7 +38,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     private final BuildLifecycleController controller;
     private boolean tasksScheduled;
 
-    public DefaultBuildWorkGraph(TaskExecutionGraphInternal taskGraph, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
+    public DefaultBuildWorkGraphController(TaskExecutionGraphInternal taskGraph, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
         this.taskGraph = taskGraph;
         this.projectStateRegistry = projectStateRegistry;
         this.controller = controller;
@@ -170,7 +170,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
         public TaskInternal getTask() {
             synchronized (lock) {
                 if (task == null) {
-                    task = DefaultBuildWorkGraph.this.getTask(taskPath);
+                    task = DefaultBuildWorkGraphController.this.getTask(taskPath);
                 }
                 return task;
             }

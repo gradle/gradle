@@ -29,7 +29,7 @@ public interface IncludedBuildTaskResource {
     }
 
     /**
-     * Queues a task for execution, but does not schedule it. Use {@link IncludedBuildTaskGraph#runScheduledTasks(Consumer)} or {@link IncludedBuildTaskGraph#populateTaskGraphs()} to schedule tasks.
+     * Queues a task for execution, but does not schedule it. Use {@link org.gradle.internal.buildtree.BuildTreeWorkGraph#prepareTaskGraph(Consumer)} to schedule queued tasks.
      */
     void queueForExecution();
 

@@ -21,7 +21,10 @@ import org.gradle.api.internal.TaskInternal;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public interface BuildWorkGraph {
+/**
+ * Allows the work graph for a particular build in the build tree to be populated and executed.
+ */
+public interface BuildWorkGraphController {
     /**
      * Locates a future task node in this build's work graph, for use from some other build's work graph.
      *

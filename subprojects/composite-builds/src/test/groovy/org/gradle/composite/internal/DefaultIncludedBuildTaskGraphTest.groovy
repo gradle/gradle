@@ -28,7 +28,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.BuildWorkGraph
+import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -56,7 +56,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "finalizes graph for a build when something scheduled"() {
         given:
         def id = Stub(BuildIdentifier)
-        def workGraph = Mock(BuildWorkGraph)
+        def workGraph = Mock(BuildWorkGraphController)
         def build = build(id, workGraph)
 
         when:
@@ -123,7 +123,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has started task execution"() {
         given:
         def id = Stub(BuildIdentifier)
-        def workGraph = Mock(BuildWorkGraph)
+        def workGraph = Mock(BuildWorkGraphController)
         def build = build(id, workGraph)
 
         workGraph.execute() >> {
@@ -157,10 +157,10 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         e.message == "Work graph is in an unexpected state: Finished"
     }
 
-    BuildState build(BuildIdentifier id, BuildWorkGraph workGraph = null) {
+    BuildState build(BuildIdentifier id, BuildWorkGraphController workGraph = null) {
         def build = Mock(IncludedBuildState)
         _ * build.buildIdentifier >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraph))
+        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
         _ * buildStateRegistry.getBuild(id) >> build
         return build
     }

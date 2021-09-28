@@ -17,7 +17,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
@@ -34,7 +34,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private final BuildLifecycleController buildLifecycleController;
-    private final IncludedBuildTaskGraph taskGraph;
+    private final BuildTreeWorkGraphController taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
@@ -43,7 +43,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
-        IncludedBuildTaskGraph taskGraph,
+        BuildTreeWorkGraphController taskGraph,
         BuildTreeWorkPreparer workPreparer,
         BuildTreeWorkExecutor workExecutor,
         BuildTreeModelCreator modelCreator,

@@ -108,5 +108,5 @@ public interface BuildState {
     /**
      * Returns the work graph for this build.
      */
-    BuildWorkGraph getWorkGraph();
+    BuildWorkGraphController getWorkGraph();
 }

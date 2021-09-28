@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resources.ResourceLock;
@@ -34,7 +34,7 @@ import java.util.List;
 public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
-        IncludedBuildTaskGraph taskGraph
+        BuildTreeWorkGraphController taskGraph
     ) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, task);
@@ -44,7 +44,7 @@ public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         String taskPath,
         BuildIdentifier targetBuild,
-        IncludedBuildTaskGraph taskGraph
+        BuildTreeWorkGraphController taskGraph
     ) {
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskPath);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));

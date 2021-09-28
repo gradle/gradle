@@ -28,7 +28,7 @@ import java.util.function.Function;
  * A service that allows work graphs to be created, populated and executed.
  */
 @ServiceScope(Scopes.BuildTree.class)
-public interface IncludedBuildTaskGraph {
+public interface BuildTreeWorkGraphController {
     /**
      * Locates a task node in another build's work graph. Does not schedule the task for execution, use {@link IncludedBuildTaskResource#queueForExecution()} to queue the task for execution.
      */

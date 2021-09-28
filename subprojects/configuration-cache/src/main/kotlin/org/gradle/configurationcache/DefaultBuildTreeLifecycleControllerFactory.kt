@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.extensions.get
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -33,12 +33,12 @@ import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class DefaultBuildTreeLifecycleControllerFactory(
-    private val buildModelParameters: BuildModelParameters,
-    private val cache: BuildTreeConfigurationCache,
-    private val taskGraph: IncludedBuildTaskGraph,
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val projectLeaseRegistry: ProjectLeaseRegistry,
-    private val stateTransitionControllerFactory: StateTransitionControllerFactory
+        private val buildModelParameters: BuildModelParameters,
+        private val cache: BuildTreeConfigurationCache,
+        private val taskGraph: BuildTreeWorkGraphController,
+        private val buildOperationExecutor: BuildOperationExecutor,
+        private val projectLeaseRegistry: ProjectLeaseRegistry,
+        private val stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : BuildTreeLifecycleControllerFactory {
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Currently, apply the decoration only to the root build, as the cache implementation is still scoped to the root build

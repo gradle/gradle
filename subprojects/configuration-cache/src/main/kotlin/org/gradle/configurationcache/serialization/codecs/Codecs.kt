@@ -33,7 +33,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
@@ -81,32 +81,32 @@ import java.io.Externalizable
 
 
 class Codecs(
-    directoryFileTreeFactory: DirectoryFileTreeFactory,
-    fileCollectionFactory: FileCollectionFactory,
-    artifactSetConverter: ArtifactSetToFileCollectionFactory,
-    fileLookup: FileLookup,
-    propertyFactory: PropertyFactory,
-    filePropertyFactory: FilePropertyFactory,
-    fileResolver: FileResolver,
-    instantiator: Instantiator,
-    listenerManager: ListenerManager,
-    taskNodeFactory: TaskNodeFactory,
-    inputFingerprinter: InputFingerprinter,
-    buildOperationExecutor: BuildOperationExecutor,
-    classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    isolatableFactory: IsolatableFactory,
-    managedFactoryRegistry: ManagedFactoryRegistry,
-    parameterScheme: ArtifactTransformParameterScheme,
-    actionScheme: ArtifactTransformActionScheme,
-    attributesFactory: ImmutableAttributesFactory,
-    valueSourceProviderFactory: ValueSourceProviderFactory,
-    calculatedValueContainerFactory: CalculatedValueContainerFactory,
-    patternSetFactory: Factory<PatternSet>,
-    fileOperations: FileOperations,
-    fileFactory: FileFactory,
-    includedTaskGraph: IncludedBuildTaskGraph,
-    buildStateRegistry: BuildStateRegistry,
-    documentationRegistry: DocumentationRegistry,
+        directoryFileTreeFactory: DirectoryFileTreeFactory,
+        fileCollectionFactory: FileCollectionFactory,
+        artifactSetConverter: ArtifactSetToFileCollectionFactory,
+        fileLookup: FileLookup,
+        propertyFactory: PropertyFactory,
+        filePropertyFactory: FilePropertyFactory,
+        fileResolver: FileResolver,
+        instantiator: Instantiator,
+        listenerManager: ListenerManager,
+        taskNodeFactory: TaskNodeFactory,
+        inputFingerprinter: InputFingerprinter,
+        buildOperationExecutor: BuildOperationExecutor,
+        classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+        isolatableFactory: IsolatableFactory,
+        managedFactoryRegistry: ManagedFactoryRegistry,
+        parameterScheme: ArtifactTransformParameterScheme,
+        actionScheme: ArtifactTransformActionScheme,
+        attributesFactory: ImmutableAttributesFactory,
+        valueSourceProviderFactory: ValueSourceProviderFactory,
+        calculatedValueContainerFactory: CalculatedValueContainerFactory,
+        patternSetFactory: Factory<PatternSet>,
+        fileOperations: FileOperations,
+        fileFactory: FileFactory,
+        includedTaskGraph: BuildTreeWorkGraphController,
+        buildStateRegistry: BuildStateRegistry,
+        documentationRegistry: DocumentationRegistry,
 ) {
 
     val userTypesCodec = BindingsBackedCodec {

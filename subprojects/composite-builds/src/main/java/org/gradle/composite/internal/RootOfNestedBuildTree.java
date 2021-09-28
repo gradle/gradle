@@ -34,8 +34,8 @@ import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraph;
-import org.gradle.internal.build.DefaultBuildWorkGraph;
+import org.gradle.internal.build.BuildWorkGraphController;
+import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -66,7 +66,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     private final BuildState owner;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final DefaultBuildWorkGraph workGraph;
+    private final DefaultBuildWorkGraphController workGraph;
     private String buildName;
     private final BuildTreeState buildTree;
     private final BuildScopeServices buildServices;
@@ -100,7 +100,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
-        workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
     }
 
     public void attach() {
@@ -113,7 +113,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public BuildWorkGraph getWorkGraph() {
+    public BuildWorkGraphController getWorkGraph() {
         return workGraph;
     }
 

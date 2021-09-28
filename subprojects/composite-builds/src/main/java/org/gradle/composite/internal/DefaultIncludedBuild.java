@@ -29,8 +29,8 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildWorkGraph;
-import org.gradle.internal.build.DefaultBuildWorkGraph;
+import org.gradle.internal.build.BuildWorkGraphController;
+import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
@@ -52,7 +52,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     private final BuildLifecycleController buildLifecycleController;
     private final IncludedBuildImpl model;
-    private final DefaultBuildWorkGraph workGraph;
+    private final DefaultBuildWorkGraphController workGraph;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
@@ -74,7 +74,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner, buildScopeServices);
-        this.workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        this.workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 
@@ -182,7 +182,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public BuildWorkGraph getWorkGraph() {
+    public BuildWorkGraphController getWorkGraph() {
         return workGraph;
     }
 

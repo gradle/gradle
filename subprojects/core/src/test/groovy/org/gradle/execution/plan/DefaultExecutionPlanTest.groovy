@@ -24,7 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -42,7 +42,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
-        def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(IncludedBuildTaskGraph))
+        def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)))
         _ * workerLease.tryLock() >> true
