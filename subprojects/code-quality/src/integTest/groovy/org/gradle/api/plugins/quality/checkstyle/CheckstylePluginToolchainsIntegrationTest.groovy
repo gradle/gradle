@@ -39,10 +39,10 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         writeBuildFile(jdk)
 
         when:
-        def result = executer.withArgument("--info").withTasks("checkstyleMain").run()
+        succeeds("checkstyleMain")
 
         then:
-        result.output.contains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
+        outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
     }
 
     def "should not use toolchains if toolchain JDK matches current running JDK"() {
@@ -55,10 +55,10 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         writeBuildFile(jdk)
 
         when:
-        def result = executer.withArgument("--info").withTasks("checkstyleMain").run()
+        succeeds("checkstyleMain")
 
         then:
-        !result.output.contains("Running checkstyle with toolchain")
+        outputDoesNotContain("Running checkstyle with toolchain")
     }
 
     def "analyze good code"() {

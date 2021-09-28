@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
