@@ -24,7 +24,17 @@ public interface AfterExecutionState extends InputExecutionState, OutputExecutio
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
+    /**
+     * The origin metadata of the outputs captured.
+     *
+     * This might come from the current execution, or a previous one.
+     *
+     * @see #isReused()
+     */
     OriginMetadata getOriginMetadata();
 
+    /**
+     * Whether the outputs come from a previous execution.
+     */
     boolean isReused();
 }
