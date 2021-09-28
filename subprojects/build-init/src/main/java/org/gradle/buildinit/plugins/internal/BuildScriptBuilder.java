@@ -172,6 +172,10 @@ public class BuildScriptBuilder {
 
     public void dependencyForSuite(String suite, String configuration, String comment, String... dependencies) {
         final SuiteSpec targetSuite = block.testing.suites.stream().filter((SuiteSpec s) -> s.getName().equals(suite)).findFirst().orElseThrow(() -> new IllegalArgumentException("Unknown suite: " + suite));
+        dependencyForSuite(targetSuite, configuration, comment, dependencies);
+    }
+
+    public void dependencyForSuite(SuiteSpec targetSuite, String configuration, String comment, String... dependencies) {
         targetSuite.dependencies.dependency(configuration, comment, dependencies);
     }
 
@@ -1253,7 +1257,6 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec testNG(String name) {
-
             final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, builder);
             suites.add(spec);
             return spec;

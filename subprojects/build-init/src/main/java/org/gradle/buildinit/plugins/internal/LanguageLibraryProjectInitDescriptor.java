@@ -43,12 +43,12 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         return Optional.empty();
     }
 
-    protected void configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
+    protected BuildScriptBuilder.SuiteSpec configureDefaultTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        return addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework);
     }
 
-    protected void addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
-        addTestSuite("integrationTest", buildScriptBuilder, testFramework);
+    protected BuildScriptBuilder.SuiteSpec addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {
+        return addTestSuite("integrationTest", buildScriptBuilder, testFramework);
     }
 
     protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework) {

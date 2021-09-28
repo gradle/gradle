@@ -121,6 +121,21 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             addStandardDependencies(buildScriptBuilder, true);
             addDependencyConstraints(buildScriptBuilder);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
+
+            if (settings.isUseTestSuites()) {
+                configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework());
+
+                BuildScriptBuilder.SuiteSpec integrationTest = addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework());
+                if (getLanguage() == Language.GROOVY) {
+                    String groovyVersion = libraryVersionProvider.getVersion("groovy");
+                    String groovyAllCoordinates = "org.codehaus.groovy:groovy-all:" + groovyVersion;
+                    buildScriptBuilder.dependencyForSuite(integrationTest, "implementation", null, groovyAllCoordinates);
+                } else if (getLanguage() == Language.SCALA) {
+                    String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
+                    String scalaCoordinates = "org.scala-lang:scala-library:" + scalaLibraryVersion;
+                    buildScriptBuilder.dependencyForSuite(integrationTest, "implementation", null, scalaCoordinates);
+                }
+            }
         } else {
             buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
             if ("library".equals(conventionPluginName)) {
