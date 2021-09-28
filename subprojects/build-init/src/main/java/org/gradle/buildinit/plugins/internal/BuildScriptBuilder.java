@@ -1348,13 +1348,6 @@ public class BuildScriptBuilder {
                 return JUNIT_PLATFORM;
             }
 
-            public MethodInvocationExpression getMethodInvocation() {
-                return method;
-            }
-
-            public String getImplementationDependency() {
-                return framework.getDependency();
-            }
         }
     }
 
