@@ -17,10 +17,9 @@
 package org.gradle.internal.tasks;
 
 import java.io.File;
-import java.util.Set;
 
 public interface FileProperty extends TaskProperty {
 
-    Set<File> getFiles();
+    Iterable<File> getFiles();
 
 }

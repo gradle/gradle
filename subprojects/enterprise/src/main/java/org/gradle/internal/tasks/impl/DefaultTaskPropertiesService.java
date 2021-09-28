@@ -18,6 +18,7 @@ package org.gradle.internal.tasks.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
@@ -38,10 +39,6 @@ import org.gradle.internal.tasks.TaskPropertiesService;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
-import java.util.Set;
-
-import static java.util.Collections.emptySet;
 
 public class DefaultTaskPropertiesService implements TaskPropertiesService {
 
@@ -72,7 +69,7 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
                 InputFilePropertyType filePropertyType,
                 ContentTracking contentTracking
             ) {
-                Set<File> files = resolveLeniently(value);
+                FileCollection files = resolveLeniently(value);
                 inputFiles.add(new DefaultInputFileProperty(propertyName, files));
             }
 
@@ -84,7 +81,7 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
                 PropertyValue value,
                 OutputFilePropertyType filePropertyType
             ) {
-                Set<File> files = resolveLeniently(value);
+                FileCollection files = resolveLeniently(value);
                 OutputFileProperty.TreeType treeType = filePropertyType.getOutputType() == TreeType.DIRECTORY
                     ? OutputFileProperty.TreeType.DIRECTORY
                     : OutputFileProperty.TreeType.FILE;
@@ -94,8 +91,8 @@ public class DefaultTaskPropertiesService implements TaskPropertiesService {
         return new DefaultTaskProperties(inputFiles.build(), outputFiles.build());
     }
 
-    private Set<File> resolveLeniently(PropertyValue value) {
+    private FileCollection resolveLeniently(PropertyValue value) {
         Object sources = value.call();
-        return sources == null ? emptySet() : fileCollectionFactory.resolvingLeniently(sources).getFiles();
+        return sources == null ? fileCollectionFactory.empty() : fileCollectionFactory.resolvingLeniently(sources);
     }
 }

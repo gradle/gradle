@@ -19,15 +19,14 @@ package org.gradle.internal.tasks.impl;
 import org.gradle.internal.tasks.OutputFileProperty;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultOutputFileProperty implements OutputFileProperty {
 
     private final String propertyName;
-    private final Set<File> files;
+    private final Iterable<File> files;
     private final TreeType treeType;
 
-    public DefaultOutputFileProperty(String propertyName, Set<File> files, TreeType treeType) {
+    public DefaultOutputFileProperty(String propertyName, Iterable<File> files, TreeType treeType) {
         this.propertyName = propertyName;
         this.files = files;
         this.treeType = treeType;
@@ -39,7 +38,7 @@ public class DefaultOutputFileProperty implements OutputFileProperty {
     }
 
     @Override
-    public Set<File> getFiles() {
+    public Iterable<File> getFiles() {
         return files;
     }
 

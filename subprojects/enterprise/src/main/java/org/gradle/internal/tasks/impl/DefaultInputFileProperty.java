@@ -19,14 +19,13 @@ package org.gradle.internal.tasks.impl;
 import org.gradle.internal.tasks.InputFileProperty;
 
 import java.io.File;
-import java.util.Set;
 
 public class DefaultInputFileProperty implements InputFileProperty {
 
     private final String propertyName;
-    private final Set<File> files;
+    private final Iterable<File> files;
 
-    public DefaultInputFileProperty(String propertyName, Set<File> files) {
+    public DefaultInputFileProperty(String propertyName, Iterable<File> files) {
         this.propertyName = propertyName;
         this.files = files;
     }
@@ -37,7 +36,7 @@ public class DefaultInputFileProperty implements InputFileProperty {
     }
 
     @Override
-    public Set<File> getFiles() {
+    public Iterable<File> getFiles() {
         return files;
     }
 }
