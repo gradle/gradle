@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.function.Function;
 
 /**
- * This should evolve to represent a build tree task graph (that is, should also manage the tasks of the root build).
+ * A service that allows work graphs to be created, populated and executed.
  */
 @ServiceScope(Scopes.BuildTree.class)
 public interface IncludedBuildTaskGraph {
@@ -40,11 +40,8 @@ public interface IncludedBuildTaskGraph {
     IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath);
 
     /**
-     * Runs the given action against a new, empty task graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run buildSrc tasks or
-     * to build local plugins.
-     *
-     * It would be better if this method were to act on a "build tree task graph" object that can be populated, executed and then discarded. However, quite a few consumers
-     * of this type and {@link org.gradle.execution.taskgraph.TaskExecutionGraphInternal} assume that there is a single reusable instance of these types available as services.
+     * Runs the given action against a new, empty work graph. This allows tasks to be run while calculating the task graph of the build tree, for example to run `buildSrc` tasks or
+     * to build local plugins in an included build.
      */
-    <T> T withNewTaskGraph(Function<? super BuildTreeWorkGraph, T> action);
+    <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action);
 }

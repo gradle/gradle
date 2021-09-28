@@ -43,7 +43,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "does nothing when nothing scheduled"() {
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             g.prepareTaskGraph { b ->
             }
             g.runWork().rethrow()
@@ -60,7 +60,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         def build = build(id, workGraph)
 
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             g.prepareTaskGraph { b ->
                 b.withWorkGraph(build) {}
             }
@@ -79,17 +79,17 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotCreated"
+        e.message == "No work graph available."
     }
 
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
-        graph.withNewTaskGraph { 12 }
+        graph.withNewWorkGraph { 12 }
         graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotCreated"
+        e.message == "No work graph available."
     }
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
@@ -98,7 +98,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         def build = build(id)
 
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             graph.locateTask(id, ":task").queueForExecution()
         }
 
@@ -109,7 +109,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             g.prepareTaskGraph {
             }
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
@@ -131,7 +131,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         }
 
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             g.prepareTaskGraph { b ->
                 b.withWorkGraph(build) {}
             }
@@ -140,12 +140,12 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "This task graph is already in use."
+        e.message == "Current thread is not the owner of this work graph."
     }
 
     def "cannot schedule tasks when graph has completed task execution"() {
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             g.prepareTaskGraph {
             }
             g.runWork()

@@ -49,7 +49,7 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             }
         }
         if (!tasksToBuild.isEmpty()) {
-            includedBuildTaskGraph.withNewTaskGraph(graph -> {
+            includedBuildTaskGraph.withNewWorkGraph(graph -> {
                 graph.prepareTaskGraph(builder -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
                         includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();

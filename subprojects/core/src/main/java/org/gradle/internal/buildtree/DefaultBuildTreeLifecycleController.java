@@ -85,7 +85,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private ExecutionResult<Void> doScheduleAndRunTasks() {
-        return taskGraph.withNewTaskGraph(graph -> {
+        return taskGraph.withNewWorkGraph(graph -> {
             workPreparer.scheduleRequestedTasks(graph);
             return workExecutor.execute(graph);
         });

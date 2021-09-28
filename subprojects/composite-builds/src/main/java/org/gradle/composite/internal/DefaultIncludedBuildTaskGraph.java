@@ -38,12 +38,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Closeable {
     private enum State {
-        NotCreated, NotPrepared, QueuingTasks, ReadyToRun, Running, Finished
+        NotPrepared, Preparing, ReadyToRun, Running, Finished
     }
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -51,9 +50,8 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
-    private Thread owner;
-    private State state = State.NotCreated;
-    private BuildControllers controllers;
+    private final Object lock = new Object();
+    private DefaultBuildTreeWorkGraph current;
 
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
@@ -67,7 +65,6 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
         this.projectStateRegistry = projectStateRegistry;
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
-        this.controllers = createControllers();
     }
 
     private DefaultBuildControllers createControllers() {
@@ -75,48 +72,114 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
     }
 
     @Override
-    public <T> T withNewTaskGraph(Function<? super BuildTreeWorkGraph, T> action) {
-        Thread currentOwner;
-        State currentState;
-        BuildControllers currentControllers;
-        synchronized (this) {
-            if (state != State.Running) {
-                if (owner != null && owner != Thread.currentThread()) {
-                    throw new IllegalStateException("This task graph is already in use.");
-                }
+    public <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action) {
+        DefaultBuildTreeWorkGraph previous;
+        DefaultBuildTreeWorkGraph workGraph;
+        synchronized (lock) {
+            previous = current;
+            if (previous != null && previous.state != State.Running && previous.owner != Thread.currentThread()) {
+                throw new IllegalStateException("Work graph is already in use.");
             }
             // Else, some other thread is currently running tasks.
             // The later can happen when a task performs dependency resolution without declaring it and the resolution
             // includes a dependency substitution on an included build or a source dependency build
             // Allow this to proceed, but this should become an error at some point
-            currentOwner = owner;
-            currentState = state;
-            currentControllers = controllers;
-            owner = Thread.currentThread();
-            state = State.NotPrepared;
-            controllers = createControllers();
+            workGraph = new DefaultBuildTreeWorkGraph();
+            current = workGraph;
         }
 
         try {
-            return action.apply(new DefaultBuildTreeWorkGraph());
+            return action.apply(workGraph);
         } finally {
-            controllers.close();
+            workGraph.close();
             synchronized (this) {
-                owner = currentOwner;
-                state = currentState;
-                controllers = currentControllers;
+                current = previous;
             }
         }
     }
 
-    private void doPrepareTaskGraph(Consumer<? super BuildTreeWorkGraph.Builder> action) {
-        withState(() -> {
+    @Override
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
+        return withState(workGraph -> {
+            BuildController buildController = workGraph.controller(targetBuild);
+            return new TaskBackedResource(workGraph, buildController, buildController.locateTask(task));
+        });
+    }
+
+    @Override
+    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
+        return withState(workGraph -> {
+            BuildController buildController = workGraph.controller(targetBuild);
+            return new TaskBackedResource(workGraph, buildController, buildController.locateTask(taskPath));
+        });
+    }
+
+    @Override
+    public void close() throws IOException {
+        synchronized (lock) {
+            if (current != null) {
+                throw new IllegalStateException("Work graph was not stopped.");
+            }
+        }
+        CompositeStoppable.stoppable(executorService);
+    }
+
+    private <T> T withState(Function<DefaultBuildTreeWorkGraph, T> action) {
+        DefaultBuildTreeWorkGraph workGraph;
+        synchronized (this) {
+            if (current == null) {
+                throw new IllegalStateException("No work graph available.");
+            }
+            workGraph = current;
+        }
+        workGraph.assertIsOwner();
+        return action.apply(workGraph);
+    }
+
+    private class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
+        private final DefaultBuildTreeWorkGraph owner;
+
+        public DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+            owner.controllers.getBuildController(target.getBuildIdentifier()).populateWorkGraph(action);
+        }
+    }
+
+    private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph, AutoCloseable {
+        private final Thread owner;
+        private final BuildControllers controllers;
+        private State state = State.NotPrepared;
+
+        public DefaultBuildTreeWorkGraph() {
+            owner = Thread.currentThread();
+            controllers = createControllers();
+        }
+
+        BuildController controller(BuildIdentifier buildIdentifier) {
+            assertIsOwner();
+            assertCanLocateTask();
+            return controllers.getBuildController(buildIdentifier);
+        }
+
+        public void queueForExecution(BuildController buildController, ExportedTaskNode taskNode) {
+            assertIsOwner();
+            assertCanQueueTask();
+            buildController.queueForExecution(taskNode);
+        }
+
+        @Override
+        public void prepareTaskGraph(Consumer<? super Builder> action) {
+            assertIsOwner();
             expectInState(State.NotPrepared);
-            state = State.QueuingTasks;
+            state = State.Preparing;
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    action.accept(new DefaultBuildTreeWorkGraphBuilder());
+                    action.accept(new DefaultBuildTreeWorkGraphBuilder(DefaultBuildTreeWorkGraph.this));
                     controllers.populateTaskGraphs();
                     context.setResult(new CalculateTreeTaskGraphBuildOperationType.Result() {
                     });
@@ -130,38 +193,11 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
                 }
             });
             state = State.ReadyToRun;
-            return null;
-        });
-    }
+        }
 
-    @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, TaskInternal task) {
-        return withState(() -> {
-            assertCanLocateTask();
-            BuildController buildController = controllers.getBuildController(targetBuild);
-            return new TaskBackedResource(buildController, buildController.locateTask(task));
-        });
-    }
-
-    @Override
-    public IncludedBuildTaskResource locateTask(BuildIdentifier targetBuild, String taskPath) {
-        return withState(() -> {
-            assertCanLocateTask();
-            BuildController buildController = controllers.getBuildController(targetBuild);
-            return new TaskBackedResource(buildController, buildController.locateTask(taskPath));
-        });
-    }
-
-    private void queueForExecution(BuildController buildController, ExportedTaskNode taskNode) {
-        withState(() -> {
-            assertCanQueueTask();
-            buildController.queueForExecution(taskNode);
-            return null;
-        });
-    }
-
-    private ExecutionResult<Void> doRunWork() {
-        return withState(() -> {
+        @Override
+        public ExecutionResult<Void> runWork() {
+            assertIsOwner();
             expectInState(State.ReadyToRun);
             state = State.Running;
             try {
@@ -170,89 +206,56 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph, Cl
             } finally {
                 state = State.Finished;
             }
-        });
-    }
-
-    @Override
-    public void close() throws IOException {
-        CompositeStoppable.stoppable(controllers, executorService);
-    }
-
-    private void assertCanLocateTask() {
-        if (state == State.NotPrepared) {
-            return;
         }
-        assertCanQueueTask();
-    }
 
-    private void assertCanQueueTask() {
-        expectInState(State.QueuingTasks);
-    }
-
-    private void expectInState(State expectedState) {
-        if (state != expectedState) {
-            throw unexpectedState();
+        @Override
+        public void close() {
+            assertIsOwner();
+            controllers.close();
         }
-    }
 
-    private IllegalStateException unexpectedState() {
-        return new IllegalStateException("Work graph is in an unexpected state: " + state);
-    }
+        private void assertCanLocateTask() {
+            if (state == State.NotPrepared) {
+                return;
+            }
+            assertCanQueueTask();
+        }
 
-    private <T> T withState(Supplier<T> action) {
-        Thread currentOwner;
-        synchronized (this) {
-            currentOwner = owner;
-            if (owner == null) {
-                owner = Thread.currentThread();
-            } else if (owner != Thread.currentThread()) {
-                // Currently, only a single thread should work with the task graph at a time
-                throw new IllegalStateException("This task graph is already in use.");
+        private void assertCanQueueTask() {
+            expectInState(State.Preparing);
+        }
+
+        private void expectInState(State expectedState) {
+            if (state != expectedState) {
+                throw unexpectedState();
             }
         }
-        try {
-            return action.get();
-        } finally {
-            synchronized (this) {
-                if (owner != Thread.currentThread()) {
-                    throw new IllegalStateException("This task graph is in use by another thread.");
-                }
-                owner = currentOwner;
+
+        private IllegalStateException unexpectedState() {
+            return new IllegalStateException("Work graph is in an unexpected state: " + state);
+        }
+
+        private void assertIsOwner() {
+            if (Thread.currentThread() != owner) {
+                throw new IllegalStateException("Current thread is not the owner of this work graph.");
             }
         }
     }
 
-    private class DefaultBuildTreeWorkGraphBuilder implements BuildTreeWorkGraph.Builder {
-        @Override
-        public void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            controllers.getBuildController(target.getBuildIdentifier()).populateWorkGraph(action);
-        }
-    }
-
-    private class DefaultBuildTreeWorkGraph implements BuildTreeWorkGraph {
-        @Override
-        public void prepareTaskGraph(Consumer<? super Builder> action) {
-            doPrepareTaskGraph(action);
-        }
-
-        @Override
-        public ExecutionResult<Void> runWork() {
-            return doRunWork();
-        }
-    }
-
-    private class TaskBackedResource implements IncludedBuildTaskResource {
+    private static class TaskBackedResource implements IncludedBuildTaskResource {
+        private final DefaultBuildTreeWorkGraph workGraph;
         private final BuildController buildController;
         private final ExportedTaskNode taskNode;
 
-        public TaskBackedResource(BuildController buildController, ExportedTaskNode taskNode) {
+        public TaskBackedResource(DefaultBuildTreeWorkGraph workGraph, BuildController buildController, ExportedTaskNode taskNode) {
+            this.workGraph = workGraph;
             this.buildController = buildController;
             this.taskNode = taskNode;
         }
 
         @Override
         public void queueForExecution() {
-            DefaultIncludedBuildTaskGraph.this.queueForExecution(buildController, taskNode);
+            workGraph.queueForExecution(buildController, taskNode);
         }
 
         @Override
