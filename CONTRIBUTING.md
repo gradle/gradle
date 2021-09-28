@@ -40,7 +40,7 @@ The build of Gradle enables the configuration cache by default as an experiment.
 
 Most use cases support the configuration cache but some don't. For example, building the documentation currently requires to disable the configuration cache.
 
-The build is configured to fail if a task that is known to have problems is scheduled. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
+The build fails if a task that is known to have problems is scheduled. You can disable the configuration cache with `--no-configuration-cache`. You can ignore problems with `--configuration-cache-problems=warn`.
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
