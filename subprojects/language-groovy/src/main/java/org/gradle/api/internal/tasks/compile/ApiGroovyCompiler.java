@@ -168,7 +168,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
         try {
             configuration.setDisabledGlobalASTTransformations(spec.getGroovyCompileOptions().getDisabledGlobalASTTransformations());
-        } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy TODO */ }
+        } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 2.0.0 */ }
+
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
         final File stubDir = spec.getGroovyCompileOptions().getStubDir();
         stubDir.mkdirs();
