@@ -124,17 +124,17 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
             val displayedTasks = unsupportedTasks.takeLast(maxDisplayed).reversed().joinToString(separator = ", ") { it.path } +
                 if (unsupportedTasks.size > maxDisplayed) " and more..."
                 else ""
-            throw GradleException(
-                "Tasks unsupported with the configuration cache were scheduled: $displayedTasks\n" +
-                    "\n" +
-                    "  The gradle/gradle build enables the configuration cache as an experiment.\n" +
-                    "  It seems you are using a feature of this build that is not yet supported.\n" +
-                    "\n" +
-                    "  You can disable the configuration cache with `--no-configuration-cache`.\n" +
-                    "  You can ignore problems with `--configuration-cache-problems=warn`.\n" +
-                    "\n" +
-                    "  Please see further instructions in CONTRIBUTING.md"
-            )
+            throw GradleException("""
+                Tasks unsupported with the configuration cache were scheduled: $displayedTasks
+
+                  The gradle/gradle build enables the configuration cache as an experiment.
+                  It seems you are using a feature of this build that is not yet supported.
+
+                  You can disable the configuration cache with `--no-configuration-cache`.
+                  You can ignore problems with `--configuration-cache-problems=warn`.
+
+                  Please see further instructions in CONTRIBUTING.md
+            """.trimIndent())
         }
     }
 }
