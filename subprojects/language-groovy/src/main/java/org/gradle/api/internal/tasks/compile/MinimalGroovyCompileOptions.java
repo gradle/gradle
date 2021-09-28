@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import javax.annotation.Nullable;
@@ -58,7 +57,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.configurationScript = compileOptions.getConfigurationScript();
         this.javaAnnotationProcessing = compileOptions.isJavaAnnotationProcessing();
         this.parameters = compileOptions.isParameters();
-        this.disabledGlobalASTTransformations = Sets.newHashSet(compileOptions.getDisabledGlobalASTTransformations());
+        this.disabledGlobalASTTransformations = compileOptions.getDisabledGlobalASTTransformations().get();
     }
 
     public boolean isFailOnError() {
