@@ -215,7 +215,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
             scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
             scalaCompile.setSource(scalaSourceSet);
             scalaCompile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
-            scalaCompile.getScalaRuntime().set(scalaRuntime);
             scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
             // cannot compute at task execution time because we need association with source set

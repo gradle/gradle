@@ -39,14 +39,11 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaRuntime, scalaCompileOptions, createToolchain(javaVersion), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath)
 
         then:
         !scalaCompileOptions.additionalParameters.empty
         scalaCompileOptions.additionalParameters.find { it == expectedTarget }
-
-        1 * scalaRuntime.findScalaJar(_, _) >> scalaLibrary
-        1 * scalaRuntime.getScalaVersion(scalaLibrary) >> scalaLibraryVersion
 
         where:
         javaVersion | scalaLibraryVersion | expectedTarget
@@ -77,13 +74,10 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaRuntime, scalaCompileOptions, null, classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
-
-        0 * scalaRuntime.findScalaJar(_, _)
-        0 * scalaRuntime.getScalaVersion(_)
     }
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
@@ -93,13 +87,10 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaRuntime, scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
-
-        1 * scalaRuntime.findScalaJar(_, _) >> null
-        0 * scalaRuntime.getScalaVersion(_)
 
         where:
         scalaFileName << [
@@ -115,7 +106,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaRuntime, scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
 
         then:
         scalaCompileOptions.additionalParameters

@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -26,7 +25,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
@@ -97,21 +95,9 @@ public class ScalaCompile extends AbstractScalaCompile {
         this.scalaCompilerPlugins = scalaCompilerPlugins;
     }
 
-
-    /**
-     * Returns the Scala Runtime extension
-     *
-     * @since 7.3
-     */
-    @Internal
-    @Incubating
-    public Property<ScalaRuntime> getScalaRuntime() {
-        return scalaRuntime;
-    }
-
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaRuntime().getOrNull(), getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
+        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));

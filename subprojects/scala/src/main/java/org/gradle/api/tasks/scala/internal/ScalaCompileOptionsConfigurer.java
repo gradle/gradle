@@ -19,7 +19,6 @@ package org.gradle.api.tasks.scala.internal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
@@ -38,17 +37,17 @@ public class ScalaCompileOptionsConfigurer {
     private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
 
-    public static void configure(ScalaRuntime scalaRuntime, ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
-        if (toolchain == null || scalaRuntime == null) {
+    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+        if (toolchain == null) {
             return;
         }
 
-        File scalaJar = scalaRuntime.findScalaJar(scalaClasspath, "library");
+        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
         if(scalaJar == null) {
             return;
         }
 
-        String scalaVersion = scalaRuntime.getScalaVersion(scalaJar);
+        String scalaVersion = ScalaRuntimeHelper.getScalaVersion(scalaJar);
         if(scalaVersion == null) {
             return;
         }
