@@ -17,18 +17,25 @@ package org.gradle.internal.build;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
+import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
@@ -37,6 +44,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         Configure,
         // Scheduling tasks for execution
         TaskSchedule,
+        ReadyToRun,
         // build has finished and should do no further work
         Finished
     }
@@ -49,7 +57,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
     private final BuildModelController modelController;
-    private final StateTransitionController<State> controller = new StateTransitionController<>(State.Configure);
+    private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
 
@@ -62,7 +70,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices
+        BuildScopeServices buildServices,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
@@ -73,6 +82,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
+        this.state = controllerFactory.newController(State.Configure);
     }
 
     @Override
@@ -82,63 +92,59 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // - have the threads use some specific immutable view of the build model state instead of requiring direct access to the build model.
         // - not have a thread blocked around task execution, so that other threads can use the build model.
         // - maybe split the states into one for the build model and one for the task graph.
-        controller.assertNotInState(State.Finished);
+        state.assertNotInState(State.Finished);
         return gradle;
     }
 
     @Override
     public SettingsInternal getLoadedSettings() {
         // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
     }
 
     @Override
     public void prepareToScheduleTasks() {
-        controller.maybeTransition(State.Configure, State.TaskSchedule, () -> {
+        state.maybeTransition(State.Configure, State.TaskSchedule, () -> {
             hasTasks = true;
             modelController.prepareToScheduleTasks();
         });
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        populateWorkGraph(taskGraph -> modelController.scheduleRequestedTasks());
+    public void addRequestedTasks(BuildTreeWorkGraph.Builder builder) {
+        builder.withWorkGraph(gradle.getOwner(), graph -> graph.addRequestedTasks());
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        controller.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
+    public void populateWorkGraph(Consumer<? super WorkGraphBuilder> action) {
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, tasks -> action.accept(new DefaultWorkGraphBuilder(tasks))));
     }
 
     @Override
-    public void finalizeWorkGraph(boolean workScheduled) {
-        if (workScheduled) {
+    public void finalizeWorkGraph() {
+        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
             TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             taskGraph.populate();
-        }
-        finalizeGradleServices(gradle);
-    }
-
-    private void finalizeGradleServices(GradleInternal gradle) {
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
-        buildOutputCleanupRegistry.resolveOutputs();
+            BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
+            buildOutputCleanupRegistry.resolveOutputs();
+        });
     }
 
     @Override
     public ExecutionResult<Void> executeTasks() {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
-        return controller.tryTransition(State.TaskSchedule, State.Configure, () -> workExecutor.execute(gradle));
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle));
     }
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return controller.finish(State.Finished, stageFailures -> {
+        return state.finish(State.Finished, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
@@ -173,11 +179,36 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void stop() {
-        controller.assertInState(State.Finished);
+        state.assertInState(State.Finished);
         try {
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
+        private final TaskExecutionGraphInternal taskGraph;
+
+        public DefaultWorkGraphBuilder(TaskExecutionGraphInternal taskGraph) {
+            this.taskGraph = taskGraph;
+        }
+
+        @Override
+        public void addRequestedTasks() {
+            modelController.scheduleRequestedTasks();
+        }
+
+        @Override
+        public void addEntryTasks(List<? extends Task> tasks) {
+            for (Task task : tasks) {
+                taskGraph.addEntryTasks(Collections.singletonList(task));
+            }
+        }
+
+        @Override
+        public void addNodes(List<? extends Node> nodes) {
+            taskGraph.addNodes(nodes);
         }
     }
 }

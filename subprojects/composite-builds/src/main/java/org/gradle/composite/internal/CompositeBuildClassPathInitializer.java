@@ -49,14 +49,13 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
             }
         }
         if (!tasksToBuild.isEmpty()) {
-            includedBuildTaskGraph.withNewTaskGraph(() -> {
-                includedBuildTaskGraph.prepareTaskGraph(() -> {
+            includedBuildTaskGraph.withNewTaskGraph(graph -> {
+                graph.prepareTaskGraph(builder -> {
                     for (Pair<BuildIdentifier, TaskInternal> task : tasksToBuild) {
                         includedBuildTaskGraph.locateTask(task.left, task.right).queueForExecution();
                     }
-                    includedBuildTaskGraph.populateTaskGraphs();
                 });
-                includedBuildTaskGraph.runScheduledTasks();
+                graph.runWork().rethrow();
                 return null;
             });
         }

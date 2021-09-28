@@ -19,16 +19,23 @@ package org.gradle.composite.internal;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -37,20 +44,36 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-abstract class AbstractIncludedBuildController implements IncludedBuildController, Stoppable {
+class DefaultBuildController implements BuildController, Stoppable {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
-    private final CompositeBuildParticipantBuildState build;
+    private final BuildState build;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
-    private State state = State.DiscoveringTasks;
+    private final WorkerLeaseRegistry.WorkerLease parentLease;
+    private final WorkerLeaseService workerLeaseService;
+    private final ProjectStateRegistry projectStateRegistry;
 
-    public AbstractIncludedBuildController(CompositeBuildParticipantBuildState build) {
+    private boolean somethingScheduled = false;
+    private State state = State.DiscoveringTasks;
+    // Fields guarded by lock
+    private final Lock lock = new ReentrantLock();
+    private final Condition stateChange = lock.newCondition();
+    private boolean finished;
+    private final List<Throwable> executionFailures = new ArrayList<>();
+
+    public DefaultBuildController(BuildState build, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.build = build;
+        this.projectStateRegistry = projectStateRegistry;
+        this.parentLease = workerLeaseService.getCurrentWorkerLease();
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -68,7 +91,15 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     @Override
     public void queueForExecution(ExportedTaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
+        somethingScheduled = true;
         queuedForExecution.add(taskNode);
+    }
+
+    @Override
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+        assertInState(State.DiscoveringTasks);
+        somethingScheduled = true;
+        build.getWorkGraph().populateWorkGraph(action);
     }
 
     @Override
@@ -84,10 +115,10 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
             return false;
         }
 
-        build.getWorkGraph().schedule(queuedForExecution);
+        boolean added = build.getWorkGraph().schedule(queuedForExecution);
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
-        return true;
+        return added;
     }
 
     @Override
@@ -107,7 +138,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        build.getWorkGraph().prepareForExecution(false);
+        build.getWorkGraph().prepareForExecution();
 
         state = State.ReadyToRun;
     }
@@ -116,7 +147,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     public void startTaskExecution(ExecutorService executorService) {
         assertInState(State.ReadyToRun);
         state = State.RunningTasks;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             doStartTaskExecution(executorService);
         }
     }
@@ -125,7 +156,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     public ExecutionResult<Void> awaitTaskCompletion() {
         assertInState(State.RunningTasks);
         ExecutionResult<Void> result;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             List<Throwable> failures = new ArrayList<>();
             doAwaitTaskCompletion(failures::add);
             result = ExecutionResult.maybeFailed(failures);
@@ -144,9 +175,27 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         }
     }
 
-    protected abstract void doStartTaskExecution(ExecutorService executorService);
+    protected void doStartTaskExecution(ExecutorService executorService) {
+        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
+    }
 
-    protected abstract void doAwaitTaskCompletion(Consumer<? super Throwable> taskFailures);
+    protected void doAwaitTaskCompletion(Consumer<? super Throwable> executionFailures) {
+        // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
+        projectStateRegistry.blocking(() -> {
+            lock.lock();
+            try {
+                while (!finished) {
+                    awaitStateChange();
+                }
+                for (Throwable taskFailure : this.executionFailures) {
+                    executionFailures.accept(taskFailure);
+                }
+                this.executionFailures.clear();
+            } finally {
+                lock.unlock();
+            }
+        });
+    }
 
     private void assertInState(State expectedState) {
         if (state != expectedState) {
@@ -193,4 +242,72 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         }
     }
 
+    private void run() {
+        try {
+            workerLeaseService.withSharedLease(parentLease, this::doBuild);
+        } catch (Throwable t) {
+            executionFailed(t);
+        } finally {
+            markFinished();
+        }
+    }
+
+    private void markFinished() {
+        lock.lock();
+        try {
+            finished = true;
+            stateChange.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void awaitStateChange() {
+        try {
+            stateChange.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private void doBuild() {
+        ExecutionResult<Void> result = build.getWorkGraph().execute();
+        executionFinished(result);
+    }
+
+    private void executionFinished(ExecutionResult<Void> result) {
+        lock.lock();
+        try {
+            executionFailures.addAll(result.getFailures());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void executionFailed(Throwable failure) {
+        lock.lock();
+        try {
+            executionFailures.add(failure);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private class BuildOpRunnable implements Runnable {
+        private final BuildOperationRef parentBuildOperation;
+
+        BuildOpRunnable(BuildOperationRef parentBuildOperation) {
+            this.parentBuildOperation = parentBuildOperation;
+        }
+
+        @Override
+        public void run() {
+            CurrentBuildOperationRef.instance().set(parentBuildOperation);
+            try {
+                DefaultBuildController.this.run();
+            } finally {
+                CurrentBuildOperationRef.instance().set(null);
+            }
+        }
+    }
 }

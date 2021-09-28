@@ -29,6 +29,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
@@ -40,6 +41,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
+    private final StateTransitionControllerFactory stateTransitionControllerFactory;
+
+    public DefaultBuildLifecycleControllerFactory(StateTransitionControllerFactory stateTransitionControllerFactory) {
+        this.stateTransitionControllerFactory = stateTransitionControllerFactory;
+    }
+
     @Override
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild, BuildScopeServices buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
@@ -97,7 +104,8 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            buildScopeServices
+            buildScopeServices,
+            stateTransitionControllerFactory
         );
     }
 

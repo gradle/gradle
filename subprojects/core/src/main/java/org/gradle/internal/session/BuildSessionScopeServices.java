@@ -67,6 +67,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -120,6 +121,7 @@ public class BuildSessionScopeServices {
         registration.add(BuildClientMetaData.class, buildClientMetaData);
         registration.add(BuildEventConsumer.class, buildEventConsumer);
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
 
         // Must be no higher than this scope as needs cache repository services.

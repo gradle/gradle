@@ -299,27 +299,10 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskGraph.allTasks == [c, d, b, a]
     }
 
-    def "cannot use getter methods when graph has not been calculated"() {
-        when:
-        taskGraph.hasTask(":a")
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Task information is not available, as this task execution graph has not been populated."
-
-        when:
-        taskGraph.hasTask("a")
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message == "Task information is not available, as this task execution graph has not been populated."
-
-        when:
-        taskGraph.getAllTasks()
-
-        then:
-        e = thrown(IllegalStateException)
-        e.message == "Task information is not available, as this task execution graph has not been populated."
+    def "is empty when no tasks have been added"() {
+        expect:
+        !taskGraph.hasTask(":a")
+        taskGraph.allTasks.empty
     }
 
     def "discards tasks after execute"() {

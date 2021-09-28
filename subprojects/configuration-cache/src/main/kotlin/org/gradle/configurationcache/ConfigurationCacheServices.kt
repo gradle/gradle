@@ -44,6 +44,7 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -102,7 +103,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             build: BuildState,
             gradle: GradleInternal,
             startParameter: ConfigurationCacheStartParameter,
-            configurationCache: BuildTreeConfigurationCache
+            configurationCache: BuildTreeConfigurationCache,
+            stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             if (build is ConfigurationCacheIncludedBuildState) {
                 return NoOpBuildModelController(gradle)
@@ -111,7 +113,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(gradle.services.get(), ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer)
+            val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
             return if (startParameter.isEnabled) {
                 ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
             } else {

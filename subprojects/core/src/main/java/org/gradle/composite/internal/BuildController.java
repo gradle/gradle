@@ -16,12 +16,14 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
-public interface IncludedBuildController {
+public interface BuildController {
     /**
      * Locates a task node in this build's work graph for use in another build's work graph.
      * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
@@ -56,6 +58,8 @@ public interface IncludedBuildController {
      * Awaits completion of task execution, collecting any task failures into the given collection.
      */
     ExecutionResult<Void> awaitTaskCompletion();
+
+    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
     void queueForExecution(ExportedTaskNode taskNode);
 }

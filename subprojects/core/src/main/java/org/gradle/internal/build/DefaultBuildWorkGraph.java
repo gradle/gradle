@@ -22,12 +22,13 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraph implements BuildWorkGraph {
     private final Object lock = new Object();
@@ -56,30 +57,41 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     }
 
     @Override
-    public void schedule(Collection<ExportedTaskNode> taskNodes) {
+    public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
         List<Task> tasks = new ArrayList<>();
         for (ExportedTaskNode taskNode : taskNodes) {
             DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
             if (nodesByPath.get(node.taskPath) != taskNode) {
                 throw new IllegalArgumentException();
             }
-            node.whenScheduled();
-            tasks.add(node.getTask());
+            if (node.whenScheduled() && findTaskInWorkGraph(node.taskPath) == null) {
+                // Not already in task graph
+                tasks.add(node.getTask());
+            }
+        }
+        if (tasks.isEmpty()) {
+            return false;
         }
         tasksScheduled = true;
         projectStateRegistry.withMutableStateOfAllProjects(() -> {
             controller.prepareToScheduleTasks();
-            controller.populateWorkGraph(taskGraph -> {
-                for (Task task : tasks) {
-                    taskGraph.addEntryTasks(Collections.singletonList(task));
-                }
-            });
+            controller.populateWorkGraph(taskGraph -> taskGraph.addEntryTasks(tasks));
         });
+        return true;
     }
 
     @Override
-    public void prepareForExecution(boolean alwaysPopulateWorkGraph) {
-        controller.finalizeWorkGraph(alwaysPopulateWorkGraph || tasksScheduled);
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+        tasksScheduled = true;
+        controller.prepareToScheduleTasks();
+        controller.populateWorkGraph(action);
+    }
+
+    @Override
+    public void prepareForExecution() {
+        if (tasksScheduled) {
+            controller.finalizeWorkGraph();
+        }
         updateTasksPriorToExecution();
     }
 
@@ -121,10 +133,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
         return task;
     }
 
-    private IllegalStateException includedBuildTaskWasNeverScheduled(String taskPath) {
-        return new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
-    }
-
+    @Nullable
     private TaskInternal findTaskInWorkGraph(String taskPath) {
         for (Task task : taskGraph.getAllTasks()) {
             if (task.getPath().equals(taskPath)) {
@@ -192,9 +201,14 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
             }
         }
 
-        public void whenScheduled() {
+        public boolean whenScheduled() {
             synchronized (lock) {
-                state = TaskState.Scheduled;
+                if (state != TaskState.Finished) {
+                    state = TaskState.Scheduled;
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
 
