@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -32,7 +31,6 @@ import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
@@ -47,24 +45,22 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
 
-    private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
-    private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
+    private final Supplier<OutputsCleaner> outputsCleanerSupplier;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public SkipEmptyWorkStep(
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
-        Deleter deleter,
         OutputChangeListener outputChangeListener,
+        Supplier<OutputsCleaner> outputsCleanerSupplier,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
-        this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
-        this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
+        this.outputsCleanerSupplier = outputsCleanerSupplier;
         this.delegate = delegate;
     }
 
@@ -223,11 +219,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
-        OutputsCleaner outputsCleaner = new OutputsCleaner(
-            deleter,
-            buildOutputCleanupRegistry::isOutputOwnedByBuild,
-            buildOutputCleanupRegistry::isOutputOwnedByBuild
-        );
+        OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
             try {
                 outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(outputFileSnapshot).keySet());

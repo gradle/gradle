@@ -18,14 +18,13 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
-import org.gradle.internal.file.Deleter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -34,16 +33,14 @@ import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREM
 import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
-    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
-    def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
+    def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
 
     def step = new SkipEmptyWorkStep(
-        buildOutputCleanupRegistry,
-        deleter,
         outputChangeListener,
+        { -> outputsCleaner },
         delegate)
 
     def knownSnapshot = Mock(ValueSnapshot)
@@ -162,6 +159,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def "skips when work has empty sources and removes previous outputs"() {
         def previousExecutionState = Stub(PreviousExecutionState)
         def previousOutputFile = file("output.txt").createFile()
+        def outputFileSnapshots = snapshot(previousOutputFile)
+        def outputFileSnapshot = outputFileSnapshots.output
 
         when:
         step.execute(work, context)
@@ -170,7 +169,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
         _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
-        _ * previousExecutionState.outputFilesProducedByWork >> snapshot(previousOutputFile)
+        _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -185,12 +184,14 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         1 * sourceFileFingerprint.empty >> true
 
+        and:
         1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
 
-        1 * buildOutputCleanupRegistry.isOutputOwnedByBuild(previousOutputFile) >> true
-        1 * buildOutputCleanupRegistry.isOutputOwnedByBuild(previousOutputFile.parentFile) >> false
+        and:
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
 
-        1 * deleter.delete(previousOutputFile)
+        and:
+        1 * outputsCleaner.didWork >> true
         0 * _
 
         then:
