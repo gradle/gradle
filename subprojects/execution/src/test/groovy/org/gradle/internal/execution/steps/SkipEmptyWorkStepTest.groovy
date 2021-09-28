@@ -158,31 +158,15 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def "skips when work has empty sources and previous outputs (#description)"() {
         def previousOutputFile = file("output.txt").createFile()
-        def previousExecutionState = Stub(PreviousExecutionState)
-        def outputFileSnapshots = snapshot(previousOutputFile)
-        def outputFileSnapshot = outputFileSnapshots.output
+        def outputFileSnapshot = snapshot(previousOutputFile)
 
         when:
         step.execute(work, context)
 
         then:
-        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
-        _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
-        _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
-        1 * inputFingerprinter.fingerprintInputProperties(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            _
-        ) >> new DefaultInputFingerprinter.InputFingerprints(
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
-
-        1 * sourceFileFingerprint.empty >> true
+        interaction {
+            emptySourcesWithPreviousOutputs(outputFileSnapshot)
+        }
 
         and:
         1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
@@ -205,16 +189,34 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
-        def previousExecutionState = Stub(PreviousExecutionState)
         def previousOutputFile = file("output.txt").createFile()
-        def outputFileSnapshots = snapshot(previousOutputFile)
-        def outputFileSnapshot = outputFileSnapshots.output
+        def outputFileSnapshot = snapshot(previousOutputFile)
         def ioException = new IOException("Couldn't delete file")
 
         when:
         step.execute(work, context)
 
         then:
+        interaction {
+            emptySourcesWithPreviousOutputs(outputFileSnapshot)
+        }
+
+        and:
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
+
+        and:
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
+
+        then:
+        def ex = thrown Exception
+        ex.message.contains("Couldn't delete file")
+        ex.cause == ioException
+    }
+
+    private void emptySourcesWithPreviousOutputs(FileSystemSnapshot outputFileSnapshot) {
+        def previousExecutionState = Stub(PreviousExecutionState)
+        def outputFileSnapshots = ImmutableSortedMap.of("output", outputFileSnapshot)
+
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
         _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
@@ -232,26 +234,13 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             ImmutableSortedMap.of("source-file", sourceFileFingerprint))
 
         1 * sourceFileFingerprint.empty >> true
-
-        and:
-        1 * outputChangeListener.beforeOutputChange(rootPaths(previousOutputFile))
-
-        and:
-        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
-
-        then:
-        def ex = thrown Exception
-        ex.message.contains("Couldn't delete file")
-        ex.cause == ioException
     }
 
     private static Set<String> rootPaths(File... files) {
         files*.absolutePath as Set
     }
 
-    private def snapshot(File... files) {
-        ImmutableSortedMap.<String, FileSystemSnapshot> of(
-            "output", fileCollectionSnapshotter.snapshot(TestFiles.fixed(files))
-        )
+    private def snapshot(File file) {
+        fileCollectionSnapshotter.snapshot(TestFiles.fixed(file))
     }
 }
