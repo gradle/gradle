@@ -57,18 +57,12 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.DefaultExecutionPlan;
-import org.gradle.execution.plan.DefaultNodeValidator;
-import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
-import org.gradle.execution.plan.TaskDependencyResolver;
-import org.gradle.execution.plan.TaskNodeDependencyResolver;
-import org.gradle.execution.plan.TaskNodeFactory;
-import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -83,13 +77,11 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.internal.file.Stat;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -97,7 +89,6 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.util.LinkedList;
@@ -152,18 +143,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectFinder(gradle::getRootProject);
     }
 
-    TaskNodeDependencyResolver createTaskNodeResolver(TaskNodeFactory taskNodeFactory) {
-        return new TaskNodeDependencyResolver(taskNodeFactory);
-    }
-
-    WorkNodeDependencyResolver createWorkNodeResolver() {
-        return new WorkNodeDependencyResolver();
-    }
-
-    TaskDependencyResolver createTaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
-        return new TaskDependencyResolver(dependencyResolvers);
-    }
-
     LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
         return new LocalTaskNodeExecutor(
             executionNodeAccessHierarchies.getOutputHierarchy()
@@ -190,24 +169,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
-    ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
-        return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
-    }
-
-    ExecutionPlan createExecutionPlan(
-        GradleInternal gradleInternal,
-        TaskNodeFactory taskNodeFactory,
-        TaskDependencyResolver dependencyResolver,
-        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies
-    ) {
-        return new DefaultExecutionPlan(
-            gradleInternal.getIdentityPath().toString(),
-            taskNodeFactory,
-            dependencyResolver,
-            new DefaultNodeValidator(),
-            executionNodeAccessHierarchies.getOutputHierarchy(),
-            executionNodeAccessHierarchies.getDestroyableHierarchy()
-        );
+    ExecutionPlan createExecutionPlan(ExecutionPlanFactory factory) {
+        return factory.createPlan();
     }
 
     TaskExecutionGraphInternal createTaskExecutionGraph(

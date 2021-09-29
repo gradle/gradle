@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Resolves dependencies to {@link TransformationNode} objects.
  */
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public class TransformationNodeDependencyResolver implements DependencyResolver {
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {

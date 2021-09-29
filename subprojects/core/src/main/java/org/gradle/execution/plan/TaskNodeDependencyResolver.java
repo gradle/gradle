@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
  */
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public class TaskNodeDependencyResolver implements DependencyResolver {
     private final TaskNodeFactory taskNodeFactory;
 

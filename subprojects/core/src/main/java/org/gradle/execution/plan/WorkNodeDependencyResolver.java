@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public class WorkNodeDependencyResolver implements DependencyResolver {
     private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<WorkNodeAction, ActionNode>();
 

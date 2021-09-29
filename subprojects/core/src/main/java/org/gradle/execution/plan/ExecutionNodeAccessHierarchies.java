@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.CaseSensitivity;
 
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public class ExecutionNodeAccessHierarchies {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;

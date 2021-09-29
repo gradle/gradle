@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 @NonNullApi
-@ServiceScope(Scopes.Gradle.class)
+@ServiceScope(Scopes.Build.class)
 public class TaskDependencyResolver {
     private final List<DependencyResolver> dependencyResolvers;
     private CachingTaskDependencyResolveContext<Node> context;
