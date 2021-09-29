@@ -126,7 +126,7 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 
 // TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-suite-dependencies*"`
 <1> Configuration action for the built-in `test` suite.
-<2> Add the assertj library to the test's compile and runtime classpaths.  This is equivalent to declaring the library using the `testImplementation` configuration.  Other available configurations in the suite's `dependencies` closure are `compileOnly` and `runtimeOnly`.
+<2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly` and `runtimeOnly` dependencies.
 
 == Configuring source directories of a suite
 ====

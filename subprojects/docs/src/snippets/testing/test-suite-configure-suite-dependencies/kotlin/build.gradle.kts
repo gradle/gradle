@@ -35,4 +35,9 @@ testing {
         }
     }
 }
+
+// Note that this is equivalent to:
+dependencies {
+    testImplementation("org.assertj:assertj-core:3.21.0")
+}
 // tag::configure-suite-dependencies[]
