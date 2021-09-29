@@ -21,15 +21,13 @@ For instance, this plugin can be used to define a group of Integration Tests, wh
 [[sec:jvm_test_suite_usage]]
 == Usage
 
-This plugin is applied automatically by the `java` plugin, and can be additionally applied explicitly if desired:
+This plugin is applied automatically by the `java` plugin but can be additionally applied explicitly if desired. The plugin cannot be used without a JVM language plugin applied as it relies on several conventions of the `java` plugin.
 
-.Using the JVM Test Suite plugin
+.Applying the JVM Test Suite plugin
 ====
 include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=apply-jvm-test-suite]"]
 ====
-
-The plugin cannot be applied standalone as it relies on several conventions of the `java` plugin.
 
 The plugins adds the following objects to the project:
 
