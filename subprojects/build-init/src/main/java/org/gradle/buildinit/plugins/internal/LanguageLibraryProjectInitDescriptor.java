@@ -50,17 +50,17 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
         switch (testFramework) {
             case JUNIT:
-                return buildScriptBuilder.testing().junitSuite(name);
+                return buildScriptBuilder.testing().junitSuite(name, libraryVersionProvider);
             case JUNIT_JUPITER:
-                return buildScriptBuilder.testing().junitJupiterSuite(name);
+                return buildScriptBuilder.testing().junitJupiterSuite(name, libraryVersionProvider);
             case SPOCK:
-                return buildScriptBuilder.testing().spockSuite(name);
+                return buildScriptBuilder.testing().spockSuite(name, libraryVersionProvider);
             case KOTLINTEST:
-                return buildScriptBuilder.testing().kotlinTestSuite(name);
+                return buildScriptBuilder.testing().kotlinTestSuite(name, libraryVersionProvider);
             case TESTNG:
-                return buildScriptBuilder.testing().testNG(name);
+                return buildScriptBuilder.testing().testNG(name, libraryVersionProvider);
             case SCALATEST:
-                BuildScriptBuilder.SuiteSpec suiteSpec = buildScriptBuilder.testing().junitSuite(name);
+                BuildScriptBuilder.SuiteSpec suiteSpec = buildScriptBuilder.testing().junitSuite(name, libraryVersionProvider);
                 String scalaVersion = libraryVersionProvider.getVersion("scala");
                 String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
                 String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");

@@ -1221,36 +1221,36 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public SuiteSpec junitSuite(String name) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, builder);
+        public SuiteSpec junitSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT, libraryVersionProvider.getVersion("junit"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
-        public SuiteSpec junitJupiterSuite(String name) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, builder);
+        public SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"),  builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
-        public SuiteSpec spockSuite(String name) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, builder);
+        public SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"),  builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
-        public SuiteSpec kotlinTestSuite(String name) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, builder);
+        public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, null,  builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
-        public SuiteSpec testNG(String name) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, builder);
+        public SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"),  builder);
             suites.add(spec);
             return spec;
         }
@@ -1261,6 +1261,7 @@ public class BuildScriptBuilder {
 
         private final String name;
         private final TestSuiteFramework framework;
+        private final String frameworkVersion;
 
         private final DependenciesBlock dependencies = new DependenciesBlock();
         private final TargetsBlock targets;
@@ -1268,10 +1269,11 @@ public class BuildScriptBuilder {
         private final boolean isDefaultTestSuite;
         private final boolean isDefaultFramework;
 
-        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, BuildScriptBuilder builder) {
+        SuiteSpec(@Nullable String comment, String name, TestSuiteFramework framework, String frameworkVersion, BuildScriptBuilder builder) {
             super(comment);
             this.builder = builder;
             this.framework = framework;
+            this.frameworkVersion = frameworkVersion;
             this.name = name;
             targets = new TargetsBlock(builder);
 
@@ -1287,7 +1289,11 @@ public class BuildScriptBuilder {
         private Action<? super ScriptBlockBuilder> buildSuiteConfigurationContents() {
             return b -> {
                 if (isDefaultTestSuite || !isDefaultFramework) {
-                    b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName);
+                    if (frameworkVersion == null) {
+                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName);
+                    } else {
+                        b.methodInvocation("Use " + framework.displayName + " test framework", framework.method.methodName, frameworkVersion);
+                    }
                 }
 
                 if (!dependencies.dependencies.isEmpty()) {
