@@ -35,47 +35,18 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     String subprojectName() { 'app' }
 
     @Unroll
-    def "defaults to Groovy build scripts, when incubating flag = #incubating"() {
+    def "defaults to Groovy build scripts"() {
         when:
-        run (['init', '--type', 'java-application'] + (incubating ? ['--incubating'] : []) )
+        run ('init', '--type', 'java-application')
 
         then:
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
-
-        where:
-        incubating << [true, false]
-    }
-
-    @Unroll
-    def "incubating option adds runnable test suites with #scriptDsl DSL"() {
-        def dslFixture = dslFixtureFor(scriptDsl)
-
-        when:
-        run ('init', '--type', 'java-application', '--incubating', '--dsl', scriptDsl.id)
-        then:
-        dslFixture.assertContainsTestSuite('test')
-        dslFixture.assertContainsTestSuite('integrationTest')
-
-        when:
-        succeeds('test')
-        then:
-        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
-        assertTestsDoNotExist("some.thing.AppIntegTest")
-        assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
-
-        when:
-        succeeds('clean', 'integrationTest')
-        then:
-        assertTestsDidNotRun("some.thing.AppTest")
-        assertIntegrationTestsDoNotExist("some.thing.AppTest")
-        assertIntegrationTestPassed("some.thing.AppIntegTest", "gradleWebsiteIsReachable")
-
-        where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
         when:
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
@@ -85,6 +56,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertDoesNotUseTestSuites()
 
         when:
         run("build")
@@ -97,6 +69,28 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         outputContains("Hello World!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite("test")
+
+        when:
+        succeeds('test')
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

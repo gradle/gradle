@@ -37,6 +37,26 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    def "incubating does not break basic #scriptDsl build scripts"() {
+        when:
+        run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        def dslFixture = dslFixtureFor(scriptDsl)
+        dslFixture.assertGradleFilesGenerated()
+        dslFixture.settingsFile.assertContents(dslFixture.containsStringAssignment('rootProject.name', 'someApp'))
+
+        when:
+        run('help')
+
+        then:
+        noExceptionThrown()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
     def "can configure root project name with #scriptDsl build scripts"() {
         when:
         run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id)
@@ -44,7 +64,6 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         def dslFixture = dslFixtureFor(scriptDsl)
         dslFixture.assertGradleFilesGenerated()
-        dslFixture.settingsFile.assertContents(dslFixture.containsStringAssignment('rootProject.name', 'someApp'))
 
         when:
         run('help')

@@ -127,28 +127,4 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             }
         }
     }
-
-    @Override
-    protected void integrationTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
-        if (isSingleProject(settings)) {
-            switch (settings.getTestFramework()) {
-                case JUNIT:
-                case KOTLINTEST:
-                    templates.add("AppIntegTest");
-                    break;
-                case JUNIT_JUPITER:
-                    templates.add("junitjupiter/AppIntegTest");
-                    break;
-                default:
-                    // do nothing - no templates to add
-            }
-        } else {
-            if ("app".equals(subproject)) {
-                templates.add("multi/app/junit5/MessageUtilsIntegTest");
-            }
-            if ("list".equals(subproject)) {
-                templates.add("multi/list/junit5/LinkedListIntegTest");
-            }
-        }
-    }
 }

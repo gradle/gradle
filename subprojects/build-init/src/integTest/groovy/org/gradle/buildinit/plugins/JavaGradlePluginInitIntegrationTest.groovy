@@ -22,11 +22,22 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+
 
 class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'plugin' }
+
+    @Unroll
+    def "defaults to Groovy build scripts"() {
+        when:
+        run ('init', '--type', 'java-gradle-plugin')
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+    }
 
     @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
@@ -41,6 +52,34 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         and:
         commonJvmFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        def dslFixture = dslFixtureFor(scriptDsl)
+
+        when:
+        run('init', '--type', 'java-gradle-plugin', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/java").assertHasDescendants("some/thing/SomeThingPlugin.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("some/thing/SomeThingPluginTest.java")
+        subprojectDir.file("src/functionalTest/java").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.java")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixture.assertHasTestSuite('test')
 
         when:
         run("build")
