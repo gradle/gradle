@@ -88,6 +88,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     fun getBuildCommands(): Array<String> {
         val buildCommands = mutableListOf(
             "./gradlew" + (if (OperatingSystem.current().isWindows()) ".bat" else ""),
+            "--no-configuration-cache",
             "clean",
             ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
