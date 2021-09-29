@@ -66,6 +66,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -682,7 +683,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         }
         forkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "work"));
 
-        super.executeTests();
+        try {
+            super.executeTests();
+        } finally {
+            CompositeStoppable.stoppable(getTestFramework());
+        }
     }
 
     @Override
