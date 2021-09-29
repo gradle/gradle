@@ -110,7 +110,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     buildScriptBuilder.plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy");
                 }
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
-                addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
             } else {
                 addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
@@ -128,17 +127,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
             if (settings.isUseTestSuites()) {
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
-
-                BuildScriptBuilder.SuiteSpec integrationTest = addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
-                if (getLanguage() == Language.GROOVY) {
-                    String groovyVersion = libraryVersionProvider.getVersion("groovy");
-                    String groovyAllCoordinates = "org.codehaus.groovy:groovy-all:" + groovyVersion;
-                    buildScriptBuilder.dependencyForSuite(integrationTest, "implementation", null, groovyAllCoordinates);
-                } else if (getLanguage() == Language.SCALA) {
-                    String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
-                    String scalaCoordinates = "org.scala-lang:scala-library:" + scalaLibraryVersion;
-                    buildScriptBuilder.dependencyForSuite(integrationTest, "implementation", null, scalaCoordinates);
-                }
             } else {
                 addTestFramework(settings.getTestFramework(), buildScriptBuilder);
             }
@@ -162,9 +150,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
             sourceTemplates(subproject, settings, templateFactory, sourceTemplates);
             testSourceTemplates(subproject, settings, templateFactory, testSourceTemplates);
-            if (settings.isUseTestSuites()) {
-                integrationTestSourceTemplates(subproject, settings, templateFactory, integrationTestSourceTemplates);
-            }
 
             List<TemplateOperation> templateOps = new ArrayList<>(sourceTemplates.size() + testSourceTemplates.size() + integrationTestSourceTemplates.size());
             sourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t))).forEach(templateOps::add);
@@ -190,8 +175,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     protected abstract void sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
 
     protected abstract void testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
-
-    protected abstract void integrationTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
 
     protected void applyApplicationPlugin(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.plugin(

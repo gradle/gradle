@@ -62,9 +62,6 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrat
             "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
             "src/main/resources",
             "src/test/resources"]
-        if (incubating) {
-            appFiles << "src/integrationTest/${language}/some/thing/app/MessageUtilsIntegTest.${ext}"
-        }
         targetDir.file("app").assertHasDescendants(appFiles*.toString())
 
         def listFiles = [buildFile,
@@ -72,9 +69,6 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrat
             "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
             "src/main/resources",
             "src/test/resources"]
-        if (incubating) {
-            listFiles << "src/integrationTest/${language}/some/thing/list/LinkedListIntegTest.${ext}"
-        }
         targetDir.file("list").assertHasDescendants(listFiles*.toString())
 
         def utilFiles = [

@@ -47,10 +47,6 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         return addTestSuite(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME, buildScriptBuilder, testFramework, libraryVersionProvider);
     }
 
-    protected BuildScriptBuilder.SuiteSpec addIntegrationTestSuite(BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
-        return addTestSuite("integrationTest", buildScriptBuilder, testFramework, libraryVersionProvider);
-    }
-
     protected BuildScriptBuilder.SuiteSpec addTestSuite(String name, BuildScriptBuilder buildScriptBuilder, BuildInitTestFramework testFramework, TemplateLibraryVersionProvider libraryVersionProvider) {
         switch (testFramework) {
             case JUNIT:

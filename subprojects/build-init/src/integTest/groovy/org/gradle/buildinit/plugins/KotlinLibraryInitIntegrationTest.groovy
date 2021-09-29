@@ -51,21 +51,11 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run ('init', '--type', 'kotlin-library', '--incubating', '--dsl', scriptDsl.id)
         then:
         dslFixture.assertContainsTestSuite('test')
-        dslFixture.assertContainsTestSuite('integrationTest')
 
         when:
         succeeds('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
-        assertTestsDoNotExist("some.thing.LibraryIntegTest")
-        assertIntegrationTestsDidNotRun("some.thing.LibraryIntegTest")
-
-        when:
-        succeeds('clean', 'integrationTest')
-        then:
-        assertTestsDidNotRun("some.thing.LibraryTest")
-        assertIntegrationTestsDoNotExist("some.thing.LibraryTest")
-        assertIntegrationTestPassed("some.thing.LibraryIntegTest", "someLibraryMethodReturnsTrue")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

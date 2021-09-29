@@ -54,21 +54,11 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run ('init', '--type', 'java-application', '--incubating', '--dsl', scriptDsl.id)
         then:
         dslFixture.assertContainsTestSuite('test')
-        dslFixture.assertContainsTestSuite('integrationTest')
 
         when:
         succeeds('test')
         then:
         assertTestPassed("some.thing.AppTest", "appHasAGreeting")
-        assertTestsDoNotExist("some.thing.AppIntegTest")
-        assertIntegrationTestsDidNotRun("some.thing.AppIntegTest")
-
-        when:
-        succeeds('clean', 'integrationTest')
-        then:
-        assertTestsDidNotRun("some.thing.AppTest")
-        assertIntegrationTestsDoNotExist("some.thing.AppTest")
-        assertIntegrationTestPassed("some.thing.AppIntegTest", "appCanRunInEnvironment")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
