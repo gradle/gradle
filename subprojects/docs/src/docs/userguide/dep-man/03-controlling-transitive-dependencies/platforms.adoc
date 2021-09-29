@@ -447,6 +447,15 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
 
+[WARNING]
+====
+Using `enforcedPlatform` needs to be considered with care if your software component can be consumed by others.
+This declaration is effectively transitive and so will apply to the dependency graph of your consumers.
+Unfortunately they will have to use `exclude` if they happen to disagree with one of the forced versions.
+
+Instead, if your reusable software component has a strong opinion on some third party dependency versions, consider using a <<rich_versions.adoc#sec:strict-version,rich version declaration>> with a `strictly`.
+====
+
 [[sub:platforms-vs-catalog]]
 == Should I use a platform or a catalog?
 
