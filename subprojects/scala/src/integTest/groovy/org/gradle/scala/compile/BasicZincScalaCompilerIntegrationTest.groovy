@@ -35,7 +35,6 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         executer.withRepositoryMirrors()
     }
 
-
     def compileGoodCode() {
         given:
         goodCode()
@@ -63,8 +62,8 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation 'org.scala-lang:scala-library:2.13.1'
-                scalaCompilerPlugins "org.typelevel:kind-projector_2.13.1:0.11.0"
+                implementation 'org.scala-lang:scala-library:2.13.6'
+                scalaCompilerPlugins "org.typelevel:kind-projector_2.13.1:0.13.2"
             }
         """
 
@@ -98,6 +97,15 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
 
         expect:
         succeeds 'compileScala'
+    }
+
+    def "joint compile good java code with interface using default and static methods do not fail the build"() {
+        given:
+        goodJavaInterfaceCode()
+        goodCodeUsingJavaInterface()
+
+        expect:
+        succeeds 'compileScala', '-s'
     }
 
     def "joint compile bad java code do not fail the build when options.failOnError is false"() {
@@ -275,6 +283,33 @@ class Person(val name: String, val age: Int) {
     def hello() : String = 42
 }
 """
+    }
+
+    def goodCodeUsingJavaInterface() {
+        file("src/main/scala/compile/test/Demo.scala") <<
+            """
+package compile.test
+
+object Demo {
+  MyInterface.helloWorld();
+}
+"""
+    }
+
+
+    def goodJavaInterfaceCode() {
+        file("src/main/java/compile/test/MyInterface.java") << """
+            package compile.test;
+            public interface MyInterface {
+                 default void defaultMethod() {
+                    System.out.println("Hello World!");
+                 }
+
+                 static void helloWorld() {
+                    System.out.println("Hello World!");
+                 }
+            }
+        """.stripIndent()
     }
 
     def badJavaCode() {
