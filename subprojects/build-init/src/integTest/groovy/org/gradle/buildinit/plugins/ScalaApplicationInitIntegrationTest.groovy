@@ -28,9 +28,9 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     String subprojectName() { 'app' }
 
     @Unroll
-    def "creates sample source if no source present with #scriptDsl build scripts when incubating=#incubating"() {
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run(['init', '--type', 'scala-application', '--dsl', scriptDsl.id] + (incubating ? ['--incubating'] : []))
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -52,7 +52,36 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains("Hello, world!")
 
         where:
-        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [true, false]].combinations()
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        when:
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/scala").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixtureFor(scriptDsl).assertHasTestSuite("test")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello, world!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll

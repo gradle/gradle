@@ -98,7 +98,11 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrat
         outputContains("Hello World!")
 
         where:
-        [jvmLanguage, scriptDsl, incubating] << [[JAVA, GROOVY, KOTLIN, SCALA], ScriptDslFixture.SCRIPT_DSLS, [true, false]].combinations()
+        [jvmLanguage, scriptDsl, incubating] << [
+                [JAVA, GROOVY, KOTLIN, SCALA],
+                ScriptDslFixture.SCRIPT_DSLS,
+                [true, false]
+        ].combinations()
     }
 
     def "can explicitly configure application not to split projects"() {
