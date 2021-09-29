@@ -15,10 +15,9 @@
 [[jvm_test_suite_plugin]]
 = The JVM Test Suite Plugin
 
-The JVM Test Suite plugin (plugin id: `jvm-test-suite`) allows for modeling multiple groups of automated tests in a Java project.  Tests suites are intended to grouped by similarities between the tests, e.g. fast tests vs. slow tests, or grouped by their common testing framework.
+The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.  Tests suites are intended to grouped by their purpose and can have separate dependencies and use different testing frameworks.
 
-This plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements.
-
+For instance, this plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements.
 [[sec:jvm_test_suite_usage]]
 == Usage
 
