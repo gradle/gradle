@@ -23,7 +23,7 @@ import java.io.File;
 
 public class NativeServicesTestFixture {
     // Collect this early, as the process' current directory can change during embedded test execution
-    public static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
+    private static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
     static NativeServices nativeServices;
     static boolean initialized;
 
