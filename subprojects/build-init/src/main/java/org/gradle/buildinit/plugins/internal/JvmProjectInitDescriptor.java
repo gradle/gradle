@@ -105,6 +105,10 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             addStandardDependencies(buildScriptBuilder, false);
 
             if (settings.isUseTestSuites()) {
+                // Spock test framework requires that we also have the Groovy plugin applied
+                if (getLanguage() != Language.GROOVY && settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+                    buildScriptBuilder.plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy");
+                }
                 configureDefaultTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
                 addIntegrationTestSuite(buildScriptBuilder, settings.getTestFramework(), libraryVersionProvider);
             } else {

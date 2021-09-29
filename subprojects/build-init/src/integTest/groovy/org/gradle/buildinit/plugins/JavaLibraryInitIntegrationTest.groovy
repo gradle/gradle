@@ -193,7 +193,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    def "creates sample source with package and spock and #scriptDsl build scripts"() {
+    def "creates sample source with package and spock and #scriptDsl build scripts when incubating=#incubating"() {
         when:
         run(['init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id] + incubating)
 
@@ -211,8 +211,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
 
         where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
-        incubating << [[], ['--incubating']]
+        [scriptDsl, incubating] << [ScriptDslFixture.SCRIPT_DSLS, [[], ['--incubating']]].combinations()
     }
 
     @Unroll
