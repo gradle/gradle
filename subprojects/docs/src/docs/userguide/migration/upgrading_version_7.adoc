@@ -38,6 +38,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
@@ -55,6 +56,10 @@ behavior of existing builds.
 Prior to this version, a dependency substitution target could not be excluded from a dependency graph.
 This was caused by checking for exclusions prior to performing the substitution.
 Now Gradle will also check for exclusion on the substitution result.
+
+==== Version catalog
+
+Generated accessors no longer give access to the type unsafe API. You have to use the [version catalog extension](userguide/platforms.html#sub:type-unsafe-access-to-catalog) instead.
 
 [[declare_unreadable_input_output]]
 ==== Declaring input or output directories which contain unreadable content
