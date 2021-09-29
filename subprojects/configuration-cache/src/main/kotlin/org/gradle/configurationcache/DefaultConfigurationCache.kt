@@ -53,7 +53,7 @@ class DefaultConfigurationCache internal constructor(
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
-    private val systemPropertyListener: SystemPropertyAccessListener,
+    private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
@@ -263,7 +263,7 @@ class DefaultConfigurationCache internal constructor(
     fun prepareForWork() {
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
-        Instrumented.setListener(systemPropertyListener)
+        Instrumented.setListener(instrumentedInputAccessListener)
     }
 
     private

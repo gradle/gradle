@@ -111,6 +111,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "system property '$key' has changed"
                 }
             }
+            is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
+                if (System.getenv(key) != value) {
+                    return "environment variable '$key' has changed"
+                }
+            }
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                 if (host.buildStartTime >= expireAt) {
                     return reason

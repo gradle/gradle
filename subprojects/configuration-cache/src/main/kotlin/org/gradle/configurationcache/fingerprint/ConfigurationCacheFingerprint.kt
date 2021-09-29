@@ -55,6 +55,11 @@ sealed class ConfigurationCacheFingerprint {
         val value: Any?
     ) : ConfigurationCacheFingerprint()
 
+    data class UndeclaredEnvironmentVariable(
+        val key: String,
+        val value: Any?
+    ) : ConfigurationCacheFingerprint()
+
     abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
     ) : ConfigurationCacheFingerprint() {

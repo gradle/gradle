@@ -59,7 +59,7 @@ val allowedProperties = setOf(
 
 
 @ServiceScope(Scopes.BuildTree::class)
-class SystemPropertyAccessListener(
+class InstrumentedInputAccessListener(
     listenerManager: ListenerManager
 ) : Instrumented.Listener {
 
@@ -71,5 +71,9 @@ class SystemPropertyAccessListener(
             return
         }
         broadcast.systemPropertyRead(key, value, consumer)
+    }
+
+    override fun envVariableQueried(key: String, value: String?, consumer: String) {
+        broadcast.envVariableRead(key, value, consumer)
     }
 }

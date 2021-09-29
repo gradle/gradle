@@ -22,11 +22,19 @@ import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Instrumented {
-    private static final Listener NO_OP = (key, value, consumer) -> {
+    private static final Listener NO_OP = new Listener() {
+        @Override
+        public void systemPropertyQueried(String key, @Nullable Object value, String consumer) {
+        }
+
+        @Override
+        public void envVariableQueried(String key, @Nullable String value, String consumer) {
+        }
     };
 
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
@@ -58,6 +66,9 @@ public class Instrumented {
                     break;
                 case "getBoolean":
                     array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
+                    break;
+                case "getenv":
+                    array.array[callSite.getIndex()] = new GetEnvCallSite(callSite);
                     break;
             }
         }
@@ -127,6 +138,18 @@ public class Instrumented {
         return Boolean.getBoolean(key);
     }
 
+    // Called by generated code.
+    public static String getenv(String key, String consumer) {
+        String value = System.getenv(key);
+        LISTENER.get().envVariableQueried(key, value, consumer);
+        return value;
+    }
+
+    // Called by generated code.
+    public static Map<String, String> getenv(String consumer) {
+        return new AccessTrackingEnvMap((key, value) -> LISTENER.get().envVariableQueried(convertToString(key), value, consumer));
+    }
+
     private static Object unwrap(Object obj) {
         if (obj instanceof Wrapper) {
             return ((Wrapper) obj).unwrap();
@@ -146,6 +169,15 @@ public class Instrumented {
          * @param consumer The name of the class that is reading the property value
          */
         void systemPropertyQueried(String key, @Nullable Object value, String consumer);
+
+        /**
+         * Invoked when the code reads the environment variable.
+         *
+         * @param key the name of the variable
+         * @param value the value of the variable
+         * @param consumer the name of the class that is reading the variable
+         */
+        void envVariableQueried(String key, @Nullable String value, String consumer);
     }
 
     private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
@@ -247,6 +279,28 @@ public class Instrumented {
             } else {
                 return super.callGetProperty(receiver);
             }
+        }
+    }
+
+    private static class GetEnvCallSite extends AbstractCallSite {
+        public GetEnvCallSite(CallSite prev) {
+            super(prev);
+        }
+
+        @Override
+        public Object call(Object receiver) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return getenv(array.owner.getName());
+            }
+            return super.call(receiver);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class) && arg1 instanceof CharSequence) {
+                return getenv(convertToString(arg1), array.owner.getName());
+            }
+            return super.call(receiver, arg1);
         }
     }
 }
