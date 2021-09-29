@@ -17,17 +17,20 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import java.util.regex.Pattern
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3437")
+    @Issue("https://github.com/gradle/gradle-private/issues/3437")
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
     def "can publish build scan with composite build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
