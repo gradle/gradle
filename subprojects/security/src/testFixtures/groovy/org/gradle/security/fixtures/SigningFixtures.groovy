@@ -79,6 +79,12 @@ class SigningFixtures {
         return armored.sign(validSignatory, toSign)
     }
 
+    static File useSignatureFromResource(File toSign, String resourcePath) {
+        File file = new File(toSign.parent, "${toSign.name}.asc")
+        file << SigningFixtures.class.getResourceAsStream(resourcePath)
+        return file
+    }
+
     static PGPSecretKey readSecretKey(File keyringsDir) {
         def keyring = new File(keyringsDir, "secring.gpg")
         PGPSecretKey secretKey = null
