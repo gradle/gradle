@@ -103,7 +103,7 @@ Invoking the `check` task on the above configured build should show output simil
 include::{snippetsPath}/testing/test-suite-plugin/tests/checkTaskOutput.out[]
 ----
 
-Note that all tasks synthesized by the registration of the `integrationTest` suite (`compileIntegrationTestJava`, `processIntegrationTestResources`, `integrationTestClasses` and `integrationTest`) do not run until after the `test` suite completes its tasks.
+Note that the `integrationTest` test suite does not run until after the `test` test suite completes.
 
 [[sec:configuring_the_built_in_test_suite]]
 == Configure the built-in `test` suite
