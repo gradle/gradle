@@ -37,7 +37,7 @@ testing {
         }
     }
 }
-// tag::configure-source-dir[]
+// end::configure-source-dir[]
 
 // tag::configure-test-task[]
 testing {
