@@ -42,7 +42,7 @@ testing {
 // tag::configure-test-task[]
 testing {
     suites {
-        named<JvmTestSuite>("integrationTest") {
+        val integrationTest by getting(JvmTestSuite::class) {
             targets {
                 all { // <1>
                     testTask.configure {
