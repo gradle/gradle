@@ -42,7 +42,7 @@ testing {
 // tag::configure-test-task[]
 testing {
     suites {
-        integrationTest(JvmTestSuite) {
+        integrationTest {
             targets {
                 all { // <1>
                     testTask.configure {
