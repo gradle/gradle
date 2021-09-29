@@ -21,12 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.model.StateTransitionController;
@@ -117,17 +117,18 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void addRequestedTasks(BuildTreeWorkGraph.Builder builder) {
-        builder.withWorkGraph(gradle.getOwner(), graph -> graph.addRequestedTasks());
+    public BuildWorkPlan newWorkGraph() {
+        return new BuildWorkPlan() {
+        };
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super WorkGraphBuilder> action) {
+    public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
         state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, tasks -> action.accept(new DefaultWorkGraphBuilder(tasks))));
     }
 
     @Override
-    public void finalizeWorkGraph() {
+    public void finalizeWorkGraph(BuildWorkPlan plan) {
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
             TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             taskGraph.populate();
@@ -137,7 +138,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public ExecutionResult<Void> executeTasks() {
+    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
         return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle));
     }

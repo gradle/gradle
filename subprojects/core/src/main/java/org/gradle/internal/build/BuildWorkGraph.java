@@ -33,10 +33,10 @@ public interface BuildWorkGraph {
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
      */
-    void prepareForExecution();
+    void finalizeGraph();
 
     /**
      * Runs all work in this graph.
      */
-    ExecutionResult<Void> execute();
+    ExecutionResult<Void> runWork();
 }

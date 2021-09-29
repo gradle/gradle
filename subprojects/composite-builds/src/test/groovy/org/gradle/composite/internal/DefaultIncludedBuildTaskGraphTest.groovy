@@ -72,8 +72,8 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         then:
         1 * workGraphController.newWorkGraph() >> workGraph
         1 * workGraph.populateWorkGraph(_)
-        1 * workGraph.prepareForExecution()
-        1 * workGraph.execute() >> ExecutionResult.succeeded()
+        1 * workGraph.finalizeGraph()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
     }
 
     def "cannot schedule tasks when graph has not been created"() {
@@ -135,7 +135,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         def build = build(id, workGraphController)
 
         workGraphController.newWorkGraph() >> workGraph
-        workGraph.execute() >> {
+        workGraph.runWork() >> {
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 

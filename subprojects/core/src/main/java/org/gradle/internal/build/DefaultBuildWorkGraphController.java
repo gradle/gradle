@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
+import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 
@@ -32,12 +33,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
-    private final Object lock = new Object();
-    private final Map<String, DefaultExportedTaskNode> nodesByPath = new HashMap<>();
     private final TaskNodeFactory taskNodeFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController controller;
-    private boolean tasksScheduled;
+    private final Object lock = new Object();
+    private final Map<String, DefaultExportedTaskNode> nodesByPath = new HashMap<>();
     private DefaultBuildWorkGraph current;
 
     public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
@@ -69,53 +69,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    private boolean doSchedule(Collection<ExportedTaskNode> taskNodes) {
-        List<Task> tasks = new ArrayList<>();
-        for (ExportedTaskNode taskNode : taskNodes) {
-            DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
-            if (nodesByPath.get(node.taskPath) != taskNode) {
-                throw new IllegalArgumentException();
-            }
-            if (node.shouldSchedule()) {
-                // Not already in task graph
-                tasks.add(node.getTask());
-            }
-        }
-        if (tasks.isEmpty()) {
-            return false;
-        }
-        tasksScheduled = true;
-        projectStateRegistry.withMutableStateOfAllProjects(() -> {
-            controller.prepareToScheduleTasks();
-            controller.populateWorkGraph(taskGraph -> taskGraph.addEntryTasks(tasks));
-        });
-        return true;
-    }
-
-    private void doPopulateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-        tasksScheduled = true;
-        controller.prepareToScheduleTasks();
-        controller.populateWorkGraph(action);
-    }
-
-    private void doPrepareForExecution() {
-        if (tasksScheduled) {
-            controller.finalizeWorkGraph();
-        }
-    }
-
-    private ExecutionResult<Void> doExecute() {
-        try {
-            if (tasksScheduled) {
-                return controller.executeTasks();
-            } else {
-                return ExecutionResult.succeeded();
-            }
-        } finally {
-            tasksScheduled = false;
-        }
-    }
-
     private DefaultExportedTaskNode doLocate(String taskPath) {
         return nodesByPath.computeIfAbsent(taskPath, DefaultExportedTaskNode::new);
     }
@@ -131,29 +84,77 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
+        private final Thread owner;
+        BuildWorkPlan plan;
+
+        public DefaultBuildWorkGraph() {
+            this.owner = Thread.currentThread();
+        }
+
         @Override
         public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
-            return doSchedule(taskNodes);
+            assertIsOwner();
+            List<Task> tasks = new ArrayList<>();
+            for (ExportedTaskNode taskNode : taskNodes) {
+                DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
+                if (nodesByPath.get(node.taskPath) != taskNode) {
+                    throw new IllegalArgumentException();
+                }
+                if (node.shouldSchedule()) {
+                    // Not already in task graph
+                    tasks.add(node.getTask());
+                }
+            }
+            if (tasks.isEmpty()) {
+                return false;
+            }
+            projectStateRegistry.withMutableStateOfAllProjects(() -> {
+                createPlan();
+                controller.populateWorkGraph(plan, taskGraph -> taskGraph.addEntryTasks(tasks));
+            });
+            return true;
         }
 
         @Override
         public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
-            doPopulateWorkGraph(action);
+            assertIsOwner();
+            createPlan();
+            controller.populateWorkGraph(plan, action);
+        }
+
+        private void createPlan() {
+            if (plan == null) {
+                controller.prepareToScheduleTasks();
+                plan = controller.newWorkGraph();
+            }
         }
 
         @Override
-        public void prepareForExecution() {
-            doPrepareForExecution();
+        public void finalizeGraph() {
+            assertIsOwner();
+            if (plan != null) {
+                controller.finalizeWorkGraph(plan);
+            }
         }
 
         @Override
-        public ExecutionResult<Void> execute() {
+        public ExecutionResult<Void> runWork() {
             try {
-                return doExecute();
+                if (plan != null) {
+                    return controller.executeTasks(plan);
+                } else {
+                    return ExecutionResult.succeeded();
+                }
             } finally {
                 synchronized (lock) {
                     current = null;
                 }
+            }
+        }
+
+        private void assertIsOwner() {
+            if (Thread.currentThread() != owner) {
+                throw new IllegalStateException("Current thread is not the owner of this work graph.");
             }
         }
     }

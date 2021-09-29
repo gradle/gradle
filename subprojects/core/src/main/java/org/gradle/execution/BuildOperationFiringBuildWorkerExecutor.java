@@ -50,7 +50,7 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
         public ExecutionResult<Void> call(BuildOperationContext context) throws Exception {
             ExecutionResult<Void> result = delegate.execute(gradle);
             if (!result.getFailures().isEmpty()) {
-                context.failed(result.getFailures().get(0));
+                context.failed(result.getFailure());
             }
             return result;
         }

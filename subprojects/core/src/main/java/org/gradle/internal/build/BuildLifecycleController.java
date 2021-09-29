@@ -18,8 +18,8 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
@@ -55,26 +55,26 @@ public interface BuildLifecycleController extends Stoppable {
     void prepareToScheduleTasks();
 
     /**
-     * Adds the requested tasks for this build to the given graph.
+     * Creates a new work plan for this build.
      */
-    void addRequestedTasks(BuildTreeWorkGraph.Builder builder);
+    BuildWorkPlan newWorkGraph();
 
     /**
-     * Populates the work graph of this build.
+     * Populates the given work plan with tasks and work from this build.
      * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times.
      */
-    void populateWorkGraph(Consumer<? super WorkGraphBuilder> action);
+    void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action);
 
     /**
      * Finalizes the work graph after it has not been populated.
      */
-    void finalizeWorkGraph();
+    void finalizeWorkGraph(BuildWorkPlan plan);
 
     /**
-     * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
-     * Must call {@link #prepareToScheduleTasks()}, then {@link #populateWorkGraph(Consumer)} zero or more times, then {@link #finalizeWorkGraph()} prior to calling this method.
+     * Executes the given work for this build. Does not automatically configure the build or schedule any tasks.
+     * Must call {@link #prepareToScheduleTasks()}, then {@link #populateWorkGraph(BuildWorkPlan, Consumer)} zero or more times, then {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
      */
-    ExecutionResult<Void> executeTasks();
+    ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.

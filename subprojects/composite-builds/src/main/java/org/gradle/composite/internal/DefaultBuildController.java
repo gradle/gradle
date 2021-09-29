@@ -117,7 +117,7 @@ class DefaultBuildController implements BuildController, Stoppable {
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        workGraph.prepareForExecution();
+        workGraph.finalizeGraph();
 
         state = State.ReadyToRun;
     }
@@ -234,7 +234,7 @@ class DefaultBuildController implements BuildController, Stoppable {
     }
 
     private void doBuild() {
-        ExecutionResult<Void> result = workGraph.execute();
+        ExecutionResult<Void> result = workGraph.runWork();
         executionFinished(result);
     }
 
