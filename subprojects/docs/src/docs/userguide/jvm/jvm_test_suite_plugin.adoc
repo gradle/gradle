@@ -137,7 +137,7 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 <1> Declare and configure a suite named `integrationTest`.  The `SourceSet` and synthesized `Test` tasks will be based on this name.
 <2> Configure the `sources` of the test suite.
 <3> Configure the `java` SourceDirectorySet of the test suite.
-<4> Reset the `srcDirs` property, replacing the default `src/integrationTest/java` based on the suite name.
+<4> Overwrite the `srcDirs` property, replacing the conventional `src/integrationTest/java` location with `src/it/java`.
 
 == Configuring the `Test` task generated from a suite declaration
 ====
