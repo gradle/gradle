@@ -20,7 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.TaskNode;
+import org.gradle.execution.plan.TaskNodeFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -33,14 +34,14 @@ import java.util.function.Consumer;
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
     private final Object lock = new Object();
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new HashMap<>();
-    private final TaskExecutionGraphInternal taskGraph;
+    private final TaskNodeFactory taskNodeFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildLifecycleController controller;
     private boolean tasksScheduled;
     private DefaultBuildWorkGraph current;
 
-    public DefaultBuildWorkGraphController(TaskExecutionGraphInternal taskGraph, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
-        this.taskGraph = taskGraph;
+    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, ProjectStateRegistry projectStateRegistry, BuildLifecycleController controller) {
+        this.taskNodeFactory = taskNodeFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.controller = controller;
     }
@@ -75,7 +76,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             if (nodesByPath.get(node.taskPath) != taskNode) {
                 throw new IllegalArgumentException();
             }
-            if (node.whenScheduled() && findTaskInWorkGraph(node.taskPath) == null) {
+            if (node.shouldSchedule()) {
                 // Not already in task graph
                 tasks.add(node.getTask());
             }
@@ -111,14 +112,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                 return ExecutionResult.succeeded();
             }
         } finally {
-            updateTasksAfterExecution();
             tasksScheduled = false;
-        }
-    }
-
-    private void updateTasksAfterExecution() {
-        for (DefaultExportedTaskNode value : nodesByPath.values()) {
-            value.afterExecution();
         }
     }
 
@@ -126,26 +120,14 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         return nodesByPath.computeIfAbsent(taskPath, DefaultExportedTaskNode::new);
     }
 
-    private TaskInternal getTask(String taskPath) {
-        TaskInternal task = findTaskInWorkGraph(taskPath);
-        if (task == null) {
-            throw new IllegalStateException("Root build task '" + taskPath + "' was never scheduled for execution.");
-        }
-        return task;
-    }
-
     @Nullable
-    private TaskInternal findTaskInWorkGraph(String taskPath) {
-        for (Task task : taskGraph.getAllTasks()) {
+    private TaskInternal findTaskNode(String taskPath) {
+        for (Task task : taskNodeFactory.getTasks()) {
             if (task.getPath().equals(taskPath)) {
                 return (TaskInternal) task;
             }
         }
         return null;
-    }
-
-    private enum TaskState {
-        NotScheduled, Scheduled, Finished
     }
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
@@ -176,12 +158,9 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
     }
 
-    // This should be backed by a TaskNode to determine the actual execution state,
-    // rather than trying to reverse engineer the state
     private class DefaultExportedTaskNode implements ExportedTaskNode {
         final String taskPath;
-        TaskInternal task;
-        TaskState state = TaskState.NotScheduled;
+        TaskNode taskNode;
 
         DefaultExportedTaskNode(String taskPath) {
             this.taskPath = taskPath;
@@ -189,8 +168,8 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
         void maybeBindTask(TaskInternal task) {
             synchronized (lock) {
-                if (this.task == null) {
-                    this.task = task;
+                if (taskNode == null) {
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
             }
         }
@@ -198,26 +177,31 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         @Override
         public TaskInternal getTask() {
             synchronized (lock) {
-                if (task == null) {
-                    task = DefaultBuildWorkGraphController.this.getTask(taskPath);
+                if (taskNode == null) {
+                    TaskInternal task = findTaskNode(taskPath);
+                    if (task == null) {
+                        throw new IllegalStateException("Task '" + taskPath + "' was never scheduled for execution.");
+                    }
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
-                return task;
+                return taskNode.getTask();
             }
         }
 
         @Override
         public IncludedBuildTaskResource.State getTaskState() {
             synchronized (lock) {
-                if (state == TaskState.NotScheduled) {
-                    return IncludedBuildTaskResource.State.Waiting;
+                if (taskNode == null) {
+                    TaskInternal task = findTaskNode(taskPath);
+                    if (task == null) {
+                        // Assume not scheduled yet
+                        return IncludedBuildTaskResource.State.Waiting;
+                    }
+                    taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
-
-                getTask();
-                if (task.getState().getFailure() != null) {
-                    return IncludedBuildTaskResource.State.Failed;
-                } else if (task.getState().getExecuted()) {
+                if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
-                } else if (state == TaskState.Finished) {
+                } else if (taskNode.isComplete() && taskNode.isInKnownState()) {
                     // Here "failed" means "output is not available, so do not run dependents"
                     return IncludedBuildTaskResource.State.Failed;
                 } else {
@@ -227,22 +211,9 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
         }
 
-        public boolean whenScheduled() {
+        public boolean shouldSchedule() {
             synchronized (lock) {
-                if (state == TaskState.NotScheduled) {
-                    state = TaskState.Scheduled;
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-
-        public void afterExecution() {
-            synchronized (lock) {
-                if (state == TaskState.Scheduled) {
-                    state = TaskState.Finished;
-                }
+                return taskNode == null || !taskNode.isRequired();
             }
         }
     }

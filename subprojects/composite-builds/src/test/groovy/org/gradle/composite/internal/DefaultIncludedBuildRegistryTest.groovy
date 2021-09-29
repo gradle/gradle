@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
@@ -82,6 +83,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         services.add(Stub(BuildStateRegistry))
         services.add(Stub(BuildTreeLifecycleControllerFactory))
         services.add(Stub(BuildModelParameters))
+        services.add(Stub(GradleInternal))
+        services.add(Stub(DocumentationRegistry))
 
         _ * buildTree.services >> services
     }

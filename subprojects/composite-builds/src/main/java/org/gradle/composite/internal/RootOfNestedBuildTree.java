@@ -24,6 +24,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
@@ -100,7 +101,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
-        workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        workGraph = new DefaultBuildWorkGraphController(buildServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
     }
 
     public void attach() {

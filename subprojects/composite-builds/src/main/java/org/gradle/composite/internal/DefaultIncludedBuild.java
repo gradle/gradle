@@ -25,6 +25,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
@@ -73,8 +74,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.projectStateRegistry = projectStateRegistry;
         BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition.newInstance(), this, owner, buildScopeServices);
-        this.workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        BuildDefinition buildDefinitionCopy = buildDefinition.newInstance();
+        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinitionCopy, this, owner, buildScopeServices);
+        this.workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 

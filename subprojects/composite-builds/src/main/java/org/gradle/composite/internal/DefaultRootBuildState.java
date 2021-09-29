@@ -24,6 +24,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -82,7 +83,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
-        this.workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        this.workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
     }
 
     @Override

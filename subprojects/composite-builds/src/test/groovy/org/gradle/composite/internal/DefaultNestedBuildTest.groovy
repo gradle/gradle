@@ -18,6 +18,7 @@ package org.gradle.composite.internal
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.exception.ExceptionAnalyser
@@ -57,6 +58,9 @@ class DefaultNestedBuildTest extends Specification {
         sessionServices.add(Stub(BuildOperationExecutor))
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
+        sessionServices.add(gradle)
+        sessionServices.add(Stub(DocumentationRegistry))
+        sessionServices.add(Stub(BuildTreeWorkGraphController))
         _ * tree.services >> sessionServices
         _ * controller.gradle >> gradle
 

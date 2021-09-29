@@ -576,7 +576,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
-                if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
+                if (!tryAcquireLocksForNode(node, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -604,7 +604,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
+    private boolean tryAcquireLocksForNode(Node node, MutationInfo mutations) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;

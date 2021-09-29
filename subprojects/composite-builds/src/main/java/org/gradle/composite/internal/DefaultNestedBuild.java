@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -88,7 +89,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
             finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
         }
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
-        workGraph = new DefaultBuildWorkGraphController(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
     }
 
     @Override

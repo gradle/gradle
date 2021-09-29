@@ -17,6 +17,7 @@
 package org.gradle.composite.internal
 
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -57,7 +58,10 @@ class DefaultRootBuildStateTest extends Specification {
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def sessionServices = new DefaultServiceRegistry()
         sessionServices.add(new TestBuildOperationExecutor())
+        sessionServices.add(gradle)
         sessionServices.add(exceptionAnalyzer)
+        sessionServices.add(Stub(BuildTreeWorkGraphController))
+        sessionServices.add(Stub(DocumentationRegistry))
         sessionServices.add(Stub(DefaultDeploymentRegistry))
         sessionServices.add(Stub(BuildStateRegistry))
         sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))

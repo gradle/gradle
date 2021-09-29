@@ -106,6 +106,7 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.execution.TaskSelector;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -216,6 +217,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
             registration.add(ResolvedBuildLayout.class);
+            registration.add(TaskNodeFactory.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }

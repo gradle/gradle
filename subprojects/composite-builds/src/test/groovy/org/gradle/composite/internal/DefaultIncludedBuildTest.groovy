@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
@@ -47,7 +48,11 @@ class DefaultIncludedBuildTest extends Specification {
         _ * buildFactory.newInstance(_, _, _, _) >> gradleLauncher
         _ * gradleLauncher.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
-        _ * buildTree.services >> new DefaultServiceRegistry()
+        def treeServices = new DefaultServiceRegistry()
+        treeServices.add(gradle)
+        treeServices.add(Stub(DocumentationRegistry))
+        treeServices.add(Stub(BuildTreeWorkGraphController))
+        _ * buildTree.services >> treeServices
 
         build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
     }
