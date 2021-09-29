@@ -680,11 +680,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         }
         forkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "work"));
 
-        try {
-            super.executeTests();
-        } finally {
-            testFramework.set((TestFramework) null);
-        }
+        super.executeTests();
     }
 
     @Override
@@ -909,8 +905,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
         if (!testFramework.isPresent()) {
             useJUnit(testFrameworkConfigure);
+        } else {
+            testFramework.finalizeValue();
         }
-
         return testFramework.get();
     }
 

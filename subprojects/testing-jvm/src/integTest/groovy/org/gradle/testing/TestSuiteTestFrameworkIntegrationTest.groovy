@@ -95,6 +95,47 @@ class TestSuiteTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesNotExecuted("com.example.ExcludedTest")
     }
 
+    def "options for test framework are respected for JUnit for custom test suite where task overrides test framework"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+                        dependencies {
+                            implementation "junit:junit:4.13"
+                        }
+                        targets.all {
+                            testTask.configure {
+                                useJUnit()
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            check.dependsOn testing.suites
+        """
+        writeJUnitSources(file("src/integrationTest/java"))
+
+        when:
+        succeeds("check")
+        then:
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
+        result.assertTestClassesExecuted("com.example.IncludedTest")
+        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+    }
+
     private void writeJUnitSources(TestFile sourcePath) {
 
         sourcePath.file("com/example/Exclude.java") << """
