@@ -21,12 +21,15 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOutputCleanupRegistry.class);
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
@@ -39,9 +42,14 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     @Override
     public void registerOutputs(Object files) {
         if (resolvedPaths != null) {
-            throw new GradleException("Build output cleanup registry has already been finalized - cannot register more outputs. Output: " + files);
+            // Some tasks cannot declare the dependencies on other projects, yet, for example the dependencies task.
+            // When configure on demand is enabled, those other projects are realized at execution time, long after the BuildOutputRegistry
+            // has been finalized. We ignore those problems for now, until the dependencies can be declared properly.
+            // See https://github.com/gradle/gradle/issues/18460.
+            LOGGER.debug("More outputs are being registered even though the build output cleanup registry has already been finalized. New outputs: {}", files);
+        } else {
+            this.outputs.add(fileCollectionFactory.resolving(files));
         }
-        this.outputs.add(fileCollectionFactory.resolving(files));
     }
 
     @Override
