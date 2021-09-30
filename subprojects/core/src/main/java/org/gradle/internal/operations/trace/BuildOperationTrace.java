@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.StartParameter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -110,6 +111,13 @@ public class BuildOperationTrace implements Stoppable {
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
+        // Initialize the Groovy VMPlugin
+        // If we don't do this here, then the first call to JsonOutput.toJson will force the initialization.
+        // That is not bad as is, only on Java 8 this causes the logging of an exception while initializing the VMPlugin.
+        // And from the debug logging, we end up in the trace again which tries to call JsonOutput.toJson again.
+        // Since the VMplugin isn't initialized, yet (we are just in the middle of it), we end up with an NPE and the build fails.
+        // So we need to initialize the VMPlugin before we start writing traces.
+        DefaultGroovyMethods.getMetaClass(JsonOutput.class);
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
