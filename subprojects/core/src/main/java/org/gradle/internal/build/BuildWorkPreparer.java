@@ -23,9 +23,17 @@ import java.util.function.Consumer;
 
 public interface BuildWorkPreparer {
     /**
-     * Populates the given execution plan.
+     * Creates a new, empty plan.
+     */
+    ExecutionPlan newExecutionPlan();
+
+    /**
+     * Populates the given execution plan using the given action.
      */
     void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action);
 
+    /**
+     * Finalises the given execution plan once all work has been scheduled.
+     */
     void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan);
 }

@@ -541,8 +541,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperationFiringBuildWorkPreparer(buildOperationExecutor, new DefaultBuildWorkPreparer());
+    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory) {
+        return new BuildOperationFiringBuildWorkPreparer(
+            buildOperationExecutor,
+            new DefaultBuildWorkPreparer(
+                executionPlanFactory
+            ));
     }
 
     protected TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {

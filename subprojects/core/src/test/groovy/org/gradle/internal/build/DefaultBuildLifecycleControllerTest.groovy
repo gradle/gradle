@@ -57,7 +57,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         _ * exceptionAnalyser.transform(failure) >> transformedException
         def taskGraph = Stub(TaskExecutionGraphInternal)
         _ * gradleMock.taskGraph >> taskGraph
-        _ * taskGraph.executionPlan >> executionPlan
         def services = new DefaultServiceRegistry()
         services.add(Stub(BuildOutputCleanupRegistry))
         _ * gradleMock.services >> services
@@ -220,6 +219,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     void testNotifiesListenerOnSettingsInitWithFailure() {
         given:
+        1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
         1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
 
@@ -391,6 +391,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     private void expectRequestedTasksScheduled() {
+        1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
         1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
@@ -398,6 +399,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     private void expectTasksScheduled() {
+        1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
         1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }

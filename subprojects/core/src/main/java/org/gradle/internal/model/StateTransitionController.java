@@ -106,6 +106,17 @@ public class StateTransitionController<T extends StateTransitionController.State
      * Fails if the current state is not the given state or if some transition is happening or a previous transition has failed.
      */
     public void inState(T expected, Runnable action) {
+        inState(expected, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs the given action when the current state is the given state.
+     * Fails if the current state is not the given state or if some transition is happening or a previous transition has failed.
+     */
+    public <S> S inState(T expected, Supplier<S> action) {
         Thread previousOwner = takeOwnership();
         try {
             assertNotFailed();
@@ -116,10 +127,11 @@ public class StateTransitionController<T extends StateTransitionController.State
                 throw new IllegalStateException("Expected to be in state " + expected + " but is in state " + state + ".");
             }
             try {
-                action.run();
+                return action.get();
             } catch (Throwable t) {
                 failure = ExecutionResult.failed(t);
                 failure.rethrow();
+                throw new IllegalStateException();
             }
         } finally {
             releaseOwnership(previousOwner);

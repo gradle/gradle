@@ -743,38 +743,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         failures == [failure]
     }
 
-    def "clear removes all tasks"() {
-        given:
-        Task a = task("a")
-
-        when:
-        addToGraphAndPopulate(toList(a))
-        executionPlan.clear()
-
-        then:
-        executionPlan.tasks == [] as Set
-        executedTasks == []
-    }
-
-    def "can add additional tasks after execution and clear"() {
-        given:
-        Task a = task("a")
-        Task b = task("b")
-
-        when:
-        addToGraphAndPopulate([a])
-
-        then:
-        executes(a)
-
-        when:
-        executionPlan.clear()
-        addToGraphAndPopulate([b])
-
-        then:
-        executes(b)
-    }
-
     def "does not build graph for or execute filtered tasks"() {
         given:
         Task a = filteredTask("a")

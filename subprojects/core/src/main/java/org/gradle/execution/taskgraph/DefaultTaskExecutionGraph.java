@@ -46,8 +46,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -64,7 +62,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private final PlanExecutor planExecutor;
-    private final ResourceLockCoordinationService coordinationService;
     private final List<NodeExecutor> nodeExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
@@ -72,9 +69,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
-    private final ExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
+    private ExecutionPlan executionPlan;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
 
@@ -83,9 +80,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         List<NodeExecutor> nodeExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
-        ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
-        ExecutionPlan executionPlan,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
@@ -96,14 +91,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.nodeExecutors = nodeExecutors;
         this.buildOperationExecutor = buildOperationExecutor;
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
-        this.coordinationService = coordinationService;
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
         this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
-        this.executionPlan = executionPlan;
+        this.executionPlan = ExecutionPlan.EMPTY;
     }
 
     @Override
@@ -112,14 +106,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public ExecutionPlan getExecutionPlan() {
-        return executionPlan;
-    }
-
-    @Override
     public void populate(ExecutionPlan plan) {
-        assertIsThisGraphsPlan(plan);
-        executionPlan.determineExecutionPlan();
+        executionPlan = plan;
         allTasks = null;
         if (!hasFiredWhenReady) {
             fireWhenReady();
@@ -160,10 +148,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             );
             LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
         } finally {
-            coordinationService.withStateLock(resourceLockState -> {
-                executionPlan.clear();
-                return ResourceLockState.Disposition.FINISHED;
-            });
+            populate(ExecutionPlan.EMPTY);
         }
     }
 

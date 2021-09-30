@@ -117,9 +117,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public BuildWorkPlan newWorkGraph() {
-        ExecutionPlan plan = gradle.getTaskGraph().getExecutionPlan();
-        state.inState(State.TaskSchedule, () -> modelController.initializeWorkGraph(plan));
-        return new DefaultBuildWorkPlan(this, plan);
+        return state.inState(State.TaskSchedule, () -> {
+            ExecutionPlan plan = workPreparer.newExecutionPlan();
+            modelController.initializeWorkGraph(plan);
+            return new DefaultBuildWorkPlan(this, plan);
+        });
     }
 
     @Override

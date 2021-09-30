@@ -56,6 +56,11 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
     }
 
     @Override
+    public ExecutionPlan newExecutionPlan() {
+        return delegate.newExecutionPlan();
+    }
+
+    @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
         buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, delegate, action));
     }

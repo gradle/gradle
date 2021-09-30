@@ -57,8 +57,6 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
-import org.gradle.execution.plan.ExecutionPlan;
-import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -83,7 +81,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -165,18 +162,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
-    ExecutionPlan createExecutionPlan(ExecutionPlanFactory factory) {
-        return factory.createPlan();
-    }
-
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
-        ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
-        ExecutionPlan executionPlan,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
@@ -188,9 +179,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             nodeExecutors,
             buildOperationExecutor,
             listenerBuildOperationDecorator,
-            coordinationService,
             gradleInternal,
-            executionPlan,
             graphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),

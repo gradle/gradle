@@ -26,12 +26,13 @@ import java.util.Set;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
-     * Does the work to populate the task graph based on tasks that have been added. Fires events and no further tasks should be added.
+     * Attaches the work that this graph will run. Fires events and no further tasks should be added.
      */
     void populate(ExecutionPlan plan);
 
     /**
-     * Executes the tasks in this graph. Discards the contents of this graph when completed.
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(ExecutionPlan)} prior to
+     * calling this method.
      *
      * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
      */
@@ -57,6 +58,4 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * dependencies from other builds.
      */
     List<Node> getScheduledWorkPlusDependencies();
-
-    ExecutionPlan getExecutionPlan();
 }
