@@ -287,7 +287,7 @@ See the https://toml.io[TOML specification] for details.
 [[sub:type-unsafe-access-to-catalog]]
 === Type unsafe API
 
-Version catalog also offers programmatic access through the unsafe API. Unsafe API is provided by the version catalog extension:
+Version catalogs can be accessed through a type unsafe API. This API is available in situations where generated accessors are not. It is accessed through the version catalog extension:
 
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=type_unsafe_access]"]
