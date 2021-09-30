@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
-class TestSuiteTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
+class TestSuitesTestFrameworkOptionsIntegrationTest extends AbstractIntegrationSpec {
     def "options for test framework are respected for JUnit in built-in test suite"() {
         buildFile << """
             plugins {

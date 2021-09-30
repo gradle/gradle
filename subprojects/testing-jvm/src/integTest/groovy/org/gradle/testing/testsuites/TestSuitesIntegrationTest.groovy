@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
