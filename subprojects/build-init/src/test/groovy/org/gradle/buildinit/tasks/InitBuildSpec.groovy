@@ -175,4 +175,20 @@ class InitBuildSpec extends Specification {
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
+    def "should reject invalid package names"() {
+        given:
+        projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
+        projectSetupDescriptor.testFrameworks >> [SPOCK]
+        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.supportsPackage() >> true
+        init.type = "java-library"
+        init.packageName = "new"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
+    }
 }

@@ -43,6 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import org.junit.platform.commons.util.PackageUtils;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
@@ -288,6 +289,10 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
+        if (!isNullOrEmpty(packageName)) {
+            validateValidPackageNameJUnit(packageName);
+        }
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
             modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
@@ -373,5 +378,13 @@ public class InitBuild extends DefaultTask {
             return buildConverter.getId();
         }
         return projectLayoutRegistry.getDefault().getId();
+    }
+
+    private void validateValidPackageNameJUnit(String packageName) {
+        try {
+            PackageUtils.assertPackageNameIsValid(packageName);
+        } catch (Exception e) {
+            throw new GradleException("Invalid package name specified.", e);
+        }
     }
 }
