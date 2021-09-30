@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,25 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 
-public class RecordOutputsStep<C extends Context, R extends AfterExecutionResult> implements Step<C, R> {
-    private final OutputFilesRepository outputFilesRepository;
+public class RemoveUntrackedExecutionStateStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
-    public RecordOutputsStep(
-        OutputFilesRepository outputFilesRepository,
+    public RemoveUntrackedExecutionStateStep(
         Step<? super C, ? extends R> delegate
     ) {
-        this.outputFilesRepository = outputFilesRepository;
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        result.getAfterExecutionState()
-            .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
+        context.getHistory()
+            .ifPresent(history -> {
+                if (!result.getAfterExecutionState().isPresent()) {
+                    history.remove(context.getIdentity().getUniqueId());
+                }
+            });
         return result;
     }
 }

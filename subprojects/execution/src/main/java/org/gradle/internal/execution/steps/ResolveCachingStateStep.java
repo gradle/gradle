@@ -47,7 +47,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveCachingStateStep implements Step<ValidationFinishedContext, CachingResult> {
+public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
@@ -69,7 +69,7 @@ public class ResolveCachingStateStep implements Step<ValidationFinishedContext, 
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
+    public CachingResult execute(UnitOfWork work, C context) {
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
