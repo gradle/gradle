@@ -171,7 +171,7 @@ For example, such a task will always be out of date and never come from the buil
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
 
-Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#enabling-incubating-features-in-new-projects).
+Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
 
 <a name="tooling-api"></a>
 ## Improvements for tooling providers
