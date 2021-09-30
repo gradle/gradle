@@ -20,9 +20,11 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import spock.lang.Ignore
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse model for a java project"() {
 
         projectDir.file('build.gradle').text = '''
