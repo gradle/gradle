@@ -33,7 +33,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         return null
     }
 
-    @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts")
+    @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts, when incubating flag = #incubating")
     def "creates multi-project application sample"() {
         given:
         def dsl = scriptDsl as BuildInitDsl
@@ -43,7 +43,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         def buildFile = dsl.fileNameFor('build')
 
         when:
-        run('init', '--type', "${language}-application", '--split-project', '--dsl', dsl.id)
+        def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
+        run(tasks)
 
         then:
         targetDir.file(settingsFile).exists()
@@ -56,30 +57,30 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-library-conventions")}",
         )
 
-        targetDir.file("app").assertHasDescendants(
-            buildFile,
+        def appFiles = [buildFile,
             "src/main/${language}/some/thing/app/App.${ext}",
             "src/main/${language}/some/thing/app/MessageUtils.${ext}",
             "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
             "src/main/resources",
-            "src/test/resources"
-        )
-        targetDir.file("list").assertHasDescendants(
-            buildFile,
+            "src/test/resources"]
+        targetDir.file("app").assertHasDescendants(appFiles*.toString())
+
+        def listFiles = [buildFile,
             "src/main/${language}/some/thing/list/LinkedList.${ext}",
             "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
             "src/main/resources",
-            "src/test/resources"
-        )
+            "src/test/resources"]
+        targetDir.file("list").assertHasDescendants(listFiles*.toString())
 
-        targetDir.file("utilities").assertHasDescendants(
+        def utilFiles = [
             buildFile,
             "src/main/${language}/some/thing/utilities/JoinUtils.${ext}",
             "src/main/${language}/some/thing/utilities/SplitUtils.${ext}",
             "src/main/${language}/some/thing/utilities/StringUtils.${ext}",
             "src/main/resources",
             "src/test/resources"
-        )
+        ]*.toString()
+        targetDir.file("utilities").assertHasDescendants(utilFiles)
 
         when:
         succeeds "build"
@@ -98,7 +99,11 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         outputContains("Hello World!")
 
         where:
-        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], getBuildDsl()].combinations()
+        [jvmLanguage, scriptDsl, incubating] << [
+                [JAVA, GROOVY, KOTLIN, SCALA],
+                [getBuildDsl()],
+                [true, false]
+        ].combinations()
     }
 
     def "can explicitly configure application not to split projects with #scriptDsl build scripts"() {

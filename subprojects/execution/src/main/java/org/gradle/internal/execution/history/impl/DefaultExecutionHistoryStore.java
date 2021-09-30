@@ -23,7 +23,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -63,9 +62,9 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, OriginMetadata originMetadata, boolean successful, AfterExecutionState executionState) {
+    public void store(String key, boolean successful, AfterExecutionState executionState) {
         store.put(key, new DefaultPreviousExecutionState(
-            originMetadata,
+            executionState.getOriginMetadata(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

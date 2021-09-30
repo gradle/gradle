@@ -29,6 +29,11 @@ It explains:
 
 But first, we look at the basics of JVM testing in Gradle.
 
+[NOTE]
+====
+A new configuration DSL for modeling test execution phases is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+====
+
 [[sec:java_testing_basics]]
 == The basics
 

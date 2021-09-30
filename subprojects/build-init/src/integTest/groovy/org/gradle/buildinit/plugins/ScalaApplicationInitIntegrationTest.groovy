@@ -56,6 +56,35 @@ class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        when:
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/scala").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixtureFor(scriptDsl).assertHasTestSuite("test")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppSuite", "App has a greeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello, world!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
     def "specifying JUnit4 is not supported with #scriptDsl build scripts"() {
         when:
         fails('init', '--type', 'scala-application', '--test-framework', 'junit-4', '--dsl', scriptDsl.id)

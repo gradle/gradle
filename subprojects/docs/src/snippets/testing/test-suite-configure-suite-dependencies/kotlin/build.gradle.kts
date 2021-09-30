@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
-
-import org.gradle.internal.execution.history.AfterExecutionState;
-
-import java.util.Optional;
-
-public interface SnapshotResult extends Result {
-    /**
-     * State after execution, or {@link Optional#empty()} if work is untracked.
-     */
-    Optional<AfterExecutionState> getAfterExecutionState();
+plugins {
+    java
 }
+
+version = "1.0.2"
+group = "org.gradle.sample"
+
+repositories {
+    mavenCentral()
+}
+
+// tag::configure-suite-dependencies[]
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) { // <1>
+            dependencies {
+                implementation("org.assertj:assertj-core:3.21.0") // <2>
+            }
+        }
+    }
+}
+
+// Note that this is equivalent to:
+dependencies {
+    testImplementation("org.assertj:assertj-core:3.21.0")
+}
+// tag::configure-suite-dependencies[]

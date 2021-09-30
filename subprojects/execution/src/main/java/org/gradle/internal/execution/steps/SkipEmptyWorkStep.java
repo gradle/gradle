@@ -43,52 +43,47 @@ public class SkipEmptyWorkStep<C extends PreviousExecutionContext> implements St
         ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles = context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
-        UnitOfWork.Identity identity = context.getIdentity();
         return work.skipIfInputsEmpty(previousOutputFiles)
-            .map(skippedOutcome -> {
-                context.getHistory()
-                    .ifPresent(history -> history.remove(identity.getUniqueId()));
-                return (CachingResult) new CachingResult() {
-                    @Override
-                    public Try<ExecutionResult> getExecutionResult() {
-                        return Try.successful(new ExecutionResult() {
-                            @Override
-                            public ExecutionOutcome getOutcome() {
-                                return skippedOutcome;
-                            }
+            .map(skippedOutcome -> (CachingResult) new CachingResult() {
+                @Override
+                public Try<ExecutionResult> getExecutionResult() {
+                    return Try.successful(new ExecutionResult() {
+                        @Override
+                        public ExecutionOutcome getOutcome() {
+                            return skippedOutcome;
+                        }
 
-                            @Override
-                            public Object getOutput() {
-                                return work.loadRestoredOutput(context.getWorkspace());
-                            }
-                        });
-                    }
+                        @Override
+                        public Object getOutput() {
+                            return work.loadRestoredOutput(context.getWorkspace());
+                        }
+                    });
+                }
 
-                    @Override
-                    public CachingState getCachingState() {
-                        return CachingState.NOT_DETERMINED;
-                    }
+                @Override
+                public CachingState getCachingState() {
+                    return CachingState.NOT_DETERMINED;
+                }
 
-                    @Override
-                    public ImmutableList<String> getExecutionReasons() {
-                        return ImmutableList.of();
-                    }
+                @Override
+                public ImmutableList<String> getExecutionReasons() {
+                    return ImmutableList.of();
+                }
 
-                    @Override
-                    public Optional<AfterExecutionState> getAfterExecutionState() {
-                        return Optional.empty();
-                    }
+                @Override
+                public Optional<AfterExecutionState> getAfterExecutionState() {
+                    return Optional.empty();
+                }
 
-                    @Override
-                    public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                        return Optional.empty();
-                    }
+                @Override
+                public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+                    return Optional.empty();
+                }
 
-                    @Override
-                    public Duration getDuration() {
-                        return Duration.ZERO;
-                    }
-                };
+                @Override
+                public Duration getDuration() {
+                    return Duration.ZERO;
+                }
             })
             .orElseGet(() -> delegate.execute(work, context));
     }
