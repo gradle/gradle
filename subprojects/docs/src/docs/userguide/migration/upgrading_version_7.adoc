@@ -59,7 +59,14 @@ Now Gradle will also check for exclusion on the substitution result.
 
 ==== Version catalog
 
-Generated accessors no longer give access to the type unsafe API. You have to use the [version catalog extension](userguide/platforms.html#sub:type-unsafe-access-to-catalog) instead.
+Generated accessors no longer give access to the type unsafe API.
+You have to use the [version catalog extension](userguide/platforms.html#sub:type-unsafe-access-to-catalog) instead.
+
+==== Toolchain support in Scala
+
+When using [toolchains in Scala](userguide/scala_plugin.html#sec:scala_tasks), this will now set the `-target` option of the Scala compiler automatically.
+This means that using a version of Java that cannot be targeted by a version of Scala will result in an error.
+Providing this flag in the compiler options will disable this behaviour and allow to use a higher Java version to compile for a lower bytecode target.
 
 [[declare_unreadable_input_output]]
 ==== Declaring input or output directories which contain unreadable content
