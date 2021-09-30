@@ -290,7 +290,7 @@ public class InitBuild extends DefaultTask {
         }
 
         if (!isNullOrEmpty(packageName)) {
-            if (!SourceVersion.isIdentifier(packageName)) {
+            if (!SourceVersion.isName(packageName)) {
                 throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
             }
         }
