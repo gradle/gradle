@@ -395,4 +395,42 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("checkConfiguration")
     }
+
+    def "test framework may not be changed once options have been used with test suites"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                        targets.all {
+                            testTask.configure {
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            integrationTest {
+                useTestNG()
+            }
+            
+            check.dependsOn testing.suites
+        """
+
+        when:
+        fails("check")
+        then:
+        failure.assertHasCause("The value for task ':integrationTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
+    }
 }
