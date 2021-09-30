@@ -167,6 +167,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
+    private boolean userHasConfiguredTestFramework;
+
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -905,7 +907,28 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
         if (!testFramework.isPresent()) {
             useJUnit(testFrameworkConfigure);
-        } else {
+        }
+
+        // To maintain backwards compatibility with builds that may configure the test framework
+        // multiple times for a single task--either switching between frameworks or overwriting
+        // the existing configuration for a test framework--we need to keep track if the user has
+        // explicitly set a test framework
+        // With test suites, users should never need to call the useXXX methods, so we can forbid
+        // them from doing something like this from the beginning.
+        //
+        // testTask.configure {
+        //      options {
+        //          /* configure JUnit Platform */
+        //      }
+        // }
+        // testTask.configure {
+        //      useJUnit()
+        //      options {
+        //          /* configure JUnit */
+        //      }
+        // }
+
+        if (!userHasConfiguredTestFramework) {
             testFramework.finalizeValue();
         }
         return testFramework.get();
@@ -947,6 +970,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
+        userHasConfiguredTestFramework = true;
         this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
