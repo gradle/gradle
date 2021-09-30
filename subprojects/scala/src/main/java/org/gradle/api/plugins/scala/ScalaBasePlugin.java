@@ -278,7 +278,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
             scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile());
             scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
-            scalaDoc.getScalaRuntime().set(scalaRuntime);
             scalaDoc.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
         });
     }

@@ -30,10 +30,10 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
@@ -57,16 +57,13 @@ public class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
-    private Boolean isScala3;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
-    private final Property<ScalaRuntime> scalaRuntime;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
-        this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
     }
 
     @Inject
@@ -158,17 +155,6 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns the Scala Runtime extension
-     *
-     * @since 7.3
-     */
-    @Internal
-    @Incubating
-    public Property<ScalaRuntime> getScalaRuntime() {
-        return scalaRuntime;
-    }
-
-    /**
      * Returns the amount of memory allocated to this task.
      * Ex. 512m, 1G
      *
@@ -213,8 +199,13 @@ public class ScalaDoc extends SourceTask {
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
-            parameters.getSources().from(getSource());
-            parameters.getIsScala3().set(getScalaRuntime().get().findScalaJar(getScalaClasspath(), "library_3") != null);
+            boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
+            parameters.getIsScala3().set(isScala3);
+            if (isScala3) {
+                parameters.getSources().from(getClasspath().getAsFileTree().matching(pattern -> pattern.include("**/*.tasty")));
+            } else {
+                parameters.getSources().from(getSource());
+            }
 
             if (options.isDeprecation()) {
                 parameters.getOptions().add("-deprecation");

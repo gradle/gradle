@@ -105,6 +105,6 @@ dependencies {
         succeeds scaladoc
 
         then:
-        executedAndNotSkipped scaladoc
+        executedAndNotSkipped scaladoc, ":compileScala"
     }
 }

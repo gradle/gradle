@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -51,6 +50,9 @@ public class ScalaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
 
         final SourceSet main = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName("main");
+
+        configureScaladoc(project, main);
+
         final Configuration incrementalAnalysisElements = project.getConfigurations().getByName("incrementalScalaAnalysisElements");
         String compileTaskName = main.getCompileTaskName("scala");
         final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
@@ -58,8 +60,6 @@ public class ScalaPlugin implements Plugin<Project> {
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
         incrementalAnalysisElements.getOutgoing().artifact(
             compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
-            
-        configureScaladoc(project, main);
     }
 
     private static void configureScaladoc(final Project project, final SourceSet main) {
@@ -70,14 +70,7 @@ public class ScalaPlugin implements Plugin<Project> {
                 files.from(main.getCompileClasspath());
                 return files;
             });
-
-            boolean isScala3 = scalaDoc.getScalaRuntime().get().findScalaJar(main.getCompileClasspath().getFiles(), "library_3") != null;
-
-            // Scaladoc 2 operates on source files, while Scaladoc 3 operates on generated TASTy files by the compiler
-            FileTree source = isScala3 ? 
-                main.getOutput().getAsFileTree().matching(pattern -> pattern.include("**/*.tasty")) : 
-                main.getExtensions().getByType(ScalaSourceDirectorySet.class);
-            scalaDoc.setSource(source);
+            scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");
