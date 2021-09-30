@@ -16,9 +16,12 @@
 
 package org.gradle.api;
 
+import org.gradle.internal.exceptions.Contextual;
+
 /**
  * A <code>InvalidUserDataException</code> is thrown, if a user is providing illegal data for the build.
  */
+@Contextual
 public class InvalidUserDataException extends GradleException {
     public InvalidUserDataException() {
     }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefine
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.tasks.TaskDependencyResolveException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -243,7 +243,7 @@ public class StartParameterResolutionOverride {
 
         @Override
         public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
-            throw new GradleException("Dependency verification cannot be performed", error);
+            throw new TaskDependencyResolveException("Dependency verification cannot be performed", error);
         }
     }
 
