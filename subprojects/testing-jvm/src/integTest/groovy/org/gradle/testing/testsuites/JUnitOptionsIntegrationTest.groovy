@@ -16,21 +16,12 @@
 
 package org.gradle.testing.testsuites
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
 import org.gradle.test.fixtures.file.TestFile
 
-class JUnitOptionsIntegrationTest extends AbstractIntegrationSpec {
+class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrationTest {
     def "options for test framework are respected for JUnit in built-in test suite"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     test {
@@ -46,28 +37,17 @@ class JUnitOptionsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
-            check.dependsOn testing.suites
         """
-        writeJUnitSources(file("src/test/java"))
+        writeSources(file("src/test/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertTestsWereExecutedAndExcluded()
     }
 
     def "options for test framework are respected for JUnit for custom test suite"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -82,29 +62,17 @@ class JUnitOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitSources(file("src/integrationTest/java"))
+        writeSources(file("src/integrationTest/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertIntegrationTestsWereExecutedAndExcluded()
     }
 
     def "options for test framework are respected for JUnit for custom test suite where task overrides test framework"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -123,21 +91,17 @@ class JUnitOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitSources(file("src/integrationTest/java"))
+        writeSources(file("src/integrationTest/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertIntegrationTestsWereExecutedAndExcluded()
     }
 
-    private void writeJUnitSources(TestFile sourcePath) {
-
+    @Override
+    void writeSources(TestFile sourcePath) {
         sourcePath.file("com/example/Exclude.java") << """
 package com.example;
 

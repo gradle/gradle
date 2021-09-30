@@ -16,21 +16,12 @@
 
 package org.gradle.testing.testsuites
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
 import org.gradle.test.fixtures.file.TestFile
 
-class JUnitJupiterOptionsIntegrationTest extends AbstractIntegrationSpec {
+class JUnitJupiterOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrationTest {
     def "options for test framework are respected for JUnitJupiter in built-in test suite"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     test {
@@ -45,29 +36,17 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitJupiterSources(file("src/test/java"))
+        writeSources(file("src/test/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertTestsWereExecutedAndExcluded()
     }
 
     def "options for test framework are respected for JUnitJupiter for custom test suite"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -82,29 +61,17 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitJupiterSources(file("src/integrationTest/java"))
+        writeSources(file("src/integrationTest/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertIntegrationTestsWereExecutedAndExcluded()
     }
 
     def "options for test framework are respected for JUnitJupiter for custom test suite without explicit configuration"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -118,29 +85,17 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitJupiterSources(file("src/integrationTest/java"))
+        writeSources(file("src/integrationTest/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertIntegrationTestsWereExecutedAndExcluded()
     }
 
     def "options for test framework are respected for JUnitJupiter for custom test suite with changing test framework"() {
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            repositories {
-                ${mavenCentralRepository()}
-            }
-
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
@@ -157,20 +112,17 @@ class JUnitJupiterOptionsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
-            check.dependsOn testing.suites
         """
-        writeJUnitJupiterSources(file("src/integrationTest/java"))
+        writeSources(file("src/integrationTest/java"))
 
         when:
         succeeds("check")
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'integrationTest')
-        result.assertTestClassesExecuted("com.example.IncludedTest")
-        result.assertTestClassesNotExecuted("com.example.ExcludedTest")
+        assertIntegrationTestsWereExecutedAndExcluded()
     }
 
-    private void writeJUnitJupiterSources(TestFile sourcePath) {
+    @Override
+    void writeSources(TestFile sourcePath) {
         sourcePath.file("com/example/IncludedTest.java") << """
 package com.example;
 import org.junit.jupiter.api.Test;
