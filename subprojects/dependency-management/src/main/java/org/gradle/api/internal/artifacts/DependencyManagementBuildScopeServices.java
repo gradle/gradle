@@ -176,6 +176,7 @@ import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
+import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -747,9 +748,10 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new RemoveUntrackedExecutionStateStep<>(
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new NoOpCachingStateStep(
+            new NoOpCachingStateStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
@@ -760,12 +762,11 @@ class DependencyManagementBuildScopeServices {
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))));
+        )))))))))))))))))));
         // @formatter:on
     }
 
-
-    private static class NoOpCachingStateStep implements Step<ValidationFinishedContext, CachingResult> {
+    private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {

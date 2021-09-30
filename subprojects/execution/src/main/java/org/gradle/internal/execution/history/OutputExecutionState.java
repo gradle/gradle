@@ -19,6 +19,9 @@ package org.gradle.internal.execution.history;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+/**
+ * Captures the state of the outputs of a {@link org.gradle.internal.execution.UnitOfWork}.
+ */
 public interface OutputExecutionState extends ExecutionState {
 
     /**
