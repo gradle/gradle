@@ -60,6 +60,11 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, delegate, action));
     }
 
+    @Override
+    public void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan) {
+        delegate.finalizeWorkGraph(gradle, plan);
+    }
+
     private static class PopulateWorkGraph implements RunnableBuildOperation {
         private final GradleInternal gradle;
         private final ExecutionPlan plan;

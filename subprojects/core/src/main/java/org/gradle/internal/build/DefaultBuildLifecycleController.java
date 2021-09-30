@@ -24,12 +24,10 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -120,6 +118,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public BuildWorkPlan newWorkGraph() {
         ExecutionPlan plan = gradle.getTaskGraph().getExecutionPlan();
+        state.inState(State.TaskSchedule, () -> modelController.initializeWorkGraph(plan));
         return new DefaultBuildWorkPlan(this, plan);
     }
 
@@ -133,10 +132,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public void finalizeWorkGraph(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
-            TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate(workPlan.plan);
-            BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
-            buildOutputCleanupRegistry.resolveOutputs();
+            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
 

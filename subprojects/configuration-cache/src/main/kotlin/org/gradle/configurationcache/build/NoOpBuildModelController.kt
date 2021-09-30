@@ -33,6 +33,10 @@ class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelControlle
         // Already done
     }
 
+    override fun initializeWorkGraph(plan: ExecutionPlan?) {
+        // Not necessary
+    }
+
     override fun scheduleRequestedTasks(plan: ExecutionPlan) {
         // Already done
     }

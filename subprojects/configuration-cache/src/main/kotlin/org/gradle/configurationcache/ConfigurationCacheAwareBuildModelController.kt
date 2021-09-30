@@ -49,6 +49,12 @@ class ConfigurationCacheAwareBuildModelController(
         } // Else, already done
     }
 
+    override fun initializeWorkGraph(plan: ExecutionPlan) {
+        if (!maybeLoadFromCache()) {
+            delegate.initializeWorkGraph(plan)
+        } // Else, not necessary
+    }
+
     override fun scheduleRequestedTasks(plan: ExecutionPlan) {
         if (!maybeLoadFromCache()) {
             delegate.scheduleRequestedTasks(plan)

@@ -26,4 +26,6 @@ public interface BuildWorkPreparer {
      * Populates the given execution plan.
      */
     void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action);
+
+    void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan);
 }

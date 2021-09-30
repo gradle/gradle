@@ -25,7 +25,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
-        Created, LoadSettings, Configure, ScheduleTasks, TaskGraph
+        Created, SettingsLoaded, Configured
     }
 
     private final ProjectsPreparer projectsPreparer;
@@ -53,48 +53,39 @@ public class VintageBuildModelController implements BuildModelController {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        doBuildStages(Stage.LoadSettings);
+        prepareSettings();
         return gradle.getSettings();
     }
 
     @Override
     public GradleInternal getConfiguredModel() {
-        doBuildStages(Stage.Configure);
+        prepareSettings();
+        prepareProjects();
         return gradle;
     }
 
     @Override
     public void prepareToScheduleTasks() {
-        doBuildStages(Stage.ScheduleTasks);
+        prepareSettings();
+        prepareProjects();
+    }
+
+    @Override
+    public void initializeWorkGraph(ExecutionPlan plan) {
+        state.inState(Stage.Configured, () -> taskGraphPreparer.prepareForTaskScheduling(gradle, plan));
     }
 
     @Override
     public void scheduleRequestedTasks(ExecutionPlan plan) {
-        prepareToScheduleTasks();
-        state.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle, plan));
-    }
-
-    private void doBuildStages(Stage upTo) {
-        prepareSettings();
-        if (upTo == Stage.LoadSettings) {
-            return;
-        }
-        prepareProjects();
-        if (upTo == Stage.Configure) {
-            return;
-        }
-        prepareTaskGraph();
+        state.inState(Stage.Configured, () -> taskExecutionPreparer.prepareForTaskExecution(gradle, plan));
     }
 
     private void prepareSettings() {
-        state.transitionIfNotPreviously(Stage.Created, Stage.LoadSettings, () -> settingsPreparer.prepareSettings(gradle));
+        state.transitionIfNotPreviously(Stage.Created, Stage.SettingsLoaded, () -> settingsPreparer.prepareSettings(gradle));
     }
 
     private void prepareProjects() {
-        state.transitionIfNotPreviously(Stage.LoadSettings, Stage.Configure, () -> projectsPreparer.prepareProjects(gradle));
+        state.transitionIfNotPreviously(Stage.SettingsLoaded, Stage.Configured, () -> projectsPreparer.prepareProjects(gradle));
     }
 
-    private void prepareTaskGraph() {
-        state.transitionIfNotPreviously(Stage.Configure, Stage.ScheduleTasks, () -> taskGraphPreparer.prepareForTaskScheduling(gradle));
-    }
 }

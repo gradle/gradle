@@ -516,7 +516,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         }
 
         when:
-        taskGraph.useFilter(spec)
+        executionPlan.useFilter(spec)
         executionPlan.addEntryTasks([a, b])
         taskGraph.populate(executionPlan)
 
@@ -542,7 +542,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         }
 
         when:
-        taskGraph.useFilter(spec)
+        executionPlan.useFilter(spec)
         executionPlan.addEntryTasks([c])
         taskGraph.populate(executionPlan)
 
@@ -565,7 +565,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         taskGraph.continueOnFailure = true
-        taskGraph.useFilter(new Spec<Task>() {
+        executionPlan.useFilter(new Spec<Task>() {
             boolean isSatisfiedBy(Task element) {
                 return element != b
             }

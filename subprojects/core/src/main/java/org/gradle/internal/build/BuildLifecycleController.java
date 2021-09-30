@@ -56,12 +56,12 @@ public interface BuildLifecycleController extends Stoppable {
 
     /**
      * Creates a new work plan for this build.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times to create multiple plans.
      */
     BuildWorkPlan newWorkGraph();
 
     /**
      * Populates the given work plan with tasks and work from this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times.
      */
     void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action);
 
@@ -72,7 +72,7 @@ public interface BuildLifecycleController extends Stoppable {
 
     /**
      * Executes the given work for this build. Does not automatically configure the build or schedule any tasks.
-     * Must call {@link #prepareToScheduleTasks()}, then {@link #populateWorkGraph(BuildWorkPlan, Consumer)} zero or more times, then {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
+     * Must call {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
 

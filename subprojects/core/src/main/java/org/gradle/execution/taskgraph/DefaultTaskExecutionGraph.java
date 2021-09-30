@@ -30,8 +30,6 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
@@ -60,8 +58,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @NonNullApi
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
@@ -113,12 +109,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public void setContinueOnFailure(boolean continueOnFailure) {
         executionPlan.setContinueOnFailure(continueOnFailure);
-    }
-
-    @Override
-    public void useFilter(Spec<? super Task> filter) {
-        Spec<? super Task> castFilter = filter != null ? filter : uncheckedNonnullCast(Specs.SATISFIES_ALL);
-        executionPlan.useFilter(castFilter);
     }
 
     @Override
