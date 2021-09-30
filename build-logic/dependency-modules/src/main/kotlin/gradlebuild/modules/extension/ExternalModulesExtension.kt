@@ -96,7 +96,6 @@ abstract class ExternalModulesExtension {
     val junit = "junit:junit"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
-    val junitPlatformCommons = "org.junit.platform:junit-platform-commons"
     val jzlib = "com.jcraft:jzlib"
     val kryo = "com.esotericsoftware.kryo:kryo"
     val log4jToSlf4j = "org.slf4j:log4j-over-slf4j"
@@ -231,7 +230,6 @@ abstract class ExternalModulesExtension {
         junit to License.EPL,
         junit5Vintage to License.EPL,
         junitPlatform to License.EPL,
-        junitPlatformCommons to License.EPL,
         jzlib to License.BSDStyle,
         kryo to License.BSD3,
         log4jToSlf4j to License.MIT,

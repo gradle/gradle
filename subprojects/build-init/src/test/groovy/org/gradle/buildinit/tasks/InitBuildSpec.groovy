@@ -175,7 +175,7 @@ class InitBuildSpec extends Specification {
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
-    def "should reject invalid package names"() {
+    def "should reject invalid package name: #invalidPackageName"() {
         given:
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
@@ -183,12 +183,22 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.supportsPackage() >> true
         init.type = "java-library"
-        init.packageName = "new"
+        init.packageName = invalidPackageName
 
         when:
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == SPOCK})
+        GradleException e = thrown()
+        e.message == "Package name: '" + invalidPackageName + "' is not valid - it may contain invalid characters or reserved words."
+
+        where:
+        invalidPackageName << [
+            'some.new.thing',
+            'my.package',
+            '2rt9.thing',
+            'a.class.of.mine',
+            'custom.for.stuff'
+        ]
     }
 }
