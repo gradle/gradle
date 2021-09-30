@@ -18,10 +18,12 @@ package org.gradle.execution
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.execution.plan.ExecutionPlan
 import spock.lang.Specification
 
 class DefaultBuildConfigurationActionExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
+    final ExecutionPlan executionPlan = Mock()
     final ProjectStateRegistry projectStateRegistry = Stub()
 
     def setup() {
@@ -36,7 +38,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2], projectStateRegistry)
 
         when:
-        buildExecution.select(gradleInternal)
+        buildExecution.select(gradleInternal, executionPlan)
 
         then:
         1 * action1.configure(!null)
@@ -51,10 +53,10 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2], projectStateRegistry)
 
         when:
-        buildExecution.select(gradleInternal)
+        buildExecution.select(gradleInternal, executionPlan)
 
         then:
-        1 * action1.configure(!null) >> { it[0].proceed() }
+        1 * action1.configure(!null) >> { BuildExecutionContext context -> context.proceed() }
 
         and:
         1 * action2.configure(!null)
@@ -67,25 +69,26 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         def buildExecution = new DefaultBuildConfigurationActionExecuter([action1], projectStateRegistry)
 
         when:
-        buildExecution.select(gradleInternal)
+        buildExecution.select(gradleInternal, executionPlan)
 
         then:
-        1 * action1.configure(!null) >> { it[0].proceed() }
+        1 * action1.configure(!null) >> { BuildExecutionContext context -> context.proceed() }
         0 * _._
     }
 
-    def "makes Gradle instance available to actions"() {
+    def "makes parameters available to actions"() {
         BuildConfigurationAction action1 = Mock()
 
         given:
         def buildExecution = new DefaultBuildConfigurationActionExecuter([action1], projectStateRegistry)
 
         when:
-        buildExecution.select(gradleInternal)
+        buildExecution.select(gradleInternal, executionPlan)
 
         then:
-        1 * action1.configure(!null) >> {
-            assert it[0].gradle == gradleInternal
+        1 * action1.configure(!null) >> { BuildExecutionContext context ->
+            assert context.gradle == gradleInternal
+            assert context.executionPlan == executionPlan
         }
     }
 
@@ -101,15 +104,15 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
 
         when:
         buildExecution.setTaskSelectors([newTaskSelector])
-        buildExecution.select(gradleInternal)
+        buildExecution.select(gradleInternal, executionPlan)
 
         then:
 
         0 * action1.configure(!null)
         0 * action2.configure(!null)
 
-        1 * newTaskSelector.configure(!null) >> {
-            assert it[0].gradle == gradleInternal
+        1 * newTaskSelector.configure(!null) >> { BuildExecutionContext context ->
+            assert context.gradle == gradleInternal
         }
     }
 }

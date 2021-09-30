@@ -48,7 +48,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
-import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ProjectConfigurer;
@@ -94,8 +93,6 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
@@ -122,9 +119,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new DefaultBuildWorkExecutor(
-                asList(new DryRunBuildExecutionAction(textOutputFactory),
-                    new SelectedTaskExecutionAction())),
+            new DryRunBuildExecutionAction(textOutputFactory,
+                new SelectedTaskExecutionAction()),
             buildOperationExecutor);
     }
 

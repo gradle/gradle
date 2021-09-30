@@ -17,10 +17,13 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 
 import java.util.function.Consumer;
 
 public interface BuildWorkPreparer {
-    void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action);
+    /**
+     * Populates the given execution plan.
+     */
+    void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action);
 }

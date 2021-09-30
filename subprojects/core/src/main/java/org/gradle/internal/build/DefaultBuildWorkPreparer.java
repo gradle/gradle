@@ -17,15 +17,14 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkPreparer implements BuildWorkPreparer {
     @Override
-    public void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action) {
-        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        action.accept(taskGraph);
-        taskGraph.discoverDependencies();
+    public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
+        action.accept(plan);
+        plan.determineExecutionPlan();
     }
 }

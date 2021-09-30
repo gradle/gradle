@@ -512,6 +512,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
+    public Set<Task> getRequestedTasks() {
+        Set<Task> requested = new LinkedHashSet<>();
+        for (Node entryNode : entryNodes) {
+            if (entryNode instanceof TaskNode) {
+                requested.add(((TaskNode) entryNode).getTask());
+            }
+        }
+        return requested;
+    }
+
+    @Override
     public List<Node> getScheduledNodes() {
         return ImmutableList.copyOf(nodeMapping.nodes);
     }

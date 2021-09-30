@@ -18,6 +18,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -68,8 +69,9 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        doBuildStages(Stage.TaskGraph);
+    public void scheduleRequestedTasks(ExecutionPlan plan) {
+        prepareToScheduleTasks();
+        state.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle, plan));
     }
 
     private void doBuildStages(Stage upTo) {
@@ -82,10 +84,6 @@ public class VintageBuildModelController implements BuildModelController {
             return;
         }
         prepareTaskGraph();
-        if (upTo == Stage.ScheduleTasks) {
-            return;
-        }
-        prepareTaskExecution();
     }
 
     private void prepareSettings() {
@@ -98,9 +96,5 @@ public class VintageBuildModelController implements BuildModelController {
 
     private void prepareTaskGraph() {
         state.transitionIfNotPreviously(Stage.Configure, Stage.ScheduleTasks, () -> taskGraphPreparer.prepareForTaskScheduling(gradle));
-    }
-
-    private void prepareTaskExecution() {
-        state.transitionIfNotPreviously(Stage.ScheduleTasks, Stage.TaskGraph, () -> taskExecutionPreparer.prepareForTaskExecution(gradle));
     }
 }

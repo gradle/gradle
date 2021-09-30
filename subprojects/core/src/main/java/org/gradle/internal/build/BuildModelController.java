@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 
 /**
@@ -47,5 +48,5 @@ public interface BuildModelController {
     /**
      * Schedules the user requested tasks for this build.
      */
-    void scheduleRequestedTasks();
+    void scheduleRequestedTasks(ExecutionPlan plan);
 }

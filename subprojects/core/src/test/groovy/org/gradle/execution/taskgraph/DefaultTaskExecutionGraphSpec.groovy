@@ -125,11 +125,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def a = brokenTask("a", failure)
 
         given:
-        taskGraph.addEntryTasks([a])
-        taskGraph.populate()
+        executionPlan.addEntryTasks([a])
+        taskGraph.populate(executionPlan)
 
         when:
-        taskGraph.execute(failures)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         failures == [failure]
@@ -143,9 +143,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         cancellationToken.cancellationRequested >>> [false, true]
 
         when:
-        taskGraph.addEntryTasks([a, b])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([a, b])
 
         then:
         failures.size() == 1
@@ -161,9 +159,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         cancellationToken.cancellationRequested >>> [false, false, true]
 
         when:
-        taskGraph.addEntryTasks([a, b])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([a, b])
 
         then:
         failures.empty
@@ -175,9 +171,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         cancellationToken.cancellationRequested >>> [true]
 
         when:
-        taskGraph.addEntryTasks([])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([])
 
         then:
         failures.empty
@@ -190,9 +184,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task d = task("d", c)
 
         when:
-        taskGraph.addEntryTasks([d])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -206,9 +198,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task d = task("d", b, a, c)
 
         when:
-        taskGraph.addEntryTasks([d])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([d])
 
         then:
         executedTasks == [a, b, c, d]
@@ -221,9 +211,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task c = task("c")
 
         when:
-        taskGraph.addEntryTasks([b, c, a])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([b, c, a])
 
         then:
         executedTasks == [a, b, c]
@@ -237,10 +225,9 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task d = task("d")
 
         when:
-        taskGraph.addEntryTasks([c, b])
-        taskGraph.addEntryTasks([d, a])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        executionPlan.addEntryTasks([c, b])
+        executionPlan.addEntryTasks([d, a])
+        execute()
 
         then:
         executedTasks == [b, c, a, d]
@@ -255,10 +242,9 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task e = task("e", b, d)
 
         when:
-        taskGraph.addEntryTasks([c])
-        taskGraph.addEntryTasks([e])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        executionPlan.addEntryTasks([c])
+        executionPlan.addEntryTasks([e])
+        execute()
 
         then:
         executedTasks == [a, b, c, d, e]
@@ -272,7 +258,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task d = task("d", c)
 
         when:
-        taskGraph.addEntryTasks([d])
+        executionPlan.addEntryTasks([d])
+        executionPlan.determineExecutionPlan()
 
         then:
         taskGraph.hasTask(":a")
@@ -293,7 +280,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task a = task("a", b)
 
         when:
-        taskGraph.addEntryTasks([a])
+        executionPlan.addEntryTasks([a])
+        executionPlan.determineExecutionPlan()
 
         then:
         taskGraph.allTasks == [c, d, b, a]
@@ -310,9 +298,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task b = task("b", a)
 
         when:
-        taskGraph.addEntryTasks([b])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([b])
 
         then:
         !taskGraph.hasTask(":a")
@@ -326,9 +312,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task c = task("c")
 
         when:
-        taskGraph.addEntryTasks([b])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([b])
 
         then:
         executedTasks == [a]
@@ -337,13 +321,14 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         when:
         def failures2 = []
         executedTasks.clear()
-        taskGraph.addEntryTasks([c])
+        executionPlan.addEntryTasks([c])
+        taskGraph.populate(executionPlan)
 
         then:
         taskGraph.allTasks == [c]
 
         when:
-        taskGraph.execute(failures2)
+        taskGraph.execute(executionPlan, failures2)
 
         then:
         executedTasks == [c]
@@ -357,9 +342,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         addDependencies(a, c)
 
         when:
-        taskGraph.addEntryTasks([c])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([c])
 
         then:
         thrown(CircularReferenceException)
@@ -386,9 +369,9 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         taskGraph.addTaskExecutionGraphListener(listener)
-        taskGraph.addEntryTasks([a])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        executionPlan.addEntryTasks([a])
+        taskGraph.populate(executionPlan)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         1 * listener.graphPopulated(_)
@@ -397,7 +380,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         1 * planExecutor.process(_, _, _)
 
         when:
-        taskGraph.execute(failures)
+        taskGraph.populate(executionPlan)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         0 * listener._
@@ -426,9 +410,9 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         when:
         taskGraph.whenReady(closure)
         taskGraph.whenReady(action)
-        taskGraph.addEntryTasks([a])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        executionPlan.addEntryTasks([a])
+        taskGraph.populate(executionPlan)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         1 * closure.call()
@@ -445,7 +429,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         }
 
         when:
-        taskGraph.execute(failures)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         0 * closure._
@@ -457,11 +441,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
 
-        taskGraph.addEntryTasks([a, b])
-        taskGraph.populate()
-
         when:
-        taskGraph.execute(failures)
+        populateAndExecute([a, b])
 
         then:
         executedTasks == [a]
@@ -474,9 +455,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task b = task("b")
 
         when:
-        taskGraph.addEntryTasks([a, b])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([a, b])
 
         then:
         executedTasks == [a]
@@ -538,14 +517,14 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         taskGraph.useFilter(spec)
-        taskGraph.addEntryTasks([a, b])
-        taskGraph.populate()
+        executionPlan.addEntryTasks([a, b])
+        taskGraph.populate(executionPlan)
 
         then:
         taskGraph.allTasks == [b]
 
         when:
-        taskGraph.execute(failures)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         executedTasks == [b]
@@ -564,14 +543,14 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         taskGraph.useFilter(spec)
-        taskGraph.addEntryTasks([c])
-        taskGraph.populate()
+        executionPlan.addEntryTasks([c])
+        taskGraph.populate(executionPlan)
 
         then:
         taskGraph.allTasks == [b, c]
 
         when:
-        taskGraph.execute(failures)
+        taskGraph.execute(executionPlan, failures)
 
         then:
         executedTasks == [b, c]
@@ -591,13 +570,22 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
                 return element != b
             }
         })
-        taskGraph.addEntryTasks([a, c])
-        taskGraph.populate()
-        taskGraph.execute(failures)
+        populateAndExecute([a, c])
 
         then:
         executedTasks == [a, c]
         failures == [failure]
+    }
+
+    def populateAndExecute(List<Task> tasks) {
+        executionPlan.addEntryTasks(tasks)
+        taskGraph.populate(executionPlan)
+        taskGraph.execute(executionPlan, failures)
+    }
+
+    def execute() {
+        taskGraph.populate(executionPlan)
+        taskGraph.execute(executionPlan, failures)
     }
 
     def task(String name, Task... dependsOn = []) {

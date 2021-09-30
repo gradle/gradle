@@ -67,6 +67,8 @@ public interface ExecutionPlan extends Describable {
      */
     Set<Task> getTasks();
 
+    Set<Task> getRequestedTasks();
+
     List<Node> getScheduledNodes();
 
     List<Node> getScheduledNodesPlusDependencies();

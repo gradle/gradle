@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
@@ -59,7 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -68,10 +66,6 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 @NonNullApi
 public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
-
-    private enum GraphState {
-        DIRTY, POPULATED
-    }
 
     private final PlanExecutor planExecutor;
     private final ResourceLockCoordinationService coordinationService;
@@ -85,11 +79,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ExecutionPlan executionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private GraphState graphState = GraphState.DIRTY;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
-
-    private final Set<Task> requestedTasks = Sets.newTreeSet();
 
     public DefaultTaskExecutionGraph(
         PlanExecutor planExecutor,
@@ -128,41 +119,18 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void useFilter(Spec<? super Task> filter) {
         Spec<? super Task> castFilter = filter != null ? filter : uncheckedNonnullCast(Specs.SATISFIES_ALL);
         executionPlan.useFilter(castFilter);
-        graphState = GraphState.DIRTY;
     }
 
     @Override
-    public void addEntryTasks(Iterable<? extends Task> tasks) {
-        assert tasks != null;
-
-        final Timer clock = Time.startTimer();
-
-        Set<Task> taskSet = new LinkedHashSet<>();
-        for (Task task : tasks) {
-            taskSet.add(task);
-            requestedTasks.add(task);
-        }
-
-        executionPlan.addEntryTasks(taskSet);
-        graphState = GraphState.DIRTY;
-
-        LOGGER.debug("Timing: Creating the DAG took {}", clock.getElapsed());
+    public ExecutionPlan getExecutionPlan() {
+        return executionPlan;
     }
 
     @Override
-    public void addNodes(Collection<? extends Node> nodes) {
-        executionPlan.addNodes(nodes);
-        graphState = GraphState.DIRTY;
-    }
-
-    @Override
-    public void discoverDependencies() {
-        ensurePopulated();
-    }
-
-    @Override
-    public void populate() {
-        ensurePopulated();
+    public void populate(ExecutionPlan plan) {
+        assertIsThisGraphsPlan(plan);
+        executionPlan.determineExecutionPlan();
+        allTasks = null;
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
@@ -172,12 +140,20 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void execute(Collection<? super Throwable> failures) {
+    public void execute(ExecutionPlan plan, Collection<? super Throwable> failures) {
+        assertIsThisGraphsPlan(plan);
         if (!hasFiredWhenReady) {
             throw new IllegalStateException("Task graph should be populated before execution starts.");
         }
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             executeWithServices(projectExecutionServices, failures);
+        }
+    }
+
+    private void assertIsThisGraphsPlan(ExecutionPlan plan) {
+        if (plan != executionPlan) {
+            // Temporarily handle only a single plan
+            throw new IllegalArgumentException();
         }
     }
 
@@ -296,13 +272,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public boolean hasTask(Task task) {
-        ensurePopulated();
         return executionPlan.getTasks().contains(task);
     }
 
     @Override
     public boolean hasTask(String path) {
-        ensurePopulated();
         for (Task task : executionPlan.getTasks()) {
             if (task.getPath().equals(path)) {
                 return true;
@@ -318,16 +292,10 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public List<Task> getAllTasks() {
-        ensurePopulated();
         if (allTasks == null) {
             allTasks = ImmutableList.copyOf(executionPlan.getTasks());
         }
         return allTasks;
-    }
-
-    @Override
-    public List<Node> getScheduledWork() {
-        return executionPlan.getScheduledNodes();
     }
 
     @Override
@@ -337,7 +305,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
-        ensurePopulated();
         Node node = executionPlan.getNode(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node dependencyNode : node.getDependencySuccessors()) {
@@ -346,17 +313,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             }
         }
         return builder.build();
-    }
-
-    private void ensurePopulated() {
-        switch (graphState) {
-            case DIRTY:
-                executionPlan.determineExecutionPlan();
-                allTasks = null;
-                graphState = GraphState.POPULATED;
-                return;
-            case POPULATED:
-        }
     }
 
     /**
@@ -402,11 +358,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             }
             throw new IllegalStateException("Unknown type of node: " + node);
         }
-    }
-
-    @Override
-    public Set<Task> getRequestedTasks() {
-        return requestedTasks;
     }
 
     @Override
