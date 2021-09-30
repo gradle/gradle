@@ -36,6 +36,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
@@ -59,7 +60,7 @@ class DefaultConfigurationCache internal constructor(
      */
     @Suppress("unused")
     private val fileSystemAccess: FileSystemAccess
-) : BuildTreeConfigurationCache {
+) : BuildTreeConfigurationCache, Stoppable {
 
     interface Host {
 
@@ -198,6 +199,10 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
+    }
+
+    override fun stop() {
+        Instrumented.discardListener()
     }
 
     private

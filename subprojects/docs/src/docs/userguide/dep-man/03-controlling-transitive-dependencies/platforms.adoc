@@ -284,14 +284,14 @@ or
 See the https://toml.io[TOML specification] for details.
 ====
 
-[[sub:programmatic-access-to-catalog]]
-=== Programmatic access to catalog
+[[sub:type-unsafe-access-to-catalog]]
+=== Type unsafe API
 
-You can also access version catalog programmatically with the version catalog extension and API:
+Version catalogs can be accessed through a type unsafe API. This API is available in situations where generated accessors are not. It is accessed through the version catalog extension:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=programmatic_access]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=programmatic_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=type_unsafe_access]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=type_unsafe_access]"]
 ====
 
 Check the link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[version catalog API] for all supported methods.
