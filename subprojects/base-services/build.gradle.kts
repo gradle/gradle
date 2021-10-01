@@ -36,7 +36,6 @@ dependencies {
 classycle {
     // Needed for the factory methods in the base class
     excludePatterns.add("org/gradle/util/GradleVersion**")
-    excludePatterns.add("org/gradle/internal/exceptions/Contextual**")
 }
 
 jmh.includes.set(listOf("HashingAlgorithmsBenchmark"))

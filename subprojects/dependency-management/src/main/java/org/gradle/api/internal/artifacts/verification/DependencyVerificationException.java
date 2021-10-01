@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.internal.artifacts.verification;
 
-/**
- * A <code>InvalidUserDataException</code> is thrown, if a user is providing illegal data for the build.
- */
-public class InvalidUserDataException extends GradleException {
-    public InvalidUserDataException() {
-    }
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-    public InvalidUserDataException(String message) {
+@Contextual
+public class DependencyVerificationException extends GradleException {
+
+    public DependencyVerificationException(String message) {
         super(message);
     }
 
-    public InvalidUserDataException(String message, Throwable cause) {
+    public DependencyVerificationException(String message, Throwable cause) {
         super(message, cause);
     }
 }
