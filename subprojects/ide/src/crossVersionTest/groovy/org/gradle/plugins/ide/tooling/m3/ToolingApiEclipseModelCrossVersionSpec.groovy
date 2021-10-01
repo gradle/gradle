@@ -190,6 +190,7 @@ dependencies {
         minimalProject != null
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse project dependencies for a java project"() {
 
         projectDir.file('settings.gradle').text = '''
