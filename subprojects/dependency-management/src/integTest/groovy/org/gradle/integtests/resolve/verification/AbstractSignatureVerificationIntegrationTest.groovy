@@ -16,10 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-import org.bouncycastle.openpgp.PGPObjectFactory
-import org.bouncycastle.openpgp.PGPPublicKeyRing
-import org.bouncycastle.openpgp.PGPUtil
-import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator
+
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.security.fixtures.KeyServer
@@ -28,6 +25,7 @@ import org.gradle.security.fixtures.SimpleKeyRing
 import org.gradle.security.internal.Fingerprint
 
 import static org.gradle.security.fixtures.SigningFixtures.createSimpleKeyRing
+import static org.gradle.security.fixtures.SigningFixtures.createSimpleKeyRingFromResource
 
 abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
     KeyServer keyServerFixture
@@ -65,12 +63,8 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
         createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"))
     }
 
-    protected PGPPublicKeyRing newKeyRingFromResource(String resourcePath) {
-        try (InputStream decoderStream = PGPUtil.getDecoderStream(getClass().getResourceAsStream(resourcePath))) {
-            PGPObjectFactory objectFactory = new PGPObjectFactory(
-                decoderStream, new BcKeyFingerprintCalculator());
-            return  (PGPPublicKeyRing) objectFactory.nextObject();
-        }
+    protected SimpleKeyRing newKeyRingFromResource(String publicKeyResource, String secretKeyResource) {
+        createSimpleKeyRingFromResource(publicKeyResource, secretKeyResource)
     }
 
     protected GradleExecuter writeVerificationMetadata(String checksums = "sha256,pgp") {
