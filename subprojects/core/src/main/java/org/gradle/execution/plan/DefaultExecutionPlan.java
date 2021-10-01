@@ -62,7 +62,7 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
- * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
+ * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
@@ -490,25 +490,19 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     @Override
-    public void clear() {
-        taskNodeFactory.clear();
-        dependencyResolver.clear();
-        entryNodes.clear();
-        nodeMapping.clear();
-        executionQueue.clear();
-        projectLocks.clear();
-        failureCollector.clearFailures();
-        producedButNotYetConsumed.clear();
-        reachableCache.clear();
-        dependenciesWhichRequireMonitoring.clear();
-        runningNodes.clear();
-        outputHierarchy.clear();
-        destroyableHierarchy.clear();
+    public Set<Task> getTasks() {
+        return nodeMapping.getTasks();
     }
 
     @Override
-    public Set<Task> getTasks() {
-        return nodeMapping.getTasks();
+    public Set<Task> getRequestedTasks() {
+        Set<Task> requested = new LinkedHashSet<>();
+        for (Node entryNode : entryNodes) {
+            if (entryNode instanceof TaskNode) {
+                requested.add(((TaskNode) entryNode).getTask());
+            }
+        }
+        return requested;
     }
 
     @Override
@@ -576,7 +570,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
-                if (!tryAcquireLocksForNode(node, workerLease, mutations)) {
+                if (!tryAcquireLocksForNode(node, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -604,7 +598,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    private boolean tryAcquireLocksForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease, MutationInfo mutations) {
+    private boolean tryAcquireLocksForNode(Node node, MutationInfo mutations) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;

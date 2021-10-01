@@ -27,14 +27,14 @@ import java.util.function.Consumer;
  */
 public interface BuildTreeWorkGraph {
     /**
-     * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link  #runWork()} is called.
+     * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link #runWork()} is called.
      *
      * <p>This can be called only once for a given graph.</p>
      */
-    void prepareTaskGraph(Consumer<? super Builder> action);
+    void scheduleWork(Consumer<? super Builder> action);
 
     /**
-     * Runs any scheduled work, blocking until complete. Does nothing when {@link #prepareTaskGraph(Consumer)} has not been called to schedule the work.
+     * Runs any scheduled work, blocking until complete. Does nothing when {@link #scheduleWork(Consumer)} has not been called to schedule the work.
      *
      * <p>This can be called only once for a given graph.</p>
      */

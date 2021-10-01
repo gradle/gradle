@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -37,56 +36,53 @@ class DefaultBuildControllers implements BuildControllers {
     private final ManagedExecutor executorService;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerLeaseService workerLeaseService;
-    private final BuildStateRegistry buildRegistry;
 
-    DefaultBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+    DefaultBuildControllers(ManagedExecutor executorService, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.executorService = executorService;
-        this.buildRegistry = buildRegistry;
         this.projectStateRegistry = projectStateRegistry;
         this.workerLeaseService = workerLeaseService;
     }
 
     @Override
-    public BuildController getBuildController(BuildIdentifier buildId) {
-        BuildController buildController = controllers.get(buildId);
+    public BuildController getBuildController(BuildState build) {
+        BuildController buildController = controllers.get(build.getBuildIdentifier());
         if (buildController != null) {
             return buildController;
         }
 
-        BuildState build = buildRegistry.getBuild(buildId);
         BuildController newBuildController = new DefaultBuildController(build, projectStateRegistry, workerLeaseService);
-        controllers.put(buildId, newBuildController);
+        controllers.put(build.getBuildIdentifier(), newBuildController);
         return newBuildController;
     }
 
     @Override
-    public void populateTaskGraphs() {
+    public void populateWorkGraphs() {
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
             for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
-                if (buildController.populateTaskGraph()) {
+                if (buildController.scheduleQueuedTasks()) {
                     tasksDiscovered = true;
                 }
             }
         }
         for (BuildController buildController : controllers.values()) {
-            buildController.prepareForExecution();
+            buildController.finalizeWorkGraph();
         }
     }
 
     @Override
-    public void startTaskExecution() {
+    public void startExecution() {
         for (BuildController buildController : controllers.values()) {
-            buildController.startTaskExecution(executorService);
+            buildController.startExecution(executorService);
         }
     }
 
     @Override
-    public ExecutionResult<Void> awaitTaskCompletion() {
+    public ExecutionResult<Void> awaitCompletion() {
         ExecutionResult<Void> result = ExecutionResult.succeeded();
         for (BuildController buildController : controllers.values()) {
-            result = result.withFailures(buildController.awaitTaskCompletion());
+            result = result.withFailures(buildController.awaitCompletion());
         }
         return result;
     }

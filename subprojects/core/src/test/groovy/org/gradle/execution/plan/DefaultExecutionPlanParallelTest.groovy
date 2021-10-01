@@ -31,7 +31,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
@@ -54,7 +54,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def setup() {
         _ * lease.tryLock() >> true
-        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(IncludedBuildTaskGraph))
+        def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
         executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, dependencyResolver, nodeValidator, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs))
     }

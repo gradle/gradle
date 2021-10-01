@@ -29,6 +29,7 @@ import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraph
+import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -43,8 +44,8 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "does nothing when nothing scheduled"() {
         when:
-        graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph { b ->
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork { b ->
             }
             g.runWork().rethrow()
         }
@@ -56,21 +57,23 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "finalizes graph for a build when something scheduled"() {
         given:
         def id = Stub(BuildIdentifier)
+        def workGraphController = Mock(BuildWorkGraphController)
         def workGraph = Mock(BuildWorkGraph)
-        def build = build(id, workGraph)
+        def build = build(id, workGraphController)
 
         when:
-        graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph { b ->
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
             g.runWork().rethrow()
         }
 
         then:
+        1 * workGraphController.newWorkGraph() >> workGraph
         1 * workGraph.populateWorkGraph(_)
-        1 * workGraph.prepareForExecution()
-        1 * workGraph.execute() >> ExecutionResult.succeeded()
+        1 * workGraph.finalizeGraph()
+        1 * workGraph.runWork() >> ExecutionResult.succeeded()
     }
 
     def "cannot schedule tasks when graph has not been created"() {
@@ -79,17 +82,17 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotCreated"
+        e.message == "No work graph available."
     }
 
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
-        graph.withNewTaskGraph { 12 }
+        graph.withNewWorkGraph { 12 }
         graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotCreated"
+        e.message == "No work graph available."
     }
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
@@ -98,7 +101,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         def build = build(id)
 
         when:
-        graph.withNewTaskGraph { g ->
+        graph.withNewWorkGraph { g ->
             graph.locateTask(id, ":task").queueForExecution()
         }
 
@@ -108,11 +111,15 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     }
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def build = build(id)
+
         when:
-        graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph {
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork {
             }
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(id, ":task").queueForExecution()
         }
 
         then:
@@ -123,16 +130,18 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has started task execution"() {
         given:
         def id = Stub(BuildIdentifier)
+        def workGraphController = Mock(BuildWorkGraphController)
         def workGraph = Mock(BuildWorkGraph)
-        def build = build(id, workGraph)
+        def build = build(id, workGraphController)
 
-        workGraph.execute() >> {
+        workGraphController.newWorkGraph() >> workGraph
+        workGraph.runWork() >> {
             graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
         when:
-        graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph { b ->
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
             g.runWork().rethrow()
@@ -140,16 +149,20 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "This task graph is already in use."
+        e.message == "Current thread is not the owner of this work graph."
     }
 
     def "cannot schedule tasks when graph has completed task execution"() {
+        given:
+        def id = Stub(BuildIdentifier)
+        def build = build(id)
+
         when:
-        graph.withNewTaskGraph { g ->
-            g.prepareTaskGraph {
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork {
             }
             g.runWork()
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(id, ":task").queueForExecution()
         }
 
         then:
@@ -157,10 +170,10 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         e.message == "Work graph is in an unexpected state: Finished"
     }
 
-    BuildState build(BuildIdentifier id, BuildWorkGraph workGraph = null) {
+    BuildState build(BuildIdentifier id, BuildWorkGraphController workGraph = null) {
         def build = Mock(IncludedBuildState)
         _ * build.buildIdentifier >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraph))
+        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
         _ * buildStateRegistry.getBuild(id) >> build
         return build
     }

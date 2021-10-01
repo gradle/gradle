@@ -21,14 +21,13 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -117,29 +116,41 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void addRequestedTasks(BuildTreeWorkGraph.Builder builder) {
-        builder.withWorkGraph(gradle.getOwner(), graph -> graph.addRequestedTasks());
-    }
-
-    @Override
-    public void populateWorkGraph(Consumer<? super WorkGraphBuilder> action) {
-        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, tasks -> action.accept(new DefaultWorkGraphBuilder(tasks))));
-    }
-
-    @Override
-    public void finalizeWorkGraph() {
-        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
-            TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate();
-            BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
-            buildOutputCleanupRegistry.resolveOutputs();
+    public BuildWorkPlan newWorkGraph() {
+        return state.inState(State.TaskSchedule, () -> {
+            ExecutionPlan plan = workPreparer.newExecutionPlan();
+            modelController.initializeWorkGraph(plan);
+            return new DefaultBuildWorkPlan(this, plan);
         });
     }
 
     @Override
-    public ExecutionResult<Void> executeTasks() {
+    public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, workPlan.plan, dest -> action.accept(new DefaultWorkGraphBuilder(dest))));
+    }
+
+    @Override
+    public void finalizeWorkGraph(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
+            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
+        });
+    }
+
+    @Override
+    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle));
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.plan));
+    }
+
+    private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
+        if (workPlan.owner != this) {
+            throw new IllegalArgumentException("Unexpected plan owner.");
+        }
+        return workPlan;
     }
 
     @Override
@@ -187,28 +198,38 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
     }
 
-    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
-        private final TaskExecutionGraphInternal taskGraph;
+    private static class DefaultBuildWorkPlan implements BuildWorkPlan {
+        private final DefaultBuildLifecycleController owner;
+        private final ExecutionPlan plan;
 
-        public DefaultWorkGraphBuilder(TaskExecutionGraphInternal taskGraph) {
-            this.taskGraph = taskGraph;
+        public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
+            this.owner = owner;
+            this.plan = plan;
+        }
+    }
+
+    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
+        private final ExecutionPlan plan;
+
+        public DefaultWorkGraphBuilder(ExecutionPlan plan) {
+            this.plan = plan;
         }
 
         @Override
         public void addRequestedTasks() {
-            modelController.scheduleRequestedTasks();
+            modelController.scheduleRequestedTasks(plan);
         }
 
         @Override
         public void addEntryTasks(List<? extends Task> tasks) {
             for (Task task : tasks) {
-                taskGraph.addEntryTasks(Collections.singletonList(task));
+                plan.addEntryTasks(Collections.singletonList(task));
             }
         }
 
         @Override
         public void addNodes(List<? extends Node> nodes) {
-            taskGraph.addNodes(nodes);
+            plan.addNodes(nodes);
         }
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildWorkGraph;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
@@ -54,60 +55,41 @@ class DefaultBuildController implements BuildController, Stoppable {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
-    private final BuildState build;
+    private final BuildWorkGraph workGraph;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
 
-    private boolean somethingScheduled = false;
     private State state = State.DiscoveringTasks;
-    // Fields guarded by lock
+    // Lock protects the following state
     private final Lock lock = new ReentrantLock();
     private final Condition stateChange = lock.newCondition();
     private boolean finished;
     private final List<Throwable> executionFailures = new ArrayList<>();
 
     public DefaultBuildController(BuildState build, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
-        this.build = build;
         this.projectStateRegistry = projectStateRegistry;
         this.parentLease = workerLeaseService.getCurrentWorkerLease();
         this.workerLeaseService = workerLeaseService;
-    }
-
-    @Override
-    public ExportedTaskNode locateTask(TaskInternal task) {
-        assertInState(State.DiscoveringTasks);
-        return build.getWorkGraph().locateTask(task);
-    }
-
-    @Override
-    public ExportedTaskNode locateTask(String taskPath) {
-        assertInState(State.DiscoveringTasks);
-        return build.getWorkGraph().locateTask(taskPath);
+        this.workGraph = build.getWorkGraph().newWorkGraph();
     }
 
     @Override
     public void queueForExecution(ExportedTaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
-        somethingScheduled = true;
         queuedForExecution.add(taskNode);
     }
 
     @Override
     public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
         assertInState(State.DiscoveringTasks);
-        somethingScheduled = true;
-        build.getWorkGraph().populateWorkGraph(action);
+        workGraph.populateWorkGraph(action);
     }
 
     @Override
-    public boolean populateTaskGraph() {
-        // Can be called after validating task graph
-        if (state == State.ReadyToRun) {
-            return false;
-        }
+    public boolean scheduleQueuedTasks() {
         assertInState(State.DiscoveringTasks);
 
         queuedForExecution.removeAll(scheduled);
@@ -115,17 +97,14 @@ class DefaultBuildController implements BuildController, Stoppable {
             return false;
         }
 
-        boolean added = build.getWorkGraph().schedule(queuedForExecution);
+        boolean added = workGraph.schedule(queuedForExecution);
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
         return added;
     }
 
     @Override
-    public void prepareForExecution() {
-        if (state == State.ReadyToRun) {
-            return;
-        }
+    public void finalizeWorkGraph() {
         assertInState(State.DiscoveringTasks);
         if (!queuedForExecution.isEmpty()) {
             throw new IllegalStateException("Queued tasks have not been scheduled.");
@@ -138,34 +117,29 @@ class DefaultBuildController implements BuildController, Stoppable {
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        build.getWorkGraph().prepareForExecution();
+        workGraph.finalizeGraph();
 
         state = State.ReadyToRun;
     }
 
     @Override
-    public void startTaskExecution(ExecutorService executorService) {
+    public void startExecution(ExecutorService executorService) {
         assertInState(State.ReadyToRun);
+        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
         state = State.RunningTasks;
-        if (somethingScheduled) {
-            doStartTaskExecution(executorService);
-        }
     }
 
     @Override
-    public ExecutionResult<Void> awaitTaskCompletion() {
+    public ExecutionResult<Void> awaitCompletion() {
         assertInState(State.RunningTasks);
-        ExecutionResult<Void> result;
-        if (somethingScheduled) {
-            List<Throwable> failures = new ArrayList<>();
-            doAwaitTaskCompletion(failures::add);
-            result = ExecutionResult.maybeFailed(failures);
-        } else {
-            result = ExecutionResult.succeeded();
-        }
-        scheduled.clear();
+        doAwaitCompletion();
         state = State.Finished;
-        return result;
+        lock.lock();
+        try {
+            return ExecutionResult.maybeFailed(executionFailures);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -175,11 +149,7 @@ class DefaultBuildController implements BuildController, Stoppable {
         }
     }
 
-    protected void doStartTaskExecution(ExecutorService executorService) {
-        executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get()));
-    }
-
-    protected void doAwaitTaskCompletion(Consumer<? super Throwable> executionFailures) {
+    private void doAwaitCompletion() {
         // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
         projectStateRegistry.blocking(() -> {
             lock.lock();
@@ -187,10 +157,6 @@ class DefaultBuildController implements BuildController, Stoppable {
                 while (!finished) {
                     awaitStateChange();
                 }
-                for (Throwable taskFailure : this.executionFailures) {
-                    executionFailures.accept(taskFailure);
-                }
-                this.executionFailures.clear();
             } finally {
                 lock.unlock();
             }
@@ -215,14 +181,11 @@ class DefaultBuildController implements BuildController, Stoppable {
             List<Set<TaskInternal>> cycles = graphWalker.findCycles();
             Set<TaskInternal> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>(
-                (node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()),
-                (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                    if (cycle.contains(dep)) {
-                        connectedNodes.add(dep);
-                    }
-                })
-            );
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+                if (cycle.contains(dep)) {
+                    connectedNodes.add(dep);
+                }
+            }));
             StringWriter writer = new StringWriter();
             graphRenderer.renderTo(task, writer);
             throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
@@ -242,7 +205,7 @@ class DefaultBuildController implements BuildController, Stoppable {
         }
     }
 
-    private void run() {
+    private void doRun() {
         try {
             workerLeaseService.withSharedLease(parentLease, this::doBuild);
         } catch (Throwable t) {
@@ -271,7 +234,7 @@ class DefaultBuildController implements BuildController, Stoppable {
     }
 
     private void doBuild() {
-        ExecutionResult<Void> result = build.getWorkGraph().execute();
+        ExecutionResult<Void> result = workGraph.runWork();
         executionFinished(result);
     }
 
@@ -304,7 +267,7 @@ class DefaultBuildController implements BuildController, Stoppable {
         public void run() {
             CurrentBuildOperationRef.instance().set(parentBuildOperation);
             try {
-                DefaultBuildController.this.run();
+                doRun();
             } finally {
                 CurrentBuildOperationRef.instance().set(null);
             }

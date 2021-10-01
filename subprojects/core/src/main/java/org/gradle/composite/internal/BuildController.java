@@ -15,7 +15,6 @@
  */
 package org.gradle.composite.internal;
 
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
@@ -25,16 +24,14 @@ import java.util.function.Consumer;
 
 public interface BuildController {
     /**
-     * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
+     * Adds tasks and nodes to the work graph of this build.
      */
-    ExportedTaskNode locateTask(TaskInternal task);
+    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
     /**
-     * Locates a task node in this build's work graph for use in another build's work graph.
-     * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
+     * Queues the given task for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.
      */
-    ExportedTaskNode locateTask(String taskPath);
+    void queueForExecution(ExportedTaskNode taskNode);
 
     /**
      * Schedules any queued tasks. When this method returns true, then some tasks where scheduled for this build and
@@ -42,24 +39,20 @@ public interface BuildController {
      *
      * @return true if any tasks were scheduled, false if not.
      */
-    boolean populateTaskGraph();
+    boolean scheduleQueuedTasks();
 
     /**
      * Prepares the work graph, once all tasks have been scheduled.
      */
-    void prepareForExecution();
+    void finalizeWorkGraph();
 
     /**
-     * Must call {@link #populateTaskGraph()} prior to calling this method.
+     * Must call {@link #scheduleQueuedTasks()} prior to calling this method.
      */
-    void startTaskExecution(ExecutorService executorService);
+    void startExecution(ExecutorService executorService);
 
     /**
-     * Awaits completion of task execution, collecting any task failures into the given collection.
+     * Awaits completion of work execution, returning any failures in the result.
      */
-    ExecutionResult<Void> awaitTaskCompletion();
-
-    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
-
-    void queueForExecution(ExportedTaskNode taskNode);
+    ExecutionResult<Void> awaitCompletion();
 }

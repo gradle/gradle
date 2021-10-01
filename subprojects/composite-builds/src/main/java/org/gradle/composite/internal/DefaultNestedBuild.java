@@ -20,13 +20,14 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildWorkGraph;
-import org.gradle.internal.build.DefaultBuildWorkGraph;
+import org.gradle.internal.build.BuildWorkGraphController;
+import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -53,7 +54,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     private final BuildDefinition buildDefinition;
     private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final DefaultBuildWorkGraph workGraph;
+    private final DefaultBuildWorkGraphController workGraph;
 
     DefaultNestedBuild(
         BuildIdentifier buildIdentifier,
@@ -88,7 +89,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
             finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
         }
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
-        workGraph = new DefaultBuildWorkGraph(buildLifecycleController.getGradle().getTaskGraph(), projectStateRegistry, buildLifecycleController);
+        workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
     }
 
     @Override
@@ -157,7 +158,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public BuildWorkGraph getWorkGraph() {
+    public BuildWorkGraphController getWorkGraph() {
         return workGraph;
     }
 

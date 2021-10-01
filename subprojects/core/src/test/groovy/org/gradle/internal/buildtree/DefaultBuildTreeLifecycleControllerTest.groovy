@@ -17,7 +17,7 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
@@ -30,7 +30,7 @@ import java.util.function.Function
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
-    def taskGraph = Mock(IncludedBuildTaskGraph)
+    def taskGraph = Mock(BuildTreeWorkGraphController)
     def workGraph = Mock(BuildTreeWorkGraph)
     def workPreparer = Mock(BuildTreeWorkPreparer)
     def workExecutor = Mock(BuildTreeWorkExecutor)
@@ -48,7 +48,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         controller.scheduleAndRunTasks()
 
         then:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
         1 * workPreparer.scheduleRequestedTasks(workGraph)
@@ -69,7 +69,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
         1 * workPreparer.scheduleRequestedTasks(workGraph) >> { throw failure }
@@ -89,7 +89,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
         1 * workPreparer.scheduleRequestedTasks(workGraph)
@@ -108,7 +108,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
         1 * workPreparer.scheduleRequestedTasks(workGraph)
@@ -128,7 +128,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
         1 * workPreparer.scheduleRequestedTasks(workGraph)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
@@ -151,7 +151,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewTaskGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
         1 * workPreparer.scheduleRequestedTasks(workGraph)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
         0 * action._

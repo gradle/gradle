@@ -45,7 +45,7 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraph;
+import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -238,7 +238,7 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public BuildWorkGraph getWorkGraph() {
+        public BuildWorkGraphController getWorkGraph() {
             throw new UnsupportedOperationException();
         }
 
