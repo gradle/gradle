@@ -26,8 +26,11 @@ import org.gradle.util.internal.CollectionUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -94,9 +97,26 @@ public class OptionReader {
 
     private Collection<OptionElement> getOptionElements(Object target) {
         List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
+        Set<Class<?>> visitedInterfaces = new HashSet<>();
+        Deque<Class<?>> interfacesToCheck = new ArrayDeque<>();
+
         for (Class<?> type = target.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
+            interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
+
             allOptionElements.addAll(getMethodAnnotations(type));
             allOptionElements.addAll(getFieldAnnotations(type));
+        }
+
+        while (interfacesToCheck.size() > 0) {
+            Class<?> type = interfacesToCheck.pop();
+
+            if (!visitedInterfaces.add(type)) {
+                continue;
+            }
+
+            interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
+
+            allOptionElements.addAll(getMethodAnnotations(type));
         }
 
         return allOptionElements;
