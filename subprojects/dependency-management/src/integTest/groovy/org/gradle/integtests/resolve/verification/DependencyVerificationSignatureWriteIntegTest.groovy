@@ -404,7 +404,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         """
 
         when:
-        serveValidKey()
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
