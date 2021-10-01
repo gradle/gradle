@@ -17,11 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.composite.CompositeBuildContext
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
@@ -189,14 +185,10 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
 
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
-        def serviceRegistry = new DefaultServiceRegistry()
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
             getUniqueName(_ as Project) >> { Project p -> p.name }
         }
-        serviceRegistry.add(LocalComponentRegistry, Stub(LocalComponentRegistry))
-        serviceRegistry.add(CompositeBuildContext, Stub(CompositeBuildContext))
-        serviceRegistry.add(ProjectStateRegistry, Stub(ProjectStateRegistry))
-        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry, uniqueProjectNameProvider)
+        new EclipseModelBuilder(gradleProjectBuilder, uniqueProjectNameProvider)
     }
 
     EclipseRuntime eclipseRuntime(List<EclipseWorkspaceProject> projects) {

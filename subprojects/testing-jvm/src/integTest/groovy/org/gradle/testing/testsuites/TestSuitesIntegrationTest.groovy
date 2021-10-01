@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.testing
+package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
+import org.gradle.api.tasks.testing.junit.JUnitOptions
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
@@ -394,5 +397,132 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("checkConfiguration")
+    }
+
+    def "test framework may not be changed once options have been used with test suites"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                        targets.all {
+                            testTask.configure {
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            integrationTest {
+                useTestNG()
+            }
+            
+            check.dependsOn testing.suites
+        """
+
+        when:
+        fails("check")
+        then:
+        failure.assertHasCause("The value for task ':integrationTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
+    }
+
+    // This checks for backwards compatibility with builds that may rely on this
+    def "can change the test framework multiple times before execution when not using test suites"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            ${mavenCentralRepository()}
+            dependencies { testImplementation "junit:junit:4.13" }
+
+            test {
+                useJUnit()
+                options {
+                    assert it instanceof ${JUnitOptions.canonicalName}
+                }
+                useJUnitPlatform()
+                options {
+                    assert it instanceof ${JUnitPlatformOptions.canonicalName}
+                }
+                useJUnit()
+            }
+        """
+
+        and:
+        file("src/test/java/SomeTest.java") << """
+            import org.junit.*;
+
+            public class SomeTest {
+                @Test public void foo() {
+                }
+            }
+        """
+
+        when:
+        run "test"
+
+        then:
+        executedAndNotSkipped(":test")
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("SomeTest")
+    }
+
+    // This is not the behavior we want in the long term because this makes build configuration sensitive to the order
+    // that tasks are realized.
+    // useTestNG() is ignored here because we finalize the test framework on the task as soon as we configure options
+    // The test framework options should be pushed up into the test suite target/test suite and passed down into the
+    // Test task
+    def "build succeeds when test framework is changed to another kind when realizing task and configuring options"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                        targets.all {
+                            // explicitly realize the task now to cause this configuration to run now
+                            testTask.get().configure {
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            testing {
+                suites {
+                    integrationTest {
+                        // This is ignored
+                        useTestNG()
+                    }
+                }
+            }
+            
+            check.dependsOn testing.suites
+        """
+
+        expect:
+        succeeds("check")
     }
 }

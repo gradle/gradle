@@ -24,7 +24,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
@@ -330,6 +329,7 @@ public class IdeaModule {
 
     /**
      * The directories containing resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public Set<File> getResourceDirs() {
@@ -338,6 +338,7 @@ public class IdeaModule {
 
     /**
      * Sets the directories containing resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public void setResourceDirs(Set<File> resourceDirs) {
@@ -346,6 +347,7 @@ public class IdeaModule {
 
     /**
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public Set<File> getTestResourceDirs() {
@@ -354,11 +356,13 @@ public class IdeaModule {
 
     /**
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     *
      * @since 4.7
      */
     public void setTestResourceDirs(Set<File> testResourceDirs) {
         this.testResourceDirs = testResourceDirs;
     }
+
     /**
      * Directories to be excluded. <p> For example see docs for {@link IdeaModule}
      */
@@ -559,8 +563,7 @@ public class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(project));
         return ideaDependenciesProvider.provide(this);
     }
 

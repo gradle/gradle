@@ -121,7 +121,22 @@ public class MyTest {
     def "re-executes test when #type is changed"() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
-        buildFile << "test.useJUnit { ${type} 'org.gradle.CategoryA' }"
+        buildFile << """
+        |testing {
+        |   suites {
+        |       test {
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           ${type} 'org.gradle.CategoryA'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
 
         when:
         succeeds ':test'

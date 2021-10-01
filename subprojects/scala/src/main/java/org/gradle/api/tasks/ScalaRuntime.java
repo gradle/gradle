@@ -29,11 +29,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
@@ -60,7 +59,6 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class ScalaRuntime {
-    private static final Pattern SCALA_JAR_PATTERN = Pattern.compile("scala3?-(\\w.*?)-(\\d.*).jar");
 
     private final Project project;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
@@ -156,13 +154,7 @@ public class ScalaRuntime {
      */
     @Nullable
     public File findScalaJar(Iterable<File> classpath, String appendix) {
-        for (File file : classpath) {
-            Matcher matcher = SCALA_JAR_PATTERN.matcher(file.getName());
-            if (matcher.matches() && matcher.group(1).equals(appendix)) {
-                return file;
-            }
-        }
-        return null;
+        return ScalaRuntimeHelper.findScalaJar(classpath, appendix);
     }
 
     /**
@@ -178,8 +170,7 @@ public class ScalaRuntime {
      */
     @Nullable
     public String getScalaVersion(File scalaJar) {
-        Matcher matcher = SCALA_JAR_PATTERN.matcher(scalaJar.getName());
-        return matcher.matches() ? matcher.group(2) : null;
+        return ScalaRuntimeHelper.getScalaVersion(scalaJar);
     }
 
     /**
@@ -192,7 +183,7 @@ public class ScalaRuntime {
      * @return bridge dependency to download
      */
     private DefaultExternalModuleDependency getScalaBridgeDependency(String scalaVersion, String zincVersion) {
-        if (scalaVersion.startsWith("3.")) {
+        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
         } else {
             String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
@@ -207,7 +198,7 @@ public class ScalaRuntime {
      * @return bridge dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
-        if (scalaVersion.startsWith("3.")) {
+        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-compiler_3", scalaVersion);
         } else {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion);
@@ -221,7 +212,7 @@ public class ScalaRuntime {
      * @return bridge dependency to download
      */
     private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
-        if (scalaVersion.startsWith("3.")) {
+        if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
             return new DefaultExternalModuleDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
         } else {
             return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);

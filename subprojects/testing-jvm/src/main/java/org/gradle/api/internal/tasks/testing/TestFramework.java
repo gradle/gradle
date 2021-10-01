@@ -24,10 +24,11 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.io.Closeable;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
-public interface TestFramework {
+public interface TestFramework extends Closeable {
 
     /**
      * Returns a detector which is used to determine which of the candidate class files correspond to test classes to be

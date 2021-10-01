@@ -20,9 +20,12 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import spock.lang.Unroll
+import spock.lang.Ignore
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse model for a java project"() {
 
         projectDir.file('build.gradle').text = '''
@@ -188,8 +191,12 @@ dependencies {
         minimalProject != null
     }
 
+    @Unroll
+    @Ignore('https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse project dependencies for a java project"() {
-
+        projectDir.file("gradle.properties") << """
+            org.gradle.parallel=$parallel
+        """
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
 rootProject.name = 'root'
@@ -227,6 +234,9 @@ project(':a') {
 
         fullProject.projectDependencies.any { it.path == 'root' }
         fullProject.projectDependencies.any { it.path == 'b' }
+
+        where:
+        parallel << [true, false]
     }
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
