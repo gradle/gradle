@@ -95,8 +95,6 @@ The Scala plugin is now able to compile Scala 3 code. All existing configuration
 
 The newest version of Scala 3 brings about numerous features while keeping compatibility with most of the existing Scala 2 code. To see more about the language features go to [overview of the new features in Scala 3](https://docs.scala-lang.org/scala3/new-in-scala3.html).
 
-Note that Scaladoc support for Scala 3 will be released in a later version.
-
 ### Explore new behavior with `gradle init`
 
 When you initialize a new Gradle project using [`gradle init`](userguide/build_init_plugin.html#build_init_plugin), Gradle will now ask if you want to try new but unstable features in the build. This will allow you to try out new features before they become stable. You can always ask for this behavior by running `gradle init --incubating` when generating a new project.
