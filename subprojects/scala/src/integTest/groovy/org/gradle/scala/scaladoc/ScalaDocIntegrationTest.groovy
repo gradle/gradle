@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.scala.ScalaCompilationFixture
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
@@ -92,9 +94,7 @@ plugins {
     id 'scala'
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     implementation 'org.scala-lang:scala3-library_3:3.0.1'

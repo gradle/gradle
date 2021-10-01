@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -37,10 +38,12 @@ class ScalaPlugin3Test {
 
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
-    @Test void addsScalaDoc3TasksToTheProject() {
+    @LeaksFileHandles
+    @Test
+    void addsScalaDoc3TasksToTheProject() {
         scalaPlugin.apply(project)
-        project.repositories.mavenCentral()
-        project.dependencies.add('implementation', 'org.scala-lang:scala3-library_3:3.0.1')
+        temporaryFolder.createFile('libs/scala3-library_3-3.0.1.jar)')
+        project.dependencies.add('implementation', project.files('libs/scala3-library_3-3.0.1.jar)'))
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
