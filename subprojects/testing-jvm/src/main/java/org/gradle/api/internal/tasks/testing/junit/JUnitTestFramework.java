@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -35,10 +31,15 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
-    private final JUnitDetector detector;
+    private JUnitDetector detector;
     private final DefaultTestFilter filter;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
@@ -84,6 +85,13 @@ public class JUnitTestFramework implements TestFramework {
     @Override
     public JUnitDetector getDetector() {
         return detector;
+    }
+
+    @Override
+    public void close() throws IOException {
+        // Clear expensive state from the test framework to avoid holding on to memory
+        // This should probably be a part of the test task and managed there.
+        detector = null;
     }
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
