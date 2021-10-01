@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.scala.ScalaCompilationFixture
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
@@ -82,5 +84,27 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         // Looks like
         // Started Gradle worker daemon (0.399 secs) with fork options DaemonForkOptions{executable=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/bin/java, minHeapSize=null, maxHeapSize=234M, jvmArgs=[], keepAliveMode=DAEMON}.
         outputContains("maxHeapSize=234M")
+    }
+
+    def "scaladoc uses scala3"() {
+        classes.baseline()
+        given:
+        buildFile << """
+plugins {
+    id 'scala'
+}
+
+${mavenCentralRepository()}
+
+dependencies {
+    implementation 'org.scala-lang:scala3-library_3:3.0.1'
+}
+
+"""
+        when:
+        succeeds scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc, ":compileScala"
     }
 }

@@ -38,6 +38,7 @@ class ScalaPluginTest {
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
+
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
     @Test void appliesTheJavaPluginToTheProject() {
@@ -128,7 +129,7 @@ class ScalaPluginTest {
         assertThat(task, instanceOf(ScalaDoc.class))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
+        assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List)) // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
