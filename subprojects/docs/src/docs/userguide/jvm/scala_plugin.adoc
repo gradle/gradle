@@ -137,6 +137,11 @@ include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle"]
 include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts"]
 ====
 
+[NOTE]
+====
+Scaladoc support for Scala 3 is not yet available and will be released in a later Gradle version.
+====
+
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
 
 .Declaring a Scala dependency for test code
