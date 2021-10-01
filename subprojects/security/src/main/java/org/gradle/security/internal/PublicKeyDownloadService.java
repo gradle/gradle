@@ -34,9 +34,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -57,16 +55,12 @@ public class PublicKeyDownloadService implements PublicKeyService {
 
     @Override
     public void findByLongId(long keyId, PublicKeyResultBuilder builder) {
-        List<URI> servers = new ArrayList<>(keyServers);
-        Collections.shuffle(servers);
-        tryDownloadKeyFromServer(toLongIdHexString(keyId), servers, builder, keyring -> findMatchingKey(keyId, keyring, builder));
+        tryDownloadKeyFromServer(toLongIdHexString(keyId), keyServers, builder, keyring -> findMatchingKey(keyId, keyring, builder));
     }
 
     @Override
     public void findByFingerprint(byte[] fingerprint, PublicKeyResultBuilder builder) {
-        List<URI> servers = new ArrayList<>(keyServers);
-        Collections.shuffle(servers);
-        tryDownloadKeyFromServer(Fingerprint.wrap(fingerprint).toString(), servers, builder, keyring -> findMatchingKey(fingerprint, keyring, builder));
+        tryDownloadKeyFromServer(Fingerprint.wrap(fingerprint).toString(), keyServers, builder, keyring -> findMatchingKey(fingerprint, keyring, builder));
     }
 
     @SuppressWarnings("OptionalAssignedToNull")
