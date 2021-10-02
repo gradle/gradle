@@ -33,6 +33,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
@@ -60,8 +61,9 @@ public class ScalaDoc extends SourceTask {
     private final Property<JavaLauncher> javaLauncher;
 
     public ScalaDoc() {
-        this.maxMemory = getObjectFactory().property(String.class);
-        this.javaLauncher = getObjectFactory().property(JavaLauncher.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.maxMemory = objectFactory.property(String.class);
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
     }
 
     @Inject
@@ -197,7 +199,13 @@ public class ScalaDoc extends SourceTask {
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
             parameters.getOutputDirectory().set(getDestinationDir());
-            parameters.getSources().from(getSource());
+            boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
+            parameters.getIsScala3().set(isScala3);
+            if (isScala3) {
+                parameters.getSources().from(getClasspath().getAsFileTree().matching(pattern -> pattern.include("**/*.tasty")));
+            } else {
+                parameters.getSources().from(getSource());
+            }
 
             if (options.isDeprecation()) {
                 parameters.getOptions().add("-deprecation");
