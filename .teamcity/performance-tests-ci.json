@@ -368,14 +368,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting zip trees",
-    "groups" : [ {
-      "testProject" : "archivePerformanceProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest.create many deprecation warnings",
     "groups" : [ {
       "testProject" : "generateLotsOfDeprecationWarnings",
