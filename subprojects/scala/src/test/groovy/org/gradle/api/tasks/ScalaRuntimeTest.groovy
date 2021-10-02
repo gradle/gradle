@@ -93,7 +93,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             assert it instanceof Configuration
             assert it.state == Configuration.State.UNRESOLVED
-            assert it.dependencies.size() == 3
+            assert it.dependencies.size() == 4
             assert it.dependencies.any { d ->
                 d.group == "org.scala-lang" &&
                     d.name == "scala3-compiler_3" &&
@@ -107,6 +107,11 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             assert it.dependencies.any { d ->
                 d.group == "org.scala-lang" &&
                     d.name == "scala3-interfaces" &&
+                    d.version == "3.0.1"
+            }
+            assert it.dependencies.any { d ->
+                d.group == "org.scala-lang" &&
+                    d.name == "scaladoc_3" &&
                     d.version == "3.0.1"
             }
         }
