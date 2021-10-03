@@ -43,6 +43,15 @@ abstract class AbstractToolchainZincScalaCompileIntegrationTest extends BasicZin
 
     abstract Jvm computeJdkForTest()
 
+    def "joint compile good java code with interface using default and static methods do not fail the build"() {
+        given:
+        goodJavaInterfaceCode()
+        goodCodeUsingJavaInterface()
+
+        expect:
+        succeeds 'compileScala', '-s'
+    }
+
     def "can generate ScalaDoc"() {
         given:
         goodCode()
