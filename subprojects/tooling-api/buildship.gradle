@@ -23,6 +23,7 @@ tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     projectDirectory = file("$buildDir/buildshipProject")
 }
 
+@DisableCachingByDefault("Not worth caching")
 abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
 
     @InputFile
