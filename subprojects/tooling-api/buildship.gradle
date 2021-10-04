@@ -23,7 +23,7 @@ tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     projectDirectory = file("$buildDir/buildshipProject")
 }
 
-@DisableCachingByDefault("Not worth caching")
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
 
     @InputFile
@@ -33,7 +33,7 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
     abstract Property<String> getProjectVersion()
 
     @Inject
-    abstract FileSystemOperations getFs()
+    protected abstract FileSystemOperations getFs()
 
     @OutputDirectory
     File projectDirectory
