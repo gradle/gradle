@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import org.junit.Assume
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -43,6 +44,7 @@ class ScalaPlugin3Test {
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
     @Issue("https://github.com/gradle/gradle-private/issues/3440")
+    @Before
     void setUp() {
         // this class leaks file handles
         Assume.assumeTrue(TestPrecondition.NOT_WINDOWS.fulfilled)
