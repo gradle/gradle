@@ -42,6 +42,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "base-services-java6",
+    "name": "base-services-java6",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "bootstrap",
     "name": "bootstrap",
     "unitTests": false,
