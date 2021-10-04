@@ -28,6 +28,6 @@ public class GradleMain {
             System.err.println(ex.getMessage());
             System.exit(1);
         }
-        new ProcessBootstrap().run("org.gradle.launcher.Main", args);
+        ProcessBootstrap.run("org.gradle.launcher.Main", args);
     }
 }

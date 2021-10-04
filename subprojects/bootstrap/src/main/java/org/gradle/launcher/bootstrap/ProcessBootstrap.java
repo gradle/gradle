@@ -28,11 +28,11 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 
 import java.lang.reflect.Method;
 
-public class    ProcessBootstrap {
+public class ProcessBootstrap {
     /**
      * Sets up the ClassLoader structure for the given class, creates an instance and invokes {@link EntryPoint#run(String[])} on it.
      */
-    public void run(String mainClassName, String[] args) {
+    public static void run(String mainClassName, String[] args) {
         try {
             runNoExit(mainClassName, args);
             System.exit(0);
@@ -42,7 +42,7 @@ public class    ProcessBootstrap {
         }
     }
 
-    private void runNoExit(String mainClassName, String[] args) throws Exception {
+    private static void runNoExit(String mainClassName, String[] args) throws Exception {
         ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(new DefaultModuleRegistry(CurrentGradleInstallation.get())));
         ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
         ClassPath antClasspath = classPathRegistry.getClassPath("ANT");
