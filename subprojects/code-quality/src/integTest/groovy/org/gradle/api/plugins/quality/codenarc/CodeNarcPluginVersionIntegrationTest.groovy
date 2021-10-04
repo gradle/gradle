@@ -48,7 +48,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {
-                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+                resolutionStrategy.force 'org.apache.groovy:groovy:${GroovySystem.version}'
             }
             """ : ""}
         """.stripIndent()
