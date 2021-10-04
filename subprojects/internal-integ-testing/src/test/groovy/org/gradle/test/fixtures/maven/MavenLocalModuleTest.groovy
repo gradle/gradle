@@ -182,7 +182,7 @@ class MavenLocalModuleTest extends Specification {
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
         publishedFiles.find { it.name == mavenMetadataFileName }.exists()
-        new XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
+        new groovy.xml.XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
         snapshotMavenLocalModule.assertArtifactsPublished(mavenMetadataFileName, 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
     }
 
@@ -198,7 +198,7 @@ class MavenLocalModuleTest extends Specification {
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
         publishedFiles.find { it.name == mavenMetadataFileName }.exists()
-        new XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
+        new groovy.xml.XmlSlurper().parseText(publishedFiles.find { it.name == mavenMetadataFileName }.text).versioning.snapshot.localCopy.text() == 'true'
         snapshotMavenLocalModule.assertArtifactsPublished(mavenMetadataFileName, 'my-artifact-1.0-SNAPSHOT.jar', 'my-artifact-1.0-SNAPSHOT.pom')
     }
 }

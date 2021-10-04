@@ -371,7 +371,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
      * which can then be used to extract information from the XML.
      */
     private static getTestResultsFileAsXml(TestFile sampleDir, String testClassName, String taskName = "test") {
-        return new XmlSlurper().parse(getTestResultsFile(sampleDir, testClassName, taskName))
+        return new groovy.xml.XmlSlurper().parse(getTestResultsFile(sampleDir, testClassName, taskName))
     }
 
     /**

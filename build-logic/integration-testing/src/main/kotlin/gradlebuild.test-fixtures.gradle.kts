@@ -103,3 +103,11 @@ plugins.withType<IdeaPlugin> {
         }
     }
 }
+
+tasks.withType<GroovyCompile>().configureEach {
+    groovyOptions.forkOptions.jvmArgs = listOf("-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true")
+}
+
+tasks.withType<Test>().configureEach {
+    systemProperty("spock.iKnowWhatImDoing.disableGroovyVersionCheck", "true")
+}

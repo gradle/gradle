@@ -71,7 +71,7 @@ class SimpleXmlWriterSpec extends Specification {
         xml.contains('<item description="encoded: &#9; &amp;lt; &lt; &gt; \' &#10;&#13;&quot;  "/>')
 
         and:
-        def item = new XmlSlurper().parseText(xml).item
+        def item = new groovy.xml.XmlSlurper().parseText(xml).item
         item.@description.text() == "encoded: \t &lt; < > ' \n\r\"  "
     }
 

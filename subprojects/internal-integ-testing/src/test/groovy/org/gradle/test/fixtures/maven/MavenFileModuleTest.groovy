@@ -189,8 +189,8 @@ class MavenFileModuleTest extends Specification {
         mavenModule != null
         publishedFiles*.name.containsAll('my-artifact-1.0-20100101.120001-1.jar', 'my-artifact-1.0-20100101.120001-1.jar.sha1', 'my-artifact-1.0-20100101.120001-1.jar.md5', 'my-artifact-1.0-20100101.120001-1.pom', 'my-artifact-1.0-20100101.120001-1.pom.sha1', 'my-artifact-1.0-20100101.120001-1.pom.md5')
         publishedFiles.find { it.name == 'maven-metadata.xml' }.exists()
-        new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.timestamp.text() == '20100101.120001'
-        new XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.buildNumber.text() == '1'
+        new groovy.xml.XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.timestamp.text() == '20100101.120001'
+        new groovy.xml.XmlSlurper().parseText(publishedFiles.find { it.name == 'maven-metadata.xml' }.text).versioning.snapshot.buildNumber.text() == '1'
         snapshotMavenFileModule.assertArtifactsPublished('maven-metadata.xml', 'my-artifact-1.0-20100101.120001-1.jar', 'my-artifact-1.0-20100101.120001-1.pom')
     }
 

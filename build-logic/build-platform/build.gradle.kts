@@ -4,7 +4,7 @@ plugins {
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.9"
+val groovyVersion = "4.0.0-beta-1"
 val asmVersion = "9.2"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
@@ -55,8 +55,8 @@ dependencies {
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("com.beust:jcommander:1.78")
-        api("org.codehaus.groovy:$groovyVersion:indy")
-        api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2")
+        api("org.apache.groovy:$groovyVersion")
+        api("org.apache.groovy.modules.http-builder:http-builder:0.7.2")
         api("org.codenarc:CodeNarc:2.0.0")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")

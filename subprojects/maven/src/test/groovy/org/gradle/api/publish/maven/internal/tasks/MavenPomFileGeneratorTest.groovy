@@ -357,7 +357,7 @@ class MavenPomFileGeneratorTest extends Specification {
     }
 
     private def getPom() {
-        return new XmlSlurper().parse(pomFile);
+        return new groovy.xml.XmlSlurper().parse(pomFile);
     }
 
     private TestFile getPomFile() {

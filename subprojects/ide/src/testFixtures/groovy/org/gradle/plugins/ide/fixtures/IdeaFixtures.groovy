@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 class IdeaFixtures {
     static parseFile(TestFile file) {
         file.assertIsFile()
-        new XmlSlurper().parse(file)
+        new groovy.xml.XmlSlurper().parse(file)
     }
 
     static IdeaProjectFixture parseIpr(TestFile projectFile) {

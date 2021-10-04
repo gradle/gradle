@@ -394,7 +394,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     }
 
     private def getIvyXml() {
-        return new XmlSlurper().parse(ivyFile);
+        return new groovy.xml.XmlSlurper().parse(ivyFile);
     }
 
     private TestFile getIvyFile() {

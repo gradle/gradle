@@ -15,11 +15,16 @@
  */
 package org.gradle.integtests.fixtures
 
+
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.hamcrest.CoreMatchers.*
-import static org.hamcrest.core.StringStartsWith.startsWith
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.core.StringStartsWith.startsWith
 
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile testResultsDir
@@ -55,7 +60,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     String fromFileToTestClass(File junitXmlFile) {
-        def xml = new XmlSlurper().parse(junitXmlFile)
+        def xml = new groovy.xml.XmlSlurper().parse(junitXmlFile)
         xml.@'name'.text()
     }
 
@@ -91,7 +96,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         assertThat(classes.keySet(), hasItem(testClass))
         def classFile = classes.get(testClass)
         assertThat(classFile, notNullValue())
-        return new XmlSlurper().parse(classFile)
+        return new groovy.xml.XmlSlurper().parse(classFile)
     }
 
     private def findTestClassStartsWith(String testClass) {
@@ -100,7 +105,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         def classEntry = classes.find { it.key.startsWith(testClass) }
         def classFile = classEntry.value
         assertThat(classFile, notNullValue())
-        return [classEntry.key, new XmlSlurper().parse(classFile)]
+        return [classEntry.key, new groovy.xml.XmlSlurper().parse(classFile)]
     }
 
     private def findClasses() {

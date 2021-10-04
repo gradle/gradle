@@ -95,7 +95,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     private void parseResults() {
-        resultsXml = new XmlSlurper().parse(xmlReportFile().assertIsFile())
+        resultsXml = new groovy.xml.XmlSlurper().parse(xmlReportFile().assertIsFile())
     }
 
     private TestFile xmlReportFile() {

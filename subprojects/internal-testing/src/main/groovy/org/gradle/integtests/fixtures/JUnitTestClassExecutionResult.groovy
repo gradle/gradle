@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.NodeChild
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.NodeChild
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Assert
@@ -40,7 +41,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     JUnitTestClassExecutionResult(String content, String testClassName, String testClassDisplayName, TestResultOutputAssociation outputAssociation) {
-        this(new XmlSlurper().parse(new StringReader(content)), testClassName, testClassDisplayName, outputAssociation)
+        this(new groovy.xml.XmlSlurper().parse(new StringReader(content)), testClassName, testClassDisplayName, outputAssociation)
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {

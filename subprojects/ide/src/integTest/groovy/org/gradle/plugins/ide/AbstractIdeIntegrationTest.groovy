@@ -49,7 +49,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
 
     protected parseFile(Map options, String filename) {
         def file = getFile(options, filename)
-        new XmlSlurper().parse(file)
+        new groovy.xml.XmlSlurper().parse(file)
     }
 
     protected void createJavaSourceDirs(TestFile buildFile) {

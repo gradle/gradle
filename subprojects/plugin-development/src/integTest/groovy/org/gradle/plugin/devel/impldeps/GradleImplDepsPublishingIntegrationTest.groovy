@@ -41,7 +41,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'generatePomFileForMavenJavaPublication'
 
         then:
-        def xml = new XmlSlurper().parse(file('build/publications/mavenJava/pom-default.xml'))
+        def xml = new groovy.xml.XmlSlurper().parse(file('build/publications/mavenJava/pom-default.xml'))
         xml.dependencies.size() == 0
     }
 
@@ -67,7 +67,7 @@ class GradleImplDepsPublishingIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'generateDescriptorFileForIvyJavaPublication'
 
         then:
-        def xml = new XmlSlurper().parse(file('build/publications/ivyJava/ivy.xml'))
+        def xml = new groovy.xml.XmlSlurper().parse(file('build/publications/ivyJava/ivy.xml'))
         xml.dependencies.children().size() == 0
     }
 }

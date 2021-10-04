@@ -436,7 +436,7 @@ apply plugin: "idea"
     }
 
     void assertProjectLanguageLevel(String iprFileName, String javaVersion) {
-        def project = new XmlSlurper().parse(file(iprFileName))
+        def project = new groovy.xml.XmlSlurper().parse(file(iprFileName))
         def projectRootMngr = project.component.find { it.@name == "ProjectRootManager" }
         assert projectRootMngr
         assert projectRootMngr.@languageLevel == javaVersion
@@ -484,7 +484,7 @@ idea.project {
     }
 
     private void hasProjectLibrary(String iprFileName, String libraryName, List<String> classesLibs, List<String> javadocLibs, List<String> sourcesLibs, List<String> compilerClasses) {
-        def project = new XmlSlurper().parse(file(iprFileName))
+        def project = new groovy.xml.XmlSlurper().parse(file(iprFileName))
         def libraryTable = project.component.find { it.@name == "libraryTable" }
         assert libraryTable
 
@@ -517,7 +517,7 @@ idea.project {
     }
 
     private void hasScalaSdk(String imlFileName, String version) {
-        def module = new XmlSlurper().parse(file(imlFileName))
+        def module = new groovy.xml.XmlSlurper().parse(file(imlFileName))
         def newModuleRootManager = module.component.find { it.@name == "NewModuleRootManager" }
         assert newModuleRootManager
 
@@ -528,7 +528,7 @@ idea.project {
     }
 
     private void hasScalaFacet(String imlFileName, String libraryName) {
-        def module = new XmlSlurper().parse(file(imlFileName))
+        def module = new groovy.xml.XmlSlurper().parse(file(imlFileName))
         def facetManager = module.component.find { it.@name == "FacetManager" }
         assert facetManager
 

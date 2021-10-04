@@ -56,7 +56,7 @@ class DefaultIvyModuleDescriptorWriterTest extends Specification {
         ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);
 
         then:
-        def ivyModule = new XmlSlurper().parse(ivyFile);
+        def ivyModule = new groovy.xml.XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"
         assert ivyModule.info.@organisation == "org.test"
         assert ivyModule.info.@module == "projectA"

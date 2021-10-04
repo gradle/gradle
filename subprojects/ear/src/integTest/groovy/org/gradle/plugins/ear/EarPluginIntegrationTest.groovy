@@ -99,7 +99,7 @@ dependencies {
         file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         then:
-        def appXml = new XmlSlurper().parse(
+        def appXml = new groovy.xml.XmlSlurper().parse(
                 file('unzipped/META-INF/application.xml'))
         def modules = appXml.module
         modules[0].ejb.text() == 'moduleA.jar'
@@ -275,7 +275,7 @@ ear {
         file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         then:
-        def appXml = new XmlSlurper().parse(
+        def appXml = new groovy.xml.XmlSlurper().parse(
                 file('unzipped/META-INF/application.xml'))
         def roles = appXml."security-role"
         roles[0]."role-name".text() == 'superman'
@@ -311,7 +311,7 @@ ear {
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("META-INF/MANIFEST.MF")
         ear.assertContainsFile("META-INF/application.xml")
-        def appXml = new XmlSlurper().parse(file('unzipped/META-INF/application.xml'))
+        def appXml = new groovy.xml.XmlSlurper().parse(file('unzipped/META-INF/application.xml'))
         def module = appXml.module[0].web
         module."web-uri" == "root.war"
         module."context-root" == "anywhere"
