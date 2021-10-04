@@ -28,15 +28,20 @@ import org.gradle.kotlin.dsl.accessors.fragmentsFor
 
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.work.DisableCachingByDefault
+import javax.inject.Inject
 
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-open class PrintAccessors : DefaultTask() {
+abstract class PrintAccessors : DefaultTask() {
 
     init {
         group = "help"
         description = "Prints the Kotlin code for accessing the currently available project extensions and conventions."
     }
+
+    @get:Inject
+    protected
+    abstract val projectSchemaProvider: ProjectSchemaProvider
 
     @Suppress("unused")
     @TaskAction
@@ -47,10 +52,6 @@ open class PrintAccessors : DefaultTask() {
     private
     fun schemaOf(project: Project) =
         projectSchemaProvider.schemaFor(project)
-
-    private
-    val projectSchemaProvider: ProjectSchemaProvider
-        get() = project.serviceOf()
 }
 
 
