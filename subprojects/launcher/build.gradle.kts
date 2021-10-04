@@ -39,6 +39,7 @@ dependencies {
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":base-services"))
+    manifestClasspath(project(":base-services-java6"))
     manifestClasspath(project(":core-api"))
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
