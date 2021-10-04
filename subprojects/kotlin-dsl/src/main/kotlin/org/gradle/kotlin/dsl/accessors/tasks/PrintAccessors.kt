@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.serialization.Cached
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
@@ -43,10 +44,13 @@ abstract class PrintAccessors : DefaultTask() {
     protected
     abstract val projectSchemaProvider: ProjectSchemaProvider
 
+    private
+    val schema = Cached.of { schemaOf(project) }
+
     @Suppress("unused")
     @TaskAction
     fun printExtensions() {
-        printAccessorsFor(schemaOf(project))
+        printAccessorsFor(schema.get())
     }
 
     private
