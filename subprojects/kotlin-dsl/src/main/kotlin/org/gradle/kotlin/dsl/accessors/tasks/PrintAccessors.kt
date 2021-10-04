@@ -27,7 +27,6 @@ import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.accessorsFor
 import org.gradle.kotlin.dsl.accessors.fragmentsFor
 
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
