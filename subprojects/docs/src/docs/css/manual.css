@@ -1819,7 +1819,7 @@ div.screenshot {
     display: inline-block;
     position: absolute;
     top: -1.25em;
-    right: 0;
+    left: 200px;
 }
 
 .docs-navigation .pdf-link-container a {
@@ -1836,7 +1836,7 @@ div.screenshot {
 @media screen and (min-width: 45rem) {
     .main-content {
         display: flex;
-        justify-content: center;
+        justify-content: left;
     }
 }
 
@@ -1849,14 +1849,19 @@ div.screenshot {
     .docs-navigation {
         display: block;
         flex: 0 0 auto;
-        width: 13.75rem;
+        width: 20rem;
+        padding-left: 30px;
+        overflow-y: auto;
+        height: 100vh;
+        position: fixed;
+        margin-top: -75px;
     }
 
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
         flex: 0 0 45rem;
-        margin: 0 20px;
+        margin: 0 0px;
     }
 }
 
@@ -1888,7 +1893,7 @@ div.screenshot {
     }
 
     .docs-navigation {
-        flex-basis: 14.75rem;
+        flex-basis: 20rem;
     }
 
     /* Sneaky way to make room for TOC */
@@ -2150,9 +2155,14 @@ div.screenshot {
     .main-content > .appendix,
     .main-content > .book,
     .main-content > .chapter {
-        flex-basis: 60rem;
-        max-width: 60rem;
+        flex-basis: 66rem;
+        max-width: 66rem;
+        margin-left: 20rem;
     }
+}
+
+.empty-block {
+    height: 75px;
 }
 
 /* User Manual Home */
