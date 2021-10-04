@@ -61,7 +61,6 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
             // gradle/gradle build tasks
             task.name in listOf(
                 "updateInitPluginTemplateVersionFile",
-                "buildshipEclipseProject",
                 "resolveAllDependencies",
             ) -> true
             task.name.endsWith("Wrapper") -> true

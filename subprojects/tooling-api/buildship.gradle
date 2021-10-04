@@ -19,6 +19,7 @@ import java.util.zip.ZipInputStream
 tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
+    projectVersion = project.version
     projectDirectory = file("$buildDir/buildshipProject")
 }
 
@@ -26,6 +27,12 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
 
     @InputFile
     abstract RegularFileProperty getToolingApiShadedJar()
+
+    @Input
+    abstract Property<String> getProjectVersion()
+
+    @Inject
+    abstract FileSystemOperations getFs()
 
     @OutputDirectory
     File projectDirectory
@@ -43,10 +50,10 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
                 throw new GradleException("Unable to create directory ${manifestFile.parentFile.absolutePath}")
             }
         }
-        manifestFile.text = calculateManifest(project.version, jarFile)
+        manifestFile.text = calculateManifest(projectVersion.get(), jarFile)
 
         // copy the jar to the project location
-        project.copy {
+        fs.copy {
             from jarFile
             into projectDirectory
         }
