@@ -56,7 +56,7 @@ abstract class ExternalModulesExtension {
     val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "org.codehaus.groovy:groovy"
+    val groovy = "org.codehaus.groovy:groovy:indy"
     val groovyAnt = "org.codehaus.groovy:groovy-ant"
     val groovyAstbuilder = "org.codehaus.groovy:groovy-astbuilder"
     val groovyConsole = "org.codehaus.groovy:groovy-console"
