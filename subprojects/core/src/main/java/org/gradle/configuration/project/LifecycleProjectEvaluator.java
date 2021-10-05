@@ -43,7 +43,7 @@ import org.gradle.util.Path;
  * The before/after evaluate operations are fired regardless whether anyone is actually listening.
  * This may change in future versions.
  *
- * The use of term “evaluate” is a legacy constraint.
+ * The use of term “evaluate” is a legacy constraint.
  * Project evaluation is synonymous with “project configuration” (the latter being the preferred term).
  *
  * @see ProjectEvaluationListener

@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
@@ -33,16 +33,18 @@ import java.io.File;
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final BuildTreeState buildTree;
     private final Instantiator instantiator;
-    private final BuildLifecycleControllerFactory buildLifecycleControllerFactory;
+    private final BuildModelControllerServices buildModelControllerServices;
     private final ProjectStateRegistry projectStateRegistry;
 
-    public DefaultIncludedBuildFactory(BuildTreeState buildTree,
-                                       Instantiator instantiator,
-                                       BuildLifecycleControllerFactory buildLifecycleControllerFactory,
-                                       ProjectStateRegistry projectStateRegistry) {
+    public DefaultIncludedBuildFactory(
+        BuildTreeState buildTree,
+        Instantiator instantiator,
+        BuildModelControllerServices buildModelControllerServices,
+        ProjectStateRegistry projectStateRegistry
+    ) {
         this.buildTree = buildTree;
         this.instantiator = instantiator;
-        this.buildLifecycleControllerFactory = buildLifecycleControllerFactory;
+        this.buildModelControllerServices = buildModelControllerServices;
         this.projectStateRegistry = projectStateRegistry;
     }
 
@@ -65,7 +67,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             isImplicit,
             owner,
             buildTree,
-            buildLifecycleControllerFactory,
+            buildModelControllerServices,
             projectStateRegistry,
             instantiator
         );

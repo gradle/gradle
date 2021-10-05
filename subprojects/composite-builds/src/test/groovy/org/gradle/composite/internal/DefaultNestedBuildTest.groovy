@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -40,7 +40,7 @@ import java.util.function.Function
 class DefaultNestedBuildTest extends Specification {
     def owner = Mock(BuildState)
     def tree = Mock(BuildTreeState)
-    def factory = Mock(BuildLifecycleControllerFactory)
+    def factory = Mock(BuildModelControllerServices)
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
@@ -52,6 +52,7 @@ class DefaultNestedBuildTest extends Specification {
     def workGraph = Mock(BuildTreeWorkGraph)
 
     DefaultNestedBuild build() {
+        _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
@@ -59,6 +60,7 @@ class DefaultNestedBuildTest extends Specification {
         sessionServices.add(exceptionAnalyzer)
         sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
         sessionServices.add(gradle)
+        sessionServices.add(controller)
         sessionServices.add(Stub(DocumentationRegistry))
         sessionServices.add(Stub(BuildTreeWorkGraphController))
         _ * tree.services >> sessionServices

@@ -24,7 +24,7 @@ import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
@@ -62,7 +62,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         BuildDefinition buildDefinition,
         BuildState owner,
         BuildTreeState buildTree,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        BuildModelControllerServices buildModelControllerServices,
         ProjectStateRegistry projectStateRegistry
     ) {
         this.buildIdentifier = buildIdentifier;
@@ -71,8 +71,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         this.owner = owner;
         this.projectStateRegistry = projectStateRegistry;
 
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner, buildScopeServices);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinition, this, owner));
+        this.buildLifecycleController = buildScopeServices.get(BuildLifecycleController.class);
 
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildModelParameters modelParameters = buildScopeServices.get(BuildModelParameters.class);

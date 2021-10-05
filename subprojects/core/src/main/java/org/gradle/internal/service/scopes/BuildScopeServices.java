@@ -161,6 +161,7 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -213,7 +214,7 @@ import java.util.List;
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
 
-    public BuildScopeServices(final ServiceRegistry parent) {
+    public BuildScopeServices(ServiceRegistry parent, BuildModelControllerServices.Supplier supplier) {
         super(parent);
         addProvider(new BuildCacheServices());
         register(registration -> {
@@ -229,6 +230,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(TaskNodeDependencyResolver.class);
             registration.add(WorkNodeDependencyResolver.class);
             registration.add(TaskDependencyResolver.class);
+            supplier.applyServicesTo(registration, this);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
             }

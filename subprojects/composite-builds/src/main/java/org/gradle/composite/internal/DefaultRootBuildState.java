@@ -31,7 +31,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
@@ -66,15 +66,15 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     DefaultRootBuildState(
         BuildDefinition buildDefinition,
         BuildTreeState buildTree,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        BuildModelControllerServices buildModelControllerServices,
         ListenerManager listenerManager,
         ProjectStateRegistry projectStateRegistry
     ) {
         this.listenerManager = listenerManager;
         this.projectStateRegistry = projectStateRegistry;
 
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, null, buildScopeServices);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinition, this, null));
+        this.buildLifecycleController = buildScopeServices.get(BuildLifecycleController.class);
 
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);

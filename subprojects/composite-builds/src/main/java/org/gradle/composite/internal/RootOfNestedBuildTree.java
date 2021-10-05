@@ -32,7 +32,7 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkGraphController;
@@ -90,9 +90,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         buildTree = new BuildTreeState(buildSessionState.getServices(), modelServices);
 
         // Create the controllers using the services of the nested tree
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory = buildTree.getServices().get(BuildLifecycleControllerFactory.class);
-        buildServices = new BuildScopeServices(buildTree.getServices());
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinition, this, owner, buildServices);
+        BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
+        buildServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinition, this, owner));
+        this.buildLifecycleController = buildServices.get(BuildLifecycleController.class);
 
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);

@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.composite.internal.DefaultIncludedBuild
-import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.reflect.Instantiator
@@ -34,7 +34,7 @@ class ConfigurationCacheIncludedBuildState(
     isImplicit: Boolean,
     owner: BuildState,
     buildTree: BuildTreeState,
-    buildLifecycleControllerFactory: BuildLifecycleControllerFactory,
+    buildModelControllerServices: BuildModelControllerServices,
     projectStateRegistry: ProjectStateRegistry,
     instantiator: Instantiator
-) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, buildLifecycleControllerFactory, projectStateRegistry, instantiator)
+) : DefaultIncludedBuild(buildIdentifier, identityPath, buildDefinition, isImplicit, owner, buildTree, buildModelControllerServices, projectStateRegistry, instantiator)

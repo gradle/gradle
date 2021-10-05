@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
@@ -62,7 +62,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         boolean isImplicit,
         BuildState owner,
         BuildTreeState buildTree,
-        BuildLifecycleControllerFactory buildLifecycleControllerFactory,
+        BuildModelControllerServices buildModelControllerServices,
         ProjectStateRegistry projectStateRegistry,
         Instantiator instantiator
     ) {
@@ -72,10 +72,10 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.isImplicit = isImplicit;
         this.owner = owner;
         this.projectStateRegistry = projectStateRegistry;
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices());
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         BuildDefinition buildDefinitionCopy = buildDefinition.newInstance();
-        this.buildLifecycleController = buildLifecycleControllerFactory.newInstance(buildDefinitionCopy, this, owner, buildScopeServices);
+        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinitionCopy, this, owner));
+        this.buildLifecycleController = buildScopeServices.get(BuildLifecycleController.class);
         this.workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }

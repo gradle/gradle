@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.reflect.Instantiator
@@ -36,23 +36,25 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
-    def buildFactory = Mock(BuildLifecycleControllerFactory)
+    def buildFactory = Mock(BuildModelControllerServices)
     def buildDefinition = Stub(BuildDefinition)
-    def gradleLauncher = Mock(BuildLifecycleController)
+    def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def buildTree = Mock(BuildTreeState)
     DefaultIncludedBuild build
 
     def setup() {
+        _ * buildFactory.servicesForBuild(buildDefinition, _, owningBuild) >> Mock(BuildModelControllerServices.Supplier)
         _ * owningBuild.nestedBuildFactory >> buildFactory
-        _ * buildFactory.newInstance(_, _, _, _) >> gradleLauncher
-        _ * gradleLauncher.gradle >> gradle
+        _ * buildFactory.newInstance(_, _, _, _) >> controller
+        _ * controller.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
-        def treeServices = new DefaultServiceRegistry()
-        treeServices.add(gradle)
-        treeServices.add(Stub(DocumentationRegistry))
-        treeServices.add(Stub(BuildTreeWorkGraphController))
-        _ * buildTree.services >> treeServices
+        def services = new DefaultServiceRegistry()
+        services.add(gradle)
+        services.add(controller)
+        services.add(Stub(DocumentationRegistry))
+        services.add(Stub(BuildTreeWorkGraphController))
+        _ * buildTree.services >> services
 
         build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
     }
