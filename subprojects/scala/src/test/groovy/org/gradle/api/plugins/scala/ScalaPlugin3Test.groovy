@@ -22,10 +22,8 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
-import org.junit.Assume
-import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -35,6 +33,8 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 
+@Ignore
+@Issue("https://github.com/gradle/gradle-private/issues/3440")
 class ScalaPlugin3Test {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -42,13 +42,6 @@ class ScalaPlugin3Test {
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
 
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
-
-    @Issue("https://github.com/gradle/gradle-private/issues/3440")
-    @Before
-    void setUp() {
-        // this class leaks file handles
-        Assume.assumeTrue(TestPrecondition.NOT_WINDOWS.fulfilled)
-    }
 
     @LeaksFileHandles
     @Test
