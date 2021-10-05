@@ -50,9 +50,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
-    // Lock protects the following state
-    private final Object lock = new Object();
-    private DefaultBuildTreeWorkGraph current;
+    private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
 
     public DefaultIncludedBuildTaskGraph(
         ExecutorFactory executorFactory,
@@ -74,20 +72,9 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
     @Override
     public <T> T withNewWorkGraph(Function<? super BuildTreeWorkGraph, T> action) {
-        DefaultBuildTreeWorkGraph previous;
-        DefaultBuildTreeWorkGraph workGraph;
-        synchronized (lock) {
-            previous = current;
-            if (previous != null && previous.state != State.Running && previous.owner != Thread.currentThread()) {
-                throw new IllegalStateException("Work graph is already in use.");
-            }
-            // Else, some other thread is currently running tasks.
-            // The later can happen when a task performs dependency resolution without declaring it and the resolution
-            // includes a dependency substitution on an included build or a source dependency build
-            // Allow this to proceed, but this should become an error at some point
-            workGraph = new DefaultBuildTreeWorkGraph();
-            current = workGraph;
-        }
+        DefaultBuildTreeWorkGraph previous = current.get();
+        DefaultBuildTreeWorkGraph workGraph = new DefaultBuildTreeWorkGraph();
+        current.set(workGraph);
         try {
             try {
                 return action.apply(workGraph);
@@ -95,9 +82,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 workGraph.close();
             }
         } finally {
-            synchronized (this) {
-                current = previous;
-            }
+            current.set(previous);
         }
     }
 
@@ -121,21 +106,13 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
     @Override
     public void close() throws IOException {
-        synchronized (lock) {
-            if (current != null) {
-                throw new IllegalStateException("Work graph was not stopped.");
-            }
-        }
         CompositeStoppable.stoppable(executorService);
     }
 
     private <T> T withState(Function<DefaultBuildTreeWorkGraph, T> action) {
-        DefaultBuildTreeWorkGraph workGraph;
-        synchronized (this) {
-            if (current == null) {
-                throw new IllegalStateException("No work graph available.");
-            }
-            workGraph = current;
+        DefaultBuildTreeWorkGraph workGraph = current.get();
+        if (workGraph == null) {
+            throw new IllegalStateException("No work graph available for this thread.");
         }
         workGraph.assertIsOwner();
         return action.apply(workGraph);

@@ -82,7 +82,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "No work graph available."
+        e.message == "No work graph available for this thread."
     }
 
     def "cannot schedule tasks when after graph has finished execution"() {
@@ -92,7 +92,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "No work graph available."
+        e.message == "No work graph available for this thread."
     }
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
@@ -149,7 +149,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Current thread is not the owner of this work graph."
+        e.message == "No work graph available for this thread."
     }
 
     def "cannot schedule tasks when graph has completed task execution"() {
