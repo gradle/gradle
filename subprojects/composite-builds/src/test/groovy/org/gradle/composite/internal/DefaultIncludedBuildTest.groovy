@@ -24,7 +24,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
@@ -51,12 +50,13 @@ class DefaultIncludedBuildTest extends Specification {
         _ * gradle.settings >> Stub(SettingsInternal)
         def services = new DefaultServiceRegistry()
         services.add(gradle)
+        services.add(buildFactory)
         services.add(controller)
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(BuildTreeWorkGraphController))
         _ * buildTree.services >> services
 
-        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Mock(Instantiator))
     }
 
     def "creates a foreign id for projects"() {

@@ -34,7 +34,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
@@ -45,7 +44,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
     }
 
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild, BuildScopeServices buildScopeServices) {
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);

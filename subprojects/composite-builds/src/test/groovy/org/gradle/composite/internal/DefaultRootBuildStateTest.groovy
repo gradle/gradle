@@ -61,6 +61,7 @@ class DefaultRootBuildStateTest extends Specification {
         services.add(gradle)
         services.add(exceptionAnalyzer)
         services.add(controller)
+        services.add(factory)
         services.add(Stub(BuildTreeWorkGraphController))
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(DefaultDeploymentRegistry))
@@ -71,7 +72,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * gradle.services >> services
         _ * buildTree.services >> services
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, factory, listenerManager, projectStateRegistry)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager)
     }
 
     def "has identifier"() {

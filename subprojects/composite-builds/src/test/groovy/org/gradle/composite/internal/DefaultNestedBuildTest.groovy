@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
@@ -44,10 +43,9 @@ class DefaultNestedBuildTest extends Specification {
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def action = Mock(Function)
-    def sessionServices = new DefaultServiceRegistry()
+    def services = new DefaultServiceRegistry()
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
-    def projectStateRegistry = Mock(ProjectStateRegistry)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     def workGraph = Mock(BuildTreeWorkGraph)
 
@@ -56,21 +54,22 @@ class DefaultNestedBuildTest extends Specification {
         _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
         _ * buildDefinition.name >> "nested"
-        sessionServices.add(Stub(BuildOperationExecutor))
-        sessionServices.add(exceptionAnalyzer)
-        sessionServices.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
-        sessionServices.add(gradle)
-        sessionServices.add(controller)
-        sessionServices.add(Stub(DocumentationRegistry))
-        sessionServices.add(Stub(BuildTreeWorkGraphController))
-        _ * tree.services >> sessionServices
+        services.add(Stub(BuildOperationExecutor))
+        services.add(factory)
+        services.add(exceptionAnalyzer)
+        services.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
+        services.add(gradle)
+        services.add(controller)
+        services.add(Stub(DocumentationRegistry))
+        services.add(Stub(BuildTreeWorkGraphController))
+        _ * tree.services >> services
         _ * controller.gradle >> gradle
 
-        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree, factory, projectStateRegistry)
+        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree)
     }
 
     def "stops controller on stop"() {
-        sessionServices.add(Stub(BuildModelParameters))
+        services.add(Stub(BuildModelParameters))
         def build = build()
 
         when:
@@ -82,7 +81,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action and finishes build when model is not required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, false, false))
+        services.add(new BuildModelParameters(false, false, false, false, false))
         def build = build()
 
         when:
@@ -102,7 +101,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "runs action but does not finish build when model is required by root build"() {
         given:
-        sessionServices.add(new BuildModelParameters(false, false, false, true, false))
+        services.add(new BuildModelParameters(false, false, false, true, false))
         def build = build()
 
         when:
@@ -122,7 +121,7 @@ class DefaultNestedBuildTest extends Specification {
 
     def "can have null result"() {
         given:
-        sessionServices.add(Stub(BuildModelParameters))
+        services.add(Stub(BuildModelParameters))
         def build = build()
 
         when:

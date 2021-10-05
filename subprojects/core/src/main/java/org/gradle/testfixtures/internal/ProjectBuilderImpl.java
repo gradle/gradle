@@ -43,11 +43,9 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
-import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -62,6 +60,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
@@ -120,7 +119,7 @@ public class ProjectBuilderImpl {
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), modelServices);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
 
-        TestBuildScopeServices buildServices = build.buildServices;
+        BuildScopeServices buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
         GradleInternal gradle = build.getMutableModel();
@@ -218,37 +217,28 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
-        private final File rootProjectDir;
-        private final ProjectStateRegistry projectStateRegistry;
         private final GradleInternal gradle;
-        final TestBuildScopeServices buildServices;
+        final BuildScopeServices buildServices;
 
         public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeState buildTreeState) {
-            this.rootProjectDir = rootProjectDir;
-            final File homeDir = new File(rootProjectDir, "gradleHome");
-            BuildModelControllerServices.Supplier buildModelServices = buildTreeState.getServices().get(BuildModelControllerServices.class).servicesForBuild(BuildDefinition.fromStartParameter(startParameter, null), this, null);
-            buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir, buildModelServices);
-            this.projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
+            super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
+            this.buildServices = getBuildServices();
             this.gradle = buildServices.get(GradleInternal.class);
         }
 
         @Override
-        protected BuildLifecycleController getBuildController() {
-            throw new UnsupportedOperationException();
+        protected BuildScopeServices prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+            final File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
+            return new TestBuildScopeServices(buildTree.getServices(), homeDir, supplier);
+        }
+
+        @Override
+        public BuildScopeServices getBuildServices() {
+            return super.getBuildServices();
         }
 
         @Override
         public void ensureProjectsLoaded() {
-        }
-
-        @Override
-        public BuildWorkGraphController getWorkGraph() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        protected ProjectStateRegistry getProjectStateRegistry() {
-            return projectStateRegistry;
         }
 
         @Override
@@ -303,7 +293,7 @@ public class ProjectBuilderImpl {
 
         @Override
         public File getBuildRootDir() {
-            return rootProjectDir;
+            return getBuildServices().get(BuildDefinition.class).getBuildRootDir();
         }
 
         @Override

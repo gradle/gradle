@@ -54,7 +54,7 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
         }
 
         fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
-            return buildLifecycleControllerFactory.newInstance(buildDefinition, owner, parentBuild, buildScopeServices)
+            return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
         }
     }
 }

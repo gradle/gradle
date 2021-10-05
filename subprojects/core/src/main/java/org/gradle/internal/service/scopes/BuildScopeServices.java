@@ -166,6 +166,7 @@ import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildWorkPreparer;
+import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
@@ -230,6 +231,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(TaskNodeDependencyResolver.class);
             registration.add(WorkNodeDependencyResolver.class);
             registration.add(TaskDependencyResolver.class);
+            registration.add(DefaultBuildWorkGraphController.class);
             supplier.applyServicesTo(registration, this);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);

@@ -24,7 +24,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
@@ -32,16 +31,12 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraphController;
-import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
@@ -54,7 +49,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.session.BuildSessionState;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -65,35 +59,24 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildState owner;
-    private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final DefaultBuildWorkGraphController workGraph;
     private String buildName;
-    private final BuildTreeState buildTree;
-    private final BuildScopeServices buildServices;
 
     public RootOfNestedBuildTree(
         BuildDefinition buildDefinition,
         BuildIdentifier buildIdentifier,
         Path identityPath,
         BuildState owner,
-        BuildSessionState buildSessionState
+        BuildTreeState buildTree
     ) {
+        super(buildTree, buildDefinition, owner);
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.owner = owner;
         this.buildName = buildDefinition.getName() == null ? buildIdentifier.getName() : buildDefinition.getName();
 
-        StartParameterInternal startParameter = buildDefinition.getStartParameter();
-
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForNestedBuildTree(startParameter);
-        buildTree = new BuildTreeState(buildSessionState.getServices(), modelServices);
-
-        // Create the controllers using the services of the nested tree
-        BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
-        buildServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinition, this, owner));
-        this.buildLifecycleController = buildServices.get(BuildLifecycleController.class);
-
+        BuildScopeServices buildServices = getBuildServices();
+        BuildLifecycleController buildLifecycleController = getBuildController();
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
@@ -101,31 +84,15 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
-        workGraph = new DefaultBuildWorkGraphController(buildServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
     }
 
     public void attach() {
-        buildServices.get(BuildStateRegistry.class).attachRootBuild(this);
-    }
-
-    @Override
-    protected BuildLifecycleController getBuildController() {
-        return buildLifecycleController;
-    }
-
-    @Override
-    public BuildWorkGraphController getWorkGraph() {
-        return workGraph;
-    }
-
-    @Override
-    protected ProjectStateRegistry getProjectStateRegistry() {
-        return buildServices.get(ProjectStateRegistry.class);
+        getBuildServices().get(BuildStateRegistry.class).attachRootBuild(this);
     }
 
     @Override
     public StartParameterInternal getStartParameter() {
-        return buildLifecycleController.getGradle().getStartParameter();
+        return getBuildController().getGradle().getStartParameter();
     }
 
     @Override
@@ -150,12 +117,12 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public Path calculateIdentityPathForProject(Path projectPath) {
-        return buildLifecycleController.getGradle().getIdentityPath().append(projectPath);
+        return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override
     public File getBuildRootDir() {
-        return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
@@ -176,7 +143,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> action) {
         try {
-            final GradleInternal gradle = buildLifecycleController.getGradle();
+            final GradleInternal gradle = getBuildController().getGradle();
             ServiceRegistry services = gradle.getServices();
             BuildOperationExecutor executor = services.get(BuildOperationExecutor.class);
             return executor.call(new CallableBuildOperation<T>() {
@@ -206,18 +173,18 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                 }
             });
         } finally {
-            CompositeStoppable.stoppable(buildLifecycleController, buildTree).stop();
+            CompositeStoppable.stoppable(getBuildController()).stop();
         }
     }
 
     @Override
     public GradleInternal getBuild() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 
     @Override
     public GradleInternal getMutableModel() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 }
 

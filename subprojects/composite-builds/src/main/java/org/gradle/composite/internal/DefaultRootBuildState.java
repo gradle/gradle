@@ -22,19 +22,14 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildWorkGraphController;
-import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildOperationFiringBuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
@@ -57,25 +52,19 @@ import java.util.function.Function;
 
 class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private final ProjectStateRegistry projectStateRegistry;
-    private final BuildLifecycleController buildLifecycleController;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
-    private final BuildWorkGraphController workGraph;
     private boolean completed;
 
     DefaultRootBuildState(
         BuildDefinition buildDefinition,
         BuildTreeState buildTree,
-        BuildModelControllerServices buildModelControllerServices,
-        ListenerManager listenerManager,
-        ProjectStateRegistry projectStateRegistry
+        ListenerManager listenerManager
     ) {
+        super(buildTree, buildDefinition, null);
         this.listenerManager = listenerManager;
-        this.projectStateRegistry = projectStateRegistry;
 
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinition, this, null));
-        this.buildLifecycleController = buildScopeServices.get(BuildLifecycleController.class);
-
+        BuildScopeServices buildScopeServices = getBuildServices();
+        BuildLifecycleController buildLifecycleController = getBuildController();
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
         BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
@@ -83,22 +72,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
-        this.workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
-    }
-
-    @Override
-    protected BuildLifecycleController getBuildController() {
-        return buildLifecycleController;
-    }
-
-    @Override
-    protected ProjectStateRegistry getProjectStateRegistry() {
-        return projectStateRegistry;
-    }
-
-    @Override
-    public BuildWorkGraphController getWorkGraph() {
-        return workGraph;
     }
 
     @Override
@@ -122,7 +95,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return buildLifecycleController.getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
@@ -132,7 +105,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public void stop() {
-        buildLifecycleController.stop();
+        getBuildController().stop();
     }
 
     @Override
@@ -144,7 +117,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
             try {
-                GradleInternal gradle = buildLifecycleController.getGradle();
+                GradleInternal gradle = getBuildController().getGradle();
                 DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
                 gradle.addBuildListener(new InternalBuildAdapter() {
                     @Override
@@ -163,7 +136,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public StartParameterInternal getStartParameter() {
-        return buildLifecycleController.getGradle().getStartParameter();
+        return getBuildController().getGradle().getStartParameter();
     }
 
     @Override
@@ -178,11 +151,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public GradleInternal getBuild() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 
     @Override
     public GradleInternal getMutableModel() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 }

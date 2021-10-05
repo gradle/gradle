@@ -23,22 +23,15 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildWorkGraphController;
-import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -49,11 +42,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
     private final BuildState owner;
-    private final ProjectStateRegistry projectStateRegistry;
-
-    private final BuildLifecycleController buildLifecycleController;
     private final IncludedBuildImpl model;
-    private final DefaultBuildWorkGraphController workGraph;
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
@@ -62,32 +51,16 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         boolean isImplicit,
         BuildState owner,
         BuildTreeState buildTree,
-        BuildModelControllerServices buildModelControllerServices,
-        ProjectStateRegistry projectStateRegistry,
         Instantiator instantiator
     ) {
+        // Use a defensive copy of the build definition, as it may be mutated during build execution
+        super(buildTree, buildDefinition.newInstance(), owner);
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.owner = owner;
-        this.projectStateRegistry = projectStateRegistry;
-        // Use a defensive copy of the build definition, as it may be mutated during build execution
-        BuildDefinition buildDefinitionCopy = buildDefinition.newInstance();
-        BuildScopeServices buildScopeServices = new BuildScopeServices(buildTree.getServices(), buildModelControllerServices.servicesForBuild(buildDefinitionCopy, this, owner));
-        this.buildLifecycleController = buildScopeServices.get(BuildLifecycleController.class);
-        this.workGraph = new DefaultBuildWorkGraphController(buildScopeServices.get(TaskNodeFactory.class), projectStateRegistry, buildLifecycleController);
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
-    }
-
-    @Override
-    protected BuildLifecycleController getBuildController() {
-        return buildLifecycleController;
-    }
-
-    @Override
-    protected ProjectStateRegistry getProjectStateRegistry() {
-        return projectStateRegistry;
     }
 
     @Override
@@ -164,7 +137,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public GradleInternal getConfiguredBuild() {
-        return buildLifecycleController.getConfiguredBuild();
+        return getBuildController().getConfiguredBuild();
     }
 
     @Override
@@ -180,26 +153,21 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public ExecutionResult<Void> finishBuild() {
-        return buildLifecycleController.finishBuild(null);
-    }
-
-    @Override
-    public BuildWorkGraphController getWorkGraph() {
-        return workGraph;
+        return getBuildController().finishBuild(null);
     }
 
     @Override
     public void stop() {
-        buildLifecycleController.stop();
+        getBuildController().stop();
     }
 
     protected GradleInternal getGradle() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 
     @Override
     public GradleInternal getMutableModel() {
-        return buildLifecycleController.getGradle();
+        return getBuildController().getGradle();
     }
 
     public static class IncludedBuildImpl implements IncludedBuildInternal {

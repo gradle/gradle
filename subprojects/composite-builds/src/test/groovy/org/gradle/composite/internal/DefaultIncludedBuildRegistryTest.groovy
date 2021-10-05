@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
@@ -24,7 +23,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.layout.BuildLayout
@@ -66,7 +64,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def services = new DefaultServiceRegistry()
     def modelServices = Mock(BuildModelControllerServices)
     def buildTree = Mock(BuildTreeState)
-    def factory = new BuildStateFactory(buildTree, modelServices, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken), Stub(ProjectStateRegistry))
+    def factory = new BuildStateFactory(buildTree, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),
@@ -84,6 +82,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         services.add(Stub(BuildModelParameters))
         services.add(Stub(GradleInternal))
         services.add(Stub(DocumentationRegistry))
+        services.add(modelServices)
 
         _ * buildTree.services >> services
     }
