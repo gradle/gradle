@@ -99,15 +99,6 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         succeeds 'compileScala'
     }
 
-    def "joint compile good java code with interface using default and static methods do not fail the build"() {
-        given:
-        goodJavaInterfaceCode()
-        goodCodeUsingJavaInterface()
-
-        expect:
-        succeeds 'compileScala', '-s'
-    }
-
     def "joint compile bad java code do not fail the build when options.failOnError is false"() {
         given:
         goodCode()
