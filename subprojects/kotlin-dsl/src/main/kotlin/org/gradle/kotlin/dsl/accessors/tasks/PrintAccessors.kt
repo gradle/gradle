@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.accessors.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.serialization.Cached
 
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
@@ -26,31 +27,34 @@ import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.accessorsFor
 import org.gradle.kotlin.dsl.accessors.fragmentsFor
 
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.work.DisableCachingByDefault
+import javax.inject.Inject
 
 
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-open class PrintAccessors : DefaultTask() {
+abstract class PrintAccessors : DefaultTask() {
 
     init {
         group = "help"
         description = "Prints the Kotlin code for accessing the currently available project extensions and conventions."
     }
 
+    @get:Inject
+    protected
+    abstract val projectSchemaProvider: ProjectSchemaProvider
+
+    private
+    val schema = Cached.of { schemaOf(project) }
+
     @Suppress("unused")
     @TaskAction
     fun printExtensions() {
-        printAccessorsFor(schemaOf(project))
+        printAccessorsFor(schema.get())
     }
 
     private
     fun schemaOf(project: Project) =
         projectSchemaProvider.schemaFor(project)
-
-    private
-    val projectSchemaProvider: ProjectSchemaProvider
-        get() = project.serviceOf()
 }
 
 

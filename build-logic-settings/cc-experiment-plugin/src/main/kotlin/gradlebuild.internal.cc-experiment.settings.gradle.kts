@@ -45,7 +45,6 @@ if (isConfigurationCacheEnabled && isConfigurationCacheProblemsFail) {
                 "dependencyInsight",
                 "properties",
                 "projects",
-                "kotlinDslAccessorsReport",
                 "outgoingVariants",
                 "javaToolchains",
                 "components",
