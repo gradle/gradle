@@ -111,7 +111,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
                 return NoOpBuildModelController(gradle)
             }
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(gradle.services.get(), ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
+            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
             val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)

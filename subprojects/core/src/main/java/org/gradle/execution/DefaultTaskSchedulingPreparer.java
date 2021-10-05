@@ -19,24 +19,16 @@ package org.gradle.execution;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.initialization.TaskSchedulingPreparer;
-import org.gradle.internal.build.BuildStateRegistry;
 
 public class DefaultTaskSchedulingPreparer implements TaskSchedulingPreparer {
-    private final BuildStateRegistry buildStateRegistry;
     private final TaskSchedulingPreparer delegate;
 
-    public DefaultTaskSchedulingPreparer(BuildStateRegistry buildStateRegistry, TaskSchedulingPreparer delegate) {
-        this.buildStateRegistry = buildStateRegistry;
+    public DefaultTaskSchedulingPreparer(TaskSchedulingPreparer delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public void prepareForTaskScheduling(GradleInternal gradle, ExecutionPlan executionPlan) {
-        // Make root build substitutions available
-        if (gradle.isRootBuild()) {
-            buildStateRegistry.afterConfigureRootBuild();
-        }
-
         delegate.prepareForTaskScheduling(gradle, executionPlan);
     }
 }

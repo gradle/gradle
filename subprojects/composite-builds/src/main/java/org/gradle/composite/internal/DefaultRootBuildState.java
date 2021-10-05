@@ -158,4 +158,9 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     public GradleInternal getMutableModel() {
         return getBuildController().getGradle();
     }
+
+    @Override
+    protected void ensureChildBuildConfigured() {
+        // nothing to do for the root build
+    }
 }
