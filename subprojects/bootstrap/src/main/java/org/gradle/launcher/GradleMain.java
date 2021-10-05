@@ -25,7 +25,7 @@ public class GradleMain {
         String javaVersion = System.getProperty("java.specification.version");
         if (javaVersion.equals("1.6") || javaVersion.equals("1.7")) {
             String gradleVersion = GradleVersionNumberLoader.loadGradleVersionNumber();
-            System.err.printf("%s %s requires Java 8 or later to run. You are currently using Java %s.%n", "Gradle", gradleVersion, javaVersion);
+            System.err.printf("%s %s requires Java 1.8 or later to run. You are currently using Java %s.%n", "Gradle", gradleVersion, javaVersion);
             System.exit(1);
         }
 
