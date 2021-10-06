@@ -4,6 +4,8 @@ plugins {
 
 description = "Build operations consumed by the Gradle Enterprise plugin"
 
+gradlebuildJava.usedInWorkers()
+
 dependencies {
     api(project(":build-operations"))
 
