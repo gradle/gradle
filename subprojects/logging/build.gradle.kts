@@ -10,7 +10,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(project(":base-services"))
-    implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":build-option"))
@@ -34,7 +34,7 @@ dependencies {
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":enterprise-operations"))
+    testFixturesImplementation(project(":enterprise-workers"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(libs.slf4jApi)
 

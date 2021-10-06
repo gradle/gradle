@@ -136,6 +136,7 @@ include("security")
 include("normalization-java")
 include("enterprise")
 include("enterprise-operations")
+include("enterprise-workers")
 include("build-operations")
 include("problems")
 

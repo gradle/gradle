@@ -136,6 +136,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
