@@ -17,7 +17,6 @@
 package org.gradle.caching.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -39,7 +38,6 @@ import java.util.Map;
  */
 public final class FinalizeBuildCacheConfigurationBuildOperationType implements BuildOperationType<FinalizeBuildCacheConfigurationBuildOperationType.Details, FinalizeBuildCacheConfigurationBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
@@ -51,7 +49,6 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
 
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         boolean isEnabled();
