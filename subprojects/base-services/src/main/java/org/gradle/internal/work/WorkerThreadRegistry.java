@@ -26,18 +26,14 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.BuildSession.class)
 public interface WorkerThreadRegistry {
     /**
-     * Runs the given action as a worker.
+     * Runs the given action as a worker. While the action is running, the thread can acquire resource locks.
      */
     <T> T runAsWorkerThread(WorkerLeaseRegistry.WorkerLease lease, Factory<T> action);
 
     /**
-     * For the given action, update the worker lease registry to associate the current thread with the worker lease.
-     * Note that this does not actually reserve the worker lease.
-     *
-     * @param sharedLease Lease to associate as shared
-     * @param action action to execute
+     * Runs the given action as a worker. While the action is running, the thread can acquire resource locks.
      */
-    void runAsLightWeightWorker(WorkerLeaseRegistry.WorkerLease sharedLease, Runnable action);
+    void runAsWorkerThread(WorkerLeaseRegistry.WorkerLease lease, Runnable action);
 
     /**
      * Returns {@code true} when this thread is enlisted in resource locking.

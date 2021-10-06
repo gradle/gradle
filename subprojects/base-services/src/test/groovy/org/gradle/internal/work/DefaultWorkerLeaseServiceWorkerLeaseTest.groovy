@@ -164,7 +164,20 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
 
     def "can run as worker thread"() {
         def registry = workerLeaseService(1)
-        def action = Mock(Factory)
+        def lease = registry.getWorkerLease()
+
+        def action = {
+            assert registry.workerThread
+            assert registry.currentWorkerLease == lease
+            def nested = registry.runAsWorkerThread(lease, {
+                assert registry.workerThread
+                assert registry.currentWorkerLease == lease
+                "result"
+            } as Factory)
+            assert registry.workerThread
+            assert registry.currentWorkerLease == lease
+            nested
+        } as Factory
 
         given:
         assert !registry.workerThread
@@ -176,14 +189,10 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         thrown(NoAvailableWorkerLeaseException)
 
         when:
-        def lease = registry.getWorkerLease()
-        registry.runAsWorkerThread(lease, action)
+        def result = registry.runAsWorkerThread(lease, action)
 
         then:
-        1 * action.create() >> {
-            assert registry.workerThread
-            assert registry.currentWorkerLease == lease
-        }
+        result == "result"
 
         and:
         !registry.workerThread
@@ -193,74 +202,6 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
 
         then:
         thrown(NoAvailableWorkerLeaseException)
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "action with shared lease borrows parent lease"() {
-        def registry = workerLeaseService(1)
-
-        expect:
-        async {
-            start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    assert !registry.isWorkerThread()
-                    registry.runAsLightWeightWorker(op) {
-                        assert registry.currentWorkerLease == op
-                        assert registry.isWorkerThread()
-                        def child = registry.currentWorkerLease.startChild()
-                        child.leaseFinish()
-                        instant.child1Finished
-                    }
-                    assert !registry.isWorkerThread()
-                }
-                thread.blockUntil.child1Finished
-                cl.leaseFinish()
-            }
-        }
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "action with shared lease block until lease available when there is more than one child"() {
-        def registry = workerLeaseService(1)
-
-        when:
-        async {
-            start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    registry.runAsLightWeightWorker(op) {
-                        assert registry.currentWorkerLease == op
-                        def child = registry.currentWorkerLease.startChild()
-                        instant.child1Started
-                        thread.block()
-                        instant.child1Finished
-                        child.leaseFinish()
-                    }
-                }
-                start {
-                    registry.runAsLightWeightWorker(op) {
-                        assert registry.currentWorkerLease == op
-                        thread.blockUntil.child1Started
-                        def child = registry.currentWorkerLease.startChild()
-                        instant.child2Started
-                        child.leaseFinish()
-                        instant.child2Finished
-                    }
-                }
-                thread.blockUntil.child2Finished
-                cl.leaseFinish()
-            }
-        }
-
-        then:
-        instant.child2Started > instant.child1Finished
 
         cleanup:
         registry?.stop()

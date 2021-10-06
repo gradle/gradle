@@ -52,7 +52,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     DefaultBuildOperationQueue(boolean allowAccessToProjectState, WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
-        this.parentWorkerLease = workerLeases.getWorkerLease();
+        this.parentWorkerLease = workerLeases.getCurrentWorkerLease();
         this.executor = executor;
         this.queueWorker = queueWorker;
     }

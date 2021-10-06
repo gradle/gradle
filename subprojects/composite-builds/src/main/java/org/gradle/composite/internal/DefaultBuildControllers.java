@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -34,12 +33,10 @@ class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
     private final Map<BuildIdentifier, BuildController> controllers = new TreeMap<>(idComparator());
     private final ManagedExecutor executorService;
-    private final ProjectStateRegistry projectStateRegistry;
     private final WorkerLeaseService workerLeaseService;
 
-    DefaultBuildControllers(ManagedExecutor executorService, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+    DefaultBuildControllers(ManagedExecutor executorService, WorkerLeaseService workerLeaseService) {
         this.executorService = executorService;
-        this.projectStateRegistry = projectStateRegistry;
         this.workerLeaseService = workerLeaseService;
     }
 
@@ -50,7 +47,7 @@ class DefaultBuildControllers implements BuildControllers {
             return buildController;
         }
 
-        BuildController newBuildController = new DefaultBuildController(build, projectStateRegistry, workerLeaseService);
+        BuildController newBuildController = new DefaultBuildController(build, workerLeaseService);
         controllers.put(build.getBuildIdentifier(), newBuildController);
         return newBuildController;
     }

@@ -19,7 +19,9 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -58,15 +60,21 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
     }
 
+    ResourceLockCoordinationService coordinationService
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
+    WorkerLeaseRegistry.WorkerLease lease
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, threads)) {}
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
+        lease = workerRegistry.workerLease
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(lease))
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
     def "cleanup"() {
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(lease))
         workerRegistry.stop()
     }
 

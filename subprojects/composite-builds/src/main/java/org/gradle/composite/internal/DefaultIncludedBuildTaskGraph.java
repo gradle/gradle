@@ -17,7 +17,6 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -48,7 +47,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildRegistry;
     private final WorkerLeaseService workerLeaseService;
-    private final ProjectStateRegistry projectStateRegistry;
     private final ManagedExecutor executorService;
     private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
 
@@ -56,18 +54,16 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         ExecutorFactory executorFactory,
         BuildOperationExecutor buildOperationExecutor,
         BuildStateRegistry buildRegistry,
-        ProjectStateRegistry projectStateRegistry,
         WorkerLeaseService workerLeaseService
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildRegistry = buildRegistry;
-        this.projectStateRegistry = projectStateRegistry;
         this.executorService = executorFactory.create("included builds");
         this.workerLeaseService = workerLeaseService;
     }
 
     private DefaultBuildControllers createControllers() {
-        return new DefaultBuildControllers(executorService, projectStateRegistry, workerLeaseService);
+        return new DefaultBuildControllers(executorService, workerLeaseService);
     }
 
     @Override

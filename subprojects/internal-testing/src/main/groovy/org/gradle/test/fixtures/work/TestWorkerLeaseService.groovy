@@ -18,10 +18,10 @@ package org.gradle.test.fixtures.work
 
 import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
+import org.gradle.internal.work.Synchronizer
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
-
 
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
@@ -30,8 +30,13 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    ResourceLock getAllProjectsLock() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     Collection<? extends ResourceLock> getCurrentProjectLocks() {
-        return null
+        throw new UnsupportedOperationException()
     }
 
     @Override
@@ -59,8 +64,23 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void runAsLightWeightWorker(WorkerLease sharedLease, Runnable action) {
+    void runAsWorkerThread(WorkerLease lease, Runnable action) {
         action.run()
+    }
+
+    @Override
+    Synchronizer newResource() {
+        return new Synchronizer() {
+            @Override
+            void withLock(Runnable action) {
+                action.run()
+            }
+
+            @Override
+            def <T> T withLock(Factory<T> action) {
+                return action.create()
+            }
+        }
     }
 
     @Override

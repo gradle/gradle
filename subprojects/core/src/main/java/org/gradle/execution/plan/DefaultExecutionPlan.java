@@ -568,17 +568,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             Node node = iterator.next();
             if (node.isReady() && node.allDependenciesComplete()) {
                 foundReadyNode = true;
-                MutationInfo mutations = getResolvedMutationInfo(node);
-
-                if (!tryAcquireLocksForNode(node, mutations)) {
-                    resourceLockState.releaseLocks();
-                    continue;
-                }
 
                 if (!tryAcquireWorkerLeaseForNode(node, workerLease)) {
                     resourceLockState.releaseLocks();
                     // if we can't get a worker lease, we won't be able to execute any other nodes, either
                     break;
+                }
+
+                MutationInfo mutations = getResolvedMutationInfo(node);
+
+                if (!tryAcquireLocksForNode(node, mutations)) {
+                    resourceLockState.releaseLocks();
+                    continue;
                 }
 
                 if (node.allDependenciesSuccessful()) {

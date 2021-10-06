@@ -46,6 +46,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
         given:
         assert !lockIsHeld(projectLock)
+        assert workerLeaseService.currentProjectLocks.empty
 
         when:
         workerLeaseService.withLocks([projectLock]) {
@@ -54,6 +55,7 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
         then:
         !lockIsHeld(projectLock)
+        assert workerLeaseService.currentProjectLocks.empty
     }
 
     def "multiple threads can coordinate locking of a project"() {
@@ -201,6 +203,79 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    def "can lock and unlock all projects"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        given:
+        assert !lockIsHeld(allProjectsLock)
+        assert workerLeaseService.currentProjectLocks.empty
+
+        when:
+        workerLeaseService.withLocks([allProjectsLock]) {
+            assert lockIsHeld(allProjectsLock)
+            assert !lockIsHeld(projectLock)
+            assert workerLeaseService.currentProjectLocks == [allProjectsLock]
+        }
+
+        then:
+        !lockIsHeld(allProjectsLock)
+        assert workerLeaseService.currentProjectLocks.empty
+    }
+
+    def "another thread cannot acquire project lock while all projects lock is held"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+
+        when:
+        async {
+            start {
+                workerLeaseService.withLocks([allProjectsLock]) {
+                    instant.allLocked
+                    assert lockIsHeld(allProjectsLock)
+                    assert !lockIsHeld(projectLock)
+                    assert workerLeaseService.currentProjectLocks == [allProjectsLock]
+                    thread.block()
+                }
+            }
+            start {
+                thread.blockUntil.allLocked
+                workerLeaseService.withLocks([projectLock]) {
+                    instant.projectLocked
+                }
+            }
+        }
+
+        then:
+        assert instant.projectLocked > instant.allLocked
+    }
+
+    def "another thread cannot acquire all projects lock while all projects lock is held"() {
+        def allProjectsLock = workerLeaseService.getAllProjectsLock()
+
+        when:
+        async {
+            start {
+                workerLeaseService.withLocks([allProjectsLock]) {
+                    instant.allLocked
+                    assert lockIsHeld(allProjectsLock)
+                    assert workerLeaseService.currentProjectLocks == [allProjectsLock]
+                    thread.block()
+                }
+            }
+            start {
+                thread.blockUntil.allLocked
+                workerLeaseService.withLocks([allProjectsLock]) {
+                    instant.projectLocked
+                    assert workerLeaseService.currentProjectLocks == [allProjectsLock]
+                }
+            }
+        }
+
+        then:
+        assert instant.projectLocked > instant.allLocked
     }
 
     def "can use withoutProjectLock to temporarily release a lock"() {
@@ -365,30 +440,38 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         e.message == "This thread may not release any locks."
     }
 
-    def "does not release project locks in blocking action when changes to locks are disallowed"() {
+    def "releases worker lease but does not release project locks in blocking action when changes to locks are disallowed"() {
+        def lease = workerLeaseService.workerLease
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
-        workerLeaseService.withLocks([projectLock]) {
+        workerLeaseService.withLocks([projectLock, lease]) {
             workerLeaseService.whileDisallowingProjectLockChanges {
+                assert lockIsHeld(lease)
                 assert lockIsHeld(projectLock)
                 workerLeaseService.blocking {
+                    assert !lockIsHeld(lease)
                     assert lockIsHeld(projectLock)
                 }
+                assert lockIsHeld(lease)
                 assert lockIsHeld(projectLock)
             }
         }
     }
 
     def "releases and reacquires project locks in blocking action when changes to locks are allowed"() {
+        def lease = workerLeaseService.workerLease
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         expect:
-        workerLeaseService.withLocks([projectLock]) {
+        workerLeaseService.withLocks([projectLock, lease]) {
+            assert lockIsHeld(lease)
             assert lockIsHeld(projectLock)
             workerLeaseService.blocking {
+                assert !lockIsHeld(lease)
                 assert !lockIsHeld(projectLock)
             }
+            assert lockIsHeld(lease)
             assert lockIsHeld(projectLock)
         }
     }
@@ -408,16 +491,20 @@ class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
         !workerLeaseService.isAllowedUncontrolledAccessToAnyProject()
     }
 
-    def "does not release project locks in blocking action when thread has uncontrolled access to any project"() {
+    def "releases worker lease but does not release project locks in blocking action when thread has uncontrolled access to any project"() {
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
+        def lease = workerLeaseService.workerLease
 
         expect:
-        workerLeaseService.withLocks([projectLock]) {
+        workerLeaseService.withLocks([projectLock, lease]) {
             workerLeaseService.allowUncontrolledAccessToAnyProject {
+                assert lockIsHeld(lease)
                 assert lockIsHeld(projectLock)
                 workerLeaseService.blocking {
+                    assert !lockIsHeld(lease)
                     assert lockIsHeld(projectLock)
                 }
+                assert lockIsHeld(lease)
                 assert lockIsHeld(projectLock)
             }
         }

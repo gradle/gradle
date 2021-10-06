@@ -16,9 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
+
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     @Rule
@@ -58,11 +60,43 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model[2].message == "It works from project :b"
     }
 
+    @Ignore("not implemented yet")
+    def "projects are configured in parallel when projects use plugins from included builds and project scoped model is queried concurrently"() {
+        withSomeToolingModelBuilderPluginInChildBuild("plugins", """
+            ${server.callFromBuildUsingExpression("'model-' + project.name")}
+        """)
+        settingsFile << """
+            includeBuild("plugins")
+            include("a")
+            include("b")
+            rootProject.name = "root"
+        """
+        // don't apply to root, as this is configured prior to the other projects, so the plugins are not resolved/built in parallel
+        apply(file("a"))
+        apply(file("b"))
+
+        given:
+        server.expectConcurrent("configure-a", "configure-b")
+        server.expectConcurrent("model-a", "model-b")
+
+        when:
+        // TODO - get rid of usage of --parallel
+        executer.withArguments(ENABLE_CLI, "--parallel")
+        def model = runBuildAction(new FetchCustomModelForEachProjectInParallel())
+
+        then:
+        model.size() == 2
+        model[0].message == "It works from project :a"
+        model[1].message == "It works from project :b"
+    }
+
     TestFile apply(TestFile dir) {
         def buildFile = dir.file("build.gradle")
         buildFile << """
+            plugins {
+                id("my.plugin")
+            }
             ${server.callFromBuildUsingExpression("'configure-' + project.name")}
-            plugins.apply(my.MyPlugin)
         """
         return buildFile
     }

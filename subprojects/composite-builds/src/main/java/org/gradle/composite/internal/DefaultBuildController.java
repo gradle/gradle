@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -35,9 +34,7 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -59,9 +56,7 @@ class DefaultBuildController implements BuildController, Stoppable {
     private final BuildWorkGraph workGraph;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
-    private final WorkerLeaseRegistry.WorkerLease parentLease;
-    private final WorkerThreadRegistry workerThreadRegistry;
-    private final ProjectStateRegistry projectStateRegistry;
+    private final WorkerLeaseService workerLeaseService;
 
     private State state = State.DiscoveringTasks;
     // Lock protects the following state
@@ -70,10 +65,8 @@ class DefaultBuildController implements BuildController, Stoppable {
     private boolean finished;
     private final List<Throwable> executionFailures = new ArrayList<>();
 
-    public DefaultBuildController(BuildState build, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
-        this.projectStateRegistry = projectStateRegistry;
-        this.parentLease = workerLeaseService.getCurrentWorkerLease();
-        this.workerThreadRegistry = workerLeaseService;
+    public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
+        this.workerLeaseService = workerLeaseService;
         this.workGraph = build.getWorkGraph().newWorkGraph();
     }
 
@@ -152,7 +145,7 @@ class DefaultBuildController implements BuildController, Stoppable {
 
     private void doAwaitCompletion() {
         // Ensure that this thread does not hold locks while waiting and so prevent this work from completing
-        projectStateRegistry.blocking(() -> {
+        workerLeaseService.blocking(() -> {
             lock.lock();
             try {
                 while (!finished) {
@@ -208,7 +201,7 @@ class DefaultBuildController implements BuildController, Stoppable {
 
     private void doRun() {
         try {
-            workerThreadRegistry.runAsLightWeightWorker(parentLease, this::doBuild);
+            workerLeaseService.runAsWorkerThread(workerLeaseService.getWorkerLease(), this::doBuild);
         } catch (Throwable t) {
             executionFailed(t);
         } finally {

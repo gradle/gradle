@@ -31,7 +31,8 @@ import java.util.function.Consumer;
  */
 public interface BuildLifecycleController extends Stoppable {
     /**
-     * Returns the current state of the mutable model for this build.
+     * Returns the current state of the mutable model for this build. You should avoid using this method, as no thread safety or lifecycling is applied
+     * to the return value.
      */
     GradleInternal getGradle();
 

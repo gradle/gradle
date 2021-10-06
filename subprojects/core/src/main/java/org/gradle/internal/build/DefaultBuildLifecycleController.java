@@ -27,6 +27,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
+import org.gradle.internal.Describables;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -81,7 +82,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
-        this.state = controllerFactory.newController(State.Configure);
+        this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
 
     @Override

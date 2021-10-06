@@ -54,4 +54,6 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
      * and the method will block until the locks are reacquired.
      */
     void withoutLocks(Iterable<? extends ResourceLock> locks, Runnable runnable);
+
+    Synchronizer newResource();
 }

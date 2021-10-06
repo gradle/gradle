@@ -25,12 +25,12 @@ import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
+import org.gradle.internal.work.NoAvailableWorkerLeaseException
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
-
     WorkerLeaseRegistry workerRegistry
     BuildOperationExecutor buildOperationExecutor
     WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
@@ -270,7 +270,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         5 * operation.run(_)
     }
 
-    def "can be used on unmanaged threads"() {
+    def "cannot be used on unmanaged threads"() {
         given:
         setupBuildOperationExecutor(2)
         def operation = Spy(DefaultBuildOperationQueueTest.Success)
@@ -283,6 +283,6 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         then:
-        5 * operation.run(_)
+        thrown(NoAvailableWorkerLeaseException)
     }
 }
