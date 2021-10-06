@@ -62,7 +62,7 @@ abstract class FileContentGenerator {
         repositories {
             ${config.repositories.join("\n            ")}
         }
-        ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
+        ${dependenciesBlock('implementation', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
         allprojects {
             dependencies{
@@ -421,14 +421,18 @@ abstract class FileContentGenerator {
     }
 
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
-        def hasParent = dependencyTree.hasParentProject(subProjectNumber)
-        def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
+        def hasParent = subProjectNumber != null && subProjectNumber > 0
         def subProjectDependencies = ''
-        if (subProjectNumbers?.size() > 0) {
-            def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
-            subProjectDependencies = subProjectNumbers.collect {
-                it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
-            }.join("\n            ")
+//        if (subProjectNumbers?.size() > 0) {
+//            def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
+//            subProjectDependencies = subProjectNumbers.collect {
+//                it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
+//            }.join("\n            ")
+//        }
+        if (hasParent) {
+            for (int i = 0; i < subProjectNumber; ++i) {
+                subProjectDependencies += projectDependencyDeclaration(implementation, i) + "\n            "
+            }
         }
         def block = """
                     ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}

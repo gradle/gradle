@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -25,11 +26,17 @@ import org.gradle.workers.WorkerExecutor;
 import javax.inject.Inject;
 
 public abstract class TurbineCompile extends AbstractCompile {
+    private final CompileOptions compileOptions;
+
     @Inject
     public abstract WorkerExecutor getWorkerExecutor();
 
     @Classpath
     public abstract ConfigurableFileCollection getTurbineClasspath();
+
+    public TurbineCompile() {
+        compileOptions = getProject().getObjects().newInstance(CompileOptions.class);
+    }
 
     @TaskAction
     public void doCompilation() {
@@ -45,4 +52,8 @@ public abstract class TurbineCompile extends AbstractCompile {
         });
     }
 
+    @Nested
+    public CompileOptions getOptions() {
+        return compileOptions;
+    }
 }
