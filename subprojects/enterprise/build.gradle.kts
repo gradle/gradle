@@ -15,6 +15,8 @@ dependencies {
     implementation(project(":launcher"))
     implementation(project(":snapshots"))
 
+    testImplementation(project(":resources"))
+
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))
 
