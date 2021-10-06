@@ -25,4 +25,4 @@ jobs:
                   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
                   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
                 with:
-                    arguments: compileAll
+                    arguments: compileAll --no-configuration-cache
