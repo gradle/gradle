@@ -231,7 +231,7 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-            if (LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
+            if ("ijar".equals(consumerValueName) || LibraryElements.CLASSES.equals(consumerValueName) || LibraryElements.RESOURCES.equals(consumerValueName) || LibraryElements.CLASSES_AND_RESOURCES.equals(consumerValueName)) {
                 // JAR is compatible with classes or resources
                 if (LibraryElements.JAR.equals(producerValueName)) {
                     details.compatible();

@@ -151,6 +151,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
+        //succeeds 'b:outgoingVariants'
         succeeds 'a:compileJava'
 
         then:

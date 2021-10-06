@@ -46,6 +46,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.compile.TurbineCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
@@ -149,6 +150,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
             TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+            TaskProvider<TurbineCompile> turbineCompileTask = createTurbineCompileJavaTask(sourceSet, sourceSet.getJava(), project);
             createClassesTask(sourceSet, project);
 
             configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
@@ -180,6 +182,16 @@ public class JavaBasePlugin implements Plugin<Project> {
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchainService::compilerFor));
+        });
+    }
+
+    private TaskProvider<TurbineCompile> createTurbineCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+        return target.getTasks().register(sourceSet.getCompileJavaTaskName() + "Turbine", TurbineCompile.class, compileTask -> {
+            compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
+            compileTask.setSource(sourceDirectorySet);
+            ConventionMapping conventionMapping = compileTask.getConventionMapping();
+            conventionMapping.map("classpath", sourceSet::getCompileClasspath);
+            compileTask.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir("turbine"));
         });
     }
 

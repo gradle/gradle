@@ -52,6 +52,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.compile.TurbineCompile;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
@@ -103,6 +104,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         configurations.all(config -> {
             if (configurationName.equals(config.getName())) {
                 registerClassesDirVariant(sourceSet, config);
+                registerIJarVariant(sourceSet, config);
             }
         });
     }
@@ -206,6 +208,30 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                         }
                     });
                 }
+                return artifacts.build();
+            }
+        });
+    }
+
+
+    private void registerIJarVariant(final SourceSet sourceSet, Configuration configuration) {
+        // Define a classes variant to use for compilation
+        ConfigurationPublications publications = configuration.getOutgoing();
+        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) publications.getVariants().maybeCreate("ijar");
+        variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, "ijar"));
+        variant.artifactsProvider(new Factory<List<PublishArtifact>>() {
+            @Nullable
+            @Override
+            public List<PublishArtifact> create() {
+                ImmutableList.Builder<PublishArtifact> artifacts = ImmutableList.builderWithExpectedSize(1);
+                TaskProvider<TurbineCompile> turbineCompileTask = project.getTasks().withType(TurbineCompile.class).named(sourceSet.getCompileJavaTaskName() + "Turbine");
+                // this is an approximation: all "compiled" sources will use the same task dependency
+                artifacts.add(new JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JAR_TYPE, turbineCompileTask) {
+                    @Override
+                    public File getFile() {
+                        return turbineCompileTask.get().getDestinationDirectory().file("ijar.jar").get().getAsFile();
+                    }
+                });
                 return artifacts.build();
             }
         });

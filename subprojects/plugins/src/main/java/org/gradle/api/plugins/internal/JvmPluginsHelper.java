@@ -196,10 +196,10 @@ public class JvmPluginsHelper {
 
         if (!tasks.getNames().contains(jarTaskName)) {
             TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
+                jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : docsType + " of the '" + featureName + "' feature."));
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(artifactSource);
-                jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+                jar.getArchiveClassifier().set(camelToKebabCase(featureName == null ? docsType : featureName + "-" + docsType));
             });
             if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
@@ -244,7 +244,7 @@ public class JvmPluginsHelper {
                 if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
                     libraryElements = LibraryElements.JAR;
                 } else {
-                    libraryElements = LibraryElements.CLASSES;
+                    libraryElements = "ijar";
                 }
                 attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
             }
