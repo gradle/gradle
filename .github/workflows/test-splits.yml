@@ -65,11 +65,11 @@ jobs:
       - name: write include test-split
         if: ${{ matrix.bucket.classes != null && matrix.bucket.include }}
         run: |
-          echo '${{ toJson(fromJson(matrix.bucket.classes) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
+          echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
       - name: write exlude test-split
         if: ${{ matrix.bucket.classes != null && !matrix.bucket.include }}
         run: |
-          echo '${{ toJson(fromJson(matrix.bucket.classes) }}' | jq -r ". | .[]" > test-splits/exclude-test-classes.properties
+          echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/exclude-test-classes.properties
       - name: ./gradlew quickTest
         if: ${{ matrix.bucket.classes != null }}
         id: gradle
