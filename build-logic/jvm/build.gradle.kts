@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation("com.savvasdalkitsis:module-dependency-graph")
     implementation(project(":basics"))
     implementation(project(":dependency-modules"))
     implementation(project(":module-identity"))

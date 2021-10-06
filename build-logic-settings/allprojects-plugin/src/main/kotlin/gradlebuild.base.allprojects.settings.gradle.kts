@@ -32,3 +32,7 @@ gradle.beforeProject {
         pluginManager.apply("validate-external-gradle-plugin")
     }
 }
+
+pluginManagement {
+    includeBuild("../module-dependency-graph")
+}

@@ -31,6 +31,7 @@ plugins {
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
     id("org.gradle.test-retry")
+    id("com.savvasdalkitsis.module-dependency-graph")
 }
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", tasks)

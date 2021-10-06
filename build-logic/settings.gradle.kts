@@ -15,10 +15,14 @@
  */
 
 pluginManagement {
+
+
     repositories {
         gradlePluginPortal()
     }
 }
+
+includeBuild("../../module-dependency-graph")
 
 dependencyResolutionManagement {
     repositories {
