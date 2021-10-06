@@ -124,10 +124,30 @@ public class JavaBasePlugin implements Plugin<Project> {
         configureSourceSetDefaults(project, javaPluginExtension);
         configureCompileDefaults(project, javaPluginExtension);
 
+        configureTurbineClasspath(projectInternal);
         configureJavaDoc(project, javaPluginExtension);
         configureTest(project, javaPluginExtension);
         configureBuildNeeded(project);
         configureBuildDependents(project);
+    }
+
+    private void configureTurbineClasspath(ProjectInternal project) {
+        // TODO(mlopatkin) Ugly hack to get Turbine and its dependencies for the plugin
+        project.getRepositories().maven(mvn -> {
+            mvn.setName("turbineRepo");
+            mvn.setUrl(project.uri("https://mlopatkin.bitbucket.io/m2"));
+            mvn.mavenContent(content -> {
+                content.includeGroup("com.google.turbine");
+            });
+        });
+        project.getRepositories().mavenCentral();
+        project.getConfigurations().create("turbine", conf -> {
+            conf.setCanBeConsumed(false);
+            conf.setCanBeResolved(true);
+            conf.setVisible(false);
+        });
+
+        project.getDependencies().add("turbine", "com.google.turbine:turbine:0.1-gradle");
     }
 
     private DefaultJavaPluginExtension addExtensions(final ProjectInternal project) {
@@ -151,6 +171,10 @@ public class JavaBasePlugin implements Plugin<Project> {
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
             TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
             TaskProvider<TurbineCompile> turbineCompileTask = createTurbineCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+            turbineCompileTask.configure(task -> {
+                task.getTurbineClasspath().from(project.getConfigurations().getByName("turbine"));
+            });
+            compileTask.configure(task -> task.mustRunAfter(turbineCompileTask));
             createClassesTask(sourceSet, project);
 
             configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
