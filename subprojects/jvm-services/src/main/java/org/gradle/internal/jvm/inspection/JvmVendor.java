@@ -53,11 +53,18 @@ public interface JvmVendor {
                 return UNKNOWN;
             }
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
+                if (jvmVendor.indicatorPattern.toString().equals(rawVendor)) {
+                    return jvmVendor;
+                }
                 if (jvmVendor.indicatorPattern.matcher(rawVendor).find()) {
                     return jvmVendor;
                 }
             }
             return UNKNOWN;
+        }
+
+        public JvmVendor asJvmVendor() {
+            return JvmVendor.fromString(indicatorPattern.toString());
         }
     }
 
