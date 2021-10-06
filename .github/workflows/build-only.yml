@@ -81,7 +81,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        subprojects: ${{ fromJson(needs.build.outputs.matrix).*.subprojects }}
+        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
       fail-fast: false
     steps:
       - name: git clone
@@ -91,11 +91,11 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - name: ./gradlew ${{ join(matrix.subprojects, ':quickTest ') }}
+      - name: ./gradlew ${{ join(matrix.bucket.subprojects, ':quickTest ') }}
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ join(matrix.subprojects, ':quickTest ') }}:quickTest --no-configuration-cache
+          arguments: ${{ join(matrix.bucket.subprojects, ':quickTest ') }}:quickTest --no-configuration-cache -DenableTestDistribution=${{ matrix.bucket.enableTD }}
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -116,3 +116,4 @@ jobs:
     env:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+      GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY }}
