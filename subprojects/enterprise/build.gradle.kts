@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
+    api(project(":base-services"))
     api(project(":enterprise-operations"))
 
     implementation(libs.jsr305)
