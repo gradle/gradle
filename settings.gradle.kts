@@ -135,6 +135,7 @@ include("base-annotations")
 include("security")
 include("normalization-java")
 include("enterprise")
+include("enterprise-operations")
 include("build-operations")
 include("problems")
 

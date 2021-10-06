@@ -15,6 +15,7 @@ subprojects/snapshots/              @gradle/execution @marcphilipp @britter
 
 # Gradle Enterprise
 subprojects/enterprise/             @ldaley @marcphilipp
+subprojects/enterprise-operations/  @facewindu
 
 # Testing
 subprojects/testing-junit-platform/ @gradle/ge-test-distribution
