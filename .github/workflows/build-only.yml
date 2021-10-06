@@ -45,6 +45,7 @@ jobs:
     strategy:
       matrix:
         subproject: [dependency-management, core, configuration-cache, launcher]
+      fail-fast: false
     steps:
       - name: git clone
         uses: actions/checkout@v2
