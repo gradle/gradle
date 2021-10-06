@@ -17,6 +17,8 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.GradleException;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -114,6 +116,11 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
 
     private <T extends BinaryToolSpec> VersionAwareCompiler<T> versionAwareCompiler(Compiler<T> compiler, ToolType toolType) {
         SearchResult<GccMetadata> gccMetadata = getGccMetadata(toolType);
+        if (!gccMetadata.isAvailable()) {
+            TreeFormatter formatter = new TreeFormatter();
+            gccMetadata.explain(formatter);
+            throw new GradleException("Compiler not found:" + formatter);
+        }
         return new VersionAwareCompiler<T>(compiler, new DefaultCompilerVersion(
             metadataProvider.getCompilerType().getIdentifier(),
             gccMetadata.getComponent().getVendor(),
