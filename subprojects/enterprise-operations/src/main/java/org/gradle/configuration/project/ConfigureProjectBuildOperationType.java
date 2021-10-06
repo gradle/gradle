@@ -17,8 +17,6 @@
 package org.gradle.configuration.project;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.Path;
 
 import java.io.File;
 
@@ -29,7 +27,6 @@ import java.io.File;
  */
 public final class ConfigureProjectBuildOperationType implements BuildOperationType<ConfigureProjectBuildOperationType.Details, ConfigureProjectBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         String getProjectPath();
@@ -41,35 +38,6 @@ public final class ConfigureProjectBuildOperationType implements BuildOperationT
     }
 
     public interface Result {
-
-    }
-
-    public static class DetailsImpl implements Details {
-
-        private final Path buildPath;
-        private final File rootDir;
-        private final Path projectPath;
-
-        public DetailsImpl(Path projectPath, Path buildPath, File rootDir) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
-            this.rootDir = rootDir;
-        }
-
-        @Override
-        public String getProjectPath() {
-            return projectPath.getPath();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
-
-        @Override
-        public File getRootDir() {
-            return rootDir;
-        }
 
     }
 

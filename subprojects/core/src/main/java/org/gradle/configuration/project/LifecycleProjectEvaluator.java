@@ -27,6 +27,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.Path;
 
+import java.io.File;
+
 /**
  * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,
  * wrapping the work in build operations.
@@ -135,7 +137,36 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         return BuildOperationDescriptor.displayName(displayName)
             .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
             .progressDisplayName(progressDisplayName)
-            .details(new ConfigureProjectBuildOperationType.DetailsImpl(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
+            .details(new DetailsImpl(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
+    }
+
+    private static class DetailsImpl implements ConfigureProjectBuildOperationType.Details {
+
+        private final Path buildPath;
+        private final File rootDir;
+        private final Path projectPath;
+
+        public DetailsImpl(Path projectPath, Path buildPath, File rootDir) {
+            this.projectPath = projectPath;
+            this.buildPath = buildPath;
+            this.rootDir = rootDir;
+        }
+
+        @Override
+        public String getProjectPath() {
+            return projectPath.getPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath.getPath();
+        }
+
+        @Override
+        public File getRootDir() {
+            return rootDir;
+        }
+
     }
 
     private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
