@@ -23,6 +23,6 @@ jobs:
           java-version: 11
       - name: write test-split
         run: |
-          echo "${{ toJson(fromJson(steps.setup-matrix.outputs.matrix)[0].classes) }}" | jq -r ". | .[]" > test-splits.properties
+          echo '${{ toJson(fromJson(steps.setup-matrix.outputs.matrix)[0].classes) }}' | jq -r ". | .[]" > test-splits.properties
       - name: debug-properties
         run: cat test-splits.properties
