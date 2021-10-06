@@ -50,11 +50,10 @@ import org.gradle.testkit.runner.fixtures.WithNoSourceTaskOutcome
 import org.gradle.testkit.runner.internal.GradleProvider
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
-import org.junit.Rule
 import org.spockframework.runtime.extension.IMethodInvocation
 import spock.lang.Retry
+import spock.util.environment.RestoreSystemProperties
 
 import javax.annotation.Nullable
 import java.lang.annotation.Annotation
@@ -66,6 +65,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @MultiVersionTestCategory
 @GradleRunnerTest
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
+@RestoreSystemProperties
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
@@ -80,12 +80,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     public static GradleProvider gradleProvider
     public static boolean debug
     public static boolean crossVersion
-
-    @Rule
-    SetSystemProperties setSystemProperties = new SetSystemProperties(
-        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath,
-        (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
-    )
 
     boolean requireIsolatedTestKitDir
 
@@ -163,6 +157,10 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def setup() {
+        System.getProperties().putAll([
+            (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath,
+            (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
+        ])
         settingsFile.createFile()
     }
 
