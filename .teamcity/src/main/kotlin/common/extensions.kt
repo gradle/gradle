@@ -204,7 +204,7 @@ fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
             tasks = "killExistingProcessesStartedByGradle"
             gradleParams = (
                 buildToolGradleParameters(daemon) +
-                    "-DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
+                    "-DpublishStrategy=publishAlways" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
                 ).joinToString(separator = " ")
         }
     }
