@@ -27,7 +27,6 @@ import spock.lang.Unroll
 
 @RestoreSystemProperties
 class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @org.junit.Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)
     @org.junit.Rule TestProxyServer testProxyServer = new TestProxyServer()
     @org.junit.Rule HttpServer server = new HttpServer()

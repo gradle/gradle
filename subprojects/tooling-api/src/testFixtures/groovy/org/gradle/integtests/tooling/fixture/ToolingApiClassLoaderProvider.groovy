@@ -75,7 +75,6 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowPackage('org.codehaus.groovy')
         sharedSpec.allowPackage('spock')
         sharedSpec.allowPackage('org.spockframework')
-        sharedSpec.allowClass(SetSystemProperties)
         sharedSpec.allowClass(RedirectStdOutAndErr)
         sharedSpec.allowPackage('org.gradle.integtests.fixtures')
         sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')

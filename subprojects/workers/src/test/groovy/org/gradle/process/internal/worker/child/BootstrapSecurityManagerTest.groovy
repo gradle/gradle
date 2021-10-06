@@ -29,7 +29,6 @@ import java.security.Permission
 
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
 @RestoreSystemProperties
-@RestoreSystemProperties
 class BootstrapSecurityManagerTest extends Specification {
     @Rule RedirectStdIn stdIn
 
