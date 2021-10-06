@@ -16,6 +16,10 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.docs.dsl.asciidoc.GenerateDslAsciidoc;
+import gradlebuild.docs.dsl.docbook.AssembleDslDocTask;
+import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask;
+import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -24,8 +28,9 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import gradlebuild.docs.dsl.docbook.AssembleDslDocTask;
-import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Generates DSL reference material using Docbook and some homegrown class parsing.
@@ -90,6 +95,43 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getClasspath().from(userGuideTask);
 
             task.getDestinationDirectory().convention(dslReference.getStagingRoot().dir("dsl"));
+        });
+
+        TaskProvider<GenerateDslAsciidoc> dslAsciidoc = tasks.register("dslAsciidoc", GenerateDslAsciidoc.class, task -> {
+            task.getClassMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
+            task.getDestinationDirectory().convention(dslReference.getStagingRoot().dir("dsl-asciidoc"));
+        });
+
+        tasks.register("dslAsciidocHtml", AsciidoctorTask.class, task -> {
+            task.setGroup("documentation");
+            task.setDescription("Generates dsl html.");
+            task.dependsOn(dslAsciidoc);
+
+            task.sources(patternSet -> {
+                patternSet.include("**/*.adoc");
+                patternSet.exclude("javaProject*Layout.adoc");
+                patternSet.exclude("userguide_single.adoc");
+                patternSet.exclude("snippets/**/*.adoc");
+            });
+
+            // TODO: This breaks the provider
+            task.setSourceDir(dslAsciidoc.get().getDestinationDirectory().get().getAsFile());
+            // TODO: This breaks the provider
+            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-dsl").get().getAsFile());
+
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("icons", "font");
+            attributes.put("source-highlighter", "prettify");
+            attributes.put("toc", "auto");
+            attributes.put("toclevels", 1);
+            attributes.put("toc-title", "Contents");
+            attributes.put("groovyDslPath", "../dsl");
+            attributes.put("javadocPath", "../javadoc");
+            attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
+            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+            // TODO: This breaks the provider
+            attributes.put("samples-dir", extension.getUserManual().getStagedDocumentation().get().getAsFile()); // TODO:
+            task.attributes(attributes);
         });
 
         extension.dslReference(dslRef -> {
