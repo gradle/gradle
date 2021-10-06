@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -43,7 +37,6 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
 
     @UsedByScanPlugin
     public interface Details {
-        SnapshotTaskInputsBuildOperationType.Details INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
     }
 
     /**
@@ -175,12 +168,12 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
              *
              * Returns the name value of one of:
              *
-             * <li>{@link FingerprintingStrategy#CLASSPATH_IDENTIFIER}</li>
-             * <li>{@link FingerprintingStrategy#COMPILE_CLASSPATH_IDENTIFIER}</li>
-             * <li>{@link AbsolutePathFingerprintingStrategy#IDENTIFIER}</li>
-             * <li>{@link RelativePathFingerprintingStrategy#IDENTIFIER}</li>
-             * <li>{@link NameOnlyFingerprintingStrategy#IDENTIFIER}</li>
-             * <li>{@link IgnoredPathFingerprintingStrategy#IDENTIFIER}</li>
+             * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#CLASSPATH_IDENTIFIER</li>
+             * <li>org.gradle.internal.fingerprint.FingerprintingStrategy#COMPILE_CLASSPATH_IDENTIFIER</li>
+             * <li>org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy#IDENTIFIER</li>
+             * <li>org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy#IDENTIFIER</li>
+             * <li>org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy#IDENTIFIER</li>
+             * <li>org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy#IDENTIFIER</li>
              *
              * @deprecated since 7.3, superseded by {@link #getPropertyAttributes()}
              */
@@ -190,12 +183,12 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
             /**
              * A description of how the current property was fingerprinted.
              *
-             * Returns one or more of the values of {@link FilePropertyAttribute}, sorted.
+             * Returns one or more of the values of org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute, sorted.
              *
              * This interface does not constrain the compatibility of values.
              * In practice however, such constraints do exist but are managed informally.
-             * For example, consumers can assume that both {@link FilePropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT}
-             * and {@link FilePropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES} will not be present.
+             * For example, consumers can assume that both org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute#DIRECTORY_SENSITIVITY_DEFAULT
+             * and org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute#DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES will not be present.
              * This loose approach is used to allow the various types of normalization supported by Gradle to evolve,
              * and their usage to be conveyed here without changing this interface.
              *
@@ -241,9 +234,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          */
         @Deprecated
         @Nullable
-        default Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
-            return null;
-        }
+        Set<String> getInputPropertiesLoadedByUnknownClassLoader();
 
         /**
          * The names of the output properties.
