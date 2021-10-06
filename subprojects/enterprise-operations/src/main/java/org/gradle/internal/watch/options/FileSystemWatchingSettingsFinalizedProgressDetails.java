@@ -16,9 +16,6 @@
 
 package org.gradle.internal.watch.options;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
-@UsedByScanPlugin
 public interface FileSystemWatchingSettingsFinalizedProgressDetails {
 
     boolean isEnabled();
