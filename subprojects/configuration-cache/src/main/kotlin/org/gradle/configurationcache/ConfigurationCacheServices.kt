@@ -75,6 +75,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(DefaultConfigurationCacheProblemsListener::class.java)
             add(DefaultBuildTreeLifecycleControllerFactory::class.java)
+            add(DefaultBuildModelControllerServices::class.java)
             add(ConfigurationCacheRepository::class.java)
             add(DefaultConfigurationCache::class.java)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.configurationcache
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.util.Path;
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateInternal
+import org.gradle.configuration.project.ProjectEvaluator
 
-/**
- * A reference to public path for a build, available via the service registry.
- *
- * Usages of {@link GradleInternal#getIdentityPath()} should be migrated to this type, to avoid unnecessary penetration of GradleInternal.
- */
-public interface PublicBuildPath {
 
-    /**
-     * The build's, unique, build path.
-     */
-    Path getBuildPath();
-
+class ConfigurationCacheAwareProjectEvaluator(
+    private val delegate: ProjectEvaluator
+) : ProjectEvaluator {
+    override fun evaluate(project: ProjectInternal, state: ProjectStateInternal) {
+        delegate.evaluate(project, state)
+    }
 }
