@@ -38,24 +38,6 @@ public final class ResolveArtifactsBuildOperationType implements BuildOperationT
 
     }
 
-    public static class DetailsImpl implements Details {
-
-        private final String configuration;
-
-        public DetailsImpl(String configuration) {
-            this.configuration = configuration;
-        }
-
-        @Override
-        public String getConfigurationPath() {
-            return configuration;
-        }
-
-    }
-
-    public final static Result RESULT = new Result() {
-    };
-
     private ResolveArtifactsBuildOperationType() {
     }
 
