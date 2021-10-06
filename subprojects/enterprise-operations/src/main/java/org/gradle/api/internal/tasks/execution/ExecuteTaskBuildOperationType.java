@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.List;
  * (i.e. beforeTask callbacks did not fail), then a result is expected.
  * If the task execution fails, or if afterTask callbacks fail, an operation failure is expected _in addition_.
  */
-@UsedByScanPlugin
 public final class ExecuteTaskBuildOperationType implements BuildOperationType<ExecuteTaskBuildOperationType.Details, ExecuteTaskBuildOperationType.Result> {
 
     public interface Details {
