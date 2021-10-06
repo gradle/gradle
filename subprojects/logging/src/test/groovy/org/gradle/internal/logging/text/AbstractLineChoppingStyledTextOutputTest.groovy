@@ -16,11 +16,10 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
-import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class AbstractLineChoppingStyledTextOutputTest extends Specification {

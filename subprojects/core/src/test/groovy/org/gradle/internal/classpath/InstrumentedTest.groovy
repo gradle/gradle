@@ -23,7 +23,6 @@ import spock.lang.Specification
 @RestoreSystemProperties
 class InstrumentedTest extends Specification {
 
-
     def cleanup() {
         Instrumented.discardListener()
     }

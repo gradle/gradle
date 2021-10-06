@@ -19,9 +19,8 @@ import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Attribute
 import org.fusesource.jansi.Ansi.Color
 import org.gradle.internal.logging.text.StyledTextOutput.Style
-import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class DefaultColorMapTest extends Specification {

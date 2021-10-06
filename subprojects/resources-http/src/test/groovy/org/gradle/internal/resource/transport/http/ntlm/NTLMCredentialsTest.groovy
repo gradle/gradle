@@ -16,13 +16,12 @@
 package org.gradle.internal.resource.transport.http.ntlm
 
 import org.gradle.api.credentials.PasswordCredentials
-import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
-public class NTLMCredentialsTest extends Specification {
+@RestoreSystemProperties
+class NTLMCredentialsTest extends Specification {
     PasswordCredentials credentials = Mock()
-
-
 
     def "uses domain when encoded in username"() {
         credentials.username >> "domain\\username"

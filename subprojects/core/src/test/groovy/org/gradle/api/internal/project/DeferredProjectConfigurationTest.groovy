@@ -23,7 +23,6 @@ import org.junit.Rule
 @RestoreSystemProperties
 class DeferredProjectConfigurationTest extends AbstractProjectBuilderSpec {
 
-
     def config
 
     def setup() {

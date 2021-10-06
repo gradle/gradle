@@ -23,7 +23,9 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     protected TestProxyServer testProxyServer

@@ -32,12 +32,11 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+@RestoreSystemProperties
 abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
-
-
 
     @Rule
     public final HttpServer server = new HttpServer()

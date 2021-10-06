@@ -43,6 +43,7 @@ import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Retry
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
@@ -63,6 +64,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=2.6')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
+@RestoreSystemProperties
 abstract class ToolingApiSpecification extends Specification {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216

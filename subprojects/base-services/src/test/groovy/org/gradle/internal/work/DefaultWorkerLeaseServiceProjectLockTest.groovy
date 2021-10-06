@@ -25,7 +25,6 @@ import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock

@@ -33,7 +33,6 @@ class BuildProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
 

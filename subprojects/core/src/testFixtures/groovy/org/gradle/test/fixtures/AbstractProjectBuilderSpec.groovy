@@ -37,6 +37,7 @@ import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 /**
  * An abstract class for writing tests using ProjectBuilder.
@@ -49,6 +50,7 @@ import spock.lang.Specification
  */
 @CleanupTestDirectory
 @UsesNativeServices
+@RestoreSystemProperties
 abstract class AbstractProjectBuilderSpec extends Specification {
     protected final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 

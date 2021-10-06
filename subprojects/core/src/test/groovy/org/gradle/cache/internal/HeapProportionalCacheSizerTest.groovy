@@ -23,7 +23,6 @@ import spock.lang.Specification
 @RestoreSystemProperties
 class HeapProportionalCacheSizerTest extends Specification {
 
-
     def "scaled value should be always larger than or equal to granularity"() {
         given:
         def heapProportionalCacheSizer = new HeapProportionalCacheSizer(1)

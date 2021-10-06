@@ -22,7 +22,6 @@ import spock.util.environment.RestoreSystemProperties
 @RestoreSystemProperties
 class GradleLauncherMetaDataTest extends Specification {
 
-
     def usesSystemPropertyToDetermineApplicationName() {
         System.setProperty("org.gradle.appname", "some-gradle-launcher")
         StringWriter writer = new StringWriter()

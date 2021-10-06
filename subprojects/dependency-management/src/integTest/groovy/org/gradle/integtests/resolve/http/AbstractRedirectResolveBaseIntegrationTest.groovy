@@ -20,7 +20,9 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Rule HttpServer backingServer = new HttpServer()

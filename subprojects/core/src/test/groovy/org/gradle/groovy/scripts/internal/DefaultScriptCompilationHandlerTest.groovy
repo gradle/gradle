@@ -92,7 +92,6 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)

@@ -27,9 +27,10 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
-public class TestWorkerTest extends ConcurrentSpec {
+@RestoreSystemProperties
+class TestWorkerTest extends ConcurrentSpec {
 
     def workerContext = Mock(WorkerProcessContext)
     def connection = Mock(ObjectConnection)

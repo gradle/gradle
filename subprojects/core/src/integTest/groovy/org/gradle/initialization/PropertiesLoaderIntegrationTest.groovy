@@ -18,15 +18,13 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
-
 
     def "build property set on command line takes precedence over properties file"() {
         when:

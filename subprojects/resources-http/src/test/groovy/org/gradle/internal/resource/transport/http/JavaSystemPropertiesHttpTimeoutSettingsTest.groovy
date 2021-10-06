@@ -18,14 +18,14 @@ package org.gradle.internal.resource.transport.http
 
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 
-import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.*
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.CONNECTION_TIMEOUT_SYSTEM_PROPERTY
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.DEFAULT_CONNECTION_TIMEOUT
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.DEFAULT_SOCKET_TIMEOUT
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 @RestoreSystemProperties
 class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
-
-
 
     def "can retrieve default values"() {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()

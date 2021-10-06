@@ -31,7 +31,6 @@ class DefaultGradleRunnerTest extends Specification {
 
     public static final BuildOperationParameters BUILD_OPERATION_PARAMETERS = new BuildOperationParameters(GradleVersion.version('2.4'), false)
 
-
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     GradleExecutor gradleExecutor = Mock(GradleExecutor)

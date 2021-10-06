@@ -29,10 +29,12 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.environment.RestoreSystemProperties
 
 import java.util.concurrent.atomic.AtomicInteger
 
 @UsesNativeServices
+@RestoreSystemProperties
 abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

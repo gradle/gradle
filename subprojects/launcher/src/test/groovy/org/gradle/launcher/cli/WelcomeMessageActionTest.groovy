@@ -23,18 +23,15 @@ import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.internal.TextUtil
-import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.TempDir
+import spock.util.environment.RestoreSystemProperties
 
 import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY
 
 @RestoreSystemProperties
 class WelcomeMessageActionTest extends Specification {
-
-
 
     @TempDir
     public File temporaryFolder

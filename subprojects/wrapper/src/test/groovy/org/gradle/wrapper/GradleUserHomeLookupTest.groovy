@@ -19,17 +19,15 @@ package org.gradle.wrapper
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
-import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class GradleUserHomeLookupTest extends Specification {
 
     final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
-
 
     @Requires(TestPrecondition.NOT_EC2_AGENT)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
