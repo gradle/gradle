@@ -83,7 +83,8 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         String jvmVersion = metadata.get(ProbedSystemProperty.VM_VERSION);
         String vendor = metadata.get(ProbedSystemProperty.VENDOR);
         String implementationName = metadata.get(ProbedSystemProperty.VM);
-        return JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName);
+        String architecture = metadata.get(ProbedSystemProperty.ARCH);
+        return JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName, architecture);
     }
 
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
