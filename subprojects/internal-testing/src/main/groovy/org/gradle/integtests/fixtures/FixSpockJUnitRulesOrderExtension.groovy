@@ -16,21 +16,18 @@
 
 package org.gradle.integtests.fixtures
 
-import org.junit.Rule
+
+import org.spockframework.junit4.TestRuleInterceptor
 import org.spockframework.runtime.AbstractRunListener
 import org.spockframework.runtime.extension.AbstractGlobalExtension
-import org.spockframework.junit4.TestRuleInterceptor
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.FieldInfo
 import org.spockframework.runtime.model.SpecInfo
-
-
 /**
  * Workaround for https://github.com/spockframework/spock/issues/1050
  *
  * TODO Remove once Spock is upgraded to a fixed version
  */
-@Rule
 class FixSpockJUnitRulesOrderExtension extends AbstractGlobalExtension {
     @Override
     void visitSpec(SpecInfo spec) {
