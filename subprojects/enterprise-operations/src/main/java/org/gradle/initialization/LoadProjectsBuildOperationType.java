@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.Set;
 
@@ -29,7 +28,6 @@ import java.util.Set;
  */
 public final class LoadProjectsBuildOperationType implements BuildOperationType<LoadProjectsBuildOperationType.Details, LoadProjectsBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
         /**
          * @since 4.6
