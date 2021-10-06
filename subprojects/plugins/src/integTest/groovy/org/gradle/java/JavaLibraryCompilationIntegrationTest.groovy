@@ -173,11 +173,11 @@ repositories {
         }
 
         when:
-        //succeeds 'b:outgoingVariants'
         succeeds 'a:compileJava'
 
         then:
         executedAndNotSkipped ':b:compileJavaTurbine'
+        notExecuted(':b:compileJava')
     }
 
     @Unroll
