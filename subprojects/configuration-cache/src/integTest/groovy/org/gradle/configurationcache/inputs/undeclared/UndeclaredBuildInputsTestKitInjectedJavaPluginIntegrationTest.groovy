@@ -32,10 +32,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.Requires
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 @Requires(TestPrecondition.NOT_WINDOWS)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
@@ -46,10 +46,9 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
         return "Plugin 'sneaky'"
     }
 
-    @Rule
-    SetSystemProperties setSystemProperties = new SetSystemProperties(
-        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath
-    )
+    def setup() {
+        System.getProperties().putAll([(NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath]);
+    }
 
     @Override
     GradleExecuter createExecuter() {
