@@ -1,4 +1,4 @@
-name: CI Build
+name: Member CI Build
 
 on:
   push:
