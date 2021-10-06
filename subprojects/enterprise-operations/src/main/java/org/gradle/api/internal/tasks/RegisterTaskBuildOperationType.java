@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Represents a task realization for a task whose creation was deferred.
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class RegisterTaskBuildOperationType implements BuildOperationType<RegisterTaskBuildOperationType.Details, RegisterTaskBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
         String getBuildPath();
 
@@ -40,7 +38,6 @@ public final class RegisterTaskBuildOperationType implements BuildOperationType<
         boolean isReplacement();
     }
 
-    @UsedByScanPlugin
     public interface Result {
     }
 
