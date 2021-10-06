@@ -17,12 +17,10 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
 public class EvaluateSettingsBuildOperationType implements BuildOperationType<EvaluateSettingsBuildOperationType.Details, EvaluateSettingsBuildOperationType.Result> {
-    @UsedByScanPlugin
     public interface Details {
         /**
          * @since 4.6
