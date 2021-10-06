@@ -31,4 +31,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @SuppressWarnings("DeprecatedIsStillUsed")
 public interface StyledTextBuildOperationProgressDetails extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails {
     LogLevel getLogLevel();
+
+    @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    interface Span extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails.Span {}
 }
