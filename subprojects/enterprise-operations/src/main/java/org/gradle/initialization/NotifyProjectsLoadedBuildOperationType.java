@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * An operation to run the projectsLoaded lifecycle hook.
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class NotifyProjectsLoadedBuildOperationType implements BuildOperationType<NotifyProjectsLoadedBuildOperationType.Details, NotifyProjectsLoadedBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
         String getBuildPath();
     }
