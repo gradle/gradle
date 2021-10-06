@@ -21,6 +21,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.logging.LogEventLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -80,6 +81,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
             output.style(span.style);
             output.text(span.text);
         }
+    }
+
+    @Override
+    public LogEventLevel getLevel() {
+        return getLogLevel().toLoggingEventLevel();
     }
 
     @UsedByScanPlugin

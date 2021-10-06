@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events.operations;
+package org.gradle.internal.operations.logging;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import java.util.List;
 
 /**
  * Build operation observer's view of {@link org.gradle.internal.logging.events.StyledTextOutputEvent}.
  *
  * See LoggingBuildOperationProgressBroadcaster.
  *
- * @since 4.7
+ * @since 7.4
  */
-@UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
-public interface StyledTextBuildOperationProgressDetails extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails {
-    LogLevel getLogLevel();
+public interface StyledTextBuildOperationProgressDetails {
+
+    List<? extends Span> getSpans();
+
+    String getCategory();
+
+    LogEventLevel getLevel();
+
+    interface Span {
+
+        /**
+         * Always a value name of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
+         */
+        String getStyleName();
+
+        String getText();
+
+    }
 }

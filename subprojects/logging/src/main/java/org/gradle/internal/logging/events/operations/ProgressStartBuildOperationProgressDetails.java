@@ -26,9 +26,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.7
  */
-@SuppressWarnings("DeprecatedIsStillUsed")
 @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
 @Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
 public interface ProgressStartBuildOperationProgressDetails extends org.gradle.internal.operations.logging.ProgressStartBuildOperationProgressDetails {
     LogLevel getLogLevel();
 }
