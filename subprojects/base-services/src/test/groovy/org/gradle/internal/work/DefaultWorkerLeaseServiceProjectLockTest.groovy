@@ -24,6 +24,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -35,6 +36,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 import static org.gradle.util.Path.path
 
+@RestoreSystemProperties
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
     @Rule
     SetSystemProperties properties = new SetSystemProperties()

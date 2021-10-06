@@ -17,11 +17,13 @@
 package org.gradle.internal.resource.transport.http
 
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.*
 
+@RestoreSystemProperties
 class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
 
     @Rule SetSystemProperties setSystemProperties = new SetSystemProperties()

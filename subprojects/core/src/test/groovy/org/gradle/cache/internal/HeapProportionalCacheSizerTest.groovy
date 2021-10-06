@@ -16,10 +16,12 @@
 
 package org.gradle.cache.internal
 
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
+@RestoreSystemProperties
 class HeapProportionalCacheSizerTest extends Specification {
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()

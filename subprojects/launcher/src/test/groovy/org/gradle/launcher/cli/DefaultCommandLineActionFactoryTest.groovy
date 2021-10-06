@@ -34,11 +34,13 @@ import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.RedirectStdOutAndErr
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
+@RestoreSystemProperties
 class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();

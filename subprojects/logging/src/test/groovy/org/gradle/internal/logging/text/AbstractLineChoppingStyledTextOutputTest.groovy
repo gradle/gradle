@@ -16,12 +16,14 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@RestoreSystemProperties
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final String NIX_EOL = "\n"
     private static final String WINDOWS_EOL = "\r\n"

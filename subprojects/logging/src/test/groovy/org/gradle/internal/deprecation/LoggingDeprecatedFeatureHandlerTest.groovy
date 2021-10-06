@@ -32,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -40,6 +41,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 @Subject(LoggingDeprecatedFeatureHandler)
+@RestoreSystemProperties
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final outputEventListener = new CollectingTestOutputEventListener()
     @Rule

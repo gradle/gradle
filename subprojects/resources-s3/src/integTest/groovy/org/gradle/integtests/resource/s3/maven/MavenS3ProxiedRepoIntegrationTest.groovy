@@ -20,9 +20,11 @@ package org.gradle.integtests.resource.s3.maven
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
+@RestoreSystemProperties
 class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
     @Rule

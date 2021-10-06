@@ -21,9 +21,11 @@ import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
+@RestoreSystemProperties
 class HttpClientHelperTest extends AbstractHttpClientTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 

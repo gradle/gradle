@@ -17,6 +17,7 @@ package org.gradle.internal.os
 
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,6 +25,7 @@ import spock.lang.Specification
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
+@RestoreSystemProperties
 class OperatingSystemTest extends Specification {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

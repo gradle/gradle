@@ -51,6 +51,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
@@ -64,6 +65,7 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
+@RestoreSystemProperties
 class DefaultScriptCompilationHandlerTest extends Specification {
 
     static final String TEST_EXPECTED_SYSTEM_PROP_VALUE = "someValue"

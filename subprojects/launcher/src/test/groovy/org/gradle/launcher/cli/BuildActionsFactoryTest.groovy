@@ -28,12 +28,14 @@ import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
+@RestoreSystemProperties
 class BuildActionsFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();

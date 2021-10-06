@@ -18,12 +18,14 @@ package org.gradle.api.publish.maven
 
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 /**
  * Tests maven POM customization
  */
+@RestoreSystemProperties
 class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTest {
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()

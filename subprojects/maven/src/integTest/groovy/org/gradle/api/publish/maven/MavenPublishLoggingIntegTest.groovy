@@ -18,9 +18,11 @@ package org.gradle.api.publish.maven
 
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
+@RestoreSystemProperties
 class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule

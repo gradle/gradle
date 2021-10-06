@@ -22,12 +22,14 @@ import org.gradle.internal.jvm.JavaInfo
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
 
+@RestoreSystemProperties
 class BuildProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

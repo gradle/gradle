@@ -20,6 +20,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
@@ -27,6 +28,7 @@ import spock.lang.Issue
 /**
  * Tests “simple” maven publishing scenarios
  */
+@RestoreSystemProperties
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule

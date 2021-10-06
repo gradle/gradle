@@ -19,6 +19,8 @@ package org.gradle.process.internal.worker.child
 import org.gradle.internal.stream.EncodedStream
 import org.gradle.util.internal.RedirectStdIn
 import org.gradle.util.Requires
+import spock.util.environment.RestoreSystemProperties
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -28,6 +30,8 @@ import java.security.AllPermission
 import java.security.Permission
 
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
+@RestoreSystemProperties
+@RestoreSystemProperties
 class BootstrapSecurityManagerTest extends Specification {
     @Rule SetSystemProperties systemProperties
     @Rule RedirectStdIn stdIn

@@ -17,8 +17,10 @@ package org.gradle.configuration
 
 import spock.lang.Specification
 import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 
+@RestoreSystemProperties
 class GradleLauncherMetaDataTest extends Specification {
     @Rule public final SetSystemProperties sysProps = new SetSystemProperties()
 

@@ -21,10 +21,12 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
+@RestoreSystemProperties
 class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule SetSystemProperties systemProperties = new SetSystemProperties()
     @org.junit.Rule TestResources resources = new TestResources(temporaryFolder)

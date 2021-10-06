@@ -23,10 +23,12 @@ import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.configuration.InitialProperties
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
+@RestoreSystemProperties
 class LayoutToPropertiesConverterTest extends Specification {
     @Rule
     SetSystemProperties sysProperties = new SetSystemProperties()

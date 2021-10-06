@@ -35,6 +35,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -45,6 +46,7 @@ import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
 
+@RestoreSystemProperties
 class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()

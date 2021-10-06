@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,6 +28,7 @@ import spock.lang.Specification
 import static org.gradle.util.Matchers.isSerializable
 import static org.hamcrest.MatcherAssert.assertThat
 
+@RestoreSystemProperties
 class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()

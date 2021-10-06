@@ -19,12 +19,14 @@ package org.gradle.testfixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@RestoreSystemProperties
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties
     @Rule HttpServer server

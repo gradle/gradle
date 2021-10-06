@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -606,6 +607,7 @@ class KotlinDslMavenConversionIntegrationTest extends MavenConversionIntegration
     BuildInitDsl scriptDsl = BuildInitDsl.KOTLIN
 }
 
+@RestoreSystemProperties
 class GroovyDslMavenConversionIntegrationTest extends MavenConversionIntegrationTest {
     BuildInitDsl scriptDsl = BuildInitDsl.GROOVY
 }

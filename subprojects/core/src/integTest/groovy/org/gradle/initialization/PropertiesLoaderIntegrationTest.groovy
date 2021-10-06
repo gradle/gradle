@@ -18,12 +18,14 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@RestoreSystemProperties
 class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
 

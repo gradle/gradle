@@ -19,12 +19,14 @@ package org.gradle.wrapper
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
+import spock.util.environment.RestoreSystemProperties
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+@RestoreSystemProperties
 class GradleUserHomeLookupTest extends Specification {
 
     final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
