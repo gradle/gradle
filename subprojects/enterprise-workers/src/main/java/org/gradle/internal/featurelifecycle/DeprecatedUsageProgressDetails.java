@@ -16,9 +16,6 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -27,33 +24,32 @@ import java.util.List;
  *
  * @since 4.10
  */
-@UsedByScanPlugin
 public interface DeprecatedUsageProgressDetails {
 
     /**
-     * See {@link DeprecatedFeatureUsage#getSummary()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getSummary()}
      */
     String getSummary();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getRemovalDetails()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getRemovalDetails()}
      */
     String getRemovalDetails();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getAdvice()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getAdvice()}
      */
     @Nullable
     String getAdvice();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getContextualAdvice()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getContextualAdvice()}
      */
     @Nullable
     String getContextualAdvice();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getDocumentationUrl()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getDocumentationUrl()}
      *
      * @since 6.2
      */
@@ -61,14 +57,14 @@ public interface DeprecatedUsageProgressDetails {
     String getDocumentationUrl();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getType()}.
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getType()}.
      *
      * Value is always of {@link DeprecatedFeatureUsage.Type#name()}.
      */
     String getType();
 
     /**
-     * See {@link DeprecatedFeatureUsage#getStack()}
+     * See {@link org.gradle.internal.deprecation.DeprecatedFeatureUsage#getStack()}
      */
     List<StackTraceElement> getStackTrace();
 
