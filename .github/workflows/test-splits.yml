@@ -15,7 +15,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v2
       - id: setup-matrix
-        run: echo "::set-output name=matrix::$(cat .github/workflows/stage1.json)"
+        run: echo "::set-output name=matrix::$(jq -c . .github/workflows/stage1.json)"
       - name: debug
         run: echo ${{ steps.setup-matrix.outputs.matrix }}
       - name: setup java
