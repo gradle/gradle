@@ -17,7 +17,6 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Building the buildSrc project.
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class BuildBuildSrcBuildOperationType implements BuildOperationType<BuildBuildSrcBuildOperationType.Details, BuildBuildSrcBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
         /**
          * Returns the path of the _containing_ build.
@@ -35,7 +33,6 @@ public final class BuildBuildSrcBuildOperationType implements BuildOperationType
         String getBuildPath();
     }
 
-    @UsedByScanPlugin
     public interface Result {
     }
 
