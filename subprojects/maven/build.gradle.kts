@@ -39,6 +39,7 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
+    integTestImplementation(project(":enterprise-operations"))
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
