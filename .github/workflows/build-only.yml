@@ -147,7 +147,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
+        subprojects: ${{ fromJson(needs.build.outputs.matrix).*.subprojects }}
       fail-fast: false
     steps:
       - name: git clone
@@ -157,10 +157,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - name: ./gradlew ${{ join(matrix.bucket.subprojects, ':embeddedIntegTest ') }}
+      - name: ./gradlew ${{ join(matrix.subprojects, ':quickTest ') }}
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ join(matrix.bucket.subprojects, ':embeddedIntegTest ') }}:embeddedIntegTest --no-configuration-cache
+          arguments: ${{ join(matrix.subprojects, ':quickTest ') }}:quickTest --no-configuration-cache
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
