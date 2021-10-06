@@ -21,8 +21,8 @@ jobs:
           java-version: 11
       - name: assemble
         uses: gradle/gradle-build-action@v2
-        env:
-          # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-          GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
         with:
           arguments: compileAll --no-configuration-cache
+    env:
+      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
