@@ -121,6 +121,28 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     def "uses the API of a library when compiling production code against it using the #configuration configuration"() {
         given:
+        buildFile << """
+            subprojects {
+
+repositories {
+    maven {
+        url = uri("https://mlopatkin.bitbucket.io/m2")
+    }
+    mavenCentral()
+}
+                configurations {
+                    turbine
+                }
+                dependencies {
+                    turbine("com.google.turbine:turbine:0.1-gradle")
+
+                }
+                tasks.withType(TurbineCompile) {
+                    turbineClasspath.from(configurations.turbine)
+                }
+            }
+        """
+
         subproject('a') {
             'build.gradle'("""
                 apply plugin: 'java'
@@ -152,7 +174,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         //succeeds 'b:outgoingVariants'
-        succeeds 'a:compileJava'
+        succeeds 'a:dependencies', 'a:compileJava', '--info'
 
         then:
         executedAndNotSkipped ':b:compileJava'

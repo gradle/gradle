@@ -16,21 +16,13 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.workers.WorkAction;
-import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
 
 public abstract class TurbineCompile extends AbstractCompile {
     @Inject
@@ -42,42 +34,15 @@ public abstract class TurbineCompile extends AbstractCompile {
     @TaskAction
     public void doCompilation() {
         WorkerExecutor executor = getWorkerExecutor();
-        WorkQueue queue = executor.classLoaderIsolation(spec -> {
+        WorkQueue queue = executor.processIsolation(spec -> {
            spec.getClasspath().from(getTurbineClasspath());
         });
 
         queue.submit(TurbineCompileAction.class, turbineWorkParameters -> {
             turbineWorkParameters.getSources().from(getSource());
             turbineWorkParameters.getClasspath().from(getClasspath());
-            turbineWorkParameters.getOutput().set(getDestinationDirectory());
+            turbineWorkParameters.getOutput().set(getDestinationDirectory().file("ijar.jar"));
         });
     }
 
-    public interface TurbineWorkParameters extends WorkParameters {
-        ConfigurableFileCollection getSources();
-        ConfigurableFileCollection getClasspath();
-        DirectoryProperty getOutput();
-    }
-
-    public static abstract class TurbineCompileAction implements WorkAction<TurbineWorkParameters> {
-        @Override
-        public void execute() {
-            TurbineWorkParameters parameters = getParameters();
-
-            File outputFile;
-            try {
-                outputFile = Files.createFile(new File(parameters.getOutput().getAsFile().get(), "ijar.jar").toPath()).toFile();
-            } catch (IOException e) {
-                throw new GradleException("Failed to create output", e);
-            }
-
-            try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(outputFile.toPath()))) {
-                pw.print("Sources:\n" + parameters.getSources().getFiles().toString());
-                pw.println();
-                pw.print("Classpath:\n" + parameters.getClasspath().getFiles().toString());
-            } catch (Exception e) {
-                throw new GradleException("Failed to create output", e);
-            }
-        }
-    }
 }
