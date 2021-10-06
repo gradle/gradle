@@ -66,22 +66,12 @@ jobs:
         if: ${{ matrix.bucket.classes != null && matrix.bucket.include }}
         run: |
           echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
-      - name: write exlude test-split
-        if: ${{ matrix.bucket.classes != null && !matrix.bucket.include }}
-        run: |
-          echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/exclude-test-classes.properties
       - name: ./gradlew quickTest
         if: ${{ matrix.bucket.classes != null }}
         id: gradle-1
         uses: gradle/gradle-build-action@v2
         with:
           arguments: ${{ matrix.bucket.subproject }}:quickTest --no-configuration-cache
-      - name: ./gradlew quickTest
-        if: ${{ matrix.bucket.classes == null }}
-        id: gradle-2
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: ${{ join(matrix.bucket.subprojects, ':quickTest ') }}:quickTest --no-configuration-cache
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -93,18 +83,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle-1.outputs.build-scan-url }}'
-            })
-      - name: "Comment build scan url"
-        uses: actions/github-script@v3
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle-2.outputs.build-scan-url }}'
             })
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
