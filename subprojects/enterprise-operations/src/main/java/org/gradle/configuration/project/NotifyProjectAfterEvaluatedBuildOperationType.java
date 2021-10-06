@@ -17,17 +17,14 @@
 package org.gradle.configuration.project;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.Path;
 
 /**
- * Execution of a project's beforeEvaluate hooks
+ * Execution of a project's afterEvaluate hooks
  *
  * @since 4.9
  */
-public final class NotifyProjectBeforeEvaluatedBuildOperationType implements BuildOperationType<NotifyProjectBeforeEvaluatedBuildOperationType.Details, NotifyProjectBeforeEvaluatedBuildOperationType.Result> {
+public final class NotifyProjectAfterEvaluatedBuildOperationType implements BuildOperationType<NotifyProjectAfterEvaluatedBuildOperationType.Details, NotifyProjectAfterEvaluatedBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         String getProjectPath();
@@ -40,32 +37,10 @@ public final class NotifyProjectBeforeEvaluatedBuildOperationType implements Bui
 
     }
 
-    static class DetailsImpl implements Details {
-
-        private final Path buildPath;
-        private final Path projectPath;
-
-        DetailsImpl(Path projectPath, Path buildPath) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public String getProjectPath() {
-            return projectPath.getPath();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
-
-    }
-
     final static Result RESULT = new Result() {
     };
 
-    private NotifyProjectBeforeEvaluatedBuildOperationType() {
+    private NotifyProjectAfterEvaluatedBuildOperationType() {
     }
 
 }
