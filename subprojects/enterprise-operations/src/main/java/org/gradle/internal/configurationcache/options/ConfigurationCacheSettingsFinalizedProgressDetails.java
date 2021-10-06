@@ -16,9 +16,6 @@
 
 package org.gradle.internal.configurationcache.options;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
-@UsedByScanPlugin
 public interface ConfigurationCacheSettingsFinalizedProgressDetails {
 
     boolean isEnabled();
