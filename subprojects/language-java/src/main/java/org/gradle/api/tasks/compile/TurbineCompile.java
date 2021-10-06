@@ -16,9 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.turbine.binder.JimageClassBinder;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
 
@@ -35,7 +37,7 @@ public abstract class TurbineCompile extends AbstractCompile {
     public void doCompilation() {
         WorkerExecutor executor = getWorkerExecutor();
         WorkQueue queue = executor.processIsolation(spec -> {
-           spec.getClasspath().from(getTurbineClasspath());
+           //spec.getClasspath().from(getTurbineClasspath());
         });
 
         queue.submit(TurbineCompileAction.class, turbineWorkParameters -> {

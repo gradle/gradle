@@ -40,4 +40,8 @@ repositories {
         }
     }
     mavenCentral()
+
+    maven {
+        url = uri("https://mlopatkin.bitbucket.io/m2")
+    }
 }

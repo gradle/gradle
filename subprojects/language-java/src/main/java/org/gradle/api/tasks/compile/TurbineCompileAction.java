@@ -17,26 +17,26 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import com.google.turbine.options.LanguageVersion;
 import com.google.turbine.options.TurbineOptions;
 import org.gradle.workers.WorkAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public abstract class TurbineCompileAction implements WorkAction<TurbineWorkParameters> {
     @Override
     public void execute() {
         TurbineWorkParameters parameters = getParameters();
-        String[] lines = System.getProperty("java.class.path").split(":");
-        Arrays.sort(lines);
-        for (String line : lines) {
-            System.out.println(line);
-        }
+//        for (File line : ClasspathUtil.getClasspath(Thread.currentThread().getContextClassLoader()).getAsFiles()) {
+//            System.out.println(line);
+//        }
+
+
 
         TurbineOptions options = TurbineOptions.builder()
+            .setLanguageVersion(LanguageVersion.fromJavacopts(ImmutableList.of("--release", "8")))
             .setClassPath(ImmutableList.copyOf(parameters.getClasspath().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList())))
             .setSources(ImmutableList.copyOf(parameters.getSources().getAsFileTree().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList())))
             .setOutput(parameters.getOutput().get().getAsFile().getAbsolutePath())

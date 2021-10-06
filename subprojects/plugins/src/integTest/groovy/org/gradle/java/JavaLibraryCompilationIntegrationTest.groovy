@@ -174,11 +174,10 @@ repositories {
 
         when:
         //succeeds 'b:outgoingVariants'
-        succeeds 'a:dependencies', 'a:compileJava', '--info'
+        succeeds 'a:compileJava'
 
         then:
-        executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        executedAndNotSkipped ':b:compileJavaTurbine'
     }
 
     @Unroll

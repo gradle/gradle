@@ -24,6 +24,7 @@ public interface TurbineWorkParameters extends WorkParameters {
     ConfigurableFileCollection getSources();
 
     ConfigurableFileCollection getClasspath();
+    ConfigurableFileCollection getBootClasspath();
 
     RegularFileProperty getOutput();
 }
