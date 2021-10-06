@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.asm)
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":enterprise-operations"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 

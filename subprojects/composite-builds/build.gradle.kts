@@ -21,6 +21,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":build-option"))
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":launcher"))
 
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {

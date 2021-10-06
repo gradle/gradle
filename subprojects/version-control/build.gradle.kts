@@ -33,6 +33,7 @@ dependencies {
     testFixturesImplementation(libs.jsch)
     testFixturesImplementation(libs.guava)
 
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":launcher"))
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

@@ -34,6 +34,7 @@ dependencies {
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(libs.slf4jApi)
 
