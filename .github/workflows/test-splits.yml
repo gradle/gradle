@@ -43,7 +43,7 @@ jobs:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
   parallel-test:
-    name: "Test Gradle on Linux ${{ join(bucket.subprojects) }}${{ bucket.subproject }}"
+    name: "Test Gradle on Linux ${{ join(matrix.bucket.subprojects) }}${{ matrix.bucket.subproject }}"
     runs-on: ubuntu-20.04
     needs: build
     strategy:
@@ -63,21 +63,21 @@ jobs:
           rm -rf test-splits
           mkdir test-splits
       - name: write include test-split
-        if: ${{ bucket.classes != null && bucket.include }}
+        if: ${{ matrix.bucket.classes != null && matrix.bucket.include }}
         run: |
-          echo '${{ toJson(fromJson(bucket.classes) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
+          echo '${{ toJson(fromJson(matrix.bucket.classes) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
       - name: write exlude test-split
-        if: ${{ bucket.classes != null && !bucket.include }}
+        if: ${{ matrix.bucket.classes != null && !matrix.bucket.include }}
         run: |
-          echo '${{ toJson(fromJson(bucket.classes) }}' | jq -r ". | .[]" > test-splits/exclude-test-classes.properties
+          echo '${{ toJson(fromJson(matrix.bucket.classes) }}' | jq -r ". | .[]" > test-splits/exclude-test-classes.properties
       - name: ./gradlew quickTest
-        if: ${{ bucket.classes != null }}
+        if: ${{ matrix.bucket.classes != null }}
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
           arguments: ${{ matrix.bucket.subproject }}:quickTest --no-configuration-cache
       - name: ./gradlew quickTest
-        if: ${{ bucket.classes == null }}
+        if: ${{ matrix.bucket.classes == null }}
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
