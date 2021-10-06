@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))
@@ -21,7 +22,6 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":build-option"))
-    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":launcher"))
 
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {
