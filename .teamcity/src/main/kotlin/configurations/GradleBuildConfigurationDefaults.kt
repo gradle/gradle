@@ -158,6 +158,9 @@ fun BuildType.dumpOpenFiles() {
 
 fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.LINUX, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     buildType.applyDefaultSettings(os, timeout = timeout)
+    buildType.params {
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+    }
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
