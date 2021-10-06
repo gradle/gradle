@@ -16,7 +16,6 @@
 package org.gradle.configuration
 
 import spock.lang.Specification
-import org.junit.Rule
 import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties

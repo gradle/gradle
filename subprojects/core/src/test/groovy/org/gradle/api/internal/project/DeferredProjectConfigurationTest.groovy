@@ -18,7 +18,6 @@ package org.gradle.api.internal.project
 
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 
 @RestoreSystemProperties
 class DeferredProjectConfigurationTest extends AbstractProjectBuilderSpec {

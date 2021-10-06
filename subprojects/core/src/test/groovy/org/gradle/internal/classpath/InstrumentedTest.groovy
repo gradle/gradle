@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath
 
-import spock.util.environment.RestoreSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class InstrumentedTest extends Specification {
