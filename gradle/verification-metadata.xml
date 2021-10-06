@@ -1129,5 +1129,10 @@
             <sha256 value="47dcde8986019314ef78ae7280a94973a21d2ed95075a40a000b42da956429e1" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="com.savvasdalkitsis" name="module-dependency-graph" version="0.10">
+         <artifact name="module-dependency-graph-0.10.jar">
+            <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61" /> <!-- incorrect -->
+         </artifact>
+      </component>
    </components>
 </verification-metadata>

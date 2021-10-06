@@ -52,6 +52,7 @@ plugins {
     id("gradlebuild.module-jar")
     id("gradlebuild.dependency-modules")
     id("gradlebuild.jvm-compile")
+    id("com.savvasdalkitsis.module-dependency-graph")
 }
 
 tasks.withType<JavaCompile>().configureEach {

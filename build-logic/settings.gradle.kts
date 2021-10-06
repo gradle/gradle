@@ -27,6 +27,8 @@ plugins {
     id("gradlebuild.default-settings-plugins")
 }
 
+includeBuild("../../module-dependency-graph")
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
