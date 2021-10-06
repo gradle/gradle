@@ -24,6 +24,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("deprecation")
 public class LogEvent extends RenderableOutputEvent implements LogEventBuildOperationProgressDetails {
     private final String message;
     private final Throwable throwable;

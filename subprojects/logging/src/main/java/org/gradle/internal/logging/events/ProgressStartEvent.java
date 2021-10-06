@@ -24,6 +24,7 @@ import org.gradle.internal.operations.logging.LogEventLevel;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("deprecation")
 public class ProgressStartEvent extends CategorisedOutputEvent implements ProgressStartBuildOperationProgressDetails {
     public static final String TASK_CATEGORY = "class org.gradle.internal.buildevents.TaskExecutionLogger";
     public static final String BUILD_OP_CATEGORY = "org.gradle.internal.logging.progress.ProgressLoggerFactory";

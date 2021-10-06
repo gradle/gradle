@@ -22,14 +22,13 @@ import org.gradle.internal.logging.events.operations.StyledTextBuildOperationPro
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@UsedByScanPlugin
+@SuppressWarnings("deprecation")
 public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails {
     public static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
 
@@ -88,7 +87,6 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
         return getLogLevel().toLoggingEventLevel();
     }
 
-    @UsedByScanPlugin
     public static class Span implements StyledTextBuildOperationProgressDetails.Span {
         private final String text;
         private final StyledTextOutput.Style style;
