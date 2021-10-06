@@ -1,0 +1,28 @@
+name: CI Build
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+
+
+jobs:
+    build:
+        name: "Build Gradle Build Tool"
+        runs-on: ubuntu-20.04
+        steps:
+            -   name: git clone
+                uses: actions/checkout@v2
+            -   name: setup java
+                uses: actions/setup-java@v2
+                with:
+                    distribution: temurin
+                    java-version: 11
+            -   name: assemble
+                uses: gradle/gradle-build-action@v2
+                env:
+                  # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+                  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+                with:
+                    arguments: compileAll
