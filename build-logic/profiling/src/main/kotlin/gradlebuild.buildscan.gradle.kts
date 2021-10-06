@@ -233,7 +233,8 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
 
 fun Project.extractAllReportsFromCI() {
     val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-    val basePath = "${System.getenv("BUILD_SERVER_URL")}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id/.teamcity/gradle-logs"
+    val buildServerUrl = System.getenv("BUILD_SERVER_URL") ?: return
+    val basePath = "${buildServerUrl}/repository/download/${System.getenv("BUILD_TYPE_ID")}/${System.getenv("BUILD_ID")}:id/.teamcity/gradle-logs"
 
     gradle.taskGraph.afterTask {
         if (state.failure != null && this is Reporting<*>) {
