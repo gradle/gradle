@@ -120,6 +120,11 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         lockDetails.locks.add(resourceLock);
     }
 
+    public boolean holdsLock() {
+        ThreadLockDetails details = detailsForCurrentThread();
+        return !details.locks.isEmpty();
+    }
+
     private ThreadLockDetails detailsForCurrentThread() {
         long id = Thread.currentThread().getId();
         ThreadLockDetails lockDetails = threadLocks.get(id);

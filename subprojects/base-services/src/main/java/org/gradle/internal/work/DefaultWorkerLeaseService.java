@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -101,7 +102,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
-    public void withSharedLease(WorkerLease sharedLease, Runnable action) {
+    public boolean isWorkerThread() {
+        return workerLeaseLockRegistry.holdsLock();
+    }
+
+    @Override
+    public <T> T runAsWorkerThread(WorkerLease lease, Factory<T> action) {
+        return withLocks(Collections.singletonList(lease), action);
+    }
+
+    @Override
+    public void runAsLightWeightWorker(WorkerLease sharedLease, Runnable action) {
         workerLeaseLockRegistry.associateResourceLock(sharedLease);
         try {
             action.run();

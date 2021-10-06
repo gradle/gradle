@@ -37,6 +37,7 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerThreadRegistry;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ class DefaultBuildController implements BuildController, Stoppable {
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
     private final WorkerLeaseRegistry.WorkerLease parentLease;
-    private final WorkerLeaseService workerLeaseService;
+    private final WorkerThreadRegistry workerThreadRegistry;
     private final ProjectStateRegistry projectStateRegistry;
 
     private State state = State.DiscoveringTasks;
@@ -72,7 +73,7 @@ class DefaultBuildController implements BuildController, Stoppable {
     public DefaultBuildController(BuildState build, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.projectStateRegistry = projectStateRegistry;
         this.parentLease = workerLeaseService.getCurrentWorkerLease();
-        this.workerLeaseService = workerLeaseService;
+        this.workerThreadRegistry = workerLeaseService;
         this.workGraph = build.getWorkGraph().newWorkGraph();
     }
 
@@ -207,7 +208,7 @@ class DefaultBuildController implements BuildController, Stoppable {
 
     private void doRun() {
         try {
-            workerLeaseService.withSharedLease(parentLease, this::doBuild);
+            workerThreadRegistry.runAsLightWeightWorker(parentLease, this::doBuild);
         } catch (Throwable t) {
             executionFailed(t);
         } finally {

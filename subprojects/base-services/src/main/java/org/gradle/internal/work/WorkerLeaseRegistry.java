@@ -38,15 +38,6 @@ public interface WorkerLeaseRegistry {
      */
     WorkerLease getWorkerLease();
 
-    /**
-     * For the given action, update the worker lease registry to associate the current thread with the worker lease.
-     * Note that this does not actually reserve the worker lease.
-     *
-     * @param sharedLease Lease to associate as shared
-     * @param action action to execute
-     */
-    void withSharedLease(WorkerLease sharedLease, Runnable action);
-
     interface WorkerLease extends ResourceLock {
         /**
          * Creates a child lease of the current worker lease, but does not acquire the lease.  For use with {@link org.gradle.internal.resources.ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)}

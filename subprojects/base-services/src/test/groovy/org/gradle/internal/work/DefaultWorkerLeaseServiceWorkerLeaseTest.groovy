@@ -16,6 +16,7 @@
 
 package org.gradle.internal.work
 
+import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
@@ -161,6 +162,41 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
+    def "can run as worker thread"() {
+        def registry = workerLeaseService(1)
+        def action = Mock(Factory)
+
+        given:
+        assert !registry.workerThread
+
+        when:
+        registry.currentWorkerLease
+
+        then:
+        thrown(NoAvailableWorkerLeaseException)
+
+        when:
+        def lease = registry.getWorkerLease()
+        registry.runAsWorkerThread(lease, action)
+
+        then:
+        1 * action.create() >> {
+            assert registry.workerThread
+            assert registry.currentWorkerLease == lease
+        }
+
+        and:
+        !registry.workerThread
+
+        when:
+        registry.currentWorkerLease
+
+        then:
+        thrown(NoAvailableWorkerLeaseException)
+
+        cleanup:
+        registry?.stop()
+    }
 
     def "action with shared lease borrows parent lease"() {
         def registry = workerLeaseService(1)
@@ -171,12 +207,15 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
                 def cl = registry.getWorkerLease().start()
                 def op = registry.currentWorkerLease
                 start {
-                    registry.withSharedLease(op) {
+                    assert !registry.isWorkerThread()
+                    registry.runAsLightWeightWorker(op) {
                         assert registry.currentWorkerLease == op
+                        assert registry.isWorkerThread()
                         def child = registry.currentWorkerLease.startChild()
                         child.leaseFinish()
                         instant.child1Finished
                     }
+                    assert !registry.isWorkerThread()
                 }
                 thread.blockUntil.child1Finished
                 cl.leaseFinish()
@@ -196,7 +235,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
                 def cl = registry.getWorkerLease().start()
                 def op = registry.currentWorkerLease
                 start {
-                    registry.withSharedLease(op) {
+                    registry.runAsLightWeightWorker(op) {
                         assert registry.currentWorkerLease == op
                         def child = registry.currentWorkerLease.startChild()
                         instant.child1Started
@@ -206,7 +245,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
                     }
                 }
                 start {
-                    registry.withSharedLease(op) {
+                    registry.runAsLightWeightWorker(op) {
                         assert registry.currentWorkerLease == op
                         thread.blockUntil.child1Started
                         def child = registry.currentWorkerLease.startChild()

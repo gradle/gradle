@@ -21,7 +21,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
@@ -197,7 +196,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // the parent lease is released.
             completeOperations(
                 // Run while holding worker lease.
-                workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), () -> {
+                workerLeases.runAsWorkerThread(parentWorkerLease.createChild(), () -> {
                     if (allowAccessToProjectState) {
                         return doRunBatch(firstOperation);
                     } else {

@@ -54,8 +54,18 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void withSharedLease(WorkerLeaseRegistry.WorkerLease sharedLease, Runnable action) {
+    def <T> T runAsWorkerThread(WorkerLease lease, Factory<T> action) {
+        return action.create()
+    }
+
+    @Override
+    void runAsLightWeightWorker(WorkerLease sharedLease, Runnable action) {
         action.run()
+    }
+
+    @Override
+    boolean isWorkerThread() {
+        return true
     }
 
     @Override
