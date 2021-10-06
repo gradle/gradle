@@ -19,11 +19,10 @@ package org.gradle.integtests.resolve.http
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+
     @Rule HttpServer backingServer = new HttpServer()
 
     abstract String getFrontServerBaseUrl();

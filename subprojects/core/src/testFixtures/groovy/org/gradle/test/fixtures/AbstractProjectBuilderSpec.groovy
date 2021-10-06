@@ -33,7 +33,6 @@ import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -57,8 +56,6 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     // @CleanupTestDirectory annotation.
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-
-    @Rule SetSystemProperties systemProperties
 
     ProjectInternal project
     ProjectExecutionServices executionServices

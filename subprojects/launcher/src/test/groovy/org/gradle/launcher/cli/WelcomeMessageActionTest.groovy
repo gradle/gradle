@@ -24,7 +24,6 @@ import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,8 +34,7 @@ import static org.gradle.launcher.cli.DefaultCommandLineActionFactory.WELCOME_ME
 @RestoreSystemProperties
 class WelcomeMessageActionTest extends Specification {
 
-    @Rule
-    public final SetSystemProperties sysProperties = new SetSystemProperties()
+
 
     @TempDir
     public File temporaryFolder

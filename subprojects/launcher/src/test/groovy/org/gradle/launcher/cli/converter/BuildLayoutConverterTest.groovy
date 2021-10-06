@@ -21,14 +21,12 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.launcher.configuration.BuildLayoutResult
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 @RestoreSystemProperties
 class BuildLayoutConverterTest extends Specification {
-    @Rule
-    SetSystemProperties systemProperties = new SetSystemProperties()
+
 
     def "can specify project directory using command-line argument"() {
         when:

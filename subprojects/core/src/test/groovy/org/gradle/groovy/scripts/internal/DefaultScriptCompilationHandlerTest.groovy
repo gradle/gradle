@@ -52,7 +52,6 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -92,8 +91,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     private ImportsReader importsReader
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule
-    public SetSystemProperties systemProperties = new SetSystemProperties()
+
 
     def setup() {
         File testProjectDir = tmpDir.createDir("projectDir")

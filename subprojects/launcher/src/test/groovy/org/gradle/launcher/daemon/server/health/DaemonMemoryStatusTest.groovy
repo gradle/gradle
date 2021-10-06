@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server.health
 
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -26,8 +25,7 @@ import spock.lang.Unroll
 
 @RestoreSystemProperties
 class DaemonMemoryStatusTest extends Specification {
-    @Rule
-    SetSystemProperties props = new SetSystemProperties()
+
 
     def stats = Mock(DaemonHealthStats)
     DaemonMemoryStatus create(int heapUsageThreshold, double heapRateThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {

@@ -23,7 +23,6 @@ import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -33,8 +32,7 @@ import java.nio.charset.Charset
 class BuildProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule
-    final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
+
 
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)

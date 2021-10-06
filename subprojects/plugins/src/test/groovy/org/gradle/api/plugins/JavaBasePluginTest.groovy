@@ -36,7 +36,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -48,8 +47,7 @@ import static org.gradle.util.internal.WrapUtil.toLinkedSet
 
 @RestoreSystemProperties
 class JavaBasePluginTest extends AbstractProjectBuilderSpec {
-    @Rule
-    public SetSystemProperties sysProperties = new SetSystemProperties()
+
 
     def "applies base plugins and adds convention and extensions"() {
         when:

@@ -39,7 +39,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Retry
@@ -71,8 +70,7 @@ abstract class ToolingApiSpecification extends Specification {
      */
     public static final List NORMALIZED_BUILD_JVM_OPTS = ["-Dfile.encoding=UTF-8", "-Duser.country=US", "-Duser.language=en", "-Duser.variant"]
 
-    @Rule
-    public final SetSystemProperties sysProperties = new SetSystemProperties()
+
 
     GradleConnectionException caughtGradleConnectionException
     TestOutputStream stderr = new TestOutputStream()

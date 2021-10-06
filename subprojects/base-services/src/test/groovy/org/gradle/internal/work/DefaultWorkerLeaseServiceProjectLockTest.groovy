@@ -25,7 +25,6 @@ import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
@@ -38,8 +37,7 @@ import static org.gradle.util.Path.path
 
 @RestoreSystemProperties
 class DefaultWorkerLeaseServiceProjectLockTest extends ConcurrentSpec {
-    @Rule
-    SetSystemProperties properties = new SetSystemProperties()
+
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, parallel())
 

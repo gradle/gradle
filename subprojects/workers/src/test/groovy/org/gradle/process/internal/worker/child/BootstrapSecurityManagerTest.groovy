@@ -17,14 +17,12 @@
 package org.gradle.process.internal.worker.child
 
 import org.gradle.internal.stream.EncodedStream
-import org.gradle.util.internal.RedirectStdIn
 import org.gradle.util.Requires
-import spock.util.environment.RestoreSystemProperties
-import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.RedirectStdIn
 import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 import java.security.AllPermission
 import java.security.Permission
@@ -33,7 +31,6 @@ import java.security.Permission
 @RestoreSystemProperties
 @RestoreSystemProperties
 class BootstrapSecurityManagerTest extends Specification {
-    @Rule SetSystemProperties systemProperties
     @Rule RedirectStdIn stdIn
 
     def cleanup() {

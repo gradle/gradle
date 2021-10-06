@@ -33,7 +33,6 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,8 +45,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    @Rule
-    SetSystemProperties systemProperties = new SetSystemProperties()
+
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler()
     final Clock clock = Mock(Clock)

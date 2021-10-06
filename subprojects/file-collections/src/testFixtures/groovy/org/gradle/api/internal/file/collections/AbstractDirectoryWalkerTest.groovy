@@ -23,7 +23,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -37,9 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger
 abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-
-    @Rule
-    SetSystemProperties setSystemPropertiesRule
 
     protected abstract List<T> getWalkers()
 

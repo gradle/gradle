@@ -17,16 +17,13 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.api.logging.Logger
-import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
 class HealthLoggerTest extends Specification {
 
-    @Rule SetSystemProperties props = new SetSystemProperties()
     @Subject healthLogger = new HealthLogger()
     def stats = Mock(DaemonHealthStats)
     def logger = Mock(Logger)

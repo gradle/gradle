@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -38,8 +37,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
-    @Rule
-    public final SetSystemProperties systemProperties = new SetSystemProperties()
+
 
     @Rule
     public final HttpServer server = new HttpServer()

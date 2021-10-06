@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.GradleVersion
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,8 +31,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     public static final BuildOperationParameters BUILD_OPERATION_PARAMETERS = new BuildOperationParameters(GradleVersion.version('2.4'), false)
 
-    @Rule
-    SetSystemProperties sysProp = new SetSystemProperties()
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     GradleExecutor gradleExecutor = Mock(GradleExecutor)

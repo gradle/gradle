@@ -27,11 +27,10 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 public class TestWorkerTest extends ConcurrentSpec {
-    @Rule SetSystemProperties properties = new SetSystemProperties()
+
     def workerContext = Mock(WorkerProcessContext)
     def connection = Mock(ObjectConnection)
     def factory = Mock(WorkerTestClassProcessorFactory)

@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Matchers
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -30,8 +29,7 @@ import spock.lang.Specification
 class JvmTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule
-    SetSystemProperties sysProp = new SetSystemProperties()
+
     OperatingSystem os = Mock() {
         getExecutableName(_) >> { String name ->
             return "${name}.exe"

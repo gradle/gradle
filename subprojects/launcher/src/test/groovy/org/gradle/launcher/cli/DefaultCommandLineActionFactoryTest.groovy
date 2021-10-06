@@ -35,7 +35,6 @@ import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.RedirectStdOutAndErr
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
 import org.junit.Rule
 import spock.lang.Specification
@@ -44,8 +43,7 @@ import spock.lang.Specification
 class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
-    @Rule
-    public final SetSystemProperties sysProperties = new SetSystemProperties();
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final ExecutionListener executionListener = Mock()

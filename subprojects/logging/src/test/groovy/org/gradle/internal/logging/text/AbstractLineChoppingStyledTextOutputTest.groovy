@@ -17,7 +17,6 @@ package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -33,7 +32,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         ["*nix", NIX_EOL],
         ["Windows", WINDOWS_EOL]
     ]
-    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
+
     final StringBuilder result = new StringBuilder()
 
     def "appends text to current line"() {

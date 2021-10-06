@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 

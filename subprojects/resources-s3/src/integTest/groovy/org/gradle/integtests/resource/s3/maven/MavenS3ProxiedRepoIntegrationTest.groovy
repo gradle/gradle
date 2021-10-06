@@ -21,7 +21,6 @@ import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 @RestoreSystemProperties
@@ -29,8 +28,7 @@ class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTe
 
     @Rule
     TestProxyServer proxyServer = new TestProxyServer()
-    @Rule
-    SetSystemProperties systemProperties = new SetSystemProperties()
+
 
     final String artifactVersion = "1.85"
     MavenS3Module module

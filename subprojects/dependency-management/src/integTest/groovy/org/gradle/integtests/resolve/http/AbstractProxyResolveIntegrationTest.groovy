@@ -20,13 +20,12 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.TestProxyServer
-import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+
     protected TestProxyServer testProxyServer
     def MavenHttpModule module
 

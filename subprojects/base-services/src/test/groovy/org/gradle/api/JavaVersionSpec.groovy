@@ -17,7 +17,6 @@ package org.gradle.api
 
 
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -27,8 +26,6 @@ class JavaVersionSpec extends Specification {
     private static final BigInteger TOO_BIG = (BigInteger.valueOf(Integer.MAX_VALUE)).add(BigInteger.ONE)
     private static final String TOO_BIG_STR = TOO_BIG.toString()
 
-    @Rule
-    SetSystemProperties sysProp = new SetSystemProperties()
 
     def setup() {
         JavaVersion.resetCurrent()

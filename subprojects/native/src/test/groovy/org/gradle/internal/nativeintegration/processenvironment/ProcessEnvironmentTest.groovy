@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import spock.util.environment.RestoreSystemProperties
-import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,7 +27,7 @@ import spock.lang.Specification
 @RestoreSystemProperties
 class ProcessEnvironmentTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
+
     final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
 
     def "can set and remove environment variable"() {
