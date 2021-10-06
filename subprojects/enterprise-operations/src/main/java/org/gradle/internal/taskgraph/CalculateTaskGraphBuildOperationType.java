@@ -52,7 +52,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
      * @since 6.2
      *
      * */
-    @UsedByScanPlugin
     public interface PlannedTask {
 
         TaskIdentity getTask();
@@ -67,7 +66,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     }
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
@@ -79,7 +77,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         String getBuildPath();
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         /**
