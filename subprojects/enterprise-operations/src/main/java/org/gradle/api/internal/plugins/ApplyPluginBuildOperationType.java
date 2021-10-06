@@ -17,7 +17,6 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +27,6 @@ import javax.annotation.Nullable;
  */
 public final class ApplyPluginBuildOperationType implements BuildOperationType<ApplyPluginBuildOperationType.Details, ApplyPluginBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
