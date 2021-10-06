@@ -123,6 +123,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements Progre
 
     @Override
     public LogEventLevel getLevel() {
-        return getLogLevel().toLoggingEventLevel();
+        return LogLevelConverter.convert(getLogLevel());
     }
 }

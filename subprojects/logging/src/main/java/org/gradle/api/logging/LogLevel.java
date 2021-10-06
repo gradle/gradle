@@ -15,26 +15,14 @@
  */
 package org.gradle.api.logging;
 
-import org.gradle.internal.operations.logging.LogEventLevel;
-
 /**
  * The log levels supported by Gradle.
  */
 public enum LogLevel {
-    DEBUG(LogEventLevel.DEBUG),
-    INFO(LogEventLevel.INFO),
-    LIFECYCLE(LogEventLevel.LIFECYCLE),
-    WARN(LogEventLevel.WARN),
-    QUIET(LogEventLevel.QUIET),
-    ERROR(LogEventLevel.ERROR);
-
-    private final LogEventLevel logEventLevel;
-
-    LogLevel(LogEventLevel logEventLevel) {
-        this.logEventLevel = logEventLevel;
-    }
-
-    public LogEventLevel toLoggingEventLevel() {
-        return logEventLevel;
-    }
+    DEBUG,
+    INFO,
+    LIFECYCLE,
+    WARN,
+    QUIET,
+    ERROR
 }

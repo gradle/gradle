@@ -66,7 +66,7 @@ public class LogEvent extends RenderableOutputEvent implements LogEventBuildOper
 
     @Override
     public LogEventLevel getLevel() {
-        return getLogLevel().toLoggingEventLevel();
+        return LogLevelConverter.convert(getLogLevel());
     }
 
     @Override

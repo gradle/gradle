@@ -84,7 +84,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements Styl
 
     @Override
     public LogEventLevel getLevel() {
-        return getLogLevel().toLoggingEventLevel();
+        return LogLevelConverter.convert(getLogLevel());
     }
 
     public static class Span implements StyledTextBuildOperationProgressDetails.Span {
