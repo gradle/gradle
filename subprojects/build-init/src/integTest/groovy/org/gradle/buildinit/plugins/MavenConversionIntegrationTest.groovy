@@ -37,6 +37,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
+    // TODO replace this with RestoreSystemProperties spock annotation
     @Rule
     public final SetSystemProperties systemProperties = new SetSystemProperties()
 

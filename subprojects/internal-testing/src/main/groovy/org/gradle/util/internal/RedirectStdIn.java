@@ -33,6 +33,9 @@ import java.io.PipedOutputStream;
  * Provides a pipe for providing input to System.in in the tests
  */
 public class RedirectStdIn implements TestRule {
+
+    // TODO
+
     private PipedInputStream emulatedSystemIn = new PipedInputStream();
     private PipedOutputStream stdinPipe;
 

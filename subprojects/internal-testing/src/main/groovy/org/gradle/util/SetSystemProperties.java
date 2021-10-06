@@ -28,6 +28,9 @@ import java.util.Properties;
  * A JUnit rule which restores system properties at the end of the test.
  */
 public class SetSystemProperties implements TestRule {
+
+    // TODO
+
     private final Properties properties;
     private final Map<String, Object> customProperties = new HashMap<String, Object>();
     private static final String[] IMMUTABLE_SYSTEM_PROPERTIES = new String[] {"java.io.tmpdir"};

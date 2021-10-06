@@ -20,6 +20,9 @@ import org.junit.runners.model.Statement
 import org.junit.runner.Description
 
 class PreconditionVerifier implements TestRule {
+
+    // TODO
+
     Statement apply(Statement base, Description description) {
         def preconditions = description.annotations.findAll { it instanceof Requires }*.value().flatten()
         preconditions.every { it.fulfilled } ? base : EmptyStatement.INSTANCE
