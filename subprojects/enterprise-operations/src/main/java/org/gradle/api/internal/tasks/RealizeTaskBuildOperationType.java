@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Represents a creation request for a task. Actual task may be realized later.
@@ -26,7 +25,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  */
 public final class RealizeTaskBuildOperationType implements BuildOperationType<RealizeTaskBuildOperationType.Details, RealizeTaskBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
         String getBuildPath();
 
@@ -42,7 +40,6 @@ public final class RealizeTaskBuildOperationType implements BuildOperationType<R
         boolean isEager();
     }
 
-    @UsedByScanPlugin
     public interface Result {
     }
 
