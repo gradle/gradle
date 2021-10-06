@@ -46,6 +46,7 @@ dependencies {
 
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":model-core"))
