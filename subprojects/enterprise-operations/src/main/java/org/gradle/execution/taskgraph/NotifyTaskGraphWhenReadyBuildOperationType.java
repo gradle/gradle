@@ -17,8 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.util.Path;
 
 /**
  * Execution of a build's taskgraph.whenReady hooks
@@ -27,7 +25,6 @@ import org.gradle.util.Path;
  */
 public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperationType<NotifyTaskGraphWhenReadyBuildOperationType.Details, NotifyTaskGraphWhenReadyBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         String getBuildPath();
@@ -35,21 +32,6 @@ public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperatio
     }
 
     public interface Result {
-
-    }
-
-    static class DetailsImpl implements NotifyTaskGraphWhenReadyBuildOperationType.Details {
-
-        private final Path buildPath;
-
-        DetailsImpl(Path buildPath) {
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
 
     }
 
