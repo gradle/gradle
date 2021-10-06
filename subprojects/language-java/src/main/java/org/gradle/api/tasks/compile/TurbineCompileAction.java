@@ -16,35 +16,36 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableList;
-import com.google.turbine.options.LanguageVersion;
-import com.google.turbine.options.TurbineOptions;
 import org.gradle.workers.WorkAction;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class TurbineCompileAction implements WorkAction<TurbineWorkParameters> {
     @Override
     public void execute() {
         TurbineWorkParameters parameters = getParameters();
-//        for (File line : ClasspathUtil.getClasspath(Thread.currentThread().getContextClassLoader()).getAsFiles()) {
-//            System.out.println(line);
-//        }
 
+        List<String> options = new ArrayList<>();
+        options.add("--javacopts");
+        options.add("--release"); options.add("8");
+        options.add("--");
+        options.add("--classpath");
+        options.addAll(parameters.getClasspath().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList()));
 
+        options.add("--output");
+        options.add(parameters.getOutput().get().getAsFile().getAbsolutePath());
 
-        TurbineOptions options = TurbineOptions.builder()
-            .setLanguageVersion(LanguageVersion.fromJavacopts(ImmutableList.of("--release", "8")))
-            .setClassPath(ImmutableList.copyOf(parameters.getClasspath().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList())))
-            .setSources(ImmutableList.copyOf(parameters.getSources().getAsFileTree().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList())))
-            .setOutput(parameters.getOutput().get().getAsFile().getAbsolutePath())
-            .build();
-
+        options.add("--sources");
+        options.addAll(parameters.getSources().getAsFileTree().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList()));
         try {
-            com.google.turbine.main.Main.compile(options);
-        } catch (IOException e) {
+            Class<?> turbineMain = Thread.currentThread().getContextClassLoader().loadClass("com.google.turbine.main.Main");
+            Method main = turbineMain.getMethod("compile", String[].class);
+            main.invoke(null, (Object) options.toArray(new String[0]));
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }

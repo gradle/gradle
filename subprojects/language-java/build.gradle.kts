@@ -42,7 +42,7 @@ dependencies {
     implementation(libs.asmCommons)
     implementation(libs.inject)
 
-    implementation("com.google.turbine:turbine:0.1-gradle")
+    compileOnly("com.google.turbine:turbine:0.1-gradle")
 
     runtimeOnly(project(":java-compiler-plugin"))
 
