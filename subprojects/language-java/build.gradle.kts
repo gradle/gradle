@@ -2,6 +2,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+repositories {
+    maven {
+        url = uri("https://mlopatkin.bitbucket.io/m2")
+    }
+}
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -35,6 +41,8 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.inject)
+
+    compileOnly("com.google.turbine:turbine:0.1-gradle")
 
     runtimeOnly(project(":java-compiler-plugin"))
 
