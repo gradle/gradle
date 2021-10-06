@@ -17,11 +17,9 @@
 package org.gradle.internal.enterprise.test;
 
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 public interface TestTaskPropertiesService {
 
-    @UsedByScanPlugin("test-distribution")
     TestTaskProperties collectProperties(Test task);
 
 }
