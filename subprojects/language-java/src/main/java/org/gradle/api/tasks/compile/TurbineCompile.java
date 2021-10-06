@@ -36,7 +36,7 @@ public abstract class TurbineCompile extends AbstractCompile {
     @TaskAction
     public void doCompilation() {
         WorkerExecutor executor = getWorkerExecutor();
-        WorkQueue queue = executor.processIsolation(spec -> {
+        WorkQueue queue = executor.classLoaderIsolation(spec -> {
            //spec.getClasspath().from(getTurbineClasspath());
         });
 
