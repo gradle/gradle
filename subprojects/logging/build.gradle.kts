@@ -10,6 +10,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":build-option"))

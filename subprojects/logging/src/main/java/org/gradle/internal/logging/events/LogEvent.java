@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails;
+import org.gradle.internal.operations.logging.LogEventLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -60,6 +61,11 @@ public class LogEvent extends RenderableOutputEvent implements LogEventBuildOper
     @Override
     public String toString() {
         return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
+    }
+
+    @Override
+    public LogEventLevel getLevel() {
+        return getLogLevel().toLoggingEventLevel();
     }
 
     @Override
