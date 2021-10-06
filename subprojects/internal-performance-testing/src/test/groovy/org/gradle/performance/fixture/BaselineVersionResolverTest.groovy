@@ -21,18 +21,17 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.util.GradleVersion
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 import static BaselineVersionResolver.toBaselineVersions
 
+@RestoreSystemProperties
 class BaselineVersionResolverTest extends Specification {
-    @Rule
-    SetSystemProperties properties = new SetSystemProperties([(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL): 'historical-master'])
     private ReleasedVersionDistributions distributions = Mock()
 
     def setup() {
+        System.getProperties().putAll([(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL): 'historical-master']);
         _ * distributions.mostRecentRelease >> dist('6.1')
         _ * distributions.all >> ['2.14.1', '3.5.1', '4.10.2', '6.1'].collect { dist(it) }
     }

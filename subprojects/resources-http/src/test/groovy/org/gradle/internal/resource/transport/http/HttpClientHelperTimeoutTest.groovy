@@ -20,18 +20,22 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.util.environment.RestoreSystemProperties
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
+@RestoreSystemProperties
 class HttpClientHelperTimeoutTest extends Specification {
 
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties((SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500")
     @Rule HttpServer httpServer = new HttpServer()
     @Subject HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
+
+    def setup() {
+        System.getProperties().putAll([(SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500"])
+    }
 
     def "throws exception if socket timeout is reached"() {
         given:

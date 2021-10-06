@@ -18,13 +18,13 @@ package org.gradle.internal.jvm
 import org.gradle.internal.jvm.Jvm.AppleJvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 class AppleJvmTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock(OperatingSystem)
 
     def "has no tools jar"() {

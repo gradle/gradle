@@ -17,11 +17,11 @@ package org.gradle.internal
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.util.environment.RestoreSystemProperties
 
+@RestoreSystemProperties
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
-    @Rule SetSystemProperties properties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "sets a system property for the duration of a Factory operation"() {
