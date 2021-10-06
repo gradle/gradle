@@ -17,15 +17,12 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 
 /**
  * Details about a build script compilation.
  *
  * @since 4.10
  */
-@UsedByScanPlugin
 public class CompileScriptBuildOperationType implements BuildOperationType<CompileScriptBuildOperationType.Details, CompileScriptBuildOperationType.Result> {
 
     public interface Details {
