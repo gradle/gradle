@@ -18,11 +18,21 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.project.BuildScriptProcessor
+import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
+import org.gradle.configuration.project.DelayedConfigurationActions
+import org.gradle.configuration.project.LifecycleProjectEvaluator
+import org.gradle.configuration.project.PluginsProjectConfigureActions
+import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
@@ -33,18 +43,17 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
         return BuildModelControllerServices.Supplier { registration, services ->
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
-            registration.addProvider(ServicesProvider(buildDefinition, owner, parentBuild, services))
+            registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
         }
     }
 
     private
     class ServicesProvider(
         private val buildDefinition: BuildDefinition,
-        private val owner: BuildState,
         private val parentBuild: BuildState?,
         private val buildScopeServices: BuildScopeServices
     ) {
-        fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory?): GradleInternal? {
+        fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
             return instantiator.newInstance(
                 DefaultGradle::class.java,
                 parentBuild,
@@ -55,6 +64,25 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
 
         fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
             return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
+        }
+
+        fun createProjectEvaluator(
+            buildModelParameters: BuildModelParameters,
+            buildOperationExecutor: BuildOperationExecutor,
+            cachingServiceLocator: CachingServiceLocator,
+            scriptPluginFactory: ScriptPluginFactory
+        ): ProjectEvaluator {
+            val withActionsEvaluator = ConfigureActionsProjectEvaluator(
+                PluginsProjectConfigureActions.from(cachingServiceLocator),
+                BuildScriptProcessor(scriptPluginFactory),
+                DelayedConfigurationActions()
+            )
+            val evaluator = LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator)
+            return if (buildModelParameters.isIsolatedProjects) {
+                ConfigurationCacheAwareProjectEvaluator(evaluator)
+            } else {
+                evaluator
+            }
         }
     }
 }
