@@ -48,7 +48,7 @@ tasks.registerCITestDistributionLifecycleTasks()
 fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        // Do not force AdooptOpenJDK vendor for M1 Macs
+        // Do not force AdoptOpenJDK vendor for M1 Macs
         if (!OperatingSystem.current().toString().contains("aarch64")) {
             vendor.set(JvmVendorSpec.ADOPTOPENJDK)
         }
