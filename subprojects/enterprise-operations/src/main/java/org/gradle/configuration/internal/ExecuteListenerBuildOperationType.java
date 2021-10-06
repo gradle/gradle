@@ -18,7 +18,6 @@ package org.gradle.configuration.internal;
 
 import org.gradle.configuration.project.NotifyProjectBeforeEvaluatedBuildOperationType;
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Execution of a lifecycle listener/callback.
@@ -27,7 +26,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.10
  */
-@UsedByScanPlugin
 public final class ExecuteListenerBuildOperationType implements BuildOperationType<ExecuteListenerBuildOperationType.Details, ExecuteListenerBuildOperationType.Result> {
 
     public interface Details {
@@ -50,26 +48,6 @@ public final class ExecuteListenerBuildOperationType implements BuildOperationTy
     }
 
     public interface Result {
-    }
-
-    static class DetailsImpl implements Details {
-        final UserCodeApplicationId applicationId;
-        final String registrationPoint;
-
-        DetailsImpl(UserCodeApplicationId applicationId, String registrationPoint) {
-            this.applicationId = applicationId;
-            this.registrationPoint = registrationPoint;
-        }
-
-        @Override
-        public long getApplicationId() {
-            return applicationId.longValue();
-        }
-
-        @Override
-        public String getRegistrationPoint() {
-            return registrationPoint;
-        }
     }
 
     static final Result RESULT = new Result() {
