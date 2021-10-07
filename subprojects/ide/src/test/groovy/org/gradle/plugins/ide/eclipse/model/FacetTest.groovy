@@ -24,7 +24,7 @@ class FacetTest extends Specification {
 
     def canReadFromXml() {
         when:
-        Facet facet = new Facet(new XmlParser().parseText(XML_TEXT))
+        Facet facet = new Facet(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         facet == createFacet()
@@ -32,7 +32,7 @@ class FacetTest extends Specification {
 
     def canReadFixedFromXml() {
         when:
-        Facet facet = new Facet(new XmlParser().parseText(FIXED_XML_TEXT))
+        Facet facet = new Facet(new groovy.xml.XmlParser().parseText(FIXED_XML_TEXT))
 
         then:
         facet == createFixedFacet()

@@ -30,7 +30,7 @@ class SourceFolderTest extends Specification {
 
     def canReadFromXml() {
         expect:
-        new SourceFolder(new XmlParser().parseText(XML_TEXT)) == createSourceFolder()
+        new SourceFolder(new groovy.xml.XmlParser().parseText(XML_TEXT)) == createSourceFolder()
     }
 
     def canWriteToXml() {

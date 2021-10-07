@@ -36,7 +36,7 @@ class IvyDescriptor {
     Map<QName, String> extraInfo
 
     IvyDescriptor(File ivyFile) {
-        def ivy = new XmlParser().parse(ivyFile)
+        def ivy = new groovy.xml.XmlParser().parse(ivyFile)
         organisation = ivy.info[0].@organisation
         module = ivy.info[0].@module
         revision = ivy.info[0].@revision

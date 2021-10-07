@@ -50,7 +50,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
 
     @Override
     public void load(InputStream inputStream) throws Exception {
-        xml = new XmlParser().parse(inputStream);
+        xml = new groovy.xml.XmlParser().parse(inputStream);
         load(xml);
     }
 

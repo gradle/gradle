@@ -20,7 +20,7 @@ class MavenPom {
     final Map<String, MavenScope> scopes = [:]
 
     MavenPom(File pomFile) {
-        def pom = new XmlParser().parse(pomFile)
+        def pom = new groovy.xml.XmlParser().parse(pomFile)
         pom.dependencies.dependency.each { dep ->
             def scopeElement = dep.scope
             def scopeName = scopeElement ? scopeElement.text() : "runtime"

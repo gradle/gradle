@@ -28,7 +28,7 @@ class EclipseWtpFacetsFixture {
     static EclipseWtpFacetsFixture create(TestFile projectDir) {
         TestFile file = projectDir.file(".settings/org.eclipse.wst.common.project.facet.core.xml")
         file.assertIsFile()
-        return new EclipseWtpFacetsFixture(new XmlParser().parse(file))
+        return new EclipseWtpFacetsFixture(new groovy.xml.XmlParser().parse(file))
     }
 
     void assertHasFixedFacets(String... facets) {

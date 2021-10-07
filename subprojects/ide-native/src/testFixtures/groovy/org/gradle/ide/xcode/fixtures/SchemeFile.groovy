@@ -27,6 +27,6 @@ class SchemeFile {
         schemeFile.assertIsFile()
         file = schemeFile
         name = file.name.replace(".xcscheme", "")
-        schemeXml = new XmlParser().parse(file)
+        schemeXml = new groovy.xml.XmlParser().parse(file)
     }
 }

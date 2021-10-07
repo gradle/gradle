@@ -115,7 +115,7 @@ abstract class CheckstyleInvoker {
     }
 
     private static parseCheckstyleXml(CheckstyleReports reports) {
-        return reports.xml.required.get() ? new XmlParser().parse(reports.xml.outputLocation.asFile.get()) : null
+        return reports.xml.required.get() ? new groovy.xml.XmlParser().parse(reports.xml.outputLocation.asFile.get()) : null
     }
 
     private static String getMessage(CheckstyleReports reports, Node reportXml) {

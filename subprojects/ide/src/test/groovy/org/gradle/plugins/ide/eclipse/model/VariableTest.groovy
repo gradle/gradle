@@ -42,7 +42,7 @@ class VariableTest extends Specification {
 
     def canReadFromXml() {
         when:
-        Variable variable = new Variable(new XmlParser().parseText(platformXml), fileReferenceFactory)
+        Variable variable = new Variable(new groovy.xml.XmlParser().parseText(platformXml), fileReferenceFactory)
 
         then:
         variable == createVariable()

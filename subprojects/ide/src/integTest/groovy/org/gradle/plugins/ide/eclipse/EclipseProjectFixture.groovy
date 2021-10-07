@@ -31,7 +31,7 @@ class EclipseProjectFixture extends IdeProjectFixture {
     static EclipseProjectFixture create(TestFile projectDir) {
         TestFile file = projectDir.file('.project')
         file.assertIsFile()
-        new EclipseProjectFixture(new XmlParser().parse(file))
+        new EclipseProjectFixture(new groovy.xml.XmlParser().parse(file))
 
     }
 

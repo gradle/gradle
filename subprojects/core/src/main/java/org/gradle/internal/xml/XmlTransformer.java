@@ -237,7 +237,7 @@ public class XmlTransformer implements Transformer<String, String> {
         public Node asNode() {
             if (node == null) {
                 try {
-                    node = new XmlParser().parseText(toString());
+                    node = new groovy.xml.XmlParser().parseText(toString());
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

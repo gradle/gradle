@@ -44,7 +44,7 @@ class DefaultRootMavenMetaData implements RootMavenMetaData {
         }
 
         text = file.text
-        def xml = new XmlParser().parseText(text)
+        def xml = new groovy.xml.XmlParser().parseText(text)
 
         groupId = xml.groupId[0]?.text()
         artifactId = xml.artifactId[0]?.text()

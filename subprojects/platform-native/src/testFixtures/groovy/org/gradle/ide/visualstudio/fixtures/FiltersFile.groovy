@@ -24,6 +24,6 @@ class FiltersFile {
     FiltersFile(TestFile filtersFile) {
         assert filtersFile.exists()
         this.file = filtersFile
-        this.xml = new XmlParser().parse(filtersFile)
+        this.xml = new groovy.xml.XmlParser().parse(filtersFile)
     }
 }

@@ -23,7 +23,7 @@ class OutputTest extends Specification {
 
     def canReadFromXml() {
         when:
-        Output output = new Output(new XmlParser().parseText(XML_TEXT))
+        Output output = new Output(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         output == createOutput()

@@ -26,7 +26,7 @@ class CUnitTestResults {
     CUnitTestResults(TestFile testResultsFile) {
         assert testResultsFile.exists()
         this.testResultsFile = testResultsFile
-        final XmlParser parser = new XmlParser(false, false)
+        final XmlParser parser = new groovy.xml.XmlParser(false, false)
         parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         parser.setFeature("http://xml.org/sax/features/namespaces", false)
         parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)

@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
 import static org.hamcrest.CoreMatchers.*
-import static org.hamcrest.MatcherAssert.assertThat
 
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir

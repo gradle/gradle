@@ -27,7 +27,7 @@ class WorkspaceFile {
         workspaceFile.assertIsFile()
         file = workspaceFile
         name = file.name.replace(".xcworkspacedata", "")
-        contentXml = new XmlParser().parse(file)
+        contentXml = new groovy.xml.XmlParser().parse(file)
     }
 
     void assertHasProjects(String... paths) {

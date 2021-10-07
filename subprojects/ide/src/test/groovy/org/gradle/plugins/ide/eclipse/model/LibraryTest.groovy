@@ -42,7 +42,7 @@ class LibraryTest extends Specification {
 
     def canReadFromXml() {
         when:
-        Library library = new Library(new XmlParser().parseText(platformXml), fileReferenceFactory)
+        Library library = new Library(new groovy.xml.XmlParser().parseText(platformXml), fileReferenceFactory)
 
         then:
         library == createLibrary()

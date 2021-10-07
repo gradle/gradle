@@ -60,7 +60,7 @@ public class AntBuilderDelegate extends BuilderSupport {
         } else if (argNames.equals(Collections.singleton("resource"))) {
             InputStream instr = antlibClassLoader.getResourceAsStream(args.get("resource"));
             try {
-                Node xml = new XmlParser().parse(instr);
+                Node xml = new groovy.xml.XmlParser().parse(instr);
                 for (Object taskdefObject : (NodeList) xml.get("taskdef")) {
                     Node taskdef = (Node) taskdefObject;
                     String name = (String) taskdef.get("@name");

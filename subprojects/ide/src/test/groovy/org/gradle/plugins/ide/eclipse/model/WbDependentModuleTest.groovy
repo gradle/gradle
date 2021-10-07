@@ -26,7 +26,7 @@ class WbDependentModuleTest extends Specification {
 
     def canReadFromXml() {
         when:
-        WbDependentModule wbDependentModule = new WbDependentModule(new XmlParser().parseText(XML_TEXT))
+        WbDependentModule wbDependentModule = new WbDependentModule(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         wbDependentModule == createWbDependentModule()

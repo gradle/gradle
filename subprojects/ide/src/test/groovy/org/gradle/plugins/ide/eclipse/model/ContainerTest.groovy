@@ -31,7 +31,7 @@ class ContainerTest extends Specification {
 
     def canReadFromXml() {
         when:
-        Container container = new Container(new XmlParser().parseText(XML_TEXT))
+        Container container = new Container(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         container == createContainer()

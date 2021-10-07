@@ -113,7 +113,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String getUniqueSnapshotVersion() {
         assert uniqueSnapshots && version.endsWith('-SNAPSHOT')
         if (metaDataFile.isFile()) {
-            def metaData = new XmlParser().parse(metaDataFile.assertIsFile())
+            def metaData = new groovy.xml.XmlParser().parse(metaDataFile.assertIsFile())
             def timestamp = metaData.versioning.snapshot.timestamp[0].text().trim()
             def build = metaData.versioning.snapshot.buildNumber[0].text().trim()
             return "${timestamp}-${build}"
@@ -683,7 +683,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     private void updateRootMavenMetaData(TestFile rootMavenMetaData) {
-        def allVersions = rootMavenMetaData.exists() ? new XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
+        def allVersions = rootMavenMetaData.exists() ? new groovy.xml.XmlParser().parseText(rootMavenMetaData.text).versioning.versions.version*.value().flatten() : []
         allVersions << version
         publish(rootMavenMetaData) { Writer writer ->
             def builder = new MarkupBuilder(writer)

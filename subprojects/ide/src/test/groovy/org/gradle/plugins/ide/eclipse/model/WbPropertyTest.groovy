@@ -23,7 +23,7 @@ class WbPropertyTest extends Specification {
 
     def canReadFromXml() {
         when:
-        WbProperty wbProperty = new WbProperty(new XmlParser().parseText(XML_TEXT))
+        WbProperty wbProperty = new WbProperty(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         wbProperty == createWbProperty()

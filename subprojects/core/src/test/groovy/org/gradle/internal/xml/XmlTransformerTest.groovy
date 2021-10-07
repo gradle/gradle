@@ -112,7 +112,7 @@ class XmlTransformerTest extends Specification {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         StringWriter writer = new StringWriter()
-        Node node = new XmlParser().parseText('<root/>')
+        Node node = new groovy.xml.XmlParser().parseText('<root/>')
 
         when:
         transformer.transform(node, writer)
@@ -128,7 +128,7 @@ class XmlTransformerTest extends Specification {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         def outputStream = new ByteArrayOutputStream()
-        Node node = new XmlParser().parseText('<root/>')
+        Node node = new groovy.xml.XmlParser().parseText('<root/>')
 
         when:
         transformer.transform(node, outputStream)
@@ -144,7 +144,7 @@ class XmlTransformerTest extends Specification {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         File file = tmpDir.file("out.xml")
-        Node node = new XmlParser().parseText('<root/>')
+        Node node = new groovy.xml.XmlParser().parseText('<root/>')
 
         when:
         transformer.transform(node, file)

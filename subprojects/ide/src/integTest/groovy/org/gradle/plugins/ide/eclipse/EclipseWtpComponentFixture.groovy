@@ -27,7 +27,7 @@ class EclipseWtpComponentFixture {
     static EclipseWtpComponentFixture create(TestFile projectDir) {
         TestFile file = projectDir.file(".settings/org.eclipse.wst.common.component")
         file.assertIsFile()
-        new EclipseWtpComponentFixture(new XmlParser().parse(file))
+        new EclipseWtpComponentFixture(new groovy.xml.XmlParser().parse(file))
     }
 
     String getDeployName() {

@@ -23,7 +23,7 @@ class WbResourceTest extends Specification {
 
     def canReadFromXml() {
         when:
-        WbResource wbResource = new WbResource(new XmlParser().parseText(XML_TEXT))
+        WbResource wbResource = new WbResource(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         wbResource == createWbResource()

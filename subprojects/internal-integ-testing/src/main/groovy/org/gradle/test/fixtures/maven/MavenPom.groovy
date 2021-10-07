@@ -24,7 +24,7 @@ class MavenPom {
 
     MavenPom(File pomFile) {
         if (pomFile.exists()){
-            pom = new XmlParser().parse(pomFile)
+            pom = new groovy.xml.XmlParser().parse(pomFile)
 
             def scopesByDependency = ArrayListMultimap.create()
 

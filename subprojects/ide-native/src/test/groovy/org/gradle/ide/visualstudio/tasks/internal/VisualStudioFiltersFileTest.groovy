@@ -84,7 +84,7 @@ class VisualStudioFiltersFileTest extends Specification {
     }
 
     private def getFiltersXml() {
-        return new XmlParser().parse(filtersFileContent)
+        return new groovy.xml.XmlParser().parse(filtersFileContent)
     }
 
     private TestFile getFiltersFileContent() {

@@ -247,7 +247,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private static XmlParser createParser() {
         try {
-            XmlParser parser = new XmlParser(false, true, true);
+            XmlParser parser = new groovy.xml.XmlParser(false, true, true);
             try {
                 // If not set for >= JAXP 1.5 / Java8 won't allow referencing DTDs, e.g.
                 // using http URLs, because Groovy's XmlParser requests FEATURE_SECURE_PROCESSING

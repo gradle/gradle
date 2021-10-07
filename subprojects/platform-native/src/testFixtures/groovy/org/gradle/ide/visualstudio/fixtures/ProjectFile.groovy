@@ -34,7 +34,7 @@ class ProjectFile extends IdeProjectFixture {
         projectFile.assertIsFile()
         this.projectFile = projectFile
         this.name = projectFile.name.replace(".vcxproj", "")
-        this.projectXml = new XmlParser().parse(projectFile)
+        this.projectXml = new groovy.xml.XmlParser().parse(projectFile)
     }
 
     Map<String, Configuration> getProjectConfigurations() {

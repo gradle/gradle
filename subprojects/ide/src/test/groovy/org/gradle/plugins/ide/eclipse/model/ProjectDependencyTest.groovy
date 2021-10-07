@@ -31,7 +31,7 @@ class ProjectDependencyTest extends Specification {
 
     def canReadFromXml() {
         when:
-        ProjectDependency projectDependency = new ProjectDependency(new XmlParser().parseText(XML_TEXT))
+        ProjectDependency projectDependency = new ProjectDependency(new groovy.xml.XmlParser().parseText(XML_TEXT))
 
         then:
         projectDependency == createProjectDependency()

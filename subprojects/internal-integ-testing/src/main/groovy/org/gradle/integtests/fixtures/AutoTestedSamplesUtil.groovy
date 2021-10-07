@@ -20,6 +20,8 @@ import org.gradle.internal.SystemProperties
 
 import java.util.regex.Pattern
 
+import groovy.ant.AntBuilder
+
 class AutoTestedSamplesUtil {
 
     private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['"]autoTested(.*?)['"].*?>/)

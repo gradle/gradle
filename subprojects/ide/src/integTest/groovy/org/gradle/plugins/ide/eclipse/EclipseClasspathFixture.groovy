@@ -32,7 +32,7 @@ class EclipseClasspathFixture {
     static EclipseClasspathFixture create(TestFile projectDir, TestFile userHomeDir) {
         TestFile file = projectDir.file('.classpath')
         file.assertExists()
-        return new EclipseClasspathFixture(userHomeDir, new XmlParser().parse(file))
+        return new EclipseClasspathFixture(userHomeDir, new groovy.xml.XmlParser().parse(file))
     }
 
     List<Node> getEntries() {
