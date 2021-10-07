@@ -32,7 +32,11 @@ public class ToolchainMatcher implements Predicate<JavaToolchain> {
 
     @Override
     public boolean test(JavaToolchain toolchain) {
-        return languagePredicate().and(vendorPredicate()).and(implementationPredicate()).test(toolchain);
+        return languagePredicate().and(vendorPredicate()).and(implementationPredicate()).and(propertiesPredicate()).test(toolchain);
+    }
+
+    private Predicate<? super JavaToolchain> propertiesPredicate() {
+        return filter.getInstallationProperties().get();
     }
 
     private Predicate<JavaToolchain> languagePredicate() {

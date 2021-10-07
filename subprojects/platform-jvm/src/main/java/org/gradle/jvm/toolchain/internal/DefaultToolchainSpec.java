@@ -18,25 +18,31 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.JvmInstallationPropertiesSpec;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 
 public class DefaultToolchainSpec implements ToolchainSpecInternal {
 
+    private final ObjectFactory factory;
     private final Property<JavaLanguageVersion> languageVersion;
     private final Property<JvmVendorSpec> vendor;
     private final Property<JvmImplementation> implementation;
+    private final Property<JvmInstallationPropertiesSpec> installationProperties;
 
     @Inject
     public DefaultToolchainSpec(ObjectFactory factory) {
+        this.factory = factory;
         this.languageVersion = factory.property(JavaLanguageVersion.class);
         this.vendor = factory.property(JvmVendorSpec.class).convention(DefaultJvmVendorSpec.any());
         this.implementation = factory.property(JvmImplementation.class).convention(JvmImplementation.VENDOR_SPECIFIC);
+        this.installationProperties = factory.property(JvmInstallationPropertiesSpec.class);
     }
 
     @Override
@@ -52,6 +58,18 @@ public class DefaultToolchainSpec implements ToolchainSpecInternal {
     @Override
     public Property<JvmImplementation> getImplementation() {
         return implementation;
+    }
+
+    @Override
+    public Property<JvmInstallationPropertiesSpec> getInstallationProperties() {
+        return installationProperties;
+    }
+
+    @Override
+    public JvmInstallationPropertiesSpec withProperties(Action<? super JvmInstallationPropertiesSpec> action) {
+        JvmInstallationPropertiesSpec spec = factory.newInstance(JvmInstallationPropertiesSpec.class);
+        action.execute(spec);
+        return spec;
     }
 
     @Override

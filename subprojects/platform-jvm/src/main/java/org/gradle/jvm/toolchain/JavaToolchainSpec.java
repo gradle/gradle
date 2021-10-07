@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
@@ -51,5 +52,17 @@ public interface JavaToolchainSpec extends Describable {
      * @since 6.8
      */
     Property<JvmImplementation> getImplementation();
+
+    /**
+     * TODO
+     */
+    Property<JvmInstallationPropertiesSpec> getInstallationProperties();
+
+    /**
+     * /todo
+     * @param action
+     * @return
+     */
+    JvmInstallationPropertiesSpec withProperties(Action<? super JvmInstallationPropertiesSpec> action);
 
 }
