@@ -10,6 +10,7 @@
 ## Getting Started
 
 Forcing a TC rebuild here again
+and again
 
 * [Installing Gradle](https://docs.gradle.org/current/userguide/installation.html)
 * [Building Android Apps](https://developer.android.com/training/basics/firstapp/)
