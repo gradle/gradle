@@ -19,6 +19,7 @@ pluginManagement {
 }
 
 plugins {
+    id("gradlebuild.base.inspect-env-plugin")
     id("com.gradle.enterprise").version("3.7")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
