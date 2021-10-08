@@ -2,7 +2,7 @@
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://maven.springframework.org/release")
+        url = uri("https://repo.spring.io/release")
     }
     maven {
         url = uri("https://maven.restlet.com")
