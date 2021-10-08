@@ -38,7 +38,7 @@ dependencies { testCompile 'junit:junit:4.13' }
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'")
+            "testCompile 'org.junit.jupiter:junit-jupiter:5.7.1'")
     }
 
     def 'modular build.gradle should be rewritten'() {
@@ -62,7 +62,7 @@ test {
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1','org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",

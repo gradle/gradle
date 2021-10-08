@@ -58,7 +58,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testCompileOnly 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
+                testCompileOnly 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
             }
 
             test { useJUnitPlatform() }
