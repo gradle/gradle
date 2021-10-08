@@ -147,3 +147,7 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
+
+tasks.withType<GroovyCompile>() {
+    groovyOptions.isKeepStubs = true
+}
