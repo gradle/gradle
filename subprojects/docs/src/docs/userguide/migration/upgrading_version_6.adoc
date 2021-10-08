@@ -132,7 +132,6 @@ dependencies {
     testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
         exclude group: 'org.codehaus.groovy'
     }
-    testImplementation('org.junit.jupiter:junit-jupiter-api')
 }
 
 // Spock 2 is based on JUnit Platform and needs to be enabled explicitly.
