@@ -107,13 +107,18 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
     }
 
     @Override
-    public <T> T runAsWorkerThread(WorkerLease lease, Factory<T> action) {
-        return withLocks(Collections.singletonList(lease), action);
+    public <T> T runAsWorkerThread(Factory<T> action) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            // Already a worker
+            return action.create();
+        }
+        return withLocks(Collections.singletonList(getWorkerLease()), action);
     }
 
     @Override
-    public void runAsWorkerThread(WorkerLease lease, Runnable action) {
-        runAsWorkerThread(lease, Factories.<Void>toFactory(action));
+    public void runAsWorkerThread(Runnable action) {
+        runAsWorkerThread(Factories.<Void>toFactory(action));
     }
 
     @Override
@@ -319,14 +324,21 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         }
     }
 
+    @Override
+    public WorkerLeaseCompletion startWorker() {
+        DefaultWorkerLease lease = getWorkerLease();
+        coordinationService.withStateLock(lock(lease));
+        return lease;
+    }
+
     private void releaseWorkerLeaseAndWaitFor(Iterable<? extends ResourceLock> locks) {
-        WorkerLease workerLease = getCurrentWorkerLease();
+        Collection<? extends ResourceLock> workerLeases = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         List<ResourceLock> allLocks = Lists.newArrayList();
-        allLocks.add(workerLease);
+        allLocks.addAll(workerLeases);
         Iterables.addAll(allLocks, locks);
         // We free the worker lease but keep shared resource leases. We don't want to free shared resources until a task completes,
         // regardless of whether it is actually doing work just to make behavior more predictable. This might change in the future.
-        coordinationService.withStateLock(unlock(workerLease));
+        coordinationService.withStateLock(unlock(workerLeases));
         acquireLocks(allLocks);
     }
 
@@ -392,10 +404,9 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         }
     }
 
-    private class DefaultWorkerLease extends AbstractTrackedResourceLock implements LeaseHolder, WorkerLeaseCompletion, WorkerLease {
+    private class DefaultWorkerLease extends AbstractTrackedResourceLock implements WorkerLeaseCompletion, WorkerLease {
         private final LeaseHolder parent;
         private final Thread ownerThread;
-        int children;
         boolean active;
 
         public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent, Thread ownerThread) {
@@ -440,41 +451,6 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Worker lease {} completed ({} worker(s) in use)", getDisplayName(), root.leasesInUse);
             }
-            if (children != 0) {
-                throw new IllegalStateException("Some child operations have not yet completed.");
-            }
-        }
-
-        @Override
-        public boolean grantLease() {
-            if (children == 0 || root.grantLease()) {
-                children++;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public void releaseLease() {
-            children--;
-            if (children > 0) {
-                root.releaseLease();
-            }
-        }
-
-        WorkerLeaseCompletion start() {
-            coordinationService.withStateLock(lock(this));
-            return this;
-        }
-
-        @Override
-        public WorkerLease createChild() {
-            return getWorkerLease(this);
-        }
-
-        @Override
-        public WorkerLeaseCompletion startChild() {
-            return getWorkerLease(this).start();
         }
 
         @Override

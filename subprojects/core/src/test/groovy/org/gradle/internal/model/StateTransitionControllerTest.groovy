@@ -37,7 +37,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
     }
 
     def <T> T asWorker(Factory<T> action) {
-        return workerLeaseService.runAsWorkerThread(workerLeaseService.getWorkerLease(), action)
+        return workerLeaseService.runAsWorkerThread(action)
     }
 
     def "runs action for transition when in from state"() {

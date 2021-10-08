@@ -100,7 +100,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def failures = []
 
     def setup() {
-        parentWorkerLease = workerLeases.getWorkerLease().start()
+        parentWorkerLease = workerLeases.startWorker()
         _ * executorFactory.create(_) >> Mock(ManagedExecutor)
         _ * nodeExecutor.execute(_ as Node, _ as NodeExecutionContext) >> { Node node, NodeExecutionContext context ->
             if (node instanceof LocalTaskNode) {

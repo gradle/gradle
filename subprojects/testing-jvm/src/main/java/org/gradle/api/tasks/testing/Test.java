@@ -74,7 +74,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
-import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -694,7 +694,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected TestExecuter<JvmTestExecutionSpec> createTestExecuter() {
         if (testExecuter == null) {
             return new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(),
-                getServices().get(WorkerLeaseRegistry.class),
+                getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
                 getServices().get(DocumentationRegistry.class),

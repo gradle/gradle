@@ -201,7 +201,7 @@ class DefaultBuildController implements BuildController, Stoppable {
 
     private void doRun() {
         try {
-            workerLeaseService.runAsWorkerThread(workerLeaseService.getWorkerLease(), this::doBuild);
+            workerLeaseService.runAsWorkerThread(this::doBuild);
         } catch (Throwable t) {
             executionFailed(t);
         } finally {

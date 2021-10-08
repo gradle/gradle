@@ -23,24 +23,23 @@ import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 
 class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
     ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
 
-    def "operation starts immediately when there are sufficient leases available"() {
+    def "worker start run immediately when there are sufficient leases available"() {
         def registry = workerLeaseService(2)
 
         expect:
         async {
             start {
-                def cl = registry.getWorkerLease().start()
+                def cl = registry.startWorker()
                 instant.worker1
                 thread.blockUntil.worker2
                 cl.leaseFinish()
             }
             start {
-                def cl = registry.getWorkerLease().start()
+                def cl = registry.startWorker()
                 instant.worker2
                 thread.blockUntil.worker1
                 cl.leaseFinish()
@@ -51,13 +50,13 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "operation start blocks when there are no leases available"() {
+    def "worker start blocks when there are no leases available"() {
         def registry = workerLeaseService(1)
 
         when:
         async {
             start {
-                def cl = registry.getWorkerLease().start()
+                def cl = registry.startWorker()
                 instant.worker1
                 thread.block()
                 instant.worker1Finished
@@ -65,7 +64,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
             }
             start {
                 thread.blockUntil.worker1
-                def cl = registry.getWorkerLease().start()
+                def cl = registry.startWorker()
                 instant.worker2
                 cl.leaseFinish()
             }
@@ -78,98 +77,13 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "child operation starts immediately when there are sufficient leases available"() {
-        def registry = workerLeaseService(1)
-
-        expect:
-        async {
-            start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    def child = op.startChild()
-                    child.leaseFinish()
-                    instant.childFinished
-                }
-                thread.blockUntil.childFinished
-                cl.leaseFinish()
-            }
-        }
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "child operation borrows parent lease"() {
-        def registry = workerLeaseService(1)
-
-        expect:
-        async {
-            start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    def child = op.startChild()
-                    child.leaseFinish()
-                    instant.child1Finished
-                }
-                thread.blockUntil.child1Finished
-                start {
-                    def child = op.startChild()
-                    child.leaseFinish()
-                    instant.child2Finished
-                }
-                thread.blockUntil.child2Finished
-                cl.leaseFinish()
-            }
-        }
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "child operations block until lease available when there is more than one child"() {
-        def registry = workerLeaseService(1)
-
-        when:
-        async {
-            start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    def child = op.startChild()
-                    instant.child1Started
-                    thread.block()
-                    instant.child1Finished
-                    child.leaseFinish()
-                }
-                start {
-                    thread.blockUntil.child1Started
-                    def child = op.startChild()
-                    instant.child2Started
-                    child.leaseFinish()
-                    instant.child2Finished
-                }
-                thread.blockUntil.child2Finished
-                cl.leaseFinish()
-            }
-        }
-
-        then:
-        instant.child2Started > instant.child1Finished
-
-        cleanup:
-        registry?.stop()
-    }
-
     def "can run as worker thread"() {
         def registry = workerLeaseService(1)
-        def lease = registry.getWorkerLease()
 
         def action = {
             assert registry.workerThread
-            assert registry.currentWorkerLease == lease
-            def nested = registry.runAsWorkerThread(lease, {
+            def lease = registry.currentWorkerLease
+            def nested = registry.runAsWorkerThread({
                 assert registry.workerThread
                 assert registry.currentWorkerLease == lease
                 "result"
@@ -189,7 +103,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         thrown(NoAvailableWorkerLeaseException)
 
         when:
-        def result = registry.runAsWorkerThread(lease, action)
+        def result = registry.runAsWorkerThread(action)
 
         then:
         result == "result"
@@ -207,42 +121,61 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "fails when child operation completes after parent"() {
+    def "run as worker starts immediately when there are sufficient leases available"() {
         def registry = workerLeaseService(2)
 
-        when:
+        expect:
         async {
             start {
-                def cl = registry.getWorkerLease().start()
-                def op = registry.currentWorkerLease
-                start {
-                    def child = op.startChild()
-                    instant.childStarted
-                    thread.blockUntil.parentFinished
-                    child.leaseFinish()
+                registry.runAsWorkerThread {
+                    instant.worker1
+                    thread.blockUntil.worker2
                 }
-                thread.blockUntil.childStarted
-                try {
-                    cl.leaseFinish()
-                } finally {
-                    instant.parentFinished
+            }
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker2
+                    thread.blockUntil.worker1
                 }
             }
         }
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Some child operations have not yet completed.'
 
         cleanup:
         registry?.stop()
     }
 
-    def "can get operation for current thread"() {
+    def "run as worker blocks when there are no leases available"() {
+        def registry = workerLeaseService(1)
+
+        when:
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker1
+                    thread.block()
+                    instant.worker1Finished
+                }
+            }
+            start {
+                thread.blockUntil.worker1
+                registry.runAsWorkerThread {
+                    instant.worker2
+                }
+            }
+        }
+
+        then:
+        instant.worker2 > instant.worker1Finished
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "can get lease for current thread"() {
         def registry = workerLeaseService(1)
 
         given:
-        def op = registry.getWorkerLease().start()
+        def op = registry.startWorker()
 
         expect:
         registry.currentWorkerLease == op
@@ -263,45 +196,12 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         e.message == 'No worker lease associated with the current thread'
 
         when:
-        registry.getWorkerLease().start().leaseFinish()
+        registry.startWorker().leaseFinish()
         registry.currentWorkerLease
 
         then:
         e = thrown()
         e.message == 'No worker lease associated with the current thread'
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "synchronous child operation borrows parent lease"() {
-        def registry = workerLeaseService(1)
-
-        expect:
-        def outer = registry.getWorkerLease().start()
-        def inner = registry.currentWorkerLease.startChild()
-        inner.leaseFinish()
-        outer.leaseFinish()
-
-        cleanup:
-        registry?.stop()
-    }
-
-    def "fails when synchronous child operation completes after parent"() {
-        def registry = workerLeaseService(1)
-
-        when:
-        def outer = registry.getWorkerLease().start()
-        def inner = registry.currentWorkerLease.startChild()
-        try {
-            outer.leaseFinish()
-        } finally {
-            inner.leaseFinish()
-        }
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Some child operations have not yet completed.'
 
         cleanup:
         registry?.stop()
@@ -318,24 +218,62 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "can use child lease as resource lock"() {
+    def "acquire lease as resource lock blocks when there are no leases available"() {
         def registry = workerLeaseService(1)
 
         when:
-        def workerLease = registry.getWorkerLease()
-        coordinationService.withStateLock(lock(workerLease))
-        def childLease = workerLease.createChild()
-        coordinationService.withStateLock(lock(childLease))
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker1
+                    thread.block()
+                    instant.worker1Finished
+                }
+            }
+            start {
+                thread.blockUntil.worker1
+                registry.withLocks([registry.workerLease]) {
+                    instant.worker2
+                }
+            }
+        }
 
         then:
-        noExceptionThrown()
+        instant.worker2 > instant.worker1Finished
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "can release and reacquire worker lease"() {
+        def registry = workerLeaseService(1)
 
         when:
-        coordinationService.withStateLock(unlock(childLease))
-        coordinationService.withStateLock(unlock(workerLease))
+        async {
+            start {
+                registry.runAsWorkerThread {
+                    instant.worker1
+                    registry.withoutLocks([registry.currentWorkerLease]) {
+                        thread.blockUntil.worker2
+                    }
+                    instant.acquired
+                }
+            }
+            start {
+                thread.blockUntil.worker1
+                registry.runAsWorkerThread {
+                    instant.worker2
+                    thread.block()
+                    instant.worker2Finished
+                }
+            }
+        }
 
         then:
-        noExceptionThrown()
+        instant.acquired > instant.worker2Finished
+
+        cleanup:
+        registry?.stop()
     }
 
     WorkerLeaseService workerLeaseService(int maxWorkers) {

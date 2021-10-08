@@ -36,7 +36,6 @@ import static org.junit.Assert.assertTrue
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 4))
-    def parentLease = workerLeaseService.getWorkerLease()
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
     def projectFactory = Mock(IProjectFactory)
 
@@ -739,7 +738,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
     void workerThread(Closure closure) {
         start {
-            workerLeaseService.withLocks([parentLease.createChild()], closure)
+            workerLeaseService.runAsWorkerThread(closure)
         }
     }
 }

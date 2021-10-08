@@ -30,6 +30,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    WorkerLeaseCompletion startWorker() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     ResourceLock getAllProjectsLock() {
         throw new UnsupportedOperationException()
     }
@@ -59,12 +64,12 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    def <T> T runAsWorkerThread(WorkerLease lease, Factory<T> action) {
+    def <T> T runAsWorkerThread(Factory<T> action) {
         return action.create()
     }
 
     @Override
-    void runAsWorkerThread(WorkerLease lease, Runnable action) {
+    void runAsWorkerThread(Runnable action) {
         action.run()
     }
 
@@ -146,16 +151,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
     private WorkerLeaseRegistry.WorkerLease workerLease() {
         return new WorkerLeaseRegistry.WorkerLease() {
-            @Override
-            WorkerLeaseRegistry.WorkerLease createChild() {
-                return null
-            }
-
-            @Override
-            WorkerLeaseRegistry.WorkerLeaseCompletion startChild() {
-                return null
-            }
-
             @Override
             boolean isLocked() {
                 return false

@@ -33,6 +33,6 @@ public class RunAsWorkerThreadBuildActionExecutor implements BuildSessionActionE
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext context) {
-        return workerLeaseService.runAsWorkerThread(workerLeaseService.getWorkerLease(), () -> delegate.execute(action, context));
+        return workerLeaseService.runAsWorkerThread(() -> delegate.execute(action, context));
     }
 }

@@ -63,18 +63,17 @@ class DefaultBuildOperationQueueTest extends Specification {
     ResourceLockCoordinationService coordinationService
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
-    WorkerLeaseRegistry.WorkerLease lease
+    WorkerLeaseRegistry.WorkerLeaseCompletion lease
 
     void setupQueue(int threads) {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
-        lease = workerRegistry.workerLease
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(lease))
+        lease = workerRegistry.startWorker()
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
     def "cleanup"() {
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.unlock(lease))
+        lease?.leaseFinish()
         workerRegistry.stop()
     }
 
@@ -173,6 +172,7 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         given:
         setupQueue(threads)
+        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
         when:
         runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
@@ -185,7 +185,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         and:
         // release the running operations to complete
         releaseLatch.countDown()
-        operationQueue.waitForCompletion()
+        workerRegistry.runAsWorkerThread {
+            operationQueue.waitForCompletion()
+        }
 
         then:
         expectedInvocations * operationAction.run()
