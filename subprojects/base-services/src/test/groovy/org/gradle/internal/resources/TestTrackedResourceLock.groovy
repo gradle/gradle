@@ -16,25 +16,23 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Action
 
 import java.util.concurrent.atomic.AtomicBoolean
-
 
 class TestTrackedResourceLock extends AbstractTrackedResourceLock {
     final AtomicBoolean lockedState = new AtomicBoolean()
     final AtomicBoolean hasLock = new AtomicBoolean()
 
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
-        super(displayName, coordinationService, lockAction, unlockAction)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
+        super(displayName, coordinationService, owner)
     }
 
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState) {
-        this(displayName, coordinationService, lockAction, unlockAction, lockedState, false)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, boolean lockedState) {
+        this(displayName, coordinationService, owner, lockedState, false)
     }
 
-    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, boolean lockedState, boolean hasLock) {
-        super(displayName, coordinationService, lockAction, unlockAction)
+    TestTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, boolean lockedState, boolean hasLock) {
+        super(displayName, coordinationService, owner)
         this.lockedState.set(lockedState)
         if (lockedState) {
             this.hasLock.set(hasLock)

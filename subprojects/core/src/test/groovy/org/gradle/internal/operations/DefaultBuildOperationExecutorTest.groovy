@@ -18,7 +18,6 @@ package org.gradle.internal.operations
 
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -37,9 +36,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "fires events when wrap-around operation starts and finishes successfully"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def buildOperation = Mock(CallableBuildOperation)
         def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
         def details = Mock(Object)
@@ -87,16 +83,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == null
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "fires events when non-wrap-around operation starts and finishes successfully"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
         def details = Mock(Object)
         def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>").details(details)
@@ -139,16 +129,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == null
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "fires events when wrap-around operation starts and fails"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def buildOperation = Mock(RunnableBuildOperation)
         def operationDescriptionBuilder = displayName("<some-operation>").progressDisplayName("<some-op>")
         def failure = new RuntimeException()
@@ -191,16 +175,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == failure
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "fires events when non-wrap-around operation starts and fails"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def operationDescriptionBuilder = displayName("<some-operation>").progressDisplayName("<some-op>")
         def failure = new RuntimeException()
         def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
@@ -237,16 +215,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert opResult.endTime == 124L
             assert opResult.failure == failure
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "action can mark operation as failed without throwing an exception"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def buildOperation = Spy(TestRunnableBuildOperation)
         def failure = new RuntimeException()
 
@@ -261,16 +233,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.failure == failure
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "action can provide operation result"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def buildOperation = Spy(TestRunnableBuildOperation)
         def result = "SomeResult"
 
@@ -284,16 +250,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert opResult.result == result
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "action can provide progress updates as status string or items completed"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def buildOperation = Mock(RunnableBuildOperation)
         def operationDetailsBuilder = displayName("<some-operation>").name("<op>").progressDisplayName("<some-op>")
         def progressLogger = Spy(NoOpProgressLoggerFactory.Logger)
@@ -336,9 +296,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
         then:
         1 * progressLogger.completed(null, false)
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "multiple threads can run independent operations concurrently"() {
@@ -348,14 +305,12 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                GradleThread.setManaged()
                 operationExecutor.run(runnableBuildOperation("<thread-1>") {
                     instant.action1Started
                     thread.blockUntil.action2Started
                 })
             }
             thread.blockUntil.action1Started
-            GradleThread.setManaged()
             operationExecutor.run(runnableBuildOperation("<thread-2>") {
                 instant.action2Started
                 thread.blockUntil.action1Finished
@@ -388,9 +343,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "multiple threads can run child operations concurrently"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         BuildOperationRef parent
         def id1
         def id2
@@ -400,7 +352,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             parent = operationExecutor.currentOperation
             async {
                 start {
-                    GradleThread.setManaged()
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext context) {
                             instant.action1Started
@@ -413,7 +364,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                     })
                 }
                 start {
-                    GradleThread.setManaged()
                     thread.blockUntil.action1Started
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext context) {
@@ -460,9 +410,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operation.id == parent.id
             assert opResult.failure == null
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "cannot start child operation when parent has completed"() {
@@ -530,8 +477,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "can query operation id from inside operation"() {
         given:
-        GradleThread.setManaged()
-
         def parentOperation = Spy(TestRunnableBuildOperation)
         def childOperation = Spy(TestRunnableBuildOperation)
         def id
@@ -551,9 +496,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             assert operationExecutor.currentOperation.id != id
             assert operationExecutor.currentOperation.parentId == id
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "cannot query operation id when no operation running on current managed thread"() {
@@ -566,12 +508,10 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                 })
             }
             thread.blockUntil.operationRunning
-            GradleThread.setManaged()
             try {
                 operationExecutor.currentOperation.id
             } finally {
                 instant.queried
-                GradleThread.setUnmanaged()
             }
         }
 
@@ -584,7 +524,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         BuildOperationDescriptor op
         async {
-            assert !GradleThread.managed
             op = operationExecutor.currentOperation.id
         }
 
@@ -596,8 +535,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     def "can nest operations on unmanaged threads"() {
         when:
         async {
-            assert !GradleThread.managed
-
             operationExecutor.run(new RunnableBuildOperation() {
                 void run(BuildOperationContext outerContext) {
                     assert operationExecutor.currentOperation.id != null
@@ -620,9 +557,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "attaches parent id when operation is nested inside another"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def operation1 = Spy(TestRunnableBuildOperation)
         def operation2 = Spy(TestRunnableBuildOperation)
         def operation3 = Spy(TestRunnableBuildOperation)
@@ -673,9 +607,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def "attaches correct parent id when multiple threads run nested operations"() {
@@ -687,7 +618,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         when:
         async {
             start {
-                GradleThread.setManaged()
                 operationExecutor.run(runnableBuildOperation("<parent-1>") {
                     operationExecutor.run(runnableBuildOperation("<child-1>") {
                         instant.child1Started
@@ -696,7 +626,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                 })
             }
             start {
-                GradleThread.setManaged()
                 operationExecutor.run(runnableBuildOperation("<parent-2>") {
                     operationExecutor.run(runnableBuildOperation("<child-2>") {
                         instant.child2Started
@@ -737,9 +666,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
 
     def "attaches parent id when sibling operation fails"() {
         setup:
-        GradleThread.setManaged()
-
-        and:
         def operation1 = Spy(TestRunnableBuildOperation)
         def operation2 = Spy(TestRunnableBuildOperation)
         def operation3 = Spy(TestRunnableBuildOperation)
@@ -788,9 +714,6 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
         1 * listener.finished(_, _) >> { BuildOperationDescriptor operation, OperationFinishEvent opResult ->
             assert operation.id == parentId
         }
-
-        cleanup:
-        GradleThread.setUnmanaged()
     }
 
     def runnableBuildOperation(String name, Closure cl) {

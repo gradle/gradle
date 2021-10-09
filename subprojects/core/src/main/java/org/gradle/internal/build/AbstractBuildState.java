@@ -17,7 +17,6 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
@@ -93,11 +92,6 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public void ensureProjectsConfigured() {
         getBuildController().getConfiguredBuild();
-    }
-
-    @Override
-    public SettingsInternal getLoadedSettings() throws IllegalStateException {
-        return getBuildController().getLoadedSettings();
     }
 
     @Override

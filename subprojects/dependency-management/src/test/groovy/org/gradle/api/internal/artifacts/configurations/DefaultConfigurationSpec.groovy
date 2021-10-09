@@ -69,6 +69,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -1768,7 +1769,7 @@ All Artifacts:
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), TestFiles.fileCollectionFactory(), new TestBuildOperationExecutor(), instantiator,
             publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry),
-            userCodeApplicationContext, domainObjectContext, projectStateRegistry, TestUtil.domainObjectCollectionFactory(), calculatedValueContainerFactory)
+            userCodeApplicationContext, domainObjectContext, projectStateRegistry, Stub(WorkerThreadRegistry), TestUtil.domainObjectCollectionFactory(), calculatedValueContainerFactory)
     }
 
     private DefaultPublishArtifact artifact(String name) {

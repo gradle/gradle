@@ -16,10 +16,10 @@
 package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,10 +65,9 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
             projectToInformationMap = new HashMap<>();
             for (ProjectState state : projectRegistry.getAllProjects()) {
                 // try to get the name from EclipseProject.name
-                ProjectInternal project = state.getOwner().getLoadedSettings().getGradle().getRootProject().findProject(
-                    state.getComponentIdentifier().getProjectPath());
+                ProjectState project = state.getOwner().getProjects().findProject(Path.path(state.getComponentIdentifier().getProjectPath()));
                 if (project != null) {
-                    EclipseModel model = project.getExtensions().findByType(EclipseModel.class);
+                    EclipseModel model = project.getMutableModel().getExtensions().findByType(EclipseModel.class);
                     if (model != null && model.getProject().getName() != null) {
                         projectToInformationMap.put(state, new ProjectStateWrapper(model.getProject().getName(), state, state.getParent()));
                         continue;

@@ -60,6 +60,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def services = new DefaultServiceRegistry()
         services.add(Stub(BuildOutputCleanupRegistry))
         _ * gradleMock.services >> services
+        _ * gradleMock.owner >> Stub(BuildState)
     }
 
     DefaultBuildLifecycleController controller() {

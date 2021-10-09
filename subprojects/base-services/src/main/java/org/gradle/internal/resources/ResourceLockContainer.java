@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,8 @@
 
 package org.gradle.internal.resources;
 
-import org.gradle.api.GradleException;
+public interface ResourceLockContainer {
+    void lockAcquired(ResourceLock lock);
 
-/**
- * Represents an exception that is thrown to avoid a deadlock situation in the {@link ResourceLockCoordinationService}
- */
-public class ResourceDeadlockException extends GradleException {
-    public ResourceDeadlockException() {
-    }
-
-    public ResourceDeadlockException(String message) {
-        super(message);
-    }
-
-    public ResourceDeadlockException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    void lockReleased(ResourceLock lock);
 }

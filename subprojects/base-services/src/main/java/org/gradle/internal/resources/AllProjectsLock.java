@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.concurrent;
 
-public class GradleThread {
-    private static final ThreadLocal<Boolean> GRADLE_MANAGED = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return Boolean.FALSE;
-        }
-    };
+package org.gradle.internal.resources;
 
-    public static void setManaged() {
-        GRADLE_MANAGED.set(Boolean.TRUE);
+class AllProjectsLock extends ExclusiveAccessResourceLock {
+    public AllProjectsLock(String displayName, ResourceLockCoordinationService coordinationService, ProjectLockRegistry owner) {
+        super(displayName, coordinationService, owner);
     }
 
-    public static void setUnmanaged() {
-        GRADLE_MANAGED.set(Boolean.FALSE);
-    }
-
-    public static boolean isManaged() {
-        return GRADLE_MANAGED.get();
+    @Override
+    protected boolean canAcquire() {
+        // TODO - should block while some other thread holds a project lock
+        return true;
     }
 }

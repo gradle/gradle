@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 package org.gradle.internal.resources;
 
-public class ProjectLock extends ExclusiveAccessResourceLock {
-    private final ResourceLock allProjectsLock;
+public class TaskExecutionLock extends ExclusiveAccessResourceLock {
+    private final ProjectLock stateLock;
 
-    public ProjectLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, ResourceLock allProjectsLock) {
+    public TaskExecutionLock(String displayName, ProjectLock stateLock, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
         super(displayName, coordinationService, owner);
-        this.allProjectsLock = allProjectsLock;
+        this.stateLock = stateLock;
     }
 
     @Override
     protected boolean canAcquire() {
-        // Either the "all projects" lock is not held, or it is held by this thread
-        return !allProjectsLock.isLocked() || allProjectsLock.isLockedByCurrentThread();
+        return stateLock.isLockedByCurrentThread() || stateLock.tryLock();
+    }
+
+    @Override
+    protected void releaseLock() {
+        super.releaseLock();
+        stateLock.unlock();
     }
 }

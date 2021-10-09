@@ -149,7 +149,7 @@ public class ProjectBuilderImpl {
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
-                (Stoppable) workerLeaseService::releaseCurrentProjectLocks,
+                (Stoppable) workerLeaseService::runAsIsolatedTask,
                 (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
                 buildServices,
                 buildTreeState,

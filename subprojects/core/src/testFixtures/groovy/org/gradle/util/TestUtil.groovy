@@ -116,7 +116,7 @@ class TestUtil {
     }
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {
-        return new StateTransitionControllerFactory()
+        return new StateTransitionControllerFactory(new TestWorkerLeaseService())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {

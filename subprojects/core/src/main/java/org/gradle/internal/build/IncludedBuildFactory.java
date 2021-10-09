@@ -31,6 +31,6 @@ public interface IncludedBuildFactory {
      * This ensures that the required classloaders are created in the right order which is required for configuration cache
      */
     default void prepareBuild(IncludedBuildState includedBuild) {
-        includedBuild.getLoadedSettings();
+        includedBuild.ensureProjectsLoaded();
     }
 }

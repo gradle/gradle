@@ -107,4 +107,17 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * <p>Note that the lock may be shared between projects.
      */
     ResourceLock getAccessLock();
+
+    /**
+     * Returns the lock that should be acquired by non-isolated tasks from this project prior to execution.
+     *
+     * When parallel execution is enabled, this is the same as the access lock returned by {@link #getAccessLock()}. When a task reaches across project or build boundaries, this
+     * lock is released and then reacquired, allowing other tasks or work to proceed and avoiding deadlocks in cases where there are dependency cycles between projects or builds.
+     *
+     * When parallel execution is disabled, this is a single lock that is shared by all projects of a build in the tree. This lock allows both access to
+     * the project state and the right to execute as a task. When a task reaches across build boundaries, the process state lock is released but the task execution lock is not.
+     * This prevents other tasks from the same build from starting but allows tasks in other builds to access the state of this project without deadlocks in cases where
+     * there are dependency cycles between builds.
+     */
+    ResourceLock getTaskExecutionLock();
 }

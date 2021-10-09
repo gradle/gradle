@@ -16,16 +16,9 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.Project
+
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildWorkGraph
@@ -38,9 +31,8 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def buildStateRegistry = Mock(BuildStateRegistry)
-    def projectStateRegistry = new TestProjectStateRegistry()
     def workerLeaseService = new TestWorkerLeaseService()
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, projectStateRegistry, workerLeaseService)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService)
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -176,57 +168,5 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
         _ * buildStateRegistry.getBuild(id) >> build
         return build
-    }
-
-    class TestProjectStateRegistry implements ProjectStateRegistry {
-        @Override
-        Collection<? extends ProjectState> getAllProjects() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ProjectState stateFor(Project project) throws IllegalArgumentException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        void registerProjects(BuildState build, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        void withMutableStateOfAllProjects(Runnable runnable) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> T withMutableStateOfAllProjects(Factory<T> factory) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        void blocking(Runnable runnable) {
-            runnable.run()
-        }
     }
 }
