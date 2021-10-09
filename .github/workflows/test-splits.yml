@@ -58,38 +58,38 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-      - name: remove test splits
-        run: |
-          rm -rf test-splits
-          mkdir test-splits
-      - name: write include test-split
-        if: ${{ matrix.bucket.classes != null && matrix.bucket.include }}
-        run: |
-          echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
-      - name: ./gradlew quickTest
-        if: ${{ matrix.bucket.classes != null }}
-        id: gradle-1
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: ${{ matrix.bucket.subproject }}:quickTest --no-configuration-cache
-      - name: "Comment build scan url"
-        uses: actions/github-script@v3
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle-1.outputs.build-scan-url }}'
-            })
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: subprojects/**/build/**/test-results/**/*.xml
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-      GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY }}
+#      - name: remove test splits
+#        run: |
+#          rm -rf test-splits
+#          mkdir test-splits
+#      - name: write include test-split
+#        if: ${{ matrix.bucket.classes != null && matrix.bucket.include }}
+#        run: |
+#          echo '${{ toJson(fromJson(matrix.bucket.classes)) }}' | jq -r ". | .[]" > test-splits/include-test-classes.properties
+#      - name: ./gradlew quickTest
+#        if: ${{ matrix.bucket.classes != null }}
+#        id: gradle-1
+#        uses: gradle/gradle-build-action@v2
+#        with:
+#          arguments: ${{ matrix.bucket.subproject }}:quickTest --no-configuration-cache
+#      - name: "Comment build scan url"
+#        uses: actions/github-script@v3
+#        if: github.event_name == 'pull_request' && failure()
+#        with:
+#          github-token: ${{secrets.GITHUB_TOKEN}}
+#          script: |
+#            github.issues.createComment({
+#              issue_number: context.issue.number,
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle-1.outputs.build-scan-url }}'
+#            })
+#      - name: Publish Unit Test Results
+#        uses: EnricoMi/publish-unit-test-result-action@v1
+#        if: always()
+#        with:
+#          files: subprojects/**/build/**/test-results/**/*.xml
+#    env:
+#      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+#      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+#      GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_TEST_DISTRIBUTION_ACCESS_KEY }}
