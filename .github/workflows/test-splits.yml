@@ -15,7 +15,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v2
       - id: setup-matrix
-        run: echo "::set-output name=matrix::$(jq -c . .github/workflows/stage1.json)"
+        run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-matrix.jq .github/workflows/stage1.json)"
       - id: debug
         run: echo "${{ steps.setup-matrix.outputs.matrix }}"
 #      - name: setup java
@@ -45,7 +45,7 @@ jobs:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
   parallel-test:
-    name: "Test Gradle on Linux"
+    name: "Test Gradle on Linux ${{ matrix.bucket.name }}"
     runs-on: ubuntu-20.04
     needs: build
     strategy:
