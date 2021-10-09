@@ -70,7 +70,7 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  *
- * This plugin creates a built-in {@code test} test suite which represents the {@link Test} task in the Java plugin.
+ * This plugin creates a built-in {@link JvmTestSuite test suite} named {@code test} that represents the {@link Test} task for Java projects.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">JVM test suite plugin reference</a>
