@@ -12,6 +12,12 @@ to_entries | map(.key as $index | .value | has("classes") as $split | {
       .subprojects | map(. + ":quickTest") | join(" ")
     end
   ),
+  extraArgs: (if $split then
+      if .include then "-PincludeTestClasses=true" else "-PexcludeTestClasses=true" end
+    else
+      ""
+    end
+  ),
   filename: (if $split then
       if .include then "include-test-classes" else "exclude-test-classes" end
     else

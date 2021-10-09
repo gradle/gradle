@@ -67,13 +67,12 @@ jobs:
       - name: write test-split
         if: ${{ matrix.bucket.filter }}
         run: |
-          echo 'jq -r ".[${{ matrix.bucket.index }}].classes | .[]" .github/workflows/stage1.json > test-splits/${{ matrix.bucket.filename }}.properties
+          jq -r ".[${{ matrix.bucket.index }}].classes | .[]" .github/workflows/stage1.json > test-splits/${{ matrix.bucket.filename }}.properties
       - name: ./gradlew quickTest
-        if: ${{ matrix.bucket.classes != null }}
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ matrix.bucket.tasks }} --no-configuration-cache
+          arguments: ${{ matrix.bucket.tasks }} ${{ matrix.bucket.extraArgs }} --no-configuration-cache
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
