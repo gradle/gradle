@@ -11,7 +11,8 @@
 
 Forcing a TC rebuild here again
 and again
-and adain
+and again
+and again
 and again
 
 * [Installing Gradle](https://docs.gradle.org/current/userguide/installation.html)
