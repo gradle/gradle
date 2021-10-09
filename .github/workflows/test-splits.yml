@@ -16,6 +16,8 @@ jobs:
         uses: actions/checkout@v2
       - id: setup-matrix
         run: echo "::set-output name=matrix::$(jq -c . .github/workflows/stage1.json)"
+      - id: debug
+        run: echo "${{ steps.setup-matrix.outputs.matrix }}"
 #      - name: setup java
 #        uses: actions/setup-java@v2
 #        with:
