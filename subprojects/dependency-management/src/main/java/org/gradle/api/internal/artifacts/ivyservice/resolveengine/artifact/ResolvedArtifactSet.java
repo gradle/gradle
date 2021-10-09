@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -33,10 +34,13 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      */
     void visit(Visitor visitor);
 
-    /**
-     * Visits the local artifacts of this set, if known without further resolution. Ignores artifacts that are not build locally and local artifacts that cannot be determined without further resolution.
-     */
-    void visitLocalArtifacts(LocalArtifactVisitor visitor);
+    void visitTransformSources(TransformSourceVisitor visitor);
+
+    interface TransformSourceVisitor {
+        void visitArtifact(ResolvableArtifact artifact);
+
+        void visitTransform(TransformationNode source);
+    }
 
     /**
      * Visits the external artifacts of this set.
@@ -49,7 +53,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
         }
 
         @Override
-        public void visitLocalArtifacts(LocalArtifactVisitor visitor) {
+        public void visitTransformSources(TransformSourceVisitor visitor) {
         }
 
         @Override
@@ -91,9 +95,5 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
          * Visits zero or more artifacts.
          */
         void visitArtifacts(Artifacts artifacts);
-    }
-
-    interface LocalArtifactVisitor {
-        void visitArtifact(ResolvableArtifact artifact);
     }
 }

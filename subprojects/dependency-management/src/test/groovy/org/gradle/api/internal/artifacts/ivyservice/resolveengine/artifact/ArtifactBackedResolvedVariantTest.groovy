@@ -51,11 +51,11 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     def "visits local artifacts of empty variant"() {
-        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
+        def visitor = Mock(ResolvedArtifactSet.TransformSourceVisitor)
         def set1 = of([])
 
         when:
-        set1.artifacts.visitLocalArtifacts(visitor)
+        set1.artifacts.visitTransformSources(visitor)
 
         then:
         0 * _
@@ -165,12 +165,12 @@ class ArtifactBackedResolvedVariantTest extends Specification {
     }
 
     def "visits local artifacts"() {
-        def visitor = Mock(ResolvedArtifactSet.LocalArtifactVisitor)
+        def visitor = Mock(ResolvedArtifactSet.TransformSourceVisitor)
         def set1 = of([artifact1, artifact2])
         def set2 = of([artifact1])
 
         when:
-        set1.artifacts.visitLocalArtifacts(visitor)
+        set1.artifacts.visitTransformSources(visitor)
 
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
@@ -179,7 +179,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         0 * _
 
         when:
-        set2.artifacts.visitLocalArtifacts(visitor)
+        set2.artifacts.visitTransformSources(visitor)
 
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")

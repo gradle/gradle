@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,7 +31,7 @@ class MutableConsumerVariantMatchResult implements ConsumerVariantMatchResult {
         matches = Lists.newArrayListWithExpectedSize(estimateSize);
     }
 
-    public void matched(ImmutableAttributes output, Transformation transformation, int depth) {
+    public void matched(ImmutableAttributes output, TransformationStep transformationStep, @Nullable ConsumerVariant previous, int depth) {
         // Collect only the shortest paths
         if (minDepth == 0) {
             minDepth = depth;
@@ -40,7 +41,7 @@ class MutableConsumerVariantMatchResult implements ConsumerVariantMatchResult {
         } else if (depth > minDepth) {
             return;
         }
-        matches.add(new ConsumerVariant(output, transformation, depth));
+        matches.add(new ConsumerVariant(output, transformationStep, previous, depth));
     }
 
     @Override

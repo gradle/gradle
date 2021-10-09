@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
+import org.gradle.api.internal.artifacts.transform.VariantDefinition
 import org.gradle.api.internal.artifacts.transform.VariantSelector
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -197,7 +198,7 @@ class RecordingVariantSet(
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun visitLocalArtifacts(visitor: ResolvedArtifactSet.LocalArtifactVisitor) {
+    override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor) {
         throw UnsupportedOperationException("Should not be called")
     }
 
@@ -211,13 +212,12 @@ class RecordingVariantSet(
 
     override fun asTransformed(
         sourceVariant: ResolvedVariant,
-        targetAttributes: ImmutableAttributes,
-        transformation: Transformation,
+        variantDefinition: VariantDefinition,
         dependenciesResolver: ExtraExecutionGraphDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
-        this.transformation = transformation
-        this.targetAttributes = targetAttributes
+        this.transformation = variantDefinition.transformation
+        this.targetAttributes = variantDefinition.targetAttributes
         return sourceVariant.artifacts
     }
 }
@@ -228,7 +228,23 @@ sealed class MappingSpec
 
 
 private
-class TransformMapping(val targetAttributes: ImmutableAttributes, val transformation: Transformation) : MappingSpec()
+class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformation: Transformation) : MappingSpec(), VariantDefinition {
+    override fun getTargetAttributes(): ImmutableAttributes {
+        return targetAttributes
+    }
+
+    override fun getTransformation(): Transformation {
+        return transformation
+    }
+
+    override fun getTransformationStep(): TransformationStep {
+        throw UnsupportedOperationException()
+    }
+
+    override fun getSourceVariant(): VariantDefinition? {
+        throw UnsupportedOperationException()
+    }
+}
 
 
 private
@@ -257,7 +273,7 @@ class FixedVariantSelector(
                     variant.artifacts
                 }
             is IdentityMapping -> variant.artifacts
-            is TransformMapping -> factory.asTransformed(variant, spec.targetAttributes, spec.transformation, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
+            is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
         }
     }
 }
@@ -325,8 +341,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
     override fun transformedExternalArtifacts(
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
-        target: ImmutableAttributes,
-        transformation: Transformation,
+        variantDefinition: VariantDefinition,
         dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
@@ -335,8 +350,7 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
     override fun transformedProjectArtifacts(
         componentIdentifier: ComponentIdentifier,
         sourceVariant: ResolvedVariant,
-        target: ImmutableAttributes,
-        transformation: Transformation,
+        variantDefinition: VariantDefinition,
         dependenciesResolverFactory: ExtraExecutionGraphDependenciesResolverFactory
     ): ResolvedArtifactSet {
         throw UnsupportedOperationException("Should not be called")
