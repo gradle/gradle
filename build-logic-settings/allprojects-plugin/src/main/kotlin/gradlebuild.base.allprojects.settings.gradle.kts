@@ -32,3 +32,4 @@ gradle.beforeProject {
         pluginManager.apply("validate-external-gradle-plugin")
     }
 }
+println("Hello")
