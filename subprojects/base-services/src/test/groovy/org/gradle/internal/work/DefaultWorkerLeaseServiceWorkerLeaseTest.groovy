@@ -245,7 +245,25 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends ConcurrentSpec {
         registry?.stop()
     }
 
-    def "can release and reacquire worker lease"() {
+    def "can release and acquire worker lease"() {
+        def registry = workerLeaseService(1)
+
+        expect:
+        registry.runAsWorkerThread {
+            def lease = registry.currentWorkerLease
+            assert lease != null
+            registry.withoutLocks([registry.currentWorkerLease]) {
+                assert !registry.workerThread
+            }
+            assert registry.workerThread
+            assert registry.currentWorkerLease == lease
+        }
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "release and acquire worker lease blocks when there are no worker leases available"() {
         def registry = workerLeaseService(1)
 
         when:

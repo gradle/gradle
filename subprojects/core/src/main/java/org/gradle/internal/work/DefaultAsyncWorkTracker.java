@@ -89,7 +89,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                 waitForItemsAndGatherFailures(workItems);
                 return;
             case RELEASE_PROJECT_LOCKS:
-                workerLeaseService.releaseCurrentProjectLocks();
+                workerLeaseService.runAsIsolatedTask();
                 waitForItemsAndGatherFailures(workItems);
                 return;
             case RELEASE_AND_REACQUIRE_PROJECT_LOCKS:
@@ -98,7 +98,7 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
                     waitForItemsAndGatherFailures(workItems);
                     return;
                 }
-                workerLeaseService.withoutProjectLock(() -> waitForItemsAndGatherFailures(workItems));
+                workerLeaseService.runAsIsolatedTask(() -> waitForItemsAndGatherFailures(workItems));
         }
     }
 

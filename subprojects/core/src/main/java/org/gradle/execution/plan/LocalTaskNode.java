@@ -69,8 +69,8 @@ public class LocalTaskNode extends TaskNode {
         if (isolated) {
             return null;
         } else {
-            // Running the task requires access to the task's owning project
-            return ((ProjectInternal) task.getProject()).getOwner().getAccessLock();
+            // Running the task requires permission to execute against its containing project
+            return ((ProjectInternal) task.getProject()).getOwner().getTaskExecutionLock();
         }
     }
 

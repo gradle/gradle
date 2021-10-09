@@ -209,6 +209,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final BuildState owner;
         private final Path identityPath;
         private final ResourceLock projectLock;
+        private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private ProjectInternal project;
 
@@ -221,6 +222,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
+            this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
         }
 
         @Override
@@ -327,6 +329,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public ResourceLock getAccessLock() {
             return projectLock;
+        }
+
+        @Override
+        public ResourceLock getTaskExecutionLock() {
+            return taskLock;
         }
 
         @Override
@@ -456,7 +463,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
 
             // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
-            projectLeaseRegistry.withoutProjectLock(lock::lock);
+            projectLeaseRegistry.blocking(lock::lock);
         }
 
         private void assertCanMutate() {

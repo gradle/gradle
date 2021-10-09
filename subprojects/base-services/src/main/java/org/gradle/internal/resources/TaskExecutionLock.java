@@ -16,14 +16,22 @@
 
 package org.gradle.internal.resources;
 
-class AllProjectsLock extends ExclusiveAccessResourceLock {
-    public AllProjectsLock(String displayName, ResourceLockCoordinationService coordinationService, ProjectLockRegistry owner) {
+public class TaskExecutionLock extends ExclusiveAccessResourceLock {
+    private final ProjectLock stateLock;
+
+    public TaskExecutionLock(String displayName, ProjectLock stateLock, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
         super(displayName, coordinationService, owner);
+        this.stateLock = stateLock;
     }
 
     @Override
     protected boolean canAcquire() {
-        // TODO - should block while some other thread holds a project lock
-        return true;
+        return stateLock.isLockedByCurrentThread() || stateLock.tryLock();
+    }
+
+    @Override
+    protected void releaseLock() {
+        super.releaseLock();
+        stateLock.unlock();
     }
 }

@@ -30,6 +30,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
+        return null
+    }
+
+    @Override
     WorkerLeaseCompletion startWorker() {
         throw new UnsupportedOperationException()
     }
@@ -45,7 +50,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void releaseCurrentProjectLocks() {
+    void runAsIsolatedTask() {
     }
 
     @Override
@@ -94,13 +99,18 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void withoutProjectLock(Runnable runnable) {
+    void runAsIsolatedTask(Runnable runnable) {
         runnable.run()
     }
 
     @Override
-    def <T> T withoutProjectLock(Factory<T> action) {
-        return action.call()
+    void withoutProjectLock(Runnable action) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
+    def <T> T runAsIsolatedTask(Factory<T> action) {
+        return action.create()
     }
 
     @Override

@@ -21,29 +21,19 @@ import org.gradle.util.Path;
 public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
     private final boolean parallelEnabled;
     private final AllProjectsLock allProjectsLock;
-    private int lockedProjects;
 
     public ProjectLockRegistry(ResourceLockCoordinationService coordinationService, boolean parallelEnabled) {
         super(coordinationService);
         this.parallelEnabled = parallelEnabled;
-        // TODO - register this so that #hasOpenLocks() can see it
-        allProjectsLock = new AllProjectsLock("All projects", coordinationService, this);
+        this.allProjectsLock = new AllProjectsLock("All projects", coordinationService, this);
     }
 
     @Override
-    public void lockAcquired(ResourceLock resourceLock) {
-        super.lockAcquired(resourceLock);
-        lockedProjects++;
-    }
-
-    @Override
-    public void lockReleased(ResourceLock resourceLock) {
-        super.lockReleased(resourceLock);
-        lockedProjects--;
-    }
-
-    int getLockedProjects() {
-        return lockedProjects;
+    public boolean hasOpenLocks() {
+        if (super.hasOpenLocks()) {
+            return true;
+        }
+        return allProjectsLock.isLocked();
     }
 
     public boolean getAllowsParallelExecution() {
@@ -54,15 +44,16 @@ public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, Proj
         return allProjectsLock;
     }
 
-    public ResourceLock getResourceLock(Path buildIdentityPath, Path projectIdentityPath) {
+    public ProjectLock getResourceLock(Path buildIdentityPath, Path projectIdentityPath) {
         return getResourceLock(parallelEnabled ? projectIdentityPath : buildIdentityPath);
     }
 
-    ResourceLock getResourceLock(final Path lockPath) {
+    private ProjectLock getResourceLock(final Path lockPath) {
         return getOrRegisterResourceLock(lockPath, new ResourceLockProducer<Path, ProjectLock>() {
             @Override
             public ProjectLock create(Path projectPath, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
-                return new ProjectLock(lockPath.getPath(), coordinationService, owner, allProjectsLock);
+                String displayName = parallelEnabled ? "state of project " + lockPath : "state of build " + lockPath;
+                return new ProjectLock(displayName, coordinationService, owner, allProjectsLock);
             }
         });
     }

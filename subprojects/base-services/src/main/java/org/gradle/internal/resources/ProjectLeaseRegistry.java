@@ -26,26 +26,34 @@ import java.util.Collection;
 @ServiceScope(Scopes.BuildSession.class)
 public interface ProjectLeaseRegistry {
     /**
-     * Get the lock for all projects. This lock provides exclusive access to all projects. While this lock is held, no project locks can be held.
+     * Get the lock for the state of all projects. This lock provides exclusive access to the state of all projects. While this lock is held, no project state locks can be held.
      */
     ResourceLock getAllProjectsLock();
 
     /**
-     * Get a lock for the specified project.
+     * Get a lock for access to the specified project's state.
      */
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath);
 
     /**
-     * Returns any project locks currently held by this thread.
+     * Get a lock for non-isolated tasks for the specified project.
+     */
+    ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath);
+
+    /**
+     * Returns any project state locks currently held by this thread.
      *
      * Note: may contain either locks for specific projects (returned by {@link #getProjectLock(Path, Path)}) or the lock for all projects (returned by {@link #getAllProjectsLock()}.
      */
     Collection<? extends ResourceLock> getCurrentProjectLocks();
 
     /**
-     * Releases any project locks currently held by this thread.
+     * Releases any project state locks or task execution locks currently held by this thread, allowing the current
+     * thread to run as if it were executing an isolated task.
+     *
+     * Does not release worker lease.
      */
-    void releaseCurrentProjectLocks();
+    void runAsIsolatedTask();
 
     /**
      * Returns {@code true} when this registry grants multiple threads access to projects (but no more than one thread per given project)
@@ -54,19 +62,25 @@ public interface ProjectLeaseRegistry {
     boolean getAllowsParallelExecution();
 
     /**
-     * Releases all project locks held by the current thread and executes the {@link Factory}.  Upon completion of the
-     * {@link Factory}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
-     * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project
-     * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
+     * Releases any project state locks or task execution locks currently held by the current thread and executes the {@link Factory}.
+     * Upon completion of the {@link Factory}, if a lock was held at the time the method was called, then it will be reacquired.
+     * If no locks were held at the time the method was called, then no attempt will be made to reacquire a lock on completion.
+     * While blocking to reacquire the project lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
-    <T> T withoutProjectLock(Factory<T> action);
+    <T> T runAsIsolatedTask(Factory<T> action);
 
     /**
-     * Releases all project locks held by the current thread and executes the {@link Runnable}.  Upon completion of the
-     * {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.  If no locks were held at the
-     * time the method was called, then no attempt will be made to reacquire a lock on completion.  While blocking to reacquire the project
-     * lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
+     * Releases any project state locks or task execution locks currently held by the current thread and executes the {@link Factory}.
+     * Upon completion of the {@link Runnable}, if a lock was held at the time the method was called, then it will be reacquired.
+     * If no locks were held at the time the method was called, then no attempt will be made to reacquire a lock on completion.
+     * While blocking to reacquire the project lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
+    void runAsIsolatedTask(Runnable action);
+
+    /**
+     * This is used by the Gradle build, via Docbook2Xhtml. Remove this once it is updated to use a new nightly
+     */
+    @Deprecated
     void withoutProjectLock(Runnable action);
 
     /**
