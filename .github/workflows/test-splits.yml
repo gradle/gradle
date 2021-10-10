@@ -60,6 +60,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - name: install native packages
+        run: sudo apt-get install -y --no-install-recommends g++ gcc-multilib g++-multilib
       - name: remove test splits
         run: |
           rm -rf test-splits
