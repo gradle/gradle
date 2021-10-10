@@ -72,7 +72,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ matrix.bucket.tasks }} ${{ matrix.bucket.extraArgs }} --no-configuration-cache
+          arguments: ${{ matrix.bucket.tasks }} ${{ matrix.bucket.extraArgs }} --no-configuration-cache -PmaxParallelForks=2
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
