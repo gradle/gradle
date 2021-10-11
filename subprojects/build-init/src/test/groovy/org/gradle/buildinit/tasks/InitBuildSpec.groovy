@@ -202,7 +202,7 @@ class InitBuildSpec extends Specification {
             'custom.for.stuff',
             'th-is.isnt.legal',
             'nor.is.-.this',
-            'nor.is._.this'
+            'nor.is._.this',
         ]
     }
 
@@ -229,6 +229,7 @@ class InitBuildSpec extends Specification {
         where:
         validPackageName << [
             'including.underscores_is.okay',
+            'any._leading.underscore.is.valid',
             'numb3rs.are.okay123',
             'and.$so.are.dollars$'
         ]
