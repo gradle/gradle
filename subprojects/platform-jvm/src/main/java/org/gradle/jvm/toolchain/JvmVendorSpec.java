@@ -28,7 +28,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 public abstract class JvmVendorSpec {
 
     /**
-     * A constant for using <a href="https://projects.eclipse.org/projects/adoptium.temurin">Eclipse Temurin</a> as the JVM vendor.
+     * A constant for using <a href="https://projects.eclipse.org/projects/adoptium">Eclipse Adoptium</a> as the JVM vendor.
      *
      * @since 7.4
      */
