@@ -94,29 +94,6 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results-${{ matrix.bucket.name }}
-          path: subprojects/**/build/**/test-results/**/*.xml
     env:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-
-  publish-test-results:
-    name: "Publish Unit Test Results"
-    needs: unit-test
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: test-results
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          files: test-results/**/*.xml
