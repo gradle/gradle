@@ -41,6 +41,38 @@ jobs:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
+  sanity-check:
+    name: "Sanity Check on Linux"
+    runs-on: ubuntu-20.04
+    needs: build
+    steps:
+      - name: git clone
+        uses: actions/checkout@v2
+      - name: setup java
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: ./gradlew sanityCheck
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: sanityCheck
+      - name: "Comment build scan url"
+        uses: actions/github-script@v3
+        if: github.event_name == 'pull_request' && failure()
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
+            })
+    env:
+      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
     runs-on: ubuntu-20.04
