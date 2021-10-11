@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.internal.buildtree;
 
-public interface BuildToolingModelAction<T> {
-    void beforeTasks(BuildToolingModelController controller);
+public interface BuildTreeModelAction<T> {
+    void beforeTasks(BuildTreeModelController controller);
 
-    T fromBuildModel(BuildToolingModelController controller);
+    T fromBuildModel(BuildTreeModelController controller);
 }

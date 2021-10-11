@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
@@ -52,12 +52,12 @@ import java.util.function.Supplier;
 @SuppressWarnings("deprecation")
 class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
     private final WorkerThreadRegistry workerThreadRegistry;
-    private final BuildToolingModelController controller;
+    private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
 
     public DefaultBuildController(
-        BuildToolingModelController controller,
+        BuildTreeModelController controller,
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry
@@ -201,10 +201,10 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private static class ProjectScopedModel extends ModelTarget {
-        private final BuildToolingModelController controller;
+        private final BuildTreeModelController controller;
         private final ProjectState target;
 
-        public ProjectScopedModel(BuildToolingModelController controller, ProjectState target) {
+        public ProjectScopedModel(BuildTreeModelController controller, ProjectState target) {
             this.controller = controller;
             this.target = target;
         }
@@ -216,10 +216,10 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private static class BuildScopedModel extends ModelTarget {
-        private final BuildToolingModelController controller;
+        private final BuildTreeModelController controller;
         private final BuildState target;
 
-        public BuildScopedModel(BuildToolingModelController controller, BuildState target) {
+        public BuildScopedModel(BuildTreeModelController controller, BuildState target) {
             this.controller = controller;
             this.target = target;
         }
@@ -231,9 +231,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private static class DefaultTargetModel extends ModelTarget {
-        private final BuildToolingModelController controller;
+        private final BuildTreeModelController controller;
 
-        public DefaultTargetModel(BuildToolingModelController controller) {
+        public DefaultTargetModel(BuildTreeModelController controller) {
             this.controller = controller;
         }
 

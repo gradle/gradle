@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildEventConsumer
-import org.gradle.internal.build.BuildToolingModelAction
+import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -76,7 +76,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure == null
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
             modelAction.beforeTasks(toolingModelController)
             modelAction.fromBuildModel(toolingModelController)
         }
@@ -109,7 +109,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure.cause == failure
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
             modelAction.beforeTasks(toolingModelController)
             modelAction.fromBuildModel(toolingModelController)
         }
@@ -129,7 +129,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         then:
         result.buildFailure == failure
         result.clientFailure == failure
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction -> throw failure }
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction -> throw failure }
     }
 
     def "action not run if null"() {
@@ -142,7 +142,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         result.clientFailure == null
 
         and:
-        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildToolingModelAction modelAction ->
+        1 * buildController.fromBuildModel(_, _) >> { Boolean b, BuildTreeModelAction modelAction ->
             modelAction.beforeTasks(toolingModelController)
             modelAction.fromBuildModel(toolingModelController)
         }
@@ -156,7 +156,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions), buildController)
 
         then:
-        1 * buildController.fromBuildModel(true, _) >> { Boolean b, BuildToolingModelAction modelAction ->
+        1 * buildController.fromBuildModel(true, _) >> { Boolean b, BuildTreeModelAction modelAction ->
             modelAction.beforeTasks(toolingModelController)
             modelAction.fromBuildModel(toolingModelController)
         }

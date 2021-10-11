@@ -16,31 +16,15 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildToolingModelControllerFactory {
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final ProjectLeaseRegistry projectLeaseRegistry;
-    private final boolean parallelActions;
     // Apply some locking around configuration and tooling model lookup. This should move deeper into the build tree and build state controllers
     private final Object treeMutableStateLock = new Object();
 
-    public BuildToolingModelControllerFactory(
-        BuildModelParameters buildModelParameters,
-        BuildOperationExecutor buildOperationExecutor,
-        ProjectLeaseRegistry projectLeaseRegistry
-    ) {
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.projectLeaseRegistry = projectLeaseRegistry;
-        this.parallelActions = buildModelParameters.isParallelToolingApiActions();
-    }
-
     BuildToolingModelController createController(BuildLifecycleController owner) {
-        return new DefaultBuildToolingModelController(owner, projectLeaseRegistry, buildOperationExecutor, treeMutableStateLock, parallelActions);
+        return new DefaultBuildToolingModelController(owner, treeMutableStateLock);
     }
 }

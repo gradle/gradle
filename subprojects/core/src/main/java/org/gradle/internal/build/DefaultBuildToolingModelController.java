@@ -19,37 +19,19 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
-import java.util.Collection;
-
 class DefaultBuildToolingModelController implements BuildToolingModelController {
     private final BuildLifecycleController buildController;
-    private final ProjectLeaseRegistry projectLeaseRegistry;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final Object treeMutableStateLock;
-    private final boolean parallelActions;
 
     public DefaultBuildToolingModelController(
         BuildLifecycleController buildController,
-        ProjectLeaseRegistry projectLeaseRegistry,
-        BuildOperationExecutor buildOperationExecutor,
-        Object treeMutableStateLock,
-        boolean parallelActions
+        Object treeMutableStateLock
     ) {
         this.buildController = buildController;
-        this.projectLeaseRegistry = projectLeaseRegistry;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.treeMutableStateLock = treeMutableStateLock;
-        this.parallelActions = parallelActions;
     }
 
     @Override
@@ -98,29 +80,5 @@ class DefaultBuildToolingModelController implements BuildToolingModelController 
         target.ensureConfigured();
         ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
         return lookup.locateForClientOperation(modelName, param, target);
-    }
-
-    @Override
-    public boolean queryModelActionsRunInParallel() {
-        return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
-    }
-
-    @Override
-    public void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
-        if (queryModelActionsRunInParallel()) {
-            buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
-                for (RunnableBuildOperation action : actions) {
-                    buildOperationQueue.add(action);
-                }
-            });
-        } else {
-            for (RunnableBuildOperation action : actions) {
-                try {
-                    action.run(null);
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        }
     }
 }

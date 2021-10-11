@@ -21,7 +21,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.BuildToolingModelAction
+import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -118,7 +118,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        def <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
+        def <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
             def failures = []
             T result = null
             try {

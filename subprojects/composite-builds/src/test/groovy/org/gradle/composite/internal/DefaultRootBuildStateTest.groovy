@@ -27,7 +27,7 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.BuildToolingModelAction
+import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeState
@@ -147,7 +147,7 @@ class DefaultRootBuildStateTest extends Specification {
     }
 
     def "configures and finishes build when requested by action"() {
-        def modelAction = Mock(BuildToolingModelAction)
+        def modelAction = Mock(BuildTreeModelAction)
 
         when:
         def result = build.run(action)

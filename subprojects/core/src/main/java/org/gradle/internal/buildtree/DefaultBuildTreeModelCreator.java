@@ -16,26 +16,92 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildToolingModelAction;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+
+import java.util.Collection;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private final BuildLifecycleController buildController;
+    private final ProjectLeaseRegistry projectLeaseRegistry;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean parallelActions;
 
-    public DefaultBuildTreeModelCreator(BuildLifecycleController defaultTarget) {
+    public DefaultBuildTreeModelCreator(
+        BuildModelParameters buildModelParameters,
+        BuildLifecycleController defaultTarget,
+        BuildOperationExecutor buildOperationExecutor,
+        ProjectLeaseRegistry projectLeaseRegistry
+    ) {
         this.buildController = defaultTarget;
+        this.projectLeaseRegistry = projectLeaseRegistry;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.parallelActions = buildModelParameters.isParallelToolingApiActions();
     }
 
     @Override
-    public <T> void beforeTasks(BuildToolingModelAction<? extends T> action) {
-        buildController.withToolingModels(controller -> {
-            action.beforeTasks(controller);
-            return null;
-        });
+    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action) {
+        action.beforeTasks(new DefaultBuildTreeModelController());
     }
 
     @Override
-    public <T> T fromBuildModel(BuildToolingModelAction<? extends T> action) {
-        return buildController.withToolingModels(action::fromBuildModel);
+    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action) {
+        return action.fromBuildModel(new DefaultBuildTreeModelController());
+    }
+
+    private class DefaultBuildTreeModelController implements BuildTreeModelController {
+        @Override
+        public GradleInternal getConfiguredModel() {
+            return buildController.withToolingModels(BuildToolingModelController::getConfiguredModel);
+        }
+
+        @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+            return buildController.withToolingModels(controller -> controller.locateBuilderForDefaultTarget(modelName, param));
+        }
+
+        @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+            return buildController.withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
+        }
+
+        @Override
+        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+            return buildController.withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
+        }
+
+
+        @Override
+        public boolean queryModelActionsRunInParallel() {
+            return projectLeaseRegistry.getAllowsParallelExecution() && parallelActions;
+        }
+
+        @Override
+        public void runQueryModelActions(Collection<? extends RunnableBuildOperation> actions) {
+            if (queryModelActionsRunInParallel()) {
+                buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
+                    for (RunnableBuildOperation action : actions) {
+                        buildOperationQueue.add(action);
+                    }
+                });
+            } else {
+                for (RunnableBuildOperation action : actions) {
+                    try {
+                        action.run(null);
+                    } catch (Exception e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            }
+        }
     }
 }
