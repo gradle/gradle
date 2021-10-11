@@ -28,16 +28,12 @@ import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
 import org.gradle.internal.model.StateTransitionControllerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class DefaultBuildTreeLifecycleControllerFactory(
     private val buildModelParameters: BuildModelParameters,
     private val cache: BuildTreeConfigurationCache,
     private val taskGraph: BuildTreeWorkGraphController,
-    private val buildOperationExecutor: BuildOperationExecutor,
-    private val projectLeaseRegistry: ProjectLeaseRegistry,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : BuildTreeLifecycleControllerFactory {
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
@@ -52,7 +48,7 @@ class DefaultBuildTreeLifecycleControllerFactory(
             defaultWorkPreparer
         }
 
-        val defaultModelCreator = DefaultBuildTreeModelCreator(buildModelParameters, targetBuild, buildOperationExecutor, projectLeaseRegistry)
+        val defaultModelCreator = DefaultBuildTreeModelCreator(targetBuild)
         val modelCreator = if (buildModelParameters.isConfigurationCache && rootBuild) {
             ConfigurationCacheAwareBuildTreeModelCreator(defaultModelCreator, cache)
         } else {

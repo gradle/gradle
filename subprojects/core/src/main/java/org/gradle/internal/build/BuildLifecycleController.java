@@ -25,6 +25,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Controls the lifecycle of an individual build in the build tree.
@@ -37,14 +38,14 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Configures the settings for this build, if not already available.
+     * Configures the settings for this build, if not already available. This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The loaded settings instance.
      */
     SettingsInternal getLoadedSettings();
 
     /**
-     * Configures the build, if not already available.
+     * Configures the build, if not already available. This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The configured Gradle build instance.
      */
@@ -76,6 +77,11 @@ public interface BuildLifecycleController extends Stoppable {
      * Must call {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.

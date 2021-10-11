@@ -48,6 +48,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def executionPlan = Mock(ExecutionPlan)
+    def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -65,7 +66,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices, TestUtil.stateTransitionControllerFactory())
+            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {

@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
@@ -56,6 +57,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
+    private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
     private final StateTransitionController<State> state;
     private final GradleInternal gradle;
@@ -71,6 +73,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
         BuildScopeServices buildServices,
+        BuildToolingModelControllerFactory toolingModelControllerFactory,
         StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
@@ -82,6 +85,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
+        this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
 
@@ -152,6 +156,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             throw new IllegalArgumentException("Unexpected plan owner.");
         }
         return workPlan;
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(this));
     }
 
     @Override
