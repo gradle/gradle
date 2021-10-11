@@ -19,7 +19,9 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1080,5 +1082,42 @@ This can indicate that a dependency has been compromised. Please carefully verif
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/18498")
+    def "does not fail for local repository with realized dependency metadata"() {
+        // Test won't fail if other test was run before
+        // Note: For debugging you can remove requireIsolatedGradleDistribution() and you run ONLY this test with embedded runner
+        requireIsolatedGradleDistribution()
+        def repoDir = testDirectory.createDir("repo")
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            repositories {
+                maven { url("$repoDir") }
+            }
+            dependencies {
+                implementation(platform("org:foo:1.0"))
+            }
+            tasks.register("resolveDependencyMetadata") {
+                configurations.compileClasspath.resolve()
+            }
+        """
+        propertiesFile << """
+            // We force metadata realization
+            systemProp.org.gradle.integtest.force.realize.metadata=true
+        """
+        mavenLocal(repoDir).module('org', 'foo', '1.0').publish()
+        createMetadataFile {
+            addChecksum("org:foo:1.0", "sha256", "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481", "pom", "pom")
+        }
+
+        when:
+        succeeds "resolveDependencyMetadata"
+
+        then:
+        true
     }
 }
