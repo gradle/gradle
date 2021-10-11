@@ -101,9 +101,13 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        // Should not ignore other threads. See above.
-        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
+    public void loadSettings() {
+        state.notInState(State.Finished, modelController::getLoadedSettings);
+    }
+
+    @Override
+    public <T> T withSettings(Function<? super SettingsInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getLoadedSettings()));
     }
 
     @Override

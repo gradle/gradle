@@ -33,6 +33,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
+import java.util.function.Function
 
 class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
@@ -126,15 +127,32 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testGetLoadedSettings() {
+    void testLoadSettings() {
+        expect:
+        expectSettingsBuilt()
+        expectBuildFinished("Configure")
+
+        def controller = controller()
+        controller.loadSettings()
+
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithSettings() {
+        def action = Mock(Function)
+
         when:
         expectSettingsBuilt()
 
         def controller = controller()
-        def result = controller.getLoadedSettings()
+        def result = controller.withSettings(action)
 
         then:
-        result == settingsMock
+        result == "result"
+
+        and:
+        1 * action.apply(settingsMock) >> "result"
 
         expect:
         expectBuildFinished("Configure")
@@ -149,7 +167,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectSettingsBuiltWithFailure(failure)
 
         def controller = this.controller()
-        controller.getLoadedSettings()
+        controller.loadSettings()
 
         then:
         def t = thrown RuntimeException

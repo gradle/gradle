@@ -119,6 +119,36 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
+     * Runs the given action.
+     * Fails if the current state is the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
+     */
+    public void notInState(T forbidden, Runnable action) {
+        notInState(forbidden, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    /**
+     * Runs the given action.
+     * Fails if the current state is the given state or a previous operation has failed.
+     * Blocks until other operations are complete.
+     */
+    public <S> S notInState(T forbidden, Supplier<S> action) {
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertNotInState(forbidden);
+            try {
+                return action.get();
+            } catch (Throwable t) {
+                state = current.failed(ExecutionResult.failed(t));
+                throw state.rethrow();
+            }
+        });
+    }
+
+    /**
      * Transitions to the given "to" state.
      * Fails if the current state is not the given "from" state or a previous operation has failed.
      * Blocks until other operations are complete.

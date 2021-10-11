@@ -172,7 +172,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
 
         when:
         asWorker {
-            controller.notInStateIgnoreOtherThreads(TestState.A, action)
+            controller.notInState(TestState.A, action)
         }
 
         then:
@@ -181,6 +181,76 @@ class StateTransitionControllerTest extends ConcurrentSpec {
     }
 
     def "fails when in forbidden state"() {
+        def action = Mock(Supplier)
+        def controller = controller(TestState.A)
+        asWorker {
+            controller.transition(TestState.A, TestState.B) {}
+        }
+
+        when:
+        asWorker {
+            controller.notInState(TestState.B, action)
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "<state> should not be in state B."
+
+        0 * _
+    }
+
+    def "collects action failure when not in forbidden state"() {
+        def failure = new RuntimeException()
+        def action = Mock(Supplier)
+        def controller = controller(TestState.A)
+        asWorker {
+            controller.transition(TestState.A, TestState.B) {}
+        }
+
+        when:
+        asWorker {
+            controller.notInState(TestState.A, action)
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * action.get() >> { throw failure }
+        0 * _
+
+        when:
+        asWorker {
+            controller.notInState(TestState.B, action)
+        }
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot use <state> as a previous transition failed."
+
+        and:
+        0 * _
+    }
+
+    def "runs action when not in forbidden state and ignoring other threads"() {
+        def action = Mock(Supplier)
+        def controller = controller(TestState.A)
+        asWorker {
+            controller.transition(TestState.A, TestState.B) {}
+        }
+
+        when:
+        asWorker {
+            controller.notInStateIgnoreOtherThreads(TestState.A, action)
+        }
+
+        then:
+        1 * action.get() >> "result"
+        0 * _
+    }
+
+    def "fails when in forbidden state and ignoring other threads"() {
         def action = Mock(Supplier)
         def controller = controller(TestState.A)
         asWorker {
@@ -199,7 +269,7 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         0 * _
     }
 
-    def "collects action failure when not in forbidden state"() {
+    def "collects action failure when not in forbidden state and ignoring other threads"() {
         def failure = new RuntimeException()
         def action = Mock(Supplier)
         def controller = controller(TestState.A)

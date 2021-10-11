@@ -38,14 +38,21 @@ public interface BuildLifecycleController extends Stoppable {
     GradleInternal getGradle();
 
     /**
-     * Configures the settings for this build, if not already available. This may fail with an error, if this build is loaded from cache rather than configured.
+     * Configures the settings for this build, if not already available.
+     * Can be called multiple times.
+     */
+    void loadSettings();
+
+    /**
+     * Runs the given action against the loaded settings for this build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The loaded settings instance.
      */
-    SettingsInternal getLoadedSettings();
+    <T> T withSettings(Function<? super SettingsInternal, T> action);
 
     /**
-     * Configures the build, if not already available. This may fail with an error, if this build is loaded from cache rather than configured.
+     * Configures the build, if not already done. This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The configured Gradle build instance.
      */

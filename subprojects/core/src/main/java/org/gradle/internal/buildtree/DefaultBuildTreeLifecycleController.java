@@ -94,7 +94,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
         return runBuild(() -> {
-            T result = action.apply(buildLifecycleController.getLoadedSettings());
+            T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
     }

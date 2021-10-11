@@ -87,7 +87,7 @@ public abstract class AbstractBuildState implements BuildState {
 
     @Override
     public void ensureProjectsLoaded() {
-        getBuildController().getLoadedSettings();
+        getBuildController().loadSettings();
     }
 
     @Override
