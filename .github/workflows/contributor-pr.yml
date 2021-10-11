@@ -14,27 +14,27 @@ jobs:
         run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)"
       - id: debug
         run: echo "${{ steps.setup-matrix.outputs.matrix }}"
-#      - name: setup java
-#        uses: actions/setup-java@v2
-#        with:
-#          distribution: temurin
-#          java-version: 11
-#      - name: assemble
-#        uses: gradle/gradle-build-action@v2
-#        with:
-#          arguments: compileAll --no-configuration-cache
-#      - name: "Comment build scan url"
-#        uses: actions/github-script@v3
-#        if: github.event_name == 'pull_request' && failure()
-#        with:
-#          github-token: ${{secrets.GITHUB_TOKEN}}
-#          script: |
-#            github.issues.createComment({
-#              issue_number: context.issue.number,
-#              owner: context.repo.owner,
-#              repo: context.repo.repo,
-#              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-#            })
+      - name: setup java
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: assemble
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: compileAll --no-configuration-cache
+      - name: "Comment build scan url"
+        uses: actions/github-script@v3
+        if: github.event_name == 'pull_request' && failure()
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
+            })
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
     env:
