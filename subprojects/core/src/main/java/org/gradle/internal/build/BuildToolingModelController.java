@@ -30,9 +30,7 @@ public interface BuildToolingModelController {
      */
     GradleInternal getConfiguredModel();
 
-    ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException;
-
-    ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException;
+    ToolingModelBuilderLookup.Builder locateBuilderForTarget(String modelName, boolean param) throws UnknownModelException;
 
     ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException;
 }

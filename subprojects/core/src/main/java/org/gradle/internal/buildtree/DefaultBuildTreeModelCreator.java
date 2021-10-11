@@ -19,7 +19,6 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -31,18 +30,18 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import java.util.Collection;
 
 public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
-    private final BuildLifecycleController buildController;
+    private final BuildState defaultTarget;
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
     private final boolean parallelActions;
 
     public DefaultBuildTreeModelCreator(
         BuildModelParameters buildModelParameters,
-        BuildLifecycleController defaultTarget,
+        BuildState defaultTarget,
         BuildOperationExecutor buildOperationExecutor,
         ProjectLeaseRegistry projectLeaseRegistry
     ) {
-        this.buildController = defaultTarget;
+        this.defaultTarget = defaultTarget;
         this.projectLeaseRegistry = projectLeaseRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
         this.parallelActions = buildModelParameters.isParallelToolingApiActions();
@@ -61,24 +60,23 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
         @Override
         public GradleInternal getConfiguredModel() {
-            return buildController.withToolingModels(BuildToolingModelController::getConfiguredModel);
+            return defaultTarget.withToolingModels(BuildToolingModelController::getConfiguredModel);
         }
 
         @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
-            return buildController.withToolingModels(controller -> controller.locateBuilderForDefaultTarget(modelName, param));
+            return locateBuilderForTarget(defaultTarget, modelName, param);
         }
 
         @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
-            return buildController.withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
+            return target.withToolingModels(controller -> controller.locateBuilderForTarget(modelName, param));
         }
 
         @Override
         public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
-            return buildController.withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
+            return target.getOwner().withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
         }
-
 
         @Override
         public boolean queryModelActionsRunInParallel() {

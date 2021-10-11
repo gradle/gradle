@@ -26,6 +26,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState {
     private final BuildScopeServices buildServices;
@@ -97,5 +98,10 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public BuildWorkGraphController getWorkGraph() {
         return workGraphController.get();
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(action);
     }
 }

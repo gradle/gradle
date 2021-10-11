@@ -52,7 +52,7 @@ class DefaultBuildTreeLifecycleControllerFactory(
             defaultWorkPreparer
         }
 
-        val defaultModelCreator = DefaultBuildTreeModelCreator(buildModelParameters, targetBuild, buildOperationExecutor, projectLeaseRegistry)
+        val defaultModelCreator = DefaultBuildTreeModelCreator(buildModelParameters, targetBuild.gradle.owner, buildOperationExecutor, projectLeaseRegistry)
         val modelCreator = if (buildModelParameters.isConfigurationCache && rootBuild) {
             ConfigurationCacheAwareBuildTreeModelCreator(defaultModelCreator, cache)
         } else {

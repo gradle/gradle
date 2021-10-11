@@ -25,13 +25,17 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 class DefaultBuildToolingModelController implements BuildToolingModelController {
     private final BuildLifecycleController buildController;
     private final Object treeMutableStateLock;
+    private final BuildState buildState;
+    private final ToolingModelBuilderLookup buildScopeLookup;
 
     public DefaultBuildToolingModelController(
         BuildLifecycleController buildController,
         Object treeMutableStateLock
     ) {
-        this.buildController = buildController;
         this.treeMutableStateLock = treeMutableStateLock;
+        this.buildController = buildController;
+        this.buildState = this.buildController.getGradle().getOwner();
+        this.buildScopeLookup = this.buildController.getGradle().getServices().get(ToolingModelBuilderLookup.class);
     }
 
     @Override
@@ -40,28 +44,18 @@ class DefaultBuildToolingModelController implements BuildToolingModelController 
     }
 
     @Override
-    public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) {
+    public ToolingModelBuilderLookup.Builder locateBuilderForTarget(String modelName, boolean param) throws UnknownModelException {
         synchronized (treeMutableStateLock) {
             // Look for a build scoped builder
-            ToolingModelBuilderLookup lookup = buildController.getGradle().getServices().get(ToolingModelBuilderLookup.class);
-            ToolingModelBuilderLookup.Builder builder = lookup.maybeLocateForBuildScope(modelName, param, buildController.getGradle().getOwner());
+            ToolingModelBuilderLookup.Builder builder = buildScopeLookup.maybeLocateForBuildScope(modelName, param, buildState);
             if (builder != null) {
                 return builder;
             }
 
-            // Locate a project scoped model using default project
-            return locateBuilderForTarget(buildController.getGradle().getOwner(), modelName, param);
-        }
-    }
-
-    @Override
-    public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
-        synchronized (treeMutableStateLock) {
             // Force configuration of the build and locate builder for default project
-            buildController.getGradle().getOwner().ensureProjectsConfigured();
-            target.ensureProjectsConfigured();
+            buildState.ensureProjectsConfigured();
         }
-        ProjectInternal targetProject = target.getMutableModel().getDefaultProject();
+        ProjectInternal targetProject = buildController.getGradle().getDefaultProject();
         return doLocate(targetProject.getOwner(), modelName, param);
     }
 
@@ -69,13 +63,15 @@ class DefaultBuildToolingModelController implements BuildToolingModelController 
     public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
         synchronized (treeMutableStateLock) {
             // Force configuration of the containing build and then locate the builder for target project
-            buildController.getGradle().getOwner().ensureProjectsConfigured();
-            target.getOwner().ensureProjectsConfigured();
+            buildState.ensureProjectsConfigured();
         }
         return doLocate(target, modelName, param);
     }
 
     private ToolingModelBuilderLookup.Builder doLocate(ProjectState target, String modelName, boolean param) {
+        if (target.getOwner() != buildState) {
+            throw new IllegalArgumentException("Project has unexpected owner.");
+        }
         // Force configuration of the target project to ensure all builders have been registered
         target.ensureConfigured();
         ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);

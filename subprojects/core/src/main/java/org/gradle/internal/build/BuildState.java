@@ -23,6 +23,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -99,4 +100,9 @@ public interface BuildState {
      * Returns the work graph for this build.
      */
     BuildWorkGraphController getWorkGraph();
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 }

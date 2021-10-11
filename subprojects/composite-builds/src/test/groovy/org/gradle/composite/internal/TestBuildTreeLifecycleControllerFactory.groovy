@@ -21,11 +21,11 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.buildtree.BuildTreeModelAction
-import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
+import org.gradle.internal.buildtree.BuildTreeModelAction
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -47,7 +47,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
     }
 
-    class TestBuildModelController implements BuildToolingModelController {
+    class TestBuildModelController implements BuildTreeModelController {
         private final BuildLifecycleController targetBuild
 
         TestBuildModelController(BuildLifecycleController targetBuild) {
@@ -76,7 +76,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
 
         @Override
         boolean queryModelActionsRunInParallel() {
-            return false
+            throw new UnsupportedOperationException()
         }
 
         @Override

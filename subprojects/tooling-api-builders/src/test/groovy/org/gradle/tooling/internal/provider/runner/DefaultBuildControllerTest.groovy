@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.BuildToolingModelController
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
@@ -44,9 +44,9 @@ class DefaultBuildControllerTest extends Specification {
     }
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
     def buildStateRegistry = Stub(BuildStateRegistry)
-    def toolingModelController = Mock(BuildToolingModelController)
+    def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def controller = new DefaultBuildController(toolingModelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
 
     def "cannot get build model from unmanaged thread"() {
         given:
@@ -65,7 +65,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget('some.model', false) >> { throw failure }
+        _ * modelController.locateBuilderForDefaultTarget('some.model', false) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -113,7 +113,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState3.buildRootDir >> rootDir
         _ * buildState3.projects >> projects3
         _ * projects3.getProject(Path.path(":some:path")) >> projectState
-        _ * toolingModelController.locateBuilderForTarget(projectState, "some.model", false) >> modelBuilder
+        _ * modelController.locateBuilderForTarget(projectState, "some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -140,7 +140,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState1.importableBuild >> false
         _ * buildState2.importableBuild >> true
         _ * buildState2.buildRootDir >> rootDir
-        _ * toolingModelController.locateBuilderForTarget(buildState2, "some.model", false) >> modelBuilder
+        _ * modelController.locateBuilderForTarget(buildState2, "some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -155,7 +155,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", false) >> modelBuilder
+        _ * modelController.locateBuilderForDefaultTarget("some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
         when:
@@ -193,7 +193,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", true) >> modelBuilder
+        _ * modelController.locateBuilderForDefaultTarget("some.model", true) >> modelBuilder
         _ * modelBuilder.getParameterType() >> parameterType
         _ * modelBuilder.build(_) >> { CustomParameter param ->
             assert param != null
@@ -220,7 +220,7 @@ class DefaultBuildControllerTest extends Specification {
         result == ["one", "two", "three"]
 
         _ * workerThreadRegistry.workerThread >> true
-        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+        1 * modelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
         }
@@ -245,7 +245,7 @@ class DefaultBuildControllerTest extends Specification {
         e.causes == [failure1, failure2]
 
         _ * workerThreadRegistry.workerThread >> true
-        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+        1 * modelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
         }

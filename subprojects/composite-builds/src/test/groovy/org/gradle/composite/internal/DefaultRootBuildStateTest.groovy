@@ -20,16 +20,15 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeModelAction
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.event.ListenerManager
@@ -48,7 +47,6 @@ class DefaultRootBuildStateTest extends Specification {
     def action = Mock(Function)
     def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
-    def projectStateRegistry = Mock(ProjectStateRegistry)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     def workGraph = Mock(BuildTreeWorkGraph)
     DefaultRootBuildState build

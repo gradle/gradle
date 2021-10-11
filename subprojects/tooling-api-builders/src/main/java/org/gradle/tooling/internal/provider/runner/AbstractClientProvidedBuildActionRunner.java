@@ -16,10 +16,9 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.internal.buildtree.BuildTreeModelAction;
-import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
