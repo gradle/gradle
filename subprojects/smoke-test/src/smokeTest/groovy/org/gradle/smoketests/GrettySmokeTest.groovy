@@ -42,19 +42,14 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
             gretty {
                 contextPath = 'quickstart'
 
-                httpPort = 0
+                httpPort = new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
                 integrationTestTask = 'checkContainerUp'
-                servletContainer = 'jetty9.4'
-                logDir = '${testProjectDir.absolutePath}/jetty-logs'
-                logFileName = project.name
+                servletContainer = 'jetty11'
             }
 
             task checkContainerUp {
                 doLast {
-                    def jettyLog = new File("\${gretty.logDir}/\${gretty.logFileName}.log").text
-                    def httpPortMatcher = (jettyLog =~ /.* started and listening on port (\\d+)/)
-                    def parsedHttpPort = httpPortMatcher[0][1]
-                    URL url = new URL("http://localhost:\$parsedHttpPort/quickstart")
+                    URL url = new URL("http://localhost:\${gretty.httpPort}/quickstart")
                     assert url.text.contains('hello Gradle')
                 }
             }
