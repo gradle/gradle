@@ -88,6 +88,11 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
                     report.getExecutionData().from(resolvableJacocoData(jacocoAggregation, objects, testSuite.getName()));
                 });
+//                testSuite.getTargets().all(target -> {
+//                    target.getTestTask().configure(test -> {
+//                        test.
+//                    });
+//                });
             });
         });
     }

@@ -109,7 +109,7 @@ public class JacocoPlugin implements Plugin<Project> {
     }
 
     private void configureTestTargetOutgoingVariants(Project project) {
-        project.getPlugins().withId("jvm-test-suite", p -> {
+        project.getPlugins().withId("jvm-test-suite", p -> { // TODO react to `java` plugin instead?
 
             JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
             SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
