@@ -1019,9 +1019,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
@@ -1034,9 +1034,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     /**
      * Specifies that JUnit Platform should be used to discover and execute the tests with additional configuration.
-     * <p><br>
+     * <p>
      * Use this option if your tests use JUnit Jupiter/JUnit5.
-     * <p><br>
+     * <p>
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      * <p>
