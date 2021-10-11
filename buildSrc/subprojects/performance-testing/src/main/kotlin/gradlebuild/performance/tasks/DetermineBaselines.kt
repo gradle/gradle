@@ -22,7 +22,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import javax.inject.Inject
 
@@ -50,9 +49,6 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines.set(defaultBaseline)
         } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
             determinedBaselines.set(determineFlakinessDetectionBaseline())
-        } else if (!currentBranchIsMasterOrRelease() && !OperatingSystem.current().isWindows && configuredBaselines.isDefaultValue()) {
-            // Windows git complains "long path" so we don't build commit distribution on Windows
-            determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(configuredBaselines)
         }

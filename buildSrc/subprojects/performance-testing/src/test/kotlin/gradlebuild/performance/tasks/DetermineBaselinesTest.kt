@@ -21,11 +21,9 @@ import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 
@@ -66,38 +64,6 @@ class DetermineBaselinesTest {
 
         // then
         verifyBaselineDetermination(false, flakinessDetectionCommitBaseline, "5.0-commit-current")
-    }
-
-    @Test
-    fun `determines fork point commit on feature branch and default configuration`() {
-        // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
-        // given
-        setCurrentBranch("my-branch")
-        mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
-        mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")
-        mockGitOperation(listOf("git", "merge-base", "origin/release", "HEAD"), "release-fork-point")
-        mockGitOperation(listOf("git", "show", "master-fork-point:version.txt"), "5.1")
-        mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
-
-        // then
-        verifyBaselineDetermination(false, defaultBaseline, "5.1-commit-master-fork-point")
-    }
-
-    @Test
-    fun `determines fork point commit on feature branch and empty configuration`() {
-        // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
-        // given
-        setCurrentBranch("my-branch")
-        mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
-        mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")
-        mockGitOperation(listOf("git", "merge-base", "origin/release", "HEAD"), "release-fork-point")
-        mockGitOperation(listOf("git", "show", "master-fork-point:version.txt"), "5.1")
-        mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
-
-        // then
-        verifyBaselineDetermination(false, null, "5.1-commit-master-fork-point")
     }
 
     @Test
