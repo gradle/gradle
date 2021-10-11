@@ -22,7 +22,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: compileAll --no-configuration-cache
+          arguments: clean compileAll --no-configuration-cache
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -56,7 +56,7 @@ jobs:
       - name: ./gradlew sanityCheck
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: sanityCheck --no-configuration-cache
+          arguments: clean sanityCheck --no-configuration-cache
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -93,7 +93,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ matrix.bucket.tasks }} --no-configuration-cache
+          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
