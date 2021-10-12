@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.tasks.ClasspathManifest
@@ -221,9 +222,11 @@ fun configureTests() {
 
         if (project.testDistributionEnabled()) {
             distribution {
-                maxLocalExecutors.set(0)
-                maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
+                this as TestDistributionExtensionInternal
                 enabled.set(true)
+                distribution.maxRemoteExecutors.set(null)
+                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+                server.set(uri("https://ge-td-dogfooding.grdev.net"))
                 when {
                     OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux"))
                     OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows"))
