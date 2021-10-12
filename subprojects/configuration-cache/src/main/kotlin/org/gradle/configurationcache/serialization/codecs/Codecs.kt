@@ -33,7 +33,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
@@ -104,7 +104,7 @@ class Codecs(
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
-    includedTaskGraph: IncludedBuildTaskGraph,
+    includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
 ) {

@@ -77,19 +77,4 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
                 throw new IllegalArgumentException();
         }
     }
-
-    @Override
-    protected void integrationTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates) {
-        switch (settings.getTestFramework()) {
-            case JUNIT:
-            case KOTLINTEST:
-                templates.add("LibraryIntegTest");
-                break;
-            case JUNIT_JUPITER:
-                templates.add("junitjupiter/LibraryIntegTest");
-                break;
-            default:
-                // add nothing
-        }
-    }
 }

@@ -72,6 +72,29 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
+        when:
+        run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        subprojectDir.file("src/main/scala").assertHasDescendants("my/lib/Library.scala")
+        subprojectDir.file("src/test/scala").assertHasDescendants("my/lib/LibrarySuite.scala")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+        dslFixtureFor(scriptDsl).assertHasTestSuite("test")
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibrarySuite", "someLibraryMethod is always true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Unroll
     def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/scala/org/acme/SampleMain.scala") << """

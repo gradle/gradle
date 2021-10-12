@@ -26,7 +26,7 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snasph
     def outputFile = file("output.txt").text = "output"
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
-    def delegateResult = Mock(CurrentSnapshotResult)
+    def delegateResult = Mock(AfterExecutionResult)
 
     def "outputs are recorded after execution"() {
         when:

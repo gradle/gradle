@@ -27,7 +27,7 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     private final TemplateLibraryVersionProvider libraryVersionProvider;
 
     public GroovyGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(documentationRegistry);
+        super(documentationRegistry, libraryVersionProvider);
         this.libraryVersionProvider = libraryVersionProvider;
     }
 
@@ -55,8 +55,10 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         buildScriptBuilder.plugin("Apply the Groovy plugin to add support for Groovy", "groovy");
-        buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
-            "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
+        if (!settings.isUseTestSuites()) {
+            buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
+                "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
+        }
     }
 
     @Override

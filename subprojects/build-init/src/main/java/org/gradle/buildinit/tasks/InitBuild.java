@@ -42,6 +42,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
+import javax.lang.model.SourceVersion;
 import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -235,7 +236,12 @@ public class InitBuild extends DefaultTask {
             }
         }
 
-        boolean useIncubatingAPIs = this.useIncubatingAPIs.getOrElse(inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false));
+        boolean useIncubatingAPIs;
+        if (this.useIncubatingAPIs.isPresent()) {
+            useIncubatingAPIs = this.useIncubatingAPIs.get();
+        } else {
+            useIncubatingAPIs = inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+        }
 
         BuildInitTestFramework testFramework = null;
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
@@ -281,6 +287,12 @@ public class InitBuild extends DefaultTask {
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
+        }
+
+        if (!isNullOrEmpty(packageName)) {
+            if (!SourceVersion.isName(packageName)) {
+                throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+            }
         }
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();

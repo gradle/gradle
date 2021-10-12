@@ -16,37 +16,27 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.internal.TaskInternal;
-
 import java.util.Collection;
+import java.util.function.Consumer;
 
 public interface BuildWorkGraph {
     /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
+     * Schedules the given tasks and all of their dependencies in this work graph.
      */
-    ExportedTaskNode locateTask(TaskInternal task);
+    boolean schedule(Collection<ExportedTaskNode> taskNodes);
 
     /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
-     *
-     * <p>This method does not schedule the task for execution, use {@link #schedule(Collection)} to schedule the task.
+     * Adds tasks and other nodes to this work graph.
      */
-    ExportedTaskNode locateTask(String taskPath);
-
-    /**
-     * Schedules the given tasks and all of their dependencies in this build's work graph.
-     */
-    void schedule(Collection<ExportedTaskNode> taskNodes);
+    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
      */
-    void prepareForExecution(boolean alwaysPopulateWorkGraph);
+    void finalizeGraph();
 
     /**
-     * Runs all currently scheduled tasks.
+     * Runs all work in this graph.
      */
-    ExecutionResult<Void> execute();
+    ExecutionResult<Void> runWork();
 }

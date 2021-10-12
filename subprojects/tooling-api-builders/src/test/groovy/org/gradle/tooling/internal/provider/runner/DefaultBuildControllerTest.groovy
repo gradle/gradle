@@ -23,8 +23,8 @@ import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildToolingModelController
-import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.MultipleBuildOperationFailures
+import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -45,19 +45,12 @@ class DefaultBuildControllerTest extends Specification {
     def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
     def buildStateRegistry = Stub(BuildStateRegistry)
     def toolingModelController = Mock(BuildToolingModelController)
-    def controller = new DefaultBuildController(toolingModelController, cancellationToken, buildStateRegistry)
-
-    def setup() {
-        GradleThread.setManaged()
-    }
-
-    def cleanup() {
-        GradleThread.setUnmanaged()
-    }
+    def workerThreadRegistry = Mock(WorkerThreadRegistry)
+    def controller = new DefaultBuildController(toolingModelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
 
     def "cannot get build model from unmanaged thread"() {
         given:
-        GradleThread.setUnmanaged()
+        _ * workerThreadRegistry.workerThread >> false
 
         when:
         controller.getBuildModel()
@@ -71,6 +64,7 @@ class DefaultBuildControllerTest extends Specification {
         def failure = new UnknownModelException("not found")
 
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * toolingModelController.locateBuilderForDefaultTarget('some.model', false) >> { throw failure }
 
         when:
@@ -83,7 +77,7 @@ class DefaultBuildControllerTest extends Specification {
 
     def "cannot get model from unmanaged thread"() {
         given:
-        GradleThread.setUnmanaged()
+        _ * workerThreadRegistry.workerThread >> false
 
         when:
         controller.getModel(null, modelId)
@@ -104,6 +98,7 @@ class DefaultBuildControllerTest extends Specification {
         def model = new Object()
 
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * target.projectPath >> ":some:path"
         _ * target.rootDir >> rootDir
         _ * buildStateRegistry.visitBuilds(_) >> { Consumer consumer ->
@@ -136,6 +131,7 @@ class DefaultBuildControllerTest extends Specification {
         def model = new Object()
 
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * target.rootDir >> rootDir
         _ * buildStateRegistry.visitBuilds(_) >> { Consumer consumer ->
             consumer.accept(buildState1)
@@ -158,6 +154,7 @@ class DefaultBuildControllerTest extends Specification {
         def model = new Object()
 
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * toolingModelController.locateBuilderForDefaultTarget("some.model", false) >> modelBuilder
         _ * modelBuilder.build(null) >> model
 
@@ -170,6 +167,7 @@ class DefaultBuildControllerTest extends Specification {
 
     def "throws an exception when cancel was requested"() {
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * cancellationToken.cancellationRequested >> true
         def target = Stub(GradleProjectIdentity)
 
@@ -194,6 +192,7 @@ class DefaultBuildControllerTest extends Specification {
         }
 
         given:
+        _ * workerThreadRegistry.workerThread >> true
         _ * toolingModelController.locateBuilderForDefaultTarget("some.model", true) >> modelBuilder
         _ * modelBuilder.getParameterType() >> parameterType
         _ * modelBuilder.build(_) >> { CustomParameter param ->
@@ -220,6 +219,7 @@ class DefaultBuildControllerTest extends Specification {
         then:
         result == ["one", "two", "three"]
 
+        _ * workerThreadRegistry.workerThread >> true
         1 * toolingModelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
@@ -244,6 +244,7 @@ class DefaultBuildControllerTest extends Specification {
         def e = thrown(MultipleBuildOperationFailures)
         e.causes == [failure1, failure2]
 
+        _ * workerThreadRegistry.workerThread >> true
         1 * toolingModelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
@@ -256,7 +257,7 @@ class DefaultBuildControllerTest extends Specification {
 
     def "cannot run actions from unmanaged thread"() {
         given:
-        GradleThread.setUnmanaged()
+        _ * workerThreadRegistry.workerThread >> false
 
         when:
         controller.run([Stub(Supplier)])

@@ -16,6 +16,8 @@
 
 package org.gradle.scala.compile
 
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 
@@ -26,6 +28,7 @@ abstract class AbstractToolchainZincScalaCompileIntegrationTest extends BasicZin
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)
+        Assume.assumeTrue(ScalaCoverage.SCALA_VERSION_TO_MAX_JAVA_VERSION.getOrDefault(version, JavaVersion.VERSION_1_8).isCompatibleWith(jdk.javaVersion))
         executer.beforeExecute {
             withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
         }
@@ -39,6 +42,15 @@ abstract class AbstractToolchainZincScalaCompileIntegrationTest extends BasicZin
     }
 
     abstract Jvm computeJdkForTest()
+
+    def "joint compile good java code with interface using default and static methods do not fail the build"() {
+        given:
+        goodJavaInterfaceCode()
+        goodCodeUsingJavaInterface()
+
+        expect:
+        succeeds 'compileScala', '-s'
+    }
 
     def "can generate ScalaDoc"() {
         given:

@@ -24,9 +24,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -56,29 +56,41 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
     }
 
     @Override
-    public void populateWorkGraph(GradleInternal gradle, Consumer<? super TaskExecutionGraphInternal> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(gradle, delegate, action));
+    public ExecutionPlan newExecutionPlan() {
+        return delegate.newExecutionPlan();
+    }
+
+    @Override
+    public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
+        buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, delegate, action));
+    }
+
+    @Override
+    public void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan) {
+        delegate.finalizeWorkGraph(gradle, plan);
     }
 
     private static class PopulateWorkGraph implements RunnableBuildOperation {
         private final GradleInternal gradle;
+        private final ExecutionPlan plan;
         private final BuildWorkPreparer delegate;
-        private final Consumer<? super TaskExecutionGraphInternal> action;
+        private final Consumer<? super ExecutionPlan> action;
 
-        public PopulateWorkGraph(GradleInternal gradle, BuildWorkPreparer delegate, Consumer<? super TaskExecutionGraphInternal> action) {
+        public PopulateWorkGraph(GradleInternal gradle, ExecutionPlan plan, BuildWorkPreparer delegate, Consumer<? super ExecutionPlan> action) {
             this.gradle = gradle;
+            this.plan = plan;
             this.delegate = delegate;
             this.action = action;
         }
 
         @Override
         public void run(BuildOperationContext buildOperationContext) {
-            TaskExecutionGraphInternal taskGraph = populateTaskGraph();
+            populateTaskGraph();
 
             // create copy now - https://github.com/gradle/gradle/issues/12527
-            Set<Task> requestedTasks = taskGraph.getRequestedTasks();
-            Set<Task> filteredTasks = taskGraph.getFilteredTasks();
-            List<Node> scheduledWork = taskGraph.getScheduledWork();
+            Set<Task> requestedTasks = plan.getRequestedTasks();
+            Set<Task> filteredTasks = plan.getFilteredTasks();
+            List<Node> scheduledWork = plan.getScheduledNodes();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
@@ -116,9 +128,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             });
         }
 
-        TaskExecutionGraphInternal populateTaskGraph() {
-            delegate.populateWorkGraph(gradle, action);
-            return gradle.getTaskGraph();
+        void populateTaskGraph() {
+            delegate.populateWorkGraph(gradle, plan, action);
         }
 
         @Override

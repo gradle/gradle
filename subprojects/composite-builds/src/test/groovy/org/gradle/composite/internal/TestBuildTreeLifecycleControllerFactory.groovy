@@ -27,6 +27,7 @@ import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
@@ -35,6 +36,12 @@ import java.util.function.Consumer
 import java.util.function.Function
 
 class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleControllerFactory {
+    private final BuildTreeWorkGraph workGraph
+
+    TestBuildTreeLifecycleControllerFactory(BuildTreeWorkGraph workGraph) {
+        this.workGraph = workGraph
+    }
+
     @Override
     BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
@@ -101,9 +108,11 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
 
         @Override
         void scheduleAndRunTasks() {
-            targetBuild.prepareToScheduleTasks()
-            targetBuild.scheduleRequestedTasks()
-            def result = workExecutor.execute()
+            def plan = targetBuild.prepareToScheduleTasks()
+            targetBuild.populateWorkGraph(plan) {
+                it.addRequestedTasks()
+            }
+            def result = workExecutor.execute(workGraph)
             buildTreeFinishExecutor.finishBuildTree(result.failures)
             result.rethrow()
         }

@@ -104,7 +104,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
@@ -122,6 +121,7 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
@@ -221,6 +221,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final Lazy<List<DependencyConstraint>> consistentResolutionConstraints = Lazy.unsafe().of(this::consistentResolutionConstraints);
 
@@ -256,11 +257,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 UserCodeApplicationContext userCodeApplicationContext,
                                 DomainObjectContext owner,
                                 ProjectStateRegistry projectStateRegistry,
+                                WorkerThreadRegistry workerThreadRegistry,
                                 DomainObjectCollectionFactory domainObjectCollectionFactory,
                                 CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
+        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
@@ -584,7 +587,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         if (!owner.getModel().hasMutableState()) {
-            if (!GradleThread.isManaged()) {
+            if (!workerThreadRegistry.isWorkerThread()) {
                 // Error if we are executing in a user-managed thread.
                 throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
             } else {
@@ -1158,8 +1161,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName, configurationsProvider, resolver, listenerManager,
             metaDataProvider, childResolutionStrategy, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser,
-            attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, domainObjectCollectionFactory,
-            calculatedValueContainerFactory);
+            attributesFactory, rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, workerThreadRegistry,
+            domainObjectCollectionFactory, calculatedValueContainerFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
     }

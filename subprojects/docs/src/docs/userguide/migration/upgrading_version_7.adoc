@@ -38,10 +38,12 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.9.html[Groovy 3.0.9].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.11.html[Ant 1.10.11].
 
 ==== Application order of plugins in the `plugins` block
 
@@ -55,6 +57,17 @@ behavior of existing builds.
 Prior to this version, a dependency substitution target could not be excluded from a dependency graph.
 This was caused by checking for exclusions prior to performing the substitution.
 Now Gradle will also check for exclusion on the substitution result.
+
+==== Version catalog
+
+Generated accessors no longer give access to the type unsafe API.
+You have to use the <<platforms.adoc#sub:type-unsafe-access-to-catalog,version catalog extension>> instead.
+
+==== Toolchain support in Scala
+
+When using <<scala_plugin.adoc#sec:scala_tasks,toolchains in Scala>>, the `-target` option of the Scala compiler will now be set automatically.
+This means that using a version of Java that cannot be targeted by a version of Scala will result in an error.
+Providing this flag in the compiler options will disable this behaviour and allow to use a higher Java version to compile for a lower bytecode target.
 
 [[declare_unreadable_input_output]]
 ==== Declaring input or output directories which contain unreadable content

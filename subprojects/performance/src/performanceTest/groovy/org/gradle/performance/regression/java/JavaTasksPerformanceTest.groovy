@@ -26,7 +26,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
-        runner.targetVersions = ["7.2-20210720234250+0000"]
+        runner.targetVersions = ["7.4-20211011231946+0000"]
     }
 
     @RunFor(

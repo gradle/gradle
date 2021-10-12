@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
+    api(project(":base-services"))
+    api(project(":enterprise-operations"))
 
     implementation(libs.jsr305)
     implementation(libs.inject)
@@ -13,6 +14,8 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":launcher"))
     implementation(project(":snapshots"))
+
+    testImplementation(project(":resources"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))

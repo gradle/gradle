@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -26,7 +27,7 @@ interface BuildTreeConfigurationCache {
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
      * writes the result to cache.
      */
-    fun loadOrScheduleRequestedTasks(scheduler: () -> Unit)
+    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit)
 
     /**
      * Prepares to load or create a model. Does nothing if the cached model is available or else prepares to capture

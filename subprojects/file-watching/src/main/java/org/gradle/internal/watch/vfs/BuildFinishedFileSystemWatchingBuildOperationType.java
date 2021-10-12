@@ -40,6 +40,11 @@ public interface BuildFinishedFileSystemWatchingBuildOperationType extends Build
             }
 
             @Override
+            public boolean isStateInvalidatedAtStartOfBuild() {
+                return false;
+            }
+
+            @Override
             public FileSystemWatchingStatistics getStatistics() {
                 return null;
             }
@@ -48,6 +53,8 @@ public interface BuildFinishedFileSystemWatchingBuildOperationType extends Build
         boolean isWatchingEnabled();
 
         boolean isStoppedWatchingDuringTheBuild();
+
+        boolean isStateInvalidatedAtStartOfBuild();
 
         @Nullable
         FileSystemWatchingStatistics getStatistics();

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))

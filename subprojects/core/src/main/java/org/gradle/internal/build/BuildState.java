@@ -18,14 +18,11 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -54,15 +51,6 @@ public interface BuildState {
      * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
      */
     boolean isImportableBuild();
-
-    /**
-     * The configured settings object for this build, if available.
-     *
-     * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.
-     *
-     * @throws IllegalStateException When the settings are not available for this build.
-     */
-    SettingsInternal getLoadedSettings() throws IllegalStateException;
 
     /**
      * Note: may change value over the lifetime of this build, as this is often a function of the name of the root project in the build and this is not known until the settings have been configured. A temporary value will be returned when child builds need to create projects for some reason.
@@ -108,7 +96,7 @@ public interface BuildState {
     GradleInternal getMutableModel();
 
     /**
-     * Populates the task graph of this build using the given action.
+     * Returns the work graph for this build.
      */
-    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
+    BuildWorkGraphController getWorkGraph();
 }

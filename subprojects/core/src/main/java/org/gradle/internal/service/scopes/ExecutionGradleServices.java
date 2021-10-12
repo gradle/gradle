@@ -56,6 +56,7 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
+import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -161,10 +162,11 @@ public class ExecutionGradleServices {
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
+            new RemoveUntrackedExecutionStateStep<>(
             new SkipEmptyWorkStep<>(
-            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new ResolveCachingStateStep(buildCacheController, gradleEnterprisePluginManager.isPresent(),
+            new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),
             new MarkSnapshottingInputsFinishedStep<>(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -179,7 +181,7 @@ public class ExecutionGradleServices {
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))))))))));
+        )))))))))))))))))))))))));
         // @formatter:on
     }
 

@@ -32,11 +32,7 @@ Here's an example:
 
 ### Generating
 
-Run the `viewReleaseNotes` task to generate the release notes, and open them in your browser (requires Java 6).
-
-### Editing
-
-You can run the `editReleaseNotes` task to open the raw markdown notes in whatever editor is registered for this file type (requires Java 6).
+Run the `:docs:releaseNotes` task to generate the release notes.
 
 ## User Manual
 

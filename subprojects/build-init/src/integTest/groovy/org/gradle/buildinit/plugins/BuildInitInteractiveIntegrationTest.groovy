@@ -77,6 +77,25 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
+    def "does not prompt for options provided on the command-line"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--incubating", "--dsl", "kotlin", "--type", "basic")
+        def handle = executer.start()
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
     def "user can provide details for JVM based build"() {
         when:
         executer.withForceInteractive(true)
