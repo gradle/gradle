@@ -17,6 +17,8 @@ dependencies {
     implementation(project(":launcher"))
     implementation(project(":logging"))
     implementation(project(":model-core"))
+    implementation(project(":process-services"))
+    implementation(project(":reporting"))
     implementation(project(":snapshots"))
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
