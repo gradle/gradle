@@ -29,7 +29,11 @@ import org.junit.Test
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.*
 import static org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
+import spock.lang.Issue
 
+@Ignore
+@Issue("https://github.com/gradle/gradle-private/issues/3440")
 class ScalaPlugin3Test {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
