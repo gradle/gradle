@@ -38,7 +38,6 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
                 testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
             }
             $script

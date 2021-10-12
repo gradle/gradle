@@ -252,7 +252,7 @@ class TestInfoDemo {
 
     def 'can use custom Extension'() {
         given:
-        file('src/main/java/org/gradle/MyExtension.java') << '''
+        file('src/test/java/org/gradle/MyExtension.java') << '''
 package org.gradle;
 import org.junit.jupiter.api.extension.*;
 
