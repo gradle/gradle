@@ -87,6 +87,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
      *
      * @param version {@link Provider} which will return {@code String} denoting the version of JUnit Jupiter to use
+     * @since 7.4
      */
     void useJUnitJupiter(Provider<String> version);
 
@@ -109,6 +110,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
      *
      * @param version {@link Provider} which will return {@code String} denoting the version of JUnit4 to use
+     * @since 7.4
      */
     void useJUnit(Provider<String> version);
 
@@ -131,6 +133,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
      *
      * @param version {@link Provider} which will return {@code String} denoting the version of Spock to use
+     * @since 7.4
      */
     void useSpock(Provider<String> version);
 
@@ -153,6 +156,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
      *
      * @param version {@link Provider} which will return {@code String} denoting the version of kotlin.test to use
+     * @since 7.4
      */
     void useKotlinTest(Provider<String> version);
 
@@ -175,6 +179,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
      *
      * @param version {@link Provider} which will return {@code String} denoting the version of TestNG to use
+     * @since 7.4
      */
     void useTestNG(Provider<String> version);
 
