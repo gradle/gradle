@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.test.impl;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
@@ -33,8 +33,8 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     private final TestTaskFilters filters;
     private final TestTaskForkOptions forkOptions;
     private final FileCollection candidateClassFiles;
-    private final ImmutableSet<InputFileProperty> inputFileProperties;
-    private final ImmutableSet<OutputFileProperty> outputFileProperties;
+    private final ImmutableList<InputFileProperty> inputFileProperties;
+    private final ImmutableList<OutputFileProperty> outputFileProperties;
 
     DefaultTestTaskProperties(
         boolean usingJUnitPlatform,
@@ -42,8 +42,8 @@ class DefaultTestTaskProperties implements TestTaskProperties {
         TestTaskFilters filters,
         TestTaskForkOptions forkOptions,
         FileCollection candidateClassFiles,
-        ImmutableSet<InputFileProperty> inputFileProperties,
-        ImmutableSet<OutputFileProperty> outputFileProperties
+        ImmutableList<InputFileProperty> inputFileProperties,
+        ImmutableList<OutputFileProperty> outputFileProperties
     ) {
         this.usingJUnitPlatform = usingJUnitPlatform;
         this.forkEvery = forkEvery;

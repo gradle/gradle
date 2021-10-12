@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.test.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -67,8 +68,8 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     @Override
     public TestTaskProperties collectProperties(Test task) {
-        ImmutableSet.Builder<InputFileProperty> inputFileProperties = ImmutableSet.builder();
-        ImmutableSet.Builder<OutputFileProperty> outputFileProperties = ImmutableSet.builder();
+        ImmutableList.Builder<InputFileProperty> inputFileProperties = ImmutableList.builder();
+        ImmutableList.Builder<OutputFileProperty> outputFileProperties = ImmutableList.builder();
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputFileProperty(
