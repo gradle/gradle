@@ -11,7 +11,7 @@ moduleIdentity.createBuildReceipt()
 
 dependencies {
     api(project(":base-annotations"))
-    api(project(":base-services-java6"))
+    api(project(":worker-services"))
     api(project(":hashing"))
     api(project(":build-operations"))
 

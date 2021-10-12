@@ -42,13 +42,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "base-services-java6",
-    "name": "base-services-java6",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "bootstrap",
     "name": "bootstrap",
     "unitTests": false,
@@ -793,6 +786,13 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "worker-services",
+    "name": "worker-services",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
