@@ -19,7 +19,6 @@ package org.gradle.internal.resources;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
@@ -31,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 
-public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry {
+public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry, ResourceLockContainer {
     private final Cache<K, T> resourceLocks = CacheBuilder.newBuilder().weakValues().build();
     private final ConcurrentMap<Long, ThreadLockDetails> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails>();
     private final ResourceLockCoordinationService coordinationService;
@@ -54,7 +53,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     protected T createResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
-        return producer.create(key, coordinationService, getLockAction(), getUnlockAction());
+        return producer.create(key, coordinationService, this);
     }
 
     @Override
@@ -94,30 +93,18 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return false;
     }
 
-    private Action<ResourceLock> getLockAction() {
-        return new Action<ResourceLock>() {
-            @Override
-            public void execute(ResourceLock resourceLock) {
-                associateResourceLock(resourceLock);
-            }
-        };
-    }
-
-    private Action<ResourceLock> getUnlockAction() {
-        return new Action<ResourceLock>() {
-            @Override
-            public void execute(ResourceLock resourceLock) {
-                unassociateResourceLock(resourceLock);
-            }
-        };
-    }
-
-    public void associateResourceLock(ResourceLock resourceLock) {
+    @Override
+    public void lockAcquired(ResourceLock resourceLock) {
         ThreadLockDetails lockDetails = detailsForCurrentThread();
         if (!lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not acquire more locks.");
         }
         lockDetails.locks.add(resourceLock);
+    }
+
+    public boolean holdsLock() {
+        ThreadLockDetails details = detailsForCurrentThread();
+        return !details.locks.isEmpty();
     }
 
     private ThreadLockDetails detailsForCurrentThread() {
@@ -130,7 +117,8 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return lockDetails;
     }
 
-    public void unassociateResourceLock(ResourceLock resourceLock) {
+    @Override
+    public void lockReleased(ResourceLock resourceLock) {
         ThreadLockDetails lockDetails = threadLocks.get(Thread.currentThread().getId());
         if (!lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");
@@ -148,7 +136,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     public interface ResourceLockProducer<K, T extends ResourceLock> {
-        T create(K key, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction);
+        T create(K key, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner);
     }
 
     private static class ThreadLockDetails {

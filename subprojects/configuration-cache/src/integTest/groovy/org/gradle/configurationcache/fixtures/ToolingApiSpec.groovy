@@ -38,7 +38,24 @@ trait ToolingApiSpec {
     }
 
     void withSomeToolingModelBuilderPluginInBuildSrc(String content = "") {
-        file("buildSrc/src/main/groovy/my/MyModel.groovy") << """
+        withSomeToolingModelBuilderPluginInChildBuild("buildSrc", content)
+    }
+
+    void withSomeToolingModelBuilderPluginInChildBuild(String childBuildName, String content = "") {
+        file("$childBuildName/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
+        file("$childBuildName/src/main/groovy/my/MyModel.groovy") << """
             package my
 
             class MyModel implements java.io.Serializable {
@@ -48,7 +65,7 @@ trait ToolingApiSpec {
             }
         """.stripIndent()
 
-        file("buildSrc/src/main/groovy/my/MyModelBuilder.groovy") << """
+        file("$childBuildName/src/main/groovy/my/MyModelBuilder.groovy") << """
             package my
 
             import ${ToolingModelBuilder.name}
@@ -66,7 +83,7 @@ trait ToolingApiSpec {
             }
         """.stripIndent()
 
-        file("buildSrc/src/main/groovy/my/MyPlugin.groovy") << """
+        file("$childBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
 
             import ${Project.name}

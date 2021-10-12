@@ -285,6 +285,13 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             });
     }
 
+    @Nullable
+    @SuppressWarnings("deprecation")
+    @Override
+    public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
+        return null;
+    }
+
     @Override
     public byte[] getClassLoaderHashBytes() {
         return getBeforeExecutionState()

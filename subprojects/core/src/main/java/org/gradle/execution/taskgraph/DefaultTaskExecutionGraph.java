@@ -50,6 +50,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -380,10 +381,25 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             return BuildOperationDescriptor.displayName(
                     gradleInternal.contextualize("Notify task graph whenReady listeners"))
                 .details(
-                    new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
+                    new NotifyTaskGraphWhenReadyDetails(
                         gradleInternal.getIdentityPath()
                     )
                 );
         }
+    }
+
+    private static class NotifyTaskGraphWhenReadyDetails implements NotifyTaskGraphWhenReadyBuildOperationType.Details {
+
+        private final Path buildPath;
+
+        NotifyTaskGraphWhenReadyDetails(Path buildPath) {
+            this.buildPath = buildPath;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath.getPath();
+        }
+
     }
 }

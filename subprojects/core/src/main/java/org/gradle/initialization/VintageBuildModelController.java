@@ -19,6 +19,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -48,7 +49,7 @@ public class VintageBuildModelController implements BuildModelController {
         this.taskGraphPreparer = taskSchedulingPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
-        this.state = controllerFactory.newController(Stage.Created);
+        this.state = controllerFactory.newController(Describables.of("vintage state of", gradle.getOwner().getDisplayName()), Stage.Created);
     }
 
     @Override

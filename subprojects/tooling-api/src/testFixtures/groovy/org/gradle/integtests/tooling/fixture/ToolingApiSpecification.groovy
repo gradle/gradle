@@ -317,7 +317,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     private void assertHasNoDeprecationWarnings() {
-        if (targetVersion < GradleVersion.version("5.0")) {
+        if (targetVersion < GradleVersion.version("6.9")) {
             // Older versions have deprecations
             return
         }

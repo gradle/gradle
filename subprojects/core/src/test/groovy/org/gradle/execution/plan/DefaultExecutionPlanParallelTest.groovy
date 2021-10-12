@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
@@ -931,8 +930,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             nextTaskNode = executionPlan.selectNext(lease, resourceLockState)
         }
         if (nextTaskNode?.task instanceof Async) {
-            def project = (ProjectInternal) nextTaskNode.task.project
-            project.owner.accessLock.unlock()
+            nextTaskNode.projectToLock.unlock()
         }
         return nextTaskNode
     }

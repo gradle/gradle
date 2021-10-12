@@ -218,20 +218,23 @@ gradle -q javaToolchains
      | Location:           /Users/username/myJavaInstalls/8.0.242.hs-adpt/jre
      | Language Version:   8
      | Vendor:             AdoptOpenJDK
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        system property 'org.gradle.java.installations.paths'
 
- + OpenJDK 15-ea
-     | Location:           /Users/username/.sdkman/candidates/java/15.ea.21-open
-     | Language Version:   15
-     | Vendor:             AdoptOpenJDK
+ + Microsoft JDK 16.0.2+7
+     | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
+     | Language Version:   16
+     | Vendor:             Microsoft
+     | Architecture:       aarch64
      | Is JDK:             true
      | Detected by:        SDKMAN!
 
- + OpenJDK 16
-     | Location:           /Users/user/customJdks/16.ea.20-open
-     | Language Version:   16
+ + OpenJDK 15-ea
+     | Location:           /Users/user/customJdks/15.ea.21-open
+     | Language Version:   15
      | Vendor:             AdoptOpenJDK
+     | Architecture:       x86_64
      | Is JDK:             true
      | Detected by:        environment variable 'JDK16'
 
@@ -239,7 +242,8 @@ gradle -q javaToolchains
      | Location:           /Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home/jre
      | Language Version:   7
      | Vendor:             Oracle
-     | Is JDK:             true
+     | Architecture:       x86_64
+     | Is JDK:             false
      | Detected by:        macOS java_home
 ----
 

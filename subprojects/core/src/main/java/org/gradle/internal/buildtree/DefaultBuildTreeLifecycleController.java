@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
@@ -56,7 +57,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
-        this.state = controllerFactory.newController(State.NotStarted);
+        this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
     }
 
     @Override

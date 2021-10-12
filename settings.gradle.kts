@@ -22,7 +22,7 @@ plugins {
     id("com.gradle.enterprise").version("3.7")
     id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.2")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.2") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise.test-distribution").version("2.2.1-rc-2") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.testfiltering")
     id("com.gradle.internal.test-selection").version("0.6.4-rc-1")
     id("gradlebuild.internal.cc-experiment")
@@ -136,6 +136,8 @@ include("base-annotations")
 include("security")
 include("normalization-java")
 include("enterprise")
+include("enterprise-operations")
+include("enterprise-workers")
 include("build-operations")
 include("problems")
 

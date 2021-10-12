@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
@@ -45,6 +46,7 @@ dependencies {
 
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":enterprise-operations"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":model-core"))

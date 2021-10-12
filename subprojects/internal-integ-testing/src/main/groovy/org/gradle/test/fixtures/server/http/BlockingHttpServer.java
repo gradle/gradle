@@ -153,7 +153,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     public String callFromTaskAction(String resource) {
-        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
+        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).blocking(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
     }
 
     /**
