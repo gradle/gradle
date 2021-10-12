@@ -49,3 +49,7 @@ classycle {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
+
+tasks.withType<GroovyCompile>() {
+    groovyOptions.isKeepStubs = true
+}
