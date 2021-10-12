@@ -265,7 +265,7 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(null)
-                // Dogfooding TD against ge-experiment until GE 2021.1 is available on e.grdev.net and ge.gradle.org (and the new TD Gradle plugin version 2.0 is accepted)
+                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
                 server.set(uri("https://ge-td-dogfooding.grdev.net"))
 
                 if (BuildEnvironment.isCiServer) {
