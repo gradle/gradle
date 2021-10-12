@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
@@ -102,7 +103,9 @@ public class GradlePluginDevelopmentExtension {
      * Calling this method multiple times with different source set providers is additive.
      *
      * @param testSourceSets the test source set {@link Provider}s to include
+     * @since 7.4
      */
+    @Incubating
     @SafeVarargs
     public final void testSourceSets(Provider<SourceSet>... testSourceSets) {
         for (Provider<SourceSet> testSourceSet : testSourceSets) {
