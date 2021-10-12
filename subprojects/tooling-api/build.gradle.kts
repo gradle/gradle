@@ -24,6 +24,7 @@ dependencies {
     shadedImplementation(libs.slf4jApi)
 
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))

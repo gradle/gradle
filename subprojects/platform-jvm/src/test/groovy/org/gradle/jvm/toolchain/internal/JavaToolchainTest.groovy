@@ -26,7 +26,7 @@ class JavaToolchainTest extends Specification {
     def "java version is reported as specified in metadata"() {
         given:
         def javaHome = new File("/jvm/$implementationVersion").absoluteFile
-        def metadata = JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, "vendor", "implName")
+        def metadata = JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, "vendor", "implName", "archName")
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
 

@@ -29,24 +29,23 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.invocation.DefaultGradle;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
-    @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild, BuildScopeServices buildScopeServices) {
-        StartParameter startParameter = buildDefinition.getStartParameter();
+    private final StateTransitionControllerFactory stateTransitionControllerFactory;
 
-        buildScopeServices.add(BuildDefinition.class, buildDefinition);
-        buildScopeServices.add(BuildState.class, owner);
-        buildScopeServices.addProvider(new GradleModelProvider(parentBuild, startParameter));
+    public DefaultBuildLifecycleControllerFactory(StateTransitionControllerFactory stateTransitionControllerFactory) {
+        this.stateTransitionControllerFactory = stateTransitionControllerFactory;
+    }
+
+    @Override
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices) {
+        StartParameter startParameter = buildDefinition.getStartParameter();
 
         final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
         for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
@@ -97,27 +96,8 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            buildScopeServices
+            buildScopeServices,
+            stateTransitionControllerFactory
         );
-    }
-
-    private static class GradleModelProvider {
-        @Nullable
-        private final BuildState parentBuild;
-        private final StartParameter startParameter;
-
-        private GradleModelProvider(@Nullable BuildState parentBuild, StartParameter startParameter) {
-            this.parentBuild = parentBuild;
-            this.startParameter = startParameter;
-        }
-
-        GradleInternal createGradleModel(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
-            return instantiator.newInstance(
-                DefaultGradle.class,
-                parentBuild,
-                startParameter,
-                serviceRegistryFactory
-            );
-        }
     }
 }

@@ -19,8 +19,6 @@ package org.gradle.internal.logging.events.operations;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.List;
-
 /**
  * Build operation observer's view of {@link org.gradle.internal.logging.events.StyledTextOutputEvent}.
  *
@@ -28,23 +26,14 @@ import java.util.List;
  *
  * @since 4.7
  */
-@UsedByScanPlugin
-public interface StyledTextBuildOperationProgressDetails {
-
-    List<? extends Span> getSpans();
-
-    String getCategory();
-
+@UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
+@Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
+public interface StyledTextBuildOperationProgressDetails extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails {
     LogLevel getLogLevel();
 
-    interface Span {
-
-        /**
-         * Always a value name of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
-         */
-        String getStyleName();
-
-        String getText();
-
-    }
+    @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    interface Span extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails.Span {}
 }

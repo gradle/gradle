@@ -71,7 +71,7 @@ class TestTest extends AbstractConventionTaskTest {
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")
-        completion = project.services.get(WorkerLeaseRegistry).getWorkerLease().start()
+        completion = project.services.get(WorkerLeaseRegistry).startWorker()
 
         test = createTask(Test.class)
     }

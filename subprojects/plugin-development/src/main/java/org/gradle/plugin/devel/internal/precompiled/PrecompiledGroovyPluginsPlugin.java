@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -26,6 +27,7 @@ import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
@@ -34,7 +36,13 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_NAMESPACE;
+import static org.gradle.api.internal.plugins.DefaultPluginManager.CORE_PLUGIN_PREFIX;
+
 public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
+
+    private static final Documentation PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins");
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
@@ -54,6 +62,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
 
         List<PrecompiledGroovyScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
             .map(file -> new PrecompiledGroovyScript(file, getTextFileResourceLoader()))
+            .peek(scriptPlugin -> validateScriptPlugin(project, scriptPlugin))
             .collect(Collectors.toList());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
@@ -89,9 +98,20 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         pluginSourceSet.getOutput().dir(extractPluginRequests.flatMap(ExtractPluginRequestsTask::getExtractedPluginRequestsClassesStagingDirectory));
     }
 
+    private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
+        if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
+            throw new GradleException(String.format("The precompiled plugin (%s) cannot start with '%s'.\n\n%s.",
+                project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
+        }
+        Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
+        if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
+            throw new GradleException(String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId(),
+                PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()));
+        }
+    }
+
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {
         pluginExtension.plugins(pluginDeclarations ->
-            scriptPlugins.forEach(scriptPlugin ->
-                pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
+            scriptPlugins.forEach(scriptPlugin -> pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
     }
 }

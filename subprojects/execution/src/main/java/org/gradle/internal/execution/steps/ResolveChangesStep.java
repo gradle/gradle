@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
+public class ResolveChangesStep<C extends CachingContext, R extends Result> implements Step<C, R> {
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
     private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
@@ -59,7 +59,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
     }
 
     @Override
-    public R execute(UnitOfWork work, CachingContext context) {
+    public R execute(UnitOfWork work, C context) {
         IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
             .map(changes -> createDelegateContext(context, changes.getChangeDescriptions(), changes))

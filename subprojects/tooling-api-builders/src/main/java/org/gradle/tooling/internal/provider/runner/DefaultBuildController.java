@@ -23,11 +23,11 @@ import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.BuildToolingModelController;
-import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -51,15 +51,18 @@ import java.util.function.Supplier;
 
 @SuppressWarnings("deprecation")
 class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
+    private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildToolingModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildStateRegistry buildStateRegistry;
 
     public DefaultBuildController(
         BuildToolingModelController controller,
+        WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken cancellationToken,
         BuildStateRegistry buildStateRegistry
     ) {
+        this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
         this.cancellationToken = cancellationToken;
         this.buildStateRegistry = buildStateRegistry;
@@ -188,7 +191,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private void assertCanQuery() {
-        if (!GradleThread.isManaged()) {
+        if (!workerThreadRegistry.isWorkerThread()) {
             throw new IllegalStateException("A build controller cannot be used from a thread that is not managed by Gradle.");
         }
     }

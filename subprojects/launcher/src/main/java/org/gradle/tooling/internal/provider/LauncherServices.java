@@ -110,9 +110,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 new SetupLoggingActionExecuter(loggingManager,
                 new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(), workValidationWarningReporter,
                 new StartParamsValidatingActionExecuter(
-                new GradleThreadBuildActionExecuter(
                 new BuildSessionLifecycleBuildActionExecuter(userHomeServiceRegistry, globalServices
-                )))));
+                ))));
             // @formatter:on
         }
 

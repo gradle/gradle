@@ -19,7 +19,6 @@ package org.gradle.api.services.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
-import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -107,7 +106,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
                     isolatedParameters,
                     internalServices,
-                    ImmutableList.of(LoggingOutput.class),
+                    ImmutableList.of(),
                     serviceType -> false
                 );
                 try {

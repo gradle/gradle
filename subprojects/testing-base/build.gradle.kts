@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.ant) // only used for DateUtils
 
     testImplementation(project(":file-collections"))
+    testImplementation(project(":enterprise-operations"))
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))

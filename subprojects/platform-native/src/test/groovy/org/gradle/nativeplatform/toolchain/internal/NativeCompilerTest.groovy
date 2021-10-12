@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
-import org.gradle.internal.concurrent.GradleThread
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
@@ -143,8 +142,6 @@ abstract class NativeCompilerTest extends Specification {
     @Unroll("Compiles source files (options.txt=#withOptionsFile) with #description")
     def "compiles all source files in separate executions"() {
         given:
-        GradleThread.setManaged()
-
         def invocationContext = new DefaultMutableCommandLineToolContext()
         def compiler = getCompiler(invocationContext, O_EXT, withOptionsFile)
         def testDir = tmpDirProvider.testDirectory
@@ -176,9 +173,6 @@ abstract class NativeCompilerTest extends Specification {
         2 * buildOperationListener.started(_, _)
         2 * buildOperationListener.finished(_, _)
         0 * _
-
-        cleanup:
-        GradleThread.setUnmanaged()
 
         where:
         withOptionsFile | description

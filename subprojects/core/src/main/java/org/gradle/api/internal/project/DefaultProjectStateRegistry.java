@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -57,7 +55,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newHashMap();
     private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = Maps.newHashMap();
-    private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -149,33 +146,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     @Override
     public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
-        if (!ownerOfAllProjects.compareAndSet(null, Thread.currentThread())) {
-            // Already own all the projects
-            if (ownerOfAllProjects.get() == Thread.currentThread()) {
-                return factory.create();
-            }
-            throw new IllegalStateException(String.format("Another thread (%s) currently holds the state lock for all projects.", ownerOfAllProjects));
-        }
-        try {
+        ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock();
+        Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
+        if (locks.contains(allProjectsLock)) {
+            // Holds the lock so run the action
             return factory.create();
-        } finally {
-            ownerOfAllProjects.set(null);
         }
-    }
-
-    @Override
-    public void blocking(Runnable runnable) {
-        Thread owner = ownerOfAllProjects.get();
-        if (owner == Thread.currentThread()) {
-            ownerOfAllProjects.set(null);
-            try {
-                runnable.run();
-            } finally {
-                ownerOfAllProjects.set(owner);
-            }
-        } else {
-            workerLeaseService.blocking(runnable);
-        }
+        return workerLeaseService.withLocks(Collections.singletonList(allProjectsLock), () -> workerLeaseService.withoutLocks(locks, factory));
     }
 
     @Override
@@ -232,6 +209,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final BuildState owner;
         private final Path identityPath;
         private final ResourceLock projectLock;
+        private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private ProjectInternal project;
 
@@ -244,6 +222,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
+            this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
         }
 
         @Override
@@ -353,6 +332,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public ResourceLock getTaskExecutionLock() {
+            return taskLock;
+        }
+
+        @Override
         public void applyToMutableState(Consumer<? super ProjectInternal> action) {
             fromMutableState(p -> {
                 action.accept(p);
@@ -368,26 +352,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                 return function.apply(getMutableModel());
             }
 
-            Thread currentOwner = ownerOfAllProjects.get();
-            if (currentOwner != null) {
-                if (currentOwner == currentThread) {
-                    // we hold the lock for all projects, can run the function
-                    return function.apply(getMutableModel());
-                }
-                throw new IllegalStateException(String.format("Cannot acquire state lock for %s as another thread (%s) currently holds the state lock for all projects.", project, currentOwner));
-            }
-
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-            if (currentLocks.contains(projectLock)) {
+            if (currentLocks.contains(projectLock) || currentLocks.contains(workerLeaseService.getAllProjectsLock())) {
                 // if we already hold the project lock for this project
                 if (currentLocks.size() == 1) {
                     // the lock for this project is the only lock we hold, can run the function
                     return function.apply(getMutableModel());
                 } else {
-                    currentLocks = Lists.newArrayList(currentLocks);
-                    currentLocks.remove(projectLock);
-                    // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, () -> function.apply(getMutableModel()));
+                    throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
                 }
             } else {
                 // we don't currently hold the project lock
@@ -421,7 +393,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public boolean hasMutableState() {
             Thread currentThread = Thread.currentThread();
-            return canDoAnythingToThisProject.contains(currentThread) || workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || ownerOfAllProjects.get() == currentThread || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            if (canDoAnythingToThisProject.contains(currentThread) || workerLeaseService.isAllowedUncontrolledAccessToAnyProject()) {
+                return true;
+            }
+            Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
+            return locks.contains(projectLock) || locks.contains(workerLeaseService.getAllProjectsLock());
         }
 
         @Override
@@ -487,7 +463,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             }
 
             // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
-            projectLeaseRegistry.withoutProjectLock(lock::lock);
+            projectLeaseRegistry.blocking(lock::lock);
         }
 
         private void assertCanMutate() {

@@ -15,12 +15,15 @@
  */
 package org.gradle.internal.build;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.Node;
 import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -28,7 +31,8 @@ import java.util.function.Consumer;
  */
 public interface BuildLifecycleController extends Stoppable {
     /**
-     * Returns the current state of the mutable model for this build.
+     * Returns the current state of the mutable model for this build. You should avoid using this method, as no thread safety or lifecycling is applied
+     * to the return value.
      */
     GradleInternal getGradle();
 
@@ -52,24 +56,26 @@ public interface BuildLifecycleController extends Stoppable {
     void prepareToScheduleTasks();
 
     /**
-     * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
+     * Creates a new work plan for this build.
+     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times to create multiple plans.
      */
-    void scheduleRequestedTasks();
+    BuildWorkPlan newWorkGraph();
 
     /**
-     * Populates the work graph of this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method.
+     * Populates the given work plan with tasks and work from this build.
      */
-    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
-
-    void finalizeWorkGraph(boolean workScheduled);
+    void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action);
 
     /**
-     * Executes the tasks scheduled for this build. Does not automatically configure the build or schedule any tasks.
-     * Must call {@link #prepareToScheduleTasks()} and optionally any of {@link #scheduleRequestedTasks()} or {@link #populateWorkGraph(Consumer)} prior to calling this method.
+     * Finalizes the work graph after it has not been populated.
      */
-    ExecutionResult<Void> executeTasks();
+    void finalizeWorkGraph(BuildWorkPlan plan);
+
+    /**
+     * Executes the given work for this build. Does not automatically configure the build or schedule any tasks.
+     * Must call {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
+     */
+    ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.
@@ -84,4 +90,21 @@ public interface BuildLifecycleController extends Stoppable {
      * <p>Adds a listener to this build instance. Receives events for this build only.
      */
     void addListener(Object listener);
+
+    interface WorkGraphBuilder {
+        /**
+         * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
+         */
+        void addRequestedTasks();
+
+        /**
+         * Adds the given tasks and their dependencies to the work graph for this build.
+         */
+        void addEntryTasks(List<? extends Task> tasks);
+
+        /**
+         * Adds the given nodes to the work graph for this build.
+         */
+        void addNodes(List<? extends Node> nodes);
+    }
 }

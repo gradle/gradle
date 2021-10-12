@@ -8,12 +8,14 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -45,9 +47,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
         withPrecompiledKotlinScript(
-            "org/gradle/plugins/plugin-with-package.gradle.kts",
+            "test/gradle/plugins/plugin-with-package.gradle.kts",
             """
-            package org.gradle.plugins
+            package test.gradle.plugins
 
             plugins {
                 org.gradle.base
@@ -720,5 +722,72 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertThat(output, containsString("base-plugin settings plugin applied"))
             assertThat(output, containsString("my-plugin settings plugin applied"))
         }
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to conflict with core plugin`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/java.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+        withFile(
+            "build.gradle",
+            """
+            plugins {
+                java
+            }
+            """
+        )
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/java.gradle.kts".replace("/", File.separator)}) conflicts with the core plugin 'java'. Rename your plugin.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to have org-dot-gradle prefix`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/org.gradle.my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/org.gradle.my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
+    }
+
+    @Test
+    fun `should not allow precompiled plugin to be in org-dot-gradle package`() {
+        withKotlinBuildSrc()
+        withFile(
+            "buildSrc/src/main/kotlin/org/gradle/my-plugin.gradle.kts",
+            """
+            package org.gradle
+
+            tasks.register("myTask") {}
+            """
+        )
+        withDefaultSettings()
+
+        val error = buildAndFail("help")
+
+        error.assertHasCause(
+            "The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
+                + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
+        )
     }
 }

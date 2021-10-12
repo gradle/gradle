@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 
 
@@ -23,9 +24,9 @@ class ConfigurationCacheAwareBuildTreeWorkPreparer(
     private val delegate: BuildTreeWorkPreparer,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeWorkPreparer {
-    override fun scheduleRequestedTasks() {
-        cache.loadOrScheduleRequestedTasks {
-            delegate.scheduleRequestedTasks()
+    override fun scheduleRequestedTasks(graph: BuildTreeWorkGraph) {
+        cache.loadOrScheduleRequestedTasks(graph) {
+            delegate.scheduleRequestedTasks(it)
         }
     }
 }

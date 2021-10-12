@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
@@ -62,6 +61,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -109,13 +109,13 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(createBuild: (File?, String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild) {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
         configureBuild(buildState)
-        calculateRootTaskGraph(buildState)
+        calculateRootTaskGraph(buildState, graph)
     }
 
     private
@@ -130,22 +130,25 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(state: CachedBuildState) {
-        val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
-        taskGraph.prepareTaskGraph {
-            state.build.state.populateWorkGraph {
+    fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
+        graph.scheduleWork { builder ->
+            builder.withWorkGraph(state.build.state) {
                 it.addNodes(state.workGraph)
-                state.children.forEach(::addNodesForChildBuilds)
             }
-            taskGraph.populateTaskGraphs()
-            state.build.state.workGraph.prepareForExecution(true)
+            for (child in state.children) {
+                addNodesForChildBuilds(child, builder)
+            }
         }
     }
 
     private
-    fun addNodesForChildBuilds(state: CachedBuildState) {
-        state.build.gradle.taskGraph.addNodes(state.workGraph)
-        state.children.forEach(::addNodesForChildBuilds)
+    fun addNodesForChildBuilds(state: CachedBuildState, builder: BuildTreeWorkGraph.Builder) {
+        builder.withWorkGraph(state.build.state) {
+            it.addNodes(state.workGraph)
+        }
+        for (child in state.children) {
+            addNodesForChildBuilds(child, builder)
+        }
     }
 
     private

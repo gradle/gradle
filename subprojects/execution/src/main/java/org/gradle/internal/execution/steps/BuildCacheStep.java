@@ -45,21 +45,21 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 
-public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
+public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
+    private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         BuildCacheCommandFactory commandFactory,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
-        Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
+        Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.commandFactory = commandFactory;
@@ -69,14 +69,14 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
     }
 
     @Override
-    public CurrentSnapshotResult execute(UnitOfWork work, IncrementalChangesContext context) {
+    public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
             cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private CurrentSnapshotResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
+    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
@@ -92,8 +92,10 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(
                         beforeExecutionState,
-                        cacheHit.getResultingSnapshots());
-                    return (CurrentSnapshotResult) new CurrentSnapshotResult() {
+                        cacheHit.getResultingSnapshots(),
+                        originMetadata,
+                        true);
+                    return (AfterExecutionResult) new AfterExecutionResult() {
                         @Override
                         public Try<ExecutionResult> getExecutionResult() {
                             return Try.successful(new ExecutionResult() {
@@ -112,16 +114,6 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
                         @Override
                         public Duration getDuration() {
                             return originMetadata.getExecutionTime();
-                        }
-
-                        @Override
-                        public OriginMetadata getOriginMetadata() {
-                            return originMetadata;
-                        }
-
-                        @Override
-                        public boolean isReused() {
-                            return true;
                         }
 
                         @Override
@@ -155,15 +147,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         });
     }
 
-    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+    private AfterExecutionResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Did not find cache entry for {} with cache key {}, executing instead",
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
-        CurrentSnapshotResult result = executeWithoutCache(cacheableWork.work, context);
+        AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecutionResult().ifSuccessfulOrElse(
             executionResult -> result.getAfterExecutionState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), result.getOriginMetadata().getExecutionTime())),
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
@@ -184,7 +176,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSn
         }
     }
 
-    private CurrentSnapshotResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
+    private AfterExecutionResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
         return delegate.execute(work, context);
     }
 

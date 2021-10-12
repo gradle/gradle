@@ -34,6 +34,7 @@ import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -110,12 +111,12 @@ class DefaultConfigurationCache internal constructor(
         rootBuild = host
     }
 
-    override fun loadOrScheduleRequestedTasks(scheduler: () -> Unit) {
+    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit) {
         if (canLoad) {
-            loadWorkGraph()
+            loadWorkGraph(graph)
         } else {
             runWorkThatContributesToCacheEntry {
-                scheduler()
+                scheduler(graph)
                 saveWorkGraph()
             }
         }
@@ -287,9 +288,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadWorkGraph() {
+    fun loadWorkGraph(graph: BuildTreeWorkGraph) {
         loadFromCache(StateType.Work) { stateFile ->
-            cacheIO.readRootBuildStateFrom(stateFile)
+            cacheIO.readRootBuildStateFrom(stateFile, graph)
         }
     }
 
