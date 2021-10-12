@@ -193,6 +193,38 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
     }
 
+    def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit Jupiter with version provider"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    test {
+                        def version = objects.property(String).convention("5.7.1")
+                        useJUnitJupiter(version)
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn test
+                doLast {
+                    assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.1.jar" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+    }
+
     def "conventional test framework on custom test suite is JUnit Jupiter"() {
         buildFile << """
             plugins {
@@ -263,6 +295,45 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useKotlinTest("1.5.30")'    | JUnitTestFramework         | "kotlin-test-junit-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.Frameworks.TESTNG.getDefaultVersion()}.jar"
         'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
+    }
+
+    def "configuring test framework on custom test suite using provider is honored in task and dependencies with #testingFrameworkDeclaration"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        def version = objects.property(String).convention('$testingFrameworkVersion')
+                        ${testingFrameworkDeclaration}
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn integTest
+                doLast {
+                    assert integTest.testFramework instanceof ${testingFrameworkType.canonicalName}
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "${testingFrameworkDep}" }
+                }
+            }
+        """
+        expect:
+        succeeds("checkConfiguration")
+
+        where: // When testing a custom version, this should be a different version that the default
+        testingFrameworkVersion | testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
+        '4.12'                  | 'useJUnit(version)'          | JUnitTestFramework         | 'junit-4.12.jar'
+        '5.7.1'                 | 'useJUnitJupiter(version)'   | JUnitPlatformTestFramework | 'junit-jupiter-5.7.1.jar'
+        '2.0-groovy-3.0'        | 'useSpock(version)'          | JUnitPlatformTestFramework | 'spock-core-2.0-groovy-3.0.jar' // Not possible to test a different version from the default yet, since this is the first groovy 3.0 targeted release
+        '1.5.30'                | 'useKotlinTest(version)'     | JUnitTestFramework         | 'kotlin-test-junit-1.5.30.jar'
+        '7.3.0'                 | 'useTestNG(version)'         | TestNGTestFramework        | 'testng-7.3.0.jar'
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -427,7 +498,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             integrationTest {
                 useTestNG()
             }
-            
+
             check.dependsOn testing.suites
         """
 
@@ -518,7 +589,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             check.dependsOn testing.suites
         """
 

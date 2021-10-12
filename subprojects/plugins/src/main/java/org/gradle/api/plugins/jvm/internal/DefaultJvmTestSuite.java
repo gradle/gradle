@@ -35,6 +35,7 @@ import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -84,15 +85,20 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private static class TestingFramework {
         private final Frameworks framework;
-        private final String version;
+        private final Provider<String> version;
 
-        private TestingFramework(Frameworks framework, String version) {
+        private TestingFramework(ObjectFactory objectFactory, Frameworks framework, String version) {
+            Preconditions.checkNotNull(version);
+            this.framework = framework;
+            this.version = objectFactory.property(String.class).convention(version);
+        }
+
+        private TestingFramework(Frameworks framework, Provider<String> version) {
             Preconditions.checkNotNull(version);
             this.framework = framework;
             this.version = version;
         }
     }
-    private final static TestingFramework NO_OPINION = new TestingFramework(Frameworks.NONE, "unset");
 
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
@@ -125,7 +131,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
             // and add dependencies automatically.
-            getTestingFramework().convention(NO_OPINION);
+            final TestingFramework noOpinion = new TestingFramework(getObjectFactory(), Frameworks.NONE, "unset");
+            getTestingFramework().convention(noOpinion);
         }
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
@@ -165,7 +172,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     case SPOCK: // fall-through
                     case TESTNG: // fall-through
                     case KOTLIN_TEST:
-                        return framework.framework.getDependency(framework.version);
+                        return framework.framework.getDependency(framework.version.get());
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
                 }
@@ -211,6 +218,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit(String version) {
+        setFrameworkTo(new TestingFramework(getObjectFactory(), Frameworks.JUNIT4, version));
+    }
+
+    @Override
+    public void useJUnit(Provider<String> version) {
         setFrameworkTo(new TestingFramework(Frameworks.JUNIT4, version));
     }
 
@@ -221,6 +233,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnitJupiter(String version) {
+        setFrameworkTo(new TestingFramework(getObjectFactory(), Frameworks.JUNIT_JUPITER, version));
+    }
+
+    @Override
+    public void useJUnitJupiter(Provider<String> version) {
         setFrameworkTo(new TestingFramework(Frameworks.JUNIT_JUPITER, version));
     }
 
@@ -231,6 +248,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock(String version) {
+        setFrameworkTo(new TestingFramework(getObjectFactory(), Frameworks.SPOCK, version));
+    }
+
+    @Override
+    public void useSpock(Provider<String> version) {
         setFrameworkTo(new TestingFramework(Frameworks.SPOCK, version));
     }
 
@@ -241,6 +263,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useKotlinTest(String version) {
+        setFrameworkTo(new TestingFramework(getObjectFactory(), Frameworks.KOTLIN_TEST, version));
+    }
+
+    @Override
+    public void useKotlinTest(Provider<String> version) {
         setFrameworkTo(new TestingFramework(Frameworks.KOTLIN_TEST, version));
     }
 
@@ -251,6 +278,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useTestNG(String version) {
+        setFrameworkTo(new TestingFramework(getObjectFactory(), Frameworks.TESTNG, version));
+    }
+
+    @Override
+    public void useTestNG(Provider<String> version) {
         setFrameworkTo(new TestingFramework(Frameworks.TESTNG, version));
     }
 
