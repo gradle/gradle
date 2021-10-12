@@ -40,6 +40,26 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run()
+        succeeds()
+    }
+
+    def "including large numbers of projects is possible via varargs in Kotlin"() {
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include(${(0..1024).collect { "\"project$it\""}.join(", ")})
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "including large numbers of projects is possible via a List in Kotlin"() {
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include(listOf(${(0..1024).collect { "\"project$it\""}.join(", ")}))
+        """
+
+        expect:
+        succeeds()
     }
 }
