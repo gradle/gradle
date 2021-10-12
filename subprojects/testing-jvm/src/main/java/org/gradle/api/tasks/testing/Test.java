@@ -632,7 +632,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.4
      */
     @Override
-    public JvmTestExecutionSpec createTestExecutionSpec() {
+    protected JvmTestExecutionSpec createTestExecutionSpec() {
         validateToolchainConfiguration();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);

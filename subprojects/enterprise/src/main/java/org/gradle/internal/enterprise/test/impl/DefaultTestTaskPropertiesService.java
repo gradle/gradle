@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
@@ -35,35 +34,45 @@ import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
-import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
+import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.DefaultProcessForkOptions;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 import java.util.function.Function;
 
-import static java.util.Objects.requireNonNull;
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class DefaultTestTaskPropertiesService implements TestTaskPropertiesService {
 
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
+    private final JavaForkOptionsFactory forkOptionsFactory;
     private final JvmVersionDetector jvmVersionDetector;
+    private final JavaModuleDetector javaModuleDetector;
 
     @Inject
-    public DefaultTestTaskPropertiesService(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, JvmVersionDetector jvmVersionDetector) {
+    public DefaultTestTaskPropertiesService(
+        PropertyWalker propertyWalker,
+        FileCollectionFactory fileCollectionFactory,
+        JavaForkOptionsFactory forkOptionsFactory,
+        JvmVersionDetector jvmVersionDetector,
+        JavaModuleDetector javaModuleDetector
+    ) {
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.forkOptionsFactory = forkOptionsFactory;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.javaModuleDetector = javaModuleDetector;
     }
 
     @Override
@@ -140,17 +149,18 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private TestTaskForkOptions collectForkOptions(Test task) {
-        JvmTestExecutionSpec executionSpec = task.createTestExecutionSpec();
-        DefaultJavaForkOptions forkOptions = (DefaultJavaForkOptions) executionSpec.getJavaForkOptions();
+        boolean testIsModule = javaModuleDetector.isModule(task.getModularity().getInferModulePath().get(), task.getTestClassesDirs());
+        JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
+        task.copyTo(forkOptions);
         String executable = forkOptions.getExecutable();
         return new DefaultTestTaskForkOptions(
             forkOptions.getWorkingDir(),
             executable,
             detectJavaVersion(executable),
-            requireNonNull(uncheckedCast(executionSpec.getClasspath())),
-            requireNonNull(uncheckedCast(executionSpec.getModulePath())),
+            javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),
+            javaModuleDetector.inferModulePath(testIsModule, task.getClasspath()),
             forkOptions.getAllJvmArgs(),
-            forkOptions.getActualEnvironment()
+            DefaultProcessForkOptions.getActualEnvironment(forkOptions)
         );
     }
 
