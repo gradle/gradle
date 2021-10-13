@@ -96,11 +96,12 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def "delegates when work has sources"() {
+        def delegateResult = Mock(CachingResult)
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
         1 * inputFingerprinter.fingerprintInputProperties(
@@ -122,11 +123,13 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * delegate.execute(work, _ as PreviousExecutionContext) >> { UnitOfWork work, PreviousExecutionContext delegateContext ->
             assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
             assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
+            return delegateResult
         }
         0 * _
 
         then:
         !skipOutcome.present
+        result == delegateResult
     }
 
     def "skips when work has empty sources"() {
@@ -134,7 +137,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
         1 * inputFingerprinter.fingerprintInputProperties(
@@ -154,6 +157,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         skipOutcome.get() == SHORT_CIRCUITED
+        !result.afterExecutionState.present
     }
 
     def "skips when work has empty sources and previous outputs (#description)"() {
@@ -161,7 +165,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         def outputFileSnapshot = snapshot(previousOutputFile)
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
         interaction {
@@ -180,6 +184,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
         then:
         skipOutcome.get() == outcome
+        !result.afterExecutionState.present
 
         where:
         didWork | outcome
