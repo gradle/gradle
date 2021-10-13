@@ -867,7 +867,17 @@ This can indicate that a dependency has been compromised. Please carefully verif
         given:
         javaLibrary()
         uncheckedModule("org", "foo")
-        file("gradle/verification-metadata.xml") << "j'adore les fruits au sirop"
+        file("gradle/verification-metadata.xml") << """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+   </configuration>
+    <trusted-keys>
+         <trusted-key id="4db1a49729b053caf015cee9a6adfc93ef34893e" group="org.hamcrest"/>
+      </trusted-keys>
+</verification-metadata>
+"""
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
@@ -878,8 +888,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails ":compileJava"
 
         then:
-        errorOutput.contains("Unable to read dependency verification metadata from")
-        errorOutput.contains("verification-metadata.xml")
+        errorOutput.contains("> Could not resolve all dependencies for configuration ':compileClasspath'.")
+        errorOutput.contains("   > Dependency verification cannot be performed")
+        errorOutput.contains("      > Unable to read dependency verification metadata from")
+        errorOutput.contains("         > Invalid dependency verification metadata file: <trusted-keys> must be found under the <configuration> tag")
         failure.assertThatCause(containsText("Dependency verification cannot be performed"))
     }
 
