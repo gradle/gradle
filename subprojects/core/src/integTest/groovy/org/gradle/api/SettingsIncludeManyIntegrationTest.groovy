@@ -21,45 +21,85 @@ import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/13018")
 class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
+    // A list of project paths: project000, project001, ..., project300
+    private def projectNames = (0..300).collect {
+        "project${it.toString().padLeft(3, "0")}"
+    }
+    private def projectNamesCommaSeparated = projectNames.collect {
+        "\"$it\""
+    }.join(", ")
+
     def "including over 250 projects is not possible via varargs in Groovy"() {
+        // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
+        // 254 projects must be used instead.
         settingsFile << """
             rootProject.name = 'root'
-            include ${(0..250).collect { "'project$it'"}.join(", ")}
+            include ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
         """
 
         expect:
-        def result = fails()
+        def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
         failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
     }
 
-    def "including over 250 projects is possible via a List in Groovy"() {
+    def "including large amounts of projects is not possible via varargs in Groovy"() {
         settingsFile << """
             rootProject.name = 'root'
-            include([${(0..250).collect { "'project$it'"}.join(", ")}])
+            include $projectNamesCommaSeparated
         """
 
+        // The failure here emits a stacktrace because it's at compilation time
+        executer.withStackTraceChecksDisabled()
+
         expect:
-        succeeds()
+        def result = fails("projects")
+        result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
+        failureCauseContains("The max number of supported arguments is 255, but found 301")
     }
 
-    def "including large numbers of projects is possible via varargs in Kotlin"() {
-        settingsKotlinFile << """
-            rootProject.name = "root"
-            include(${(0..1024).collect { "\"project$it\""}.join(", ")})
+    def "including large amounts of projects is possible via a List in Groovy"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include([$projectNamesCommaSeparated])
         """
 
-        expect:
-        succeeds()
+        when:
+        run("projects")
+
+        then:
+        for (def name : projectNames) {
+            outputContains(name)
+        }
     }
 
-    def "including large numbers of projects is possible via a List in Kotlin"() {
+    def "including large amounts of projects is possible via varargs in Kotlin"() {
         settingsKotlinFile << """
             rootProject.name = "root"
-            include(listOf(${(0..1024).collect { "\"project$it\""}.join(", ")}))
+            include($projectNamesCommaSeparated)
         """
 
-        expect:
-        succeeds()
+        when:
+        run("projects")
+
+        then:
+        for (def name : projectNames) {
+            outputContains(name)
+        }
+    }
+
+    def "including large amounts of projects is possible via a List in Kotlin"() {
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include(listOf($projectNamesCommaSeparated))
+        """
+
+        when:
+        run("projects")
+
+        then:
+        for (def name : projectNames) {
+            outputContains(name)
+        }
     }
 }
