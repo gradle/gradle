@@ -17,18 +17,27 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - id: determine-sys-prop-args
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (context.payload.pull_request.head.repo.fork) {
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+            } else {
+                core.setOutput('sys-prop-args', '-DcacheNode=us')
+            }
       - name: assemble
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean compileAll --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
+          arguments: clean compileAll --no-configuration-cache ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - name: "Comment build scan url"
-        uses: actions/github-script@v3
+        uses: actions/github-script@v5
         if: github.event_name == 'pull_request' && failure()
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -36,6 +45,7 @@ jobs:
             })
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
+      sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
     env:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -56,14 +66,14 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean sanityCheck --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
+          arguments: clean sanityCheck --no-configuration-cache ${{ needs.build.outputs.sys-prop-args }}
       - name: "Comment build scan url"
-        uses: actions/github-script@v3
+        uses: actions/github-script@v5
         if: github.event_name == 'pull_request' && failure()
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.issues.createComment({
+            github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -93,7 +103,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
+          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache ${{ needs.build.outputs.sys-prop-args }}
     env:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
