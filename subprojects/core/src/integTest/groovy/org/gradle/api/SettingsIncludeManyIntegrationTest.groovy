@@ -30,7 +30,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails()
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        failure.assertHasCause("'java.lang.Object[] org.codehaus.groovy.runtime.ArrayUtil.createArray(${(0..250).collect { "java.lang.Object"}.join(", ")})'")
+        failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
     }
 
     def "including over 250 projects is possible via a List in Groovy"() {
