@@ -21,7 +21,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean compileAll --no-configuration-cache
+          arguments: clean compileAll --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -56,7 +56,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean sanityCheck --no-configuration-cache
+          arguments: clean sanityCheck --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
       - name: "Comment build scan url"
         uses: actions/github-script@v3
         if: github.event_name == 'pull_request' && failure()
@@ -93,7 +93,7 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache
+          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache -DpullRequestFrom=${{ github.event.pull_request.author_association }} --init-script .github/workflows/setup-github-actions.init.gradle.kts
     env:
       # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
       GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
