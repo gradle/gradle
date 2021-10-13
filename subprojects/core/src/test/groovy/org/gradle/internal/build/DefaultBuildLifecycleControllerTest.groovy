@@ -182,6 +182,66 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
+    void testLoadSettingsRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        expectSettingsBuiltWithFailure(failure)
+
+        def controller = this.controller()
+        controller.loadSettings()
+
+        then:
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
+    }
+
+    void testConfigureBuild() {
+        def controller = controller()
+
+        when:
+        controller.configureProjects()
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithConfiguredBuild() {
+        def action = Mock(Function)
+        def controller = controller()
+
+        when:
+        controller.withProjectsConfigured(action)
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+        1 * action.apply(gradleMock)
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
     void testGetConfiguredBuild() {
         when:
         1 * buildModelController.configuredModel >> gradleMock
@@ -220,6 +280,34 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
+    void testConfigureBuildRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        1 * buildModelController.configuredModel >> { throw failure }
+
+        def controller = this.controller()
+        controller.configureProjects()
+
+        then:
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
+    }
+
     void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
@@ -237,7 +325,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testNotifiesListenerOnSettingsInitWithFailure() {
+    void testNotifiesListenerOnTaskSchedulingFailure() {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
@@ -385,6 +473,30 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         when:
         controller.gradle
+
+        then:
+        thrown IllegalStateException
+    }
+
+    void testCannotLoadSettingsAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.loadSettings()
+
+        then:
+        thrown IllegalStateException
+    }
+
+    void testCannotConfigureBuildAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.configureProjects()
 
         then:
         thrown IllegalStateException

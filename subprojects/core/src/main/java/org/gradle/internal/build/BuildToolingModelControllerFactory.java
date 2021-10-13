@@ -18,13 +18,11 @@ package org.gradle.internal.build;
 
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class BuildToolingModelControllerFactory {
-    // Apply some locking around configuration and tooling model lookup. This should move deeper into the build tree and build state controllers
-    private final Object treeMutableStateLock = new Object();
-
-    BuildToolingModelController createController(BuildLifecycleController owner) {
-        return new DefaultBuildToolingModelController(owner, treeMutableStateLock);
+    BuildToolingModelController createController(BuildState owner, BuildLifecycleController controller) {
+        return new DefaultBuildToolingModelController(owner, controller, controller.getGradle().getServices().get(ToolingModelBuilderLookup.class));
     }
 }

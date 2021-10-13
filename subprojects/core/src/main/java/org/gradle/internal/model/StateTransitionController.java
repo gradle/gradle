@@ -402,7 +402,7 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         public void assertNotFailed() {
-            throw new IllegalStateException("Cannot use " + displayName.getDisplayName() + " as a previous transition failed.");
+            failure.rethrow();
         }
 
         @Override

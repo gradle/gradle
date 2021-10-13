@@ -32,8 +32,9 @@ import java.util.function.Function;
  */
 public interface BuildLifecycleController extends Stoppable {
     /**
-     * Returns the current state of the mutable model for this build. You should avoid using this method, as no thread safety or lifecycling is applied
-     * to the return value.
+     * Returns the current state of the mutable model for this build.
+     *
+     * Note: You should avoid using this method, as no thread safety or lifecycling is applied to the return value.
      */
     GradleInternal getGradle();
 
@@ -52,7 +53,24 @@ public interface BuildLifecycleController extends Stoppable {
     <T> T withSettings(Function<? super SettingsInternal, T> action);
 
     /**
-     * Configures the build, if not already done. This may fail with an error, if this build is loaded from cache rather than configured.
+     * Configures the projects of the build, if not already done.
+     * Can be called multiple times.
+     */
+    void configureProjects();
+
+    /**
+     * Runs the given action against the mutable state of this build after configuring the projects of the build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * @return The configured Gradle build instance.
+     */
+    <T> T withProjectsConfigured(Function<? super GradleInternal, T> action);
+
+    /**
+     * Configures the build, if not already done.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */

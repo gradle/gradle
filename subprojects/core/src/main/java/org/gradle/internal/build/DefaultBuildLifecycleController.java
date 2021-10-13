@@ -111,6 +111,16 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public void configureProjects() {
+        state.notInState(State.Finished, modelController::getConfiguredModel);
+    }
+
+    @Override
+    public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
+    }
+
+    @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
         return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
@@ -164,7 +174,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(this));
+        return action.apply(toolingModelControllerFactory.createController(gradle.getOwner(), this));
     }
 
     @Override
