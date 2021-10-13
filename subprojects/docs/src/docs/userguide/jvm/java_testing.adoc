@@ -396,7 +396,7 @@ There are some known limitations of using JUnit 5 with Gradle, for example that 
 [[compiling_and_executing_junit_jupiter_tests]]
 === Compiling and executing JUnit Jupiter tests
 
-To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependencies:
+To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependency:
 
 .JUnit Jupiter dependencies
 ====
