@@ -32,6 +32,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -141,6 +142,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -163,7 +165,7 @@ public class ExecutionGradleServices {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new RemoveUntrackedExecutionStateStep<>(
-            new SkipEmptyWorkStep<>(
+            new SkipEmptyWorkStep(buildOutputCleanupRegistry, deleter, outputChangeListener,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
             new ResolveCachingStateStep<>(buildCacheController, gradleEnterprisePluginManager.isPresent(),

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
+import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -40,6 +41,8 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
@@ -148,12 +151,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
-    def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def fileOperations = Stub(FileOperations)
     def deleter = TestFiles.deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
+    def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
+    def taskInputsListeners = Stub(TaskInputsListeners)
 
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(documentationRegistry,
@@ -161,7 +165,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep<>(
+        new SkipEmptyWorkStep<>(buildOutputCleanupRegistry, deleter, outputChangeListener,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
@@ -189,9 +193,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         inputFingerprinter,
         listenerManager,
         reservedFileSystemLocationRegistry,
-        emptySourceTaskSkipper,
         fileCollectionFactory,
-        fileOperations
+        fileOperations,
+        taskInputsListeners
     )
 
     def setup() {

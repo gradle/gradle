@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
@@ -67,9 +68,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
-    private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileOperations fileOperations;
+    private final TaskInputsListeners taskInputsListeners;
 
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
@@ -85,9 +86,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        EmptySourceTaskSkipper emptySourceTaskSkipper,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations
+        FileOperations fileOperations,
+        TaskInputsListeners taskInputsListeners
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
@@ -102,9 +103,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
-        this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileOperations = fileOperations;
+        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
@@ -119,14 +120,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             asyncWorkTracker,
             buildOperationExecutor,
             classLoaderHierarchyHasher,
-            emptySourceTaskSkipper,
             executionHistoryStore,
             fileCollectionFactory,
             fileOperations,
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver);
+            taskCacheabilityResolver,
+            taskInputsListeners
+        );
         try {
             return executeIfValid(task, state, context, work);
         } catch (WorkValidationException ex) {

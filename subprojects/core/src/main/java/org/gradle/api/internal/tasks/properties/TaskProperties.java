@@ -57,6 +57,7 @@ public interface TaskProperties {
      */
     FileCollection getInputFiles();
 
+    // TODO Can we remove this now?
     /**
      * Whether there are source files.
      *

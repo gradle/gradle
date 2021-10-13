@@ -177,13 +177,14 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Checks if this work has empty inputs. If the work cannot be skipped, {@link Optional#empty()} is returned.
-     * If it can, either {@link ExecutionOutcome#EXECUTED_NON_INCREMENTALLY} or {@link ExecutionOutcome#SHORT_CIRCUITED} is
-     * returned depending on whether cleanup of existing outputs had to be performed.
+     * Tell consumers about inputs to watch during the next build.
+     *
+     * @param skipOutput {@code null} if the work is not skipped because of empty sources,
+     * or the outcome of how it was skipped.
+     *
+     * @see org.gradle.internal.execution.steps.SkipEmptyWorkStep
      */
-    default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileSystemSnapshot> previousOutputFiles) {
-        return Optional.empty();
-    }
+    default void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutput) {}
 
     /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
