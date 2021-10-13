@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.testing.TestVerificationException;
 import org.gradle.internal.resources.ResourceLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,16 +92,9 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isSuccessful() {
-        if (state == ExecutionState.NOT_REQUIRED || state == ExecutionState.MUST_NOT_RUN) {
-            return true;
-        }
-        if (state == ExecutionState.EXECUTED) {
-            if (isFailed() && !(getNodeFailure().getCause() instanceof TestVerificationException)) {
-                return false;
-            }
-            return true;
-        }
-        return false;
+        return (state == ExecutionState.EXECUTED && !isFailed())
+            || state == ExecutionState.NOT_REQUIRED
+            || state == ExecutionState.MUST_NOT_RUN;
     }
 
     public boolean isFailed() {
