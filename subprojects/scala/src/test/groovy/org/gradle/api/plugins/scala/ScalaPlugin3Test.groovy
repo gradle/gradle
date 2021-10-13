@@ -32,8 +32,6 @@ import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
-import spock.lang.Issue
 
 @Ignore
 @Issue("https://github.com/gradle/gradle-private/issues/3440")
