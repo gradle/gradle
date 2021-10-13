@@ -134,7 +134,7 @@ dependencies {
     }
 }
 
-// Spock 2 is based on JUnit Platform and needs to be enabled explicitly.
+// Spock 2 is based on JUnit Platform which needs to be enabled explicitly.
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
