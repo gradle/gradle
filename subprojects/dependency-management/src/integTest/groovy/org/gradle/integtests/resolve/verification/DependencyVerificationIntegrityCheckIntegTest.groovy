@@ -1086,38 +1086,61 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/18498")
-    def "does not fail for local repository with realized dependency metadata"() {
-        // Test won't fail if other test was run before
-        // Note: For debugging you can remove requireIsolatedGradleDistribution() and you run ONLY this test with embedded runner
-        requireIsolatedGradleDistribution()
+    def "does not fail for local repository with metadata rule"() {
         def repoDir = testDirectory.createDir("repo")
         buildFile << """
             plugins {
                 id 'java'
             }
+
+            @CacheableRule
+            abstract class SamplesVariantRule implements ComponentMetadataRule {
+
+                @Inject
+                abstract ObjectFactory getObjectFactory()
+
+                void execute(ComponentMetadataContext ctx) {
+                    def variant = "samplessources"
+                    def id = ctx.details.id
+                    org.gradle.api.attributes.Category category = objectFactory.named(org.gradle.api.attributes.Category, org.gradle.api.attributes.Category.DOCUMENTATION)
+                    DocsType docsType = objectFactory.named(DocsType, variant)
+                    ctx.details.addVariant(variant) { VariantMetadata vm ->
+                        vm.attributes{ AttributeContainer ac ->
+                            ac.attribute(org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE, category)
+                            ac.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, docsType)
+                        }
+                        vm.withFiles {
+                            it.addFile("\${id.name}-\${id.version}-\${variant}.jar")
+                        }
+                    }
+
+                }
+            }
             repositories {
                 maven { url("$repoDir") }
             }
             dependencies {
-                implementation(platform("org:foo:1.0"))
+                components.all(SamplesVariantRule)
+                implementation("org:monitor:1.0")
             }
-            tasks.register("resolveDependencyMetadata") {
+            tasks.register("resolveCompileClasspath") {
                 configurations.compileClasspath.resolve()
             }
         """
-        propertiesFile << """
-            // We force metadata realization
-            systemProp.org.gradle.integtest.force.realize.metadata=true
-        """
-        mavenLocal(repoDir).module('org', 'foo', '1.0').publish()
+        mavenLocal(repoDir).module('org', 'monitor', '1.0').publish()
         createMetadataFile {
-            addChecksum("org:foo:1.0", "sha256", "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481", "pom", "pom")
+            // Just so we enable dependency verification
+            addChecksum("org:dummy:1.0", "sha256", "some-value", "pom", "pom")
         }
 
         when:
-        succeeds "resolveDependencyMetadata"
+        requireIsolatedGradleDistribution()
+        fails "resolveCompileClasspath"
+        requireIsolatedGradleDistribution()
+        fails "resolveCompileClasspath"
 
         then:
         true
     }
+
 }
