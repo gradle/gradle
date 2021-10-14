@@ -112,8 +112,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         BuildScopeModelBuilder buildScopeModelBuilder = (BuildScopeModelBuilder) registration.getBuilder();
         return new BuildOperationWrappingBuilder(
             restoreUserCodeApplication(
-                new LockAllProjectsBuilder(
-                    new BuildScopedBuilder(buildScopeModelBuilder, target), projectStateRegistry), registration), modelName, target.getDisplayName(), buildOperationExecutor);
+                new BuildScopedBuilder(buildScopeModelBuilder, target), registration),
+            modelName, target.getDisplayName(), buildOperationExecutor);
     }
 
     private Builder locateForClientOperation(String modelName, ProjectInternal project, boolean parameter) throws UnknownModelException {
@@ -301,20 +301,6 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         @Override
         public Object build(Object parameter) {
             return target.fromMutableState(p -> delegate.build(parameter));
-        }
-    }
-
-    private static class LockAllProjectsBuilder extends DelegatingBuilder {
-        private final ProjectStateRegistry projectStateRegistry;
-
-        public LockAllProjectsBuilder(Builder delegate, ProjectStateRegistry projectStateRegistry) {
-            super(delegate);
-            this.projectStateRegistry = projectStateRegistry;
-        }
-
-        @Override
-        public Object build(Object parameter) {
-            return projectStateRegistry.withMutableStateOfAllProjects(() -> delegate.build(parameter));
         }
     }
 

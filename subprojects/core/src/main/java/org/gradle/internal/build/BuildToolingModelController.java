@@ -18,8 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 /**
  * Coordinates the building of tooling models.
@@ -30,7 +29,7 @@ public interface BuildToolingModelController {
      */
     GradleInternal getConfiguredModel();
 
-    ToolingModelBuilderLookup.Builder locateBuilderForTarget(String modelName, boolean param) throws UnknownModelException;
+    ToolingModelScope locateBuilderForTarget(String modelName, boolean param);
 
-    ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException;
+    ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param);
 }

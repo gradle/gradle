@@ -25,7 +25,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import java.util.Collection;
 
@@ -64,17 +64,17 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
-        public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+        public ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
             return locateBuilderForTarget(defaultTarget, modelName, param);
         }
 
         @Override
-        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+        public ToolingModelScope locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
             return target.withToolingModels(controller -> controller.locateBuilderForTarget(modelName, param));
         }
 
         @Override
-        public ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+        public ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
             return target.getOwner().withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
         }
 

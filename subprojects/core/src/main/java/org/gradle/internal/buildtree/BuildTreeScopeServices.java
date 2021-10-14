@@ -26,7 +26,6 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.internal.build.BuildToolingModelControllerFactory;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -59,7 +58,6 @@ public class BuildTreeScopeServices {
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
-        registration.add(BuildToolingModelControllerFactory.class);
         modelServices.applyServicesTo(registration);
     }
 

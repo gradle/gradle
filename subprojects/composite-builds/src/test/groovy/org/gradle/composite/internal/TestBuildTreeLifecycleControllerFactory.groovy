@@ -30,7 +30,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
+import org.gradle.tooling.provider.model.internal.ToolingModelScope
 
 import java.util.function.Consumer
 import java.util.function.Function
@@ -60,17 +60,17 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 

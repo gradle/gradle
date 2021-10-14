@@ -38,9 +38,17 @@ import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
     private final StateTransitionControllerFactory stateTransitionControllerFactory;
+    private final BuildToolingModelControllerFactory buildToolingModelControllerFactory;
+    private final ExceptionAnalyser exceptionAnalyser;
 
-    public DefaultBuildLifecycleControllerFactory(StateTransitionControllerFactory stateTransitionControllerFactory) {
+    public DefaultBuildLifecycleControllerFactory(
+        StateTransitionControllerFactory stateTransitionControllerFactory,
+        BuildToolingModelControllerFactory buildToolingModelControllerFactory,
+        ExceptionAnalyser exceptionAnalyser
+    ) {
         this.stateTransitionControllerFactory = stateTransitionControllerFactory;
+        this.buildToolingModelControllerFactory = buildToolingModelControllerFactory;
+        this.exceptionAnalyser = exceptionAnalyser;
     }
 
     @Override
@@ -90,14 +98,14 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         return new DefaultBuildLifecycleController(
             gradle,
             buildModelController,
-            buildScopeServices.get(ExceptionAnalyser.class),
+            exceptionAnalyser,
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
             buildScopeServices,
-            buildScopeServices.get(BuildToolingModelControllerFactory.class),
+            buildToolingModelControllerFactory,
             stateTransitionControllerFactory
         );
     }

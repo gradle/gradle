@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
-@ServiceScope(Scopes.BuildTree.class)
-public interface BuildToolingModelControllerFactory {
-    BuildToolingModelController createController(BuildState owner, BuildLifecycleController controller);
+import javax.annotation.Nullable;
+import java.util.function.Function;
+
+public interface ToolingModelScope {
+    /**
+     * Creates the given model
+     */
+    Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
 }
