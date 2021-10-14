@@ -20,7 +20,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -71,7 +70,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
+    public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks) {
@@ -95,7 +94,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
         return runBuild(() -> {
-            T result = action.apply(buildLifecycleController.getLoadedSettings());
+            T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
     }

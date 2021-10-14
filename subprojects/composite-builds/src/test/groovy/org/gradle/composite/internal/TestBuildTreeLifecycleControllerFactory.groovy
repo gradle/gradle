@@ -21,16 +21,16 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.BuildToolingModelAction
-import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
+import org.gradle.internal.buildtree.BuildTreeModelAction
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
+import org.gradle.tooling.provider.model.internal.ToolingModelScope
 
 import java.util.function.Consumer
 import java.util.function.Function
@@ -47,7 +47,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
     }
 
-    class TestBuildModelController implements BuildToolingModelController {
+    class TestBuildModelController implements BuildTreeModelController {
         private final BuildLifecycleController targetBuild
 
         TestBuildModelController(BuildLifecycleController targetBuild) {
@@ -60,23 +60,23 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
         boolean queryModelActionsRunInParallel() {
-            return false
+            throw new UnsupportedOperationException()
         }
 
         @Override
@@ -118,7 +118,7 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        def <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
+        def <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
             def failures = []
             T result = null
             try {

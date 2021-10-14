@@ -16,8 +16,10 @@
 
 package org.gradle.internal.build;
 
-public interface BuildToolingModelAction<T> {
-    void beforeTasks(BuildToolingModelController controller);
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-    T fromBuildModel(BuildToolingModelController controller);
+@ServiceScope(Scopes.BuildTree.class)
+public interface BuildToolingModelControllerFactory {
+    BuildToolingModelController createController(BuildState owner, BuildLifecycleController controller);
 }

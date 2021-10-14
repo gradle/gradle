@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.BuildToolingModelController;
+import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -35,7 +35,7 @@ public class BuildControllerFactory {
         this.buildStateRegistry = buildStateRegistry;
     }
 
-    public DefaultBuildController controllerFor(BuildToolingModelController controller) {
+    public DefaultBuildController controllerFor(BuildTreeModelController controller) {
         return new DefaultBuildController(controller, workerThreadRegistry, buildCancellationToken, buildStateRegistry);
     }
 }

@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
-/**
- * Coordinates the building of tooling models.
- */
-public interface BuildToolingModelController {
+import javax.annotation.Nullable;
+import java.util.function.Function;
+
+public interface ToolingModelScope {
     /**
-     * Returns the mutable model, configuring if necessary.
+     * Creates the given model
      */
-    GradleInternal getConfiguredModel();
-
-    ToolingModelScope locateBuilderForTarget(String modelName, boolean param);
-
-    ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param);
+    Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
 }

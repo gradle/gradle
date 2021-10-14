@@ -23,6 +23,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -64,7 +65,7 @@ public interface BuildState {
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
-     * This includes running the settings script for the build.
+     * This may include running the settings script for the build, or loading this information from cache.
      */
     void ensureProjectsLoaded();
 
@@ -88,8 +89,6 @@ public interface BuildState {
      */
     File getBuildRootDir();
 
-    GradleInternal getBuild();
-
     /**
      * Returns the current state of the mutable model of this build.
      */
@@ -99,4 +98,9 @@ public interface BuildState {
      * Returns the work graph for this build.
      */
     BuildWorkGraphController getWorkGraph();
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 }
