@@ -78,6 +78,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
             add(ConfigurationCacheRepository::class.java)
+            add(SystemPropertyAccessListener::class.java)
             add(DefaultConfigurationCache::class.java)
         }
     }
@@ -86,7 +87,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheBuildEnablement::class.java)
             add(ConfigurationCacheProblemsListenerManagerAction::class.java)
-            add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
             addProvider(BuildScopeServicesProvider())

@@ -50,6 +50,8 @@ class DefaultConfigurationCache internal constructor(
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
+    private val cacheRepository: ConfigurationCacheRepository,
+    private val systemPropertyListener: SystemPropertyAccessListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val projectStateRegistry: ProjectStateRegistry,
@@ -84,10 +86,6 @@ class DefaultConfigurationCache internal constructor(
         get() = rootBuild!!
 
     private
-    val cacheRepository: ConfigurationCacheRepository
-        get() = host.service()
-
-    private
     val cacheIO: ConfigurationCacheIO
         get() = host.service()
 
@@ -97,10 +95,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val cacheFingerprintController: ConfigurationCacheFingerprintController
-        get() = host.service()
-
-    private
-    val systemPropertyListener: SystemPropertyAccessListener
         get() = host.service()
 
     override val isLoaded: Boolean
@@ -216,9 +210,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
         prepareForWork()
-        val result = action()
-        finishWork()
-        return result
+        return action()
     }
 
     private
@@ -226,10 +218,6 @@ class DefaultConfigurationCache internal constructor(
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
-    }
-
-    private
-    fun finishWork() {
     }
 
     private
