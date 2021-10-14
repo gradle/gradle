@@ -131,7 +131,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             with(outputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'reports.enabledReports.html.outputLocation' }, Map) {
-                    treeType == 'DIRECTORY'
+                    type == 'DIRECTORY'
                     with(files, List) {
                         it.collect { new File(it as String) } == [file('build/reports/tests/test')]
                     }

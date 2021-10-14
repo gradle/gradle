@@ -24,12 +24,12 @@ class DefaultOutputFileProperty implements OutputFileProperty {
 
     private final String propertyName;
     private final Iterable<File> files;
-    private final TreeType treeType;
+    private final Type type;
 
-    DefaultOutputFileProperty(String propertyName, Iterable<File> files, TreeType treeType) {
+    DefaultOutputFileProperty(String propertyName, Iterable<File> files, Type type) {
         this.propertyName = propertyName;
         this.files = files;
-        this.treeType = treeType;
+        this.type = type;
     }
 
     @Override
@@ -43,7 +43,7 @@ class DefaultOutputFileProperty implements OutputFileProperty {
     }
 
     @Override
-    public TreeType getTreeType() {
-        return treeType;
+    public Type getType() {
+        return type;
     }
 }

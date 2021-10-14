@@ -18,9 +18,9 @@ package org.gradle.internal.enterprise.test;
 
 public interface OutputFileProperty extends FileProperty {
 
-    TreeType getTreeType();
+    Type getType();
 
-    enum TreeType {
+    enum Type {
         FILE,
         DIRECTORY
     }

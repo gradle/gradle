@@ -106,10 +106,10 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 OutputFilePropertyType filePropertyType
             ) {
                 FileCollection files = resolveLeniently(value);
-                OutputFileProperty.TreeType treeType = filePropertyType.getOutputType() == TreeType.DIRECTORY
-                    ? OutputFileProperty.TreeType.DIRECTORY
-                    : OutputFileProperty.TreeType.FILE;
-                outputFileProperties.add(new DefaultOutputFileProperty(propertyName, files, treeType));
+                OutputFileProperty.Type type = filePropertyType.getOutputType() == TreeType.DIRECTORY
+                    ? OutputFileProperty.Type.DIRECTORY
+                    : OutputFileProperty.Type.FILE;
+                outputFileProperties.add(new DefaultOutputFileProperty(propertyName, files, type));
             }
         });
         return new DefaultTestTaskProperties(
