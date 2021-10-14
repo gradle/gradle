@@ -60,52 +60,48 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
     }
 
     @Override
-    public void implementation(Object dependencyNotation) {
-        doAdd(implementation, dependencyNotation);
+    public void implementation(Object dependency) {
+        implementation(dependency, null);
     }
 
     @Override
-    public void implementation(Object dependencyNotation, Action<? super Dependency> configuration) {
-        doAdd(implementation, dependencyNotation, configuration);
+    public void implementation(Object dependency, @Nullable Action<? super Dependency> configuration) {
+        doAdd(implementation, dependency, configuration);
     }
 
     @Override
-    public void runtimeOnly(Object dependencyNotation) {
-        doAdd(runtimeOnly, dependencyNotation);
+    public void runtimeOnly(Object dependency) {
+        runtimeOnly(dependency, null);
     }
 
     @Override
-    public void runtimeOnly(Object dependencyNotation, Action<? super Dependency> configuration) {
-        doAdd(runtimeOnly, dependencyNotation, configuration);
+    public void runtimeOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
+        doAdd(runtimeOnly, dependency, configuration);
     }
 
     @Override
-    public void compileOnly(Object dependencyNotation) {
-        doAdd(compileOnly, dependencyNotation);
+    public void compileOnly(Object dependency) {
+        compileOnly(dependency, null);
     }
 
     @Override
-    public void compileOnly(Object dependencyNotation, Action<? super Dependency> configuration) {
-        doAdd(compileOnly, dependencyNotation, configuration);
+    public void compileOnly(Object dependency, @Nullable Action<? super Dependency> configuration) {
+        doAdd(compileOnly, dependency, configuration);
     }
 
-    private void doAdd(Configuration bucket, Object dependencyNotation) {
-        doAdd(bucket, dependencyNotation, null);
-    }
-
-    private void doAdd(Configuration bucket, Object dependencyNotation, @Nullable Action<? super Dependency> configuration) {
-        if (dependencyNotation instanceof ProviderConvertible<?>) {
-            doAddLazy(bucket, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configuration);
-        } else if (dependencyNotation instanceof Provider<?>) {
-            doAddLazy(bucket, (Provider<?>) dependencyNotation, configuration);
+    private void doAdd(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
+        if (dependency instanceof ProviderConvertible<?>) {
+            doAddLazy(bucket, ((ProviderConvertible<?>) dependency).asProvider(), configuration);
+        } else if (dependency instanceof Provider<?>) {
+            doAddLazy(bucket, (Provider<?>) dependency, configuration);
         } else {
-            doAddEager(bucket, dependencyNotation, configuration);
+            doAddEager(bucket, dependency, configuration);
         }
     }
 
-    private void doAddEager(Configuration bucket, Object dependencyNotation, @Nullable Action<? super Dependency> configuration) {
-        Dependency dependency = create(dependencyNotation, configuration);
-        bucket.getDependencies().add(dependency);
+    private void doAddEager(Configuration bucket, Object dependency, @Nullable Action<? super Dependency> configuration) {
+        Dependency created = create(dependency, configuration);
+        bucket.getDependencies().add(created);
     }
 
     private void doAddLazy(Configuration bucket, Provider<?> dependencyProvider, @Nullable Action<? super Dependency> configuration) {
@@ -120,10 +116,10 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         bucket.getDependencies().addLater(lazyDependency);
     }
 
-    private void doAddListProvider(Configuration bucket, Provider<?> dependencyNotation, @Nullable Action<? super Dependency> configuration) {
+    private void doAddListProvider(Configuration bucket, Provider<?> dependency, @Nullable Action<? super Dependency> configuration) {
         // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
-        ListProperty<Dependency> dependencies = getObjectFactory().listProperty(Dependency.class);
-        dependencies.set(dependencyNotation.map(notation -> {
+        final ListProperty<Dependency> dependencies = getObjectFactory().listProperty(Dependency.class);
+        dependencies.set(dependency.map(notation -> {
             List<Dependency> deps = Cast.uncheckedCast(notation);
             return deps.stream().map(d -> create(d, configuration)).collect(Collectors.toList());
         }));
@@ -139,11 +135,11 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         };
     }
 
-    private Dependency create(Object dependencyNotation, @Nullable Action<? super Dependency> configuration) {
-        Dependency dependency = getDependencyHandler().create(dependencyNotation);
+    private Dependency create(Object dependency, @Nullable Action<? super Dependency> configuration) {
+        final Dependency created = getDependencyHandler().create(dependency);
         if (configuration != null) {
-            configuration.execute(dependency);
+            configuration.execute(created);
         }
-        return dependency;
+        return created;
     }
 }
