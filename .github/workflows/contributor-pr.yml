@@ -2,6 +2,9 @@ name: Contributor CI Build
 
 on:
   pull_request:
+  
+env:
+  CACHE_DEBUG_ENABLED: true
 
 jobs:
   build:
