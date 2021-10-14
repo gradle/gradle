@@ -17,11 +17,12 @@
 package org.gradle.internal.enterprise.test;
 
 import java.io.File;
+import java.util.stream.Stream;
 
 public interface FileProperty {
 
     String getPropertyName();
 
-    Iterable<File> getFiles();
+    Stream<File> getFiles();
 
 }

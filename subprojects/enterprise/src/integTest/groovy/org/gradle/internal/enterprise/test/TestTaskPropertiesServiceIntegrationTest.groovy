@@ -16,12 +16,16 @@
 
 package org.gradle.internal.enterprise.test
 
+import groovy.json.JsonGenerator
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
+
+import java.util.stream.Stream
 
 class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,22 +38,34 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 def service = project.services.get(${TestTaskPropertiesService.name})
                 def properties = service.collectProperties(project.tasks['test'])
 
-                def generator = new groovy.json.JsonGenerator.Options()
+                def generator = new ${JsonGenerator.Options.name}()
                     .addConverter(new groovy.json.JsonGenerator.Converter() {
                         @Override
                         boolean handles(Class<?> type) {
-                            type == File.class
+                            ${Stream.name}.isAssignableFrom(type)
                         }
                         @Override
                         Object convert(Object value, String key) {
-                            (value as File).absolutePath
+                            (value as ${Stream.name}).toArray()
+                        }
+                    })
+                    .addConverter(new ${JsonGenerator.Converter.name}() {
+                        @Override
+                        boolean handles(Class<?> type) {
+                            ${File.name}.isAssignableFrom(type)
+                        }
+                        @Override
+                        Object convert(Object value, String key) {
+                            (value as ${File.name}).absolutePath
                         }
                     })
                     .build()
 
+                def json = ${JsonOutput.name}.prettyPrint(generator.toJson(properties))
+
                 def file = project.file("\${project.buildDir}/testTaskProperties.json")
                 file.parentFile.mkdirs()
-                file.text = generator.toJson(properties)
+                file.text = json
             }}
         """)
         pluginBuilder.generateForBuildSrc()

@@ -19,6 +19,8 @@ package org.gradle.internal.enterprise.test.impl;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 
 import java.io.File;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class DefaultInputFileProperty implements InputFileProperty {
 
@@ -36,7 +38,7 @@ class DefaultInputFileProperty implements InputFileProperty {
     }
 
     @Override
-    public Iterable<File> getFiles() {
-        return files;
+    public Stream<File> getFiles() {
+        return StreamSupport.stream(files.spliterator(), false);
     }
 }

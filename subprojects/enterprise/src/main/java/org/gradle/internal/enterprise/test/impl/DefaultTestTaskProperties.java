@@ -17,7 +17,6 @@
 package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
@@ -25,6 +24,8 @@ import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
 
 import java.io.File;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class DefaultTestTaskProperties implements TestTaskProperties {
 
@@ -32,7 +33,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     private final long forkEvery;
     private final TestTaskFilters filters;
     private final TestTaskForkOptions forkOptions;
-    private final FileCollection candidateClassFiles;
+    private final Iterable<File> candidateClassFiles;
     private final ImmutableList<InputFileProperty> inputFileProperties;
     private final ImmutableList<OutputFileProperty> outputFileProperties;
 
@@ -41,7 +42,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
         long forkEvery,
         TestTaskFilters filters,
         TestTaskForkOptions forkOptions,
-        FileCollection candidateClassFiles,
+        Iterable<File> candidateClassFiles,
         ImmutableList<InputFileProperty> inputFileProperties,
         ImmutableList<OutputFileProperty> outputFileProperties
     ) {
@@ -75,15 +76,15 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     }
 
     @Override
-    public Iterable<File> getCandidateClassFiles() {
-        return candidateClassFiles;
+    public Stream<File> getCandidateClassFiles() {
+        return StreamSupport.stream(candidateClassFiles.spliterator(), false);
     }
 
-    public Iterable<InputFileProperty> getInputFileProperties() {
-        return inputFileProperties;
+    public Stream<InputFileProperty> getInputFileProperties() {
+        return inputFileProperties.stream();
     }
 
-    public Iterable<OutputFileProperty> getOutputFileProperties() {
-        return outputFileProperties;
+    public Stream<OutputFileProperty> getOutputFileProperties() {
+        return outputFileProperties.stream();
     }
 }

@@ -23,6 +23,8 @@ import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class DefaultTestTaskForkOptions implements TestTaskForkOptions {
 
@@ -68,13 +70,13 @@ class DefaultTestTaskForkOptions implements TestTaskForkOptions {
     }
 
     @Override
-    public Iterable<File> getClasspath() {
-        return classpath;
+    public Stream<File> getClasspath() {
+        return StreamSupport.stream(classpath.spliterator(), false);
     }
 
     @Override
-    public Iterable<File> getModulePath() {
-        return modulePath;
+    public Stream<File> getModulePath() {
+        return StreamSupport.stream(modulePath.spliterator(), false);
     }
 
     @Override

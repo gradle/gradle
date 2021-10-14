@@ -19,6 +19,7 @@ package org.gradle.internal.enterprise.test;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public interface TestTaskForkOptions {
 
@@ -28,9 +29,9 @@ public interface TestTaskForkOptions {
 
     int getJavaMajorVersion();
 
-    Iterable<File> getClasspath();
+    Stream<File> getClasspath();
 
-    Iterable<File> getModulePath();
+    Stream<File> getModulePath();
 
     List<String> getJvmArgs();
 
