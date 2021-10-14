@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
+description = "Configuration cache implementation"
+
 val configurationCacheReportPath by configurations.creating {
     isVisible = false
     isCanBeConsumed = false
