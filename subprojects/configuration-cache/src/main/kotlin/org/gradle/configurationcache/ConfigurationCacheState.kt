@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -410,7 +409,7 @@ class ConfigurationCacheState(
     ) {
         val target = reference.target
         if (target is IncludedBuildState) {
-            val includedGradle = target.configuredBuild
+            val includedGradle = target.mutableModel
             val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
             writeBuildDefinition(buildDefinition)
             when {
@@ -621,14 +620,7 @@ class ConfigurationCacheState(
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
-        gradleOf(buildId).serviceOf<BuildServiceRegistryInternal>().registrations
-
-    private
-    fun BuildStateRegistry.gradleOf(buildIdentifier: BuildIdentifier) =
-        when (buildIdentifier) {
-            DefaultBuildIdentifier.ROOT -> rootBuild.build
-            else -> getIncludedBuild(buildIdentifier).configuredBuild
-        }
+        getBuild(buildId).mutableModel.serviceOf<BuildServiceRegistryInternal>().registrations
 
     private
     fun fireConfigureBuild(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal, function: (gradle: GradleInternal) -> Unit) {

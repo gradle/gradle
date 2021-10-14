@@ -65,7 +65,7 @@ public interface BuildState {
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
-     * This includes running the settings script for the build.
+     * This may include running the settings script for the build, or loading this information from cache.
      */
     void ensureProjectsLoaded();
 
@@ -88,8 +88,6 @@ public interface BuildState {
      * The root directory of the build.
      */
     File getBuildRootDir();
-
-    GradleInternal getBuild();
 
     /**
      * Returns the current state of the mutable model of this build.

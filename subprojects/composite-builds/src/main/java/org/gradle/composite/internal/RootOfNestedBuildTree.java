@@ -176,16 +176,4 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             CompositeStoppable.stoppable(getBuildController()).stop();
         }
     }
-
-    @Override
-    public GradleInternal getBuild() {
-        return getBuildController().getGradle();
-    }
-
-    @Override
-    public GradleInternal getMutableModel() {
-        return getBuildController().getGradle();
-    }
 }
-
-

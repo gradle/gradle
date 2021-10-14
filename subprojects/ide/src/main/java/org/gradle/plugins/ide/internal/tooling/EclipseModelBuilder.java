@@ -174,7 +174,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
                     applyEclipsePlugin(build.getRootProject(), alreadyProcessed);
@@ -400,7 +401,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         for (IncludedBuildInternal reference : gradle.includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
                 if (!allBuilds.contains(build)) {
                     allBuilds.add(build);
                     collectAllProjects(all, build, allBuilds);

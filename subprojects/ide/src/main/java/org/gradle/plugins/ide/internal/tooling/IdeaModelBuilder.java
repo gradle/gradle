@@ -87,7 +87,8 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target instanceof IncludedBuildState) {
-                GradleInternal build = ((IncludedBuildState) target).getConfiguredBuild();
+                target.ensureProjectsConfigured();
+                GradleInternal build = target.getMutableModel();
                 if (!alreadyProcessed.contains(build)) {
                     alreadyProcessed.add(build);
                     applyIdeaPlugin(build.getRootProject(), alreadyProcessed);

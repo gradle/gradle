@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
@@ -92,7 +93,12 @@ public abstract class AbstractBuildState implements BuildState {
 
     @Override
     public void ensureProjectsConfigured() {
-        getBuildController().getConfiguredBuild();
+        getBuildController().configureProjects();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
+        return getBuildController().getGradle();
     }
 
     @Override
