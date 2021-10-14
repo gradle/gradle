@@ -280,14 +280,14 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         testing {
             suites {
-                integTest(JvmTestSuite)
+                integTest(JvmTestSuite) {
+                    dependencies {
+                        implementation libs.guava
+                        compileOnly libs.commons.lang3
+                        runtimeOnly libs.mysql.connector
+                    }
+                }
             }
-        }
-
-        dependencies {
-            integTestImplementation libs.guava
-            integTestCompileOnly libs.commons.lang3
-            integTestRuntimeOnly libs.mysql.connector
         }
 
         tasks.named('check') {
