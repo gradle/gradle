@@ -115,6 +115,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         println("Working directory: " + execHandle.getDirectory());
         println("Environment vars:");
         println(format("    JAVA_HOME: %s", environment.get("JAVA_HOME")));
+        println(format("    PATH: %s", environment.get("PATH")));
         println(format("    GRADLE_HOME: %s", environment.get("GRADLE_HOME")));
         println(format("    GRADLE_USER_HOME: %s", environment.get("GRADLE_USER_HOME")));
         println(format("    JAVA_OPTS: %s", environment.get("JAVA_OPTS")));
