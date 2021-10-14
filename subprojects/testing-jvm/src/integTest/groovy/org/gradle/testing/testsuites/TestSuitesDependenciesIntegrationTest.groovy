@@ -269,4 +269,64 @@ class TestSuitesDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'checkConfiguration'
     }
 
+    def 'user can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via a Version Catalog'() {
+        given:
+        buildFile << """
+        plugins {
+          id 'java'
+        }
+
+        ${mavenCentralRepository()}
+
+        testing {
+            suites {
+                integTest(JvmTestSuite)
+            }
+        }
+
+        dependencies {
+            integTestImplementation libs.guava
+            integTestCompileOnly libs.commons.lang3
+            integTestRuntimeOnly libs.mysql.connector
+        }
+
+        tasks.named('check') {
+            dependsOn testing.suites.integTest
+        }
+
+        tasks.register('checkConfiguration') {
+            dependsOn test, integTest
+            doLast {
+                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
+                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+
+                assert integTestCompileClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
+                assert integTestCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar')
+                assert !integTestCompileClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+                assert integTestRuntimeClasspathFileNames.containsAll('mysql-connector-java-6.0.6.jar')
+            }
+        }
+        """
+
+        settingsFile << """
+        enableFeaturePreview('VERSION_CATALOGS')
+        """.stripIndent(8)
+
+        def versionCatalog = file('gradle', 'libs.versions.toml') << """
+        [versions]
+        guava = "30.1.1-jre"
+        commons-lang3 = "3.11"
+        mysql-connector = "6.0.6"
+
+        [libraries]
+        guava = { module = "com.google.guava:guava", version.ref = "guava" }
+        commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3" }
+        mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql-connector" }
+        """.stripIndent(8)
+
+        expect:
+        succeeds 'checkConfiguration'
+    }
 }
