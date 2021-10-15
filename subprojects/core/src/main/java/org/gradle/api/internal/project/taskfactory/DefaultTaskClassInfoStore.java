@@ -23,8 +23,10 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.Untracked;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -55,6 +57,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
+        ContentTracking contentTracking = type.isAnnotationPresent(Untracked.class) ? ContentTracking.UNTRACKED : ContentTracking.TRACKED;
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
         AbstractIncrementalTaskActionFactory foundIncrementalTaskActionFactory = null;
@@ -101,7 +104,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             taskActionFactoriesBuilder.add(foundIncrementalTaskActionFactory);
         }
 
-        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable);
+        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable, contentTracking);
     }
 
     /**

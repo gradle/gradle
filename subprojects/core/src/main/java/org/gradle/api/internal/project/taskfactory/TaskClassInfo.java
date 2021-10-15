@@ -17,14 +17,17 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 
 public class TaskClassInfo {
     private final ImmutableList<TaskActionFactory> taskActionFactories;
     private final boolean cacheable;
+    private final ContentTracking contentTracking;
 
-    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable) {
+    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable, ContentTracking contentTracking) {
         this.taskActionFactories = taskActionFactories;
         this.cacheable = cacheable;
+        this.contentTracking = contentTracking;
     }
 
     public ImmutableList<TaskActionFactory> getTaskActionFactories() {
@@ -33,5 +36,9 @@ public class TaskClassInfo {
 
     public boolean isCacheable() {
         return cacheable;
+    }
+
+    public ContentTracking getContentTracking() {
+        return contentTracking;
     }
 }

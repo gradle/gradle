@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,6 +60,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         if (taskClassInfo.isCacheable()) {
             task.getOutputs().cacheIf("Annotated with @CacheableTask", Specs.SATISFIES_ALL);
         }
+        task.getUntracked().set(taskClassInfo.getContentTracking() == ContentTracking.UNTRACKED);
 
         return task;
     }

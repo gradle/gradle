@@ -268,6 +268,12 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(Closure onlyIfClosure);
 
     /**
+     * FIXME wolfs
+     */
+    @Internal
+    Property<Boolean> getUntracked();
+
+    /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
      * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
      *

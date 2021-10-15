@@ -27,7 +27,6 @@ import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategor
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.UNTRACKED;
 
 public class InputFilesPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     @Override
@@ -37,7 +36,7 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputFileProper
 
     @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS, UNTRACKED);
+        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS);
     }
 
     @Override

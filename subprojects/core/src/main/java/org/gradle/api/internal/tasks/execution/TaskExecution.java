@@ -375,7 +375,7 @@ public class TaskExecution implements UnitOfWork {
         } else {
             builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
                     propertyType, propertyName, getDisplayName()))
-                .withAdvice("Declare the property as untracked.");
+                .withAdvice("Declare the task as untracked.");
 
         }
         builder

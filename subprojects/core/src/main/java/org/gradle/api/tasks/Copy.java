@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
@@ -103,10 +102,7 @@ public class Copy extends AbstractCopyTask {
      */
     @Incubating
     public void ignoreExistingContentInDestinationDir() {
-        getOutputs()
-            .dir((Callable<File>) this::getDestinationDir)
-            .withPropertyName("untrackedDestinationDir")
-            .untracked();
+        getUntracked().set(true);
     }
 
     /**

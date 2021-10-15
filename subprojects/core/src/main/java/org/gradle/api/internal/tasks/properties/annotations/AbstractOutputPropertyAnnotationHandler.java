@@ -23,17 +23,15 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.Untracked;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.UNTRACKED;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(OPTIONAL, UNTRACKED);
+        return ImmutableSet.of(OPTIONAL);
     }
 
     protected abstract OutputFilePropertyType getFilePropertyType();
@@ -50,7 +48,6 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        ContentTracking contentTracking = propertyMetadata.isAnnotationPresent(Untracked.class) ? ContentTracking.UNTRACKED : ContentTracking.TRACKED;
-        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), contentTracking, value, getFilePropertyType());
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), ContentTracking.TRACKED, value, getFilePropertyType());
     }
 }

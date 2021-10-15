@@ -18,22 +18,19 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.work.InputChanges
 
-class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
+class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
-    def "task with untracked #properties is not up-to-date"() {
+    def "untracked task is not up-to-date"() {
         buildFile("""
+            @Untracked
             abstract class MyTask extends DefaultTask {
-                ${properties == "inputs" ? "@Untracked" : ""}
                 @InputFile
                 abstract RegularFileProperty getInputFile()
-                ${properties == "outputs" ? "@Untracked" : ""}
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
@@ -53,20 +50,17 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task has untracked properties.")
+        outputContains("Task is untracked.")
 
         when:
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task has untracked properties.")
-
-        where:
-        properties << ["inputs", "outputs"]
+        outputContains("Task is untracked.")
     }
 
-    def "fails when incremental task has untracked properties using #inputChangesType.simpleName"() {
+    def "fails when incremental task is marked as untracked"() {
         file("input/input.txt") << "Content"
         buildFile(generateUntrackedIncrementalConsumerTask(inputChangesType))
         buildFile("""
@@ -87,17 +81,16 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         inputChangesType << [InputChanges, org.gradle.api.tasks.incremental.IncrementalTaskInputs]
     }
 
-    def "can register untracked #properties via the runtime API"() {
+    def "can register untracked tasks via the runtime API"() {
         buildFile("""
             tasks.register("myTask") {
+                untracked = true
                 def inputFile = file("input.txt")
                 inputs.file(inputFile)
                     .withPropertyName("inputFile")
-                    ${properties == "inputs" ? ".untracked()" : ""}
                 def outputFile = project.layout.buildDirectory.file("output.txt")
                 outputs.file(outputFile)
                     .withPropertyName("outputFile")
-                    ${(properties == "outputs" ? ".untracked()" : "")}
                 doLast {
                     outputFile.get().asFile.text = inputFile.text
                 }
@@ -115,21 +108,17 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task has untracked properties.")
-
-        where:
-        properties << ["inputs", "outputs"]
+        outputContains("Task is untracked.")
     }
 
-    def "task with untracked #properties is not cached"() {
+    def "untracked task is not cached"() {
         buildFile("""
             @CacheableTask
+            @Untracked
             abstract class MyTask extends DefaultTask {
-                ${properties == "inputs" ? "@Untracked" : ""}
                 @InputFile
                 @PathSensitive(PathSensitivity.RELATIVE)
                 abstract RegularFileProperty getInputFile()
-                ${properties == "outputs" ? "@Untracked" : ""}
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
                 @TaskAction
@@ -149,16 +138,11 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Caching disabled for task ':myTask' because:")
-        outputContains(expectedMessage)
-
-        where:
-        properties | expectedMessage
-        "inputs"   | "Input property 'inputFile' is untracked"
-        "outputs"  | "Output property 'outputFile' is untracked"
+        outputContains("'Task is untracked' satisfied")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "tasks can produce and consume unreadable content via untracked properties"() {
+    def "untracked tasks can produce and consume unreadable content"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
 
@@ -183,13 +167,13 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task producing unreadable content via tracked property is not stored in execution history"() {
+    def "tracked task producing unreadable content is not stored in execution history"() {
         executer.beforeExecute {
             executer.withStackTraceChecksDisabled()
             executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the property as untracked.")
+                "Declare the task as untracked.")
         }
 
         def rootDir = file("build/root")
@@ -231,7 +215,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
             executer.expectDeprecationWarning("Cannot access output property 'outputFile' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the property as untracked.")
+                "Declare the task as untracked.")
         }
 
         def rootDir = createDir("build")
@@ -263,13 +247,13 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task producing unreadable content via tracked property is not stored in cache"() {
+    def "task producing unreadable content is not stored in cache"() {
         executer.beforeExecute {
             executer.withStackTraceChecksDisabled()
             executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the property as untracked.")
+                "Declare the task as untracked.")
         }
 
         def rootDir = file("build/root")
@@ -306,7 +290,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task consuming unreadable content via tracked property is not tracked"() {
+    def "task consuming unreadable content is not tracked"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
         assert unreadableDir.mkdirs()
@@ -326,7 +310,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
             "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
+            "Declare the task as untracked.")
         run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
@@ -340,7 +324,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "task consuming unreadable content via tracked property is not stored in cache"() {
+    def "task consuming unreadable content is not stored in cache"() {
         def rootDir = file("build/root")
         def unreadableDir = rootDir.file("unreadable")
         assert unreadableDir.mkdirs()
@@ -361,7 +345,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
             "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the property as untracked.")
+            "Declare the task as untracked.")
         withBuildCache().run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
@@ -376,70 +360,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         unreadableDir.setReadable(true)
     }
 
-    def "untracked optional absent output properties are ignored"() {
-        buildFile("""
-            tasks.register("myTask") {
-                def inputFile = file("input.txt")
-                inputs.file(inputFile)
-                    .withPropertyName("inputFile")
-                def outputFile = project.layout.buildDirectory.file("output.txt")
-                outputs.file(outputFile)
-                    .withPropertyName("outputFile")
-                outputs.file({ null })
-                    .withPropertyName("optionalOutputFile")
-                    .optional()
-                    .untracked()
-                doLast {
-                    outputFile.get().asFile.text = inputFile.text
-                }
-            }
-        """)
-        file("input.txt").text = "input"
-
-        when:
-        run("myTask")
-        then:
-        executedAndNotSkipped(":myTask")
-
-        when:
-        run("myTask")
-        then:
-        skipped(":myTask")
-    }
-
-    def "untracked optional absent input properties cause the task to be out-of-date"() {
-        buildFile("""
-            tasks.register("myTask") {
-                def inputFile = file("input.txt")
-                inputs.file(inputFile)
-                    .withPropertyName("inputFile")
-                inputs.file({ null })
-                    .withPropertyName("optionalUntrackedInputFile")
-                    .optional()
-                    .untracked()
-                def outputFile = project.layout.buildDirectory.file("output.txt")
-                outputs.file(outputFile)
-                    .withPropertyName("outputFile")
-                doLast {
-                    outputFile.get().asFile.text = inputFile.text
-                }
-            }
-        """)
-        file("input.txt").text = "input"
-
-        when:
-        run("myTask")
-        then:
-        executedAndNotSkipped(":myTask")
-
-        when:
-        run("myTask", "--info")
-        then:
-        executedAndNotSkipped(":myTask")
-        outputContains("Task has untracked properties.")
-    }
-
-    def "does not clean up stale outputs for untracked output properties"() {
+    def "does not clean up stale outputs for untracked tasks"() {
         def untrackedStaleFile = file("build/untracked/stale-output-file").createFile()
         def untrackedOutputFile = file("build/untracked/output.txt")
         def trackedStaleFile = file("build/tracked/stale-output-file").createFile()
@@ -449,35 +370,32 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
             apply plugin: 'base'
 
             abstract class Producer extends DefaultTask {
-                @Untracked
                 @OutputDirectory
-                abstract DirectoryProperty getUntrackedOutputDirectory()
-
-                @OutputDirectory
-                abstract DirectoryProperty getTrackedOutputDirectory()
+                abstract DirectoryProperty getOutputDirectory()
 
                 @TaskAction
                 void writeFile() {
-                    writeFile(trackedOutputDirectory)
-                    writeFile(untrackedOutputDirectory)
-                }
-
-                static void writeFile(DirectoryProperty dir) {
-                    def outputFile = dir.file("output.txt").get().asFile
+                    def outputFile = outputDirectory.file("output.txt").get().asFile
                     outputFile.text = "Produced file"
                 }
             }
 
-            tasks.register("producer", Producer) {
-                untrackedOutputDirectory = project.layout.buildDirectory.dir('untracked')
-                trackedOutputDirectory = project.layout.buildDirectory.dir('tracked')
+            @Untracked
+            abstract class UntrackedProducer extends Producer {}
+
+            tasks.register("trackedProducer", Producer) {
+                outputDirectory = project.layout.buildDirectory.dir('tracked')
+            }
+
+            tasks.register("untrackedProducer", UntrackedProducer) {
+                outputDirectory = project.layout.buildDirectory.dir('untracked')
             }
         """)
 
         when:
-        run "producer"
+        run "untrackedProducer", "trackedProducer"
         then:
-        executedAndNotSkipped(":producer")
+        executedAndNotSkipped(":untrackedProducer", ":trackedProducer")
 
         trackedOutputFile.text == "Produced file"
         !trackedStaleFile.exists()
@@ -486,47 +404,10 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         untrackedStaleFile.exists()
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.INCOMPATIBLE_ANNOTATIONS
-    )
-    def "fails when @Untracked is applied together with #annotation.simpleName"() {
-        expectReindentedValidationMessage()
+    def "invalidates the VFS for output directories of untracked tasks"() {
         buildFile("""
-            abstract class InvalidTask extends DefaultTask {
-                @Untracked
-                @${annotation.simpleName}
-                abstract ${inputType} getInput()
-
-                @TaskAction
-                void doStuff() {}
-            }
-
-            tasks.register("invalid", InvalidTask)
-        """)
-
-        when:
-        fails("invalid")
-        then:
-        failureDescriptionContains(
-            incompatibleAnnotations {
-                type('InvalidTask').property('input')
-                annotatedWith(Untracked.simpleName)
-                incompatibleWith(annotation.simpleName)
-                includeLink()
-            }
-        )
-
-        where:
-        annotation | inputType
-        Input      | 'Property<String>'
-        Destroys   | 'ConfigurableFileCollection'
-        LocalState | 'ConfigurableFileCollection'
-    }
-
-    def "invalidates the VFS for untracked output directories"() {
-        buildFile("""
-            abstract class ProducerWithUntrackedOutput extends DefaultTask {
-                @Untracked
+            @Untracked
+            abstract class UntrackedProducer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
 
@@ -536,7 +417,7 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
 
-            abstract class ProducerWithTrackedOutput extends DefaultTask {
+            abstract class TrackedProducer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
 
@@ -559,10 +440,10 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
 
-            def producerTracked = tasks.register("producerTracked", ProducerWithTrackedOutput) {
+            def producerTracked = tasks.register("producerTracked", TrackedProducer) {
                 outputDir = project.layout.buildDirectory.dir("shared-output")
             }
-            def producerUntracked = tasks.register("producerUntracked", ProducerWithUntrackedOutput) {
+            def producerUntracked = tasks.register("producerUntracked", UntrackedProducer) {
                 outputDir = project.layout.buildDirectory.dir("shared-output")
                 mustRunAfter(producerTracked)
             }
@@ -588,8 +469,8 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
     static generateProducerTask(boolean untracked) {
         """
+            ${untracked ? "@Untracked" : ""}
             abstract class Producer extends DefaultTask {
-                ${untracked ? "@Untracked" : ""}
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
 
@@ -606,8 +487,8 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
     static generateConsumerTask(boolean untracked) {
         """
+            ${untracked ? "@Untracked" : ""}
             abstract class Consumer extends DefaultTask {
-                ${untracked ? "@Untracked" : ""}
                 @InputDirectory
                 abstract DirectoryProperty getInputDir()
 
@@ -626,12 +507,12 @@ class UntrackedPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
 
     static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
         """
+            @Untracked
             abstract class IncrementalConsumer extends DefaultTask {
                 @SkipWhenEmpty
                 @InputDirectory
                 abstract DirectoryProperty getInputDir()
 
-                @Untracked
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
 

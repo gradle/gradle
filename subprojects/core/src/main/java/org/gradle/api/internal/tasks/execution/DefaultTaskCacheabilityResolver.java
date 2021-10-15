@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -35,6 +33,7 @@ import java.util.Optional;
 public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver {
     private static final CachingDisabledReason CACHING_NOT_ENABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has not been enabled for the task");
     private static final CachingDisabledReason CACHING_DISABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has been disabled for the task");
+    private static final CachingDisabledReason UNTRACKED = new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked' satisfied");
     private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final RelativeFilePathResolver relativeFilePathResolver;
@@ -75,22 +74,11 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 "Gradle does not know how file '" + relativePath + "' was created (output property '" + overlappingOutputs.getPropertyName() + "'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location)."));
         }
 
-        for (InputFilePropertySpec spec : taskProperties.getInputFileProperties()) {
-            if (spec.getContentTracking() == ContentTracking.UNTRACKED) {
-                return Optional.of(new CachingDisabledReason(
-                    CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS,
-                    "Input property '" + spec.getPropertyName() + "' is untracked"
-                ));
-            }
+        if (task.getUntracked().get()) {
+            return Optional.of(UNTRACKED);
         }
 
         for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {
-            if (spec.getContentTracking() == ContentTracking.UNTRACKED) {
-                return Optional.of(new CachingDisabledReason(
-                    CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,
-                    "Output property '" + spec.getPropertyName() + "' is untracked"
-                ));
-            }
             if (!(spec instanceof CacheableOutputFilePropertySpec)) {
                 return Optional.of(new CachingDisabledReason(
                     CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,

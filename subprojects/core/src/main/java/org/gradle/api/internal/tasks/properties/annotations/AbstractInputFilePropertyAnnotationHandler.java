@@ -32,7 +32,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.Untracked;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -83,7 +82,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             fileNormalizer,
             value,
             getFilePropertyType(),
-            propertyMetadata.isAnnotationPresent(Untracked.class) ? ContentTracking.UNTRACKED : ContentTracking.TRACKED
+            ContentTracking.TRACKED
         );
     }
 

@@ -50,6 +50,6 @@ import java.lang.annotation.Target;
 @Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ElementType.TYPE})
 public @interface Untracked {
 }

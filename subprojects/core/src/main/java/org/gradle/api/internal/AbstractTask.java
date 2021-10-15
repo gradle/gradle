@@ -61,6 +61,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
+import org.gradle.api.tasks.Untracked;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -136,6 +137,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
+    private final Property<Boolean> untracked;
+
     private final ServiceRegistry services;
 
     private final TaskStateInternal state;
@@ -178,6 +181,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.finalizedBy = new DefaultTaskDependency(tasks);
         this.shouldRunAfter = new DefaultTaskDependency(tasks);
         this.services = project.getServices();
+        this.untracked = project.getObjects().property(Boolean.class).convention(project.provider(() -> this.getClass().getAnnotation(Untracked.class) != null));
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
@@ -354,6 +358,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
+    }
+
+    @Override
+    public Property<Boolean> getUntracked() {
+        return untracked;
     }
 
     @Internal

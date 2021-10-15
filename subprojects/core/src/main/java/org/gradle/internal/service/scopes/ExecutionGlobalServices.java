@@ -58,6 +58,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.UntrackedTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
@@ -142,7 +143,8 @@ public class ExecutionGlobalServices {
             ImmutableSet.of(
                 CacheableTask.class,
                 CacheableTransform.class,
-                DisableCachingByDefault.class
+                DisableCachingByDefault.class,
+                Untracked.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
@@ -245,6 +247,10 @@ public class ExecutionGlobalServices {
 
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
         return new CacheableTaskTypeAnnotationHandler();
+    }
+
+    TypeAnnotationHandler createUntrackedAnnotationHandler() {
+        return new UntrackedTypeAnnotationHandler();
     }
 
     PropertyAnnotationHandler createConsoleAnnotationHandler() {
