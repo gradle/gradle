@@ -30,7 +30,6 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -467,7 +466,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * buildCompletionListener.completed()
     }
 
-    @Ignore("Broken after merging")
     void testCanStopWithoutFinishingWhenBuildHasDoneNothing() {
         given:
         def controller = controller()
