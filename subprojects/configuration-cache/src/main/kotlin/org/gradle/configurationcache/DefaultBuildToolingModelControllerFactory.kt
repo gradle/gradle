@@ -16,16 +16,26 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.build.DefaultBuildToolingModelController
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
 
-class DefaultBuildToolingModelControllerFactory : BuildToolingModelControllerFactory {
+internal
+class DefaultBuildToolingModelControllerFactory(
+    private val modelParameters: BuildModelParameters
+) : BuildToolingModelControllerFactory {
     override fun createController(owner: BuildState, controller: BuildLifecycleController): BuildToolingModelController {
-        return DefaultBuildToolingModelController(owner, controller, controller.gradle.services.get(ToolingModelBuilderLookup::class.java))
+        val defaultController = DefaultBuildToolingModelController(owner, controller, controller.gradle.services.get(ToolingModelBuilderLookup::class.java))
+        return if (modelParameters.isIsolatedProjects) {
+            ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(ConfigurationCacheFingerprintController::class.java))
+        } else {
+            defaultController
+        }
     }
 }

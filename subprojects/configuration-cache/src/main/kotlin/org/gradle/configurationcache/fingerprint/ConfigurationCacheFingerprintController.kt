@@ -38,6 +38,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.util.Path
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.internal.GFileUtils
 import java.io.ByteArrayOutputStream
@@ -161,6 +162,15 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     fun commitFingerprintTo(outputStream: OutputStream) {
         writingState = writingState.commit(outputStream)
+    }
+
+    /**
+     * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
+     * with the project.
+     */
+    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
+        println("-> fingerprint $identityPath")
+        return action()
     }
 
     override fun stop() {

@@ -82,7 +82,7 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model, Entry
+    Work, Model, Entry, Fingerprint
 }
 
 
@@ -91,6 +91,7 @@ interface ConfigurationCacheStateFile {
     val canRead: Boolean
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
+    fun delete()
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
 }
 
