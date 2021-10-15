@@ -1092,7 +1092,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
             plugins {
                 id 'java'
             }
-
             @CacheableRule
             abstract class SamplesVariantRule implements ComponentMetadataRule {
 
@@ -1117,13 +1116,13 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 }
             }
             repositories {
-                maven { url("$repoDir") }
+                maven { url "${repoDir.toURI()}" }
             }
             dependencies {
                 components.all(SamplesVariantRule)
-                implementation("org:monitor:1.0")
+                implementation('org:monitor:1.0')
             }
-            tasks.register("resolveCompileClasspath") {
+            tasks.register('resolveCompileClasspath') {
                 configurations.compileClasspath.resolve()
             }
         """
@@ -1134,7 +1133,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         }
 
         when:
-        requireIsolatedGradleDistribution()
         fails "resolveCompileClasspath"
 
         then:
@@ -1143,7 +1141,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - monitor-1.0.jar (org:monitor:1.0) from repository maven
   - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
 
-        requireIsolatedGradleDistribution()
+        when:
+        executer.requireIsolatedDaemons()
         fails "resolveCompileClasspath"
 
         then:
