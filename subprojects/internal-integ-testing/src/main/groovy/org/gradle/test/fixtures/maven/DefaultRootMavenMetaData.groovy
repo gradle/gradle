@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven
 
+import groovy.xml.XmlParser
 import org.gradle.test.fixtures.file.TestFile
 
 /**

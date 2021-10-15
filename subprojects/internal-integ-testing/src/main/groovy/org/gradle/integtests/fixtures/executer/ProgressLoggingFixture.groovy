@@ -146,21 +146,25 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     }
 
     @Deprecated
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     boolean downloadProgressLogged(URI url) {
         downloadProgressLogged(url.toASCIIString())
     }
 
     @Deprecated
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     boolean downloadProgressLogged(String url) {
         return progressLogged("Download $url")
     }
 
     @Deprecated
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     boolean uploadProgressLogged(URI url) {
         uploadProgressLogged(url.toString())
     }
 
     @Deprecated
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     boolean uploadProgressLogged(String url) {
         return progressLogged("Upload $url")
     }
