@@ -78,6 +78,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
             add(ConfigurationCacheRepository::class.java)
+            add(SystemPropertyAccessListener::class.java)
             add(DefaultConfigurationCache::class.java)
         }
     }
@@ -86,7 +87,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheBuildEnablement::class.java)
             add(ConfigurationCacheProblemsListenerManagerAction::class.java)
-            add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
             addProvider(BuildScopeServicesProvider())
@@ -105,7 +105,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             build: BuildState,
             gradle: GradleInternal,
             startParameter: ConfigurationCacheStartParameter,
-            configurationCache: BuildTreeConfigurationCache,
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             if (build is ConfigurationCacheIncludedBuildState) {
@@ -117,6 +116,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
             val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
             return if (startParameter.isEnabled) {
+                // Only look this up if configuration caching is enabled, to avoid creating services
+                val configurationCache: BuildTreeConfigurationCache = gradle.services.get()
                 ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
             } else {
                 vintageController

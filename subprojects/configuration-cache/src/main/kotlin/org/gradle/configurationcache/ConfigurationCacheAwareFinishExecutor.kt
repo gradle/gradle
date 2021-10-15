@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 
 
-@EventScope(Scopes.BuildTree::class)
-interface UndeclaredBuildInputListener {
-    /**
-     * Called when an undeclared system property read happens for a system property with no value.
-     */
-    fun systemPropertyRead(key: String)
+class ConfigurationCacheAwareFinishExecutor(
+    private val delegate: BuildTreeFinishExecutor,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeFinishExecutor {
+    override fun finishBuildTree(failures: List<Throwable>): RuntimeException? {
+        cache.finalizeCacheEntry()
+        return delegate.finishBuildTree(failures)
+    }
 }

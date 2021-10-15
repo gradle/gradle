@@ -23,7 +23,6 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
@@ -78,7 +77,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildScopeServices buildServices = getBuildServices();
         BuildLifecycleController buildLifecycleController = getBuildController();
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildServices.get(BuildTreeLifecycleControllerFactory.class);
-        ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ExceptionAnalyser exceptionAnalyser = buildServices.get(ExceptionAnalyser.class);
         BuildStateRegistry buildStateRegistry = buildServices.get(BuildStateRegistry.class);
         BuildTreeWorkExecutor buildTreeWorkExecutor = new DefaultBuildTreeWorkExecutor();

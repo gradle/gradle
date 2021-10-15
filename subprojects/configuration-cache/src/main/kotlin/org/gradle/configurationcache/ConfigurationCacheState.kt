@@ -82,12 +82,13 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model
+    Work, Model, Entry
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
+    val canRead: Boolean
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
@@ -103,7 +104,7 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
@@ -151,7 +152,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
+    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild) {
         require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
@@ -171,7 +172,6 @@ class ConfigurationCacheState(
             )
         )
         writeRootEventListenerSubscriptions(gradle, buildEventListeners)
-        return storedBuilds.buildRootDirs
     }
 
     private
