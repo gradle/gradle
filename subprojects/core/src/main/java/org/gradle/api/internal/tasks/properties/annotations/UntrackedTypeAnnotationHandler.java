@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfCacheableAnnotation;
+import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
 public class UntrackedTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
@@ -33,7 +33,7 @@ public class UntrackedTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfCacheableAnnotation(classWithAnnotationAttached, visitor, getAnnotationType(), Task.class);
+            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached, visitor, getAnnotationType(), Task.class);
         }
     }
 

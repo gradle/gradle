@@ -26,10 +26,10 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class TypeAnnotationHandlerSupport {
 
-    public static void reportInvalidUseOfCacheableAnnotation(Class<?> classWithAnnotationAttached,
-                                                             TypeValidationContext visitor,
-                                                             Class<? extends Annotation> annotationType,
-                                                             Class<?>... appliesOnlyTo) {
+    public static void reportInvalidUseOfTypeAnnotation(Class<?> classWithAnnotationAttached,
+                                                        TypeValidationContext visitor,
+                                                        Class<? extends Annotation> annotationType,
+                                                        Class<?>... appliesOnlyTo) {
         visitor.visitTypeProblem(problem ->
             problem.forType(classWithAnnotationAttached)
                 .reportAs(ERROR)
