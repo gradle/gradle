@@ -368,14 +368,14 @@ public class TaskExecution implements UnitOfWork {
         DeprecationMessageBuilder<?> builder;
         if (isDestinationDir && task instanceof Copy) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
-                .withAdvice("Use the method Copy.ignoreExistingContentInDestinationDir().");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
             builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
-                .withAdvice("Use a Copy task with Copy.ignoreExistingContentInDestinationDir() instead.");
+                .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
             builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
                     propertyType, propertyName, getDisplayName()))
-                .withAdvice("Declare the task as untracked.");
+                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
 
         }
         builder

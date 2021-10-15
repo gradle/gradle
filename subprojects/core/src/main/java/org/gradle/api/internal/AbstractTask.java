@@ -61,7 +61,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
-import org.gradle.api.tasks.Untracked;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -96,6 +95,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -137,7 +137,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
-    private final Property<Boolean> untracked;
+    private String doNotTrackStateReason;
 
     private final ServiceRegistry services;
 
@@ -181,7 +181,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.finalizedBy = new DefaultTaskDependency(tasks);
         this.shouldRunAfter = new DefaultTaskDependency(tasks);
         this.services = project.getServices();
-        this.untracked = project.getObjects().property(Boolean.class).convention(project.provider(() -> this.getClass().getAnnotation(Untracked.class) != null));
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
@@ -361,8 +360,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Property<Boolean> getUntracked() {
-        return untracked;
+    public void doNotTrackState(String notTrackingReason) {
+        if (notTrackingReason == null) {
+            throw new InvalidUserDataException("notTrackingReason must not be null!");
+        }
+        taskMutator.mutate("doNotTrackState",
+            () -> doNotTrackStateReason = notTrackingReason
+        );
+    }
+
+    @Override
+    public Optional<String> getDoNotTrackStateReason() {
+        return Optional.ofNullable(doNotTrackStateReason);
     }
 
     @Internal

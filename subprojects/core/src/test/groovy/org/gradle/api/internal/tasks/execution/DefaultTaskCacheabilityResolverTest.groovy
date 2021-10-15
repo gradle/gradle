@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.TaskProperties
-import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -171,10 +170,10 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        task.getUntracked() >> Stub(Property) { get() >> true }
+        task.getDoNotTrackStateReason() >> Optional.of("For tests")
 
         reason.category == CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED
-        reason.message == "'Task is untracked' satisfied"
+        reason.message == "'Task is untracked because: For tests' satisfied"
     }
 
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {

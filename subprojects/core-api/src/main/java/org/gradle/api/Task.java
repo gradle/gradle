@@ -269,9 +269,12 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * FIXME wolfs
+     *
+     * @since 7.3
      */
+    @Incubating
     @Internal
-    Property<Boolean> getUntracked();
+    void doNotTrackState(String notTrackingReason);
 
     /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not

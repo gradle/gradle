@@ -33,7 +33,6 @@ import java.util.Optional;
 public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver {
     private static final CachingDisabledReason CACHING_NOT_ENABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has not been enabled for the task");
     private static final CachingDisabledReason CACHING_DISABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has been disabled for the task");
-    private static final CachingDisabledReason UNTRACKED = new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked' satisfied");
     private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final RelativeFilePathResolver relativeFilePathResolver;
@@ -74,8 +73,9 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 "Gradle does not know how file '" + relativePath + "' was created (output property '" + overlappingOutputs.getPropertyName() + "'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location)."));
         }
 
-        if (task.getUntracked().get()) {
-            return Optional.of(UNTRACKED);
+        Optional<String> doNotTrackStateReason = task.getDoNotTrackStateReason();
+        if (doNotTrackStateReason.isPresent()) {
+            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked because: " + doNotTrackStateReason.get() +"' satisfied"));
         }
 
         for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -87,22 +86,6 @@ public class Copy extends AbstractCopyTask {
     @Override
     public DestinationRootCopySpec getRootSpec() {
         return (DestinationRootCopySpec) super.getRootSpec();
-    }
-
-    /**
-     * Force Gradle to ignore content in the destination directory.
-     * <p>
-     * This can be useful if the destination directory contains unreadable content, or special files like named pipes that Gradle cannot snapshot.
-     * It can also be useful when copying to a location not exclusively owned by the build, for example to a common installation directory.
-     * In the latter case calling this method will prevent Gradle from trying to snapshot a potentially large amount of content (that might also contain unreadable files).
-     * Copy tasks which ignore content in the destination directory are never up-to-date.
-     *
-     * @see Untracked
-     * @since 7.3
-     */
-    @Incubating
-    public void ignoreExistingContentInDestinationDir() {
-        getUntracked().set(true);
     }
 
     /**

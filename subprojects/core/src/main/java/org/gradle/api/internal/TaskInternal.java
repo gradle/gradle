@@ -33,6 +33,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
@@ -50,6 +51,9 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Spec<? super TaskInternal> getOnlyIf();
+
+    @Internal
+    Optional<String> getDoNotTrackStateReason();
 
     @Internal
     StandardOutputCapture getStandardOutputCapture();

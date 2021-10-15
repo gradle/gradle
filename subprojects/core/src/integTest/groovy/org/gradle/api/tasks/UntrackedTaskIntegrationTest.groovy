@@ -27,7 +27,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "untracked task is not up-to-date"() {
         buildFile("""
-            @Untracked
+            @Untracked(because = "For testing")
             abstract class MyTask extends DefaultTask {
                 @InputFile
                 abstract RegularFileProperty getInputFile()
@@ -84,7 +84,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
     def "can register untracked tasks via the runtime API"() {
         buildFile("""
             tasks.register("myTask") {
-                untracked = true
+                doNotTrackState("For testing")
                 def inputFile = file("input.txt")
                 inputs.file(inputFile)
                     .withPropertyName("inputFile")
@@ -114,7 +114,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
     def "untracked task is not cached"() {
         buildFile("""
             @CacheableTask
-            @Untracked
+            @Untracked(because = "For testing")
             abstract class MyTask extends DefaultTask {
                 @InputFile
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -138,7 +138,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Caching disabled for task ':myTask' because:")
-        outputContains("'Task is untracked' satisfied")
+        outputContains("'Task is untracked because: For testing' satisfied")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -173,7 +173,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
             executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked.")
+                "Declare the task as untracked by using Task.doNotTrackState().")
         }
 
         def rootDir = file("build/root")
@@ -215,7 +215,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
             executer.expectDeprecationWarning("Cannot access output property 'outputFile' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked.")
+                "Declare the task as untracked by using Task.doNotTrackState().")
         }
 
         def rootDir = createDir("build")
@@ -253,7 +253,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
             executer.expectDeprecationWarning("Cannot access output property 'outputDir' of task ':producer' (see --info log for details). " +
                 "Accessing unreadable inputs or outputs has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
-                "Declare the task as untracked.")
+                "Declare the task as untracked by using Task.doNotTrackState().")
         }
 
         def rootDir = file("build/root")
@@ -310,7 +310,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
             "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the task as untracked.")
+            "Declare the task as untracked by using Task.doNotTrackState().")
         run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
@@ -345,7 +345,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         executer.expectDeprecationWarning("Cannot access input property 'inputDir' of task ':consumer' (see --info log for details). " +
             "Accessing unreadable inputs or outputs has been deprecated. " +
             "This will fail with an error in Gradle 8.0. " +
-            "Declare the task as untracked.")
+            "Declare the task as untracked by using Task.doNotTrackState().")
         withBuildCache().run "consumer", "--info"
         then:
         executedAndNotSkipped(":consumer")
@@ -380,7 +380,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
                 }
             }
 
-            @Untracked
+            @Untracked(because = 'For testing')
             abstract class UntrackedProducer extends Producer {}
 
             tasks.register("trackedProducer", Producer) {
@@ -406,7 +406,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "invalidates the VFS for output directories of untracked tasks"() {
         buildFile("""
-            @Untracked
+            @Untracked(because = 'For testing')
             abstract class UntrackedProducer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
@@ -469,7 +469,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateProducerTask(boolean untracked) {
         """
-            ${untracked ? "@Untracked" : ""}
+            ${untracked ? "@Untracked(because = 'For testing')" : ""}
             abstract class Producer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
@@ -487,7 +487,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateConsumerTask(boolean untracked) {
         """
-            ${untracked ? "@Untracked" : ""}
+            ${untracked ? "@Untracked(because = 'For testing')" : ""}
             abstract class Consumer extends DefaultTask {
                 @InputDirectory
                 abstract DirectoryProperty getInputDir()
@@ -507,7 +507,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
         """
-            @Untracked
+            @Untracked(because = "For testing")
             abstract class IncrementalConsumer extends DefaultTask {
                 @SkipWhenEmpty
                 @InputDirectory
