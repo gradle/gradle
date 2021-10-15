@@ -38,7 +38,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
 
     @Override
     public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
-        if (task.getDoNotTrackStateReason().isPresent()) {
+        if (task.getReasonNotToTrackState().isPresent()) {
             return TaskExecutionMode.UNTRACKED;
         }
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.

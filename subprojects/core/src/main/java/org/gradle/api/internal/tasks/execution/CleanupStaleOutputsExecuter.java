@@ -71,7 +71,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (!task.getDoNotTrackStateReason().isPresent()) {
+        if (!task.getReasonNotToTrackState().isPresent()) {
             cleanupStaleOutputs(context);
         }
         return executer.execute(task, state, context);

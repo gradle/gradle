@@ -137,7 +137,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
-    private String doNotTrackStateReason;
+    private String reasonNotToTrackState;
 
     private final ServiceRegistry services;
 
@@ -360,18 +360,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void doNotTrackState(String notTrackingReason) {
-        if (notTrackingReason == null) {
+    public void doNotTrackState(String reasonNotToTrackState) {
+        if (reasonNotToTrackState == null) {
             throw new InvalidUserDataException("notTrackingReason must not be null!");
         }
-        taskMutator.mutate("doNotTrackState",
-            () -> doNotTrackStateReason = notTrackingReason
+        taskMutator.mutate("Task.doNotTrackState(String)",
+            () -> this.reasonNotToTrackState = reasonNotToTrackState
         );
     }
 
     @Override
-    public Optional<String> getDoNotTrackStateReason() {
-        return Optional.ofNullable(doNotTrackStateReason);
+    public Optional<String> getReasonNotToTrackState() {
+        return Optional.ofNullable(reasonNotToTrackState);
     }
 
     @Internal

@@ -54,7 +54,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         then:
         state == UNTRACKED
-        _ * task.getDoNotTrackStateReason() >> Optional.of("For testing")
+        _ * task.getReasonNotToTrackState() >> Optional.of("For testing")
         0 * _
     }
 

@@ -73,9 +73,9 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
                 "Gradle does not know how file '" + relativePath + "' was created (output property '" + overlappingOutputs.getPropertyName() + "'). Task output caching requires exclusive access to output paths to guarantee correctness (i.e. multiple tasks are not allowed to produce output in the same location)."));
         }
 
-        Optional<String> doNotTrackStateReason = task.getDoNotTrackStateReason();
-        if (doNotTrackStateReason.isPresent()) {
-            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked because: " + doNotTrackStateReason.get() +"' satisfied"));
+        Optional<String> reasonNotToTrackState = task.getReasonNotToTrackState();
+        if (reasonNotToTrackState.isPresent()) {
+            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked because: " + reasonNotToTrackState.get() +"' satisfied"));
         }
 
         for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {

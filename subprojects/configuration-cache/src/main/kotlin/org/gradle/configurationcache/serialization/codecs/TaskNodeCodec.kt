@@ -154,14 +154,14 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeDoNotTrackStateReason(task: TaskInternal) {
-        writeNullableString(task.doNotTrackStateReason.orElse(null))
+        writeNullableString(task.reasonNotToTrackState.orElse(null))
     }
 
     private
     fun ReadContext.readDoNotTrackStateReason(task: TaskInternal) {
-        val doNotTrackStateReason = readNullableString()
-        if (doNotTrackStateReason != null) {
-            task.doNotTrackState(doNotTrackStateReason)
+        val reasonNotToTrackState = readNullableString()
+        if (reasonNotToTrackState != null) {
+            task.doNotTrackState(reasonNotToTrackState)
         }
     }
 

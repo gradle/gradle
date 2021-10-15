@@ -53,7 +53,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
     @Internal
-    Optional<String> getDoNotTrackStateReason();
+    Optional<String> getReasonNotToTrackState();
 
     @Internal
     StandardOutputCapture getStandardOutputCapture();
