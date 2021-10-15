@@ -69,11 +69,13 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
         } catch (Throwable t) {
             if (result == null) {
                 // Did not create a result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging happens down in the build tree scope
+                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
                 throw UncheckedException.throwAsUncheckedException(t);
             } else {
                 // Cleanup has failed, combine the cleanup failure with other failures that may be packed in the result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging happens down in the build tree scope
+                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
                 throw UncheckedException.throwAsUncheckedException(result.addFailure(t).getBuildFailure());
             }
         }

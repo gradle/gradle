@@ -65,11 +65,13 @@ public class BuildSessionLifecycleBuildActionExecuter implements BuildActionExec
         } catch (Throwable t) {
             if (actionWrapper.result == null) {
                 // Did not create a result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging happens down in the build session scope
+                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
                 throw UncheckedException.throwAsUncheckedException(t);
             } else {
                 // Created a result which may contain failures. Combine this failure with any failures that happen to be packaged in the result
-                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging happens down in the build session scope
+                // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
+                // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
                 throw UncheckedException.throwAsUncheckedException(actionWrapper.result.addFailure(t).getBuildFailure());
             }
         }
