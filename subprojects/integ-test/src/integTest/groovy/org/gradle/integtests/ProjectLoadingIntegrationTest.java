@@ -391,4 +391,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
             .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
     }
+
+    @Test
+    public void raisesExceptionWhenScanAndOfflineOptionsAreUsedTogether() {
+        getTestDirectory().createDir("root").file("build.gradle");
+
+        inTestDirectory().withArguments("--offline", "--scan").runWithFailure()
+            .assertHasDescription("--scan option is incompatible with --offline because scan cannot be published");
+    }
 }

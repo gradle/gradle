@@ -60,6 +60,10 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
             validateIsFileAndExists(initScript, "initialization script");
         }
 
+        if (startParameter.isBuildScan() && startParameter.isOffline()) {
+            throw new IllegalArgumentException("--scan option is incompatible with --offline because scan cannot be published");
+        }
+
         return delegate.execute(action, actionParameters, requestContext);
     }
 
