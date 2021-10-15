@@ -125,11 +125,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
         }
 
-        if (isLocal() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
+        // if (isLocal() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
             // Caching component metadata rules for local repositories leads to issues
             // when in some cases cached file does not exist yet, but we anyway try to use it
-            disableComponentMetadataRulesCaching(result);
-        }
+            // disableComponentMetadataRulesCaching(result);
+        // }
     }
 
     private void disableComponentMetadataRulesCaching(BuildableModuleComponentMetaDataResolveResult result) {
