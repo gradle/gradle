@@ -112,6 +112,8 @@ class ConfigurationCacheRepository(
     inner class ReadableConfigurationCacheStateFile(
         private val file: File
     ) : ConfigurationCacheStateFile {
+        override val canRead: Boolean
+            get() = file.isFile
 
         override fun outputStream(): OutputStream =
             throw UnsupportedOperationException()
@@ -130,6 +132,8 @@ class ConfigurationCacheRepository(
         private val file: File,
         private val onFileAccess: (File) -> Unit
     ) : ConfigurationCacheStateFile {
+        override val canRead: Boolean
+            get() = false
 
         override fun outputStream(): OutputStream =
             file.also(onFileAccess).outputStream()

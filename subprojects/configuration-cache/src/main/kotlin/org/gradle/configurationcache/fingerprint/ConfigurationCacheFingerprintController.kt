@@ -55,7 +55,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val taskInputsListeners: TaskInputsListeners,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val fileSystemAccess: FileSystemAccess,
-    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager,

@@ -105,7 +105,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             build: BuildState,
             gradle: GradleInternal,
             startParameter: ConfigurationCacheStartParameter,
-            configurationCache: BuildTreeConfigurationCache,
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             if (build is ConfigurationCacheIncludedBuildState) {
@@ -117,6 +116,8 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
             val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
             return if (startParameter.isEnabled) {
+                // Only look this up if configuration caching is enabled, to avoid creating services
+                val configurationCache: BuildTreeConfigurationCache = gradle.services.get()
                 ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
             } else {
                 vintageController

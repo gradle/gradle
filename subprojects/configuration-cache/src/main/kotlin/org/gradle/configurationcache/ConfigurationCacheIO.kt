@@ -17,7 +17,6 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.useToRun
-import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -25,22 +24,22 @@ import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
-import org.gradle.configurationcache.serialization.readCollectionInto
+import org.gradle.configurationcache.serialization.readFile
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
+import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -54,11 +53,36 @@ class ConfigurationCacheIO internal constructor(
     private val beanConstructors: BeanConstructors
 ) {
 
+    internal
+    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, stateFile: ConfigurationCacheStateFile) {
+        val rootDirs = mutableSetOf<File>()
+        buildStateRegistry.visitBuilds { build ->
+            if (build !is RootBuildState) {
+                rootDirs.add(build.buildRootDir)
+            }
+        }
+        writeConfigurationCacheState(stateFile) {
+            writeCollection(rootDirs) { writeFile(it) }
+        }
+    }
+
+    internal
+    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): List<File> {
+        // Currently, the fingerprint file is used to mark whether the entry is usable or not
+        // Should use the entry details file instead
+        if (!stateFile.canRead) {
+            return emptyList()
+        }
+        return readConfigurationCacheState(stateFile) {
+            readList { readFile() }
+        }
+    }
+
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
     internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> =
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
@@ -230,61 +254,3 @@ class ConfigurationCacheIO internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 }
-
-
-internal
-fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
-    val buildRootDirs = header.includedBuildRootDirs
-    if (buildRootDirs.isEmpty()) {
-        outputStream.writeInt(0)
-        return
-    }
-    ByteArrayOutputStream().let { bos ->
-        writeFileSetTo(bos, buildRootDirs)
-        outputStream.writeInt(bos.size())
-        bos.writeTo(outputStream)
-    }
-}
-
-
-internal
-fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream): ConfigurationCacheFingerprint.Header? {
-    val headerSize = inputStream.readInt()
-    if (headerSize == 0) {
-        return null
-    }
-
-    val headerBytes = ByteArray(headerSize)
-    require(inputStream.read(headerBytes) == headerSize)
-
-    return ConfigurationCacheFingerprint.Header(
-        readFileSetFrom(ByteArrayInputStream(headerBytes))
-    )
-}
-
-
-private
-fun writeFileSetTo(outputStream: OutputStream, files: Set<File>) {
-    KryoBackedEncoder(outputStream).useToRun {
-        writeCollection(files) { file ->
-            writeString(file.path)
-        }
-    }
-}
-
-
-private
-fun readFileSetFrom(inputStream: InputStream) =
-    KryoBackedDecoder(inputStream).run {
-        readCollectionInto(::LinkedHashSet) {
-            File(readString())
-        }
-    }
-
-
-private
-fun OutputStream.writeInt(i: Int) = DataOutputStream(this).writeInt(i)
-
-
-private
-fun InputStream.readInt() = DataInputStream(this).readInt()

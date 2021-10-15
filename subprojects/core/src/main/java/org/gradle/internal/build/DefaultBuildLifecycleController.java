@@ -214,7 +214,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void stop() {
-        state.assertInState(State.Finished);
         try {
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {

@@ -43,6 +43,11 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
     }
 
     @Override
+    BuildTreeLifecycleController createRootBuildController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
+        return createController(targetBuild, workExecutor, finishExecutor)
+    }
+
+    @Override
     BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
     }
