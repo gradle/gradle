@@ -44,4 +44,48 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
+    def "exposes outgoing variant for results of each test suite target's test task"() {
+        buildFile << '''
+            plugins {
+                id 'java'
+            }
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        /* no-op */
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds':outgoingVariants', '-is'
+
+        then:
+        outputContains '''    - Variant : testResultDataElements
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = test-result-data
+          - org.gradle.jvm.version         = 17
+          - org.gradle.libraryelements     = jar
+          - org.gradle.testsuitetype       = test
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/test-results/test/binary\n'''
+
+        outputContains '''    - Variant : integTestResultDataElements
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = test-result-data
+          - org.gradle.jvm.version         = 17
+          - org.gradle.libraryelements     = jar
+          - org.gradle.testsuitetype       = integTest
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build/test-results/integTest/binary\n'''
+
+    }
 }

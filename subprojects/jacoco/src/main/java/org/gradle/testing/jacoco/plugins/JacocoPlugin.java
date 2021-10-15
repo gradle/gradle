@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
+import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -104,9 +105,9 @@ public class JacocoPlugin implements Plugin<Project> {
         configureTestTargetOutgoingVariants(project);
     }
 
-    public interface TestSuiteType extends Named {
-        Attribute<TestSuiteType> TEST_SUITE_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestSuiteType.class);
-    }
+//    public interface TestSuiteType extends Named {
+//        Attribute<TestSuiteType> TEST_SUITE_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestSuiteType.class);
+//    }
 
     private void configureTestTargetOutgoingVariants(Project project) {
         project.getPlugins().withId("jvm-test-suite", p -> { // TODO react to `java` plugin instead?

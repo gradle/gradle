@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -32,6 +33,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
@@ -46,20 +48,25 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
+import javax.script.Bindings;
+import javax.script.SimpleBindings;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -287,6 +294,7 @@ public class JavaPlugin implements Plugin<Project> {
         configureJavadocTask(project, javaExtension);
         configureArchivesAndComponent(project, javaExtension);
         configureBuild(project);
+        configureTestTargetOutgoingVariants(project);
     }
 
     private void configureSourceSets(Project project, JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -472,6 +480,48 @@ public class JavaPlugin implements Plugin<Project> {
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
+
+//    /**
+//     * TODO deduplicate with JacocoPlugin#TestSuiteType
+//     */
+//    public interface TestSuiteType extends Named {
+//        Attribute<TestSuiteType> TEST_SUITE_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestSuiteType.class);
+//    }
+
+    private void configureTestTargetOutgoingVariants(Project project) {
+        project.getPlugins().withId("jvm-test-suite", p -> { // TODO react to `java` plugin instead?
+
+            ObjectFactory objects = project.getObjects();
+
+            TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+            testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
+                ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> targets = testSuite.getTargets();
+                targets.configureEach(target -> {
+                    Configuration runtimeElements = project.getConfigurations().getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+                    runtimeElements.getOutgoing().getVariants().create(target.getName() + "ResultDataElements", conf -> {
+                        conf.attributes(attributes -> {
+                            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
+                            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
+                            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "test-result-data"));
+                            attributes.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, testSuite.getName()));
+                        });
+
+                        // TODO Map? ["builtBy": getTestTask().getName(),
+                        //             "file": getTestTask().getBinaryResultsDirectory()]
+                        Bindings map = new SimpleBindings();
+                        map.put("file", target.getTestTask().get().getBinaryResultsDirectory().get().getAsFile());
+                        map.put("builtBy", target.getTestTask());
+//                        conf.artifact(map);
+                        conf.artifact(target.getTestTask().get().getBinaryResultsDirectory());
+//                        conf.artifact(target.getTestTask().get()/*map(test -> test.getBinaryResultsDirectory().get())*/); // FIXME why necessary to eagerly map to Directory? Should accept a TaskProvider; Test#getBinaryResultsDirectory() since #artifact can accept a Task having a single @Output-annotated property
+                    });
+                });
+            });
+
+        });
+    }
+
 
     /**
      * This is only used by buildSrc to add to the buildscript classpath.

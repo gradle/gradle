@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.jacoco.plugins;
+package org.gradle.api.plugins;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -27,20 +27,20 @@ import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.internal.jacoco.DefaultJacocoCoverageReport;
+import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
+public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
-public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
-
-    public static String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
+    public static String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
 
     @Inject
     protected abstract JvmPluginServices getJvmPluginServices();
@@ -48,47 +48,48 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
-        project.getPluginManager().apply("jacoco");
 
-        Configuration jacocoAggregation = project.getConfigurations().create(JACOCO_AGGREGATION_CONFIGURATION_NAME, conf -> {
-            conf.setDescription("A resolvable configuration to collect source code");
+        final Configuration testAggregation = project.getConfigurations().create(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("A resolvable configuration to collect test execution results");
             conf.setVisible(false);
             conf.setCanBeConsumed(false);
             conf.setCanBeResolved(true);
         });
-        getJvmPluginServices().configureAsRuntimeClasspath(jacocoAggregation);
-
-        ObjectFactory objects = project.getObjects();
-        ArtifactView sourcesPath = jacocoAggregation.getIncoming().artifactView(view -> {
-            view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-            view.attributes(attributes -> {
-                attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-                attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "source-folders"));
-            });
-        });
-        ArtifactView analyzedClasses = jacocoAggregation.getIncoming().artifactView(view -> {
-            view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-        });
+        getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
-        reporting.getReports().registerBinding(JacocoCoverageReport.class, DefaultJacocoCoverageReport.class); // todo this creates the task
+        reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class); // todo this creates the task
 
-        // TODO check task dependency
+//        reporting.getReports().withType(AggregateTestReport.class).configureEach(report -> {
+//            report.getBinaryResults().from(testAggregation.)
+//        });
 
-        reporting.getReports().withType(JacocoCoverageReport.class).configureEach(report -> {
-            report.getClasses().from(analyzedClasses.getFiles());
-            report.getSources().from(sourcesPath.getFiles());
-        });
+        //TaskProvider<TestReport> aggregationTask = project.getTasks().register("it", TestReport.class);
+
+        // TODO something.foreach aggregationTask.
+//        aggregationTask.configure(new Action<TestReport>() {
+//            @Override
+//            public void execute(TestReport task) {
+//                task.reportOn(it); // test.getBinaryResultsDirectory()
+//            }
+//        });
+
+        ObjectFactory objects = project.getObjects();
+        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         project.getPlugins().withId("jvm-test-suite", p -> {
             // Depend on this project for aggregation
-            project.getDependencies().add(JACOCO_AGGREGATION_CONFIGURATION_NAME, project);
+            project.getDependencies().add(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, project);
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
             testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
-                reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
-                    report.getExecutionData().from(resolvableJacocoData(jacocoAggregation, objects, testSuite.getName()));
+                reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
+                    report.getBinaryResults().from(resolvableTestResultData(testAggregation, objects, testSuite.getName()));
+                    report.getDestinationDir().convention(javaPluginExtension.getTestResultsDir().dir(testSuite.getName() + "/aggregated-results"));
+                    testSuite.getTargets().all(target -> {
+                        report.getTestTasks().add(target.getTestTask().get());
+//                        report.getReportTask().configure(reportTask -> reportTask.dependsOn(target.getTestTask()));
+                    });
                 });
 //                testSuite.getTargets().all(target -> {
 //                    target.getTestTask().configure(test -> {
@@ -99,19 +100,19 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         });
     }
 
-    public static FileCollection resolvableJacocoData(Configuration jacocoAggregation, ObjectFactory objects, String name) {
-        // A resolvable configuration to collect JaCoCo coverage data
-        ArtifactView coverageDataPath = jacocoAggregation.getIncoming().artifactView(view -> {
-            view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-            view.lenient(true);
+    public static FileCollection resolvableTestResultData(Configuration testAggregation, ObjectFactory objects, String name) {
+        // A resolvable configuration to collect test result data
+        ArtifactView resultsDataPath = testAggregation.getIncoming().artifactView(view -> {
+            view.componentFilter(it -> it instanceof ProjectComponentIdentifier);
+            //view.lenient(true);
             view.attributes(attributes -> {
                 attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
-                attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "jacoco-coverage-data"));
+                attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "test-result-data"));
                 // TODO: need to support provider
                 attributes.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, name));
             });
         });
-        return coverageDataPath.getFiles();
+        return resultsDataPath.getFiles();
     }
 }
