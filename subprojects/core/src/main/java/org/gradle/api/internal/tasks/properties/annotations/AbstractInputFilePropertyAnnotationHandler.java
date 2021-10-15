@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -81,8 +80,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
-            getFilePropertyType(),
-            ContentTracking.TRACKED
+            getFilePropertyType()
         );
     }
 
