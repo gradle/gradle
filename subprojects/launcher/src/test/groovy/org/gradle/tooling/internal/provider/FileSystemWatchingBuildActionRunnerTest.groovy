@@ -129,6 +129,6 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Cannot probe file system watching when project cache directory is set"
+        ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
     }
 }
