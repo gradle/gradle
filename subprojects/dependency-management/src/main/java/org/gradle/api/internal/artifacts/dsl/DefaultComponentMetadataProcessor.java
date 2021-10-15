@@ -162,7 +162,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             Action<ComponentMetadataContext> action = collectRulesAndCreateAction(metadataRuleContainer.getOnlyClassRules(), metadata.getModuleVersionId(), metadataResolutionContext.getInjectingInstantiator());
             if (action instanceof InstantiatingAction) {
                 InstantiatingAction<ComponentMetadataContext> ia = (InstantiatingAction<ComponentMetadataContext>) action;
-                if (ia.getRules().isCacheable()) {
+                if (!origin.isComponentMetadataRuleCachingDisabled() && ia.getRules().isCacheable()) {
                     updatedMetadata = processClassRuleWithCaching(ia, metadata, metadataResolutionContext);
                 } else {
                     MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();

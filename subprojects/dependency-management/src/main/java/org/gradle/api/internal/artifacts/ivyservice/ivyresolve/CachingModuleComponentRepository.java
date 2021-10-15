@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.Module
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
@@ -398,7 +399,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
-            delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
+            ModuleComponentRepositoryAccess remoteAccess = delegate.getRemoteAccess();
+            remoteAccess.resolveComponentMetaData(moduleComponentIdentifier, forced, result);
             switch (result.getState()) {
                 case Missing:
                     moduleMetadataCache.cacheMissing(delegate, moduleComponentIdentifier);
@@ -423,6 +425,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 default:
                     throw new IllegalStateException("Unexpected resolve state: " + result.getState());
             }
+        }
+
+        private boolean isLocalMavenRepository() {
+            return delegate instanceof MavenResolver && ((MavenResolver) delegate).isLocal();
         }
 
         private ModuleComponentResolveMetadata makeChanging(ModuleComponentResolveMetadata resolvedMetadata, ModuleComponentResolveMetadata processedMetadata) {

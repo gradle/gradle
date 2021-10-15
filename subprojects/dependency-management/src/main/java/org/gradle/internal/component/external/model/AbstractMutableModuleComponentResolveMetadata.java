@@ -63,6 +63,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean changing;
     private boolean missing;
     private boolean externalVariant;
+    private boolean isComponentMetadataRuleCachingDisabled;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private MutableModuleSources moduleSources;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
@@ -103,6 +104,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.externalVariant = metadata.isExternalVariant();
+        this.isComponentMetadataRuleCachingDisabled = metadata.isComponentMetadataRuleCachingDisabled();
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -181,6 +183,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public void setExternalVariant(boolean externalVariant) {
         this.externalVariant = externalVariant;
+    }
+
+    @Override
+    public boolean isComponentMetadataRuleCachingDisabled() {
+        return isComponentMetadataRuleCachingDisabled;
+    }
+
+    @Override
+    public void setComponentMetadataRuleCachingDisabled(boolean componentMetadataRuleCachingDisabled) {
+        this.isComponentMetadataRuleCachingDisabled = componentMetadataRuleCachingDisabled;
     }
 
     @Override

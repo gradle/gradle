@@ -76,6 +76,10 @@ public interface MutableModuleComponentResolveMetadata {
 
     void setExternalVariant(boolean externalVariant);
 
+    boolean isComponentMetadataRuleCachingDisabled();
+
+    void setComponentMetadataRuleCachingDisabled(boolean componentMetadataRuleCachingDisabled);
+
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */

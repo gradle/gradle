@@ -170,6 +170,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
+    public boolean isComponentMetadataRuleCachingDisabled() {
+        return false;
+    }
+
+    @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         throw new UnsupportedOperationException();
     }

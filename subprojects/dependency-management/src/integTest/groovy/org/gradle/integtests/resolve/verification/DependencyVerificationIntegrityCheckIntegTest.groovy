@@ -1086,7 +1086,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/18498")
-    def "does not fail for local repository with metadata rule"() {
+    def "fails without obscure error for local repository with cached metadata rule"() {
         def repoDir = testDirectory.createDir("repo")
         buildFile << """
             plugins {
@@ -1136,11 +1136,21 @@ This can indicate that a dependency has been compromised. Please carefully verif
         when:
         requireIsolatedGradleDistribution()
         fails "resolveCompileClasspath"
+
+        then:
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
+
         requireIsolatedGradleDistribution()
         fails "resolveCompileClasspath"
 
         then:
-        true
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
     }
 
 }
