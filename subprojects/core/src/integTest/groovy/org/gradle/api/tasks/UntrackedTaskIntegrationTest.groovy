@@ -50,14 +50,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task is untracked.")
+        outputContains("Task state is not tracked.")
 
         when:
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task is untracked.")
+        outputContains("Task state is not tracked.")
     }
 
     def "fails when incremental task is marked as untracked"() {
@@ -108,7 +108,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Task ':myTask' is not up-to-date because:")
-        outputContains("Task is untracked.")
+        outputContains("Task state is not tracked.")
     }
 
     def "untracked task is not cached"() {
