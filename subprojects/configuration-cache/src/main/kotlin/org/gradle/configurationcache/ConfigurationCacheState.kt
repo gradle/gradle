@@ -88,10 +88,12 @@ enum class StateType {
 
 internal
 interface ConfigurationCacheStateFile {
-    val canRead: Boolean
+    val exists: Boolean
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
+    // Replace the contents of this state file, by moving the given file to the location of this state file
+    fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
 }
 

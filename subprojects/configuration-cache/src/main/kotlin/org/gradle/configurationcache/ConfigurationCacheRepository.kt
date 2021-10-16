@@ -37,6 +37,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 
 @ServiceScope(Scopes.BuildTree::class)
@@ -47,25 +48,10 @@ class ConfigurationCacheRepository(
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
-    fun useForFingerprintCheck(cacheKey: String, check: (ConfigurationCacheStateFile) -> String?): CheckedFingerprint =
-        useForStateLoad(cacheKey, StateType.Fingerprint) { stateFile ->
-            when {
-                !stateFile.canRead -> CheckedFingerprint.NotFound
-                else -> {
-                    when (val invalidReason = check(stateFile)) {
-                        null -> {
-                            CheckedFingerprint.Valid
-                        }
-                        else -> CheckedFingerprint.Invalid(invalidReason)
-                    }
-                }
-            }
-        }
-
-    sealed class CheckedFingerprint {
-        object NotFound : CheckedFingerprint()
-        object Valid : CheckedFingerprint()
-        class Invalid(val reason: String) : CheckedFingerprint()
+    fun assignSpoolFile(cacheKey: String, stateType: StateType): File {
+        val baseDir = cache.baseDirFor(cacheKey)
+        Files.createDirectories(baseDir.toPath())
+        return Files.createTempFile(baseDir.toPath(), stateType.toString().toLowerCase(), ".tmp").toFile()
     }
 
     fun <T> useForStateLoad(cacheKey: String, stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
@@ -104,14 +90,6 @@ class ConfigurationCacheRepository(
     }
 
     private
-    inner class ReadableLayout(
-        private val cacheDir: File,
-        state: ConfigurationCacheStateFile
-    ) : Layout(state) {
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
-    }
-
-    private
     inner class WriteableLayout(
         private val cacheDir: File,
         state: ConfigurationCacheStateFile,
@@ -128,7 +106,7 @@ class ConfigurationCacheRepository(
     inner class ReadableConfigurationCacheStateFile(
         private val file: File
     ) : ConfigurationCacheStateFile {
-        override val canRead: Boolean
+        override val exists: Boolean
             get() = file.isFile
 
         override fun outputStream(): OutputStream =
@@ -138,6 +116,10 @@ class ConfigurationCacheRepository(
             file.also(::markAccessed).inputStream()
 
         override fun delete() {
+            throw UnsupportedOperationException()
+        }
+
+        override fun moveFrom(file: File) {
             throw UnsupportedOperationException()
         }
 
@@ -152,7 +134,7 @@ class ConfigurationCacheRepository(
         private val file: File,
         private val onFileAccess: (File) -> Unit
     ) : ConfigurationCacheStateFile {
-        override val canRead: Boolean
+        override val exists: Boolean
             get() = false
 
         override fun outputStream(): OutputStream =
@@ -162,7 +144,13 @@ class ConfigurationCacheRepository(
             throw UnsupportedOperationException()
 
         override fun delete() {
-            Files.delete(file.toPath())
+            if (file.exists()) {
+                Files.delete(file.toPath())
+            }
+        }
+
+        override fun moveFrom(file: File) {
+            Files.move(file.toPath(), this.file.toPath(), StandardCopyOption.ATOMIC_MOVE)
         }
 
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =

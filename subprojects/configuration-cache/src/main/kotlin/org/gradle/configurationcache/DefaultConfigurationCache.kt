@@ -21,7 +21,6 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
@@ -82,8 +81,9 @@ class DefaultConfigurationCache internal constructor(
     private
     var rootBuild: Host? = null
 
+    // Have one or more values been successfully written to the entry?
     private
-    var hasRunWork = false
+    var hasSavedValues = false
 
     private
     val host: Host
@@ -141,11 +141,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun finalizeCacheEntry() {
-        if (hasRunWork) {
+        if (hasSavedValues) {
             cacheRepository.useForStore(cacheKey.string, StateType.Entry) { layout ->
+                writeConfigurationCacheFingerprint(layout)
                 cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, layout.state)
             }
-            hasRunWork = false
+            hasSavedValues = false
         }
     }
 
@@ -221,10 +222,7 @@ class DefaultConfigurationCache internal constructor(
             cacheIO.readCacheEntryDetailsFrom(stateFile)
         }
         registerWatchableBuildDirectories(rootDirs)
-        return cacheRepository.useForFingerprintCheck(
-            cacheKey.string,
-            this::checkFingerprint
-        )
+        return cacheRepository.useForStateLoad(cacheKey.string, StateType.Fingerprint, this::checkFingerprint)
     }
 
     private
@@ -235,7 +233,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun prepareForWork() {
-        hasRunWork = true
         prepareConfigurationTimeBarrier()
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
@@ -261,7 +258,6 @@ class DefaultConfigurationCache internal constructor(
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
-        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
             cacheRepository.useForStore(cacheKey.string, stateType) { layout ->
@@ -270,18 +266,19 @@ class DefaultConfigurationCache internal constructor(
                 }
                 try {
                     action(layout)
-                    writeConfigurationCacheFingerprint(layout.fileFor(StateType.Fingerprint))
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
-                    invalidateConfigurationCacheState(layout)
+                    hasSavedValues = false
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
-                    cacheFingerprintController.stop()
                     scopeRegistryListener.dispose()
                 }
             }
         }
+
+        hasSavedValues = true
+        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -333,22 +330,16 @@ class DefaultConfigurationCache internal constructor(
         )
 
     private
-    fun writeConfigurationCacheFingerprint(fingerprintFile: ConfigurationCacheStateFile) {
-        fingerprintFile.outputStream().use { outputStream ->
-            cacheFingerprintController.commitFingerprintTo(outputStream)
-        }
+    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout) {
+        cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.Fingerprint))
     }
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.maybeStartCollectingFingerprint {
+        val fingerprintFile = cacheRepository.assignSpoolFile(cacheKey.string, StateType.Fingerprint)
+        cacheFingerprintController.maybeStartCollectingFingerprint(fingerprintFile) {
             cacheFingerprintWriterContextFor(it)
         }
-    }
-
-    private
-    fun stopCollectingCacheFingerprint() {
-        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -360,15 +351,23 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprint(fingerprintFile: ConfigurationCacheStateFile): InvalidationReason? {
+    fun checkFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
         loadGradleProperties()
         return checkConfigurationCacheFingerprintFile(fingerprintFile)
     }
 
     private
-    fun checkConfigurationCacheFingerprintFile(fingerprintFile: ConfigurationCacheStateFile): InvalidationReason? {
-        return fingerprintFile.inputStream().use { fingerprintInputStream ->
+    fun checkConfigurationCacheFingerprintFile(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+        if (!fingerprintFile.exists) {
+            return CheckedFingerprint.NotFound
+        }
+        val invalidReason = fingerprintFile.inputStream().use { fingerprintInputStream ->
             checkFingerprint(fingerprintInputStream)
+        }
+        return if (invalidReason == null) {
+            CheckedFingerprint.Valid
+        } else {
+            CheckedFingerprint.Invalid(invalidReason)
         }
     }
 
