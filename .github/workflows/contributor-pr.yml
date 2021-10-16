@@ -6,6 +6,7 @@ on:
   
 env:
   CACHE_DEBUG_ENABLED: true
+  CACHE_KEY_PREFIX: 'v1-'
 
 jobs:
   build:
