@@ -46,7 +46,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     @Override
-    public ToolingModelScope locateBuilderForTarget(String modelName, boolean param) throws UnknownModelException {
+    public ToolingModelScope locateBuilderForTarget(String modelName, boolean param) {
         // Look for a build scoped builder
         ToolingModelBuilderLookup.Builder builder = buildScopeLookup.maybeLocateForBuildScope(modelName, param, buildState);
         if (builder != null) {
@@ -59,7 +59,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     @Override
-    public ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+    public ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) {
         if (target.getOwner() != buildState) {
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
@@ -94,6 +94,12 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             this.builder = builder;
         }
 
+        @Nullable
+        @Override
+        public ProjectState getTarget() {
+            return null;
+        }
+
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             return builder;
@@ -109,6 +115,12 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             this.target = target;
             this.modelName = modelName;
             this.parameter = parameter;
+        }
+
+        @Nullable
+        @Override
+        public ProjectState getTarget() {
+            return target;
         }
 
         @Override

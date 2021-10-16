@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.provider.model.internal;
+package org.gradle.configurationcache
 
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.tooling.provider.model.UnknownModelException;
 
-import javax.annotation.Nullable;
-import java.util.function.Function;
-
-public interface ToolingModelScope {
-    @Nullable
-    ProjectState getTarget();
-
-    /**
-     * Creates the given model
-     */
-    Object getModel(String modelName, @Nullable Function<Class<?>, Object> parameterFactory) throws UnknownModelException;
+sealed class CheckedFingerprint {
+    object NotFound : CheckedFingerprint()
+    object Valid : CheckedFingerprint()
+    class Invalid(val reason: String) : CheckedFingerprint()
 }

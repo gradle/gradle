@@ -70,7 +70,7 @@ class ConfigurationCacheIO internal constructor(
     fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): List<File> {
         // Currently, the fingerprint file is used to mark whether the entry is usable or not
         // Should use the entry details file instead
-        if (!stateFile.canRead) {
+        if (!stateFile.exists) {
             return emptyList()
         }
         return readConfigurationCacheState(stateFile) {
