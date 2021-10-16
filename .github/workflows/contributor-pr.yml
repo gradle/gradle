@@ -32,7 +32,7 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            if (context.payload.pull_request.head.repo.fork) {
+            if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
                 core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
             } else {
                 core.setOutput('sys-prop-args', '-DcacheNode=us')
