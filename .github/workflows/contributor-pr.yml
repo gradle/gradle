@@ -1,9 +1,17 @@
 name: Contributor CI Build
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
   
 env:
+  # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+  # Enable debub for the `gradle-build-action` cache operations
   CACHE_DEBUG_ENABLED: true
 
 jobs:
@@ -33,7 +41,11 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean compileAll --no-configuration-cache ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              compileAll
+              --no-configuration-cache
+              ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - name: "Comment build scan url"
         uses: actions/github-script@v5
         if: github.event_name == 'pull_request' && failure()
@@ -49,9 +61,6 @@ jobs:
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
   sanity-check:
     name: "Sanity Check on Linux"
@@ -69,7 +78,11 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean sanityCheck --no-configuration-cache ${{ needs.build.outputs.sys-prop-args }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              sanityCheck
+              --no-configuration-cache
+              ${{ needs.build.outputs.sys-prop-args }}
       - name: "Comment build scan url"
         uses: actions/github-script@v5
         if: github.event_name == 'pull_request' && failure()
@@ -82,9 +95,6 @@ jobs:
               repo: context.repo.repo,
               body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
             })
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -106,7 +116,8 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache ${{ needs.build.outputs.sys-prop-args }}
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              ${{ matrix.bucket.tasks }}
+              --no-configuration-cache
+              ${{ needs.build.outputs.sys-prop-args }}
