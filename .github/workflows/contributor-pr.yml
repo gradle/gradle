@@ -6,7 +6,6 @@ on:
   
 env:
   CACHE_DEBUG_ENABLED: true
-  CACHE_KEY_PREFIX: 'v1-'
 
 jobs:
   build:
@@ -33,7 +32,7 @@ jobs:
             }
       - name: assemble
         id: gradle
-        uses: gradle/gradle-build-action@releases/v2
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: clean compileAll --no-configuration-cache ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - name: "Comment build scan url"
@@ -69,7 +68,7 @@ jobs:
           java-version: 11
       - name: ./gradlew sanityCheck
         id: gradle
-        uses: gradle/gradle-build-action@releases/v2
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: clean sanityCheck --no-configuration-cache ${{ needs.build.outputs.sys-prop-args }}
       - name: "Comment build scan url"
