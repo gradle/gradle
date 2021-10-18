@@ -141,6 +141,46 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         outputContains("Task is untracked because: For testing")
     }
 
+    def "UntrackedTask annotation does not inherit"() {
+        file("input.txt").text = "input"
+
+        buildFile("""
+            @UntrackedTask(because = "For testing")
+            abstract class MyUntrackedTask extends DefaultTask {
+                @InputFile
+                abstract RegularFileProperty getInputFile()
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+                @TaskAction
+                void doStuff() {
+                    outputFile.get().asFile.text = inputFile.get().asFile.text
+                }
+            }
+
+            abstract class SubclassOfUntrackedTask extends MyUntrackedTask {}
+
+            tasks.register("myUntrackedTask", MyUntrackedTask) {
+                inputFile = file("input.txt")
+                outputFile = project.layout.buildDirectory.file("untracked-output.txt")
+            }
+            tasks.register("mySubclassOfUntrackedTask", SubclassOfUntrackedTask) {
+                inputFile = file("input.txt")
+                outputFile = project.layout.buildDirectory.file("subclass-output.txt")
+            }
+        """)
+
+        when:
+        run("myUntrackedTask", "mySubclassOfUntrackedTask")
+        then:
+        executedAndNotSkipped(":myUntrackedTask", ":mySubclassOfUntrackedTask")
+
+        when:
+        run("myUntrackedTask", "mySubclassOfUntrackedTask")
+        then:
+        executedAndNotSkipped(":myUntrackedTask")
+        skipped(":mySubclassOfUntrackedTask")
+    }
+
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "untracked tasks can produce and consume unreadable content"() {
         def rootDir = file("build/root")
