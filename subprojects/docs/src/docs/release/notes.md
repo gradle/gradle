@@ -137,7 +137,7 @@ To prevent this, Gradle now detects the reliability of file system events and au
 
 ### Allow copying single files into directories which contain unreadable files.
 
-Sometimes you want to copy files into a directory which contains unreadable files or which is not exclusively owned by the build.
+Sometimes you want to copy files into a directory that contains unreadable files or into one that is not exclusively owned by the build.
 For example when you are deploying single files into application servers or installing executables.
 
 Doing so may fail or be slow because Gradle tries to track all the content in the destination directory.
