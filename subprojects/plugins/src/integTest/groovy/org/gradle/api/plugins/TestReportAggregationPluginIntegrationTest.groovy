@@ -163,7 +163,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         """
         when:
 //        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
-        succeeds(":application:testAggregateTestReport")
+        succeeds(":application:testAggregateTestReport", "-i")
 //        succeeds(":application:testAggregateTestReport", ":application:test", ":direct:test", ":transitive:test") // FIXME hack; do not explicitly invoke subprojects' test tasks
 //        succeeds(":application:testAggregateTestReport", "application:outgoingVariants", ":transitive:outgoingVariants", "-i")
 //        succeeds(":application:test")

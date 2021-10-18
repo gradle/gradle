@@ -61,21 +61,21 @@ public abstract class DefaultAggregateTestReport implements AggregateTestReport 
         return reportTask;
     }
 
-    @Override
-    public Set<Test> getTestTasks() {
-        return testTasks;
-    }
+//    @Override
+//    public Set<Test> getTestTasks() {
+//        return testTasks;
+//    }
 
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                for (Test target: getTestTasks()) {
-                    context.add(target);
-                }
-            }
-        };
-    }
+//    @Override
+//    public TaskDependency getBuildDependencies() {
+//        return new AbstractTaskDependency() {
+//            @Override
+//            public void visitDependencies(TaskDependencyResolveContext context) {
+//                for (Test target: getTestTasks()) {
+//                    context.add(target);
+//                }
+//            }
+//        };
+//    }
 
 }

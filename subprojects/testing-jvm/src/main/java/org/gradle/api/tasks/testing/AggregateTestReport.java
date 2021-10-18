@@ -25,8 +25,8 @@ import org.gradle.api.tasks.TaskProvider;
 
 import java.util.Set;
 
-public interface AggregateTestReport extends ReportSpec, Buildable {
-    Set<Test> getTestTasks();
+public interface AggregateTestReport extends ReportSpec/*, Buildable*/ {
+//    Set<Test> getTestTasks();
     ConfigurableFileCollection getBinaryResults();
     DirectoryProperty getDestinationDir();
 

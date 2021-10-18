@@ -86,10 +86,10 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
                     report.getBinaryResults().from(resolvableTestResultData(testAggregation, objects, testSuite.getName()));
                     report.getDestinationDir().convention(javaPluginExtension.getTestResultsDir().dir(testSuite.getName() + "/aggregated-results"));
-                    testSuite.getTargets().all(target -> {
-                        report.getTestTasks().add(target.getTestTask().get());
-//                        report.getReportTask().configure(reportTask -> reportTask.dependsOn(target.getTestTask()));
-                    });
+//                    testSuite.getTargets().all(target -> {
+//                        report.getTestTasks().add(target.getTestTask().get());
+////                        report.getReportTask().configure(reportTask -> reportTask.dependsOn(target.getTestTask()));
+//                    });
                 });
 //                testSuite.getTargets().all(target -> {
 //                    target.getTestTask().configure(test -> {
@@ -111,6 +111,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, "test-result-data"));
                 // TODO: need to support provider
                 attributes.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, name));
+                // TODO implement artifact transform?
             });
         });
         return resultsDataPath.getFiles();

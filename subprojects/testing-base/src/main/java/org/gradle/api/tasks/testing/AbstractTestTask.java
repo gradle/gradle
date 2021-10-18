@@ -245,7 +245,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @since 4.4
      */
-    @OutputDirectory
+    //@OutputDirectory
     public DirectoryProperty getBinaryResultsDirectory() {
         return binaryResultsDirectory;
     }
