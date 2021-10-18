@@ -106,4 +106,43 @@ class AccessTrackingEnvMapTest extends Specification {
         1 * consumer.accept('other', 'otherValue')
         0 * consumer._
     }
+
+    def "access to existing element with containsKey is tracked"() {
+        given:
+        BiConsumer<String, String> consumer = Mock()
+        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
+
+        when:
+        trackingMap.containsKey('existing')
+
+        then:
+        1 * consumer.accept('existing', 'existingValue')
+        0 * consumer._
+    }
+
+    def "access to missing element with containsKey is tracked"() {
+        given:
+        BiConsumer<String, String> consumer = Mock()
+        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
+
+        when:
+        trackingMap.containsKey('missing')
+
+        then:
+        1 * consumer.accept('missing', null)
+        0 * consumer._
+    }
+
+    def "access to non-string element with containsKey throws"() {
+        given:
+        BiConsumer<String, String> consumer = Mock()
+        AccessTrackingEnvMap trackingMap = new AccessTrackingEnvMap(inner, consumer)
+
+        when:
+        trackingMap.containsKey(Integer.valueOf(5))
+
+        then:
+        thrown(RuntimeException)
+        0 * consumer._
+    }
 }

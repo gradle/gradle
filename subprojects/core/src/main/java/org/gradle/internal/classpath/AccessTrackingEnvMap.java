@@ -43,21 +43,28 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public String get(@Nullable Object key) {
-        String value = delegate.get(key);
-        // delegate will throw if something that isn't string is used there.
-        onAccess.accept((String) key, value);
-        return value;
+        return getAndReport(key);
     }
 
     @Override
     public String getOrDefault(@Nullable Object key, String defaultValue) {
-        String value = delegate.get(key);
-        // delegate will throw if something that isn't string is used there.
-        onAccess.accept((String) key, value);
+        String value = getAndReport(key);
         if (value == null && !delegate.containsKey(key)) {
             return defaultValue;
         }
         return value;
+    }
+
+    @Override
+    public boolean containsKey(@Nullable Object key) {
+        return getAndReport(key) != null;
+    }
+
+    private String getAndReport(@Nullable Object key) {
+        String result = delegate.get(key);
+        // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
+        onAccess.accept((String) key, result);
+        return result;
     }
 
     @Override

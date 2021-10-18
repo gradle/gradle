@@ -409,6 +409,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         EnvVariableRead.getEnv("CI")                        | "null"     | "defined" | "defined"
         EnvVariableRead.getEnvGet("CI")                     | "null"     | "defined" | "defined"
         EnvVariableRead.getEnvGetOrDefault("CI", "default") | "default"  | "defined" | "defined"
+        EnvVariableRead.getEnvContainsKey("CI")             | "false"    | "defined" | "true"
     }
 
     def "reports build logic reading environment variables with getenv(String) using GString parameters"() {
