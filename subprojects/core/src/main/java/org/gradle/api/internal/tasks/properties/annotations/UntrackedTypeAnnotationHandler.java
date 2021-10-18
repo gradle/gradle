@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
-import org.gradle.api.tasks.Untracked;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
@@ -27,7 +27,7 @@ import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotatio
 public class UntrackedTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return Untracked.class;
+        return UntrackedTask.class;
     }
 
     @Override

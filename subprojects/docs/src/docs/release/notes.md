@@ -165,7 +165,7 @@ For example:
 - Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
 - The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
-Gradle 7.3 introduces the annotation [`@Untracked`](javadoc/org/gradle/api/tasks/Untracked.html) and the method [TaskFilePropertyBuilder.untracked()](javadoc/org/gradle/api/tasks/TaskFilePropertyBuilder.html##untracked--) to declare that Gradle should not track the state of the input or output property.
+Gradle 7.3 introduces the annotation [`@UntrackedTask`](javadoc/org/gradle/api/tasks/UntrackedTask.html) and the method [Task.doNotTrackState()](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) to declare that Gradle should not track the state of the input or output property.
 This allows tasks to implement the above use-cases.
 
 If a task has any untracked properties, then Gradle does not do any optimizations when running the task.

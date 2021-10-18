@@ -27,7 +27,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "untracked task is not up-to-date"() {
         buildFile("""
-            @Untracked(because = "For testing")
+            @UntrackedTask(because = "For testing")
             abstract class MyTask extends DefaultTask {
                 @InputFile
                 abstract RegularFileProperty getInputFile()
@@ -114,7 +114,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
     def "untracked task is not cached"() {
         buildFile("""
             @CacheableTask
-            @Untracked(because = "For testing")
+            @UntrackedTask(because = "For testing")
             abstract class MyTask extends DefaultTask {
                 @InputFile
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -380,7 +380,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
                 }
             }
 
-            @Untracked(because = 'For testing')
+            @UntrackedTask(because = 'For testing')
             abstract class UntrackedProducer extends Producer {}
 
             tasks.register("trackedProducer", Producer) {
@@ -406,7 +406,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "invalidates the VFS for output directories of untracked tasks"() {
         buildFile("""
-            @Untracked(because = 'For testing')
+            @UntrackedTask(because = 'For testing')
             abstract class UntrackedProducer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
@@ -469,7 +469,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateProducerTask(boolean untracked) {
         """
-            ${untracked ? "@Untracked(because = 'For testing')" : ""}
+            ${untracked ? "@UntrackedTask(because = 'For testing')" : ""}
             abstract class Producer extends DefaultTask {
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDir()
@@ -487,7 +487,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateConsumerTask(boolean untracked) {
         """
-            ${untracked ? "@Untracked(because = 'For testing')" : ""}
+            ${untracked ? "@UntrackedTask(because = 'For testing')" : ""}
             abstract class Consumer extends DefaultTask {
                 @InputDirectory
                 abstract DirectoryProperty getInputDir()
@@ -507,7 +507,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
         """
-            @Untracked(because = "For testing")
+            @UntrackedTask(because = "For testing")
             abstract class IncrementalConsumer extends DefaultTask {
                 @SkipWhenEmpty
                 @InputDirectory

@@ -38,7 +38,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import org.gradle.api.tasks.Untracked
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.internal.reflect.Instantiator
@@ -706,7 +706,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         })
 
         where:
-        ann << [CacheableTask, Untracked]
+        ann << [CacheableTask, UntrackedTask]
     }
 
     @ValidationTestFor(

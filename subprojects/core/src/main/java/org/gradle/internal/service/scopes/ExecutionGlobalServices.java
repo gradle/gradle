@@ -82,7 +82,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.Untracked;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -144,7 +144,7 @@ public class ExecutionGlobalServices {
                 CacheableTask.class,
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
-                Untracked.class
+                UntrackedTask.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
@@ -227,7 +227,7 @@ public class ExecutionGlobalServices {
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
                 NormalizeLineEndings.class,
-                Untracked.class
+                UntrackedTask.class
             ),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);

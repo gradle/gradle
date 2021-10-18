@@ -23,7 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.Untracked;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
@@ -33,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 
 // tag::git-clone[]
-@Untracked(because = "Git tracks the state")                                           // <1>
+@UntrackedTask(because = "Git tracks the state")                                           // <1>
 public abstract class GitClone extends DefaultTask {
 
     @Input
