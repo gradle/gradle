@@ -58,7 +58,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.UntrackedTypeAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
@@ -250,7 +250,7 @@ public class ExecutionGlobalServices {
     }
 
     TypeAnnotationHandler createUntrackedAnnotationHandler() {
-        return new UntrackedTypeAnnotationHandler();
+        return new UntrackedTaskTypeAnnotationHandler();
     }
 
     PropertyAnnotationHandler createConsoleAnnotationHandler() {

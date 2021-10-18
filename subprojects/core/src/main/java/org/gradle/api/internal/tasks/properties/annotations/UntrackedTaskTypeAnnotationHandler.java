@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
-public class UntrackedTypeAnnotationHandler implements TypeAnnotationHandler {
+public class UntrackedTaskTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return UntrackedTask.class;
