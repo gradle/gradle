@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
  * <p>There can be different reasons for declaring a task as untracked, for example:
  * <ul>
  *     <li>Some input or output locations contain unreadable files like pipes where Gradle cannot track the content.</li>
+ *     <li>The input or output is stored remotely, for example in a database, and its state cannot be tracked.</li>
  *     <li>Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.</li>
  *     <li>Prevent Gradle from trying to snapshot a potentially large amount of content if an output location is not exclusively owned by the build.</li>
  * </ul>

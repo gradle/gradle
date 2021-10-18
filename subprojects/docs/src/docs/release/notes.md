@@ -159,7 +159,8 @@ For up-to-date checks and the build cache, Gradle needs to track the state of th
 It is not always desirable or possible for Gradle to fully track the state of the input and output files.
 
 For example:
-- The location contains unreadable files like pipes where Gradle cannot track the content.
+- The input or output locations contain unreadable files like pipes where Gradle cannot track the content.
+- The input or output is stored remotely, for example in a database, and its state cannot be tracked.
 - Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
 - The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
