@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 
 // tag::git-clone[]
+@Untracked(because = "Git tracks the state")                                           // <1>
 public abstract class GitClone extends DefaultTask {
 
     @Input
@@ -41,7 +42,6 @@ public abstract class GitClone extends DefaultTask {
     @Input
     public abstract Property<String> getCommitId();
 
-    @Untracked                                                                         // <1>
     @OutputDirectory
     public abstract DirectoryProperty getDestinationDir();
 // end::git-clone[]
