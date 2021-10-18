@@ -139,13 +139,12 @@ To prevent this, Gradle now detects the reliability of file system events and au
 
 ### Allow copying single files into directories which contain unreadable files.
 
-Sometimes you want to copy files into a directory which contains unreadable files or which is not exclusively owned by the build. For example when you are deploying single files into application servers or installing executables.
+Sometimes you want to copy files into a directory which contains unreadable files or which is not exclusively owned by the build.
+For example when you are deploying single files into application servers or installing executables.
 
 Doing so may fail or be slow because Gradle tries to track all the content in the destination directory.
 
-In order to work around such issues, the `Copy` task now has a method [`Copy.ignoreExistingContentInDestinationDir()`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:ignoreExistingContentInDestinationDir()) that forces Gradle to ignore content in the destination directory.
-
-This feature works by declaring [untracked](#untracked) outputs under the hood.
+In order to work around such issues, you can now use the method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) on `Copy` tasks that forces Gradle to ignore content in the destination directory.
 
 See the samples in the user manual about [Deploying single files into application servers](userguide/working_with_files.html#sec:copy_deploy) and [Installing executables](userguide/working_with_files.html#sec:install_executable).
 
@@ -156,19 +155,20 @@ The [input normalization](userguide/more_about_tasks.html#sec:configure_input_no
 ## Plugin development improvements
 
 <a name="untracked"></a>
-### Allow plugin authors to declare inputs or outputs as untracked
+### Allow plugin authors to declare tasks as untracked
 
-For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task. It is not always desirable or possible for Gradle to fully track the state of the input and output files.
+For up-to-date checks and the build cache, Gradle needs to track the state of the inputs and outputs of a task.
+It is not always desirable or possible for Gradle to fully track the state of the input and output files.
 
 For example:
 - The location contains unreadable files like pipes where Gradle cannot track the content.
 - Another tool like Git already takes care of keeping the state, so it doesn't make sense for Gradle to do additional bookkeeping.
 - The build does not own the output location exclusively and Gradle would need to track the state of a potentially large amount of content.
 
-Gradle 7.3 introduces the annotation [`@UntrackedTask`](javadoc/org/gradle/api/tasks/UntrackedTask.html) and the method [Task.doNotTrackState()](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) to declare that Gradle should not track the state of the input or output property.
+Gradle 7.3 introduces the annotation [`@UntrackedTask`](javadoc/org/gradle/api/tasks/UntrackedTask.html) and the method [`Task.doNotTrackState()`](dsl/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)) to declare that Gradle should not track the state of a task.
 This allows tasks to implement the above use-cases.
 
-If a task has any untracked properties, then Gradle does not do any optimizations when running the task.
+If a task is untracked, then Gradle does not do any optimizations when running the task.
 For example, such a task will always be out of date and never come from the build cache.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
