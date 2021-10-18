@@ -32,7 +32,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     kotlinOptions.apply {
         apiVersion = "1.5"
         languageVersion = "1.5"
-        freeCompilerArgs += "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+        freeCompilerArgs += listOf(
+            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+            "-Xsam-conversions=class",
+        )
     }
 }
 
