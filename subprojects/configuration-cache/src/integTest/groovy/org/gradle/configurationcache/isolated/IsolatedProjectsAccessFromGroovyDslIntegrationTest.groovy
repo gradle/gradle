@@ -36,11 +36,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -67,12 +66,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 6
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'", 3)
         }
 
         where:
@@ -97,11 +94,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -125,10 +121,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
     }
 
@@ -146,10 +141,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
         }
 
         where:
@@ -172,11 +166,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -206,10 +199,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -235,11 +227,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':' from project ':a'",
-                "Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':' from project ':a'")
+            problem("Build file 'a${File.separator}build.gradle': Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -274,6 +265,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         configurationCacheRun("assemble")
 
         then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+        }
         outputContains("project name = root")
         outputContains("project name = a")
         outputContains("project name = b")

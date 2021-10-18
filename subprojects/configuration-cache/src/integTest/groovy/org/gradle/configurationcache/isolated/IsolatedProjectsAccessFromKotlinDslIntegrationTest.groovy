@@ -35,11 +35,10 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Build file 'build.gradle.kts': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle.kts': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -67,12 +66,10 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        problems.assertFailureHasProblems(failure) {
-            totalProblemsCount = 6
-            withUniqueProblems(
-                "Build file 'build.gradle.kts': Cannot access project ':a' from project ':'",
-                "Build file 'build.gradle.kts': Cannot access project ':b' from project ':'"
-            )
+        fixture.assertStateStoreFailed {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'", 3)
+            problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'", 3)
         }
 
         where:

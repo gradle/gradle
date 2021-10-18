@@ -47,10 +47,14 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried()
+            modelsQueried(":", ":a")
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -62,9 +66,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """
@@ -80,10 +83,15 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
+        fixture.assertStateRecreated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried()
+            modelsQueried(":", ":a")
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model"() {
@@ -115,10 +123,15 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried(2)
+            modelsQueried(":", 2)
+            modelsQueried(":a", 2)
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -135,9 +148,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
 
         when:
         buildFile << """
@@ -158,10 +170,16 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as configuration cache cannot be reused because file 'build.gradle' has changed.")
+        fixture.assertStateRecreated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried(2)
+            modelsQueried(":", 2)
+            modelsQueried(":a", 2)
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model and that may, but does not actually, run tasks"() {
@@ -196,10 +214,15 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried(2)
+            modelsQueried(":", 2)
+            modelsQueried(":a", 2)
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -218,9 +241,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
@@ -255,10 +277,15 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        outputContains("Creating tooling model as no configuration cache is available for the requested model")
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelQueried(2)
+            modelsQueried(":", 2)
+            modelsQueried(":a", 2)
+        }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.assertHasPostBuildOutput("Configuration cache entry stored.")
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
 
         when:
@@ -278,9 +305,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        outputContains("Reusing configuration cache.")
+        fixture.assertStateLoaded()
         outputDoesNotContain("creating model")
-        result.assertHasPostBuildOutput("Configuration cache entry reused.")
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
     }
 }

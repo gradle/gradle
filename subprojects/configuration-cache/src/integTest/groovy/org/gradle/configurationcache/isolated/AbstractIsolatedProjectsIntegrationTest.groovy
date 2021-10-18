@@ -22,6 +22,7 @@ import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProje
 
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractOptInFeatureIntegrationTest {
     public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
+    final def fixture = new IsolatedProjectsFixture(this)
 
     @Override
     void configurationCacheRun(String... tasks) {

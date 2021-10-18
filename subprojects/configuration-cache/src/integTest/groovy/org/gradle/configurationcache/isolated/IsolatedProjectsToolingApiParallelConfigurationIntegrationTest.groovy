@@ -58,6 +58,13 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
         model[2].message == "It works from project :b"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelQueried()
+            modelsQueried(":", ":a", ":b")
+        }
     }
 
     @Ignore("not implemented yet")
@@ -88,6 +95,13 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model.size() == 2
         model[0].message == "It works from project :a"
         model[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            buildModelQueried()
+            modelsQueried(":a", ":b")
+        }
     }
 
     TestFile apply(TestFile dir) {
