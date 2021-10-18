@@ -101,8 +101,6 @@ When you initialize a new Gradle project using [`gradle init`](userguide/build_i
 
 Currently, builds generated with this option will only enable [Test Suites](#test-suites), but other new APIs or behaviors may be added as they are introduced.
 
-Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
-
 ### Version catalog improvements
 
 [Version catalog](userguide/platforms.html#sub:version-catalog-declaration) is a [feature preview](userguide/feature_lifecycle.html#feature_preview) that provides a convenient API for referencing dependencies and their versions. It received the following improvement in this release.
@@ -172,6 +170,8 @@ If a task is untracked, then Gradle does not do any optimizations when running t
 For example, such a task will always be out of date and never come from the build cache.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
+
+Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
 
 <a name="tooling-api"></a>
 ## Improvements for tooling providers
