@@ -56,7 +56,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * Return the reason for not to track state.
      *
      * Gradle considers the task as untracked if the reason is present.
-     * The reason not to track state is mandatory.
+     * When not tracking state, a reason must be present. Hence the {@code Optional} represents the state of enablement, too.
      *
      * @see org.gradle.api.tasks.UntrackedTask
      */
