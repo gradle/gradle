@@ -32,7 +32,6 @@ import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -111,12 +110,9 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-        MavenUniqueSnapshotModuleSource uniqueSnapshotVersion;
-        if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
-            uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
-        } else {
-            uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
-        }
+        MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = isNonUniqueSnapshot(moduleComponentIdentifier)
+            ? findUniqueSnapshotVersion(moduleComponentIdentifier, result)
+            : composeUniqueSnapshotVersion(moduleComponentIdentifier);
 
         if (uniqueSnapshotVersion != null) {
             MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
@@ -124,18 +120,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         } else {
             resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
         }
-
-        // if (isLocal() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            // Caching component metadata rules for local repositories leads to issues
-            // when in some cases cached file does not exist yet, but we anyway try to use it
-            // disableComponentMetadataRulesCaching(result);
-        // }
-    }
-
-    private void disableComponentMetadataRulesCaching(BuildableModuleComponentMetaDataResolveResult result) {
-        MutableModuleComponentResolveMetadata metadata = result.getMetaData().asMutable();
-        metadata.setComponentMetadataRuleCachingDisabled(true);
-        result.resolved(metadata.asImmutable());
     }
 
     @Override
