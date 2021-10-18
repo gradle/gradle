@@ -173,7 +173,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         task.getReasonNotToTrackState() >> Optional.of("For tests")
 
         reason.category == CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED
-        reason.message == "'Task is untracked because: For tests' satisfied"
+        reason.message == "Task is untracked because: For tests"
     }
 
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {

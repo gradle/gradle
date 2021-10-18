@@ -75,7 +75,7 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
 
         Optional<String> reasonNotToTrackState = task.getReasonNotToTrackState();
         if (reasonNotToTrackState.isPresent()) {
-            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "'Task is untracked because: " + reasonNotToTrackState.get() +"' satisfied"));
+            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED, "Task is untracked because: " + reasonNotToTrackState.get()));
         }
 
         for (OutputFilePropertySpec spec : taskProperties.getOutputFileProperties()) {

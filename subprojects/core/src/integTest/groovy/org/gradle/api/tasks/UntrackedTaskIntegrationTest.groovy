@@ -138,7 +138,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         then:
         executedAndNotSkipped(":myTask")
         outputContains("Caching disabled for task ':myTask' because:")
-        outputContains("'Task is untracked because: For testing' satisfied")
+        outputContains("Task is untracked because: For testing")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)

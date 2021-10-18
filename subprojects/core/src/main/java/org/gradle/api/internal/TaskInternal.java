@@ -52,6 +52,14 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Internal
     Spec<? super TaskInternal> getOnlyIf();
 
+    /**
+     * Return the reason for not to track state.
+     *
+     * Gradle considers the task as untracked if the reason is present.
+     * The reason not to track state is mandatory.
+     *
+     * @see org.gradle.api.tasks.UntrackedTask
+     */
     @Internal
     Optional<String> getReasonNotToTrackState();
 
