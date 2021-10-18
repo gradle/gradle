@@ -124,33 +124,23 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 workingDir == this.testDirectory.absolutePath
                 executable == expectedExecutable
                 javaMajorVersion == expectedJavaVersion
-                with(classpath, List) {
-                    it.collect { new File(it as String) } == expectedClasspath
-                }
+                classpath.collect { new File(it as String) } == expectedClasspath
                 modulePath == []
-                with(jvmArgs, List) {
-                    it.contains('-Dkey=value')
-                }
-                with(environment, Map) {
-                    KEY == 'VALUE'
-                }
+                jvmArgs.contains('-Dkey=value')
+                environment.KEY == 'VALUE'
             }
             candidateClassFiles.collect { new File(it as String) } == [file('build/classes/java/test/TestClass.class')]
             with(inputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'stableClasspath' }, Map) {
-                    with(files, List) {
-                        it.collect { new File(it as String) } == expectedClasspath
-                    }
+                    files.collect { new File(it as String) } == expectedClasspath
                 }
             }
             with(outputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'reports.enabledReports.html.outputLocation' }, Map) {
                     type == 'DIRECTORY'
-                    with(files, List) {
-                        it.collect { new File(it as String) } == [file('build/reports/tests/test')]
-                    }
+                    files.collect { new File(it as String) } == [file('build/reports/tests/test')]
                 }
             }
         }
