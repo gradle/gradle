@@ -28,15 +28,6 @@ import javax.annotation.Nullable;
 import java.net.URI;
 
 public class DuplicatePublicationTracker {
-    private static final class PublicationWithProject {
-        private final String projectPath;
-        private final PublicationInternal<?> publication;
-
-        private PublicationWithProject(String projectPath, PublicationInternal<?> publication) {
-            this.projectPath = projectPath;
-            this.publication = publication;
-        }
-    }
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
     private final Multimap<String, PublicationWithProject> published = LinkedHashMultimap.create();
 
@@ -48,23 +39,20 @@ public class DuplicatePublicationTracker {
 
         String repositoryKey = normalizeLocation(repositoryLocation);
 
-        if (published.get(repositoryKey).contains(publication)) {
+        PublicationWithProject publicationWithProject = new PublicationWithProject(project.getPath(), publication);
+        if (published.get(repositoryKey).contains(publicationWithProject)) {
             LOG.warn("Publication '" + publication.getCoordinates() + "' is published multiple times to the same location. It is likely that repository '" + repositoryName + "' is duplicated.");
             return;
         }
 
-        String projectPath = project.getPath();
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
-        for (PublicationWithProject previousPublication : published.get(repositoryKey)) {
-            if (previousPublication.publication.getCoordinates().equals(projectIdentity)) {
-                String previousProjectPath = previousPublication.projectPath;
-                String previousName = previousPublication.publication.getName();
-                String currentName = publication.getName();
-                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications '" + previousName + "' in project '" + previousProjectPath + "' and '" + currentName + "' in project '" + projectPath + "' will overwrite each other!");
+        for (PublicationWithProject previousPublicationWithProject : published.get(repositoryKey)) {
+            if (previousPublicationWithProject.getPublication().getCoordinates().equals(projectIdentity)) {
+                LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications " + previousPublicationWithProject + " and " + publicationWithProject + " will overwrite each other!");
             }
         }
 
-        published.put(repositoryKey, new PublicationWithProject(projectPath, publication));
+        published.put(repositoryKey, publicationWithProject);
     }
 
     private String normalizeLocation(URI location) {
