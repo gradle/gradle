@@ -153,6 +153,8 @@ The [input normalization](userguide/more_about_tasks.html#sec:configure_input_no
 
 ## Plugin development improvements
 
+Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
+
 <a name="untracked"></a>
 ### Allow plugin authors to declare inputs or outputs as untracked
 
@@ -170,8 +172,6 @@ If a task has any untracked properties, then Gradle does not do any optimization
 For example, such a task will always be out of date and never come from the build cache.
 
 See the samples in the user manual about [Integrating an external tool which does its own up-to-date checking](userguide/more_about_tasks.html#sec:untracked_external_tool).
-
-Initializing new plugin projects using the [Build Init Plugin](userguide/build_init_plugin.html#build_init_plugin) can also benefit from [the `--incubating` option](#explore-new-behavior-with-gradle-init).
 
 <a name="tooling-api"></a>
 ## Improvements for tooling providers
