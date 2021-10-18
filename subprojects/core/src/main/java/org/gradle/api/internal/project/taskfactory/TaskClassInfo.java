@@ -23,12 +23,12 @@ import java.util.Optional;
 public class TaskClassInfo {
     private final ImmutableList<TaskActionFactory> taskActionFactories;
     private final boolean cacheable;
-    private final Optional<String> doNotTrackStateReason;
+    private final Optional<String> reasonNotToTrackState;
 
-    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable, Optional<String> doNotTrackStateReason) {
+    public TaskClassInfo(ImmutableList<TaskActionFactory> taskActionFactories, boolean cacheable, Optional<String> reasonNotToTrackState) {
         this.taskActionFactories = taskActionFactories;
         this.cacheable = cacheable;
-        this.doNotTrackStateReason = doNotTrackStateReason;
+        this.reasonNotToTrackState = reasonNotToTrackState;
     }
 
     public ImmutableList<TaskActionFactory> getTaskActionFactories() {
@@ -39,7 +39,7 @@ public class TaskClassInfo {
         return cacheable;
     }
 
-    public Optional<String> getDoNotTrackStateReason() {
-        return doNotTrackStateReason;
+    public Optional<String> getReasonNotToTrackState() {
+        return reasonNotToTrackState;
     }
 }

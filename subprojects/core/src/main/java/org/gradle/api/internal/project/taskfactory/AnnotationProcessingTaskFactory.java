@@ -59,7 +59,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         if (taskClassInfo.isCacheable()) {
             task.getOutputs().cacheIf("Annotated with @CacheableTask", Specs.SATISFIES_ALL);
         }
-        taskClassInfo.getDoNotTrackStateReason()
+        taskClassInfo.getReasonNotToTrackState()
             .ifPresent(task::doNotTrackState);
 
         return task;

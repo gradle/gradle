@@ -57,7 +57,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     private TaskClassInfo createTaskClassInfo(Class<? extends Task> type) {
         boolean cacheable = type.isAnnotationPresent(CacheableTask.class);
-        Optional<String> doNotTrackStateReason = Optional.ofNullable(type.getAnnotation(UntrackedTask.class))
+        Optional<String> reasonNotToTrackState = Optional.ofNullable(type.getAnnotation(UntrackedTask.class))
             .map(UntrackedTask::because);
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
@@ -105,7 +105,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             taskActionFactoriesBuilder.add(foundIncrementalTaskActionFactory);
         }
 
-        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable, doNotTrackStateReason);
+        return new TaskClassInfo(taskActionFactoriesBuilder.build(), cacheable, reasonNotToTrackState);
     }
 
     /**
