@@ -91,6 +91,7 @@ public class TestReport extends DefaultTask {
         if (result instanceof Test) {
             Test test = (Test) result;
             dirs.from(test.getBinaryResultsDirectory());
+            getInputs().property(test.getName() + "TestResults", test.getBinaryResults());
         } else if (result instanceof Iterable<?>) {
             Iterable<?> iterable = (Iterable<?>) result;
             for (Object nested : iterable) {

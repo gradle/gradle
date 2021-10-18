@@ -149,7 +149,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
 
-            logger.lifecycle configurations.testReportAggregation.files.join("\\n")
+//            logger.lifecycle configurations.testReportAggregation.files.join("\\n")
 
             //tasks.named('testAggregateTestReport').configure { dependsOn test } // FIXME this should not be necessary
 //            def testAggregateTestReport = tasks.named('testAggregateTestReport') // FIXME this should not be necessary
@@ -163,6 +163,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         """
         when:
 //        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
+//        succeeds(":direct:test", ":transitive:test", ":application:test")
         succeeds(":application:testAggregateTestReport")
 //        succeeds(":application:testAggregateTestReport", ":application:test", ":direct:test", ":transitive:test") // FIXME hack; do not explicitly invoke subprojects' test tasks
 //        succeeds(":application:testAggregateTestReport", "application:outgoingVariants", ":transitive:outgoingVariants", "-i")

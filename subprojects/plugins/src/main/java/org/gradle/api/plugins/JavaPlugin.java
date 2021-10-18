@@ -513,7 +513,9 @@ public class JavaPlugin implements Plugin<Project> {
                         map.put("file", target.getTestTask().get().getBinaryResultsDirectory().get().getAsFile());
                         map.put("builtBy", target.getTestTask());
 //                        conf.artifact(map);
-                        conf.artifact(target.getTestTask().get().getBinaryResultsDirectory());
+//                        conf.artifact(target.getTestTask().map(task -> task.getBinaryResults().getAsFile().get()));
+                        conf.artifact(target.getTestTask().get().getBinaryResults());
+                        //conf.artifact(target.getTestTask().get().getBinaryResultsDirectory());
 //                        conf.artifact(target.getTestTask().get()/*map(test -> test.getBinaryResultsDirectory().get())*/); // FIXME why necessary to eagerly map to Directory? Should accept a TaskProvider; Test#getBinaryResultsDirectory() since #artifact can accept a Task having a single @Output-annotated property
                     });
                 });

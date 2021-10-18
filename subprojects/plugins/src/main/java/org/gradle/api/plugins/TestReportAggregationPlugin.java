@@ -104,7 +104,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // A resolvable configuration to collect test result data
         ArtifactView resultsDataPath = testAggregation.getIncoming().artifactView(view -> {
             view.componentFilter(it -> it instanceof ProjectComponentIdentifier);
-            //view.lenient(true);
+            view.lenient(true);
             view.attributes(attributes -> {
                 attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));

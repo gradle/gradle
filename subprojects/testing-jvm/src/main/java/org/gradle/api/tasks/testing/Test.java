@@ -23,10 +23,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -52,6 +56,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -175,6 +180,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
+    private RegularFileProperty binaryResults;
+
     public Test() {
         patternSet = getPatternSetFactory().create();
         classpath = getObjectFactory().fileCollection();
@@ -192,6 +199,19 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
         testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+
+        binaryResults = getObjectFactory().fileProperty().convention(getBinaryResultsDirectory().map(new Transformer<RegularFile, Directory>() {
+            @Override
+            public RegularFile transform(Directory directory) {
+                return directory.file("results.bin");
+            }
+        }));
+    }
+
+    @OutputFile
+    @Internal
+    public RegularFileProperty getBinaryResults() {
+        return binaryResults;
     }
 
     @Inject
