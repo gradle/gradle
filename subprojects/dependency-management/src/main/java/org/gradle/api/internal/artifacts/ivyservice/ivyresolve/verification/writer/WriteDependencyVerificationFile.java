@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -80,6 +79,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.google.common.io.Files.getNameWithoutExtension;
 
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private static final Logger LOGGER = Logging.getLogger(WriteDependencyVerificationFile.class);
@@ -203,10 +204,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void serializeResult(SignatureVerificationService signatureVerificationService) throws IOException {
-        File out = verificationFile;
-        if (isDryRun) {
-            out = new File(verificationFile.getParent(), Files.getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
-        }
+        File out = isDryRun
+            ? dryRunVerificationFile()
+            : verificationFile;
         if (generatePgpInfo) {
             verificationsBuilder.setVerifySignatures(true);
         }
@@ -220,11 +220,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
+    private File dryRunVerificationFile() {
+        return new File(verificationFile.getParent(), getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
+    }
+
     private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier) throws IOException {
-        BuildTreeDefinedKeys keys = keyrings;
-        if(isDryRun) {
-            keys = keyrings.dryRun();
-        }
+        BuildTreeDefinedKeys keys = isDryRun ? keyrings.dryRun() : keyrings;
         Set<String> keysToExport = Sets.newHashSet();
         verifier.getConfiguration()
             .getTrustedKeys()
