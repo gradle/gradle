@@ -226,8 +226,7 @@ public class ExecutionGlobalServices {
                 PathSensitive.class,
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class,
-                UntrackedTask.class
+                NormalizeLineEndings.class
             ),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
