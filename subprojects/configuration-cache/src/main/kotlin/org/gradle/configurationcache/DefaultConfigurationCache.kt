@@ -304,7 +304,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun <T> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
         prepareConfigurationTimeBarrier()
         problems.loading()
 
