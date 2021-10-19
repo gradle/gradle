@@ -23,6 +23,14 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.SettingsDelegate.include(java.lang.String[])"
             ]
+        },
+        {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Class org.gradle.api.AntBuilder",
+            "acceptation": "The super-class has been moved from groovy.util.AntBuilder to groovy.ant.AntBuilder",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
         }
     ]
 }
