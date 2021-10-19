@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest {
     String getDefaultStatus() {
         GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
