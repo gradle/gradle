@@ -22,6 +22,10 @@ public interface CandidateClassFile {
 
     File getFile();
 
+    /**
+     * Returns the path of this file, relative to the root of the containing classes directory.
+     * Always uses '/' as separator, regardless of the platform file separator.
+     */
     String getRelativePath();
 
 }
