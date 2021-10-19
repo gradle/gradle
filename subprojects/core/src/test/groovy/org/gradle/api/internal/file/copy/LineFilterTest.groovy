@@ -27,7 +27,7 @@ class LineFilterTest {
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
-        assertThat(filter.text, equalTo ( ""))
+        assertThat(filter.text, equalTo(""))
     }
 
     @Test void testEmptyLinesWithTrailingEOL() {
