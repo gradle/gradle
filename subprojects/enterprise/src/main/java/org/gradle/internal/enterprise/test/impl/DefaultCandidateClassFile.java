@@ -20,12 +20,12 @@ import org.gradle.internal.enterprise.test.CandidateClassFile;
 
 import java.io.File;
 
-public class DefaultCandidateClassFile implements CandidateClassFile {
+class DefaultCandidateClassFile implements CandidateClassFile {
 
     private final File file;
     private final String relativePath;
 
-    public DefaultCandidateClassFile(File file, String relativePath) {
+    DefaultCandidateClassFile(File file, String relativePath) {
         this.file = file;
         this.relativePath = relativePath;
     }
