@@ -52,7 +52,8 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
         prepareReportsForCiPublishing(if (tmpTestFiles.isEmpty()) failedTasks else executedTasks, executedTasks, tmpTestFiles.keys)
         cleanUp(tmpTestFiles.keys)
         if (!isCleanupRunnerStep(gradle!!)) {
-            verifyTestFilesCleanup(failedTasks, tmpTestFiles)
+            // Disable it before we fix https://github.com/gradle/gradle-private/issues/3463
+            // verifyTestFilesCleanup(failedTasks, tmpTestFiles)
         }
     }
 }
