@@ -16,22 +16,12 @@
 
 package org.gradle.internal.enterprise.test;
 
-import java.util.stream.Stream;
+import java.io.File;
 
-public interface TestTaskProperties {
+public interface CandidateClassFile {
 
-    boolean isUsingJUnitPlatform();
+    File getFile();
 
-    long getForkEvery();
-
-    TestTaskFilters getFilters();
-
-    TestTaskForkOptions getForkOptions();
-
-    Stream<CandidateClassFile> getCandidateClassFiles();
-
-    Stream<InputFileProperty> getInputFileProperties();
-
-    Stream<OutputFileProperty> getOutputFileProperties();
+    String getRelativePath();
 
 }

@@ -8,6 +8,7 @@ dependencies {
 
     implementation(libs.inject)
     implementation(libs.jsr305)
+    implementation(libs.groovy)
     implementation(libs.guava)
     implementation(project(":build-option"))
     implementation(project(":core"))
