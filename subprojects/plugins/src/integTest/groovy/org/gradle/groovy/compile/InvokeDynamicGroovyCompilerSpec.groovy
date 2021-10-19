@@ -28,6 +28,12 @@ class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
         noExceptionThrown()
     }
 
+    @Override
+    def getGroovyJarVariants() {
+        // No groovy-all.jar for indy
+        ["groovy"]
+    }
+
     String compilerConfiguration() {
         '''
 tasks.withType(GroovyCompile) {
