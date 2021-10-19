@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class SettingsEvaluatedCallbackFiringSettingsProcessor implements SettingsProcessor {
 
@@ -34,6 +35,13 @@ public class SettingsEvaluatedCallbackFiringSettingsProcessor implements Setting
         SettingsInternal settings = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
         settings.preventFromFurtherMutation();
+        if (!((DefaultProjectDescriptor) settings.getRootProject()).isNameChanged()) {
+            DeprecationLogger.deprecate("Implicit rootProject.name")
+                .withAdvice("Set the 'rootProject.name' in the settings file.")
+                .willBecomeAnErrorInGradle8()
+                .withUserManual("multi_project_builds", "naming_recommendations")
+                .nagUser();
+        }
         return settings;
     }
 }

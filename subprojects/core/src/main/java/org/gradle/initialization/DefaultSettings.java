@@ -91,7 +91,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
-        this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        String name = settingsDir.getName();
+        if (name.isEmpty()) {
+            name = "root";
+        }
+        this.rootProjectDescriptor = createProjectDescriptor(null, name, settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
     }
 

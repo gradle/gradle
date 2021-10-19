@@ -50,6 +50,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;
+    private boolean nameChanged;
 
     public DefaultProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir,
                                     ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver) {
@@ -102,6 +103,11 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
             INVALID_NAME_IN_INCLUDE_HINT);
         projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
+        this.nameChanged = true;
+    }
+
+    public boolean isNameChanged() {
+        return nameChanged;
     }
 
     @Override
