@@ -387,9 +387,9 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
-        if (!versionLowerThan("1.6")) {
-            buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
-        }
+        Assume.assumeFalse(versionLowerThan("1.6"))
+
+        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
         expect:
         succeeds("test")
     }
