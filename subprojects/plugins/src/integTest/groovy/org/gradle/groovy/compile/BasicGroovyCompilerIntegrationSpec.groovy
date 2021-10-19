@@ -359,7 +359,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         expect:
         fails("compileGroovy")
-        failure.assertHasErrorOutput('unable to resolve class AntBuilder')
+        failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
 
         when:
         buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
