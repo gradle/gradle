@@ -131,10 +131,17 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        if (details.models.isEmpty()) {
-            spec.outputContains("Creating task graph as configuration cache cannot be reused because file '$details.changedFile' has changed.")
+        def reason
+        if (details.changedFile != null) {
+            reason = "file '$details.changedFile'"
         } else {
-            spec.outputContains("Creating tooling model as configuration cache cannot be reused because file '$details.changedFile' has changed.")
+            reason = "Gradle property '$details.changedGradleProperty'"
+        }
+
+        if (details.models.isEmpty()) {
+            spec.outputContains("Creating task graph as configuration cache cannot be reused because $reason has changed.")
+        } else {
+            spec.outputContains("Creating tooling model as configuration cache cannot be reused because $reason has changed.")
         }
         spec.postBuildOutputContains("Configuration cache entry stored.")
         assertHasWarningThatIncubatingFeatureUsed()
@@ -247,22 +254,25 @@ class IsolatedProjectsFixture {
             projects.addAll(paths.toList())
         }
 
-        void buildModelQueried(int count = 1) {
+        /**
+         * The given number of build scoped models are created.
+         */
+        void buildModelCreated(int count = 1) {
             buildModelQueries += count
         }
 
         /**
-         * One model query is executed for the given projects. The projects will also be configured
+         * One model is created for each of the given projects. The projects will also be configured
          */
-        void modelsQueried(String... paths) {
+        void modelsCreated(String... paths) {
             projectsConfigured(paths)
             models.addAll(paths.collect { new ModelDetails(it, 1) })
         }
 
         /**
-         * The given number of model queries are executed for the given projects. The projects will also be configured
+         * The given number of models are created for the given project. The project will also be configured
          */
-        void modelsQueried(String path, int count) {
+        void modelsCreated(String path, int count) {
             projectsConfigured(path)
             models.add(new ModelDetails(path, count))
         }
@@ -278,9 +288,14 @@ class IsolatedProjectsFixture {
 
     static class StoreRecreatedDetails extends StoreDetails {
         String changedFile
+        String changedGradleProperty
 
         void fileChanged(String name) {
             changedFile = name
+        }
+
+        void gradlePropertyChanged(String name) {
+            changedGradleProperty = name
         }
     }
 

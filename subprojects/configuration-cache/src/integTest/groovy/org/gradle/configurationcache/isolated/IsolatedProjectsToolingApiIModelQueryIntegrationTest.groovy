@@ -30,6 +30,10 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
     def "caches creation of custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -44,7 +48,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            modelsQueried(":")
+            modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
 
@@ -61,22 +65,32 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
 
         when:
         buildFile << """
-            // some change
+            myExtension.message = 'this is the root project'
         """
 
         executer.withArguments(ENABLE_CLI)
         def model3 = fetchModel()
 
         then:
-        model3.message == "It works from project :"
+        model3.message == "this is the root project"
 
         and:
         fixture.assertStateRecreated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
-            modelsQueried(":")
+            modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = fetchModel()
+
+        then:
+        model4.message == "this is the root project"
+
+        and:
+        fixture.assertStateLoaded()
     }
 
     def "can ignore problems and cache custom model"() {
@@ -101,7 +115,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         model.message == "It works from project :"
         fixture.assertStateStoredWithProblems {
             projectConfigured(":buildSrc")
-            modelsQueried(":")
+            modelsCreated(":")
             problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
@@ -139,7 +153,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateStored {
-            buildModelQueried()
+            buildModelCreated()
         }
         outputContains("configuring build")
 
@@ -177,7 +191,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            modelsQueried(":")
+            modelsCreated(":")
         }
         outputContains("configuring build")
         outputContains("creating model for root project 'root'")
@@ -204,7 +218,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            modelsQueried(":")
+            modelsCreated(":")
         }
         outputContains("configuring build")
         outputDoesNotContain("creating model")

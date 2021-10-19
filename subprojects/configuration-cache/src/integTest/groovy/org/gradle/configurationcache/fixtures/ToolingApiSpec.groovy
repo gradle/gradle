@@ -21,6 +21,7 @@ import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -80,10 +81,19 @@ trait ToolingApiSpec {
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
                     $content
-                    return new MyModel("It works from project \${project.path}")
+                    def message = project.myExtension.message.get()
+                    return new MyModel(message)
                 }
             }
         """.stripIndent()
+
+        file("$childBuildName/src/main/groovy/my/MyExtension.groovy") << """
+            import ${Property.name}
+
+            interface MyExtension {
+                Property<String> getMessage()
+            }
+        """
 
         file("$childBuildName/src/main/groovy/my/MyPlugin.groovy") << """
             package my
@@ -95,6 +105,8 @@ trait ToolingApiSpec {
 
             abstract class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
+                    def model = project.extensions.create("myExtension", MyExtension)
+                    model.message = "It works from project \${project.path}"
                     registry.register(new my.MyModelBuilder())
                 }
 

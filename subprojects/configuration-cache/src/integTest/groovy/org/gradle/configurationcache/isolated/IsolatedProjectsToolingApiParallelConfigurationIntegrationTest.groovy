@@ -62,8 +62,8 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         and:
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
-            buildModelQueried()
-            modelsQueried(":", ":a", ":b")
+            buildModelCreated()
+            modelsCreated(":", ":a", ":b")
         }
     }
 
@@ -99,8 +99,8 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         and:
         fixture.assertStateStored {
             projectsConfigured(":buildSrc", ":")
-            buildModelQueried()
-            modelsQueried(":a", ":b")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
         }
     }
 

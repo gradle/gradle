@@ -50,8 +50,8 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried()
-            modelsQueried(":", ":a")
+            buildModelCreated()
+            modelsCreated(":", ":a")
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
@@ -71,7 +71,87 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         when:
         buildFile << """
-            // some change
+            myExtension.message = 'this is the root project'
+        """
+
+        executer.withArguments(ENABLE_CLI)
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 2
+        model3[0].message == "this is the root project"
+        model3[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateRecreated {
+            fileChanged("build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
+        outputContains("creating model for root project 'root'")
+        outputContains("creating model for project ':a'")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "this is the root project"
+        model4[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+    }
+
+    def "invalidates cached model when build scoped input changes"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 2
+        model[0].message == "It works from project :"
+        model[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectConfigured(":b")
+            buildModelCreated()
+            modelsCreated(":", ":a")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 2
+        model2[0].message == "It works from project :"
+        model2[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        settingsFile << """
+            println("some new stuff")
         """
 
         executer.withArguments(ENABLE_CLI)
@@ -84,14 +164,93 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         fixture.assertStateRecreated {
-            fileChanged("build.gradle")
+            fileChanged("settings.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried()
-            modelsQueried(":", ":a")
+            buildModelCreated()
+            modelsCreated(":", ":a")
         }
-        outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
+
+        when:
+        executer.withArguments(ENABLE_CLI)
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 2
+        model4[0].message == "It works from project :"
+        model4[1].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+    }
+
+    def "invalidates cached model when model builder input changes"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc("""
+            project.providers.gradleProperty("some-input").forUseAtConfigurationTime().get()
+        """)
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Psome-input=12")
+        def model = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model.size() == 1
+        model[0].message == "It works from project :a"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":b")
+            buildModelCreated()
+            modelsCreated(":a")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Psome-input=12")
+        def model2 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model2.size() == 1
+        model2[0].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Psome-input=2")
+        def model3 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model3.size() == 1
+        model3[0].message == "It works from project :a"
+
+        and:
+        fixture.assertStateRecreated {
+            gradlePropertyChanged("some-input")
+            projectConfigured(":buildSrc")
+            projectsConfigured(":", ":b")
+            buildModelCreated()
+            modelsCreated(":a")
+        }
+
+        when:
+        executer.withArguments(ENABLE_CLI, "-Psome-input=2")
+        def model4 = runBuildAction(new FetchCustomModelForEachProject())
+
+        then:
+        model4.size() == 1
+        model4[0].message == "It works from project :a"
+
+        and:
+        fixture.assertStateLoaded()
     }
 
     def "caches execution of phased BuildAction that queries custom tooling model"() {
@@ -126,9 +285,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried(2)
-            modelsQueried(":", 2)
-            modelsQueried(":a", 2)
+            buildModelCreated(2)
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
@@ -174,9 +333,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried(2)
-            modelsQueried(":", 2)
-            modelsQueried(":a", 2)
+            buildModelCreated(2)
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
@@ -217,9 +376,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried(2)
-            modelsQueried(":", 2)
-            modelsQueried(":a", 2)
+            buildModelCreated(2)
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
@@ -280,9 +439,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelQueried(2)
-            modelsQueried(":", 2)
-            modelsQueried(":a", 2)
+            buildModelCreated(2)
+            modelsCreated(":", 2)
+            modelsCreated(":a", 2)
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
