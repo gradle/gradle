@@ -537,9 +537,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             task assertHasClasses {
+                inputs.files mytest.testClassesDirs
+
                 doLast {
-                    assert project.tasks.mytest.testClassesDirs // This is setup by the jvm-test-suite plugin, applied by the java plugin
-                    assert !project.tasks.mytest.testClassesDirs.empty
+                    assert mytest.testClassesDirs // This is setup by the jvm-test-suite plugin, applied by the java plugin
+                    assert !mytest.testClassesDirs.empty
                 }
             }
         """
@@ -556,12 +558,14 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register("mytest", Test) {
                 // Must ensure a base dir is set here, even if it doesn't exist
-                testClassesDirs = fileTree("src/custom/java")
+                testClassesDirs = fileTree('src/custom/java')
             }
 
             task assertNoTestClasses {
+                inputs.files mytest.testClassesDirs
+
                 doLast {
-                    assert project.tasks.mytest.testClassesDirs.getDir() == project.file('src/custom/java')
+                    assert mytest.testClassesDirs.getDir() == file('src/custom/java')
                 }
             }
         """
