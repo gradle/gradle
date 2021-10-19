@@ -39,8 +39,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
         PropertyValue value,
-        InputFilePropertyType filePropertyType,
-        ContentTracking contentTracking
+        InputFilePropertyType filePropertyType
     ) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(
@@ -52,8 +51,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
                 incremental,
                 fileNormalizer,
                 value,
-                filePropertyType,
-                contentTracking
+                filePropertyType
             );
         }
     }
@@ -66,9 +64,9 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitOutputFileProperty(String propertyName, boolean optional, ContentTracking contentTracking, PropertyValue value, OutputFilePropertyType filePropertyType) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitOutputFileProperty(propertyName, optional, contentTracking, value, filePropertyType);
+            visitor.visitOutputFileProperty(propertyName, optional, value, filePropertyType);
         }
     }
 

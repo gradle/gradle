@@ -87,11 +87,6 @@ public interface TaskProperties {
     boolean hasDeclaredOutputs();
 
     /**
-     * Whether any of the input or output properties is untracked.
-     */
-    boolean hasUntrackedProperties();
-
-    /**
      * The files that represent the local state.
      */
     FileCollection getLocalStateFiles();
