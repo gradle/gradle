@@ -21,7 +21,7 @@ dependencies {
     integTestImplementation(libs.jsoup)
 
     integTestImplementation(libs.samplesCheck) {
-        exclude(group = "org.codehaus.groovy", module = "groovy-all")
+        exclude(group = "org.apache.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
     integTestImplementation(testFixtures(project(":model-core")))
