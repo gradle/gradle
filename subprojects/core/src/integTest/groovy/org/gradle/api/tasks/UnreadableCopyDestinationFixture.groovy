@@ -24,7 +24,7 @@ trait UnreadableCopyDestinationFixture {
     private static final String COPY_UNREADABLE_DESTINATION_DEPRECATION = "Cannot access a file in the destination directory (see --info log for details). " +
         "Copying to a directory which contains unreadable content has been deprecated. " +
         "This will fail with an error in Gradle 8.0. " +
-        "Use the method Copy.ignoreExistingContentInDestinationDir(). " +
+        "Declare the task as untracked by using Task.doNotTrackState(). " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output"
 
     void expectUnreadableCopyDestinationDeprecationWarning() {

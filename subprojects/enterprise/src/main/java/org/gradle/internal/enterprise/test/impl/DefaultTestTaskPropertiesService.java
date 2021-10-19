@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -90,8 +89,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
-                InputFilePropertyType filePropertyType,
-                ContentTracking contentTracking
+                InputFilePropertyType filePropertyType
             ) {
                 FileCollection files = resolveLeniently(value);
                 inputFileProperties.add(new DefaultInputFileProperty(propertyName, files));
@@ -101,7 +99,6 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             public void visitOutputFileProperty(
                 String propertyName,
                 boolean optional,
-                ContentTracking contentTracking,
                 PropertyValue value,
                 OutputFilePropertyType filePropertyType
             ) {

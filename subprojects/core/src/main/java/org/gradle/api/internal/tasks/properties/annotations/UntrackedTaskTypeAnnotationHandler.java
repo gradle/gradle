@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.artifacts.transform.CacheableTransform;
-import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.Task;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
-public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
+public class UntrackedTaskTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return CacheableTransform.class;
+        return UntrackedTask.class;
     }
 
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor) {
-        if (!TransformAction.class.isAssignableFrom(classWithAnnotationAttached)) {
-            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached,
-                visitor,
-                getAnnotationType(),
-                TransformAction.class);
+        if (!Task.class.isAssignableFrom(classWithAnnotationAttached)) {
+            reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached, visitor, getAnnotationType(), Task.class);
         }
     }
 

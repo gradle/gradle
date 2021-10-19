@@ -37,10 +37,9 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
         String propertyName,
         @Nullable String propertySuffix,
         FileCollectionInternal outputFiles,
-        TreeType outputType,
-        ContentTracking contentTracking
+        TreeType outputType
     ) {
-        super(propertyName, OutputNormalizer.class, contentTracking, outputFiles);
+        super(propertyName, OutputNormalizer.class, outputFiles);
         this.propertySuffix = propertySuffix;
         this.outputType = outputType;
     }

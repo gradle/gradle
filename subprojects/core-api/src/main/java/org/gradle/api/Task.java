@@ -268,6 +268,18 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(Closure onlyIfClosure);
 
     /**
+     * Do not track the state of the task.
+     *
+     * Instructs Gradle to treat the task as untracked.
+     *
+     * @see org.gradle.api.tasks.UntrackedTask
+     * @since 7.3
+     */
+    @Incubating
+    @Internal
+    void doNotTrackState(String reasonNotToTrackState);
+
+    /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
      * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
      *

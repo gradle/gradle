@@ -78,13 +78,13 @@ tasks.register<Instrument>("instrumentClassesBuiltBy") {
 }
 // end::inferred-task-dep-with-builtby[]
 
-// tag::up-to-date-when[]
+// tag::disable-up-to-date-checks[]
 tasks.register<Instrument>("alwaysInstrumentClasses") {
     classFiles.from(layout.files(tasks.compileJava))
     destinationDir.set(file(layout.buildDirectory.dir("instrumented")))
-    outputs.upToDateWhen { false }
+    doNotTrackState("Instrumentation needs to re-run every time")
 }
-// end::up-to-date-when[]
+// end::disable-up-to-date-checks[]
 
 // tag::git-clone[]
 tasks.register<GitClone>("cloneGradleProfiler") {
