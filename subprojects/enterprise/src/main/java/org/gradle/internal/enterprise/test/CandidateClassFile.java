@@ -16,22 +16,16 @@
 
 package org.gradle.internal.enterprise.test;
 
-import java.util.stream.Stream;
+import java.io.File;
 
-public interface TestTaskProperties {
+public interface CandidateClassFile {
 
-    boolean isUsingJUnitPlatform();
+    File getFile();
 
-    long getForkEvery();
-
-    TestTaskFilters getFilters();
-
-    TestTaskForkOptions getForkOptions();
-
-    Stream<CandidateClassFile> getCandidateClassFiles();
-
-    Stream<InputFileProperty> getInputFileProperties();
-
-    Stream<OutputFileProperty> getOutputFileProperties();
+    /**
+     * Returns the path of this file, relative to the root of the containing classes directory.
+     * Always uses '/' as separator, regardless of the platform file separator.
+     */
+    String getRelativePath();
 
 }

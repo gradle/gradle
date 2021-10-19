@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.test;
+package org.gradle.internal.enterprise.test.impl;
 
-import java.util.stream.Stream;
+import org.gradle.internal.enterprise.test.CandidateClassFile;
 
-public interface TestTaskProperties {
+import java.io.File;
 
-    boolean isUsingJUnitPlatform();
+class DefaultCandidateClassFile implements CandidateClassFile {
 
-    long getForkEvery();
+    private final File file;
+    private final String relativePath;
 
-    TestTaskFilters getFilters();
+    DefaultCandidateClassFile(File file, String relativePath) {
+        this.file = file;
+        this.relativePath = relativePath;
+    }
 
-    TestTaskForkOptions getForkOptions();
+    @Override
+    public File getFile() {
+        return file;
+    }
 
-    Stream<CandidateClassFile> getCandidateClassFiles();
-
-    Stream<InputFileProperty> getInputFileProperties();
-
-    Stream<OutputFileProperty> getOutputFileProperties();
-
+    @Override
+    public String getRelativePath() {
+        return relativePath;
+    }
 }
