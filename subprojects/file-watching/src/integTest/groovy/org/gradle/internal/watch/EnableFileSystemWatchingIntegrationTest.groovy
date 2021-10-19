@@ -146,6 +146,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         fails("help", "--watch-fs", "--project-cache-dir=broken")
 
         then:
-        failure.assertHasDescription("Cannot probe file system watching when project cache directory is set")
+        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem")
     }
 }
