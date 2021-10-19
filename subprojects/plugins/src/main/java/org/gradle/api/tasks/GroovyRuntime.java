@@ -188,6 +188,10 @@ public class GroovyRuntime {
         };
     }
 
+    public static String groupNameFor(VersionNumber groovyVersion) {
+        return groovyVersion.getMajor() == 4 ? "org.apache.groovy" : "org.codehaus.groovy";
+    }
+
     private static List<File> collectJarsFromClasspath(Iterable<File> classpath, Set<String> jarNames) {
         return stream(classpath.spliterator(), false)
             .filter(file -> jarNames.contains(file.getName()))
