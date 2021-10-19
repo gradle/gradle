@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -143,6 +144,10 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         expect:
         fails("check")
         failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        if (GradleContextualExecuter.isParallel()) {
+            // pmdMain and pmdTest
+            failure.assertHasFailures(2)
+        }
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {
