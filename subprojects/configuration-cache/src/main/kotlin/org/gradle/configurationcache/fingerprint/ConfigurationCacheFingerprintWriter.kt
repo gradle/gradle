@@ -44,6 +44,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.util.Path
 import java.io.File
 
 
@@ -68,9 +69,8 @@ class ConfigurationCacheFingerprintWriter(
         fun hashCodeOf(file: File): HashCode?
     }
 
-    @Volatile
     private
-    var ignoreValueSources = false
+    val projectForThread = ThreadLocal<Path>()
 
     private
     val capturedFiles = newConcurrentHashSet<File>()
@@ -116,11 +116,6 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    fun stopCollectingValueSources() {
-        // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
-        ignoreValueSources = true
-    }
-
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
         // Only consider repositories serving at least one version of the requested module.
         // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
@@ -158,9 +153,6 @@ class ConfigurationCacheFingerprintWriter(
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
     ) {
-        if (ignoreValueSources) {
-            return
-        }
         when (val parameters = obtainedValue.valueSourceParameters) {
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
@@ -214,10 +206,26 @@ class ConfigurationCacheFingerprintWriter(
         )
     }
 
+    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
+        val previous = projectForThread.get()
+        projectForThread.set(identityPath)
+        try {
+            return action()
+        } finally {
+            projectForThread.set(previous)
+        }
+    }
+
     private
-    fun write(value: ConfigurationCacheFingerprint?) {
+    fun write(value: ConfigurationCacheFingerprint) {
+        val project = projectForThread.get()
+        val contextualized = if (project != null) {
+            ConfigurationCacheFingerprint.ProjectSpecificInput(project.path, value)
+        } else {
+            value
+        }
         synchronized(writeContext) {
-            unsafeWrite(value)
+            unsafeWrite(contextualized)
         }
     }
 

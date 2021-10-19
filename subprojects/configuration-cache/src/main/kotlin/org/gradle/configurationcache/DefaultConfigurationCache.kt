@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.extensions.uncheckedCast
@@ -376,7 +377,10 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.withReadContextFor(inputStream) { codecs ->
             withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
                 cacheFingerprintController.run {
-                    checkFingerprint()
+                    checkFingerprint(object : ConfigurationCacheFingerprintController.Host {
+                        override val valueSourceProviderFactory: ValueSourceProviderFactory
+                            get() = host.service()
+                    })
                 }
             }
         }

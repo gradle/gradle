@@ -75,6 +75,11 @@ sealed class ConfigurationCacheFingerprint {
         override val reason: String
             get() = "cached artifact information for $displayName has expired"
     }
+
+    data class ProjectSpecificInput(
+        val projectPath: String,
+        val value: ConfigurationCacheFingerprint
+    ) : ConfigurationCacheFingerprint()
 }
 
 

@@ -47,7 +47,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
-            when (val input = read()) {
+            when (val input = unpack(read() as ConfigurationCacheFingerprint?)) {
                 null -> return null
                 is ConfigurationCacheFingerprint.TaskInputs -> input.run {
                     val currentFingerprint = host.fingerprintOf(fileSystemInputs)
@@ -89,6 +89,15 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
+        }
+    }
+
+    private
+    fun unpack(value: ConfigurationCacheFingerprint?): ConfigurationCacheFingerprint? {
+        return if (value is ConfigurationCacheFingerprint.ProjectSpecificInput) {
+            value.value
+        } else {
+            value
         }
     }
 
