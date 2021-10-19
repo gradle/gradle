@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configurationcache.BuildTreeListenerManager
+import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -209,7 +210,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkFingerprint(host: Host): InvalidationReason? =
+    suspend fun ReadContext.checkFingerprint(host: Host): CheckedFingerprint =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkFingerprint()
         }

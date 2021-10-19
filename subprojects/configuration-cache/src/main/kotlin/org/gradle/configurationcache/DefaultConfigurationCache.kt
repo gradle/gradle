@@ -24,7 +24,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -194,7 +193,15 @@ class DefaultConfigurationCache internal constructor(
                     )
                     false
                 }
-                is CheckedFingerprint.Invalid -> {
+                is CheckedFingerprint.EntryInvalid -> {
+                    logBootstrapSummary(
+                        "{} as configuration cache cannot be reused because {}.",
+                        buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
+                        checkedFingerprint.reason
+                    )
+                    false
+                }
+                is CheckedFingerprint.ProjectsInvalid -> {
                     logBootstrapSummary(
                         "{} as configuration cache cannot be reused because {}.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
@@ -362,18 +369,13 @@ class DefaultConfigurationCache internal constructor(
         if (!fingerprintFile.exists) {
             return CheckedFingerprint.NotFound
         }
-        val invalidReason = fingerprintFile.inputStream().use { fingerprintInputStream ->
+        return fingerprintFile.inputStream().use { fingerprintInputStream ->
             checkFingerprint(fingerprintInputStream)
-        }
-        return if (invalidReason == null) {
-            CheckedFingerprint.Valid
-        } else {
-            CheckedFingerprint.Invalid(invalidReason)
         }
     }
 
     private
-    fun checkFingerprint(inputStream: InputStream): InvalidationReason? =
+    fun checkFingerprint(inputStream: InputStream): CheckedFingerprint =
         cacheIO.withReadContextFor(inputStream) { codecs ->
             withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
                 cacheFingerprintController.run {
