@@ -170,8 +170,8 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public boolean isComponentMetadataRuleCachingDisabled() {
-        return false;
+    public boolean isComponentMetadataRuleCachingEnabled() {
+        return true;
     }
 
     @Override

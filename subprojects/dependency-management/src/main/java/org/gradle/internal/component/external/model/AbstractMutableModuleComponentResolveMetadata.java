@@ -63,7 +63,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean changing;
     private boolean missing;
     private boolean externalVariant;
-    private boolean isComponentMetadataRuleCachingDisabled;
+    private boolean isComponentMetadataRuleCachingEnabled;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private MutableModuleSources moduleSources;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
@@ -88,6 +88,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.moduleSources = new MutableModuleSources();
         this.variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
+        this.isComponentMetadataRuleCachingEnabled = true;
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -104,7 +105,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.externalVariant = metadata.isExternalVariant();
-        this.isComponentMetadataRuleCachingDisabled = metadata.isComponentMetadataRuleCachingDisabled();
+        this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -186,13 +187,13 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public boolean isComponentMetadataRuleCachingDisabled() {
-        return isComponentMetadataRuleCachingDisabled;
+    public boolean isComponentMetadataRuleCachingEnabled() {
+        return isComponentMetadataRuleCachingEnabled;
     }
 
     @Override
-    public void setComponentMetadataRuleCachingDisabled(boolean componentMetadataRuleCachingDisabled) {
-        this.isComponentMetadataRuleCachingDisabled = componentMetadataRuleCachingDisabled;
+    public void setComponentMetadataRuleCachingEnabled(boolean componentMetadataRuleCachingEnabled) {
+        this.isComponentMetadataRuleCachingEnabled = componentMetadataRuleCachingEnabled;
     }
 
     @Override

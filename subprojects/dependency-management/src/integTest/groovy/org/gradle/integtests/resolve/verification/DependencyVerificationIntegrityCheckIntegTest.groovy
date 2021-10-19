@@ -1086,7 +1086,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/18498")
-    def "fails without obscure error for local repository with cached metadata rule"() {
+    def "fails validation for local repository with cached metadata rule"() {
         def repoDir = testDirectory.createDir("repo")
         buildFile << """
             plugins {

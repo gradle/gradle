@@ -186,7 +186,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     private boolean shouldCacheComponentMetadataRule(InstantiatingAction<ComponentMetadataContext> action, ModuleComponentResolveMetadata metadata) {
-        return action.getRules().isCacheable() && !metadata.isComponentMetadataRuleCachingDisabled();
+        return action.getRules().isCacheable() && metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     protected ComponentMetadataDetails createDetails(MutableModuleComponentResolveMetadata mutableMetadata) {

@@ -75,8 +75,11 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     boolean isExternalVariant();
 
     /*
-     * When set to true component metadata rules are not cached
+     * When set to false component metadata rules are not cached.
+     * Currently, we disable it just for local maven/ivy repository.
+     *
+     * Default value is true.
      */
-    boolean isComponentMetadataRuleCachingDisabled();
+    boolean isComponentMetadataRuleCachingEnabled();
 
 }

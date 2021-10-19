@@ -150,19 +150,23 @@ class MavenResolverTest extends Specification {
 
         then:
         result.hasResult()
-        result.getMetaData().isComponentMetadataRuleCachingDisabled() == isCachingDisabled
+        result.getMetaData().isComponentMetadataRuleCachingEnabled() == isCachingEnabled
 
         where:
-        isLocal | isCachingDisabled
-        true    | true
-        false   | false
+        isLocal | isCachingEnabled
+        true    | false
+        false   | true
     }
 
     private ImmutableMetadataSources mockMetadataSourcesForComponentMetadataRulesCachingTest() {
-        ModuleComponentResolveMetadata immutableMetadata = Mock(ModuleComponentResolveMetadata)
+        // By default component metadata rules caching is enabled.
+        boolean isCachingEnabled = true
+        ModuleComponentResolveMetadata immutableMetadata = Mock(ModuleComponentResolveMetadata) {
+            isComponentMetadataRuleCachingEnabled() >> { isCachingEnabled }
+        }
         MutableModuleComponentResolveMetadata mutableMetadata = Mock(MutableModuleComponentResolveMetadata) {
             asImmutable() >> immutableMetadata
-            setComponentMetadataRuleCachingDisabled(_) >> { arguments -> immutableMetadata.isComponentMetadataRuleCachingDisabled() >> arguments[0] }
+            setComponentMetadataRuleCachingEnabled(_) >> { arguments -> isCachingEnabled = arguments[0] }
         }
 
         ImmutableMetadataSources metadataSources = Mock(ImmutableMetadataSources) {

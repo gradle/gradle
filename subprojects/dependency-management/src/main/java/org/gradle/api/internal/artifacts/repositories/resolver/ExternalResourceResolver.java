@@ -258,7 +258,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         if (isLocal()) {
             // Caching component metadata rules for local repositories leads to issues
             // when in some cases cached file does not exist yet, but we anyway try to use it
-            value.setComponentMetadataRuleCachingDisabled(true);
+            value.setComponentMetadataRuleCachingEnabled(false);
         }
     }
 
