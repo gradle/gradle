@@ -83,6 +83,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -1131,12 +1132,22 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public final ExecutionResult run() {
-        beforeBuildSetup();
-        try {
+        return run(() -> {
             ExecutionResult result = doRun();
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
+            return result;
+        });
+    }
+
+    /**
+     * Allows a subclass to expose additional APIs for running builds.
+     */
+    protected ExecutionResult run(Supplier<ExecutionResult> action) {
+        beforeBuildSetup();
+        try {
+            ExecutionResult result = action.get();
             afterBuildCleanup(result);
             return result;
         } finally {

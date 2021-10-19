@@ -80,7 +80,7 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
                 DelayedConfigurationActions()
             )
             val evaluator = LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator)
-            return if (buildModelParameters.isIsolatedProjects) {
+            return if (buildModelParameters.isProjectScopeModelCache) {
                 ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
             } else {
                 evaluator
