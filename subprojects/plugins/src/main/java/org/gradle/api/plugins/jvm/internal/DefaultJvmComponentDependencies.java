@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.catalog.DependencyBundleValueSource;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
@@ -120,7 +121,7 @@ public class DefaultJvmComponentDependencies implements JvmComponentDependencies
         // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
         final ListProperty<Dependency> dependencies = getObjectFactory().listProperty(Dependency.class);
         dependencies.set(dependency.map(notation -> {
-            List<Dependency> deps = Cast.uncheckedCast(notation);
+            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
             return deps.stream().map(d -> create(d, configuration)).collect(Collectors.toList());
         }));
         bucket.getDependencies().addAllLater(dependencies);
