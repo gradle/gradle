@@ -314,7 +314,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     private Action broken() {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(500, "broken")
+                response.setStatus(500, "broken")
             }
         }
     }
