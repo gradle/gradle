@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+@NonNullApi
+package org.gradle.internal.enterprise.test.impl;
 
-import java.nio.file.Path;
-
-/**
- * Snapshotting service which is used by test distribution.
- */
-public interface SnapshottingService {
-
-    /**
-     * Returns a snapshot for the specified file.
-     *
-     * @param filePath path to file for which we want a snapshot
-     * @return snapshot for specified file
-     */
-    Snapshot snapshotFor(Path filePath);
-
-}
+import org.gradle.api.NonNullApi;
