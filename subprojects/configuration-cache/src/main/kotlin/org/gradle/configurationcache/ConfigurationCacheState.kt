@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -83,14 +82,18 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model
+    Work, Model, Entry, Fingerprint
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
+    val exists: Boolean
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
+    fun delete()
+    // Replace the contents of this state file, by moving the given file to the location of this state file
+    fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
 }
 
@@ -104,7 +107,7 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
@@ -152,7 +155,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
+    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild) {
         require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
@@ -172,7 +175,6 @@ class ConfigurationCacheState(
             )
         )
         writeRootEventListenerSubscriptions(gradle, buildEventListeners)
-        return storedBuilds.buildRootDirs
     }
 
     private
@@ -410,7 +412,7 @@ class ConfigurationCacheState(
     ) {
         val target = reference.target
         if (target is IncludedBuildState) {
-            val includedGradle = target.configuredBuild
+            val includedGradle = target.mutableModel
             val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
             writeBuildDefinition(buildDefinition)
             when {
@@ -621,14 +623,7 @@ class ConfigurationCacheState(
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
-        gradleOf(buildId).serviceOf<BuildServiceRegistryInternal>().registrations
-
-    private
-    fun BuildStateRegistry.gradleOf(buildIdentifier: BuildIdentifier) =
-        when (buildIdentifier) {
-            DefaultBuildIdentifier.ROOT -> rootBuild.build
-            else -> getIncludedBuild(buildIdentifier).configuredBuild
-        }
+        getBuild(buildId).mutableModel.serviceOf<BuildServiceRegistryInternal>().registrations
 
     private
     fun fireConfigureBuild(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal, function: (gradle: GradleInternal) -> Unit) {

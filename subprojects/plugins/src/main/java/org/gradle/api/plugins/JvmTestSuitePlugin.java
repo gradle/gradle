@@ -56,10 +56,15 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         // TODO: Deprecate this behavior?
         // Why would any Test task created need to use the test source set's classes?
         project.getTasks().withType(Test.class).configureEach(test -> {
-            SourceSet testSourceSet = java.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
-            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
+            SourceSet testSourceSet = java.getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME);
+            // In rare classes, such as applying the Kotlin multi-platform plugin, the test task may have already been created,
+            // but the test sourceSet may not exist yet.  In this case, there is no need to link the test task to it here
+            // See https://github.com/gradle/gradle/issues/18622
+            if (null != testSourceSet) {
+                test.getConventionMapping().map("testClassesDirs", () -> testSourceSet.getOutput().getClassesDirs());
+                test.getConventionMapping().map("classpath", () -> testSourceSet.getRuntimeClasspath());
+                test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
+            }
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {

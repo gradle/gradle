@@ -18,12 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ArtifactView;
@@ -36,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Arti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultKeyServers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
@@ -81,6 +80,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.google.common.io.Files.getNameWithoutExtension;
 
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private static final Logger LOGGER = Logging.getLogger(WriteDependencyVerificationFile.class);
@@ -149,14 +150,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
         }
         if (checksums.isEmpty()) {
-            throw new InvalidUserDataException("You must specify at least one checksum type to use. You must choose one or more in " + SUPPORTED_CHECKSUMS);
+            throw new DependencyVerificationException("You must specify at least one checksum type to use. You must choose one or more in " + SUPPORTED_CHECKSUMS);
         }
         assertPgpHasChecksumFallback(checksums);
     }
 
     private void assertPgpHasChecksumFallback(List<String> kinds) {
         if (kinds.size() == 1 && PGP.equals(kinds.get(0))) {
-            throw new InvalidUserDataException("Generating a file with signature verification requires at least one checksum type (sha256 or sha512) as fallback.");
+            throw new DependencyVerificationException("Generating a file with signature verification requires at least one checksum type (sha256 or sha512) as fallback.");
         }
     }
 
@@ -204,10 +205,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void serializeResult(SignatureVerificationService signatureVerificationService) throws IOException {
-        File out = verificationFile;
-        if (isDryRun) {
-            out = new File(verificationFile.getParent(), Files.getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
-        }
+        File out = isDryRun
+            ? dryRunVerificationFile()
+            : verificationFile;
         if (generatePgpInfo) {
             verificationsBuilder.setVerifySignatures(true);
         }
@@ -221,11 +221,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
+    private File dryRunVerificationFile() {
+        return new File(verificationFile.getParent(), getNameWithoutExtension(verificationFile.getName()) + ".dryrun.xml");
+    }
+
     private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier) throws IOException {
-        BuildTreeDefinedKeys keys = keyrings;
-        if(isDryRun) {
-            keys = keyrings.dryRun();
-        }
+        BuildTreeDefinedKeys keys = isDryRun ? keyrings.dryRun() : keyrings;
         Set<String> keysToExport = Sets.newHashSet();
         verifier.getConfiguration()
             .getTrustedKeys()

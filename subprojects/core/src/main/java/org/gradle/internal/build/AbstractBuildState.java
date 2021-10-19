@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
@@ -26,6 +27,7 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState {
     private final BuildScopeServices buildServices;
@@ -86,16 +88,26 @@ public abstract class AbstractBuildState implements BuildState {
 
     @Override
     public void ensureProjectsLoaded() {
-        getBuildController().getLoadedSettings();
+        getBuildController().loadSettings();
     }
 
     @Override
     public void ensureProjectsConfigured() {
-        getBuildController().getConfiguredBuild();
+        getBuildController().configureProjects();
+    }
+
+    @Override
+    public GradleInternal getMutableModel() {
+        return getBuildController().getGradle();
     }
 
     @Override
     public BuildWorkGraphController getWorkGraph() {
         return workGraphController.get();
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(action);
     }
 }

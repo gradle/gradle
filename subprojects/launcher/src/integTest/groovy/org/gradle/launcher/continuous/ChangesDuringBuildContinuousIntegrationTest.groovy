@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Retry
 import spock.lang.Unroll
 
@@ -83,6 +84,7 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3460")
     @UnsupportedWithConfigurationCache(because = "taskGraph.afterTask")
     def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
         given:

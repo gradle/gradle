@@ -33,6 +33,20 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_7.4]]
+== Upgrading from 7.3 and earlier
+
+=== Deprecations
+
+[[adoptopenjdk_download]]
+==== AdoptOpenJDK toolchain download
+
+Following the move from AdoptOpenJDK to Adoptium, under the Eclipse foundation, it is no longer possible to download an AdoptOpenJDK build from their end point.
+Instead, an Eclipse Temurin or IBM Semeru build is returned.
+
+Gradle 7.4+ will now emit a deprecation warning when the AdoptOpenJDK vendor is specified in the <<toolchains.adoc#sec:vendors,toolchain specification>> and it is used by auto provisioning.
+If you must use AdoptOpenJDK, you should turn off auto-download. If an Eclipse Temurin or IBM Semeru build works for you, specify `JvmVendorSpec.ADOPTIUM` or `JvmVendorSpec.IBM_SEMERU` as the vendor or leave the vendor unspecified.
+
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 

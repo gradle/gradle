@@ -48,7 +48,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             BuildState build = findIncludedBuild(taskPath);
             // Exclusion was for an included build, use it
             if (build != null) {
-                return getSelector(build).getFilter(taskPath.removeFirstSegments(1).toString());
+                return getSelectorForChildBuild(build).getFilter(taskPath.removeFirstSegments(1).toString());
             }
         }
         // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
@@ -67,7 +67,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             if (taskPath.isAbsolute()) {
                 BuildState build = findIncludedBuild(taskPath);
                 if (build != null) {
-                    return getSelector(build).getSelection(taskPath.removeFirstSegments(1).toString());
+                    return getSelectorForChildBuild(build).getSelection(taskPath.removeFirstSegments(1).toString());
                 }
             }
         }
@@ -82,11 +82,11 @@ public class CompositeAwareTaskSelector extends TaskSelector {
             if (taskPath.isAbsolute()) {
                 BuildState build = findIncludedBuild(taskPath);
                 if (build != null) {
-                    return getSelector(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
+                    return getSelectorForChildBuild(build).getSelection(projectPath, root, taskPath.removeFirstSegments(1).toString());
                 }
                 build = findIncludedBuild(root);
                 if (build != null) {
-                    return getSelector(build).getSelection(projectPath, root, path);
+                    return getSelectorForChildBuild(build).getSelection(projectPath, root, path);
                 }
             }
         }
@@ -126,8 +126,13 @@ public class CompositeAwareTaskSelector extends TaskSelector {
     }
 
 
+    private TaskSelector getSelectorForChildBuild(BuildState buildState) {
+        buildState.ensureProjectsConfigured();
+        return getSelector(buildState);
+    }
+
     private TaskSelector getSelector(BuildState buildState) {
-        return new DefaultTaskSelector(buildState.getBuild(), taskNameResolver, projectConfigurer);
+        return new DefaultTaskSelector(buildState.getMutableModel(), taskNameResolver, projectConfigurer);
     }
 
     private TaskSelector getUnqualifiedBuildSelector() {

@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -117,7 +117,7 @@ public class DependencyVerifierBuilder {
     private void validateUserInput(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName) {
         // because this can be called from parsing XML, we need to perform additional verification
         if (group == null && name == null && version == null && fileName == null) {
-            throw new InvalidUserDataException("A trusted artifact must have at least one of group, name, version or file name not null");
+            throw new DependencyVerificationException("A trusted artifact must have at least one of group, name, version or file name not null");
         }
     }
 

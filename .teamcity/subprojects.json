@@ -791,6 +791,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "worker-services",
+    "name": "worker-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "workers",
     "name": "workers",
     "unitTests": true,

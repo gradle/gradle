@@ -26,6 +26,8 @@ import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 private
@@ -63,6 +65,7 @@ val allowedProperties = setOf(
 )
 
 
+@ServiceScope(Scopes.BuildTree::class)
 class SystemPropertyAccessListener(
     private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext,

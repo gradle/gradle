@@ -21,9 +21,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -33,6 +31,7 @@ import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
@@ -41,7 +40,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import java.io.File
-import java.io.FileInputStream
+import java.io.InputStream
 import java.io.OutputStream
 
 
@@ -50,8 +49,11 @@ class DefaultConfigurationCache internal constructor(
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
+    private val cacheRepository: ConfigurationCacheRepository,
+    private val systemPropertyListener: SystemPropertyAccessListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
+    private val buildStateRegistry: BuildStateRegistry,
     private val projectStateRegistry: ProjectStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
@@ -79,13 +81,13 @@ class DefaultConfigurationCache internal constructor(
     private
     var rootBuild: Host? = null
 
+    // Have one or more values been successfully written to the entry?
+    private
+    var hasSavedValues = false
+
     private
     val host: Host
         get() = rootBuild!!
-
-    private
-    val cacheRepository: ConfigurationCacheRepository
-        get() = host.service()
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -97,10 +99,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val cacheFingerprintController: ConfigurationCacheFingerprintController
-        get() = host.service()
-
-    private
-    val systemPropertyListener: SystemPropertyAccessListener
         get() = host.service()
 
     override val isLoaded: Boolean
@@ -139,6 +137,16 @@ class DefaultConfigurationCache internal constructor(
             val model = creator()
             saveModel(model)
             model
+        }
+    }
+
+    override fun finalizeCacheEntry() {
+        if (hasSavedValues) {
+            cacheRepository.useForStore(cacheKey.string, StateType.Entry) { layout ->
+                writeConfigurationCacheFingerprint(layout)
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, layout.state)
+            }
+            hasSavedValues = false
         }
     }
 
@@ -207,18 +215,20 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkFingerprint(): CheckedFingerprint {
-        return cacheRepository.useForFingerprintCheck(
-            cacheKey.string,
-            this::checkFingerprint
-        )
+        // Register all included build root directories as watchable hierarchies
+        // so we can load the fingerprint for build scripts and other files from included builds
+        // without violating file system invariants.
+        val rootDirs = cacheRepository.useForStateLoad(cacheKey.string, StateType.Entry) { stateFile ->
+            cacheIO.readCacheEntryDetailsFrom(stateFile)
+        }
+        registerWatchableBuildDirectories(rootDirs)
+        return cacheRepository.useForStateLoad(cacheKey.string, StateType.Fingerprint, this::checkFingerprint)
     }
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
         prepareForWork()
-        val result = action()
-        finishWork()
-        return result
+        return action()
     }
 
     private
@@ -229,15 +239,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun finishWork() {
-    }
-
-    private
     fun saveModel(model: Any) {
         saveToCache(StateType.Model) { layout ->
             cacheIO.writeModelTo(model, layout.state)
-            // TODO - separate out writing the metadata about included builds from writing the value
-            emptySet()
         }
     }
 
@@ -247,14 +251,13 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheRepository.Layout) -> Set<File>) {
+    fun saveToCache(stateType: StateType, action: (ConfigurationCacheRepository.Layout) -> Unit) {
         crossConfigurationTimeBarrier()
 
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
-        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
             cacheRepository.useForStore(cacheKey.string, stateType) { layout ->
@@ -262,22 +265,20 @@ class DefaultConfigurationCache internal constructor(
                     invalidateConfigurationCacheState(layout)
                 }
                 try {
-                    val includedBuildRootDirs = action(layout)
-                    writeConfigurationCacheFingerprint(
-                        layout.fingerprint,
-                        ConfigurationCacheFingerprint.Header(includedBuildRootDirs)
-                    )
+                    action(layout)
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
-                    invalidateConfigurationCacheState(layout)
+                    hasSavedValues = false
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
-                    cacheFingerprintController.stop()
                     scopeRegistryListener.dispose()
                 }
             }
         }
+
+        hasSavedValues = true
+        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -323,29 +324,22 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(layout: ConfigurationCacheRepository.Layout): Set<File> =
+    fun writeConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) =
         projectStateRegistry.withMutableStateOfAllProjects(
             Factory { cacheIO.writeRootBuildStateTo(layout.state) }
         )
 
     private
-    fun writeConfigurationCacheFingerprint(fingerprintFile: File, header: ConfigurationCacheFingerprint.Header) {
-        fingerprintFile.outputStream().use { outputStream ->
-            writeConfigurationCacheFingerprintHeaderTo(outputStream, header)
-            cacheFingerprintController.commitFingerprintTo(outputStream)
-        }
+    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout) {
+        cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.Fingerprint))
     }
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.maybeStartCollectingFingerprint {
+        val fingerprintFile = cacheRepository.assignSpoolFile(cacheKey.string, StateType.Fingerprint)
+        cacheFingerprintController.maybeStartCollectingFingerprint(fingerprintFile) {
             cacheFingerprintWriterContextFor(it)
         }
-    }
-
-    private
-    fun stopCollectingCacheFingerprint() {
-        cacheFingerprintController.stopCollectingFingerprint()
     }
 
     private
@@ -357,25 +351,28 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprint(fingerprintFile: File): InvalidationReason? {
+    fun checkFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
         loadGradleProperties()
         return checkConfigurationCacheFingerprintFile(fingerprintFile)
     }
 
     private
-    fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        fingerprintFile.inputStream().use { fingerprintInputStream ->
-            // Register all included build root directories as watchable hierarchies
-            // so we can load the fingerprint for build scripts and other files from included builds
-            // without violating file system invariants.
-            readConfigurationCacheFingerprintHeaderFrom(fingerprintInputStream)?.run {
-                registerWatchableBuildDirectories(includedBuildRootDirs)
-            }
+    fun checkConfigurationCacheFingerprintFile(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
+        if (!fingerprintFile.exists) {
+            return CheckedFingerprint.NotFound
+        }
+        val invalidReason = fingerprintFile.inputStream().use { fingerprintInputStream ->
             checkFingerprint(fingerprintInputStream)
         }
+        return if (invalidReason == null) {
+            CheckedFingerprint.Valid
+        } else {
+            CheckedFingerprint.Invalid(invalidReason)
+        }
+    }
 
     private
-    fun checkFingerprint(inputStream: FileInputStream): InvalidationReason? =
+    fun checkFingerprint(inputStream: InputStream): InvalidationReason? =
         cacheIO.withReadContextFor(inputStream) { codecs ->
             withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
                 cacheFingerprintController.run {
@@ -385,10 +382,8 @@ class DefaultConfigurationCache internal constructor(
         }
 
     private
-    fun registerWatchableBuildDirectories(buildDirs: Set<File>) {
-        if (buildDirs.isNotEmpty()) {
-            buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
-        }
+    fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {
+        buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
     }
 
     private
@@ -400,7 +395,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
-        layout.fingerprint.delete()
+        layout.fileFor(StateType.Fingerprint).delete()
     }
 
     private

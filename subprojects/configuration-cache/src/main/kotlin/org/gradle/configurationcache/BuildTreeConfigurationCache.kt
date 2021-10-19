@@ -40,6 +40,11 @@ interface BuildTreeConfigurationCache {
      */
     fun <T : Any> loadOrCreateModel(creator: () -> T): T
 
+    /**
+     * Flushes any remaining state to the cache and closes any resources
+     */
+    fun finalizeCacheEntry()
+
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean
 

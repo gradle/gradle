@@ -48,14 +48,17 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
     @Override
     public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         if (availableModules == null) {
-            // Ensure configured
-            ensureProjectsConfigured();
+            ensureChildBuildConfigured();
             availableModules = new LinkedHashSet<>();
             for (ProjectState project : getProjects().getAllProjects()) {
                 registerProject(availableModules, project.getMutableModel());
             }
         }
         return availableModules;
+    }
+
+    protected void ensureChildBuildConfigured() {
+        ensureProjectsConfigured();
     }
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {

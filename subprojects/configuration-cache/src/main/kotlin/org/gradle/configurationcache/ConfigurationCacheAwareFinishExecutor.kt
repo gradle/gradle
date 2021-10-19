@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.configurationcache
 
-public interface BuildToolingModelAction<T> {
-    void beforeTasks(BuildToolingModelController controller);
+import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 
-    T fromBuildModel(BuildToolingModelController controller);
+
+class ConfigurationCacheAwareFinishExecutor(
+    private val delegate: BuildTreeFinishExecutor,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeFinishExecutor {
+    override fun finishBuildTree(failures: List<Throwable>): RuntimeException? {
+        cache.finalizeCacheEntry()
+        return delegate.finishBuildTree(failures)
+    }
 }

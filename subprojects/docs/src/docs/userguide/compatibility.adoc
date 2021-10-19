@@ -41,6 +41,7 @@ For older Gradle versions, please see the table below which Java version is supp
 |17|7.3
 |===
 
+[[kotlin]]
 == Kotlin
 Gradle is tested with Kotlin 1.3.72 through 1.5.31.
 

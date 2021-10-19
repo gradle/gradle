@@ -136,19 +136,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
-    public GradleInternal getConfiguredBuild() {
-        return getBuildController().getConfiguredBuild();
-    }
-
-    @Override
-    public GradleInternal getBuild() {
-        return getConfiguredBuild();
-    }
-
-    @Override
     public <T> T withState(Transformer<T, ? super GradleInternal> action) {
         // This should apply some locking, but most access to the build state does not happen via this method yet
-        return action.transform(getGradle());
+        return action.transform(getMutableModel());
     }
 
     @Override
@@ -159,15 +149,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public void stop() {
         getBuildController().stop();
-    }
-
-    protected GradleInternal getGradle() {
-        return getBuildController().getGradle();
-    }
-
-    @Override
-    public GradleInternal getMutableModel() {
-        return getBuildController().getGradle();
     }
 
     public static class IncludedBuildImpl implements IncludedBuildInternal {
