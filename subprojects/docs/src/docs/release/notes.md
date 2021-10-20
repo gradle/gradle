@@ -189,6 +189,11 @@ When a build downloads many files or very large files, for example when resolvin
 
 This release adds new events that notify the IDE as files are downloaded. This allows IDEs to show better progress information while Gradle is running and during IDE import/sync.
 
+## Security improvements
+
+Both `ant` and `common-compress` bundled libraries have been updated to resolve reported vulnerabilities.
+Head over to [the upgrade guide](userguide/upgrading_version_7.html#changes_7.3) for version and resolved vulnerabilities.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
