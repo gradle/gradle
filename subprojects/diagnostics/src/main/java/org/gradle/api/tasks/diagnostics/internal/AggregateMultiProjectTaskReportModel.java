@@ -16,23 +16,29 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
+    private final Project project;
     private final List<TaskReportModel> projects = new ArrayList<>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;
     private final String group;
 
-    public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group) {
+    public AggregateMultiProjectTaskReportModel(Project project, boolean mergeTasksWithSameName, boolean detail, String group) {
+        this.project = project;
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
         this.group = Strings.isNullOrEmpty(group) ? null : group.toLowerCase();
@@ -58,8 +64,31 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private TaskDetails mergedTaskDetails(TaskDetails task) {
         return TaskDetails.of(
             Path.path(task.getPath().getName()),
-            task.getDescription()
+            findTask(task)
         );
+    }
+
+    private Task findTask(TaskDetails task) {
+        final Project containingProject;
+        if (task.getPath().getPath().contains(":")) {
+            final String normalizedProjectPath = normalizePathToTaskProject(task.getPath().getPath());
+            containingProject = Iterables.getOnlyElement(project.getAllprojects().stream()
+                .filter(p -> p.getPath().equals(normalizedProjectPath))
+                .collect(Collectors.toList()));
+        } else {
+            containingProject = project;
+        }
+
+        return Iterables.getOnlyElement(containingProject.getTasksByName(task.getName(), false));
+    }
+
+    private String normalizePathToTaskProject(String path) {
+        final String pathWithExplicitRoot = path.startsWith(":") ? path : ":" + path;
+        if (!path.contains(":")) {
+            return pathWithExplicitRoot;
+        } else {
+            return pathWithExplicitRoot.substring(0, pathWithExplicitRoot.lastIndexOf(":"));
+        }
     }
 
     private boolean isVisible(String group) {

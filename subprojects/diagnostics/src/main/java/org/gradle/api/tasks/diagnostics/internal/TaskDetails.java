@@ -15,26 +15,60 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Task;
+import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public interface TaskDetails {
     Path getPath();
 
+    default String getName() {
+        return Objects.requireNonNull(getPath().getName());
+    }
+
     @Nullable
     String getDescription();
 
-    static TaskDetails of(Path path, @Nullable String description) {
+    String getType();
+
+    boolean isDecoratedType();
+
+    static TaskDetails of(Path path, Task task) {
         return new TaskDetails() {
+            private static final String DECORATED_SUFFIX = "_Decorated";
+
+            private final String fullTaskTypeName;
+            {
+                if (BuildEnvironmentReportTask.class.isAssignableFrom(task.getClass())) {
+                    fullTaskTypeName = ((BuildEnvironmentReportTask) task).getTaskIdentity().getTaskType().getName();
+                } else {
+                    fullTaskTypeName = task.getClass().getName();
+                }
+            }
+
             @Override
             public Path getPath() {
                 return path;
             }
 
             @Override
+            @Nullable
             public String getDescription() {
-                return description;
+                return task.getDescription();
+            }
+
+            @Override
+            public String getType() {
+                return isDecoratedType() ? StringUtils.removeEnd(fullTaskTypeName, DECORATED_SUFFIX) : fullTaskTypeName;
+            }
+
+            @Override
+            public boolean isDecoratedType() {
+                return fullTaskTypeName.endsWith(DECORATED_SUFFIX);
             }
         };
     }
