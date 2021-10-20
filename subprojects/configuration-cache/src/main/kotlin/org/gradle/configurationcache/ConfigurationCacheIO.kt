@@ -35,7 +35,7 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
@@ -190,7 +190,7 @@ class ConfigurationCacheIO internal constructor(
 
     private
     fun writeContextFor(
-        encoder: Encoder,
+        encoder: FlushableEncoder,
         tracer: Tracer?,
         codecs: Codecs
     ) = DefaultWriteContext(

@@ -24,6 +24,8 @@ import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.streams.DefaultValueStore
+import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCache
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
@@ -49,39 +51,8 @@ class ConfigurationCacheRepository(
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
-    fun assignSpoolFile(cacheKey: String, stateType: StateType): File {
-        val baseDir = cache.baseDirFor(cacheKey)
-        Files.createDirectories(baseDir.toPath())
-        return Files.createTempFile(baseDir.toPath(), stateType.toString().toDefaultLowerCase(), ".tmp").toFile()
-    }
-
-    fun <T : Any> useForStateLoad(cacheKey: String, stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
-        return withBaseCacheDirFor(cacheKey) { cacheDir ->
-            action(
-                ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
-            )
-        }
-    }
-
-    fun useForStore(cacheKey: String, stateType: StateType, action: (Layout) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
-            // TODO GlobalCache require(!cacheDir.isDirectory)
-            Files.createDirectories(cacheDir.toPath())
-            chmod(cacheDir, 448) // octal 0700
-            markAccessed(cacheDir)
-            val stateFiles = mutableListOf<File>()
-            val stateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateFiles::add)
-            val layout = WriteableLayout(cacheDir, stateFile, stateFiles::add)
-            try {
-                action(layout)
-            } finally {
-                stateFiles.asSequence()
-                    .filter(File::isFile)
-                    .forEach {
-                        chmod(it, 384) // octal 0600
-                    }
-            }
-        }
+    fun forKey(cacheKey: String): ConfigurationCacheStateStore {
+        return StoreImpl(cache.baseDirFor(cacheKey))
     }
 
     abstract class Layout(
@@ -162,6 +133,49 @@ class ConfigurationCacheRepository(
     }
 
     private
+    inner class StoreImpl(
+        private val baseDir: File
+    ) : ConfigurationCacheStateStore {
+        override fun assignSpoolFile(stateType: StateType): File {
+            Files.createDirectories(baseDir.toPath())
+            return Files.createTempFile(baseDir.toPath(), stateType.toString().toLowerCase(), ".tmp").toFile()
+        }
+
+        override fun <T> createValueStore(baseName: String, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, baseName, factory, { _ -> TODO() })
+        }
+
+        override fun <T> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+            return withExclusiveAccessToCache(baseDir) { cacheDir ->
+                action(
+                    ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+                )
+            }
+        }
+
+        override fun useForStore(stateType: StateType, action: (Layout) -> Unit) {
+            withExclusiveAccessToCache(baseDir) { cacheDir ->
+                // TODO GlobalCache require(!cacheDir.isDirectory)
+                Files.createDirectories(cacheDir.toPath())
+                chmod(cacheDir, 448) // octal 0700
+                markAccessed(cacheDir)
+                val stateFiles = mutableListOf<File>()
+                val stateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateFiles::add)
+                val layout = WriteableLayout(cacheDir, stateFile, stateFiles::add)
+                try {
+                    action(layout)
+                } finally {
+                    stateFiles.asSequence()
+                        .filter(File::isFile)
+                        .forEach {
+                            chmod(it, 384) // octal 0600
+                        }
+                }
+            }
+        }
+    }
+
+    private
     fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
         parentStateFile.run {
             resolveSibling("$name.${build.name}")
@@ -213,10 +227,10 @@ class ConfigurationCacheRepository(
     }
 
     private
-    fun <T> withBaseCacheDirFor(cacheKey: String, action: (File) -> T): T =
+    fun <T> withExclusiveAccessToCache(baseDir: File, action: (File) -> T): T =
         cache.withFileLock(
             Factory {
-                action(cache.baseDirFor(cacheKey))
+                action(baseDir)
             }
         )
 
