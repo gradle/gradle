@@ -114,6 +114,8 @@ public class TaskReportTask extends ConventionReportTask {
 
     /**
      * Sets whether to show the task types next to their names in the output.
+     *
+     * @since 7.4
      */
     @Incubating
     @Option(option = "types", description = "Show task class types")
@@ -125,6 +127,8 @@ public class TaskReportTask extends ConventionReportTask {
      * Returns whether to show the task types next to their names in the output.
      *
      * This property can be set via command-line option '--types'.
+     *
+     * @since 7.4
      */
     @Console
     public boolean isShowTypes() {
