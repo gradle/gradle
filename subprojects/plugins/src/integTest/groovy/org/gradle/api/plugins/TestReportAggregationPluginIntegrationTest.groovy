@@ -151,24 +151,16 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
             logger.lifecycle configurations.testReportAggregation.files.join("\\n")
 
-            //tasks.named('testAggregateTestReport').configure { dependsOn test } // FIXME this should not be necessary
-//            def testAggregateTestReport = tasks.named('testAggregateTestReport') // FIXME this should not be necessary
-//            testAggregateTestReport.configure {
-//              dependsOn ':direct:test'
-//              dependsOn ':transitive:test'
-//            }
-//            rootProject.subprojects.each {
-//              testAggregateTestReport.configure { dependsOn tasks.named('test', Test) } //  tasks.named('test', Test).configure { testAggregateTestReport.configure { dependsOn it } }
-//            }
+            // FIXME this should not be necessary
+            def testAggregateTestReport = tasks.named('testAggregateTestReport')
+            testAggregateTestReport.configure {
+              dependsOn tasks.named('test')
+              dependsOn ':direct:test'
+              dependsOn ':transitive:test'
+            }
         """
         when:
-//        succeeds(":application:testCodeCoverageReport", "application:outgoingVariants", ":application:dependencies", ":transitive:outgoingVariants")
         succeeds(":application:testAggregateTestReport")
-//        succeeds(":application:testAggregateTestReport", ":application:test", ":direct:test", ":transitive:test") // FIXME hack; do not explicitly invoke subprojects' test tasks
-//        succeeds(":application:testAggregateTestReport", "application:outgoingVariants", ":transitive:outgoingVariants", "-i")
-//        succeeds(":application:test")
-//        succeeds(":direct:test")
-//        succeeds(":transitive:test")
 
         then:
         result.assertTaskExecuted(":application:test")
@@ -181,7 +173,6 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("direct/build/test-results/test/binary").assertIsDir()
         file("application/build/test-results/test/binary").assertIsDir()
 
-//        file("application/build/test-results/test/aggregated-results/index.html").assertExists()
 
         // single report dir contains all subproject test results
         file("application/build/test-results/test/aggregated-results/classes/application.AdderTest.html").assertExists()
@@ -192,9 +183,5 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("application/build/test-results/test/aggregated-results/packages/direct.html").assertExists()
         file("application/build/test-results/test/aggregated-results/packages/transitive.html").assertExists()
 
-//        def report = new JacocoReportXmlFixture(file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
-//        report.assertHasClassCoverage("application.Adder")
-//        report.assertHasClassCoverage("direct.Multiplier")
-//        report.assertHasClassCoverage("transitive.Powerize")
     }
 }

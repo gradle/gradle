@@ -16,17 +16,12 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.reporting.ReportSpec;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 
-import java.util.Set;
-
-public interface AggregateTestReport extends ReportSpec, Buildable {
-    Set<Test> getTestTasks();
+public interface AggregateTestReport extends ReportSpec {
     ConfigurableFileCollection getBinaryResults();
     DirectoryProperty getDestinationDir();
 

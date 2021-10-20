@@ -17,30 +17,20 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.DefaultTaskCollection;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.AggregateTestReport;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestReport;
 
 import javax.inject.Inject;
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class DefaultAggregateTestReport implements AggregateTestReport {
     private final String name;
-    private final Set<Test> testTasks;
     private final TaskProvider<TestReport> reportTask;
 
     @Inject
     public DefaultAggregateTestReport(String name, TaskContainer tasks) {
         this.name = name;
-        this.testTasks = new HashSet<Test>();
         // TODO register custom task type, then pipe getBinaryResults() to it
         reportTask = tasks.register(name, TestReport.class, new Action<TestReport>() { // no lambdas; this module enforces language level 6
             @Override
@@ -59,23 +49,6 @@ public abstract class DefaultAggregateTestReport implements AggregateTestReport 
     @Override
     public TaskProvider<TestReport> getReportTask() {
         return reportTask;
-    }
-
-    @Override
-    public Set<Test> getTestTasks() {
-        return testTasks;
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                for (Test target: getTestTasks()) {
-                    context.add(target);
-                }
-            }
-        };
     }
 
 }
