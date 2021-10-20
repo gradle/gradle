@@ -27,7 +27,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -53,7 +52,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -668,13 +666,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             return Collections.emptySet();
         }
     }
-
-//    private final RegularFileProperty binaryResultsFile = getProject().getObjects().fileProperty().convention(getBinaryResultsDirectory().file("results.bin"));
-//
-//    @OutputFile
-//    public RegularFileProperty getBinaryResultsFile() {
-//        return binaryResultsFile;
-//    }
 
     @Override
     @TaskAction
