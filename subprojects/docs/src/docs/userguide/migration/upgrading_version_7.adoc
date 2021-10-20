@@ -52,12 +52,12 @@ If you must use AdoptOpenJDK, you should turn off auto-download. If an Eclipse T
 
 === Potential breaking changes
 
-
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.9.html[Groovy 3.0.9].
-- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.11.html[Ant 1.10.11].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.11.html[Ant 1.10.11] to fix https://github.com/advisories/GHSA-q5r4-cfpx-h6fh[CVE-2021-36373] and https://github.com/advisories/GHSA-5v34-g2px-j4fw[CVE-2021-36374].
+- Commons compress has been updated to https://commons.apache.org/proper/commons-compress/[Commons-compress 1.21] to fix https://github.com/advisories/GHSA-7hfm-57qf-j43q[CVE-2021-35515], https://github.com/advisories/GHSA-crv7-7245-f45f[CVE-2021-35516], https://github.com/advisories/GHSA-xqfj-vm6h-2x34[CVE-2021-35517] and https://github.com/advisories/GHSA-mc84-pj99-q6hh[CVE-2021-36090].
 
 ==== Application order of plugins in the `plugins` block
 
