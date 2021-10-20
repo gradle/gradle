@@ -16,18 +16,15 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private final Project project;
