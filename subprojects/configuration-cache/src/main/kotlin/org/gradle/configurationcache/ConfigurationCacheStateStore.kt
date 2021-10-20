@@ -25,9 +25,23 @@ internal
 interface ConfigurationCacheStateStore {
     fun assignSpoolFile(stateType: StateType): File
 
+    /**
+     * Loads some value from zero or more state files.
+     */
+    fun <T> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): T
+
+    /**
+     * Loads some value from a specific state file.
+     */
     fun <T> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T
 
-    fun useForStore(stateType: StateType, action: (ConfigurationCacheRepository.Layout) -> Unit)
+    /**
+     * Writes some value to zer or more state files.
+     */
+    fun useForStore(action: (ConfigurationCacheRepository.Layout) -> Unit)
 
-    fun <T> createValueStore(baseName: String, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T>
+    /**
+     * Creates a new [ValueStore] that can be used to load and store multiple values.
+     */
+    fun <T> createValueStore(stateType: StateType, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T>
 }

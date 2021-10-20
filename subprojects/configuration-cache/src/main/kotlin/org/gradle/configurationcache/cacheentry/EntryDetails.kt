@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal.streams;
+package org.gradle.configurationcache.cacheentry
+
+import org.gradle.cache.internal.streams.BlockAddress
+import org.gradle.util.Path
+import java.io.File
 
 /**
- * An opaque (outside this package) pointer to a block in a file.
+ * Data stored in the "entry details" file. Provides some metadata about the cache entry.
  */
-public class BlockAddress {
-    final int fileId;
-    final long pos;
-    final long length;
-
-    public BlockAddress(int fileId, long pos, long length) {
-        this.fileId = fileId;
-        this.pos = pos;
-        this.length = length;
-    }
-
-    @Override
-    public String toString() {
-        return "block(file=" + fileId + ", pos=" + pos + ",length=" + length + ")";
-    }
-}
+internal
+class EntryDetails(
+    val rootDirs: List<File>,
+    val projectModels: Map<Path, BlockAddress>
+)

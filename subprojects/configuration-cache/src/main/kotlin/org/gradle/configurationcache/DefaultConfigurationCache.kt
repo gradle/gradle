@@ -22,6 +22,7 @@ import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
@@ -46,6 +47,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 
 class DefaultConfigurationCache internal constructor(
@@ -101,7 +103,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val projectValueStore by lazy {
-        store.createValueStore("values") {
+        store.createValueStore(StateType.ProjectModels) {
             val (context, codecs) = cacheIO.writerContextFor(it, "values")
             context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
             ValueStore.Writer<Any> { value ->
@@ -112,6 +114,9 @@ class DefaultConfigurationCache internal constructor(
             }
         }
     }
+
+    private
+    val projectModels = ConcurrentHashMap<Path, BlockAddress>()
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -162,15 +167,16 @@ class DefaultConfigurationCache internal constructor(
 
     override fun <T : Any> loadOrCreateProjectModel(identityPath: Path, creator: () -> T): T {
         val model = cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
-        projectValueStore.write(model)
+        val address = projectValueStore.write(model)
+        projectModels[identityPath] = address
         return model
     }
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
-            store.useForStore(StateType.Entry) { layout ->
+            store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, layout.state)
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, projectModels, projectValueStore, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
         }
@@ -250,14 +256,17 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkFingerprint(): CheckedFingerprint {
-        // Register all included build root directories as watchable hierarchies
-        // so we can load the fingerprint for build scripts and other files from included builds
-        // without violating file system invariants.
-        val rootDirs = store.useForStateLoad(StateType.Entry) { stateFile ->
-            cacheIO.readCacheEntryDetailsFrom(stateFile)
+        return store.useForStateLoad { layout ->
+            val entryFile = layout.fileFor(StateType.Entry)
+            val entryDetails = cacheIO.readCacheEntryDetailsFrom(projectValueStore, entryFile)
+
+            // Register all included build root directories as watchable hierarchies
+            // so we can load the fingerprint for build scripts and other files from included builds
+            // without violating file system invariants.
+            registerWatchableBuildDirectories(entryDetails.rootDirs)
+
+            checkFingerprint(layout.fileFor(StateType.Fingerprint))
         }
-        registerWatchableBuildDirectories(rootDirs)
-        return store.useForStateLoad(StateType.Fingerprint, this::checkFingerprint)
     }
 
     private
@@ -295,12 +304,12 @@ class DefaultConfigurationCache internal constructor(
         Instrumented.discardListener()
 
         buildOperationExecutor.withStoreOperation {
-            store.useForStore(stateType) { layout ->
+            store.useForStore { layout ->
                 problems.storing {
                     invalidateConfigurationCacheState(layout)
                 }
                 try {
-                    action(layout.state)
+                    action(layout.fileFor(stateType))
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
                     hasSavedValues = false

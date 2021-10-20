@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.cache.internal.streams.BlockAddress
+import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
@@ -40,6 +43,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -54,28 +58,46 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, stateFile: ConfigurationCacheStateFile) {
+    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, projectModels: Map<Path, BlockAddress>, valueStore: ValueStore<*>, stateFile: ConfigurationCacheStateFile) {
+        val rootDirs = collectRootDirs(buildStateRegistry)
+        writeConfigurationCacheState(stateFile) {
+            writeCollection(rootDirs) { writeFile(it) }
+            writeSmallInt(projectModels.size)
+            for (entry in projectModels) {
+                writeString(entry.key.path)
+                valueStore.encode(entry.value, this)
+            }
+        }
+    }
+
+    internal
+    fun readCacheEntryDetailsFrom(valueStore: ValueStore<*>, stateFile: ConfigurationCacheStateFile): EntryDetails {
+        // Currently, the fingerprint file is used to mark whether the entry is usable or not
+        // Should use the entry details file instead
+        if (!stateFile.exists) {
+            return EntryDetails(emptyList(), emptyMap())
+        }
+        return readConfigurationCacheState(stateFile) {
+            val rootDirs = readList { readFile() }
+            val count = readSmallInt()
+            val entries = mutableMapOf<Path, BlockAddress>()
+            for (i in 0 until count) {
+                val path = Path.path(readString())
+                val address = valueStore.decode(this)
+                entries[path] = address
+            }
+            EntryDetails(rootDirs, entries)
+        }
+    }
+
+    private fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
         val rootDirs = mutableSetOf<File>()
         buildStateRegistry.visitBuilds { build ->
             if (build !is RootBuildState) {
                 rootDirs.add(build.buildRootDir)
             }
         }
-        writeConfigurationCacheState(stateFile) {
-            writeCollection(rootDirs) { writeFile(it) }
-        }
-    }
-
-    internal
-    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): List<File> {
-        // Currently, the fingerprint file is used to mark whether the entry is usable or not
-        // Should use the entry details file instead
-        if (!stateFile.exists) {
-            return emptyList()
-        }
-        return readConfigurationCacheState(stateFile) {
-            readList { readFile() }
-        }
+        return rootDirs
     }
 
     /**

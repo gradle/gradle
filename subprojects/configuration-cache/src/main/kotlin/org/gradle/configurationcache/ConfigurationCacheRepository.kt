@@ -55,19 +55,23 @@ class ConfigurationCacheRepository(
         return StoreImpl(cache.baseDirFor(cacheKey))
     }
 
-    abstract class Layout(
-        val state: ConfigurationCacheStateFile
-    ) {
+    abstract class Layout {
         abstract fun fileFor(stateType: StateType): ConfigurationCacheStateFile
     }
 
     private
     inner class WriteableLayout(
         private val cacheDir: File,
-        state: ConfigurationCacheStateFile,
         private val onFileAccess: (File) -> Unit
-    ) : Layout(state) {
+    ) : Layout() {
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), onFileAccess)
+    }
+
+    private
+    inner class ReadableLayout(
+        private val cacheDir: File
+    ) : Layout() {
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
     }
 
     override fun stop() {
@@ -141,27 +145,28 @@ class ConfigurationCacheRepository(
             return Files.createTempFile(baseDir.toPath(), stateType.toString().toLowerCase(), ".tmp").toFile()
         }
 
-        override fun <T> createValueStore(baseName: String, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T> {
-            return DefaultValueStore(baseDir, baseName, factory, { _ -> TODO() })
+        override fun <T> createValueStore(stateType: StateType, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, stateType.name.toLowerCase(), factory, { _ -> TODO() })
         }
 
         override fun <T> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+            return useForStateLoad { layout -> action(layout.fileFor(stateType)) }
+        }
+
+        override fun <T> useForStateLoad(action: (Layout) -> T): T {
             return withExclusiveAccessToCache(baseDir) { cacheDir ->
-                action(
-                    ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
-                )
+                action(ReadableLayout(cacheDir))
             }
         }
 
-        override fun useForStore(stateType: StateType, action: (Layout) -> Unit) {
+        override fun useForStore(action: (Layout) -> Unit) {
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)
                 Files.createDirectories(cacheDir.toPath())
                 chmod(cacheDir, 448) // octal 0700
                 markAccessed(cacheDir)
                 val stateFiles = mutableListOf<File>()
-                val stateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateFiles::add)
-                val layout = WriteableLayout(cacheDir, stateFile, stateFiles::add)
+                val layout = WriteableLayout(cacheDir, stateFiles::add)
                 try {
                     action(layout)
                 } finally {
