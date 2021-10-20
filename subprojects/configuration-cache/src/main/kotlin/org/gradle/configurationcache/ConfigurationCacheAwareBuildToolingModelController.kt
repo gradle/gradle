@@ -40,24 +40,18 @@ class ConfigurationCacheAwareBuildToolingModelController(
 
     private
     fun wrap(scope: ToolingModelScope): ToolingModelScope {
-        val target = scope.target
-        return if (target == null) {
-            scope
-        } else {
-            ProjectModelScope(scope, target, cache)
-        }
+        return CachingToolingModelScope(scope, cache)
     }
 
     private
-    class ProjectModelScope(
+    class CachingToolingModelScope(
         private val delegate: ToolingModelScope,
-        private val target: ProjectState,
         private val cache: BuildTreeConfigurationCache
     ) : ToolingModelScope {
-        override fun getTarget() = target
+        override fun getTarget() = delegate.target
 
         override fun getModel(modelName: String, parameterFactory: Function<Class<*>, Any>?): Any {
-            return cache.loadOrCreateProjectModel(target.identityPath) {
+            return cache.loadOrCreateIntermediateModel(target?.identityPath, modelName) {
                 delegate.getModel(modelName, parameterFactory)
             }
         }

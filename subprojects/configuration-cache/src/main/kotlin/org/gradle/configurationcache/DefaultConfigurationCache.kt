@@ -22,15 +22,13 @@ import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.models.IntermediateModelController
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
@@ -47,7 +45,6 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.concurrent.ConcurrentHashMap
 
 
 class DefaultConfigurationCache internal constructor(
@@ -97,26 +94,10 @@ class DefaultConfigurationCache internal constructor(
         get() = rootBuild!!
 
     private
-    val store by lazy {
-        cacheRepository.forKey(cacheKey.string)
-    }
+    val store by lazy { cacheRepository.forKey(cacheKey.string) }
 
     private
-    val projectValueStore by lazy {
-        store.createValueStore(StateType.ProjectModels) {
-            val (context, codecs) = cacheIO.writerContextFor(it, "values")
-            context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-            ValueStore.Writer<Any> { value ->
-                context.runWriteOperation {
-                    write(value)
-                }
-                context.flush()
-            }
-        }
-    }
-
-    private
-    val projectModels = ConcurrentHashMap<Path, BlockAddress>()
+    val intermediateModels by lazy { IntermediateModelController(host, cacheIO, store, cacheFingerprintController) }
 
     private
     val cacheIO: ConfigurationCacheIO
@@ -165,18 +146,15 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T : Any> loadOrCreateProjectModel(identityPath: Path, creator: () -> T): T {
-        val model = cacheFingerprintController.collectFingerprintForProject(identityPath, creator)
-        val address = projectValueStore.write(model)
-        projectModels[identityPath] = address
-        return model
+    override fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T {
+        return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, creator)
     }
 
     override fun finalizeCacheEntry() {
         if (hasSavedValues) {
             store.useForStore { layout ->
                 writeConfigurationCacheFingerprint(layout)
-                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, projectModels, projectValueStore, layout.fileFor(StateType.Entry))
+                cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.models, layout.fileFor(StateType.Entry))
             }
             hasSavedValues = false
         }
@@ -251,21 +229,27 @@ class DefaultConfigurationCache internal constructor(
 
     override fun stop() {
         Instrumented.discardListener()
-        CompositeStoppable.stoppable(projectValueStore, store).stop()
+        CompositeStoppable.stoppable(intermediateModels, store).stop()
     }
 
     private
     fun checkFingerprint(): CheckedFingerprint {
         return store.useForStateLoad { layout ->
             val entryFile = layout.fileFor(StateType.Entry)
-            val entryDetails = cacheIO.readCacheEntryDetailsFrom(projectValueStore, entryFile)
+            val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
 
             // Register all included build root directories as watchable hierarchies
             // so we can load the fingerprint for build scripts and other files from included builds
             // without violating file system invariants.
             registerWatchableBuildDirectories(entryDetails.rootDirs)
 
-            checkFingerprint(layout.fileFor(StateType.Fingerprint))
+            val result = checkFingerprint(layout.fileFor(StateType.Fingerprint))
+
+            if (result is CheckedFingerprint.ProjectsInvalid) {
+                intermediateModels.restoreFromCacheEntry(entryDetails, result)
+            }
+
+            result
         }
     }
 

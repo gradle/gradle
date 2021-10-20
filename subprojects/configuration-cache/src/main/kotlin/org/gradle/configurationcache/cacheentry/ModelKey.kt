@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal.streams;
+package org.gradle.configurationcache.cacheentry
 
-/**
- * An opaque (outside this package) pointer to a block in a file.
- */
-public class BlockAddress {
-    final int fileId;
-    final long pos;
-    final long length;
+import org.gradle.util.Path
 
-    public BlockAddress(int fileId, long pos, long length) {
-        this.fileId = fileId;
-        this.pos = pos;
-        this.length = length;
-    }
 
-    @Override
-    public String toString() {
-        return "block(file=" + fileId + ", pos=" + pos + ", length=" + length + ")";
-    }
-}
+internal
+data class ModelKey(
+    val identityPath: Path?,
+    val modelName: String
+)

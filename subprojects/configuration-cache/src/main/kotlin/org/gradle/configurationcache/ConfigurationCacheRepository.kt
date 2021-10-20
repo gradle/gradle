@@ -142,18 +142,18 @@ class ConfigurationCacheRepository(
     ) : ConfigurationCacheStateStore {
         override fun assignSpoolFile(stateType: StateType): File {
             Files.createDirectories(baseDir.toPath())
-            return Files.createTempFile(baseDir.toPath(), stateType.toString().toLowerCase(), ".tmp").toFile()
+            return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
         }
 
-        override fun <T> createValueStore(stateType: StateType, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T> {
-            return DefaultValueStore(baseDir, stateType.name.toLowerCase(), factory, { _ -> TODO() })
+        override fun <T> createValueStore(stateType: StateType, writerFactory: (OutputStream) -> ValueStore.Writer<T>, readerFactory: (InputStream) -> ValueStore.Reader<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, stateType.fileBaseName, writerFactory, readerFactory)
         }
 
-        override fun <T> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+        override fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
             return useForStateLoad { layout -> action(layout.fileFor(stateType)) }
         }
 
-        override fun <T> useForStateLoad(action: (Layout) -> T): T {
+        override fun <T : Any> useForStateLoad(action: (Layout) -> T): T {
             return withExclusiveAccessToCache(baseDir) { cacheDir ->
                 action(ReadableLayout(cacheDir))
             }
@@ -244,5 +244,9 @@ class ConfigurationCacheRepository(
         baseDir.resolve(cacheKey)
 
     private
-    fun File.stateFile(stateType: StateType) = resolve("${stateType.name.toDefaultLowerCase()}.bin")
+    val StateType.fileBaseName: String
+        get() = name.toDefaultLowerCase()
+
+    private
+    fun File.stateFile(stateType: StateType) = resolve("${stateType.fileBaseName}.bin")
 }

@@ -16,22 +16,20 @@
 
 package org.gradle.cache.internal.streams;
 
-/**
- * An opaque (outside this package) pointer to a block in a file.
- */
-public class BlockAddress {
-    final int fileId;
-    final long pos;
-    final long length;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
-    public BlockAddress(int fileId, long pos, long length) {
-        this.fileId = fileId;
-        this.pos = pos;
-        this.length = length;
+public class BlockAddressSerializer implements Serializer<BlockAddress> {
+    @Override
+    public BlockAddress read(Decoder decoder) throws Exception {
+        return new BlockAddress(decoder.readSmallInt(), decoder.readSmallLong(), decoder.readSmallLong());
     }
 
     @Override
-    public String toString() {
-        return "block(file=" + fileId + ", pos=" + pos + ", length=" + length + ")";
+    public void write(Encoder encoder, BlockAddress value) throws Exception {
+        encoder.writeSmallInt(value.fileId);
+        encoder.writeSmallLong(value.pos);
+        encoder.writeSmallLong(value.length);
     }
 }

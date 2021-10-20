@@ -213,7 +213,7 @@ class DefaultReadContext(
     private
     val problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -242,6 +242,10 @@ class DefaultReadContext(
     }
 
     override var immediateMode: Boolean = false
+
+    override fun close() {
+        (decoder as? AutoCloseable)?.close()
+    }
 
     override suspend fun read(): Any? = getCodec().run {
         decode()

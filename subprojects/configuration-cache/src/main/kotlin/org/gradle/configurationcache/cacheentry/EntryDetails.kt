@@ -17,8 +17,8 @@
 package org.gradle.configurationcache.cacheentry
 
 import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.util.Path
 import java.io.File
+
 
 /**
  * Data stored in the "entry details" file. Provides some metadata about the cache entry.
@@ -26,5 +26,5 @@ import java.io.File
 internal
 class EntryDetails(
     val rootDirs: List<File>,
-    val projectModels: Map<Path, BlockAddress>
+    val intermediateModels: Map<ModelKey, BlockAddress>
 )

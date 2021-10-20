@@ -19,7 +19,6 @@ package org.gradle.cache.internal.streams;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -110,26 +109,6 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
             }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    @Override
-    public void encode(BlockAddress blockAddress, Encoder encoder) {
-        try {
-            encoder.writeSmallInt(blockAddress.fileId);
-            encoder.writeSmallLong(blockAddress.pos);
-            encoder.writeSmallLong(blockAddress.length);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    @Override
-    public BlockAddress decode(Decoder decoder) {
-        try {
-            return new BlockAddress(decoder.readSmallInt(), decoder.readSmallLong(), decoder.readSmallLong());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 

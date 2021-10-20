@@ -17,8 +17,9 @@
 package org.gradle.configurationcache
 
 import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.configurationcache.cacheentry.EntryDetails
+import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
@@ -58,20 +59,22 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, projectModels: Map<Path, BlockAddress>, valueStore: ValueStore<*>, stateFile: ConfigurationCacheStateFile) {
+    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, intermediateModels: Map<ModelKey, BlockAddress>, stateFile: ConfigurationCacheStateFile) {
         val rootDirs = collectRootDirs(buildStateRegistry)
         writeConfigurationCacheState(stateFile) {
             writeCollection(rootDirs) { writeFile(it) }
-            writeSmallInt(projectModels.size)
-            for (entry in projectModels) {
-                writeString(entry.key.path)
-                valueStore.encode(entry.value, this)
+            val addressSerializer = BlockAddressSerializer()
+            writeSmallInt(intermediateModels.size)
+            for (entry in intermediateModels) {
+                writeNullableString(entry.key.identityPath?.path)
+                writeString(entry.key.modelName)
+                addressSerializer.write(this, entry.value)
             }
         }
     }
 
     internal
-    fun readCacheEntryDetailsFrom(valueStore: ValueStore<*>, stateFile: ConfigurationCacheStateFile): EntryDetails {
+    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails {
         // Currently, the fingerprint file is used to mark whether the entry is usable or not
         // Should use the entry details file instead
         if (!stateFile.exists) {
@@ -79,18 +82,21 @@ class ConfigurationCacheIO internal constructor(
         }
         return readConfigurationCacheState(stateFile) {
             val rootDirs = readList { readFile() }
+            val addressSerializer = BlockAddressSerializer()
             val count = readSmallInt()
-            val entries = mutableMapOf<Path, BlockAddress>()
+            val entries = mutableMapOf<ModelKey, BlockAddress>()
             for (i in 0 until count) {
-                val path = Path.path(readString())
-                val address = valueStore.decode(this)
-                entries[path] = address
+                val path = readNullableString()?.let { Path.path(it) }
+                val modelName = readString()
+                val address = addressSerializer.read(this)
+                entries[ModelKey(path, modelName)] = address
             }
             EntryDetails(rootDirs, entries)
         }
     }
 
-    private fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
+    private
+    fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
         val rootDirs = mutableSetOf<File>()
         buildStateRegistry.visitBuilds { build ->
             if (build !is RootBuildState) {
@@ -199,15 +205,27 @@ class ConfigurationCacheIO internal constructor(
         inputStream: InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        codecs().let { codecs ->
-            KryoBackedDecoder(inputStream).use { decoder ->
-                readContextFor(decoder, codecs).run {
+        readerContextFor(inputStream).let { (context, codecs) ->
+            context.use {
+                context.run {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
                     }
                 }
             }
+        }
+
+    internal
+    fun readerContextFor(
+        inputStream: InputStream,
+    ) =
+        codecs().let { codecs ->
+            KryoBackedDecoder(inputStream).let { decoder ->
+                readContextFor(decoder, codecs).apply {
+                    initClassLoader(javaClass.classLoader)
+                }
+            } to codecs
         }
 
     private

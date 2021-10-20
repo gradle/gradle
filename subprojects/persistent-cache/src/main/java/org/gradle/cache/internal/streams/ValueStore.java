@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal.streams;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-
 public interface ValueStore<T> {
     /**
      * Writes the given value and returns an address for the written block.
@@ -32,16 +29,6 @@ public interface ValueStore<T> {
      * The current thread performs the decoding.
      */
     T read(BlockAddress blockAddress);
-
-    /**
-     * Encoded the given block address to allow it to be persisted.
-     */
-    void encode(BlockAddress blockAddress, Encoder encoder);
-
-    /**
-     * Decodes a block address persisted using {@link #encode(BlockAddress, Encoder)}
-     */
-    BlockAddress decode(Decoder decoder);
 
     interface Writer<T> {
         // Should flush any buffered content to backing stream

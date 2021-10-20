@@ -42,9 +42,9 @@ interface BuildTreeConfigurationCache {
     fun <T : Any> loadOrCreateModel(creator: () -> T): T
 
     /**
-     * Loads a cached project model, if available, or else runs the given function to create it and then writes the result to cache.
+     * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to cache.
      */
-    fun <T : Any> loadOrCreateProjectModel(identityPath: Path, creator: () -> T): T
+    fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T
 
     /**
      * Flushes any remaining state to the cache and closes any resources

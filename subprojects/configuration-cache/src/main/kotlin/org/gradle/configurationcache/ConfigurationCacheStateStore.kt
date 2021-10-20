@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.cache.internal.streams.ValueStore
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 
 
@@ -28,12 +29,12 @@ interface ConfigurationCacheStateStore {
     /**
      * Loads some value from zero or more state files.
      */
-    fun <T> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): T
+    fun <T : Any> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): T
 
     /**
      * Loads some value from a specific state file.
      */
-    fun <T> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T
+    fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T
 
     /**
      * Writes some value to zer or more state files.
@@ -43,5 +44,9 @@ interface ConfigurationCacheStateStore {
     /**
      * Creates a new [ValueStore] that can be used to load and store multiple values.
      */
-    fun <T> createValueStore(stateType: StateType, factory: (OutputStream) -> ValueStore.Writer<T>): ValueStore<T>
+    fun <T> createValueStore(
+        stateType: StateType,
+        writerFactory: (OutputStream) -> ValueStore.Writer<T>,
+        readerFactory: (InputStream) -> ValueStore.Reader<T>
+    ): ValueStore<T>
 }

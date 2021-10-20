@@ -149,8 +149,9 @@ class DefaultValueStoreTest extends ConcurrentSpec {
     BlockAddress storeAndLoad(BlockAddress block, ValueStore<?> source = store, ValueStore<?> dest = source) {
         def outstr = new ByteArrayOutputStream()
         def encoder = new KryoBackedEncoder(outstr)
-        source.encode(block, encoder)
+        def serializer = new BlockAddressSerializer()
+        serializer.write(encoder, block)
         encoder.flush()
-        return dest.decode(new KryoBackedDecoder(new ByteArrayInputStream(outstr.toByteArray())))
+        return serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(outstr.toByteArray())))
     }
 }
