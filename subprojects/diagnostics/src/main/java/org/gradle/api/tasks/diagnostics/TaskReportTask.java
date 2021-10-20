@@ -117,7 +117,9 @@ public class TaskReportTask extends ConventionReportTask {
      */
     @Incubating
     @Option(option = "types", description = "Show task class types")
-    public void setShowTypes(boolean showTypes) { this.showTypes = showTypes; }
+    public void setShowTypes(boolean showTypes) {
+        this.showTypes = showTypes;
+    }
 
     /**
      * Returns whether to show the task types next to their names in the output.
