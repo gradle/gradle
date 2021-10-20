@@ -289,11 +289,19 @@ final class ConfigurationCacheProblemsFixture {
 
     private static void assertInputsIn(Map<String, Object> jsModel, HasConfigurationCacheProblemsSpec spec) {
         List<Map<String, Object>> inputs = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it['input'] != null }
-        def inputsToCheck = spec.inputs.collect()
-        for (int i in spec.inputs.reverse().indices) {
-            def forAssert = formatInputForAssert(inputs[i])
-            assert inputsToCheck[i].matches(forAssert)
+        List<String> formattedInputs = inputs.collect { formatInputForAssert(it) }.reverse()
+        def expectedInputs = spec.inputs.collect()
+        for (int i in expectedInputs.indices.reverse()) {
+            def expectedInput = expectedInputs[i]
+            for (int j in formattedInputs.indices) {
+                if (expectedInput.matches(formattedInputs[j])) {
+                    expectedInputs.removeAt(i)
+                    formattedInputs.removeAt(j)
+                    break
+                }
+            }
         }
+        assert expectedInputs == []
     }
 
     static String formatInputForAssert(Map<String, Object> input) {
