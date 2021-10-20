@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - master
-  
+
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -45,6 +45,7 @@ jobs:
           arguments: |
               compileAll
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - name: "Comment build scan url"
         uses: actions/github-script@v5
@@ -82,6 +83,7 @@ jobs:
           arguments: |
               sanityCheck
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ needs.build.outputs.sys-prop-args }}
       - name: "Comment build scan url"
         uses: actions/github-script@v5
@@ -120,4 +122,5 @@ jobs:
           arguments: |
               ${{ matrix.bucket.tasks }}
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ needs.build.outputs.sys-prop-args }}
