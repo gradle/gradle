@@ -36,6 +36,7 @@ public abstract class DefaultAggregateTestReport implements AggregateTestReport 
             @Override
             public void execute(TestReport task) {
                 task.reportOn(getBinaryResults());
+                task.getHack().from(getBinaryResults());
                 task.setDestinationDir(getDestinationDir().get().getAsFile());
             }
         });

@@ -149,15 +149,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
 
-            logger.lifecycle configurations.testReportAggregation.files.join("\\n")
-
-            // FIXME this should not be necessary
-            def testAggregateTestReport = tasks.named('testAggregateTestReport')
-            testAggregateTestReport.configure {
-              dependsOn tasks.named('test')
-              dependsOn ':direct:test'
-              dependsOn ':transitive:test'
-            }
+            //logger.lifecycle configurations.testReportAggregation.files.join("\\n")
         """
         when:
         succeeds(":application:testAggregateTestReport")

@@ -47,7 +47,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class TestReport extends DefaultTask {
+public abstract class TestReport extends DefaultTask {
     private File destinationDir;
     private ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
 
@@ -86,6 +86,12 @@ public class TestReport extends DefaultTask {
     public FileCollection getTestResultDirs() {
         return resultDirs;
     }
+
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract ConfigurableFileCollection getHack();
 
     private void addTo(Object result, ConfigurableFileCollection dirs) {
         if (result instanceof Test) {

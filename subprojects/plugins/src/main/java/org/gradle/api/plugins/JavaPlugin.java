@@ -65,8 +65,6 @@ import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
-import javax.script.Bindings;
-import javax.script.SimpleBindings;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -507,14 +505,7 @@ public class JavaPlugin implements Plugin<Project> {
                             attributes.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, testSuite.getName()));
                         });
 
-                        // TODO Map? ["builtBy": getTestTask().getName(),
-                        //             "file": getTestTask().getBinaryResultsDirectory()]
-                        Bindings map = new SimpleBindings();
-                        map.put("file", target.getTestTask().get().getBinaryResultsDirectory().get().getAsFile());
-                        map.put("builtBy", target.getTestTask());
-//                        conf.artifact(map);
-                        conf.artifact(target.getTestTask().get().getBinaryResultsDirectory());
-//                        conf.artifact(target.getTestTask().get()/*map(test -> test.getBinaryResultsDirectory().get())*/); // FIXME why necessary to eagerly map to Directory? Should accept a TaskProvider; Test#getBinaryResultsDirectory() since #artifact can accept a Task having a single @Output-annotated property
+                        conf.artifact(target.getTestTask().flatMap(AbstractTestTask::getBinaryResultsDirectory));
                     });
                 });
             });
