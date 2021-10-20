@@ -176,6 +176,10 @@ final class ConfigurationCacheProblemsFixture {
         } else {
             assertNoProblemsSummary(result.output)
         }
+        if (spec.hasInputs()) {
+            // TODO:bamboo avoid reading jsModel twice when asserting on problems AND inputs
+            assertInputs(result.output, rootDir, spec)
+        }
     }
 
     HasConfigurationCacheProblemsSpec newProblemsSpec(
@@ -257,12 +261,12 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    protected static void assertProblemsHtmlReport(
+    private static void assertProblemsHtmlReport(
         String output,
         File rootDir,
         HasConfigurationCacheProblemsSpec spec
     ) {
-        def totalProblemCount = spec.totalProblemsCount ? spec.totalProblemsCount : spec.uniqueProblems.size()
+        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
         assertProblemsHtmlReport(
             rootDir,
             output,
@@ -272,7 +276,51 @@ final class ConfigurationCacheProblemsFixture {
         )
     }
 
-    protected static void assertProblemsHtmlReport(
+    private static void assertInputs(
+        String output,
+        File rootDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assert spec.hasInputs()
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
+        assertInputsIn(jsModel, spec)
+    }
+
+    private static void assertInputsIn(Map<String, Object> jsModel, HasConfigurationCacheProblemsSpec spec) {
+        List<Map<String, Object>> inputs = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it['input'] != null }
+        def inputsToCheck = spec.inputs.collect()
+        for (int i in spec.inputs.reverse().indices) {
+            def forAssert = formatInputForAssert(inputs[i])
+            assert inputsToCheck[i].matches(forAssert)
+        }
+    }
+
+    static String formatInputForAssert(Map<String, Object> input) {
+        "${formatTrace(input['trace'][0])}: ${formatStructuredMessage(input['input'])}"
+    }
+
+    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
+        fragments.collect {
+            // See StructuredMessage.Fragment
+            it['text'] ?: "'${it['name']}'"
+        }.join('')
+    }
+
+    private static String formatTrace(Map<String, Object> trace) {
+        switch (trace['kind']) {
+            case "Task": return trace['path']
+            case "Bean": return trace['type']
+            case "Field": return trace['name']
+            case "InputProperty": return trace['name']
+            case "OutputProperty": return trace['name']
+            case "BuildLogic": return trace['location'].toString().capitalize()
+            case "BuildLogicClass": return trace['type']
+            default: return "Gradle runtime"
+        }
+    }
+
+    private static void assertProblemsHtmlReport(
         File rootDir,
         String output,
         int totalProblemCount,
@@ -282,11 +330,7 @@ final class ConfigurationCacheProblemsFixture {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
-            assertThat("HTML report URI not found", reportDir, notNullValue())
-            assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
-            def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
-            assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
-            Map<String, Object> jsModel = readJsModelFrom(htmlFile)
+            Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
             assertThat(
                 "HTML report JS model has wrong number of total problem(s)",
                 numberOfProblemsIn(jsModel),
@@ -300,6 +344,15 @@ final class ConfigurationCacheProblemsFixture {
         } else {
             assertThat("Unexpected HTML report URI found", reportDir, nullValue())
         }
+    }
+
+    private static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
+        assertThat("HTML report URI not found", reportDir, notNullValue())
+        assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
+        def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
+        assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
+        Map<String, Object> jsModel = readJsModelFrom(htmlFile)
+        jsModel
     }
 
     private static Map<String, Object> readJsModelFrom(File reportFile) {
@@ -337,11 +390,11 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static int numberOfProblemsIn(jsModel) {
-        return (jsModel.problems as List<Object>).size()
+        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null }
     }
 
     protected static int numberOfProblemsWithStacktraceIn(jsModel) {
-        return (jsModel.problems as List<Object>).count { it['error'] != null }
+        return (jsModel.diagnostics as List<Object>).count { it['error'] != null }
     }
 
     private static ProblemsSummary extractSummary(String text) {
@@ -421,6 +474,9 @@ class HasConfigurationCacheProblemsSpec {
     @PackageScope
     final List<Matcher<String>> uniqueProblems = []
 
+    @PackageScope
+    final List<Matcher<String>> inputs = []
+
     @Nullable
     @PackageScope
     Integer totalProblemsCount
@@ -448,6 +504,11 @@ class HasConfigurationCacheProblemsSpec {
     @PackageScope
     boolean hasProblems() {
         return !uniqueProblems.isEmpty()
+    }
+
+    @PackageScope
+    boolean hasInputs() {
+        return !inputs.isEmpty()
     }
 
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {
@@ -479,6 +540,11 @@ class HasConfigurationCacheProblemsSpec {
 
     HasConfigurationCacheProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
         this.problemsWithStackTraceCount = problemsWithStackTraceCount
+        return this
+    }
+
+    HasConfigurationCacheProblemsSpec withInput(String input) {
+        inputs.add(startsWith(input))
         return this
     }
 }

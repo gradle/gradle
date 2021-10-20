@@ -38,6 +38,10 @@ import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
+import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.groovy.scripts.ScriptSource
@@ -67,6 +71,7 @@ class ConfigurationCacheFingerprintWriter(
         val buildStartTime: Long
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun reportInput(input: PropertyProblem)
     }
 
     private
@@ -143,11 +148,27 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun systemPropertyRead(key: String) {
-        if (!undeclaredSystemProperties.add(key)) {
-            return
+    override fun systemPropertyRead(key: String, value: Any?, location: PropertyTrace) {
+        if (undeclaredSystemProperties.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
+            reportSystemPropertyInput(key, location)
         }
-        write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key))
+    }
+
+    private
+    fun reportSystemPropertyInput(key: String, location: PropertyTrace) {
+        val message = StructuredMessage.build {
+            text("system property ")
+            reference(key)
+        }
+        host.reportInput(
+            PropertyProblem(
+                location,
+                message,
+                null,
+                documentationSection = DocumentationSection.RequirementsUndeclaredSysPropRead
+            )
+        )
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
@@ -161,13 +182,14 @@ class ConfigurationCacheFingerprintWriter(
                 }
             }
             else -> {
-                write(
-                    ValueSource(
-                        obtainedValue.uncheckedCast()
-                    )
-                )
+                captureValueSource(obtainedValue)
             }
         }
+    }
+
+    private
+    fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
+        write(ValueSource(obtainedValue.uncheckedCast()))
     }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {

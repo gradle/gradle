@@ -38,16 +38,23 @@ class ConfigurationCacheReport(
     temporaryFileProvider: TemporaryFileProvider
 ) : Closeable {
 
+    private
     sealed class State {
 
-        open fun onProblem(problem: PropertyProblem): State =
+        open fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State =
             illegalState()
 
+        /**
+         * Writes the report file to the given [outputDirectory] if and only if
+         * there are diagnostics to report.
+         *
+         * @return a pair with the new [State] and the written [File], which will be `null` when there are no diagnostics.
+         */
         open fun commitReportTo(
             outputDirectory: File,
             cacheAction: String,
             totalProblemCount: Int
-        ): Pair<State, File> =
+        ): Pair<State, File?> =
             illegalState()
 
         open fun close(): State =
@@ -62,12 +69,22 @@ class ConfigurationCacheReport(
             val temporaryFileProvider: TemporaryFileProvider
         ) : State() {
 
-            override fun onProblem(problem: PropertyProblem): State =
+            /**
+             * There's nothing to write, return null.
+             */
+            override fun commitReportTo(
+                outputDirectory: File,
+                cacheAction: String,
+                totalProblemCount: Int
+            ): Pair<State, File?> =
+                this to null
+
+            override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State =
                 Spooling(
                     htmlReportSpoolFile(),
                     singleThreadExecutor(),
                     CharBuf::class.java.classLoader
-                ).onProblem(problem)
+                ).onDiagnostic(kind, problem)
 
             private
             fun htmlReportSpoolFile() =
@@ -103,14 +120,17 @@ class ConfigurationCacheReport(
                 }
             }
 
-            override fun onProblem(problem: PropertyProblem): State {
+            override fun onDiagnostic(kind: DiagnosticKind, problem: PropertyProblem): State {
                 executor.submit {
-                    writer.writeProblem(problem)
+                    writer.writeDiagnostic(
+                        kind,
+                        problem
+                    )
                 }
                 return this
             }
 
-            override fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File> {
+            override fun commitReportTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): Pair<State, File?> {
                 lateinit var reportFile: File
                 executor.submit {
                     closeHtmlReport(cacheAction, totalProblemCount)
@@ -189,7 +209,13 @@ class ConfigurationCacheReport(
 
     fun onProblem(problem: PropertyProblem) {
         modifyState {
-            onProblem(problem)
+            onDiagnostic(DiagnosticKind.PROBLEM, problem)
+        }
+    }
+
+    fun onInput(input: PropertyProblem) {
+        modifyState {
+            onDiagnostic(DiagnosticKind.INPUT, input)
         }
     }
 
@@ -200,8 +226,8 @@ class ConfigurationCacheReport(
      * see [HtmlReportWriter].
      */
     internal
-    fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File {
-        lateinit var reportFile: File
+    fun writeReportFileTo(outputDirectory: File, cacheAction: String, totalProblemCount: Int): File? {
+        var reportFile: File?
         modifyState {
             val (newState, outputFile) = commitReportTo(outputDirectory, cacheAction, totalProblemCount)
             reportFile = outputFile

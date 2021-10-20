@@ -22,6 +22,13 @@ import java.io.Writer
 
 
 internal
+enum class DiagnosticKind {
+    PROBLEM,
+    INPUT
+}
+
+
+internal
 class JsonModelWriter(val writer: Writer) {
 
     private
@@ -33,7 +40,7 @@ class JsonModelWriter(val writer: Writer) {
     fun beginModel() {
         beginObject()
 
-        propertyName("problems")
+        propertyName("diagnostics")
         beginArray()
     }
 
@@ -52,29 +59,35 @@ class JsonModelWriter(val writer: Writer) {
         endObject()
     }
 
-    fun writeProblem(problem: PropertyProblem) {
+    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
         if (first) first = false else comma()
         jsonObject {
             property("trace") {
-                jsonObjectList(problem.trace.sequence.asIterable()) { trace ->
+                jsonObjectList(details.trace.sequence.asIterable()) { trace ->
                     writePropertyTrace(trace)
                 }
             }
             comma()
-            property("message") {
-                jsonObjectList(problem.message.fragments) { fragment ->
+            property(keyFor(kind)) {
+                jsonObjectList(details.message.fragments) { fragment ->
                     writeFragment(fragment)
                 }
             }
-            problem.documentationSection?.let {
+            details.documentationSection?.let {
                 comma()
                 property("documentationLink", documentationLinkFor(it))
             }
-            stackTraceStringOf(problem)?.let {
+            stackTraceStringOf(details)?.let {
                 comma()
                 property("error", it)
             }
         }
+    }
+
+    private
+    fun keyFor(kind: DiagnosticKind) = when (kind) {
+        DiagnosticKind.PROBLEM -> "problem"
+        DiagnosticKind.INPUT -> "input"
     }
 
     private

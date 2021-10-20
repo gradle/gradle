@@ -65,8 +65,8 @@ class HtmlReportWriter(val writer: Writer) {
         }
     }
 
-    fun writeProblem(problem: PropertyProblem) {
-        jsonModelWriter.writeProblem(problem)
+    fun writeDiagnostic(kind: DiagnosticKind, details: PropertyProblem) {
+        jsonModelWriter.writeDiagnostic(kind, details)
     }
 
     fun close() {

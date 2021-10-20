@@ -51,7 +51,8 @@ sealed class ConfigurationCacheFingerprint {
     ) : ConfigurationCacheFingerprint()
 
     data class UndeclaredSystemProperty(
-        val key: String
+        val key: String,
+        val value: Any?
     ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(

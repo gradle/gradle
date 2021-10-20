@@ -107,7 +107,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 if (reason != null) return reason
             }
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
-                if (isDefined(key)) {
+                if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"
                 }
             }
@@ -175,10 +175,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         }
         return null
     }
-
-    private
-    fun isDefined(key: String): Boolean =
-        System.getProperty(key) != null
 
     private
     fun hasFileChanged(file: File, originalHash: HashCode?) =
