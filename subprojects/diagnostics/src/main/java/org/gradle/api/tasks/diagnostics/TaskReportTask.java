@@ -131,6 +131,7 @@ public class TaskReportTask extends ConventionReportTask {
      * @since 7.4
      */
     @Console
+    @Incubating
     public boolean isShowTypes() {
         return showTypes;
     }
