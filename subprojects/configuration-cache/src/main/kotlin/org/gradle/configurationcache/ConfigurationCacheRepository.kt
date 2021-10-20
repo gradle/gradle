@@ -25,6 +25,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.scopes.BuildTreeScopedCache
+import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
@@ -51,10 +52,10 @@ class ConfigurationCacheRepository(
     fun assignSpoolFile(cacheKey: String, stateType: StateType): File {
         val baseDir = cache.baseDirFor(cacheKey)
         Files.createDirectories(baseDir.toPath())
-        return Files.createTempFile(baseDir.toPath(), stateType.toString().toLowerCase(), ".tmp").toFile()
+        return Files.createTempFile(baseDir.toPath(), stateType.toString().toDefaultLowerCase(), ".tmp").toFile()
     }
 
-    fun <T> useForStateLoad(cacheKey: String, stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
+    fun <T : Any> useForStateLoad(cacheKey: String, stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
         return withBaseCacheDirFor(cacheKey) { cacheDir ->
             action(
                 ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
@@ -224,5 +225,5 @@ class ConfigurationCacheRepository(
         baseDir.resolve(cacheKey)
 
     private
-    fun File.stateFile(stateType: StateType) = resolve("${stateType.name.toLowerCase()}.bin")
+    fun File.stateFile(stateType: StateType) = resolve("${stateType.name.toDefaultLowerCase()}.bin")
 }

@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUndeclaredSysPropRead
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -92,7 +93,7 @@ class SystemPropertyAccessListener(
             reference(key)
         }
         val location = userCodeContext.location(consumer)
-        val exception = InvalidUserCodeException(message.toString().capitalize())
+        val exception = InvalidUserCodeException(message.toString().capitalized())
         problems.onProblem(
             PropertyProblem(
                 location,
