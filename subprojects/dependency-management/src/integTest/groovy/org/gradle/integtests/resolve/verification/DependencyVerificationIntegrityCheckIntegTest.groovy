@@ -19,7 +19,9 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -1081,4 +1083,73 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven"""
     }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/18498")
+    def "fails validation for local repository with cached metadata rule"() {
+        def repoDir = testDirectory.createDir("repo")
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            @CacheableRule
+            abstract class SamplesVariantRule implements ComponentMetadataRule {
+
+                @Inject
+                abstract ObjectFactory getObjectFactory()
+
+                void execute(ComponentMetadataContext ctx) {
+                    def variant = "samplessources"
+                    def id = ctx.details.id
+                    org.gradle.api.attributes.Category category = objectFactory.named(org.gradle.api.attributes.Category, org.gradle.api.attributes.Category.DOCUMENTATION)
+                    DocsType docsType = objectFactory.named(DocsType, variant)
+                    ctx.details.addVariant(variant) { VariantMetadata vm ->
+                        vm.attributes{ AttributeContainer ac ->
+                            ac.attribute(org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE, category)
+                            ac.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, docsType)
+                        }
+                        vm.withFiles {
+                            it.addFile("\${id.name}-\${id.version}-\${variant}.jar")
+                        }
+                    }
+
+                }
+            }
+            repositories {
+                maven { url "${repoDir.toURI()}" }
+            }
+            dependencies {
+                components.all(SamplesVariantRule)
+                implementation('org:monitor:1.0')
+            }
+            tasks.register('resolveCompileClasspath') {
+                configurations.compileClasspath.resolve()
+            }
+        """
+        mavenLocal(repoDir).module('org', 'monitor', '1.0').publish()
+        createMetadataFile {
+            // Just so we enable dependency verification
+            addChecksum("org:dummy:1.0", "sha256", "some-value", "pom", "pom")
+        }
+
+        when:
+        fails "resolveCompileClasspath"
+
+        then:
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
+
+        when:
+        executer.requireIsolatedDaemons()
+        fails "resolveCompileClasspath"
+
+        then:
+        failure.assertThatCause(containsText("""
+2 artifacts failed verification:
+  - monitor-1.0.jar (org:monitor:1.0) from repository maven
+  - monitor-1.0.pom (org:monitor:1.0) from repository maven"""))
+    }
+
 }
