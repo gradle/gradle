@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
@@ -80,7 +81,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
         immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, calculatedValueContainerFactory, documentationRegistry,
-        domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, Mock(WorkerThreadRegistry), TestUtil.domainObjectCollectionFactory(), Mock(NotationParser), TestUtil.objectFactory())
+        domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, Mock(WorkerThreadRegistry), TestUtil.domainObjectCollectionFactory(), Mock(NotationParser), TestUtil.objectFactory(), TestFiles.resolver())
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

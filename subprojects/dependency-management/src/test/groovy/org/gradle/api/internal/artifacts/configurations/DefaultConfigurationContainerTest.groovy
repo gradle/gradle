@@ -95,7 +95,8 @@ class DefaultConfigurationContainerTest extends Specification {
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         Mock(NotationParser),
-        TestUtil.objectFactory()
+        TestUtil.objectFactory(),
+        TestFiles.resolver()
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {

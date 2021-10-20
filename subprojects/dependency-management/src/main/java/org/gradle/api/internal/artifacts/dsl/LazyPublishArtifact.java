@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -40,22 +38,16 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final FileResolver fileResolver;
     private PublishArtifactInternal delegate;
 
-    public LazyPublishArtifact(Provider<?> provider) {
-        this.provider = Providers.internal(provider);
-        this.version = null;
-        this.fileResolver = null;
-    }
-
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
         this.provider = Providers.internal(provider);
         this.version = null;
         this.fileResolver = fileResolver;
     }
 
-    public LazyPublishArtifact(Provider<?> provider, String version) {
+    public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver) {
         this.provider = Providers.internal(provider);
         this.version = version;
-        this.fileResolver = null;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -91,19 +83,12 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
             Object value = provider.get();
-            if (value instanceof FileSystemLocation) {
-                FileSystemLocation location = (FileSystemLocation) value;
-                delegate = fromFile(location.getAsFile());
-            } else if (value instanceof File) {
-                delegate = fromFile((File) value);
-            } else if (value instanceof AbstractArchiveTask) {
+            if (value instanceof AbstractArchiveTask) {
                 delegate = new ArchivePublishArtifact((AbstractArchiveTask) value);
             } else if (value instanceof Task) {
                 delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
-            } else if (value instanceof CharSequence && fileResolver != null) {
-                delegate = fromFile(fileResolver.resolve(value.toString()));
             } else {
-                throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+                delegate = fromFile(fileResolver.resolve(value));
             }
         }
         return delegate;

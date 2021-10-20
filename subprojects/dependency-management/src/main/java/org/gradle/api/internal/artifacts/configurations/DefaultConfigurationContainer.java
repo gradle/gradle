@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -111,7 +112,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          WorkerThreadRegistry workerThreadRegistry,
                                          DomainObjectCollectionFactory domainObjectCollectionFactory,
                                          NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                         ObjectFactory objectFactory) {
+                                         ObjectFactory objectFactory,
+                                         FileResolver fileResolver) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         this.resolver = resolver;
         this.instantiator = instantiator;
@@ -124,7 +126,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
+        this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver, fileResolver).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;

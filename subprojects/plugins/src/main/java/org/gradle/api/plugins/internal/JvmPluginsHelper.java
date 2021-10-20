@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -179,7 +180,8 @@ public class JvmPluginsHelper {
         @Nullable AdhocComponentWithVariants component,
         ConfigurationContainer configurations,
         TaskContainer tasks,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        FileResolver fileResolver
     ) {
         Configuration variant = maybeCreateInvisibleConfig(
             configurations,
@@ -206,7 +208,7 @@ public class JvmPluginsHelper {
             }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver));
         if (component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
         }
