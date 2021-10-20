@@ -64,31 +64,8 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     private TaskDetails mergedTaskDetails(TaskDetails task) {
         return TaskDetails.of(
             Path.path(task.getPath().getName()),
-            findTask(task)
+            task.findTask(project)
         );
-    }
-
-    private Task findTask(TaskDetails task) {
-        final Project containingProject;
-        if (task.getPath().getPath().contains(":")) {
-            final String normalizedProjectPath = normalizePathToTaskProject(task.getPath().getPath());
-            containingProject = Iterables.getOnlyElement(project.getAllprojects().stream()
-                .filter(p -> p.getPath().equals(normalizedProjectPath))
-                .collect(Collectors.toList()));
-        } else {
-            containingProject = project;
-        }
-
-        return Iterables.getOnlyElement(containingProject.getTasksByName(task.getName(), false));
-    }
-
-    private String normalizePathToTaskProject(String path) {
-        final String pathWithExplicitRoot = path.startsWith(":") ? path : ":" + path;
-        if (!path.contains(":")) {
-            return pathWithExplicitRoot;
-        } else {
-            return pathWithExplicitRoot.substring(0, pathWithExplicitRoot.lastIndexOf(":"));
-        }
     }
 
     private boolean isVisible(String group) {

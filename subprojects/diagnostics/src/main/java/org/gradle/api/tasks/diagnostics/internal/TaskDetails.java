@@ -15,13 +15,16 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public interface TaskDetails {
     Path getPath();
@@ -71,5 +74,28 @@ public interface TaskDetails {
                 return fullTaskTypeName.endsWith(DECORATED_SUFFIX);
             }
         };
+    }
+
+    default Task findTask(Project project) {
+        final Project containingProject;
+        if (getPath().getPath().contains(":")) {
+            final String normalizedProjectPath = normalizePathToTaskProject(getPath().getPath());
+            containingProject = Iterables.getOnlyElement(project.getAllprojects().stream()
+                .filter(p -> p.getPath().equals(normalizedProjectPath))
+                .collect(Collectors.toList()));
+        } else {
+            containingProject = project;
+        }
+
+        return Iterables.getOnlyElement(containingProject.getTasksByName(getName(), false));
+    }
+
+    default String normalizePathToTaskProject(String path) {
+        final String pathWithExplicitRoot = path.startsWith(":") ? path : ":" + path;
+        if (!path.contains(":")) {
+            return pathWithExplicitRoot;
+        } else {
+            return pathWithExplicitRoot.substring(0, pathWithExplicitRoot.lastIndexOf(":"));
+        }
     }
 }
