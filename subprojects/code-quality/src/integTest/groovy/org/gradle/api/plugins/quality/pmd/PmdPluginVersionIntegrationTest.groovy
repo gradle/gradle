@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -25,6 +26,8 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assume.assumeTrue
 
+// https://github.com/gradle/gradle-private/issues/3465
+@IgnoreIf({ GradleContextualExecuter.isParallel() })
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     def setup() {
