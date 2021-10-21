@@ -916,12 +916,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails("ok", "-DPROP=12")
 
         then:
-        outputContains("Configuration cache entry discarded with 16 problems.")
-        // TODO - use fixture. Need to be able to accept a range of expected problem counts
+        outputContains("Configuration cache entry discarded with 16 problems")
         problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 16
             withInput("Script 'script.gradle': system property 'PROP'")
+            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
-        failure.assertThatDescription(containsNormalizedString("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported"))
     }
 
     def "reports problems from deferred task configuration action block"() {
