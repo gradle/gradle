@@ -1,5 +1,7 @@
 [plugins]
 simple = "org.example:1.0"
+simple-no-version = "org.example"
+with-id-no-version = { id = "org.example"}
 with-id = { id = "org.example", version = "1.1"}
 with-ref = { id = "org.example", version.ref = "ref"}
 with-rich1 = { id = "org.example", version = { prefer = "1.0" } }

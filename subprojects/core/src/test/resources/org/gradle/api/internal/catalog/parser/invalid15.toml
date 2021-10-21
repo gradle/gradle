@@ -1,2 +1,2 @@
 [plugins]
-my = "some.plugin.id" # no version!
+my = "some.plugin.id:name:1.0" # three parts

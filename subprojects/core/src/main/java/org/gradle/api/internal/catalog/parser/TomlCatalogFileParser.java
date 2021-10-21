@@ -332,7 +332,12 @@ public class TomlCatalogFileParser {
         Object coordinates = librariesTable.get(alias);
         if (coordinates instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) coordinates);
-            if (splitted.size() == 2) {
+            if (splitted.size() == 1) {
+                String id = notEmpty(builder, splitted.get(0), "id", alias);
+                StrictVersionParser.RichVersion rich = StrictVersionParser.RichVersion.EMPTY;
+                registerPlugin(builder, alias, id, null, rich.require, rich.strictly, rich.prefer, null, null);
+                return;
+            } else if (splitted.size() == 2) {
                 String id = notEmpty(builder, splitted.get(0), "id", alias);
                 String version = notEmpty(builder, splitted.get(1), "version", alias);
                 StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
@@ -342,7 +347,7 @@ public class TomlCatalogFileParser {
                 throwVersionCatalogProblem(builder, VersionCatalogProblemId.INVALID_PLUGIN_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + coordinates + "' is not a valid plugin notation")
                         .happensBecause(() -> "When using a string to declare plugin coordinates, you must use a valid plugin notation")
-                        .addSolution("Make sure that the coordinates consist of 2 parts separated by colons, eg: my.plugin.id:1.2")
+                        .addSolution("Make sure that the coordinates consist of 1 or 2 parts separated by colons, eg: my.plugin.id or my.plugin.id:1.2")
                         .documented());
             }
         }

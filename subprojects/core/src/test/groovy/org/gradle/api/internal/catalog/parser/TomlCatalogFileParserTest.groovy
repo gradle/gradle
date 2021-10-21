@@ -210,6 +210,8 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
 
         then:
         hasPlugin('simple', 'org.example', '1.0')
+        hasPlugin('simple.no.version', 'org.example', '')
+        hasPlugin('with.id.no.version', 'org.example', '')
         hasPlugin('with.id', 'org.example', '1.1')
         hasPlugin('with.ref') {
             withId 'org.example'
@@ -311,7 +313,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         'invalid12' | "In version catalog libs, unknown top level elements [toto, tata]"
         'invalid13' | "Expected an array but value of 'groovy' is a string."
         'invalid14' | "In version catalog libs, version reference 'nope' doesn't exist"
-        'invalid15' | "In version catalog libs, on alias 'my' notation 'some.plugin.id' is not a valid plugin notation."
+        'invalid15' | "In version catalog libs, on alias 'my' notation 'some.plugin.id:name:1.0' is not a valid plugin notation."
     }
 
     def "supports dependencies without version"() {
