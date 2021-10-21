@@ -366,6 +366,16 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
         model.getPlugin("my").version.requiredVersion == "1.5"
     }
 
+    def "can declare a plugin without a version"() {
+        builder.alias("my").toPluginId("org.plugin").withoutVersion()
+
+        when:
+        def model = builder.build()
+
+        then:
+        model.getPlugin("my").version.requiredVersion == ""
+    }
+
     def "can create an alias with an empty version"() {
         builder.alias("foo").to("org", "foo").withoutVersion()
 

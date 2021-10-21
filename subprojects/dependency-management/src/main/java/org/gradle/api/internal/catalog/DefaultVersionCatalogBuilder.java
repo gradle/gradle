@@ -551,6 +551,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         public void versionRef(String versionRef) {
             owner.createPluginAliasWithVersionRef(alias, id, versionRef);
         }
+
+        @Override
+        public void withoutVersion() {
+            version("");
+        }
     }
 
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {

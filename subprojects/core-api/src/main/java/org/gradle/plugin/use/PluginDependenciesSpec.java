@@ -138,7 +138,14 @@ public interface PluginDependenciesSpec {
      * @since 7.2
      */
     @Incubating
-    PluginDependencySpec alias(Provider<PluginDependency> notation);
+    default PluginDependencySpec alias(Provider<PluginDependency> notation) {
+        PluginDependency pluginDependency = notation.get();
+        if (pluginDependency.getVersion().getRequiredVersion().isEmpty()) {
+            return id(pluginDependency.getPluginId());
+        } else {
+            return id(pluginDependency.getPluginId()).version(pluginDependency.getVersion().getRequiredVersion());
+        }
+    }
 
     /**
      * Adds a plugin dependency using a notation coming from a version catalog.
@@ -150,6 +157,8 @@ public interface PluginDependenciesSpec {
      * @since 7.3
      */
     @Incubating
-    PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation);
+    default PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
+        return alias(notation.asProvider());
+    }
 
 }

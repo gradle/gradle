@@ -60,6 +60,46 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    def "can apply a plugin declared in a catalog without version"() {
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("settings.gradle") << """
+buildscript {
+    repositories {
+        maven { url '${pluginPortal.uri}' }
+    }
+    dependencies {
+        classpath 'some:artifact:$pluginVersion'
+    }
+}
+
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            alias('$alias').toPluginId('com.acme.greeter').withoutVersion()
+        }
+    }
+}"""
+        withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
+    }
+
     def "can apply a plugin declared in a catalog in a TOML file"() {
         String taskName = 'greet'
         String message = 'Hello from plugin!'
@@ -73,6 +113,42 @@ dependencyResolutionManagement {
             [plugins]
             ${alias.replace('.', '-')} = "$pluginId:${pluginVersion}"
         """
+        withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        alias << ['greeter', 'some.greeter', 'some-greeter']
+    }
+
+    def "can apply a plugin declared in a catalog in a TOML file without version"() {
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("gradle/libs.versions.toml") << """
+            [plugins]
+            ${alias.replace('.', '-')} = "$pluginId"
+        """
+        file("settings.gradle") << """
+buildscript {
+    repositories {
+        maven { url '${pluginPortal.uri}' }
+    }
+    dependencies {
+        classpath 'some:artifact:$pluginVersion'
+    }
+}
+"""
         withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
 
         when:
