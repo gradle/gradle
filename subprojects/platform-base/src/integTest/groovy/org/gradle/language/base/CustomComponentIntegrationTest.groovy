@@ -16,7 +16,7 @@
 
 package org.gradle.language.base
 
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec

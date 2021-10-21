@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import com.google.common.base.Optional
-import groovy.transform.NotYetImplemented
+import groovy.test.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.UnsupportedPropertyValueException
 import org.gradle.internal.typeconversion.DefaultTypeConverter

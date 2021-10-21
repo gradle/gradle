@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import groovy.ant.AntBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
