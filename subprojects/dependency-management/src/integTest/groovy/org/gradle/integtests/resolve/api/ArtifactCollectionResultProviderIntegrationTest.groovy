@@ -51,7 +51,7 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                 @InputFiles
                 abstract ConfigurableFileCollection getArtifactFiles()
 
-                @Internal
+                @InputFiles
                 abstract SetProperty<ResolvedArtifactResult> getResolvedArtifacts()
 
                 @OutputFile
@@ -137,5 +137,49 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
             failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
         failure.assertHasCause("Could not find org:does-not-exist:1.0.")
+    }
+
+
+    def "task is not up-to-date when #useCase changes"() {
+        given:
+        buildFile << """
+            task verify(type: TaskWithArtifactCollectionResultProviderInput) {
+                $taskConfiguration
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+            }
+"""
+        def sourceFile = file("project-lib/src/main/java/Main.java")
+        sourceFile << """
+class Main {}
+"""
+        sourceFile.makeOlder()
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        sourceFile.text = """
+class Main {
+    public static void main(String[] args) {}
+}
+"""
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        where:
+        useCase           | taskConfiguration
+        'files input'     | 'artifactFiles.from(configurations.compile.incoming.artifacts.artifactFiles)\nresolvedArtifacts.empty()'
+        'artifacts input' | 'resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)'
     }
 }
