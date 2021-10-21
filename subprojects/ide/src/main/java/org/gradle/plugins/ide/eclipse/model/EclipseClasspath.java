@@ -349,7 +349,7 @@ public class EclipseClasspath {
                 inferModulePath = JavaModuleDetector.isModuleSource(true, sourceRoots);
             }
         }
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), inferModulePath);
         return classpathFactory.createEntries();
     }
 

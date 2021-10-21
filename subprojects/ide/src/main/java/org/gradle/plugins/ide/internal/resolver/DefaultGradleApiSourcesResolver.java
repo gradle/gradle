@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.project.ProjectInternal.DetachedResolver;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.util.internal.VersionNumber;
@@ -37,10 +37,11 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+)?)-(\\d.*?).jar");
 
-    private final Project project;
+    private final DetachedResolver resolver;
 
-    public DefaultGradleApiSourcesResolver(Project project) {
-        this.project = project;
+    public DefaultGradleApiSourcesResolver(DetachedResolver resolver) {
+        this.resolver = resolver;
+        addGradleLibsRepository();
     }
 
     @Override
@@ -51,16 +52,11 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         }
         VersionNumber version = VersionNumber.parse(matcher.group(3));
         final String artifactName = matcher.group(1);
-        MavenArtifactRepository repository = addGradleLibsRepository();
-        try {
-            return downloadLocalGroovySources(artifactName, version);
-        } finally {
-            project.getRepositories().remove(repository);
-        }
+        return downloadLocalGroovySources(artifactName, version);
     }
 
     private File downloadLocalGroovySources(String artifact, VersionNumber version) {
-        ArtifactResolutionResult result = project.getDependencies().createArtifactResolutionQuery()
+        ArtifactResolutionResult result = resolver.getDependencies().createArtifactResolutionQuery()
             .forModule("org.codehaus.groovy", artifact, version.toString())
             .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
             .execute();
@@ -76,7 +72,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private MavenArtifactRepository addGradleLibsRepository() {
-        return project.getRepositories().maven(a -> {
+        return resolver.getRepositories().maven(a -> {
             a.setName("Gradle Libs");
             a.setUrl(gradleLibsRepoUrl());
         });
