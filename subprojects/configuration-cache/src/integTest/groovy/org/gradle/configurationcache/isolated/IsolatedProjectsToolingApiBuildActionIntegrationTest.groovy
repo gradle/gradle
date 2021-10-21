@@ -253,7 +253,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
-    def "caches execution of phased BuildAction that queries custom tooling model"() {
+    def "caches execution of BuildAction that queries each model multiple times"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
         settingsFile << """
@@ -269,15 +269,10 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
+        model.size() == 4
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
 
@@ -285,24 +280,18 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelCreated(2)
-            modelsCreated(":", 2)
-            modelsCreated(":a", 2)
+            buildModelCreated()
+            modelsCreated(":", ":a")
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
+        model2.size() == 4
         model2[0].message == "It works from project :"
         model2[1].message == "It works from project :a"
 
@@ -312,20 +301,15 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         when:
         buildFile << """
-            // some change
+            myExtension.message = 'this is the root project'
         """
 
         executer.withArguments(ENABLE_CLI)
-        def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())
+        def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages3 = models3.left
-        messages3.size() == 2
-        messages3[0] == "It works from project :"
-        messages3[1] == "It works from project :a"
-        def model3 = models3.right
-        model3.size() == 2
-        model3[0].message == "It works from project :"
+        model3.size() == 4
+        model3[0].message == "this is the root project"
         model3[1].message == "It works from project :a"
 
         and:
@@ -333,139 +317,22 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelCreated(2)
-            modelsCreated(":", 2)
-            modelsCreated(":a", 2)
-        }
-        outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-    }
-
-    def "caches execution of phased BuildAction that queries custom tooling model and that may, but does not actually, run tasks"() {
-        given:
-        withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
-        buildFile << """
-            plugins.apply(my.MyPlugin)
-        """
-        file("a/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            // Empty list means "run tasks defined by build logic or default task"
-            forTasks([])
-        }
-
-        then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
-        model[0].message == "It works from project :"
-        model[1].message == "It works from project :a"
-
-        and:
-        fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated(2)
-            modelsCreated(":", 2)
-            modelsCreated(":a", 2)
+            buildModelCreated()
+            modelsCreated(":", ":a")
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
 
         when:
         executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks([])
-        }
+        def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
-        model2[0].message == "It works from project :"
-        model2[1].message == "It works from project :a"
+        model4.size() == 4
+        model4[0].message == "this is the root project"
+        model4[1].message == "It works from project :a"
 
         and:
         fixture.assertStateLoaded()
-        outputDoesNotContain("creating model")
-    }
-
-    def "caches execution of phased BuildAction that queries custom tooling model and that runs tasks"() {
-        given:
-        withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
-        buildFile << """
-            plugins.apply(my.MyPlugin)
-        """
-        file("a/build.gradle") << """
-            plugins.apply(my.MyPlugin)
-            task thing { }
-        """
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks(["thing"])
-        }
-
-        then:
-        def messages = models.left
-        messages.size() == 2
-        messages[0] == "It works from project :"
-        messages[1] == "It works from project :a"
-        def model = models.right
-        model.size() == 2
-        model[0].message == "It works from project :"
-        model[1].message == "It works from project :a"
-
-        and:
-        fixture.assertStateStored {
-            projectConfigured(":buildSrc")
-            projectConfigured(":b")
-            buildModelCreated(2)
-            modelsCreated(":", 2)
-            modelsCreated(":a", 2)
-        }
-        outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
-
-        when:
-        executer.withArguments(ENABLE_CLI)
-        def models2 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            forTasks(["thing"])
-        }
-
-        then:
-        def messages2 = models2.left
-        messages2.size() == 2
-        messages2[0] == "It works from project :"
-        messages2[1] == "It works from project :a"
-        def model2 = models2.right
-        model2.size() == 2
-        model2[0].message == "It works from project :"
-        model2[1].message == "It works from project :a"
-
-        and:
-        fixture.assertStateLoaded()
-        outputDoesNotContain("creating model")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
     }
 }

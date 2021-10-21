@@ -131,18 +131,25 @@ class IsolatedProjectsFixture {
         closure.delegate = details
         closure()
 
-        def reason
-        if (details.changedFile != null) {
-            reason = "file '$details.changedFile'"
-        } else {
-            reason = "Gradle property '$details.changedGradleProperty'"
+        // Inputs can be discovered in parallel, so required that any one of the changed inputs is reported
+        def reasons = []
+        details.changedFiles.each { file ->
+            reasons.add("file '${file.replace('/', File.separator)}'")
+        }
+        if (details.changedGradleProperty != null) {
+            reasons.add("Gradle property '$details.changedGradleProperty'")
         }
 
-        if (details.models.isEmpty()) {
-            spec.outputContains("Creating task graph as configuration cache cannot be reused because $reason has changed.")
-        } else {
-            spec.outputContains("Creating tooling model as configuration cache cannot be reused because $reason has changed.")
+        def messages = reasons.collect { reason ->
+            if (details.models.isEmpty()) {
+                "Creating task graph as configuration cache cannot be reused because $reason has changed."
+            } else {
+                "Creating tooling model as configuration cache cannot be reused because $reason has changed."
+            }
         }
+
+        def found = messages.any { message -> spec.output.contains(message) }
+        assert found: "could not find expected invalidation reason in output. expected: ${messages}"
         spec.postBuildOutputContains("Configuration cache entry stored.")
         assertHasWarningThatIncubatingFeatureUsed()
 
@@ -287,11 +294,11 @@ class IsolatedProjectsFixture {
     }
 
     static class StoreRecreatedDetails extends StoreDetails {
-        String changedFile
+        List<String> changedFiles = []
         String changedGradleProperty
 
         void fileChanged(String name) {
-            changedFile = name
+            changedFiles.add(name)
         }
 
         void gradlePropertyChanged(String name) {
