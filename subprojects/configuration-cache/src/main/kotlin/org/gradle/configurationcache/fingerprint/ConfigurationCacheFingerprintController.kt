@@ -27,6 +27,8 @@ import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.concurrent.Stoppable
@@ -63,7 +65,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val report: ConfigurationCacheReport
 ) : Stoppable {
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
@@ -247,6 +250,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
+
+        override fun reportInput(input: PropertyProblem) =
+            report.onInput(input)
     }
 
     private
