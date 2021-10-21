@@ -31,6 +31,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 
 import java.util.concurrent.Callable;
 
@@ -71,7 +72,8 @@ public class ScalaPlugin implements Plugin<Project> {
                 return files;
             });
             scalaDoc.setSource(main.getExtensions().getByType(ScalaSourceDirectorySet.class));
-            scalaDoc.setCompilationOutputs(main.getOutput());
+            scalaDoc.setCompilationOutputs(main.getOutput()); // .getAsFileTree().matching(pattern -> pattern.include("**/*.tasty"))
+
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");
