@@ -46,6 +46,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The task. Returns null if so such task exists.
      */
     @Nullable
+    @Deprecated
     Task findByPath(String path);
 
     /**
@@ -57,6 +58,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The task. Never returns null
      * @throws UnknownTaskException If no task with the given path exists.
      */
+    @Deprecated
     Task getByPath(String path) throws UnknownTaskException;
 
     /**
@@ -105,6 +107,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
+    @Deprecated
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
     /**
@@ -121,6 +124,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
+    @Deprecated
     Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
 
     /**
@@ -137,6 +141,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
     @Override
+    @Deprecated
     Task create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
@@ -151,6 +156,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
     @Override
+    @Deprecated
     Task create(String name) throws InvalidUserDataException;
 
     /**
@@ -166,6 +172,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
     @Override
+    @Deprecated
     <T extends Task> T create(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
@@ -185,6 +192,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      * @since 4.7
      */
+    @Deprecated
     <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
@@ -201,6 +209,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
     @Override
+    @Deprecated
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 
     /**
@@ -287,6 +296,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
+    @Deprecated
     Task replace(String name);
 
     /**
@@ -301,5 +311,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
+    @Deprecated
     <T extends Task> T replace(String name, Class<T> type);
 }
