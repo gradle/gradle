@@ -121,6 +121,9 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                 artifactFiles.from(configurations.compile.incoming.artifacts.artifactFiles)
                 resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)
                 outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    assert resolvedArtifacts.get().size == 3
+                }
             }
         """
 
