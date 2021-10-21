@@ -540,8 +540,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 inputs.files mytest.testClassesDirs
 
                 doLast {
-                    assert mytest.testClassesDirs // This is setup by the jvm-test-suite plugin, applied by the java plugin
-                    assert !mytest.testClassesDirs.empty
+                    assert inputs.files.files // This is setup by the jvm-test-suite plugin, applied by the java plugin
+                    assert !inputs.files.files.empty
                 }
             }
         """
@@ -551,21 +551,22 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
     def "custom Test tasks still function if java plugin is never applied to create sourcesets"() {
-        buildFile << """
+       buildFile << """
             tasks.withType(Test) {
                 // realize all test tasks
             }
 
+            def customClassesDir = file('src/custom/java')
             tasks.register("mytest", Test) {
-                // Must ensure a base dir is set here, even if it doesn't exist
-                testClassesDirs = fileTree('src/custom/java')
+                // Must ensure a base dir is set here
+                testClassesDirs = files(customClassesDir)
             }
 
             task assertNoTestClasses {
                 inputs.files mytest.testClassesDirs
 
                 doLast {
-                    assert mytest.testClassesDirs.getDir() == file('src/custom/java')
+                    assert inputs.files.contains(customClassesDir)
                 }
             }
         """
