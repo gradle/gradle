@@ -256,7 +256,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         // expect: memory hog released
         val runs = 20
         // For some reason we have 5 references to the task class.
-        val daemonHeapMb = memoryHogMb * 5 + 96
+        val daemonHeapMb = memoryHogMb * 5 + 128
         for (run in 1..runs) {
             println("Run number $run")
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
