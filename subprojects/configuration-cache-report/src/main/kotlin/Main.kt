@@ -43,8 +43,7 @@ external interface JsModel {
     val cacheAction: String
     val documentationLink: String
     val totalProblemCount: Int
-    val problems: Array<JsDiagnostic>
-    val inputs: Array<JsDiagnostic>
+    val diagnostics: Array<JsDiagnostic>
 }
 
 
@@ -121,12 +120,12 @@ data class ImportedProblem(
 
 private
 fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.Model {
-    val diagnostics = importDiagnostics(jsModel.problems)
+    val diagnostics = importDiagnostics(jsModel.diagnostics)
     return ConfigurationCacheReportPage.Model(
         cacheAction = jsModel.cacheAction,
         documentationLink = jsModel.documentationLink,
         totalProblems = jsModel.totalProblemCount,
-        reportedProblems = jsModel.problems.size,
+        reportedProblems = diagnostics.problems.size,
         messageTree = treeModelFor(
             ProblemNode.Label("Problems grouped by message"),
             problemNodesByMessage(diagnostics.problems)
