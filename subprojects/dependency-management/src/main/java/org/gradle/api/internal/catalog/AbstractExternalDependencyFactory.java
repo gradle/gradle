@@ -138,7 +138,9 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                     params.getPluginName().set(name);
                     params.getWithoutVersion().set(withoutVersion);
                 }));
-            return new DefaultPluginDependencyProvider(provider, createPlugin(name, true));
+            return withoutVersion
+                ? new DefaultPluginDependencyProvider(provider, provider)
+                : new DefaultPluginDependencyProvider(provider, createPlugin(name, true));
         }
     }
 }

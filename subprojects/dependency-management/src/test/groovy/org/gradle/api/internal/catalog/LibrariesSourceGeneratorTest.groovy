@@ -239,16 +239,16 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         def bundle = libs.bundles.myBundle.get()
         assert bundle == [foo, bar]
 
-        def plugin = libs.plugins.pl.get()
+        def plugin = libs.plugins.pl.asProvider().get()
         plugin.pluginId == 'org.plugin'
         plugin.version.requiredVersion == '1.2'
         def pluginWithoutVersion = libs.plugins.pl.withoutVersion.get()
         pluginWithoutVersion.pluginId == 'org.plugin'
         pluginWithoutVersion.version.requiredVersion == ''
-        def pluginSub = libs.pl.sub.get()
+        def pluginSub = libs.plugins.pl.sub.get()
         pluginSub.pluginId == 'org.plugin2'
         pluginSub.version.requiredVersion == '1.4'
-        def pluginSubWithoutVersion = libs.pl.sub.withoutVersion.get()
+        def pluginSubWithoutVersion = libs.plugins.pl.sub.withoutVersion.get()
         pluginSubWithoutVersion.pluginId == 'org.plugin2'
         pluginSubWithoutVersion.version.requiredVersion == ''
     }

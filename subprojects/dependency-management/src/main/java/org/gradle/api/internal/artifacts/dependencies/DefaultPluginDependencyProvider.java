@@ -90,4 +90,5 @@ public class DefaultPluginDependencyProvider implements PluginDependencyProvider
     public Provider<PluginDependency> getWithoutVersion() {
         return withoutVersion;
     }
+
 }
