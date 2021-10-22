@@ -58,7 +58,7 @@ import static java.util.Collections.emptyList;
 public class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
-    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
+    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class).convention(false);
     private String group;
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
     private transient TaskReportRenderer renderer;
@@ -120,7 +120,6 @@ public class TaskReportTask extends ConventionReportTask {
      *
      * @since 7.4
      */
-    @Console
     @Incubating
     public Property<Boolean> isShowTypes() {
         return showTypes;
