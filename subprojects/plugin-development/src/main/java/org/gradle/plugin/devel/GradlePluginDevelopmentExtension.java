@@ -62,7 +62,7 @@ import java.util.Set;
 public class GradlePluginDevelopmentExtension {
 
     private SourceSet pluginSourceSet;
-    private SourceSetContainer testSourceSets;
+    private final SourceSetContainer testSourceSets;
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
     private boolean automatedPublishing = true;
 
@@ -86,21 +86,55 @@ public class GradlePluginDevelopmentExtension {
         this.pluginSourceSet = pluginSourceSet;
     }
 
-    /**
-     * Adds a source set to the collection which will be using TestKit.
-     * <p>
-     * Calling this method multiple times with different source sets is additive.
+     /**
+     * Adds some source sets to the collection which will be using TestKit.
+     *
+     * Calling this method multiple times with different source sets is <strong>additive</strong> - this method
+     * will add to the existing collection of source sets.
      *
      * @param testSourceSets the test source sets
+     * @since 7.4
      */
-    public void testSourceSets(SourceSet... testSourceSets) {
+    @Incubating
+    public void addTestSourceSets(SourceSet... testSourceSets) {
         this.testSourceSets.addAll(Arrays.asList(testSourceSets));
     }
 
     /**
      * Lazily adds source sets to the collection which will be using TestKit.
      * <p>
-     * Calling this method multiple times with different source set providers is additive.
+     * Calling this method multiple times with different source set providers is <strong>additive</strong> - this method
+     * will add to the existing collection of source sets.
+     *
+     * @param testSourceSets the test source set {@link Provider}s to include
+     * @since 7.4
+     */
+    @Incubating
+    @SafeVarargs
+    public final void addTestSourceSets(Provider<SourceSet>... testSourceSets) {
+        for (Provider<SourceSet> testSourceSet : testSourceSets) {
+            this.testSourceSets.addLater(testSourceSet);
+        }
+    }
+
+    /**
+     * Provides the source sets executing the functional tests with TestKit.
+     * <p>
+     * Calling this method multiple times with different source sets is <strong>NOT</strong> additive.  Calling this
+     * method will overwrite any existing test source sets with the provided arguments.
+     *
+     * @param testSourceSets the test source sets
+     */
+    public void testSourceSets(SourceSet... testSourceSets) {
+        this.testSourceSets.clear();
+        this.testSourceSets.addAll(Arrays.asList(testSourceSets));
+    }
+
+    /**
+     * Lazily adds source sets to the collection which will be using TestKit.
+     * <p>
+     * Calling this method multiple times with different source set providers is <strong>NOT</strong> additive.  Calling this
+     * method will overwrite any existing test source sets with the provided arguments.
      *
      * @param testSourceSets the test source set {@link Provider}s to include
      * @since 7.4
@@ -108,6 +142,7 @@ public class GradlePluginDevelopmentExtension {
     @Incubating
     @SafeVarargs
     public final void testSourceSets(Provider<SourceSet>... testSourceSets) {
+        this.testSourceSets.clear();
         for (Provider<SourceSet> testSourceSet : testSourceSets) {
             this.testSourceSets.addLater(testSourceSet);
         }

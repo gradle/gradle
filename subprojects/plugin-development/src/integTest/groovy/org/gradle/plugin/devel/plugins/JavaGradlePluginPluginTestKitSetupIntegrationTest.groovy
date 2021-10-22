@@ -116,7 +116,53 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
-    def "configuration of test source sets by extension is additive"() {
+    def "configuration of test source sets by extension using the addTestSourceSets method is additive"() {
+        given:
+        buildFile << """
+            sourceSets {
+                integrationTest {
+                    java {
+                        srcDir 'src/integration/java'
+                    }
+                }
+
+                functionalTest {
+                    java {
+                        srcDir 'src/functional/java'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                addTestSourceSets sourceSets.functionalTest
+            }
+
+            gradlePlugin {
+                addTestSourceSets sourceSets.integrationTest
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assertFunctionalTestHasTestKit', 'assertIntegrationTestHasTestKit'
+    }
+
+    def "configuration of test source sets by extension using testSourceSets method is NOT additive"() {
         given:
         buildFile << """
             sourceSets {
@@ -145,7 +191,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                 def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
                 def testKit = dependencies.gradleTestKit().files
                 doLast {
-                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
                 }
             }
 
@@ -189,10 +235,52 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         succeeds 'assertFunctionalTestHasTestKit'
     }
 
-    def "can mix lazy and non-lazy configuration of test source"() {
+    def "can mix lazy and non-lazy configuration of test source sets"() {
         given:
         buildFile << """
             def integrationTest = sourceSets.create('integrationTest') {
+                java {
+                    srcDir 'src/integration/java'
+                }
+            }
+
+            def functionalTest = sourceSets.register('functionalTest') {
+                java {
+                    srcDir 'src/functional/java'
+                }
+            }
+
+            gradlePlugin {
+                addTestSourceSets integrationTest
+                addTestSourceSets functionalTest
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+        """
+
+        expect:
+        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
+    }
+
+    def "lazy configuration of test source sets with testSourceSets method is NOT additive"() {
+        given:
+        buildFile << """
+            def integrationTest = sourceSets.register('integrationTest') {
                 java {
                     srcDir 'src/integration/java'
                 }
@@ -213,7 +301,49 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                 def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
                 def testKit = dependencies.gradleTestKit().files
                 doLast {
+                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
                     assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+        """
+
+        expect:
+        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
+    }
+
+    def "usage of NON additive testSourceSets method overwrites earlier additive usage of addTestSourceSets"() {
+        given:
+        buildFile << """
+            def integrationTest = sourceSets.register('integrationTest') {
+                java {
+                    srcDir 'src/integration/java'
+                }
+            }
+
+            def functionalTest = sourceSets.register('functionalTest') {
+                java {
+                    srcDir 'src/functional/java'
+                }
+            }
+
+            gradlePlugin {
+                addTestSourceSets integrationTest
+                testSourceSets functionalTest
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
                 }
             }
 
