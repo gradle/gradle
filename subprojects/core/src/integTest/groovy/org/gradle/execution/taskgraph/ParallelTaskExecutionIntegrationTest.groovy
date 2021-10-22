@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -525,6 +526,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
+    // Stopping the hanging Gradle process fails on Windows
+    @org.gradle.util.Requires(TestPrecondition.LINUX)
     @ToBeImplemented("https://github.com/gradle/gradle/issues/17013")
     def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
         buildFile("""
@@ -574,10 +577,17 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         def daemon = executer.withArgument("outputDeadlock").start()
-        Thread.sleep(10_000)
+        if (!GradleContextualExecuter.configCache) {
+            Thread.sleep(10_000)
+        }
         then:
-        // TODO: The build should finish normally
-        daemon.isRunning()
+        if (GradleContextualExecuter.configCache) {
+            // There is no deadlock with configuration caching, since the resolution already happened.
+            daemon.waitForFinish()
+        } else {
+            // TODO: The build should finish normally
+            assert daemon.isRunning()
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17905")
