@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultPluginDependency;
 import org.gradle.api.provider.Property;
@@ -29,13 +30,17 @@ public abstract class PluginDependencyValueSource implements ValueSource<PluginD
         Property<String> getPluginName();
 
         Property<DefaultVersionCatalog> getConfig();
+
+        Property<Boolean> getWithoutVersion();
     }
 
     @Override
     public PluginDependency obtain() {
         String pluginName = getParameters().getPluginName().get();
         PluginModel data = getParameters().getConfig().get().getPlugin(pluginName);
-        ImmutableVersionConstraint version = data.getVersion();
+        ImmutableVersionConstraint version = getParameters().getWithoutVersion().getOrElse(false)
+            ? DefaultImmutableVersionConstraint.of()
+            : data.getVersion();
         return new DefaultPluginDependency(
             data.getId(), new DefaultMutableVersionConstraint(version)
         );

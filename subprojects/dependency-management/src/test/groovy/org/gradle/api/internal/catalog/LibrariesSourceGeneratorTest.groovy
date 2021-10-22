@@ -221,6 +221,7 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
             alias('bar') to 'g2:a2:v2'
             bundle('myBundle', ['foo', 'bar'])
             alias('pl') toPluginId('org.plugin') version('1.2')
+            alias('pl-sub') toPluginId('org.plugin2') version('1.4')
         }
 
         then:
@@ -241,6 +242,15 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         def plugin = libs.plugins.pl.get()
         plugin.pluginId == 'org.plugin'
         plugin.version.requiredVersion == '1.2'
+        def pluginWithoutVersion = libs.plugins.pl.withoutVersion.get()
+        pluginWithoutVersion.pluginId == 'org.plugin'
+        pluginWithoutVersion.version.requiredVersion == ''
+        def pluginSub = libs.pl.sub.get()
+        pluginSub.pluginId == 'org.plugin2'
+        pluginSub.version.requiredVersion = '1.4'
+        def pluginSubWithoutVersion = libs.pl.sub.withoutVersion.get()
+        pluginSubWithoutVersion.pluginId == 'org.plugin2'
+        pluginSubWithoutVersion.version.requiredVersion = ''
     }
 
     @VersionCatalogProblemTestFor(

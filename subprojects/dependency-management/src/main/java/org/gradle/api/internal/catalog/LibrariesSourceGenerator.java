@@ -28,6 +28,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
+import org.gradle.plugin.use.PluginDependencyProvider;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -128,6 +129,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(MutableVersionConstraint.class);
         addImport(Provider.class);
         addImport(ProviderFactory.class);
+        addImport(PluginDependencyProvider.class);
         addImport(AbstractExternalDependencyFactory.class);
         addImport(DefaultVersionCatalog.class);
         addImport(Map.class);
@@ -297,6 +299,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessor(child, AccessorKind.plugin);
         }
+
     }
 
     private void writeSubAccessorFieldFor(ClassNode classNode, AccessorKind kind) throws IOException {
@@ -485,8 +488,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 writeLn(" * This plugin was declared in " + context);
             }
             writeLn(" */");
-            String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
-            writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
+            if (asProvider) {
+                writeLn("public Provider<PluginDependency> asProvider() { return createPlugin(\"" + alias + "\"); }");
+                writeLn("public Provider<PluginDependency> getWithoutVersion() { return createPluginWithoutVersion(\"" + alias + "\"); }");
+            } else {
+                writeLn("public PluginDependencyProvider get" + toJavaName(leafNodeForAlias(alias)) + "() { return createPlugin(\"" + alias + "\"); }");
+            }
         });
         writeLn();
     }

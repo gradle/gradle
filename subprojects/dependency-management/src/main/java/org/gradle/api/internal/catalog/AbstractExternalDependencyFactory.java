@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
+import org.gradle.plugin.use.PluginDependencyProvider;
 
 import javax.inject.Inject;
 
@@ -121,12 +122,27 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
             this.config = config;
         }
 
-        protected Provider<PluginDependency> createPlugin(String name) {
-            return providers.of(PluginDependencyValueSource.class,
+        protected PluginDependencyProvider createPlugin(String name) {
+            return createPlugin(name, false);
+        }
+
+        protected PluginDependencyProvider createPluginWithoutVersion(String name) {
+            return createPlugin(name, true);
+        }
+
+        private PluginDependencyProvider createPlugin(String name, boolean withoutVersion) {
+            Provider<PluginDependency> provider = providers.of(PluginDependencyValueSource.class,
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getPluginName().set(name);
-                }));
+                    params.getWithoutVersion().set(withoutVersion);
+                }))
+            return new PluginDependencyProvider(provider) {
+                @Override
+                public Provider<PluginDependency> getWithoutVersion() {
+                    return createPlugin(name, true);
+                }
+            };
         }
     }
 }
