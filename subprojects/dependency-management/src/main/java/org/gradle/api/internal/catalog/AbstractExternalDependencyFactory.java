@@ -18,6 +18,7 @@ package org.gradle.api.internal.catalog;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultPluginDependencyProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
@@ -136,13 +137,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                     params.getConfig().set(config);
                     params.getPluginName().set(name);
                     params.getWithoutVersion().set(withoutVersion);
-                }))
-            return new PluginDependencyProvider(provider) {
-                @Override
-                public Provider<PluginDependency> getWithoutVersion() {
-                    return createPlugin(name, true);
-                }
-            };
+                }));
+            return new DefaultPluginDependencyProvider(provider, createPlugin(name, true));
         }
     }
 }

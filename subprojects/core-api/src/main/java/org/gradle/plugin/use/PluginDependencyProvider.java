@@ -16,70 +16,17 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
-import java.util.function.BiFunction;
+/**
+ * A provider of a plugin dependency that adds plugin specific functionalities to Provider. Used in version catalog.
+ *
+ * @since 7.4
+ */
+@Incubating
+public interface PluginDependencyProvider extends Provider<PluginDependency> {
 
-public abstract class PluginDependencyProvider implements Provider<PluginDependency> {
+    Provider<PluginDependency> getWithoutVersion();
 
-    private final Provider<PluginDependency> delegate;
-
-    public PluginDependencyProvider(Provider<PluginDependency> delegate) {
-        this.delegate = delegate;
-    }
-
-    @Override
-    public PluginDependency get() {
-        return delegate.get();
-    }
-
-    @Nullable
-    @Override
-    public PluginDependency getOrNull() {
-        return delegate.getOrNull();
-    }
-
-    @Override
-    public PluginDependency getOrElse(PluginDependency defaultValue) {
-        return delegate.getOrElse(defaultValue);
-    }
-
-    @Override
-    public <S> Provider<S> map(Transformer<? extends S, ? super PluginDependency> transformer) {
-        return delegate.map(transformer);
-    }
-
-    @Override
-    public <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super PluginDependency> transformer) {
-        return delegate.flatMap(transformer);
-    }
-
-    @Override
-    public boolean isPresent() {
-        return delegate.isPresent();
-    }
-
-    @Override
-    public Provider<PluginDependency> orElse(PluginDependency value) {
-        return delegate.orElse(value);
-    }
-
-    @Override
-    public Provider<PluginDependency> orElse(Provider<? extends PluginDependency> provider) {
-        return delegate.orElse(provider);
-    }
-
-    @Override
-    public Provider<PluginDependency> forUseAtConfigurationTime() {
-        return delegate.forUseAtConfigurationTime();
-    }
-
-    @Override
-    public <B, R> Provider<R> zip(Provider<B> right, BiFunction<PluginDependency, B, R> combiner) {
-        return delegate.zip(right, combiner);
-    }
-
-    public abstract Provider<PluginDependency> getWithoutVersion();
 }

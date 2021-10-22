@@ -188,6 +188,7 @@ public interface VersionCatalogBuilder extends Named {
          * Do not associate this alias to a particular version, in which
          * case the dependency notation will just have plugin id.
          *
+         * @since 7.4
          */
         void withoutVersion();
 

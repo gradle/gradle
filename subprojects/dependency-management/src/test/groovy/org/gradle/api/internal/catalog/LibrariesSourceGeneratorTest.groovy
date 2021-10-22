@@ -247,10 +247,10 @@ ${nameClash { noIntro().kind('bundles').inConflict('one.cool', 'oneCool').getter
         pluginWithoutVersion.version.requiredVersion == ''
         def pluginSub = libs.pl.sub.get()
         pluginSub.pluginId == 'org.plugin2'
-        pluginSub.version.requiredVersion = '1.4'
+        pluginSub.version.requiredVersion == '1.4'
         def pluginSubWithoutVersion = libs.pl.sub.withoutVersion.get()
         pluginSubWithoutVersion.pluginId == 'org.plugin2'
-        pluginSubWithoutVersion.version.requiredVersion = ''
+        pluginSubWithoutVersion.version.requiredVersion == ''
     }
 
     @VersionCatalogProblemTestFor(
