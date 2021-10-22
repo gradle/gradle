@@ -75,7 +75,7 @@ wrapper (org.gradle.api.tasks.wrapper.Wrapper_Decorated) - Generates Gradle wrap
 
 Help tasks
 ----------
-buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask) - Displays all buildscript dependencies declared in root project '$projectName'.
+buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask_Decorated) - Displays all buildscript dependencies declared in root project '$projectName'.
 dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask_Decorated) - Displays all dependencies declared in root project '$projectName'.
 dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask_Decorated) - Displays the insight into a specific dependency in root project '$projectName'.
 help (org.gradle.configuration.Help_Decorated) - Displays a help message.

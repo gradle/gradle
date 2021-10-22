@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -39,14 +38,7 @@ public interface TaskDetails {
 
     static TaskDetails of(Path path, Task task) {
         return new TaskDetails() {
-            private final String fullTaskTypeName;
-            {
-                if (BuildEnvironmentReportTask.class.isAssignableFrom(task.getClass())) {
-                    fullTaskTypeName = ((BuildEnvironmentReportTask) task).getTaskIdentity().getTaskType().getName();
-                } else {
-                    fullTaskTypeName = task.getClass().getName();
-                }
-            }
+            private final String fullTaskTypeName = task.getClass().getName();
 
             @Override
             public Path getPath() {
