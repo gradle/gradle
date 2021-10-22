@@ -111,7 +111,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
-        getInputProperties() >> ImmutableSortedSet.of()
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
