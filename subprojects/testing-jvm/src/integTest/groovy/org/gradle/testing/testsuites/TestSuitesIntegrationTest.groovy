@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
@@ -528,7 +529,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
-    def "custom Test tasks do not fail to be configured when combined with test suites"() {
+    def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
         buildFile << """
             tasks.withType(Test) {
                 // realize all test tasks
@@ -536,17 +537,35 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("mytest", Test)
             apply plugin: 'java'
 
-            task assertHasClasses {
-                inputs.files mytest.testClassesDirs
+            repositories {
+                ${mavenCentralRepository()}
+            }
 
-                doLast {
-                    assert inputs.files.files // This is setup by the jvm-test-suite plugin, applied by the java plugin
-                    assert !inputs.files.files.empty
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
                 }
             }
-        """
+"""
+        file('src/test/java/example/UnitTest.java') << '''
+            package example;
+
+            import org.junit.Assert;
+            import org.junit.Test;
+
+            public class UnitTest {
+                @Test
+                public void unitTest() {
+                    Assert.assertTrue(true);
+                }
+            }
+        '''
         expect:
-        succeeds("mytest", "assertHasClasses")
+        succeeds("mytest")
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
+        unitTestResults.assertTestClassesExecuted('example.UnitTest')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
