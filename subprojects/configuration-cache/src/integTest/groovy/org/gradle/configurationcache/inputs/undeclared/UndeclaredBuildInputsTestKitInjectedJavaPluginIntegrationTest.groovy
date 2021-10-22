@@ -115,6 +115,7 @@ implementation-class: SneakyPlugin
             args.remove("--no-daemon")
             runner.withArguments(args)
             runner.withPluginClasspath(pluginClasspath)
+            runner.withEnvironment(environmentVars)
             runner.forwardOutput()
             runner
         }

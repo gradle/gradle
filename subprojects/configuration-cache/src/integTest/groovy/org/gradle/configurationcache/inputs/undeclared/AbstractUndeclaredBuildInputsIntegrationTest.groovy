@@ -97,4 +97,49 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         propertyRead                                              | value  | newValue
         SystemPropertyRead.systemGetPropertiesFilterEntries("CI") | "true" | "false"
     }
+
+    @Unroll
+    def "reports undeclared environment variable read using #envVarRead.groovyExpression prior to task execution from plugin"() {
+        buildLogicApplication(envVarRead)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRunLenient "thing"
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("$location: environment variable 'CI'")
+            ignoringUnexpectedInputs()
+        }
+        outputContains("apply = $value")
+        outputContains("task = $value")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRunLenient "thing"
+
+        then:
+        configurationCache.assertStateLoaded()
+        problems.assertResultHasProblems(result)
+        outputDoesNotContain("apply =")
+        outputContains("task = $value")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", newValue).setup(this)
+        configurationCacheRun("thing")
+
+        then: 'undeclared properties are considered build inputs'
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result)
+        outputContains("apply = $newValue")
+        outputContains("task = $newValue")
+
+        where:
+        envVarRead                                          | value  | newValue
+        EnvVariableRead.getEnv("CI")                        | "true" | "false"
+        EnvVariableRead.getEnvGet("CI")                     | "true" | "false"
+        EnvVariableRead.getEnvGetOrDefault("CI", "default") | "true" | "false"
+    }
 }

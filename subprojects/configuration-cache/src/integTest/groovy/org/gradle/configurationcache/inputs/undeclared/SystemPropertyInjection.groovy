@@ -19,6 +19,10 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 
 abstract class SystemPropertyInjection extends BuildInputInjection {
+    List<String> getGradleArgs() {
+        return []
+    }
+
     static List<SystemPropertyInjection> all(String prop, String value) {
         return [
             commandLine(prop, value),

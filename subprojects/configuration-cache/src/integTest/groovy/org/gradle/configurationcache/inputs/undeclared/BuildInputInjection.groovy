@@ -21,10 +21,6 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 abstract class BuildInputInjection {
     abstract String getDescription()
 
-    List<String> getGradleArgs() {
-        return []
-    }
-
     void setup(AbstractConfigurationCacheIntegrationTest test) {
     }
 }
