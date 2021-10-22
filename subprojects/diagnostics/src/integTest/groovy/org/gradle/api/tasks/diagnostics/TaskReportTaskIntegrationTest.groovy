@@ -70,20 +70,20 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
         output.contains("""
 Build Setup tasks
 -----------------
-init (org.gradle.buildinit.tasks.InitBuild_Decorated) - Initializes a new Gradle build.
-wrapper (org.gradle.api.tasks.wrapper.Wrapper_Decorated) - Generates Gradle wrapper files.
+init (org.gradle.buildinit.tasks.InitBuild) - Initializes a new Gradle build.
+wrapper (org.gradle.api.tasks.wrapper.Wrapper) - Generates Gradle wrapper files.
 
 Help tasks
 ----------
-buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask_Decorated) - Displays all buildscript dependencies declared in root project '$projectName'.
-dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask_Decorated) - Displays all dependencies declared in root project '$projectName'.
-dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask_Decorated) - Displays the insight into a specific dependency in root project '$projectName'.
-help (org.gradle.configuration.Help_Decorated) - Displays a help message.
-javaToolchains (org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask_Decorated) - Displays the detected java toolchains.
-outgoingVariants (org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask_Decorated) - Displays the outgoing variants of root project '$projectName'.
-projects (org.gradle.api.tasks.diagnostics.ProjectReportTask_Decorated) - Displays the sub-projects of root project '$projectName'.
-properties (org.gradle.api.tasks.diagnostics.PropertyReportTask_Decorated) - Displays the properties of root project '$projectName'.
-tasks (org.gradle.api.tasks.diagnostics.TaskReportTask_Decorated) - Displays the tasks runnable from root project '$projectName'.""")
+buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask) - Displays all buildscript dependencies declared in root project '$projectName'.
+dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask) - Displays all dependencies declared in root project '$projectName'.
+dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask) - Displays the insight into a specific dependency in root project '$projectName'.
+help (org.gradle.configuration.Help) - Displays a help message.
+javaToolchains (org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask) - Displays the detected java toolchains.
+outgoingVariants (org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask) - Displays the outgoing variants of root project '$projectName'.
+projects (org.gradle.api.tasks.diagnostics.ProjectReportTask) - Displays the sub-projects of root project '$projectName'.
+properties (org.gradle.api.tasks.diagnostics.PropertyReportTask) - Displays the properties of root project '$projectName'.
+tasks (org.gradle.api.tasks.diagnostics.TaskReportTask) - Displays the tasks runnable from root project '$projectName'.""")
     }
 
     def "shows Default task defined in build file when run with --types"() {
@@ -107,7 +107,7 @@ task sayHello {
         output.contains("""
 Build tasks
 -----------
-sayHello (org.gradle.api.DefaultTask_Decorated)""")
+sayHello (org.gradle.api.DefaultTask)""")
     }
 
     def "shows Default tasks with same name defined in multiple projects when run with --types"() {
@@ -139,8 +139,8 @@ task sayHello {
         output.contains("""
 Build tasks
 -----------
-sub1:sayHello (org.gradle.api.DefaultTask_Decorated)
-sub2:sayHello (org.gradle.api.DefaultTask_Decorated)""")
+sub1:sayHello (org.gradle.api.DefaultTask)
+sub2:sayHello (org.gradle.api.DefaultTask)""")
     }
 
     def "shows Custom task defined in build file when run with --types"() {
@@ -169,7 +169,7 @@ task sayHi(type: HelloTask) {
         output.contains("""
 Build tasks
 -----------
-sayHi (HelloTask_Decorated)""")
+sayHi (HelloTask)""")
     }
 
     @Unroll

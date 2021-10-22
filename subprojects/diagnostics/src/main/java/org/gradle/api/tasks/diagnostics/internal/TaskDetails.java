@@ -15,14 +15,13 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import com.google.common.collect.Iterables;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public interface TaskDetails {
     Path getPath();
@@ -34,50 +33,42 @@ public interface TaskDetails {
     @Nullable
     String getDescription();
 
-    String getType();
+    TypeOf<?> getType();
 
     static TaskDetails of(Path path, Task task) {
-        return new TaskDetails() {
-            private final String fullTaskTypeName = task.getClass().getName();
-
-            @Override
-            public Path getPath() {
-                return path;
-            }
-
-            @Override
-            @Nullable
-            public String getDescription() {
-                return task.getDescription();
-            }
-
-            @Override
-            public String getType() {
-                return fullTaskTypeName;
-            }
-        };
+        return new DefaultTaskDetails(path, new DslObject(task).getPublicType(), task.getDescription());
     }
 
-    default Task findTask(Project project) {
-        final Project containingProject;
-        if (getPath().getPath().contains(":")) {
-            final String normalizedProjectPath = normalizePathToTaskProject(getPath().getPath());
-            containingProject = Iterables.getOnlyElement(project.getAllprojects().stream()
-                .filter(p -> p.getPath().equals(normalizedProjectPath))
-                .collect(Collectors.toList()));
-        } else {
-            containingProject = project;
-        }
-
-        return Iterables.getOnlyElement(containingProject.getTasksByName(getName(), false));
+    static TaskDetails of(Path path, TypeOf<?> type, @Nullable String description) {
+        return new DefaultTaskDetails(path, type, description);
     }
 
-    default String normalizePathToTaskProject(String path) {
-        final String pathWithExplicitRoot = path.startsWith(":") ? path : ":" + path;
-        if (!path.contains(":")) {
-            return pathWithExplicitRoot;
-        } else {
-            return pathWithExplicitRoot.substring(0, pathWithExplicitRoot.lastIndexOf(":"));
+    final class DefaultTaskDetails implements TaskDetails {
+        private final Path path;
+        private final TypeOf<?> taskType;
+        @Nullable private final String description;
+
+        private DefaultTaskDetails(Path path, TypeOf<?> taskType, @Nullable String description) {
+            this.path = path;
+            this.taskType = taskType;
+            this.description = description;
         }
+
+        @Override
+        public Path getPath() {
+            return path;
+        }
+
+        @Override
+        public TypeOf<?> getType() {
+            return taskType;
+        }
+
+        @Nullable
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
     }
 }
