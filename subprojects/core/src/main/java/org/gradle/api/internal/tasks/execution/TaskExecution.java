@@ -55,7 +55,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -480,7 +479,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutcome) {
+    public void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {
         taskInputsListeners.broadcastFileSystemInputsOf(task, new CompositeFileCollection() {
             @Override
             public String getDisplayName() {
@@ -490,7 +489,7 @@ public class TaskExecution implements UnitOfWork {
             @Override
             protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
                 for (InputFilePropertySpec filePropertySpec : context.getTaskProperties().getInputFileProperties()) {
-                    if (skipOutcome == null || filePropertySpec.isSkipWhenEmpty()) {
+                    if (!hasEmptySources || filePropertySpec.isSkipWhenEmpty()) {
                         visitor.accept(filePropertySpec.getPropertyFiles());
                     }
                 }

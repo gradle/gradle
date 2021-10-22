@@ -128,7 +128,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
         Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
-        work.broadcastRelevantFileSystemInputs(skipOutcome);
+        work.broadcastRelevantFileSystemInputs(true);
 
         return new CachingResult() {
             @Override
@@ -218,7 +218,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        work.broadcastRelevantFileSystemInputs(null);
+        work.broadcastRelevantFileSystemInputs(false);
         return delegate.execute(work, context);
     }
 

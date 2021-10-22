@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -48,7 +47,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot>of()
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    Optional<ExecutionOutcome> skipOutcome
+    boolean hasEmptySources
 
     @Override
     protected PreviousExecutionContext createContext() {
@@ -59,7 +58,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     def setup() {
-        _ * work.broadcastRelevantFileSystemInputs(_) >> { ExecutionOutcome outcome -> assert skipOutcome == null; skipOutcome = Optional.ofNullable(outcome) }
+        _ * work.broadcastRelevantFileSystemInputs(_) >> { boolean hasEmptySources -> this.hasEmptySources = hasEmptySources }
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
@@ -91,7 +90,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         }) >> delegateResult
         0 * _
 
-        !skipOutcome.present
+        !hasEmptySources
         result == delegateResult
     }
 
@@ -128,7 +127,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        !skipOutcome.present
+        !hasEmptySources
         result == delegateResult
     }
 
@@ -156,7 +155,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * sourceFileFingerprint.empty >> true
 
         then:
-        skipOutcome.get() == SHORT_CIRCUITED
+        hasEmptySources
+        result.executionResult.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
 
@@ -183,7 +183,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        skipOutcome.get() == outcome
+        hasEmptySources
+        result.executionResult.get().outcome == outcome
         !result.afterExecutionState.present
 
         where:

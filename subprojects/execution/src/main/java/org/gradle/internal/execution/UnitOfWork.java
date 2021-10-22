@@ -179,12 +179,11 @@ public interface UnitOfWork extends Describable {
     /**
      * Tell consumers about inputs to watch during the next build.
      *
-     * @param skipOutput {@code null} if the work is not skipped because of empty sources,
-     * or the outcome of how it was skipped.
+     * @param hasEmptySources {@code true} if the work has source properties and those properties are empty fingerprints.
      *
      * @see org.gradle.internal.execution.steps.SkipEmptyWorkStep
      */
-    default void broadcastRelevantFileSystemInputs(@Nullable ExecutionOutcome skipOutput) {}
+    default void broadcastRelevantFileSystemInputs(boolean hasEmptySources) {}
 
     /**
      * Is this work item allowed to load from the cache, or if we only allow it to be stored.
