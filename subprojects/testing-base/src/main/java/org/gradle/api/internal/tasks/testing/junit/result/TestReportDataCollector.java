@@ -59,8 +59,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
             //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
             //this may happen for example when suite initialisation fails and no tests are executed
-            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, EXECUTION_FAILURE);
-            TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
+            String className = suite.getParent() != null ? suite.getParent().getName() : suite.getName();
+            TestClassResult classResult = results.containsKey(className) ? results.get(className) : new TestClassResult(internalIdCounter++, className, result.getStartTime());
+            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, suite.getName());
+
             for (Throwable throwable : result.getExceptions()) {
                 methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
             }
@@ -69,7 +71,10 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             }
             methodResult.completed(result);
             classResult.add(methodResult);
-            results.put(suite.getName(), classResult);
+
+            if (!results.containsKey(className)) {
+                results.put(suite.getName(), classResult);
+            }
         }
     }
 
