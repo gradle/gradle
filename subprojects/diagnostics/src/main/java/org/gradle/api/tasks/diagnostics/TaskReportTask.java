@@ -121,6 +121,7 @@ public class TaskReportTask extends ConventionReportTask {
      * @since 7.4
      */
     @Incubating
+    @Option(option = "types", description = "Show task class types")
     public Property<Boolean> isShowTypes() {
         return showTypes;
     }
