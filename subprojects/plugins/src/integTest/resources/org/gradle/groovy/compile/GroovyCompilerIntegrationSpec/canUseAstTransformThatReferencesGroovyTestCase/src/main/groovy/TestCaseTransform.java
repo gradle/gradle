@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import groovy.test.GroovyTestCase;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.SourceUnit;
