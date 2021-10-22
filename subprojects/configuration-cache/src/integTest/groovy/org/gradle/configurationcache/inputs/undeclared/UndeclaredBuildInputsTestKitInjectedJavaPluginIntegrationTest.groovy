@@ -65,7 +65,7 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         def builder = artifactBuilder()
         javaPlugin(builder.sourceFile("SneakyPlugin.java"), read)
         builder.resourceFile("META-INF/gradle-plugins/sneaky.properties") << """

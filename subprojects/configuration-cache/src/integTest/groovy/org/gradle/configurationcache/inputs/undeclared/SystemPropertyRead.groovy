@@ -16,22 +16,7 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-abstract class SystemPropertyRead {
-    String getJavaExpression() {
-        return getKotlinExpression()
-    }
-
-    String getGroovyExpression() {
-        return getKotlinExpression()
-    }
-
-    abstract String getKotlinExpression()
-
-    @Override
-    String toString() {
-        return getJavaExpression()
-    }
-
+abstract class SystemPropertyRead extends BuildInputRead {
     static SystemPropertyRead systemGetProperty(String name) {
         return new SystemPropertyRead() {
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-class UndeclaredBuildInputsJavaLambdaBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
-    @Override
-    String getLocation() {
-        return "Plugin class 'SneakyPlugin'"
+import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+
+abstract class BuildInputInjection {
+    abstract String getDescription()
+
+    List<String> getGradleArgs() {
+        return []
     }
 
-    @Override
-    void buildLogicApplication(BuildInputRead read) {
-        javaLambdaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"), read)
-        buildFile << """
-            apply plugin: SneakyPlugin
-        """
+    void setup(AbstractConfigurationCacheIntegrationTest test) {
     }
 }

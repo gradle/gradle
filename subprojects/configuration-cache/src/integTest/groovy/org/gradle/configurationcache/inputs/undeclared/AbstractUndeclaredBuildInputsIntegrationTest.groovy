@@ -20,7 +20,7 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    abstract void buildLogicApplication(SystemPropertyRead read)
+    abstract void buildLogicApplication(BuildInputRead read)
 
     abstract String getLocation()
 
