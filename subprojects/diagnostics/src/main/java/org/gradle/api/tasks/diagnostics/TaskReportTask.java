@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
@@ -57,7 +58,7 @@ import static java.util.Collections.emptyList;
 public class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
-    private boolean showTypes;
+    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
     private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
     private transient TaskReportRenderer renderer;
@@ -113,17 +114,6 @@ public class TaskReportTask extends ConventionReportTask {
     }
 
     /**
-     * Sets whether to show the task types next to their names in the output.
-     *
-     * @since 7.4
-     */
-    @Incubating
-    @Option(option = "types", description = "Show task class types")
-    public void setShowTypes(boolean showTypes) {
-        this.showTypes = showTypes;
-    }
-
-    /**
      * Returns whether to show the task types next to their names in the output.
      *
      * This property can be set via command-line option '--types'.
@@ -132,7 +122,7 @@ public class TaskReportTask extends ConventionReportTask {
      */
     @Console
     @Incubating
-    public boolean isShowTypes() {
+    public Property<Boolean> isShowTypes() {
         return showTypes;
     }
 
@@ -198,7 +188,7 @@ public class TaskReportTask extends ConventionReportTask {
 
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
-        renderer.showTypes(isShowTypes());
+        renderer.showTypes(isShowTypes().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;
