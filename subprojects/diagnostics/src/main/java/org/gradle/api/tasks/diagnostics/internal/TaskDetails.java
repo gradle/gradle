@@ -16,7 +16,6 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
@@ -38,12 +37,8 @@ public interface TaskDetails {
 
     String getType();
 
-    boolean isDecoratedType();
-
     static TaskDetails of(Path path, Task task) {
         return new TaskDetails() {
-            private static final String DECORATED_SUFFIX = "_Decorated";
-
             private final String fullTaskTypeName;
             {
                 if (BuildEnvironmentReportTask.class.isAssignableFrom(task.getClass())) {
@@ -66,12 +61,7 @@ public interface TaskDetails {
 
             @Override
             public String getType() {
-                return isDecoratedType() ? StringUtils.removeEnd(fullTaskTypeName, DECORATED_SUFFIX) : fullTaskTypeName;
-            }
-
-            @Override
-            public boolean isDecoratedType() {
-                return fullTaskTypeName.endsWith(DECORATED_SUFFIX);
+                return fullTaskTypeName;
             }
         };
     }

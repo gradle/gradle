@@ -101,9 +101,6 @@ public class TaskReportRenderer extends TextReportRenderer {
         if (showTypes) {
             final StyledTextOutput typeOutput = getTextOutput().withStyle(Info);
             typeOutput.format(" (%s", task.getType());
-            if (task.isDecoratedType()) {
-                typeOutput.text(" [Decorated]");
-            }
             typeOutput.text(")");
         }
     }
