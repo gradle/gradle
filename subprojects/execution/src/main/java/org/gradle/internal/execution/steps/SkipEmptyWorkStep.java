@@ -35,6 +35,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,6 +113,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             .orElse(ImmutableSortedMap.of());
 
         ExecutionOutcome skipOutcome;
+        Timer timer = Time.startTimer();
         if (outputFilesAfterPreviousExecution.isEmpty()) {
             LOGGER.info("Skipping {} as it has no source files and no previous output files.", work.getDisplayName());
             skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
@@ -123,13 +126,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
                 skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
             }
         }
+        Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
 
         work.broadcastRelevantFileSystemInputs(skipOutcome);
 
         return new CachingResult() {
             @Override
             public Duration getDuration() {
-                return Duration.ZERO;
+                return duration;
             }
 
             @Override
