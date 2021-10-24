@@ -173,6 +173,18 @@ public class DaemonParameters {
         jvmOptions.setDebug(debug);
     }
 
+    public void setDebugPort(int debug) {
+        jvmOptions.getDebugOptions().getPort().set(debug);
+    }
+
+    public void setDebugSuspend(boolean suspend) {
+        jvmOptions.getDebugOptions().getSuspend().set(suspend);
+    }
+
+    public void setDebugServer(boolean server) {
+        jvmOptions.getDebugOptions().getServer().set(server);
+    }
+
     public DaemonParameters setBaseDir(File baseDir) {
         this.baseDir = baseDir;
         return this;

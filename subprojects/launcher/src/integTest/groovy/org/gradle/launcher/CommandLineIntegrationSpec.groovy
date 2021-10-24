@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
@@ -78,9 +80,86 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         gradle.waitForFinish()
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    def "can debug on selected port with org.gradle.debug.port"() {
+        given:
+        JDWPUtil jdwpClient = new JDWPUtil()
+
+        when:
+        def gradle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        then:
+        ConcurrentTestUtil.poll() {
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
+        }
+        gradle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @Unroll
+    @Timeout(30)
+    def "reasonable failure message when org.gradle.debug.port=#value"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure
+
+        when:
+        args("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.port=$value")
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasDescription "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a positive number)"
+
+        where:
+        value << ["-1", "0", "1.1", "foo", " 1"]
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Timeout(30)
+    def "can debug with org.gradle.debug.server=false"() {
+        given:
+        JDWPUtil jdwpClient = new JDWPUtil()
+        jdwpClient.listen()
+
+        when:
+        def handle = executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").start()
+
+        and:
+        ConcurrentTestUtil.poll() {
+            jdwpClient.resume()
+        }
+
+        then:
+        handle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18084')
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Timeout(30)
+    def "can debug with org.gradle.debug.suspend=false"() {
+        given:
+        JDWPUtil jdwpClient = new JDWPUtil()
+        jdwpClient.listen()
+
+        expect: 'finish task without the need of resuming the process'
+        executer.withArguments("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.suspend=false", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.port=${jdwpClient.port}").withTasks("help").run()
+
+        cleanup:
+        jdwpClient.close()
+    }
+
     static boolean debugPortIsFree() {
         boolean free = true
-
         ConcurrentTestUtil.poll(30) {
             Socket probe
             try {
@@ -93,7 +172,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
                 probe?.close()
             }
         }
-
         free
     }
+
 }

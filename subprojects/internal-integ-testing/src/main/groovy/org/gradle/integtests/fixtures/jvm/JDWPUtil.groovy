@@ -94,6 +94,10 @@ class JDWPUtil implements TestRule {
         }
     }
 
+    void resume() {
+        vm.resume()
+    }
+
     void close() {
         if (connection && connectionArgs) {
             connection.stopListening(connectionArgs)
