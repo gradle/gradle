@@ -294,7 +294,27 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.abort()
     }
 
-    @Ignore //not yet implemented
+    void "aborts process tree"() {
+        def output = new ByteArrayOutputStream()
+        def execHandle = handle().setStandardOutput(output).setTimeout(5000).args(args(SlowDaemonApp.class)).build()
+
+        when:
+        execHandle.start()
+        // 2.5 sec should be enough for the process to print "'m the daemon"
+        Thread.sleep(2500)
+        // Now we abort it while it still runs
+        execHandle.abort()
+        execHandle.waitForFinish()
+
+        then:
+        output.toString().contains "I'm the daemon"
+        execHandle.state == ExecHandleState.ABORTED
+
+        cleanup:
+        execHandle.abort()
+    }
+
+    @Ignore //not yet implemented: see "when" comment
     void "aborts daemon"() {
         def output = new ByteArrayOutputStream()
         def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build()
@@ -308,6 +328,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         when:
         execHandle.abort()
+        // .abort() does destroy the process, however, DETACHED is treated as "terminal" state, so the state is not updated to ABORTED
         def result = execHandle.waitForFinish()
 
         then:
