@@ -62,13 +62,13 @@ public class ScalaDoc extends SourceTask {
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
-    private ConfigurableFileCollection compilationOutputs;
+    private final ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
-        compilationOutputs = objectFactory.fileCollection();
+        this.compilationOutputs = objectFactory.fileCollection();
     }
 
     @Inject
@@ -114,59 +114,17 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation, after the include and exclude patterns have been applied.
+     * Returns the compilation outputs that Scaladoc.
      *
-     * @return the TASTy compilation outputs to use
+     * @return the compilation outputs produced from the sources
      * @since 7.3
      */
     @Incubating
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getCompilationOutputs() {
-        return compilationOutputs.getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
-    }
-
-    /**
-     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
-     *
-     * @param compilationOutputs the outputs to use
-     *
-     * @since 7.3
-     */
-    @Incubating
-    public void setCompilationOutputs(FileTree compilationOutputs) {
-        this.compilationOutputs.setFrom(compilationOutputs);
-    }
-
-    /**
-     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
-     *
-     * @param compilationOutputs the outputs to use
-     *
-     * @since 7.3
-     */
-    @Incubating
-    public void setCompilationOutputs(Object compilationOutputs) {
-        this.compilationOutputs.setFrom(compilationOutputs);
-    }
-
-    /**
-     * Adds compilation outputs that Scaladoc for Scala 3 should use for generation.  The given objects will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
-     *
-     * @param compilationOutputs the outputs to use
-     *
-     * @since 7.3
-     */
-    @Incubating
-    public void compilationOutputs(Object... compilationOutputs) {
-        this.compilationOutputs.from(compilationOutputs);
+    public ConfigurableFileCollection getCompilationOutputs() {
+        return compilationOutputs;
     }
 
     /**
@@ -269,7 +227,7 @@ public class ScalaDoc extends SourceTask {
             boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
-                parameters.getSources().from(getCompilationOutputs());
+                parameters.getSources().from(getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty")));
             } else {
                 parameters.getSources().from(getSource());
             }

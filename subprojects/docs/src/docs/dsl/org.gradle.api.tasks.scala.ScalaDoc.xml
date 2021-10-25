@@ -62,9 +62,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>compilationOutputs</td>
-            </tr>
         </table>
     </section>
 </section>
