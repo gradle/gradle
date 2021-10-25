@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.reflect.TypeOf;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -33,24 +32,24 @@ public interface TaskDetails {
     @Nullable
     String getDescription();
 
-    TypeOf<?> getType();
+    String getTypeName();
 
     static TaskDetails of(Path path, Task task) {
-        return new DefaultTaskDetails(path, new DslObject(task).getPublicType(), task.getDescription());
+        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription());
     }
 
-    static TaskDetails of(Path path, TypeOf<?> type, @Nullable String description) {
-        return new DefaultTaskDetails(path, type, description);
+    static TaskDetails of(Path path, String typeName, @Nullable String description) {
+        return new DefaultTaskDetails(path, typeName, description);
     }
 
     final class DefaultTaskDetails implements TaskDetails {
         private final Path path;
-        private final TypeOf<?> taskType;
+        private final String typeName;
         @Nullable private final String description;
 
-        private DefaultTaskDetails(Path path, TypeOf<?> taskType, @Nullable String description) {
+        private DefaultTaskDetails(Path path, String typeName, @Nullable String description) {
             this.path = path;
-            this.taskType = taskType;
+            this.typeName = typeName;
             this.description = description;
         }
 
@@ -60,8 +59,8 @@ public interface TaskDetails {
         }
 
         @Override
-        public TypeOf<?> getType() {
-            return taskType;
+        public String getTypeName() {
+            return typeName;
         }
 
         @Nullable
