@@ -19,6 +19,7 @@ package org.gradle.scala
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 
@@ -87,7 +88,7 @@ class ScalaCompilationFixture {
             }
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${scalaVersion}"
+                implementation "${scalaDependency}"
             }
 
             sourceSets {
@@ -101,6 +102,14 @@ class ScalaCompilationFixture {
             sourceCompatibility = '${sourceCompatibility}'
             targetCompatibility = '${sourceCompatibility}'
         """.stripIndent()
+    }
+
+    String getScalaDependency() {
+        if (VersionNumber.parse(scalaVersion) < VersionNumber.parse('3.0')) {
+            return "org.scala-lang:scala-library:${scalaVersion}"
+        } else {
+            return "org.scala-lang:scala3-library_3:${scalaVersion}"
+        }
     }
 
     void baseline() {
