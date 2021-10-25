@@ -27,6 +27,7 @@ class ScalaCompilationFixture {
     final ScalaClass basicClassSource
     final ScalaClass classDependingOnBasicClassSource
     final ScalaClass independentClassSource
+    final ScalaClass extraClass
     final String sourceSet
     String scalaVersion
     String zincVersion
@@ -68,6 +69,11 @@ class ScalaCompilationFixture {
             'class Other',
             'class Other(val some: String)'
         )
+        extraClass = new ScalaClass(
+            'City',
+            'class City',
+            'class City(val name: String)'
+        )
     }
 
     def buildScript() {
@@ -101,6 +107,10 @@ class ScalaCompilationFixture {
         basicClassSource.create()
         classDependingOnBasicClassSource.create()
         independentClassSource.create()
+    }
+
+    void extra() {
+        extraClass.create()
     }
 
     List<ScalaClass> getAll() {

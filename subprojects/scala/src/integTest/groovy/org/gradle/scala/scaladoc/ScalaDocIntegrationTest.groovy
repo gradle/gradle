@@ -20,6 +20,7 @@ import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.scala.ScalaCompilationFixture
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 
@@ -106,5 +107,50 @@ dependencies {
 
         then:
         executedAndNotSkipped scaladoc, ":compileScala"
+    }
+
+    @IgnoreRest
+    def 'scaladoc multi project scala 3'() {
+        classes.baseline()
+        given:
+        settingsFile << """
+include(':utils')
+"""
+        buildFile << """
+plugins {
+    id 'java-library'
+    id 'scala'
+}
+
+${mavenCentralRepository()}
+
+dependencies {
+    implementation 'org.scala-lang:scala3-library_3:3.0.1'
+    implementation project(':utils')
+}
+
+"""
+        def utilsDir = testDirectory.createDir('utils')
+        utilsDir.createFile('build.gradle') << """
+plugins {
+    id 'java-library'
+    id 'scala'
+}
+
+${mavenCentralRepository()}
+
+dependencies {
+    implementation 'org.scala-lang:scala3-library_3:3.0.1'
+}
+"""
+        def utilsClasses = new ScalaCompilationFixture(utilsDir)
+        utilsClasses.extra()
+
+        when:
+        succeeds scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc, ":compileScala"
+        testDirectory.file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
     }
 }
