@@ -21,11 +21,11 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import java.util.Objects;
 
 final class PublicationWithProject {
-    private final String projectPath;
+    private final String projectDisplayText;
     private final PublicationInternal<?> publication;
 
-    PublicationWithProject(String projectPath, PublicationInternal<?> publication) {
-        this.projectPath = projectPath;
+    PublicationWithProject(String projectDisplayText, PublicationInternal<?> publication) {
+        this.projectDisplayText = projectDisplayText;
         this.publication = publication;
     }
 
@@ -35,7 +35,7 @@ final class PublicationWithProject {
 
     @Override
     public String toString() {
-        return "'" + publication.getName() + "' in " + projectPath;
+        return "'" + publication.getName() + "' in " + projectDisplayText;
     }
 
     @Override
@@ -47,11 +47,11 @@ final class PublicationWithProject {
             return false;
         }
         PublicationWithProject that = (PublicationWithProject) o;
-        return Objects.equals(projectPath, that.projectPath) && Objects.equals(publication, that.publication);
+        return Objects.equals(projectDisplayText, that.projectDisplayText) && Objects.equals(publication, that.publication);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectPath, publication);
+        return Objects.hash(projectDisplayText, publication);
     }
 }
