@@ -230,14 +230,14 @@ public class ScalaDoc extends SourceTask {
                 parameters.getSources().from(getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty")));
             } else {
                 parameters.getSources().from(getSource());
-            }
 
-            if (options.isDeprecation()) {
-                parameters.getOptions().add("-deprecation");
-            }
+                if (options.isDeprecation()) {
+                    parameters.getOptions().add("-deprecation");
+                }
 
-            if (options.isUnchecked()) {
-                parameters.getOptions().add("-unchecked");
+                if (options.isUnchecked()) {
+                    parameters.getOptions().add("-unchecked");
+                }
             }
 
             String footer = options.getFooter();
