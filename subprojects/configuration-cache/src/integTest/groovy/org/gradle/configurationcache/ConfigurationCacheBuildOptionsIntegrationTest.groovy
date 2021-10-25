@@ -243,6 +243,11 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
 
+        and: "the input is reported"
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': system property 'greeting'")
+        }
+
         when:
         runGreetWith 'hi'
 

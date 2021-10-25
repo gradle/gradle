@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
+import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.UndeclaredBuildInputListener
@@ -72,6 +73,7 @@ class ConfigurationCacheFingerprintWriter(
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun reportInput(input: PropertyProblem)
+        fun location(consumer: String?): PropertyTrace
     }
 
     private
@@ -148,10 +150,10 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun systemPropertyRead(key: String, value: Any?, location: PropertyTrace) {
+    override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (undeclaredSystemProperties.add(key)) {
             write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
-            reportSystemPropertyInput(key, location)
+            reportSystemPropertyInput(key, host.location(consumer))
         }
     }
 
@@ -180,6 +182,9 @@ class ConfigurationCacheFingerprintWriter(
                     // TODO - consider the potential race condition in computing the hash code here
                     captureFile(file)
                 }
+            }
+            is SystemPropertyValueSource.Parameters -> {
+                systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
             }
             else -> {
                 captureValueSource(obtainedValue)
