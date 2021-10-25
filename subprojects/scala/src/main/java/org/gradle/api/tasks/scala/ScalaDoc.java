@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -23,7 +24,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -59,11 +62,13 @@ public class ScalaDoc extends SourceTask {
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
+    private ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        compilationOutputs = objectFactory.fileCollection();
     }
 
     @Inject
@@ -94,12 +99,74 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
+     *
+     * <p>
+     * The {@link PathSensitivity} for the sources is configured to be {@link PathSensitivity#RELATIVE}.
+     * </p>
+     *
+     * @return The source.
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * Returns the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation, after the include and exclude patterns have been applied.
+     *
+     * @return the TASTy compilation outputs to use
+     * @since 7.3
+     */
+    @Incubating
+    @InputFiles
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getCompilationOutputs() {
+        return compilationOutputs.getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+    }
+
+    /**
+     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
+     * <P>
+     * These outputs will be filtered to only use the TASTy files.
+     *
+     * @param compilationOutputs the outputs to use
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public void setCompilationOutputs(FileTree compilationOutputs) {
+        this.compilationOutputs.setFrom(compilationOutputs);
+    }
+
+    /**
+     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
+     * <P>
+     * These outputs will be filtered to only use the TASTy files.
+     *
+     * @param compilationOutputs the outputs to use
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public void setCompilationOutputs(Object compilationOutputs) {
+        this.compilationOutputs.setFrom(compilationOutputs);
+    }
+
+    /**
+     * Adds compilation outputs that Scaladoc for Scala 3 should use for generation.  The given objects will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * <P>
+     * These outputs will be filtered to only use the TASTy files.
+     *
+     * @param compilationOutputs the outputs to use
+     *
+     * @since 7.3
+     */
+    @Incubating
+    public void compilationOutputs(Object... compilationOutputs) {
+        this.compilationOutputs.from(compilationOutputs);
     }
 
     /**
@@ -202,7 +269,7 @@ public class ScalaDoc extends SourceTask {
             boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
-                parameters.getSources().from(getClasspath().getAsFileTree().matching(pattern -> pattern.include("**/*.tasty")));
+                parameters.getSources().from(getCompilationOutputs());
             } else {
                 parameters.getSources().from(getSource());
             }
