@@ -4,6 +4,12 @@ plugins {
 
 gradlebuildJava.usedInWorkers()
 
+description = """JVM-specific testing functionality, including the Test type and support for configuring options for and
+running various JVM testing frameworks.
+
+This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
+"""
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
