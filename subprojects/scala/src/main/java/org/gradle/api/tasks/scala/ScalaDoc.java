@@ -114,8 +114,10 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns the compilation outputs that Scaladoc.
-     *
+     * Returns the compilation outputs needed by Scaladoc filtered to include <a href="https://docs.scala-lang.org/scala3/guides/tasty-overview.html">TASTy</a> files.
+     * <p>
+     * NOTE: This is only useful with Scala 3 or later. Scala 2 only processes source files.
+     * </p>
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
@@ -123,6 +125,18 @@ public class ScalaDoc extends SourceTask {
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
+    protected FileTree getFilteredCompilationOutputs() {
+        return getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+    }
+
+    /**
+     * Returns the compilation outputs produced by the sources that are generating Scaladoc.
+     *
+     * @return the compilation outputs produced from the sources
+     * @since 7.3
+     */
+    @Incubating
+    @Internal
     public ConfigurableFileCollection getCompilationOutputs() {
         return compilationOutputs;
     }
@@ -227,7 +241,7 @@ public class ScalaDoc extends SourceTask {
             boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
-                parameters.getSources().from(getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty")));
+                parameters.getSources().from(getFilteredCompilationOutputs());
             } else {
                 parameters.getSources().from(getSource());
 
