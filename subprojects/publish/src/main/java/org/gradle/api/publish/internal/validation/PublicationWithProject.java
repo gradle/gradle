@@ -35,7 +35,7 @@ final class PublicationWithProject {
 
     @Override
     public String toString() {
-        return "'" + publication.getName() + "' in project '" + projectPath + "'";
+        return "'" + publication.getName() + "' in " + projectPath;
     }
 
     @Override

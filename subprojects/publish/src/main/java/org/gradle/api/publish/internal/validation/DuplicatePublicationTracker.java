@@ -39,7 +39,7 @@ public class DuplicatePublicationTracker {
 
         String repositoryKey = normalizeLocation(repositoryLocation);
 
-        PublicationWithProject publicationWithProject = new PublicationWithProject(project.getPath(), publication);
+        PublicationWithProject publicationWithProject = new PublicationWithProject(project.getDisplayName(), publication);
         if (published.get(repositoryKey).contains(publicationWithProject)) {
             LOG.warn("Publication '" + publication.getCoordinates() + "' is published multiple times to the same location. It is likely that repository '" + repositoryName + "' is duplicated.");
             return;
