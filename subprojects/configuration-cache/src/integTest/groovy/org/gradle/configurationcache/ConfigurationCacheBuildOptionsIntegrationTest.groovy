@@ -89,6 +89,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("The string is absent") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         when:
         printString "alice"
