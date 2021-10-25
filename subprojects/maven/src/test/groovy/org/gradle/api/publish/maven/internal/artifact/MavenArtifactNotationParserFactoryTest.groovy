@@ -37,7 +37,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 
-import java.nio.file.Path
 import java.nio.file.Paths
 
 class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
@@ -258,7 +257,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         when:
         1 * provider.get() >> regularFile
-        1 * fileNotationParser.parseNotation(_) >> file
+        1 * regularFile.getAsFile() >> file
         artifact.file == file
 
         then:
@@ -279,7 +278,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
 
         when:
         1 * provider.get() >> regularFile
-        1 * fileNotationParser.parseNotation(_) >> file.toFile()
+        1 * regularFile.getAsFile() >> file.toFile()
         artifact.file == file.toFile()
 
         then:

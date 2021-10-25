@@ -172,7 +172,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         publishArtifact instanceof DecoratingPublishArtifact
-        publishArtifact.file == new File(tmpDir.testDirectory, file1.toString())
+        publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
         publishArtifact.classifier == null
@@ -200,7 +200,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         publishArtifact instanceof DecoratingPublishArtifact
-        publishArtifact.file == new File(tmpDir.testDirectory, file1.toString())
+        publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "zip"
         publishArtifact.classifier == null
@@ -228,7 +228,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         publishArtifact instanceof DecoratingPublishArtifact
-        publishArtifact.file == new File(tmpDir.testDirectory, file1.toString())
+        publishArtifact.file == file1
         publishArtifact.name == "classes-1"
         publishArtifact.extension == "dir"
         publishArtifact.classifier == null
