@@ -85,6 +85,13 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void write(DependencyVerifier verifier) throws IOException {
+        verifier.getTopLevelComments().forEach(comment -> {
+            try {
+                writer.comment(comment);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");

@@ -60,6 +60,29 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         true           | true
     }
 
+    def 'can write top level comments'() {
+        when:
+        builder.addTopLevelComment("Some top level comment")
+        builder.addTopLevelComment("Another comment\non two lines")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<!-- Some top level comment -->
+<!-- Another comment
+on two lines -->
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        hasNamespaceDeclaration()
+    }
+
     private boolean hasNamespaceDeclaration() {
         rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd"')
     }

@@ -53,6 +53,11 @@ public class DependencyVerifierBuilder {
     private boolean isVerifyMetadata = true;
     private boolean isVerifySignatures = false;
     private boolean useKeyServers = true;
+    private final List<String> topLevelComments = Lists.newArrayList();
+
+    public void addTopLevelComment(String comment) {
+        topLevelComments.add(comment);
+    }
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
@@ -131,7 +136,7 @@ public class DependencyVerifierBuilder {
             .stream()
             .sorted(Map.Entry.comparingByKey(MODULE_COMPONENT_IDENTIFIER_COMPARATOR))
             .forEachOrdered(entry -> builder.put(entry.getKey(), entry.getValue().build()));
-        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)));
+        return new DependencyVerifier(builder.build(), new DependencyVerificationConfiguration(isVerifyMetadata, isVerifySignatures, trustedArtifacts, useKeyServers, ImmutableList.copyOf(keyServers), ImmutableSet.copyOf(ignoredKeys), ImmutableList.copyOf(trustedKeys)), topLevelComments);
     }
 
     public List<DependencyVerificationConfiguration.TrustedArtifact> getTrustedArtifacts() {
