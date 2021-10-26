@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Named;
 import org.gradle.api.tasks.Destroys;
-import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -371,7 +370,6 @@ public class AnnotationProcessingTasks {
         @Override
         @InputDirectory
         @SkipWhenEmpty
-        @IgnoreEmptyDirectories
         public File getInputDir() {
             return super.getInputDir();
         }
