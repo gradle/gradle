@@ -26,16 +26,18 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.internal.DisplayName;
+import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     private final Set<ResolvedArtifactResult> artifacts = Sets.newLinkedHashSet();
     private final Set<Throwable> failures = Sets.newLinkedHashSet();
-    private final Set<ComponentArtifactIdentifier> seenArtifacts = new HashSet<>();
+    private final Set<Identifier> seenArtifacts = new HashSet<>();
 
     @Override
     public void visitFailure(Throwable failure) {
@@ -45,7 +47,8 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact) {
         try {
-            if (seenArtifacts.add(artifact.getId())) {
+            Identifier id = new Identifier(artifact.getId(), variantAttributes, capabilities);
+            if (seenArtifacts.add(id)) {
                 File file = artifact.getFile();
                 this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), variantAttributes, capabilities, variantName, Artifact.class, file));
             }
@@ -65,5 +68,37 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
 
     public Set<Throwable> getFailures() {
         return failures;
+    }
+
+    /**
+     * A data class to serve as a key for storing artifact and variant identities
+     */
+    private static class Identifier {
+        private final ComponentArtifactIdentifier artifactIdentifier;
+        private final AttributeContainer variantAttributes;
+        private final Set<? extends Capability> variantCapabilities;
+
+        Identifier(ComponentArtifactIdentifier artifactIdentifier, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities) {
+            this.artifactIdentifier = artifactIdentifier;
+            this.variantAttributes = variantAttributes;
+            this.variantCapabilities = CollectionUtils.toSet(variantCapabilities);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Identifier) {
+                Identifier other = (Identifier) obj;
+                return this.artifactIdentifier.equals(other.artifactIdentifier) &&
+                    this.variantAttributes.equals(other.variantAttributes) &&
+                    this.variantCapabilities.size() == other.variantCapabilities.size() &&
+                    this.variantCapabilities.containsAll(other.variantCapabilities);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(artifactIdentifier, variantAttributes, variantCapabilities);
+        }
     }
 }
