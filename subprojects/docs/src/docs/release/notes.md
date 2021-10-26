@@ -10,6 +10,7 @@ Include only their name, impactful features should be called out separately belo
 [Michael Bailey](https://github.com/yogurtearl),
 [Jochen Schalanda](https://github.com/joschi),
 [Jendrik Johannes](https://github.com/jjohannes),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Konstantin Gribov](https://github.com/grossws).
 
 ## Upgrade instructions
