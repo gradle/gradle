@@ -40,6 +40,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
@@ -75,13 +76,18 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
-            propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : null,
+            determineDirectorySensitivity(propertyMetadata),
             propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class) ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT,
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
             getFilePropertyType()
         );
+    }
+
+    @Nullable
+    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : null;
     }
 
     @Override
