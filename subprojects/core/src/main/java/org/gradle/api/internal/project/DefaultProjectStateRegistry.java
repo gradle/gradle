@@ -305,11 +305,19 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                 if (this.project != null) {
                     throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
                 }
+
                 ProjectInternal parent;
-                if (projectPath.equals(Path.ROOT)) {
-                    parent = null;
+                if (descriptor.getParent() != null) {
+                    // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
+                    // They should be exactly the same, always
+                    Path parentPath = owner.calculateIdentityPathForProject(descriptor.getParent().path());
+                    ProjectStateImpl parentState = projectsByPath.get(parentPath);
+                    if (parentState == null) {
+                        throw new IllegalStateException("Parent project " + parentPath + " is not registered for project " + identityPath);
+                    }
+                    parent = parentState.getMutableModel();
                 } else {
-                    parent = projectsByPath.get(identityPath.getParent()).getMutableModel();
+                    parent = null;
                 }
                 this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parent, selfClassLoaderScope, baseClassLoaderScope);
             }
