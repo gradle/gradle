@@ -17,7 +17,6 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.hashing.ConfigurableNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
@@ -33,20 +32,17 @@ import java.io.UncheckedIOException;
 public abstract class AbstractFingerprintingStrategy implements FingerprintingStrategy {
     private final String identifier;
     private final CurrentFileCollectionFingerprint emptyFingerprint;
-    private final DirectorySensitivity directorySensitivity;
     private final HashCode configurationHash;
 
     public AbstractFingerprintingStrategy(
         String identifier,
-        DirectorySensitivity directorySensitivity,
-        ConfigurableNormalizer contentNormalizer
+        ConfigurableNormalizer configurableNormalizer
     ) {
         this.identifier = identifier;
         this.emptyFingerprint = new EmptyCurrentFileCollectionFingerprint(identifier);
-        this.directorySensitivity = directorySensitivity;
         Hasher hasher = Hashing.newHasher();
         hasher.putString(getClass().getName());
-        contentNormalizer.appendConfigurationToHasher(hasher);
+        configurableNormalizer.appendConfigurationToHasher(hasher);
         this.configurationHash = hasher.hash();
     }
 
@@ -73,10 +69,6 @@ public abstract class AbstractFingerprintingStrategy implements FingerprintingSt
 
     private static String failedToNormalize(FileSystemLocationSnapshot snapshot) {
         return String.format("Failed to normalize content of '%s'.", snapshot.getAbsolutePath());
-    }
-
-    protected DirectorySensitivity getDirectorySensitivity() {
-        return directorySensitivity;
     }
 
     @Override
