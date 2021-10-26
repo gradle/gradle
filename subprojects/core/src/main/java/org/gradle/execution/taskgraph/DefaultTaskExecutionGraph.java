@@ -126,6 +126,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         }
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             executeWithServices(projectExecutionServices, failures);
+        } finally {
+            executionPlan = ExecutionPlan.EMPTY;
         }
     }
 
@@ -138,19 +140,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
-        try {
-            planExecutor.process(
-                executionPlan,
-                failures,
-                new BuildOperationAwareExecutionAction(
-                    buildOperationExecutor.getCurrentOperation(),
-                    new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
-                )
-            );
-            LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
-        } finally {
-            populate(ExecutionPlan.EMPTY);
-        }
+        planExecutor.process(
+            executionPlan,
+            failures,
+            new BuildOperationAwareExecutionAction(
+                buildOperationExecutor.getCurrentOperation(),
+                new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
+            )
+        );
+        LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
     }
 
     @Override
