@@ -62,13 +62,13 @@ public class ScalaDoc extends SourceTask {
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
-    private ConfigurableFileCollection compilationOutputs;
+    private final ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
-        compilationOutputs = objectFactory.fileCollection();
+        this.compilationOutputs = objectFactory.fileCollection();
     }
 
     @Inject
@@ -114,59 +114,31 @@ public class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Returns the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation, after the include and exclude patterns have been applied.
-     *
-     * @return the TASTy compilation outputs to use
+     * Returns the compilation outputs needed by Scaladoc filtered to include <a href="https://docs.scala-lang.org/scala3/guides/tasty-overview.html">TASTy</a> files.
+     * <p>
+     * NOTE: This is only useful with Scala 3 or later. Scala 2 only processes source files.
+     * </p>
+     * @return the compilation outputs produced from the sources
      * @since 7.3
      */
     @Incubating
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    public FileTree getCompilationOutputs() {
-        return compilationOutputs.getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+    protected FileTree getFilteredCompilationOutputs() {
+        return getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
     }
 
     /**
-     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
+     * Returns the compilation outputs produced by the sources that are generating Scaladoc.
      *
-     * @param compilationOutputs the outputs to use
-     *
+     * @return the compilation outputs produced from the sources
      * @since 7.3
      */
     @Incubating
-    public void setCompilationOutputs(FileTree compilationOutputs) {
-        this.compilationOutputs.setFrom(compilationOutputs);
-    }
-
-    /**
-     * Configures the TASTy compilation outputs that Scaladoc for Scala 3 should use for generation.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
-     *
-     * @param compilationOutputs the outputs to use
-     *
-     * @since 7.3
-     */
-    @Incubating
-    public void setCompilationOutputs(Object compilationOutputs) {
-        this.compilationOutputs.setFrom(compilationOutputs);
-    }
-
-    /**
-     * Adds compilation outputs that Scaladoc for Scala 3 should use for generation.  The given objects will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * <P>
-     * These outputs will be filtered to only use the TASTy files.
-     *
-     * @param compilationOutputs the outputs to use
-     *
-     * @since 7.3
-     */
-    @Incubating
-    public void compilationOutputs(Object... compilationOutputs) {
-        this.compilationOutputs.from(compilationOutputs);
+    @Internal
+    public ConfigurableFileCollection getCompilationOutputs() {
+        return compilationOutputs;
     }
 
     /**
@@ -269,17 +241,17 @@ public class ScalaDoc extends SourceTask {
             boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
-                parameters.getSources().from(getCompilationOutputs());
+                parameters.getSources().from(getFilteredCompilationOutputs());
             } else {
                 parameters.getSources().from(getSource());
-            }
 
-            if (options.isDeprecation()) {
-                parameters.getOptions().add("-deprecation");
-            }
+                if (options.isDeprecation()) {
+                    parameters.getOptions().add("-deprecation");
+                }
 
-            if (options.isUnchecked()) {
-                parameters.getOptions().add("-unchecked");
+                if (options.isUnchecked()) {
+                    parameters.getOptions().add("-unchecked");
+                }
             }
 
             String footer = options.getFooter();
