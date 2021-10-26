@@ -89,6 +89,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("The string is absent") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         when:
         printString "alice"
@@ -239,6 +242,11 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
+
+        and: "the input is reported"
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': system property 'greeting'")
+        }
 
         when:
         runGreetWith 'hi'

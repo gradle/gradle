@@ -37,6 +37,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         // TODO - use problems configurationCache, need to be able to ignore problems from the Kotlin plugin
         problems.assertResultHasProblems(result) {
             withInput("$location: system property 'CI'")
+            ignoringUnexpectedInputs()
         }
         outputContains("apply = $value")
         outputContains("task = $value")
@@ -87,6 +88,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withInput("$location: system property 'CI'")
+            ignoringUnexpectedInputs()
         }
         outputContains("apply = $value")
         outputContains("task = $value")
