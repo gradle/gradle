@@ -135,6 +135,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return taskMutator.mutate("TaskInputs.dir(Object)", (Callable<TaskInputFilePropertyBuilderInternal>) () -> {
             StaticValue value = new StaticValue(dirPath);
             TaskInputFilePropertyRegistration registration = new DefaultTaskInputFilePropertyRegistration(value, InputFilePropertyType.DIRECTORY);
+            registration.ignoreEmptyDirectories();
             registeredFileProperties.add(registration);
             return registration;
         });
