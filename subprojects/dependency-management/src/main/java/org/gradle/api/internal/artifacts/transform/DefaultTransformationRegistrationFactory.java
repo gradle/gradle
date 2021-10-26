@@ -223,7 +223,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             String propertyName,
             boolean optional,
             boolean skipWhenEmpty,
-            DirectorySensitivity directorySensitivity,
+            @Nullable DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
@@ -231,7 +231,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity;
+            this.directorySensitivity = directorySensitivity == null ? DirectorySensitivity.DEFAULT : directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }

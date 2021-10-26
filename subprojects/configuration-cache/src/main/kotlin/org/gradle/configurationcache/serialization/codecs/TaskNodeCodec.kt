@@ -247,7 +247,7 @@ sealed class RegisteredProperty {
         val skipWhenEmpty: Boolean,
         val incremental: Boolean,
         val fileNormalizer: Class<out FileNormalizer>?,
-        val directorySensitivity: DirectorySensitivity,
+        val directorySensitivity: DirectorySensitivity?,
         val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
 
@@ -289,7 +289,8 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeEnum(filePropertyType)
                     writeBoolean(skipWhenEmpty)
                     writeClass(fileNormalizer!!)
-                    writeEnum(directorySensitivity)
+                    writeBoolean(directorySensitivity != null)
+                    directorySensitivity?.let(::writeEnum)
                     writeEnum(lineEndingSensitivity)
                 }
                 is RegisteredProperty.Input -> {
@@ -353,7 +354,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             propertyName: String,
             optional: Boolean,
             skipWhenEmpty: Boolean,
-            directorySensitivity: DirectorySensitivity,
+            directorySensitivity: DirectorySensitivity?,
             lineEndingSensitivity: LineEndingSensitivity,
             incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
@@ -412,7 +413,12 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val filePropertyType = readEnum<InputFilePropertyType>()
                     val skipWhenEmpty = readBoolean()
                     val normalizer = readClass()
-                    val directorySensitivity = readEnum<DirectorySensitivity>()
+                    val isDirectorySensitivitySpecified = readBoolean()
+                    val directorySensitivity = if (isDirectorySensitivitySpecified) {
+                        readEnum<DirectorySensitivity>()
+                    } else {
+                        null
+                    }
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
                     task.inputs.run {
                         when (filePropertyType) {

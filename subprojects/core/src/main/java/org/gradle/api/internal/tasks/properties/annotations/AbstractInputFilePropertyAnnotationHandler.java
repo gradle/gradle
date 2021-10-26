@@ -75,7 +75,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
-            propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT,
+            propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : null,
             propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class) ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT,
             propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,

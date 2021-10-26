@@ -21,10 +21,13 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
+import javax.annotation.Nullable;
+
 public interface TaskInputFilePropertyRegistration extends TaskPropertyRegistration, TaskInputFilePropertyBuilderInternal {
     Class<? extends FileNormalizer> getNormalizer();
     InputFilePropertyType getFilePropertyType();
     boolean isSkipWhenEmpty();
+    @Nullable
     DirectorySensitivity getDirectorySensitivity();
     LineEndingSensitivity getLineEndingNormalization();
 }

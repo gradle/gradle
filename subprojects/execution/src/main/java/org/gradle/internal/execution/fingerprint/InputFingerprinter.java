@@ -26,6 +26,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -106,7 +107,7 @@ public interface InputFingerprinter {
         public FileValueSupplier(
             @Nullable Object value,
             Class<? extends FileNormalizer> normalizer,
-            DirectorySensitivity directorySensitivity,
+            @Nullable DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
             Supplier<FileCollection> files
         ) {
@@ -127,8 +128,8 @@ public interface InputFingerprinter {
             return normalizer;
         }
 
-        public DirectorySensitivity getDirectorySensitivity() {
-            return directorySensitivity;
+        public Optional<DirectorySensitivity> getDirectorySensitivity() {
+            return Optional.ofNullable(directorySensitivity);
         }
 
         public LineEndingSensitivity getLineEndingNormalization() {

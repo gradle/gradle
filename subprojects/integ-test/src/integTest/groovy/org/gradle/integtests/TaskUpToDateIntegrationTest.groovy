@@ -20,6 +20,7 @@ package org.gradle.integtests
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.IgnoreRest
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -344,8 +345,9 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":myTask")
     }
 
+    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/4204")
-    def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
+    def "changing path of empty root directory #outOfDateDescription for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @${inputAnnotation}
@@ -376,10 +378,17 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         run myTask, '-PinputDir=inputDir2'
         then:
-        executedAndNotSkipped(myTask)
+        if (outOfDate) {
+            executedAndNotSkipped(myTask)
+        } else {
+            skipped(myTask)
+        }
 
         where:
-        inputAnnotation << [InputFiles.name, InputDirectory.name]
+        inputAnnotation | outOfDate
+        InputFiles.name | true
+        InputDirectory.name | false
+        outOfDateDescription = outOfDate ? "makes task out of date" : "leaves task up to date"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6592")

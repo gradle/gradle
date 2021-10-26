@@ -150,7 +150,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
             return ImmutableSortedSet.of(
                 FilePropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name(),
-                FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
+                FilePropertyAttribute.from(Optional.ofNullable(propertySpec.getDirectorySensitivity()).orElse(DirectorySensitivity.DEFAULT)).name(),
                 FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
             );
         }

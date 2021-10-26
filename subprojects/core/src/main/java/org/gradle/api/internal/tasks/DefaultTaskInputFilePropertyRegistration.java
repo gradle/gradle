@@ -31,7 +31,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
-    private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
+    private DirectorySensitivity directorySensitivity;
     private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
