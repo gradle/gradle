@@ -98,7 +98,7 @@ class AccessTrackingPropertiesTest extends Specification {
         AccessTrackingProperties trackingProperties = new AccessTrackingProperties(props, consumer)
 
         when:
-        trackingProperties.forEach {k, v -> }
+        trackingProperties.forEach { k, v -> }
 
         then:
         1 * consumer.accept('someProperty', 'someValue')

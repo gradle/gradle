@@ -34,6 +34,7 @@ class AccessTrackingEnvMapTest extends Specification {
         then:
         result == 'existingValue'
         1 * consumer.accept('existing', 'existingValue')
+        0 * consumer._
     }
 
     def "access to missing element with get() is tracked"() {
@@ -47,6 +48,7 @@ class AccessTrackingEnvMapTest extends Specification {
         then:
         result == null
         1 * consumer.accept('missing', null)
+        0 * consumer._
     }
 
     def "access to existing element with getOrDefault() is tracked"() {
@@ -60,6 +62,7 @@ class AccessTrackingEnvMapTest extends Specification {
         then:
         result == 'existingValue'
         1 * consumer.accept('existing', 'existingValue')
+        0 * consumer._
     }
 
     def "access to missing element with getOrDefault() is tracked"() {
@@ -73,6 +76,7 @@ class AccessTrackingEnvMapTest extends Specification {
         then:
         result == 'defaultValue'
         1 * consumer.accept('missing', null)
+        0 * consumer._
     }
 
     def "access to existing element with forEach() is tracked"() {
@@ -85,6 +89,8 @@ class AccessTrackingEnvMapTest extends Specification {
 
         then:
         1 * consumer.accept('existing', 'existingValue')
+        1 * consumer.accept('other', 'otherValue')
+        0 * consumer._
     }
 
     def "access to existing element with entrySet() is tracked"() {
@@ -97,5 +103,7 @@ class AccessTrackingEnvMapTest extends Specification {
 
         then:
         1 * consumer.accept('existing', 'existingValue')
+        1 * consumer.accept('other', 'otherValue')
+        0 * consumer._
     }
 }
