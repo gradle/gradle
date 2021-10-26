@@ -38,7 +38,9 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -59,6 +61,7 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
+import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -137,6 +140,7 @@ public class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project);
         configureForWarPlugin(project);
         configureForScalaPlugin();
+        configureForTestSuitesPlugin(project);
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
@@ -347,6 +351,15 @@ public class IdeaPlugin extends IdePlugin {
         });
     }
 
+    private void configureForTestSuitesPlugin(final Project project) {
+        project.getPlugins().withType(JvmTestSuitePlugin.class, new Action<JvmTestSuitePlugin>() {
+            @Override
+            public void execute(JvmTestSuitePlugin testSuitePlugin) {
+                configureIdeaModuleForTestSuites(project);
+            }
+        });
+    }
+
     private void configureIdeaModuleForJava(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
@@ -456,6 +469,14 @@ public class IdeaPlugin extends IdePlugin {
         test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
         ideaModel.getModule().setScopes(scopes);
+    }
+
+    private void configureIdeaModuleForTestSuites(final Project project) {
+        final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+        final IdeaModule ideaModule = ideaModelFor(project).getModule();
+        testing.getSuites().withType(JvmTestSuite.class).configureEach(suite -> {
+            ideaModule.getTestSourceDirs().addAll(suite.getSources().getAllSource().getSourceDirectories().getFiles());
+        });
     }
 
     private void configureIdeaModuleForWar(final Project project) {
