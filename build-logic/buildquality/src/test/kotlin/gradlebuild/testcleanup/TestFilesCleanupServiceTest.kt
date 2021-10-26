@@ -18,6 +18,7 @@ package gradlebuild.testcleanup
 
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -57,7 +58,7 @@ class TestFilesCleanupServiceTest {
                     ${if (fail) "throw new IllegalStateException();" else ""}
                 }
             }
-            """.trimIndent()
+                """.trimIndent()
             )
         }
 
@@ -147,14 +148,16 @@ class TestFilesCleanupServiceTest {
         )
     }
 
-    private fun run(vararg args: String) = GradleRunner.create()
+    private
+    fun run(vararg args: String) = GradleRunner.create()
         .withProjectDir(projectDir)
         .withTestKitDir(projectDir.resolve("test-kit"))
         .withPluginClasspath()
         .forwardOutput()
         .withArguments(*args)
 
-    private fun assertArchivedFilesSeen(vararg archiveFileNames: String) {
+    private
+    fun assertArchivedFilesSeen(vararg archiveFileNames: String) {
         val rootDirFiles = projectDir.resolve("build").walk().toList()
 
         archiveFileNames.forEach { fileName ->
@@ -162,7 +165,8 @@ class TestFilesCleanupServiceTest {
         }
     }
 
-    private fun assertLeftoverFilesCleanedUpEventually(vararg leftoverFiles: String) {
+    private
+    fun assertLeftoverFilesCleanedUpEventually(vararg leftoverFiles: String) {
         leftoverFiles.forEach {
             assertTrue(projectDir.resolve(it).walk().filter { it.isFile }.toList().isEmpty())
         }
@@ -171,9 +175,10 @@ class TestFilesCleanupServiceTest {
     @Test
     fun `fail build if leftover file found and test passes`() {
         val result = run(":successful-test-with-leftover:test").buildAndFail()
+        assertEquals(TaskOutcome.SUCCESS, result.task(":successful-test-with-leftover:test")!!.outcome)
 
-        // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
+        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupsuccessful-test-with-leftover'"))
         result.output.assertContains("successful-test-with-leftover/build/tmp/test files/leftover")
 
         assertArchivedFilesSeen("report-successful-test-with-leftover-leftover.zip")
@@ -181,20 +186,25 @@ class TestFilesCleanupServiceTest {
     }
 
     @Test
-    fun `fail build if leftover file found with test fails`() {
+    fun `leftover files are archived when test fails`() {
         val result = run(
             ":failed-report-with-leftover:test",
             ":successful-report:test",
             ":failed-test-with-leftover:test",
             "--continue"
         ).buildAndFail()
+        assertEquals(TaskOutcome.SUCCESS, result.task(":successful-report:test")!!.outcome)
+        assertEquals(TaskOutcome.FAILED, result.task(":failed-report-with-leftover:test")!!.outcome)
+        assertEquals(TaskOutcome.FAILED, result.task(":failed-test-with-leftover:test")!!.outcome)
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
+        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupfailed-report-with-leftover'"))
         result.output.assertContains("failed-report-with-leftover/build/tmp/test files/leftover")
         result.output.assertContains("failed-test-with-leftover/build/tmp/test files/leftover")
 
-        assertArchivedFilesSeen("report-failed-test-with-leftover-test.zip",
+        assertArchivedFilesSeen(
+            "report-failed-test-with-leftover-test.zip",
             "report-failed-report-with-leftover-leftover.zip",
             "report-failed-report-with-leftover-reports.zip",
             "report-failed-test-with-leftover-leftover.zip"
