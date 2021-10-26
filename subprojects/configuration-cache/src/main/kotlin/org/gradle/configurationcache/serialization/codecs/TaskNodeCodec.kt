@@ -49,11 +49,13 @@ import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.readNullableEnum
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.configurationcache.serialization.writeNullableEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -289,8 +291,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeEnum(filePropertyType)
                     writeBoolean(skipWhenEmpty)
                     writeClass(fileNormalizer!!)
-                    writeBoolean(directorySensitivity != null)
-                    directorySensitivity?.let(::writeEnum)
+                    writeNullableEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
                 }
                 is RegisteredProperty.Input -> {
@@ -413,12 +414,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val filePropertyType = readEnum<InputFilePropertyType>()
                     val skipWhenEmpty = readBoolean()
                     val normalizer = readClass()
-                    val isDirectorySensitivitySpecified = readBoolean()
-                    val directorySensitivity = if (isDirectorySensitivitySpecified) {
-                        readEnum<DirectorySensitivity>()
-                    } else {
-                        null
-                    }
+                    val directorySensitivity = readNullableEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
                     task.inputs.run {
                         when (filePropertyType) {

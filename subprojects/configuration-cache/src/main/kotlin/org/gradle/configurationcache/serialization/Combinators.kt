@@ -377,6 +377,15 @@ inline fun <reified E : Enum<E>> Decoder.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
 
 
+fun <E : Enum<E>> Encoder.writeNullableEnum(value: E?) {
+    writeNullableSmallInt(value?.ordinal)
+}
+
+
+inline fun <reified E : Enum<E>> Decoder.readNullableEnum(): E? =
+    readNullableSmallInt()?.let { ordinal -> enumValues<E>()[ordinal] }
+
+
 fun Encoder.writeShort(value: Short) {
     BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
 }
