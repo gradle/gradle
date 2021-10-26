@@ -323,10 +323,6 @@ abstract class TestFilesCleanupService @Inject constructor(
     // We count the test task containing flaky result as failed
     private
     fun containsFailedTest(testBinaryResultDir: File): Boolean {
-        if (this !is Test) {
-            return false
-        }
-
         var containingFailures = false
 
         val serializer = TestResultSerializer(testBinaryResultDir)
