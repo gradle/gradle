@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -31,13 +32,16 @@ import java.util.function.Consumer;
 
 public class DefaultInputFingerprinter implements InputFingerprinter {
 
+    private final FileCollectionSnapshotter snapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final ValueSnapshotter valueSnapshotter;
 
     public DefaultInputFingerprinter(
+        FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ValueSnapshotter valueSnapshotter
     ) {
+        this.snapshotter = snapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
         this.valueSnapshotter = valueSnapshotter;
     }
@@ -50,7 +54,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
     ) {
-        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints);
+        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, snapshotter, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints);
         inputs.accept(visitor);
         return visitor.complete();
     }
@@ -63,6 +67,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
     private static class InputCollectingVisitor implements InputVisitor {
         private final ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots;
         private final ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints;
+        private final FileCollectionSnapshotter snapshotter;
         private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
         private final ValueSnapshotter valueSnapshotter;
         private final ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots;
@@ -74,6 +79,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         public InputCollectingVisitor(
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
             ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
+            FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter,
             ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
@@ -81,6 +87,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         ) {
             this.previousValueSnapshots = previousValueSnapshots;
             this.previousFingerprints = previousFingerprints;
+            this.snapshotter = snapshotter;
             this.fingerprinterRegistry = fingerprinterRegistry;
             this.valueSnapshotter = valueSnapshotter;
             this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
@@ -120,7 +127,8 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             CurrentFileCollectionFingerprint fingerprint;
             try {
-                fingerprint = fingerprinter.fingerprint(value.getFiles(), previousFingerprint);
+                FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
+                fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);
             }

@@ -24,6 +24,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -42,9 +43,14 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
     }
 
     @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files, @Nullable FileCollectionFingerprint previousFingerprint) {
+    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
         FileCollectionSnapshotter.Result snapshotResult = fileCollectionSnapshotter.snapshotResult(files);
-        return DefaultCurrentFileCollectionFingerprint.from(snapshotResult.getSnapshot(), fingerprintingStrategy, previousFingerprint);
+        return fingerprint(snapshotResult.getSnapshot(), null);
+    }
+
+    @Override
+    public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint) {
+        return DefaultCurrentFileCollectionFingerprint.from(snapshot, fingerprintingStrategy, previousFingerprint);
     }
 
     @Override

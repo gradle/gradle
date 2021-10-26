@@ -124,7 +124,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def outputSnapshotter = new DefaultOutputSnapshotter(snapshotter)
     def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, fingerprinter)])
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
