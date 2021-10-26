@@ -24,6 +24,7 @@ import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -123,16 +124,16 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             }
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
-            FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), value.getDirectorySensitivity(), value.getLineEndingNormalization());
-            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
-            CurrentFileCollectionFingerprint fingerprint;
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
-                fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                DirectorySensitivity directorySensitivity = result.isTree() ? DirectorySensitivity.IGNORE_DIRECTORIES : value.getDirectorySensitivity();
+                FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), directorySensitivity, value.getLineEndingNormalization());
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
+                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                fingerprintsBuilder.put(propertyName, fingerprint);
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);
             }
-            fingerprintsBuilder.put(propertyName, fingerprint);
         }
 
         public Result complete() {
