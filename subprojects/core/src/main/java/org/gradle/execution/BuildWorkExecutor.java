@@ -16,6 +16,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.build.ExecutionResult;
 
 /**
@@ -23,7 +24,7 @@ import org.gradle.internal.build.ExecutionResult;
  */
 public interface BuildWorkExecutor {
     /**
-     * Executes the scheduled work and collects the failures.
+     * Executes the given work and returns the failures.
      */
-    ExecutionResult<Void> execute(GradleInternal gradle);
+    ExecutionResult<Void> execute(GradleInternal gradle, ExecutionPlan plan);
 }

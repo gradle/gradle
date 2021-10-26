@@ -2,8 +2,11 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Included build controller and composite build infrastructure"
+
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":core-api"))

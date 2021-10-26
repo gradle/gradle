@@ -19,7 +19,6 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -171,14 +170,7 @@ class BuildServiceProviderCodec(
 
     private
     fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
-        gradleOf(buildIdentifier).serviceOf<BuildServiceRegistryInternal>()
-
-    private
-    fun gradleOf(buildIdentifier: BuildIdentifier) =
-        when (buildIdentifier) {
-            DefaultBuildIdentifier.ROOT -> buildStateRegistry.rootBuild.build
-            else -> buildStateRegistry.getIncludedBuild(buildIdentifier).configuredBuild
-        }
+        buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
 }
 
 

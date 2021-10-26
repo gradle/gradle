@@ -64,7 +64,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.6.2",
         "3.6.3",
         "3.6.4",
-        "3.7"
+        "3.7",
+        "3.7.1"
     ]
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")

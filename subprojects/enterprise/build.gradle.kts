@@ -3,16 +3,31 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
+    api(project(":base-services"))
+    api(project(":enterprise-operations"))
 
-    implementation(libs.jsr305)
     implementation(libs.inject)
-    implementation(project(":logging"))
-    implementation(project(":core-api"))
+    implementation(libs.jsr305)
+    implementation(libs.guava)
     implementation(project(":build-option"))
     implementation(project(":core"))
+    implementation(project(":core-api"))
+    implementation(project(":file-collections"))
+    implementation(project(":jvm-services"))
     implementation(project(":launcher"))
+    implementation(project(":logging"))
+    implementation(project(":model-core"))
+    implementation(project(":process-services"))
+    implementation(project(":reporting"))
     implementation(project(":snapshots"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
+
+    compileOnly(libs.groovy) {
+        because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
+    }
+
+    testImplementation(project(":resources"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))

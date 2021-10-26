@@ -70,15 +70,6 @@ class CrossVersionPerformanceResults extends PerformanceTestResult {
         return baseline(version)
     }
 
-    List<MeasuredOperationList> getFailures() {
-        def failures = []
-        baselineVersions.values().each {
-            failures.addAll it.results.findAll { it.exception }
-        }
-        failures.addAll current.findAll { it.exception }
-        return failures
-    }
-
     void assertCurrentVersionHasNotRegressed() {
         if (hasRegressionChecks()) {
             def slower = checkBaselineVersion({ it.significantlyFasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })

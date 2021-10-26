@@ -20,14 +20,20 @@ import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
+import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.BuildCompletionListener
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
+import java.util.function.Function
 
 class DefaultBuildLifecycleControllerTest extends Specification {
     def buildBroadcaster = Mock(BuildListener)
@@ -42,6 +48,8 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def buildCompletionListener = Mock(BuildCompletionListener.class)
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
+    def executionPlan = Mock(ExecutionPlan)
+    def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -49,11 +57,17 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     def setup() {
         _ * exceptionAnalyser.transform(failure) >> transformedException
+        def taskGraph = Stub(TaskExecutionGraphInternal)
+        _ * gradleMock.taskGraph >> taskGraph
+        def services = new DefaultServiceRegistry()
+        services.add(Stub(BuildOutputCleanupRegistry))
+        _ * gradleMock.services >> services
+        _ * gradleMock.owner >> Stub(BuildState)
     }
 
     DefaultBuildLifecycleController controller() {
         return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices)
+            buildCompletionListener, buildFinishedListener, workPreparer, workExecutor, buildServices, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
@@ -75,8 +89,10 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
 
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
-        def executionResult = controller.executeTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan)
+        def executionResult = controller.executeTasks(plan)
         executionResult.failures.empty
 
         def finishResult = controller.finishBuild(null)
@@ -94,28 +110,49 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def controller = controller()
 
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
-        def executionResult = controller.executeTasks()
+        def plan1 = controller.newWorkGraph()
+        controller.populateWorkGraph(plan1) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan1)
+        def executionResult = controller.executeTasks(plan1)
         executionResult.failures.empty
 
         controller.prepareToScheduleTasks()
-        controller.populateWorkGraph { }
-        def executionResult2 = controller.executeTasks()
+        def plan2 = controller.newWorkGraph()
+        controller.populateWorkGraph(plan2) {}
+        controller.finalizeWorkGraph(plan2)
+        def executionResult2 = controller.executeTasks(plan2)
         executionResult2.failures.empty
 
         def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
     }
 
-    void testGetLoadedSettings() {
+    void testLoadSettings() {
+        expect:
+        expectSettingsBuilt()
+        expectBuildFinished("Configure")
+
+        def controller = controller()
+        controller.loadSettings()
+
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithSettings() {
+        def action = Mock(Function)
+
         when:
         expectSettingsBuilt()
 
         def controller = controller()
-        def result = controller.getLoadedSettings()
+        def result = controller.withSettings(action)
 
         then:
-        result == settingsMock
+        result == "result"
+
+        and:
+        1 * action.apply(settingsMock) >> "result"
 
         expect:
         expectBuildFinished("Configure")
@@ -130,7 +167,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         expectSettingsBuiltWithFailure(failure)
 
         def controller = this.controller()
-        controller.getLoadedSettings()
+        controller.loadSettings()
 
         then:
         def t = thrown RuntimeException
@@ -142,6 +179,66 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        finishResult.failures.empty
+    }
+
+    void testLoadSettingsRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
+
+        when:
+        expectSettingsBuiltWithFailure(failure)
+
+        def controller = this.controller()
+        controller.loadSettings()
+
+        then:
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
+    }
+
+    void testConfigureBuild() {
+        def controller = controller()
+
+        when:
+        controller.configureProjects()
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
+        finishResult.failures.empty
+    }
+
+    void testWithConfiguredBuild() {
+        def action = Mock(Function)
+        def controller = controller()
+
+        when:
+        controller.withProjectsConfigured(action)
+
+        then:
+        1 * buildModelController.configuredModel >> gradleMock
+        1 * action.apply(gradleMock)
+
+        expect:
+        expectBuildFinished("Configure")
+        def finishResult = controller.finishBuild(null)
         finishResult.failures.empty
     }
 
@@ -183,26 +280,39 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testCannotScheduleTasksWhenNotPrepared() {
-        when:
-        def controller = controller()
-        controller.scheduleRequestedTasks()
-
-        then:
-        def t = thrown IllegalStateException
+    void testConfigureBuildRethrowsPreviousFailure() {
+        def failure = new RuntimeException()
 
         when:
-        def finishResult = controller.finishBuild(null)
+        1 * buildModelController.configuredModel >> { throw failure }
+
+        def controller = this.controller()
+        controller.configureProjects()
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null })
-        finishResult.failures.empty
+        def t = thrown RuntimeException
+        t == failure
+
+        when:
+        controller.configureProjects()
+
+        then:
+        def t2 = thrown RuntimeException
+        t2 == failure
+
+        when:
+        controller.loadSettings()
+
+        then:
+        def t3 = thrown RuntimeException
+        t3 == failure
     }
 
     void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
-        controller.executeTasks()
+        def workGraph = controller.newWorkGraph()
+        controller.executeTasks(workGraph)
 
         then:
         def t = thrown IllegalStateException
@@ -215,15 +325,17 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         finishResult.failures.empty
     }
 
-    void testNotifiesListenerOnSettingsInitWithFailure() {
+    void testNotifiesListenerOnTaskSchedulingFailure() {
         given:
-        1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
-        1 * buildModelController.scheduleRequestedTasks() >> { throw failure }
+        1 * workPreparer.newExecutionPlan() >> executionPlan
+        1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
+        1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
 
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
 
         then:
         def t = thrown RuntimeException
@@ -246,8 +358,10 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
-        def executionResult = controller.executeTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan)
+        def executionResult = controller.executeTasks(plan)
 
         then:
         executionResult.failures == [failure]
@@ -271,8 +385,10 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         when:
         def controller = this.controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
-        def executionResult = controller.executeTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan)
+        def executionResult = controller.executeTasks(plan)
 
         then:
         executionResult.failures == [failure, failure2]
@@ -294,8 +410,10 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         and:
         def controller = controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
-        controller.executeTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan)
+        controller.executeTasks(plan)
 
         when:
         def finishResult = controller.finishBuild(null)
@@ -316,10 +434,12 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         and:
         def controller = controller()
         controller.prepareToScheduleTasks()
-        controller.scheduleRequestedTasks()
+        def plan = controller.newWorkGraph()
+        controller.populateWorkGraph(plan) { b -> b.addRequestedTasks() }
+        controller.finalizeWorkGraph(plan)
 
         when:
-        def executionResult = controller.executeTasks()
+        def executionResult = controller.executeTasks(plan)
 
         then:
         executionResult.failures == [failure, failure2]
@@ -370,13 +490,37 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         thrown IllegalStateException
     }
 
+    void testCannotLoadSettingsAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.loadSettings()
+
+        then:
+        thrown IllegalStateException
+    }
+
+    void testCannotConfigureBuildAfterFinished() {
+        given:
+        def controller = controller()
+        controller.finishBuild(null)
+
+        when:
+        controller.configureProjects()
+
+        then:
+        thrown IllegalStateException
+    }
+
     void testCannotRunMoreWorkAfterFinished() {
         given:
         def controller = controller()
         controller.finishBuild(null)
 
         when:
-        controller.scheduleRequestedTasks()
+        controller.prepareToScheduleTasks()
 
         then:
         thrown IllegalStateException
@@ -391,23 +535,27 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     private void expectRequestedTasksScheduled() {
+        1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
-        1 * buildModelController.scheduleRequestedTasks()
+        1 * buildModelController.initializeWorkGraph(executionPlan)
+        1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
+        1 * buildModelController.scheduleRequestedTasks(executionPlan)
     }
 
     private void expectTasksScheduled() {
+        1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * workPreparer.populateWorkGraph(gradleMock, _) >> { GradleInternal gradle, Consumer consumer -> consumer.accept() }
+        1 * buildModelController.initializeWorkGraph(executionPlan)
+        1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
     }
 
     private void expectTasksRun() {
-        1 * workExecutor.execute(gradleMock) >> ExecutionResult.succeeded()
+        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.succeeded()
     }
 
     private void expectTasksRunWithFailure(Throwable failure, Throwable other = null) {
         def failures = other == null ? [failure] : [failure, other]
-        1 * workExecutor.execute(gradleMock) >> ExecutionResult.maybeFailed(failures)
+        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.maybeFailed(failures)
     }
 
     private void expectBuildFinished(String action = "Build") {

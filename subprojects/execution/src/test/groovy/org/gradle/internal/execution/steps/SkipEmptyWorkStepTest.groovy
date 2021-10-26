@@ -57,19 +57,17 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     @Unroll
-    def "removes execution history when empty work is skipped (outcome: #outcome)"() {
+    def "captures no state when when empty work is skipped (outcome: #outcome)"() {
         when:
         def result = step.execute(work, context)
 
         then:
         result.executionResult.get().outcome == outcome
+        !result.afterExecutionState.present
 
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> outputSnapshots
         _ * work.skipIfInputsEmpty(outputSnapshots) >> Optional.of(outcome)
-
-        then:
-        1 * executionHistoryStore.remove(identity.uniqueId)
         0 * _
 
         where:

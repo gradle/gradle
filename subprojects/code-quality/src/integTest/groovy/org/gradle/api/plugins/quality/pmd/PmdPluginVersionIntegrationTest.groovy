@@ -15,8 +15,10 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
@@ -24,6 +26,8 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assume.assumeTrue
 
+// https://github.com/gradle/gradle-private/issues/3465
+@IgnoreIf({ GradleContextualExecuter.isParallel() })
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     def setup() {
@@ -143,6 +147,10 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         expect:
         fails("check")
         failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        if (GradleContextualExecuter.isParallel()) {
+            // pmdMain and pmdTest
+            failure.assertHasFailures(2)
+        }
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {

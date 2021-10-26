@@ -3,6 +3,8 @@ plugins {
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
+description = "Configuration cache implementation"
+
 val configurationCacheReportPath by configurations.creating {
     isVisible = false
     isCanBeConsumed = false
@@ -22,8 +24,19 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+kotlin.sourceSets.all {
+    languageSettings.progressiveMode = true
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+    kotlinOptions.apply {
+        apiVersion = "1.5"
+        languageVersion = "1.5"
+        freeCompilerArgs += listOf(
+            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+            "-Xsam-conversions=class",
+        )
+    }
 }
 
 dependencies {
@@ -74,6 +87,7 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
+    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(project(":tooling-api"))
     integTestImplementation(project(":platform-jvm"))

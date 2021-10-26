@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.verification.serializer;
 
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
@@ -82,7 +82,7 @@ public class DependencyVerificationsXmlReader {
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(in));
         } catch (Exception e) {
-            throw new InvalidUserDataException("Unable to read dependency verification metadata", e);
+            throw new DependencyVerificationException("Unable to read dependency verification metadata", e);
         } finally {
             try {
                 in.close();
@@ -192,7 +192,7 @@ public class DependencyVerificationsXmlReader {
                     try {
                         builder.addKeyServer(new URI(server));
                     } catch (URISyntaxException e) {
-                        throw new InvalidUserDataException("Unsupported URI for key server: " + server);
+                        throw new DependencyVerificationException("Unsupported URI for key server: " + server);
                     }
                     break;
                 case IGNORED_KEYS:
@@ -316,7 +316,7 @@ public class DependencyVerificationsXmlReader {
 
         private static void assertContext(boolean test, String message) {
             if (!test) {
-                throw new InvalidUserDataException("Invalid dependency verification metadata file: " + message);
+                throw new DependencyVerificationException("Invalid dependency verification metadata file: " + message);
             }
         }
 

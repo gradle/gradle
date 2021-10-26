@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.tasks
 
+import groovy.xml.XmlSlurper
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
@@ -23,10 +24,10 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.provider.Property
-import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
+import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDistributionManagement
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomLicense
@@ -38,8 +39,8 @@ import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification

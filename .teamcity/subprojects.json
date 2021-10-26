@@ -266,6 +266,20 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "enterprise-operations",
+    "name": "enterprise-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise-workers",
+    "name": "enterprise-workers",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "execution",
     "name": "execution",
     "unitTests": true,
@@ -772,6 +786,13 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "worker-services",
+    "name": "worker-services",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

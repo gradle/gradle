@@ -16,6 +16,7 @@
 
 package org.gradle.internal.xml
 
+import groovy.xml.XmlSlurper
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 

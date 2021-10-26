@@ -17,19 +17,27 @@ package org.gradle.internal.build;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.execution.plan.BuildWorkPlan;
+import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.Node;
 import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
+import org.gradle.internal.Describables;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
@@ -37,6 +45,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         Configure,
         // Scheduling tasks for execution
         TaskSchedule,
+        ReadyToRun,
         // build has finished and should do no further work
         Finished
     }
@@ -48,8 +57,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
     private final BuildScopeServices buildServices;
+    private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
-    private final StateTransitionController<State> controller = new StateTransitionController<>(State.Configure);
+    private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
 
@@ -62,7 +72,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices
+        BuildScopeServices buildServices,
+        BuildToolingModelControllerFactory toolingModelControllerFactory,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.modelController = buildModelController;
@@ -73,6 +85,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
         this.buildServices = buildServices;
+        this.toolingModelControllerFactory = toolingModelControllerFactory;
+        this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
 
     @Override
@@ -82,63 +96,90 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // - have the threads use some specific immutable view of the build model state instead of requiring direct access to the build model.
         // - not have a thread blocked around task execution, so that other threads can use the build model.
         // - maybe split the states into one for the build model and one for the task graph.
-        controller.assertNotInState(State.Finished);
+        state.assertNotInState(State.Finished);
         return gradle;
     }
 
     @Override
-    public SettingsInternal getLoadedSettings() {
-        // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getLoadedSettings);
+    public void loadSettings() {
+        state.notInState(State.Finished, modelController::getLoadedSettings);
+    }
+
+    @Override
+    public <T> T withSettings(Function<? super SettingsInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getLoadedSettings()));
+    }
+
+    @Override
+    public void configureProjects() {
+        state.notInState(State.Finished, modelController::getConfiguredModel);
+    }
+
+    @Override
+    public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
+        return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
     }
 
     @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
-        return controller.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
+        return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
     }
 
     @Override
     public void prepareToScheduleTasks() {
-        controller.maybeTransition(State.Configure, State.TaskSchedule, () -> {
+        state.maybeTransition(State.Configure, State.TaskSchedule, () -> {
             hasTasks = true;
             modelController.prepareToScheduleTasks();
         });
     }
 
     @Override
-    public void scheduleRequestedTasks() {
-        populateWorkGraph(taskGraph -> modelController.scheduleRequestedTasks());
+    public BuildWorkPlan newWorkGraph() {
+        return state.inState(State.TaskSchedule, () -> {
+            ExecutionPlan plan = workPreparer.newExecutionPlan();
+            modelController.initializeWorkGraph(plan);
+            return new DefaultBuildWorkPlan(this, plan);
+        });
     }
 
     @Override
-    public void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action) {
-        controller.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, action));
+    public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, workPlan.plan, dest -> action.accept(new DefaultWorkGraphBuilder(dest))));
     }
 
     @Override
-    public void finalizeWorkGraph(boolean workScheduled) {
-        if (workScheduled) {
-            TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-            taskGraph.populate();
-        }
-        finalizeGradleServices(gradle);
-    }
-
-    private void finalizeGradleServices(GradleInternal gradle) {
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
-        buildOutputCleanupRegistry.resolveOutputs();
+    public void finalizeWorkGraph(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
+            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
+        });
     }
 
     @Override
-    public ExecutionResult<Void> executeTasks() {
+    public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
-        return controller.tryTransition(State.TaskSchedule, State.Configure, () -> workExecutor.execute(gradle));
+        DefaultBuildWorkPlan workPlan = unpack(plan);
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.plan));
+    }
+
+    private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
+        DefaultBuildWorkPlan workPlan = (DefaultBuildWorkPlan) plan;
+        if (workPlan.owner != this) {
+            throw new IllegalArgumentException("Unexpected plan owner.");
+        }
+        return workPlan;
+    }
+
+    @Override
+    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(gradle.getOwner(), this));
     }
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return controller.finish(State.Finished, stageFailures -> {
+        return state.finish(State.Finished, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
@@ -177,6 +218,41 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private static class DefaultBuildWorkPlan implements BuildWorkPlan {
+        private final DefaultBuildLifecycleController owner;
+        private final ExecutionPlan plan;
+
+        public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
+            this.owner = owner;
+            this.plan = plan;
+        }
+    }
+
+    private class DefaultWorkGraphBuilder implements WorkGraphBuilder {
+        private final ExecutionPlan plan;
+
+        public DefaultWorkGraphBuilder(ExecutionPlan plan) {
+            this.plan = plan;
+        }
+
+        @Override
+        public void addRequestedTasks() {
+            modelController.scheduleRequestedTasks(plan);
+        }
+
+        @Override
+        public void addEntryTasks(List<? extends Task> tasks) {
+            for (Task task : tasks) {
+                plan.addEntryTasks(Collections.singletonList(task));
+            }
+        }
+
+        @Override
+        public void addNodes(List<? extends Node> nodes) {
+            plan.addNodes(nodes);
         }
     }
 }

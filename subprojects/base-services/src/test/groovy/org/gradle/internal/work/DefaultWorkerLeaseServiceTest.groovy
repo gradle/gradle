@@ -16,10 +16,11 @@
 
 package org.gradle.internal.work
 
-import org.gradle.api.Action
+
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockContainer
 import org.gradle.internal.resources.TestTrackedResourceLock
 import spock.lang.Specification
 
@@ -153,7 +154,7 @@ class DefaultWorkerLeaseServiceTest extends Specification {
     }
 
     TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {
-        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(ResourceLockContainer), locked, hasLock)
     }
 
     TestTrackedResourceLock resourceLock(String displayName) {

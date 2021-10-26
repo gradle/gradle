@@ -17,12 +17,10 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Walks properties declared by the type.
  */
-@UsedByScanPlugin("test-distribution")
 public interface PropertyWalker {
     void visitProperties(Object instance, TypeValidationContext validationContext, PropertyVisitor visitor);
 }

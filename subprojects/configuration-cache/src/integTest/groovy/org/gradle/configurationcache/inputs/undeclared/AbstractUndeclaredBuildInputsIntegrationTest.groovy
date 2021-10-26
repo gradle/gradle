@@ -35,7 +35,9 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         then:
         configurationCache.assertStateStored()
         // TODO - use problems configurationCache, need to be able to ignore problems from the Kotlin plugin
-        result.normalizedOutput.contains("$location: read system property 'CI'")
+        problems.assertResultHasProblems(result) {
+            withInput("$location: system property 'CI'")
+        }
         outputContains("apply = $value")
         outputContains("task = $value")
 
@@ -51,10 +53,10 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         when:
         configurationCacheRun("thing", "-DCI=$newValue")
 
-        then:
-        configurationCache.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
+        then: 'undeclared properties are considered build inputs'
+        configurationCache.assertStateStored()
         problems.assertResultHasProblems(result)
-        outputDoesNotContain("apply =")
+        outputContains("apply = $newValue")
         outputContains("task = $newValue")
 
         where:
@@ -79,12 +81,13 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheFails("thing", "-DCI=$value")
+        configurationCacheRun("thing", "-DCI=$value")
 
         then:
         configurationCache.assertStateStored()
-        // TODO - use the configurationCache, need to be able to ignore other problems
-        failure.assertHasDescription("Configuration cache problems found in this build.")
+        problems.assertResultHasProblems(result) {
+            withInput("$location: system property 'CI'")
+        }
         outputContains("apply = $value")
         outputContains("task = $value")
 

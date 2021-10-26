@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear
 
+import groovy.xml.XmlSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
