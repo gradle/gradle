@@ -20,6 +20,7 @@ import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -35,18 +36,20 @@ class TestFilesCleanupServiceTest {
         writeText(text)
     }
 
-    @Test
-    fun `fail build if leftover file found with no test failing`() {
+    @BeforeEach
+    fun setUp() {
         projectDir.resolve("settings.gradle.kts").writeText(
             """
             include(":failed-test-with-leftover")
             include(":failed-report-with-leftover")
+            include(":flaky-test-with-leftover")
             include(":successful-report")
             """.trimIndent()
         )
 
-        projectDir.resolve("failed-test-with-leftover/src/test/java/FailedTestWithLeftover.java").mkdirsAndWriteText(
-            """
+        fun File.writeFailedTestWithLeftover() {
+            mkdirsAndWriteText(
+                """
             class FailedTestWithLeftover {
                 @org.junit.jupiter.api.Test
                 public void test() {
@@ -54,8 +57,11 @@ class TestFilesCleanupServiceTest {
                 }
             }
             """.trimIndent()
-        )
+            )
+        }
 
+        projectDir.resolve("failed-test-with-leftover/src/test/java/FailedTestWithLeftover.java").writeFailedTestWithLeftover()
+        projectDir.resolve("flaky-test-with-leftover/src/test/java/FailedTestWithLeftover.java").writeFailedTestWithLeftover()
 
         projectDir.resolve("build.gradle.kts").writeText(
             """
@@ -73,7 +79,10 @@ class TestFilesCleanupServiceTest {
                 apply(plugin = "gradlebuild.ci-reporting")
             }
 
-            project(":failed-test-with-leftover") {
+            project(":failed-test-with-leftover").configureTestWithLeftover(false)
+            project(":flaky-test-with-leftover").configureTestWithLeftover(true)
+
+            fun Project.configureTestWithLeftover(ignoreFailures: Boolean) {
                 apply(plugin = "java-library")
                 repositories {
                     mavenCentral()
@@ -84,6 +93,7 @@ class TestFilesCleanupServiceTest {
                 }
 
                 tasks.named<Test>("test").configure {
+                    this.ignoreFailures = ignoreFailures
                     doFirst {
                         project.layout.buildDirectory.file("tmp/test files/leftover/leftover").get().asFile.apply {
                             parentFile.mkdirs()
@@ -132,7 +142,10 @@ class TestFilesCleanupServiceTest {
             }
             """.trimIndent()
         )
+    }
 
+    @Test
+    fun `fail build if leftover file found with test failing`() {
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
             .withTestKitDir(projectDir.resolve("test-kit"))
@@ -163,6 +176,29 @@ class TestFilesCleanupServiceTest {
         assertTrue(projectDir.resolve("failed-report-with-leftover/build/tmp/test files").walk().filter { it.isFile }.toList().isEmpty())
         assertTrue(projectDir.resolve("successful-report/build/tmp/test files").walk().filter { it.isFile }.toList().isEmpty())
         assertTrue(projectDir.resolve("failed-test-with-leftover/build/tmp/test files").walk().filter { it.isFile }.toList().isEmpty())
+    }
+
+    @Test
+    fun `not fail build if leftover file found with flaky tests`() {
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir)
+            .withTestKitDir(projectDir.resolve("test-kit"))
+            .withPluginClasspath()
+            .forwardOutput()
+            .withArguments(":flaky-test-with-leftover:test")
+            .build()
+
+        // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
+        assertEquals(1, StringUtils.countMatches(result.output, "Leftover files"))
+        result.output.assertContains("flaky-test-with-leftover/build/tmp/test files/leftover")
+        val rootDirFiles = projectDir.resolve("build").walk().toList()
+
+        // assert the zip file in place
+        assertTrue(rootDirFiles.any { it.name == "report-flaky-test-with-leftover-test.zip" })
+        assertTrue(rootDirFiles.any { it.name == "report-flaky-test-with-leftover-leftover.zip" })
+
+        // assert the leftover files are eventually cleaned up
+        assertTrue(projectDir.resolve("flaky-test-with-leftover/build/tmp/test files").walk().filter { it.isFile }.toList().isEmpty())
     }
 
     private
