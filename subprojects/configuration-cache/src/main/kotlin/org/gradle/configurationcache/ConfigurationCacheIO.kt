@@ -16,6 +16,10 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.cache.internal.streams.BlockAddress
+import org.gradle.cache.internal.streams.BlockAddressSerializer
+import org.gradle.configurationcache.cacheentry.EntryDetails
+import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
@@ -35,11 +39,12 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -54,28 +59,51 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, stateFile: ConfigurationCacheStateFile) {
+    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, intermediateModels: Map<ModelKey, BlockAddress>, stateFile: ConfigurationCacheStateFile) {
+        val rootDirs = collectRootDirs(buildStateRegistry)
+        writeConfigurationCacheState(stateFile) {
+            writeCollection(rootDirs) { writeFile(it) }
+            val addressSerializer = BlockAddressSerializer()
+            writeSmallInt(intermediateModels.size)
+            for (entry in intermediateModels) {
+                writeNullableString(entry.key.identityPath?.path)
+                writeString(entry.key.modelName)
+                addressSerializer.write(this, entry.value)
+            }
+        }
+    }
+
+    internal
+    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails {
+        // Currently, the fingerprint file is used to mark whether the entry is usable or not
+        // Should use the entry details file instead
+        if (!stateFile.exists) {
+            return EntryDetails(emptyList(), emptyMap())
+        }
+        return readConfigurationCacheState(stateFile) {
+            val rootDirs = readList { readFile() }
+            val addressSerializer = BlockAddressSerializer()
+            val count = readSmallInt()
+            val entries = mutableMapOf<ModelKey, BlockAddress>()
+            for (i in 0 until count) {
+                val path = readNullableString()?.let { Path.path(it) }
+                val modelName = readString()
+                val address = addressSerializer.read(this)
+                entries[ModelKey(path, modelName)] = address
+            }
+            EntryDetails(rootDirs, entries)
+        }
+    }
+
+    private
+    fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
         val rootDirs = mutableSetOf<File>()
         buildStateRegistry.visitBuilds { build ->
             if (build !is RootBuildState) {
                 rootDirs.add(build.buildRootDir)
             }
         }
-        writeConfigurationCacheState(stateFile) {
-            writeCollection(rootDirs) { writeFile(it) }
-        }
-    }
-
-    internal
-    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): List<File> {
-        // Currently, the fingerprint file is used to mark whether the entry is usable or not
-        // Should use the entry details file instead
-        if (!stateFile.exists) {
-            return emptyList()
-        }
-        return readConfigurationCacheState(stateFile) {
-            readList { readFile() }
-        }
+        return rootDirs
     }
 
     /**
@@ -177,9 +205,9 @@ class ConfigurationCacheIO internal constructor(
         inputStream: InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        codecs().let { codecs ->
-            KryoBackedDecoder(inputStream).use { decoder ->
-                readContextFor(decoder, codecs).run {
+        readerContextFor(inputStream).let { (context, codecs) ->
+            context.use {
+                context.run {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
@@ -188,9 +216,21 @@ class ConfigurationCacheIO internal constructor(
             }
         }
 
+    internal
+    fun readerContextFor(
+        inputStream: InputStream,
+    ) =
+        codecs().let { codecs ->
+            KryoBackedDecoder(inputStream).let { decoder ->
+                readContextFor(decoder, codecs).apply {
+                    initClassLoader(javaClass.classLoader)
+                }
+            } to codecs
+        }
+
     private
     fun writeContextFor(
-        encoder: Encoder,
+        encoder: FlushableEncoder,
         tracer: Tracer?,
         codecs: Codecs
     ) = DefaultWriteContext(

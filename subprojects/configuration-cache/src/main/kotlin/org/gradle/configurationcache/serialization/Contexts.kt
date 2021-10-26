@@ -19,7 +19,6 @@ package org.gradle.configurationcache.serialization
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
-import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -29,10 +28,11 @@ import org.gradle.configurationcache.serialization.beans.BeanPropertyReader
 import org.gradle.configurationcache.serialization.beans.BeanPropertyWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
+import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.FlushableEncoder
 
 
 internal
@@ -40,7 +40,7 @@ class DefaultWriteContext(
     codec: Codec<Any?>,
 
     private
-    val encoder: Encoder,
+    val encoder: FlushableEncoder,
 
     private
     val scopeLookup: ScopeLookup,
@@ -52,7 +52,7 @@ class DefaultWriteContext(
     private
     val problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, FlushableEncoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
 
@@ -185,8 +185,8 @@ interface EncodingProvider<T> {
 }
 
 
-@Suppress("experimental_feature_warning")
-inline class ClassLoaderRole(val local: Boolean)
+@JvmInline
+value class ClassLoaderRole(val local: Boolean)
 
 
 internal
@@ -213,7 +213,7 @@ class DefaultReadContext(
     private
     val problemsListener: ProblemsListener
 
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -242,6 +242,10 @@ class DefaultReadContext(
     }
 
     override var immediateMode: Boolean = false
+
+    override fun close() {
+        (decoder as? AutoCloseable)?.close()
+    }
 
     override suspend fun read(): Any? = getCodec().run {
         decode()

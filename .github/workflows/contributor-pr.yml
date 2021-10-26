@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - master
-  
+
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
@@ -45,19 +45,8 @@ jobs:
           arguments: |
               compileAll
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-      - name: "Comment build scan url"
-        uses: actions/github-script@v5
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -82,19 +71,8 @@ jobs:
           arguments: |
               sanityCheck
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ needs.build.outputs.sys-prop-args }}
-      - name: "Comment build scan url"
-        uses: actions/github-script@v5
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -120,4 +98,5 @@ jobs:
           arguments: |
               ${{ matrix.bucket.tasks }}
               --no-configuration-cache
+              -DdisableLocalCache=true
               ${{ needs.build.outputs.sys-prop-args }}

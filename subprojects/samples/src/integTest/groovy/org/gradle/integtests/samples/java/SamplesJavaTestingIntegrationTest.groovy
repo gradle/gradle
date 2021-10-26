@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.samples.java
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample

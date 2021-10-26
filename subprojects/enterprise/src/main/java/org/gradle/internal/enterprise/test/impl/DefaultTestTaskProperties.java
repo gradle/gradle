@@ -17,15 +17,14 @@
 package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.enterprise.test.CandidateClassFile;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
 
-import java.io.File;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 class DefaultTestTaskProperties implements TestTaskProperties {
 
@@ -33,7 +32,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     private final long forkEvery;
     private final TestTaskFilters filters;
     private final TestTaskForkOptions forkOptions;
-    private final Iterable<File> candidateClassFiles;
+    private final ImmutableList<CandidateClassFile> candidateClassFiles;
     private final ImmutableList<InputFileProperty> inputFileProperties;
     private final ImmutableList<OutputFileProperty> outputFileProperties;
 
@@ -42,7 +41,7 @@ class DefaultTestTaskProperties implements TestTaskProperties {
         long forkEvery,
         TestTaskFilters filters,
         TestTaskForkOptions forkOptions,
-        Iterable<File> candidateClassFiles,
+        ImmutableList<CandidateClassFile> candidateClassFiles,
         ImmutableList<InputFileProperty> inputFileProperties,
         ImmutableList<OutputFileProperty> outputFileProperties
     ) {
@@ -76,8 +75,8 @@ class DefaultTestTaskProperties implements TestTaskProperties {
     }
 
     @Override
-    public Stream<File> getCandidateClassFiles() {
-        return StreamSupport.stream(candidateClassFiles.spliterator(), false);
+    public Stream<CandidateClassFile> getCandidateClassFiles() {
+        return candidateClassFiles.stream();
     }
 
     public Stream<InputFileProperty> getInputFileProperties() {

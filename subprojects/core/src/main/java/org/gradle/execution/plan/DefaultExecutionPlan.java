@@ -575,9 +575,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     break;
                 }
 
+                if (!tryAcquireLocksForNode(node)) {
+                    resourceLockState.releaseLocks();
+                    continue;
+                }
+
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
-                if (!tryAcquireLocksForNode(node, mutations)) {
+                if (conflictsWithOtherNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -599,20 +604,26 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return null;
     }
 
-    private boolean tryAcquireLocksForNode(Node node, MutationInfo mutations) {
+    private boolean tryAcquireLocksForNode(Node node) {
         if (!tryLockProjectFor(node)) {
             LOGGER.debug("Cannot acquire project lock for node {}", node);
             return false;
         } else if (!tryLockSharedResourceFor(node)) {
             LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
             return false;
-        } else if (!canRunWithCurrentlyExecutedNodes(mutations)) {
-            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
-            return false;
-        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
-            return false;
         }
         return true;
+    }
+
+    private boolean conflictsWithOtherNodes(Node node, MutationInfo mutations) {
+        if (!canRunWithCurrentlyExecutedNodes(mutations)) {
+            LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return true;
+        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+            LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
+            return true;
+        }
+        return false;
     }
 
     private boolean tryAcquireWorkerLeaseForNode(Node node, WorkerLeaseRegistry.WorkerLease workerLease) {

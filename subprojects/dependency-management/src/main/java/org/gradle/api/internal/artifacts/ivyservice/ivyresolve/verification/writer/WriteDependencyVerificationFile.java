@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultKeyServers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
@@ -529,10 +530,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     PGPPublicKey pk = pks.next();
                     String keyType = pk.isMasterKey() ? "pub" : "sub";
                     out.write((keyType + "    " + SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase() + "\n").getBytes(StandardCharsets.US_ASCII));
-                    Iterator<String> userIDs = pk.getUserIDs();
-                    while (userIDs.hasNext()) {
+                    List<String> userIDs = PGPUtils.getUserIDs(pk);
+                    for(String uid : userIDs) {
                         hasUid = true;
-                        String uid = userIDs.next();
                         out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
                     }
                     if (hasUid) {

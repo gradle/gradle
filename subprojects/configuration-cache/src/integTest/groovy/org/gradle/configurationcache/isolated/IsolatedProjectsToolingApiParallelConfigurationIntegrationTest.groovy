@@ -58,6 +58,72 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
         model[2].message == "It works from project :b"
+
+        and:
+        fixture.assertStateStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            modelsCreated(":", ":a", ":b")
+        }
+
+        when:
+        // TODO - get rid of usage of --parallel
+        executer.withArguments(ENABLE_CLI, "--parallel")
+        def model2 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
+
+        then:
+        model2.size() == 3
+        model2[0].message == "It works from project :"
+        model2[1].message == "It works from project :a"
+        model2[2].message == "It works from project :b"
+
+        and:
+        fixture.assertStateLoaded()
+
+        when:
+        file("a/build.gradle") << """
+            myExtension.message = 'this is project a'
+        """
+        file("b/build.gradle") << """
+            myExtension.message = 'this is project b'
+        """
+
+        server.expect("configure-root")
+        server.expectConcurrent("configure-a", "configure-b")
+        server.expectConcurrent("model-a", "model-b")
+
+        // TODO - get rid of usage of --parallel
+        executer.withArguments(ENABLE_CLI, "--parallel")
+        def model3 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
+
+        then:
+        model3.size() == 3
+        model3[0].message == "It works from project :"
+        model3[1].message == "this is project a"
+        model3[2].message == "this is project b"
+
+        and:
+        fixture.assertStateRecreated {
+            fileChanged("a/build.gradle")
+            fileChanged("b/build.gradle")
+            projectConfigured(":buildSrc")
+            projectConfigured(":")
+            modelsCreated(":a", ":b")
+        }
+
+        when:
+        // TODO - get rid of usage of --parallel
+        executer.withArguments(ENABLE_CLI, "--parallel")
+        def model4 = runBuildAction(new FetchCustomModelForEachProjectInParallel())
+
+        then:
+        model4.size() == 3
+        model4[0].message == "It works from project :"
+        model4[1].message == "this is project a"
+        model4[2].message == "this is project b"
+
+        and:
+        fixture.assertStateLoaded()
     }
 
     @Ignore("not implemented yet")
@@ -88,6 +154,13 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model.size() == 2
         model[0].message == "It works from project :a"
         model[1].message == "It works from project :b"
+
+        and:
+        fixture.assertStateStored {
+            projectsConfigured(":buildSrc", ":")
+            buildModelCreated()
+            modelsCreated(":a", ":b")
+        }
     }
 
     TestFile apply(TestFile dir) {

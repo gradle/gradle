@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     def "new test suites adds appropriate test tasks"() {
@@ -427,7 +428,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             integrationTest {
                 useTestNG()
             }
-            
+
             check.dependsOn testing.suites
         """
 
@@ -518,11 +519,57 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             check.dependsOn testing.suites
         """
 
         expect:
         succeeds("check")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18622")
+    def "custom Test tasks do not fail to be configured when combined with test suites"() {
+        buildFile << """
+            tasks.withType(Test) {
+                // realize all test tasks
+            }
+            tasks.register("mytest", Test)
+            apply plugin: 'java'
+
+            task assertHasClasses {
+                inputs.files mytest.testClassesDirs
+
+                doLast {
+                    assert mytest.testClassesDirs // This is setup by the jvm-test-suite plugin, applied by the java plugin
+                    assert !mytest.testClassesDirs.empty
+                }
+            }
+        """
+        expect:
+        succeeds("mytest", "assertHasClasses")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18622")
+    def "custom Test tasks still function if java plugin is never applied to create sourcesets"() {
+        buildFile << """
+            tasks.withType(Test) {
+                // realize all test tasks
+            }
+
+            tasks.register("mytest", Test) {
+                // Must ensure a base dir is set here, even if it doesn't exist
+                testClassesDirs = fileTree('src/custom/java')
+            }
+
+            task assertNoTestClasses {
+                inputs.files mytest.testClassesDirs
+
+                doLast {
+                    assert mytest.testClassesDirs.getDir() == file('src/custom/java')
+                }
+            }
+        """
+        expect:
+        succeeds("mytest", "assertNoTestClasses")
     }
 }

@@ -18,7 +18,9 @@ package org.gradle.internal.enterprise.test.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
@@ -31,6 +33,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
+import org.gradle.internal.enterprise.test.CandidateClassFile;
 import org.gradle.internal.enterprise.test.InputFileProperty;
 import org.gradle.internal.enterprise.test.OutputFileProperty;
 import org.gradle.internal.enterprise.test.TestTaskFilters;
@@ -114,10 +117,21 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             task.getForkEvery(),
             collectFilters(task),
             collectForkOptions(task),
-            task.getCandidateClassFiles(),
+            collectCandidateClassFiles(task),
             inputFileProperties.build(),
             outputFileProperties.build()
         );
+    }
+
+    private ImmutableList<CandidateClassFile> collectCandidateClassFiles(Test task) {
+        ImmutableList.Builder<CandidateClassFile> builder = ImmutableList.builder();
+        task.getCandidateClassFiles().visit(new EmptyFileVisitor() {
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                builder.add(new DefaultCandidateClassFile(fileDetails.getFile(), fileDetails.getPath()));
+            }
+        });
+        return builder.build();
     }
 
     private FileCollection resolveLeniently(PropertyValue value) {

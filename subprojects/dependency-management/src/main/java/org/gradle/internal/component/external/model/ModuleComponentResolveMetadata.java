@@ -73,4 +73,13 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     VariantDerivationStrategy getVariantDerivationStrategy();
 
     boolean isExternalVariant();
+
+    /*
+     * When set to false component metadata rules are not cached.
+     * Currently, we disable it just for local maven/ivy repository.
+     *
+     * Default value is true.
+     */
+    boolean isComponentMetadataRuleCachingEnabled();
+
 }
