@@ -23,8 +23,15 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
  * Service for snapshotting {@link FileCollection}s.
  */
 public interface FileCollectionSnapshotter {
+    interface Result {
+        FileSystemSnapshot getSnapshot();
+        boolean isTree();
+    }
+
     /**
      * Returns snapshots of the roots of a file collection.
      */
     FileSystemSnapshot snapshot(FileCollection fileCollection);
+
+    Result snapshotResult(FileCollection fileCollection);
 }

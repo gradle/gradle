@@ -47,19 +47,46 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     @Override
     public FileSystemSnapshot snapshot(FileCollection fileCollection) {
+        return snapshotResult(fileCollection).getSnapshot();
+    }
+
+    @Override
+    public Result snapshotResult(FileCollection fileCollection) {
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
-        return CompositeFileSystemSnapshot.of(visitor.getRoots());
+        return new DefaultResult(CompositeFileSystemSnapshot.of(visitor.getRoots()), visitor.isOnlyFileTrees());
+    }
+
+    private static class DefaultResult implements Result {
+        private final FileSystemSnapshot fileSystemSnapshot;
+        private final boolean isFileTree;
+
+        public DefaultResult(FileSystemSnapshot fileSystemSnapshot, boolean isFileTree) {
+            this.fileSystemSnapshot = fileSystemSnapshot;
+            this.isFileTree = isFileTree;
+        }
+
+        @Override
+        public FileSystemSnapshot getSnapshot() {
+            return fileSystemSnapshot;
+        }
+
+        @Override
+        public boolean isTree() {
+            return isFileTree;
+        }
     }
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
+        private boolean isOnlyFileTrees = true;
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
                 fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
+            isOnlyFileTrees = false;
         }
 
         @Override
@@ -87,6 +114,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
+        }
+
+        public boolean isOnlyFileTrees() {
+            return isOnlyFileTrees;
         }
     }
 }
