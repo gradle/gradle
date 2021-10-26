@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 
 /**
  * NOTE: Starting with Gradle 5.0 the contract of IdeaModule#sourceDirs and IdeaModule#testSourceDirs changes in
@@ -60,8 +61,13 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         root.resourceDirectories.size() == 1
         root.resourceDirectories.first().directory == file('src/main/resources')
 
-        root.testDirectories.size() == 1
+        if (targetVersion > GradleVersion.version("7.3")) {
+            root.testDirectories.size() == 1
+        } else {
+            root.testDirectories.size() == 2
+        }
         root.testDirectories.first().directory == file('src/test/java')
+
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories.first().directory == file('src/test/resources')
     }
@@ -109,8 +115,14 @@ sourceSets {
         root.sourceDirectories[0].directory == file('mainSources')
         root.resourceDirectories.size() == 1
         root.resourceDirectories[0].directory == file('mainResources')
-        root.testDirectories.size() == 1
+
+        if (targetVersion > GradleVersion.version("7.3")) {
+            root.testDirectories.size() == 1
+        } else {
+            root.testDirectories.size() == 2
+        }
         root.testDirectories[0].directory == file('testSources')
+
         root.testResourceDirectories.size() == 1
         root.testResourceDirectories[0].directory == file('testResources')
     }
