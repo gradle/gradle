@@ -18,6 +18,7 @@ package org.gradle.internal.execution.fingerprint.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
@@ -127,6 +128,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
                 DirectorySensitivity directorySensitivity = value.getDirectorySensitivity().orElse(result.isTree() ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT);
+                if (result.isTree() && !value.getDirectorySensitivity().isPresent()) {
+                    DeprecationLogger.deprecateBehaviour("Relying on FileTrees for ignoring empty directories")
+                        .withAdvice("Annotate the property with @IgnoreEmptyDirectories")
+                        .willBeRemovedInGradle8()
+                        .undocumented()
+                        .nagUser();
+                }
                 FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), directorySensitivity, value.getLineEndingNormalization());
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
