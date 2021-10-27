@@ -100,8 +100,8 @@ class PathNormalizationStrategyTest extends Specification {
         (getAllFilesToFingerprint(strategy.directorySensitivity) - emptyRootDir - resources).each { file ->
             assert fingerprints[file] == file.name
         }
-        fingerprints[emptyRootDir] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[resources] == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[emptyRootDir] == null
+        fingerprints[resources] == null
 
         where:
         strategy << [

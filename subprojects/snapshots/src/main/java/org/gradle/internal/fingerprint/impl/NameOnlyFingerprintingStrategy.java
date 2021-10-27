@@ -65,9 +65,8 @@ public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFi
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
-                    if (isRoot && snapshot.getType() == FileType.Directory) {
-                        builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.DIRECTORY);
-                    } else {
+                    // We exclude root directories for some reason.
+                    if (!isRoot || snapshot.getType() != FileType.Directory) {
                         HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                         if (normalizedContentHash != null) {
                             builder.put(absolutePath, new DefaultFileSystemLocationFingerprint(snapshot.getName(), snapshot.getType(), normalizedContentHash));
