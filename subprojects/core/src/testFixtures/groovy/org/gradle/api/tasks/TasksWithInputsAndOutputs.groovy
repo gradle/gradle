@@ -203,6 +203,7 @@ trait TasksWithInputsAndOutputs {
         buildFile << """
             class InputFilesTask extends DefaultTask {
                 @InputFiles
+                @IgnoreEmptyDirectories
                 final ConfigurableFileCollection inFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outFile = project.objects.fileProperty()

@@ -344,13 +344,13 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             }
 
             task consumesResultOfPrepareBuildAndGeneratesAInSameDirectory {
-                inputs.files(sources)
+                inputs.files(sources).ignoreEmptyDirectories()
                 outputs.file("app/src/generatedA.txt")
                 doLast {}
             }
 
             task consumesResultOfPrepareBuildAndGeneratesBInSameDirectory {
-                inputs.files(sources)
+                inputs.files(sources).ignoreEmptyDirectories()
                 outputs.file("app/src/generatedB.txt")
                 doLast {}
             }
@@ -390,7 +390,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                     exclude "build.gradle"
                     exclude "settings.gradle"
                 }
-                inputs.files(sources)
+                inputs.files(sources).ignoreEmptyDirectories()
                 doLast {
                     sources.each {
                         println it.name
@@ -414,7 +414,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
 
         buildFile """
             task fooReport {
-                inputs.files(fileTree(buildDir) { include("**/*.foo")})
+                inputs.files(fileTree(buildDir) { include("**/*.foo")}).ignoreEmptyDirectories()
                 def reportPath = file("\${buildDir}/fooReport.txt")
                 outputs.file(reportPath)
                 doLast {
@@ -422,7 +422,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
             task barReport {
-                inputs.files(fileTree(buildDir) { include("**/*.bar")})
+                inputs.files(fileTree(buildDir) { include("**/*.bar")}).ignoreEmptyDirectories()
                 def reportPath = file("\${buildDir}/barReport.txt")
                 outputs.file(reportPath)
                 doLast {
