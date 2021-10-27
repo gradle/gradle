@@ -150,7 +150,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             @CacheableTask
             class PathSensitiveTask extends DefaultTask {
                 @InputFiles
-                @IgnoreEmptyDirectories
                 @PathSensitive(PathSensitivity.${pathSensitivity.name()})
                 FileCollection sources
 

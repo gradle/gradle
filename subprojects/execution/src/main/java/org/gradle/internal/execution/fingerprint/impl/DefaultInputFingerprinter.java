@@ -127,8 +127,8 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
-                DirectorySensitivity directorySensitivity = value.getDirectorySensitivity().orElse(result.isTree() ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT);
-                if (result.isTree() && !value.getDirectorySensitivity().isPresent()) {
+                DirectorySensitivity directorySensitivity = value.getDirectorySensitivity().orElse(result.isTree() && type.isSkipWhenEmpty() ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT);
+                if (result.isTree() && type.isSkipWhenEmpty() && !value.getDirectorySensitivity().isPresent()) {
                     DeprecationLogger.deprecateBehaviour("Relying on FileTrees for ignoring empty directories")
                         .withAdvice("Annotate the property " + propertyName + " with @IgnoreEmptyDirectories")
                         .willBeRemovedInGradle8()
