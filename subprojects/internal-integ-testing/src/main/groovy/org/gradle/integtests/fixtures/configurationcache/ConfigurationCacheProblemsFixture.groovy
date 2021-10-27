@@ -311,7 +311,7 @@ final class ConfigurationCacheProblemsFixture {
             }
         }
         if (!(spec instanceof InputsSpec.IgnoreUnexpected)) {
-            assertThat("Unexpected inputs were found in the report", unexpectedInputs, equalTo([]))
+            assert unexpectedInputs.isEmpty() : "Unexpected inputs $unexpectedInputs found in the report, expecting $expectedInputs"
         }
         assert expectedInputs.isEmpty() : "Expecting $expectedInputs in the report, found $unexpectedInputs"
     }
