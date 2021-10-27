@@ -221,6 +221,7 @@ task retrieve(type: Copy) {
         run 'retrieve'
 
         then: "Version 1.1 jar is downloaded"
+        file('build/reports').maybeDeleteDir() // delete configuration cache report if present
         file('build').assertHasDescendants('projectA-1.1.jar')
         def jarFile = file('build/projectA-1.1.jar')
         jarFile.assertIsCopyOf(module.jarFile)
@@ -235,6 +236,7 @@ task retrieve(type: Copy) {
         run 'retrieve'
 
         then: "Original module meta-data and artifacts are used"
+        file('build/reports').maybeDeleteDir() // delete configuration cache report if present
         file('build').assertHasDescendants('projectA-1.1.jar')
         jarFile.assertHasNotChangedSince(snapshot)
 
@@ -254,6 +256,7 @@ task retrieve(type: Copy) {
         run 'retrieve'
 
         then: "We get new artifacts based on the new meta-data"
+        file('build/reports').maybeDeleteDir() // delete configuration cache report if present
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
