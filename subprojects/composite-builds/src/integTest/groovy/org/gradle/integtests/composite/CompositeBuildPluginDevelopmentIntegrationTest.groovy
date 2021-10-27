@@ -18,6 +18,8 @@ package org.gradle.integtests.composite
 
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -191,6 +193,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
     }
 
+    @IntegrationTestTimeout(value = 30, onlyIf = { GradleContextualExecuter.embedded })
     def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency using library included build and 'apply plugin'"() {
         given:
         def buildB = singleProjectBuild("buildB") {

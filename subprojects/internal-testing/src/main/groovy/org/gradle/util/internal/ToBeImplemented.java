@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates a test that is explicitly testing for some failure that is to be fixed later.
  *
- * <p>This annotation replaces {@literal @}{@link groovy.transform.NotYetImplemented}.
+ * <p>This annotation replaces {@literal @}{@link groovy.test.NotYetImplemented}.
  * The problem with {@code NotYetImplemented} is that it succeeds no matter what causes the marked test
  * to fail. Tests like that can pass because the expected failure is still present, or even if the
  * expected failure is replaced by some other failure. It's better to write a test that explicitly

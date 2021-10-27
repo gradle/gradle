@@ -17,6 +17,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -35,22 +36,24 @@ public class BuildOperationFiringBuildWorkerExecutor implements BuildWorkExecuto
     }
 
     @Override
-    public ExecutionResult<Void> execute(GradleInternal gradle) {
-        return buildOperationExecutor.call(new ExecuteTasks(gradle));
+    public ExecutionResult<Void> execute(GradleInternal gradle, ExecutionPlan plan) {
+        return buildOperationExecutor.call(new ExecuteTasks(gradle, plan));
     }
 
     private class ExecuteTasks implements CallableBuildOperation<ExecutionResult<Void>> {
         private final GradleInternal gradle;
+        private final ExecutionPlan plan;
 
-        public ExecuteTasks(GradleInternal gradle) {
+        public ExecuteTasks(GradleInternal gradle, ExecutionPlan plan) {
             this.gradle = gradle;
+            this.plan = plan;
         }
 
         @Override
         public ExecutionResult<Void> call(BuildOperationContext context) throws Exception {
-            ExecutionResult<Void> result = delegate.execute(gradle);
+            ExecutionResult<Void> result = delegate.execute(gradle, plan);
             if (!result.getFailures().isEmpty()) {
-                context.failed(result.getFailures().get(0));
+                context.failed(result.getFailure());
             }
             return result;
         }

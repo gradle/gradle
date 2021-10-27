@@ -1,3 +1,0 @@
- - Easily declare new test suites in Java projects
- - Support for Java 17
- - Support for Scala 3

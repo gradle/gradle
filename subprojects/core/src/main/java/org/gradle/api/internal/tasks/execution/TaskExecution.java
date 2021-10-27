@@ -98,6 +98,8 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 public class TaskExecution implements UnitOfWork {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
+    private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
+    };
 
     private final TaskInternal task;
     private final TaskExecutionContext context;
@@ -441,7 +443,7 @@ public class TaskExecution implements UnitOfWork {
             BuildOperationContext operationContext = buildOperationExecutor.start(BuildOperationDescriptor
                 .displayName("Snapshot task inputs for " + task.getIdentityPath())
                 .name("Snapshot task inputs")
-                .details(SnapshotTaskInputsBuildOperationType.Details.INSTANCE));
+                .details(SNAPSHOT_TASK_INPUTS_DETAILS));
             context.setSnapshotTaskInputsBuildOperationContext(operationContext);
         }
     }

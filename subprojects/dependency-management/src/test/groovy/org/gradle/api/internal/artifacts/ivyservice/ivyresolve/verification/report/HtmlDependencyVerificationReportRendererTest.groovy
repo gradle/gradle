@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report
 
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.NodeChild
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.NodeChild
 import org.cyberneko.html.parsers.SAXParser
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier

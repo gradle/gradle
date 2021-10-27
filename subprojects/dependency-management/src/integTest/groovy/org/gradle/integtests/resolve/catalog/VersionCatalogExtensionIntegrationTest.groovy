@@ -204,42 +204,62 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "can use the generated extension to declare a dependency constraint"() {
+    def "can use the generated extension to declare a dependency constraint with and without sub-group"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
                     libs {
-                        alias("myLib").to("org.gradle.test", "lib").version {
-                            require "1.0"
+                        version("myLib") {
+                            strictly "[1.0,1.1)"
                         }
+                        alias("myLib").to("org.gradle.test", "lib-core").versionRef("myLib")
+                        alias("myLib-ext").to("org.gradle.test", "lib-ext").versionRef("myLib")
                     }
                 }
             }
         """
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
         buildFile << """
             apply plugin: 'java-library'
 
             dependencies {
-                implementation "org.gradle.test:lib" // intentional!
+                implementation "org.gradle.test:lib-core:1.+" // intentional!
+                implementation "org.gradle.test:lib-ext" // intentional!
                 constraints {
-                    implementation(libs.myLib)
+                    implementation libs.myLib //.asProvider() as a workaround
+                    implementation libs.myLib.ext
                 }
             }
         """
 
         when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-
-        then:
         run ':checkDeps'
 
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                constraint('org.gradle.test:lib:1.0')
-                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.0')
+                constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
+                constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    byReasons(["rejected version 1.1", "constraint"])
+                }
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
             }
         }
     }

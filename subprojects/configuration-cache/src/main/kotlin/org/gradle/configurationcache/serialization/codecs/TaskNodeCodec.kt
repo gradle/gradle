@@ -298,6 +298,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
+                else -> throw IllegalStateException()
             }
         }
     }

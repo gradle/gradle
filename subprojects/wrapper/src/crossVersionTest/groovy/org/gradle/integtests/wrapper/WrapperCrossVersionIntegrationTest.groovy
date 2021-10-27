@@ -65,7 +65,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
         then:
         def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
-        result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+        result.hasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")

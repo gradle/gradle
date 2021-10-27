@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.fixtures
 
+import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
 
 class IdeaFixtures {

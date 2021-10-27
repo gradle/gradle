@@ -101,7 +101,7 @@ class ConfigurationCacheKeyTest {
                     null,
                     null
                 ),
-                BuildModelParameters(false, true, false, false, false),
+                BuildModelParameters(false, true, false, false, false, false),
                 startParameter
             ),
             RunTasksRequirements(startParameter)

@@ -68,14 +68,14 @@ public interface ProjectStateRegistry {
     /**
      * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
      *
-     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
+     * <p>Any attempt to lock a project by some other thread will block while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
      */
     void withMutableStateOfAllProjects(Runnable runnable);
 
     /**
      * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
      *
-     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
+     * <p>Any attempt to lock a project by some other thread will block while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
      */
     <T> T withMutableStateOfAllProjects(Factory<T> factory);
 
@@ -85,9 +85,4 @@ public interface ProjectStateRegistry {
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
      */
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
-
-    /**
-     * Runs some action that may block waiting for work that requires access to the mutable state of one or more projects.
-     */
-    void blocking(Runnable runnable);
 }

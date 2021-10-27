@@ -115,7 +115,6 @@ project.status = 'foo'
     }
 
     @Issue("gradle/gradle#812")
-    @ToBeFixedForConfigurationCache
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """
 subprojects {

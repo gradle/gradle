@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
@@ -25,10 +26,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -37,17 +41,24 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
+    public AbstractCompositeParticipantBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+        super(buildTree, buildDefinition, parent);
+    }
+
     @Override
     public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         if (availableModules == null) {
-            // Ensure configured
-            getBuildController().getConfiguredBuild();
+            ensureChildBuildConfigured();
             availableModules = new LinkedHashSet<>();
             for (ProjectState project : getProjects().getAllProjects()) {
                 registerProject(availableModules, project.getMutableModel());
             }
         }
         return availableModules;
+    }
+
+    protected void ensureChildBuildConfigured() {
+        ensureProjectsConfigured();
     }
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {

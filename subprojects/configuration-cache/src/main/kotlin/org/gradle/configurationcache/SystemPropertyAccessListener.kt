@@ -16,16 +16,14 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUndeclaredSysPropRead
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 private
@@ -63,6 +61,7 @@ val allowedProperties = setOf(
 )
 
 
+@ServiceScope(Scopes.BuildTree::class)
 class SystemPropertyAccessListener(
     private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext,
@@ -78,25 +77,8 @@ class SystemPropertyAccessListener(
         if (allowedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }
-        if (value == null) {
-            if (nullProperties.add(key)) {
-                broadcast.systemPropertyRead(key)
-            }
-            return
+        if (nullProperties.add(key)) {
+            broadcast.systemPropertyRead(key, value, userCodeContext.location(consumer))
         }
-        val message = StructuredMessage.build {
-            text("read system property ")
-            reference(key)
-        }
-        val location = userCodeContext.location(consumer)
-        val exception = InvalidUserCodeException(message.toString().capitalize())
-        problems.onProblem(
-            PropertyProblem(
-                location,
-                message,
-                exception,
-                documentationSection = RequirementsUndeclaredSysPropRead
-            )
-        )
     }
 }

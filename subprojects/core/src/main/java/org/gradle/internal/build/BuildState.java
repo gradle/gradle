@@ -18,14 +18,12 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -56,15 +54,6 @@ public interface BuildState {
     boolean isImportableBuild();
 
     /**
-     * The configured settings object for this build, if available.
-     *
-     * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.
-     *
-     * @throws IllegalStateException When the settings are not available for this build.
-     */
-    SettingsInternal getLoadedSettings() throws IllegalStateException;
-
-    /**
      * Note: may change value over the lifetime of this build, as this is often a function of the name of the root project in the build and this is not known until the settings have been configured. A temporary value will be returned when child builds need to create projects for some reason.
      */
     Path getCurrentPrefixForProjectsInChildBuilds();
@@ -76,7 +65,7 @@ public interface BuildState {
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
-     * This includes running the settings script for the build.
+     * This may include running the settings script for the build, or loading this information from cache.
      */
     void ensureProjectsLoaded();
 
@@ -100,15 +89,18 @@ public interface BuildState {
      */
     File getBuildRootDir();
 
-    GradleInternal getBuild();
-
     /**
      * Returns the current state of the mutable model of this build.
      */
     GradleInternal getMutableModel();
 
     /**
-     * Populates the task graph of this build using the given action.
+     * Returns the work graph for this build.
      */
-    void populateWorkGraph(Consumer<? super TaskExecutionGraphInternal> action);
+    BuildWorkGraphController getWorkGraph();
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 }

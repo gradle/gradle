@@ -17,11 +17,12 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildTaskGraph;
+import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildToolingModelAction;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.build.StateTransitionController;
+import org.gradle.internal.model.StateTransitionController;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,21 +33,22 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         NotStarted, Complete
     }
 
-    private final StateTransitionController<State> state = new StateTransitionController<>(State.NotStarted);
     private final BuildLifecycleController buildLifecycleController;
-    private final IncludedBuildTaskGraph taskGraph;
+    private final BuildTreeWorkGraphController taskGraph;
     private final BuildTreeWorkPreparer workPreparer;
     private final BuildTreeWorkExecutor workExecutor;
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
+    private final StateTransitionController<State> state;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
-        IncludedBuildTaskGraph taskGraph,
+        BuildTreeWorkGraphController taskGraph,
         BuildTreeWorkPreparer workPreparer,
         BuildTreeWorkExecutor workExecutor,
         BuildTreeModelCreator modelCreator,
-        BuildTreeFinishExecutor finishExecutor
+        BuildTreeFinishExecutor finishExecutor,
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.buildLifecycleController = buildLifecycleController;
         this.taskGraph = taskGraph;
@@ -54,6 +56,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         this.modelCreator = modelCreator;
         this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
+        this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
     }
 
     @Override
@@ -67,7 +70,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     @Override
-    public <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
+    public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks) {
@@ -82,16 +85,16 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private ExecutionResult<Void> doScheduleAndRunTasks() {
-        return taskGraph.withNewTaskGraph(() -> {
-            workPreparer.scheduleRequestedTasks();
-            return workExecutor.execute();
+        return taskGraph.withNewWorkGraph(graph -> {
+            workPreparer.scheduleRequestedTasks(graph);
+            return workExecutor.execute(graph);
         });
     }
 
     @Override
     public <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
         return runBuild(() -> {
-            T result = action.apply(buildLifecycleController.getLoadedSettings());
+            T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
     }

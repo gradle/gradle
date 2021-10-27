@@ -21,12 +21,10 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
 import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
@@ -62,6 +60,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -83,14 +82,18 @@ import kotlin.contracts.contract
 
 internal
 enum class StateType {
-    Work, Model
+    Work, Model, Entry, Fingerprint, ProjectModels
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
+    val exists: Boolean
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
+    fun delete()
+    // Replace the contents of this state file, by moving the given file to the location of this state file
+    fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
 }
 
@@ -104,18 +107,18 @@ class ConfigurationCacheState(
      * Writes the state for the whole build starting from the given root [build] and returns the set
      * of stored included build directories.
      */
-    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild): HashSet<File> =
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) =
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(createBuild: (File?, String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild) {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
         configureBuild(buildState)
-        calculateRootTaskGraph(buildState)
+        calculateRootTaskGraph(buildState, graph)
     }
 
     private
@@ -130,26 +133,29 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(state: CachedBuildState) {
-        val taskGraph = state.build.gradle.services.get(IncludedBuildTaskGraph::class.java)
-        taskGraph.prepareTaskGraph {
-            state.build.state.populateWorkGraph {
+    fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
+        graph.scheduleWork { builder ->
+            builder.withWorkGraph(state.build.state) {
                 it.addNodes(state.workGraph)
-                state.children.forEach(::addNodesForChildBuilds)
             }
-            taskGraph.populateTaskGraphs()
-            state.build.state.workGraph.prepareForExecution(true)
+            for (child in state.children) {
+                addNodesForChildBuilds(child, builder)
+            }
         }
     }
 
     private
-    fun addNodesForChildBuilds(state: CachedBuildState) {
-        state.build.gradle.taskGraph.addNodes(state.workGraph)
-        state.children.forEach(::addNodesForChildBuilds)
+    fun addNodesForChildBuilds(state: CachedBuildState, builder: BuildTreeWorkGraph.Builder) {
+        builder.withWorkGraph(state.build.state) {
+            it.addNodes(state.workGraph)
+        }
+        for (child in state.children) {
+            addNodesForChildBuilds(child, builder)
+        }
     }
 
     private
-    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild): HashSet<File> {
+    suspend fun DefaultWriteContext.writeRootBuild(build: VintageGradleBuild) {
         require(build.gradle.owner is RootBuildState)
         val gradle = build.gradle
         withDebugFrame({ "Gradle" }) {
@@ -169,7 +175,6 @@ class ConfigurationCacheState(
             )
         )
         writeRootEventListenerSubscriptions(gradle, buildEventListeners)
-        return storedBuilds.buildRootDirs
     }
 
     private
@@ -407,7 +412,7 @@ class ConfigurationCacheState(
     ) {
         val target = reference.target
         if (target is IncludedBuildState) {
-            val includedGradle = target.configuredBuild
+            val includedGradle = target.mutableModel
             val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
             writeBuildDefinition(buildDefinition)
             when {
@@ -618,14 +623,7 @@ class ConfigurationCacheState(
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
-        gradleOf(buildId).serviceOf<BuildServiceRegistryInternal>().registrations
-
-    private
-    fun BuildStateRegistry.gradleOf(buildIdentifier: BuildIdentifier) =
-        when (buildIdentifier) {
-            DefaultBuildIdentifier.ROOT -> rootBuild.build
-            else -> getIncludedBuild(buildIdentifier).configuredBuild
-        }
+        getBuild(buildId).mutableModel.serviceOf<BuildServiceRegistryInternal>().registrations
 
     private
     fun fireConfigureBuild(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal, function: (gradle: GradleInternal) -> Unit) {

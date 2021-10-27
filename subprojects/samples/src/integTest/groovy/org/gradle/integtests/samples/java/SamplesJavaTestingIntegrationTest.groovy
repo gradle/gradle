@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.samples.java
 
+import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -320,7 +322,8 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    // assertTaskOrder may fail with parallel executer
+    @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && !GradleContextualExecuter.isParallel() })
     @Unroll
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
