@@ -86,6 +86,9 @@ class ConfigurationCacheFingerprintWriter(
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
     private
+    val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+
+    private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
@@ -169,6 +172,29 @@ class ConfigurationCacheFingerprintWriter(
                 message,
                 null,
                 documentationSection = DocumentationSection.RequirementsUndeclaredSysPropRead
+            )
+        )
+    }
+
+    override fun envVariableRead(key: String, value: String?, consumer: String?) {
+        if (undeclaredEnvironmentVariables.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
+            reportEnvironmentVariableInput(key, host.location(consumer))
+        }
+    }
+
+    private
+    fun reportEnvironmentVariableInput(key: String, location: PropertyTrace) {
+        val message = StructuredMessage.build {
+            text("environment variable ")
+            reference(key)
+        }
+        host.reportInput(
+            PropertyProblem(
+                location,
+                message,
+                null,
+                documentationSection = DocumentationSection.RequirementsUndeclaredEnvVarRead
             )
         )
     }

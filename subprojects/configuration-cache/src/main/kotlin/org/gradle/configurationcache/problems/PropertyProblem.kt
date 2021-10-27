@@ -41,6 +41,7 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsDisallowedTypes("config_cache:requirements:disallowed_types"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),
     RequirementsUndeclaredSysPropRead("config_cache:requirements:undeclared_sys_prop_read"),
+    RequirementsUndeclaredEnvVarRead("config_cache:requirements:undeclared_env_var_read"),
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 

@@ -703,6 +703,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    protected Map<String, String> getEnvironmentVars() {
+        return new HashMap<>(environmentVars);
+    }
+
     protected String toJvmArgsString(Iterable<String> jvmArgs) {
         StringBuilder result = new StringBuilder();
         for (String jvmArg : jvmArgs) {
