@@ -54,10 +54,10 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         when:
         configurationCacheRun("thing", "-DCI=$newValue")
 
-        then: 'undeclared properties are considered build inputs'
-        configurationCache.assertStateStored()
+        then:
+        configurationCache.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
-        outputContains("apply = $newValue")
+        outputDoesNotContain("apply =")
         outputContains("task = $newValue")
 
         where:
@@ -82,7 +82,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("thing", "-DCI=$value")
+        configurationCacheFails("thing", "-DCI=$value")
 
         then:
         configurationCache.assertStateStored()

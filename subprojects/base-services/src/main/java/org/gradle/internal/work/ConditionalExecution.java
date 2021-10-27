@@ -16,10 +16,17 @@
 
 package org.gradle.internal.work;
 
+import org.gradle.internal.resources.ResourceLock;
+
 /**
- * Represents an execution.
+ * Represents an execution that cannot begin until a given resource lock has been acquired.
  */
 public interface ConditionalExecution<T> {
+    /**
+     * Provides the resource lock that must be acquired before execution can begin.
+     */
+    ResourceLock getResourceLock();
+
     /**
      * Provides the Runnable that should be executed once the resource lock is acquired.
      */
@@ -27,6 +34,7 @@ public interface ConditionalExecution<T> {
 
     /**
      * Blocks waiting for this execution to complete. Returns a result provided by the execution.
+     * When this method returns, the resource lock of this execution has been unlocked.
      */
     T await();
 

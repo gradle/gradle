@@ -17,19 +17,16 @@
 package org.gradle.internal.execution.history;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.steps.AfterExecutionResult;
+import org.gradle.internal.execution.steps.SnapshotResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.Optional;
 
 /**
- * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} before execution.
+ * The execution state before the current execution.
  */
 public interface BeforeExecutionState extends InputExecutionState {
-    /**
-     * {@inheritDoc}
-     */
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
 
@@ -39,7 +36,7 @@ public interface BeforeExecutionState extends InputExecutionState {
      * This includes snapshots for the whole output {@link org.gradle.api.file.FileCollection}.
      *
      * @see PreviousExecutionState#getOutputFilesProducedByWork()
-     * @see AfterExecutionResult#getAfterExecutionState()
+     * @see SnapshotResult#getAfterExecutionState()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
 

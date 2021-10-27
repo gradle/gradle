@@ -53,7 +53,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     @Override
     public Provider<MinimalExternalModuleDependency> create(String alias) {
         return providers.of(DependencyValueSource.class,
-            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)));
+            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)))
+            .forUseAtConfigurationTime();
     }
 
     public static class VersionFactory {
@@ -108,7 +109,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getBundleName().set(name);
-                }));
+                }))
+                .forUseAtConfigurationTime();
         }
     }
 
@@ -126,7 +128,8 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getPluginName().set(name);
-                }));
+                }))
+                .forUseAtConfigurationTime();
         }
     }
 }

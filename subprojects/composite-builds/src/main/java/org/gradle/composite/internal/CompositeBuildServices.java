@@ -79,8 +79,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(BuildTreeWorkGraphController buildTreeWorkGraphController, BuildState currentBuild) {
-            return new CompositeBuildClassPathInitializer(buildTreeWorkGraphController, currentBuild);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
+            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, currentBuild);
         }
 
         public PluginResolverContributor createPluginResolver(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {

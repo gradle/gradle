@@ -25,14 +25,13 @@ import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
-import org.gradle.internal.work.NoAvailableWorkerLeaseException
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
 
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
-    WorkerLeaseService workerRegistry
+
+    WorkerLeaseRegistry workerRegistry
     BuildOperationExecutor buildOperationExecutor
     WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
     WorkerLeaseRegistry.WorkerLease outerOperation
@@ -45,7 +44,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             operationListener, Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerRegistry), executorFactory, parallelismConfiguration, new DefaultBuildOperationIdFactory())
-        outerOperationCompletion = workerRegistry.startWorker()
+        outerOperationCompletion = workerRegistry.getWorkerLease().start()
         outerOperation = workerRegistry.getCurrentWorkerLease()
     }
 
@@ -93,7 +92,6 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         given:
         def amountOfWork = 10
         setupBuildOperationExecutor(maxThreads)
-        outerOperationCompletion.leaseFinish() // The work of this test is done by other threads
         def worker = new SimpleWorker()
         def numberOfQueues = 5
         def operations = [
@@ -107,12 +105,14 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         when:
         async {
             numberOfQueues.times { i ->
-                workerThread {
+                start {
+                    def cl = outerOperation.startChild()
                     buildOperationExecutor.runAll(worker, { queue ->
                         amountOfWork.times {
                             queue.add(operations[i])
                         }
                     })
+                    cl.leaseFinish()
                 }
             }
         }
@@ -140,16 +140,19 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         when:
         async {
             // Successful queue
-            workerThread {
+            start {
+                def cl = outerOperation.startChild()
                 buildOperationExecutor.runAll(worker, { queue ->
                     amountOfWork.times {
                         queue.add(success)
                     }
                 })
+                cl.leaseFinish()
                 successfulQueueCompleted = true
             }
             // Failure queue
-            workerThread {
+            start {
+                def cl = outerOperation.startChild()
                 try {
                     buildOperationExecutor.runAll(worker, { queue ->
                         amountOfWork.times {
@@ -158,6 +161,8 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                     })
                 } catch (MultipleBuildOperationFailures e) {
                     exceptionInFailureQueue = true
+                } finally {
+                    cl.leaseFinish()
                 }
             }
         }
@@ -265,7 +270,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         5 * operation.run(_)
     }
 
-    def "cannot be used on unmanaged threads"() {
+    def "can be used on unmanaged threads"() {
         given:
         setupBuildOperationExecutor(2)
         def operation = Spy(DefaultBuildOperationQueueTest.Success)
@@ -278,12 +283,6 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         then:
-        thrown(NoAvailableWorkerLeaseException)
-    }
-
-    def workerThread(Closure cl) {
-        start {
-            workerRegistry.runAsWorkerThread(cl)
-        }
+        5 * operation.run(_)
     }
 }

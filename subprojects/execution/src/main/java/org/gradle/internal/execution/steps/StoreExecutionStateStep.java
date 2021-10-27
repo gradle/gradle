@@ -22,21 +22,23 @@ import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-public class StoreExecutionStateStep<C extends PreviousExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
-    private final Step<? super C, ? extends R> delegate;
+import static org.gradle.internal.ExtendedOptional.extend;
+
+public class StoreExecutionStateStep<C extends BeforeExecutionContext> implements Step<C, CurrentSnapshotResult> {
+    private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreExecutionStateStep(
-        Step<? super C, ? extends R> delegate
+        Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
-        R result = delegate.execute(work, context);
+    public CurrentSnapshotResult execute(UnitOfWork work, C context) {
+        CurrentSnapshotResult result = delegate.execute(work, context);
         context.getHistory()
-            .ifPresent(history -> result.getAfterExecutionState()
-                .ifPresent(
+            .ifPresent(history -> extend(result.getAfterExecutionState())
+                .ifPresentOrElse(
                     afterExecutionState -> {
                         // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
                         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
@@ -51,11 +53,13 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
                         if (shouldStore) {
                             history.store(
                                 context.getIdentity().getUniqueId(),
+                                result.getOriginMetadata(),
                                 result.getExecutionResult().isSuccessful(),
                                 afterExecutionState
                             );
                         }
-                    }
+                    },
+                    () -> history.remove(context.getIdentity().getUniqueId())
                 )
             );
         return result;

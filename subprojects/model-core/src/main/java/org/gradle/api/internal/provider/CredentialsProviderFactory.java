@@ -93,7 +93,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         @Nullable
         String getRequiredProperty(String property) {
             String identityProperty = identityProperty(property);
-            Provider<String> propertyProvider = providerFactory.gradleProperty(identityProperty);
+            Provider<String> propertyProvider = providerFactory.gradleProperty(identityProperty).forUseAtConfigurationTime();
             if (!propertyProvider.isPresent()) {
                 missingProperties.add(identityProperty);
             }
@@ -103,7 +103,7 @@ public class CredentialsProviderFactory implements TaskExecutionGraphListener {
         @Nullable
         String getOptionalProperty(String property) {
             String identityProperty = identityProperty(property);
-            return providerFactory.gradleProperty(identityProperty).getOrNull();
+            return providerFactory.gradleProperty(identityProperty).forUseAtConfigurationTime().getOrNull();
         }
 
         void assertRequiredValuesPresent() {

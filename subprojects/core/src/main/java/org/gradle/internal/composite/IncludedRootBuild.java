@@ -41,7 +41,7 @@ public class IncludedRootBuild implements IncludedBuildInternal {
 
     @Override
     public String getName() {
-        return rootBuild.getProjects().getRootProject().getName();
+        return rootBuild.getLoadedSettings().getRootProject().getName();
     }
 
     @Override
@@ -84,8 +84,7 @@ public class IncludedRootBuild implements IncludedBuildInternal {
         }
 
         private Task resolveTask() {
-            rootBuildState.ensureProjectsConfigured();
-            return rootBuildState.getMutableModel().getRootProject().getTasks().getByPath(taskPath);
+            return rootBuildState.getBuild().getRootProject().getTasks().getByPath(taskPath);
         }
     }
 }

@@ -55,7 +55,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.Collection;
@@ -84,7 +83,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultConfigurationContainer(ConfigurationResolver resolver,
@@ -108,7 +106,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                          DocumentationRegistry documentationRegistry,
                                          CollectionCallbackActionDecorator callbackDecorator,
                                          UserCodeApplicationContext userCodeApplicationContext,
-                                         WorkerThreadRegistry workerThreadRegistry,
                                          DomainObjectCollectionFactory domainObjectCollectionFactory,
                                          NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
                                          ObjectFactory objectFactory) {
@@ -122,7 +119,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.buildOperationExecutor = buildOperationExecutor;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
@@ -189,7 +185,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return instantiator.newInstance(DefaultConfiguration.class, context, name, detachedConfigurationsProvider, resolver, listenerManager,
             dependencyMetaDataProvider, resolutionStrategyFactory, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser,
             capabilityNotationParser, attributesFactory, componentMetadataBuilder, documentationRegistry, userCodeApplicationContext,
-            context, projectStateRegistry, workerThreadRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
+            context, projectStateRegistry, domainObjectCollectionFactory, calculatedValueContainerFactory);
     }
 
     /**

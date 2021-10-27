@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.build.BuildToolingModelAction;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,5 +54,5 @@ public interface BuildTreeLifecycleController {
      *
      * <p>Does not call the given action when task execution fails.
      */
-    <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action);
+    <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action);
 }

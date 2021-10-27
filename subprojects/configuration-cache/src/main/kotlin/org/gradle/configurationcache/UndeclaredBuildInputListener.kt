@@ -20,10 +20,10 @@ import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
 
 
-@EventScope(Scopes.BuildTree::class)
+@EventScope(Scopes.Build::class)
 interface UndeclaredBuildInputListener {
     /**
-     * Called when an undeclared system property read happens.
+     * Called when an undeclared system property read happens for a system property with no value.
      */
-    fun systemPropertyRead(key: String, value: Any?, consumer: String?)
+    fun systemPropertyRead(key: String)
 }

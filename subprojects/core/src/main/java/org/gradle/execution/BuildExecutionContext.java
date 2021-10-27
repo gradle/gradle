@@ -16,12 +16,9 @@
 package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.plan.ExecutionPlan;
 
 public interface BuildExecutionContext {
     GradleInternal getGradle();
-
-    ExecutionPlan getExecutionPlan();
 
     void proceed();
 }

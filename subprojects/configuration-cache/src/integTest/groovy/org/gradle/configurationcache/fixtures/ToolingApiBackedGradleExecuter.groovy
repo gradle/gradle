@@ -29,17 +29,15 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
 
-import java.util.function.Function
-
 class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
-    private final jvmArgs = []
+    final List<String> jvmArgs = []
 
     ToolingApiBackedGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider)
     }
 
-    void withToolingApiJvmArgs(String... args) {
-        jvmArgs.addAll(args.toList())
+    void withJvmArgs(String... args) {
+        jvmArgs.addAll(args)
     }
 
     @Override
@@ -52,31 +50,15 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         def error = new ByteArrayOutputStream()
         def args = allArgs
         args.remove("--no-daemon")
-
         usingToolingConnection(workingDir) { connection ->
             connection.newBuild()
-                .withArguments(args)
                 .addJvmArguments(jvmArgs)
+                .withArguments(args)
                 .setStandardOutput(new TeeOutputStream(output, System.out))
                 .setStandardError(new TeeOutputStream(error, System.err))
                 .run()
         }
         return OutputScrapingExecutionResult.from(output.toString(), error.toString())
-    }
-
-    ExecutionResult runBuildWithToolingConnection(Function<ProjectConnection, ExecutionResult> action) {
-        return run {
-            def result = null
-            usingToolingConnection(workingDir) {
-                result = action(it)
-            }
-            result
-        }
-    }
-
-    ExecutionFailure runFailingBuildWithToolingConnection(Function<ProjectConnection, ExecutionFailure> action) {
-        // Can just run the action
-        return runBuildWithToolingConnection(action)
     }
 
     void usingToolingConnection(File workingDir, Action<ProjectConnection> action) {

@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy")) // for 'Specs'
-    implementation(project(":enterprise-operations"))
     implementation(project(":build-events"))
     implementation(project(":composite-builds"))
     implementation(project(":core"))

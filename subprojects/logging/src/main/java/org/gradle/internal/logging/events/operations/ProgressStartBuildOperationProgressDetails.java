@@ -26,9 +26,20 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  *
  * @since 4.7
  */
-@UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
-public interface ProgressStartBuildOperationProgressDetails extends org.gradle.internal.operations.logging.ProgressStartBuildOperationProgressDetails {
+@UsedByScanPlugin
+public interface ProgressStartBuildOperationProgressDetails {
+
+    String getDescription();
+
+    String getCategory();
+
     LogLevel getLogLevel();
+
+    /**
+     * While this may be null on the underlying implementation,
+     * objects with a null value for this will not be forwarded as build operation progress.
+     * Therefore, when observing as build operation progress this is never null.
+     */
+    String getLoggingHeader();
+
 }

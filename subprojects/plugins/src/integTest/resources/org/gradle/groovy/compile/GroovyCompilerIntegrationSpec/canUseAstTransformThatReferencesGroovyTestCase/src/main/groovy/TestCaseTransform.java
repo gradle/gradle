@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import groovy.test.GroovyTestCase;
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
+
+import groovy.util.GroovyTestCase;
 
 @GroovyASTTransformation
 public class TestCaseTransform implements ASTTransformation {

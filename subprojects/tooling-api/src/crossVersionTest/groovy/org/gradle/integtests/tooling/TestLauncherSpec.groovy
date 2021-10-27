@@ -162,12 +162,7 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
         try {
             withConnection {
                 ProjectConnection connection ->
-                    connection.newBuild().forTasks('build')
-                        .withArguments("--continue")
-                        .addProgressListener(events)
-                        .setStandardOutput(System.out)
-                        .setStandardError(System.err)
-                        .run()
+                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(events).run()
             }
         } catch (BuildException e) {
         }

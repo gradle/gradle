@@ -34,12 +34,15 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheRun(*mechanism.gradleArgs)
+        configurationCacheFails(*mechanism.gradleArgs)
 
         then:
-        problems.assertResultHasProblems(result) {
-            withInput("Build file 'build.gradle': system property 'CI'")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': read system property 'CI'")
         }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(3)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -61,12 +64,16 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("CI1 = ${notDefined}")
 
         when:
-        configurationCacheRun("-DCI1=${value}")
+        configurationCacheFails("-DCI1=${value}")
 
         then:
-        problems.assertResultHasProblems(result) {
-            withInput("Build file 'build.gradle': system property 'CI1'")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': read system property 'CI1'")
         }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+
         outputContains("CI1 = ${expectedValue}")
 
         where:
@@ -92,12 +99,16 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("CI1 = null")
 
         when:
-        configurationCacheRun("-DCI1=${value}")
+        configurationCacheFails("-DCI1=${value}")
 
         then:
-        problems.assertResultHasProblems(result) {
-            withInput("Build file 'build.gradle': system property 'CI1'")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': read system property 'CI1'")
         }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(2)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+
         outputContains("CI1 = ${expectedValue}")
 
         where:
@@ -119,13 +130,17 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheRun(*mechanism.gradleArgs, "-DCI2=true")
+        configurationCacheFails(*mechanism.gradleArgs, "-DCI2=true")
 
         then:
-        problems.assertResultHasProblems(result) {
-            withInput("Build file '${relativePath('buildSrc/build.gradle')}': system property 'CI'")
-            withInput("Build file '${relativePath('buildSrc/build.gradle')}': system property 'CI2'")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI'")
+            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI2'")
         }
+        failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
+        failure.assertHasLineNumber(2)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI'"))
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI2'"))
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
@@ -163,11 +178,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        configurationCacheRun(*mechanism.gradleArgs)
+        configurationCacheFails(*mechanism.gradleArgs)
 
         then:
-        problems.assertResultHasProblems(result) {
-            withInput("Plugin class 'SneakyPlugin': system property 'CI'")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         where:
@@ -210,14 +225,14 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withInput("Plugin class 'SneakyPlugin': system property 'CI'")
+            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         when:
-        configurationCacheRun("-DCI=$newValue")
+        configurationCacheRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be
 
-        then: 'undeclared inputs are treated as inputs'
-        configurationCache.assertStateStored()
+        then:
+        configurationCache.assertStateLoaded()
         noExceptionThrown()
 
         where:

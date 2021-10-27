@@ -38,7 +38,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
     )
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
         withPrecompiledScriptPlugins()
-        def pluginFile = file("buildSrc/src/main/groovy/test.gradle.demo.plugin.gradle")
+        def pluginFile = file("buildSrc/src/main/groovy/org.gradle.demo.plugin.gradle")
         writeTaskInto(pluginFile)
         pluginFile << """
             tasks.register("myTask", SomeTask) {
@@ -48,7 +48,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         """
 
         buildFile """plugins {
-            id 'test.gradle.demo.plugin'
+            id 'org.gradle.demo.plugin'
         }"""
 
         when:
@@ -56,7 +56,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         failureDescriptionContains(dummyValidationProblem {
-            inPlugin('test.gradle.demo.plugin')
+            inPlugin('org.gradle.demo.plugin')
             type('SomeTask').property('input')
         }.trim())
     }

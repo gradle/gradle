@@ -29,17 +29,8 @@ import java.util.TreeSet;
 
 import static org.gradle.util.internal.WrapUtil.toSet;
 import static org.gradle.util.internal.WrapUtil.toSortedSet;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 public class DefaultProjectRegistryTest {
     public static final String CHILD_NAME = "child";

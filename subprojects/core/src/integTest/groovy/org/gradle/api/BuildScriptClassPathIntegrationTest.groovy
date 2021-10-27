@@ -16,7 +16,7 @@
 
 package org.gradle.api
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue

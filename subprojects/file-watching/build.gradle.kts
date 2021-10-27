@@ -8,7 +8,7 @@ dependencies {
     api(project(":snapshots"))
 
     implementation(project(":base-annotations"))
-    implementation(project(":enterprise-operations"))
+    implementation(project(":build-operations"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)

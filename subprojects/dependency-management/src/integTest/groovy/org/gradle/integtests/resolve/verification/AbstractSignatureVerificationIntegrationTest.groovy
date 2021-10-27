@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.verification
 
-
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.security.fixtures.KeyServer
@@ -25,7 +24,6 @@ import org.gradle.security.fixtures.SimpleKeyRing
 import org.gradle.security.internal.Fingerprint
 
 import static org.gradle.security.fixtures.SigningFixtures.createSimpleKeyRing
-import static org.gradle.security.fixtures.SigningFixtures.createSimpleKeyRingFromResource
 
 abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
     KeyServer keyServerFixture
@@ -61,10 +59,6 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
 
     private SimpleKeyRing createKeyRing() {
         createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"))
-    }
-
-    protected SimpleKeyRing newKeyRingFromResource(String publicKeyResource, String secretKeyResource) {
-        createSimpleKeyRingFromResource(publicKeyResource, secretKeyResource)
     }
 
     protected GradleExecuter writeVerificationMetadata(String checksums = "sha256,pgp") {

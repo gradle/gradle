@@ -17,25 +17,24 @@
 package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
-import java.util.function.Function
+import java.util.function.Supplier
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def buildController = Mock(BuildLifecycleController)
-    def taskGraph = Mock(BuildTreeWorkGraphController)
-    def workGraph = Mock(BuildTreeWorkGraph)
+    def taskGraph = Mock(IncludedBuildTaskGraph)
     def workPreparer = Mock(BuildTreeWorkPreparer)
     def workExecutor = Mock(BuildTreeWorkExecutor)
     def modelCreator = Mock(BuildTreeModelCreator)
     def finishExecutor = Mock(BuildTreeFinishExecutor)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory())
+    def controller = new DefaultBuildTreeLifecycleController(buildController, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -47,11 +46,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         controller.scheduleAndRunTasks()
 
         then:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
-        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.succeeded()
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -68,10 +67,10 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph) >> { throw failure }
+        1 * workPreparer.scheduleRequestedTasks() >> { throw failure }
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -88,11 +87,11 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
-        1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.failed(failure)
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -107,18 +106,18 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
-        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.succeeded()
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> reportableFailure
     }
 
     def "runs action after running tasks when task execution is requested"() {
-        def action = Mock(BuildTreeModelAction)
+        def action = Mock(BuildToolingModelAction)
 
         when:
         def result = controller.fromBuildModel(true, action)
@@ -127,9 +126,9 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
-        1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.succeeded()
 
         and:
         1 * modelCreator.fromBuildModel(action) >> "result"
@@ -139,7 +138,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "does not run action if task execution fails"() {
-        def action = Mock(BuildTreeModelAction)
+        def action = Mock(BuildToolingModelAction)
         def failure = new RuntimeException()
 
         when:
@@ -150,9 +149,9 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
-        1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
+        1 * taskGraph.withNewTaskGraph(_) >> { Supplier supplier -> supplier.get() }
+        1 * workPreparer.scheduleRequestedTasks()
+        1 * workExecutor.execute() >> ExecutionResult.failed(failure)
         0 * action._
 
         and:
@@ -160,7 +159,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "runs action when tasks are not requested"() {
-        def action = Mock(BuildTreeModelAction)
+        def action = Mock(BuildToolingModelAction)
 
         when:
         def result = controller.fromBuildModel(false, action)
@@ -179,7 +178,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        controller.fromBuildModel(false, Stub(BuildTreeModelAction))
+        controller.fromBuildModel(false, Stub(BuildToolingModelAction))
 
         then:
         def e = thrown(RuntimeException)
@@ -205,7 +204,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
     def "cannot run action against model once build has started"() {
         def action = Mock(Consumer)
-        def modelAction = Mock(BuildTreeModelAction)
+        def modelAction = Mock(BuildToolingModelAction)
 
         given:
         _ * modelCreator.fromBuildModel(modelAction) >> {

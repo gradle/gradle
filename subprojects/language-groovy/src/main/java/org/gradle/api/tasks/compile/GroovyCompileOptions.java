@@ -17,9 +17,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -30,7 +27,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -66,13 +62,6 @@ public class GroovyCompileOptions extends AbstractOptions {
     private boolean javaAnnotationProcessing;
 
     private boolean parameters;
-
-    private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -292,18 +281,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
         this.optimizationOptions = optimizationOptions;
-    }
-
-    /**
-     * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
-     *
-     * @see <a href="https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set)">CompilerConfiguration</a>
-     * @since 7.4
-     */
-    @Incubating
-    @Input
-    public SetProperty<String> getDisabledGlobalASTTransformations() {
-        return disabledGlobalASTTransformations;
     }
 
     /**

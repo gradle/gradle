@@ -33,8 +33,8 @@ public interface JvmInstallationMetadata {
         JAVA_COMPILER, J9_VIRTUAL_MACHINE
     }
 
-    static DefaultJvmInstallationMetadata from(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName, String architecture) {
-        return new DefaultJvmInstallationMetadata(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName, architecture);
+    static DefaultJvmInstallationMetadata from(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName) {
+        return new DefaultJvmInstallationMetadata(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName);
     }
 
     static JvmInstallationMetadata failure(File javaHome, String errorMessage) {
@@ -55,8 +55,6 @@ public interface JvmInstallationMetadata {
 
     JvmVendor getVendor();
 
-    String getArchitecture();
-
     Path getJavaHome();
 
     String getDisplayName();
@@ -74,14 +72,13 @@ public interface JvmInstallationMetadata {
         private final JavaVersion languageVersion;
         private final String vendor;
         private final String implementationName;
-        private final String architecture;
         private final Path javaHome;
         private final String implementationVersion;
         private final String runtimeVersion;
         private final String jvmVersion;
         private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
 
-        private DefaultJvmInstallationMetadata(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName, String architecture) {
+        private DefaultJvmInstallationMetadata(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName) {
             this.javaHome = javaHome.toPath();
             this.implementationVersion = implementationVersion;
             this.languageVersion = JavaVersion.toVersion(implementationVersion);
@@ -89,7 +86,6 @@ public interface JvmInstallationMetadata {
             this.jvmVersion = jvmVersion;
             this.vendor = vendor;
             this.implementationName = implementationName;
-            this.architecture = architecture;
         }
 
         @Override
@@ -115,11 +111,6 @@ public interface JvmInstallationMetadata {
         @Override
         public JvmVendor getVendor() {
             return JvmVendor.fromString(vendor);
-        }
-
-        @Override
-        public String getArchitecture() {
-            return architecture;
         }
 
         @Override
@@ -213,11 +204,6 @@ public interface JvmInstallationMetadata {
 
         @Override
         public String getRuntimeVersion() {
-            throw unsupportedOperation();
-        }
-
-        @Override
-        public String getArchitecture() {
             throw unsupportedOperation();
         }
 

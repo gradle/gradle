@@ -16,7 +16,7 @@
 
 package org.gradle.api.provider
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter

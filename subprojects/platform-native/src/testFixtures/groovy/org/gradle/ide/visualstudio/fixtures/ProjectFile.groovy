@@ -16,7 +16,6 @@
 
 package org.gradle.ide.visualstudio.fixtures
 
-import groovy.xml.XmlParser
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent

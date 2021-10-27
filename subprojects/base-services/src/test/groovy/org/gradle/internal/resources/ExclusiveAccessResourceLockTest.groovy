@@ -16,15 +16,14 @@
 
 package org.gradle.internal.resources
 
-
+import org.gradle.api.Action
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
 
 class ExclusiveAccessResourceLockTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
-    def resourceLock = new ExclusiveAccessResourceLock("test", coordinationService, Mock(ResourceLockContainer))
+    def resourceLock = new ExclusiveAccessResourceLock("test", coordinationService, Mock(Action), Mock(Action))
 
     def "throws an exception when not called from coordination service"() {
         when:

@@ -47,7 +47,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def outputChangeListener = Mock(OutputChangeListener)
 
     def step = new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
-    def delegateResult = Mock(AfterExecutionResult)
+    def delegateResult = Mock(CurrentSnapshotResult)
 
     @Override
     protected IncrementalChangesContext createContext() {
@@ -66,8 +66,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
-        result.afterExecutionState.get().reused
-        result.afterExecutionState.get().originMetadata == cachedOriginMetadata
+        result.reused
+        result.originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
 
         interaction { withValidCacheKey() }
@@ -152,6 +152,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
+        !result.reused
 
         interaction { withValidCacheKey() }
 
@@ -176,6 +177,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
+        !result.reused
 
         interaction { withValidCacheKey() }
 
@@ -245,6 +247,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         result == delegateResult
+        !result.reused
 
         _ * context.cachingState >> CachingState.disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(work, context) >> delegateResult
@@ -262,8 +265,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         1 * delegateResult.afterExecutionState >> Optional.of(Mock(AfterExecutionState) {
             1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
-            1 * getOriginMetadata() >> originMetadata
         })
+        1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
         1 * buildCacheCommandFactory.createStore(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }

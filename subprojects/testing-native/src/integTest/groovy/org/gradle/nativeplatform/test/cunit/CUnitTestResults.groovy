@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
-import groovy.xml.XmlParser
 import org.gradle.test.fixtures.file.TestFile
 
 class CUnitTestResults {

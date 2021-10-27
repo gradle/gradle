@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.googletest
 
-import groovy.xml.XmlParser
 import org.gradle.test.fixtures.file.TestFile
 
 class GoogleTestTestResults {

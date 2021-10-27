@@ -100,14 +100,14 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        toolingApiExecutor.withToolingApiJvmArgs(ENABLE_SYS_PROP)
+        executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
         outputContains("script log statement")
 
         when:
-        toolingApiExecutor.withToolingApiJvmArgs(ENABLE_SYS_PROP)
+        executer.withJvmArgs(ENABLE_SYS_PROP)
         run("assemble")
 
         then:
@@ -118,7 +118,6 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
 
         given:
         withConfigurationCacheEnabledInGradleProperties()
-        settingsFile << ""
         buildFile << """
             plugins {
                 id("java")
@@ -216,7 +215,6 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
 
     private void buildWithSomeToolingModelAndScriptLogStatement() {
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << ""
         buildFile << """
             plugins {
                 id("java")

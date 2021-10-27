@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     performanceTestImplementation(project(":base-services"))
-    performanceTestImplementation(project(":enterprise-operations"))
     performanceTestImplementation(project(":core"))
     performanceTestImplementation(project(":model-core"))
     performanceTestImplementation(project(":core-api"))

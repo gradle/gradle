@@ -16,13 +16,10 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
-import groovy.lang.Closure;
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension;
 import org.spockframework.runtime.model.FeatureInfo;
 import org.spockframework.runtime.model.MethodInfo;
 import org.spockframework.runtime.model.SpecInfo;
-
-import java.lang.reflect.Constructor;
 
 public class IntegrationTestTimeoutExtension implements IAnnotationDrivenExtension<IntegrationTestTimeout> {
     @Override
@@ -36,32 +33,11 @@ public class IntegrationTestTimeoutExtension implements IAnnotationDrivenExtensi
 
     @Override
     public void visitFeatureAnnotation(IntegrationTestTimeout timeout, FeatureInfo feature) {
-        runIfEnabled(timeout, () ->
-            feature.getFeatureMethod().addInterceptor(new IntegrationTestTimeoutInterceptor(timeout))
-        );
+        feature.getFeatureMethod().addInterceptor(new IntegrationTestTimeoutInterceptor(timeout));
     }
 
     @Override
     public void visitFixtureAnnotation(IntegrationTestTimeout timeout, MethodInfo fixtureMethod) {
-        runIfEnabled(timeout, () ->
-            fixtureMethod.addInterceptor(new IntegrationTestTimeoutInterceptor(timeout))
-        );
-    }
-
-    @SuppressWarnings("unchecked")
-    private void runIfEnabled(IntegrationTestTimeout timeout, Runnable runnable) {
-        try {
-            Constructor<?> constructor = timeout.onlyIf().getConstructors()[0];
-            int paramCount = constructor.getParameterCount();
-            Object[] param = new Object[paramCount];
-            for (int i = 0; i < paramCount; i++) {
-                param[i] = this;
-            }
-            if (((Closure<Boolean>) constructor.newInstance(param)).call()) {
-                runnable.run();
-            }
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
-        }
+        fixtureMethod.addInterceptor(new IntegrationTestTimeoutInterceptor(timeout));
     }
 }

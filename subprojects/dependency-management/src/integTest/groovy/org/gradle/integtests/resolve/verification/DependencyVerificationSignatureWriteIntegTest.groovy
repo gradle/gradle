@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.resolve.verification
 
-
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import org.gradle.security.internal.SecuritySupport
-import spock.lang.Issue
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 
@@ -378,37 +376,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
    <components/>
 </verification-metadata>
 """
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/18394")
-    def "doesn't fail exporting keys if any has invalid utf-8 char in user id"() {
-        String publicKeyResource = "/org/gradle/integtests/resolve/verification/DependencyVerificationSignatureWriteIntegTest/invalid-utf8-public-key.asc"
-        String secretKeyResource = "/org/gradle/integtests/resolve/verification/DependencyVerificationSignatureWriteIntegTest/invalid-utf8-secret-key.asc"
-        def keyring = newKeyRingFromResource(publicKeyResource, secretKeyResource)
-        keyServerFixture.registerPublicKey(keyring.getPublicKey())
-        createMetadataFile {
-            keyServer(keyServerFixture.uri)
-        }
-
-        given:
-        javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
-            withSignature {
-                keyring.sign(it)
-            }
-        }
-        buildFile << """
-            dependencies {
-                implementation "org:foo:1.0"
-            }
-        """
-
-        when:
-        writeVerificationMetadata()
-        succeeds ":help", "--export-keys"
-
-        then:
-        outputContains("Exported 1 keys to")
     }
 
 }

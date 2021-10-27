@@ -19,6 +19,6 @@ import org.gradle.launcher.bootstrap.ProcessBootstrap;
 
 public class GradleDaemon {
     public static void main(String[] args) {
-        ProcessBootstrap.run("org.gradle.launcher.daemon.bootstrap.DaemonMain", args);
+        new ProcessBootstrap().run("org.gradle.launcher.daemon.bootstrap.DaemonMain", args);
     }
 }

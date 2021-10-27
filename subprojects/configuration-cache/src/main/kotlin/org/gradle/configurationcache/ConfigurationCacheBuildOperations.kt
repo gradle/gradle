@@ -23,7 +23,7 @@ import org.gradle.internal.operations.CallableBuildOperation
 
 
 internal
-fun <T : Any> BuildOperationExecutor.withLoadOperation(block: () -> T) =
+fun <T> BuildOperationExecutor.withLoadOperation(block: () -> T) =
     withOperation("Load configuration cache state", block)
 
 
@@ -33,8 +33,14 @@ fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
 
 
 private
-fun <T : Any> BuildOperationExecutor.withOperation(displayName: String, block: () -> T): T =
-    call(object : CallableBuildOperation<T> {
-        override fun description() = BuildOperationDescriptor.displayName(displayName)
-        override fun call(context: BuildOperationContext) = block()
+fun <T> BuildOperationExecutor.withOperation(displayName: String, block: () -> T): T {
+    return call(object : CallableBuildOperation<T> {
+
+        override fun description(): BuildOperationDescriptor.Builder =
+            BuildOperationDescriptor.displayName(displayName)
+
+        override fun call(context: BuildOperationContext): T {
+            return block()
+        }
     })
+}

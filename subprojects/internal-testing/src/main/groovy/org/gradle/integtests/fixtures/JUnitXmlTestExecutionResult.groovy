@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.CoreMatchers.*

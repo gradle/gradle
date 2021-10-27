@@ -15,21 +15,23 @@
  */
 package org.gradle.execution
 
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.specs.Spec
-import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
 class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
     final StartParameterInternal startParameter = Mock()
-    final ExecutionPlan executionPlan = Mock()
+    final TaskExecutionGraphInternal taskGraph = Mock()
     final DefaultTaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
     final action = new ExcludedTaskFilteringProjectsPreparer(selector)
 
     def setup() {
         _ * gradle.startParameter >> startParameter
+        _ * gradle.taskGraph >> taskGraph
     }
 
     def "does nothing when there are no excluded tasks defined"() {
@@ -37,10 +39,10 @@ class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
         _ * startParameter.excludedTaskNames >> []
 
         when:
-        action.prepareForTaskScheduling(gradle, executionPlan)
+        action.prepareForTaskScheduling(gradle)
 
         then:
-        0 * executionPlan._
+        0 * taskGraph._
     }
 
     def "applies a filter for excluded tasks before proceeding"() {
@@ -50,10 +52,10 @@ class ExcludedTaskFilteringProjectsPreparerTest extends Specification {
         _ * startParameter.excludedTaskNames >> ['a']
 
         when:
-        action.prepareForTaskScheduling(gradle, executionPlan)
+        action.prepareForTaskScheduling(gradle)
 
         then:
         1 * selector.getFilter('a') >> filter
-        1 * executionPlan.useFilter(filter)
+        1 * taskGraph.useFilter(filter)
     }
 }

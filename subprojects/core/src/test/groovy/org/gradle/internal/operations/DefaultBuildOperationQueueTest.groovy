@@ -19,9 +19,7 @@ package org.gradle.internal.operations
 import org.gradle.api.GradleException
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -60,20 +58,15 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
     }
 
-    ResourceLockCoordinationService coordinationService
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
-    WorkerLeaseRegistry.WorkerLeaseCompletion lease
 
     void setupQueue(int threads) {
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, threads)) {}
-        lease = workerRegistry.startWorker()
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, threads)) {}
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
     def "cleanup"() {
-        lease?.leaseFinish()
         workerRegistry.stop()
     }
 
@@ -172,7 +165,6 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         given:
         setupQueue(threads)
-        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
         when:
         runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
@@ -185,9 +177,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         and:
         // release the running operations to complete
         releaseLatch.countDown()
-        workerRegistry.runAsWorkerThread {
-            operationQueue.waitForCompletion()
-        }
+        operationQueue.waitForCompletion()
 
         then:
         expectedInvocations * operationAction.run()

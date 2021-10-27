@@ -24,5 +24,4 @@ dependencyResolutionManagement {
 
 include("allprojects-plugin")
 include("testfiltering-plugin")
-include("cc-experiment-plugin")
 

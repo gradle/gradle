@@ -73,7 +73,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -81,7 +80,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -89,7 +87,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -97,7 +94,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -105,7 +101,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -137,7 +132,6 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}archName{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -197,7 +191,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
     JvmInstallationMetadata metadata(String implVersion, String build) {
         def runtimeVersion = implVersion + build
         def jvmVersion = runtimeVersion + "-vm"
-        return JvmInstallationMetadata.from(new File("path"), implVersion, runtimeVersion, jvmVersion, "adoptopenjdk", "", "archName")
+        return JvmInstallationMetadata.from(new File("path"), implVersion, runtimeVersion, jvmVersion, "adoptopenjdk", "")
     }
 
     JvmInstallationMetadata newInvalidMetadata() {

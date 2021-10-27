@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import groovy.xml.XmlParser
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.test.fixtures.file.TestFile
 

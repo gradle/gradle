@@ -17,15 +17,21 @@
 package org.gradle.internal.work;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
 
-import javax.annotation.Nullable;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 
 /**
  * A queueing mechanism that only executes items once certain conditions are reached.
@@ -34,13 +40,12 @@ import java.util.concurrent.locks.ReentrantLock;
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;
-
     private enum QueueState {
         Working, Stopped
     }
 
     private final int maxWorkers;
-    private final WorkerLeaseService workerLeaseService;
+    private final ResourceLockCoordinationService coordinationService;
     private final ManagedExecutor executor;
     private final Deque<ConditionalExecution<T>> queue = Lists.newLinkedList();
     private final ReentrantLock lock = new ReentrantLock();
@@ -48,10 +53,10 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private QueueState queueState = QueueState.Working;
     private volatile int workerCount;
 
-    public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+    public DefaultConditionalExecutionQueue(String displayName, int maxWorkers, ExecutorFactory executorFactory, ResourceLockCoordinationService coordinationService) {
         this.maxWorkers = maxWorkers;
-        this.workerLeaseService = workerLeaseService;
         this.executor = executorFactory.create(displayName);
+        this.coordinationService = coordinationService;
 
         executor.setKeepAlive(KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     }
@@ -154,38 +159,61 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
          * Run executions until there are none ready to be executed.
          */
         private void runBatch(final ConditionalExecution<?> firstOperation) {
-            workerLeaseService.runAsWorkerThread(new Runnable() {
-                @Override
-                public void run() {
-                    ConditionalExecution<?> operation = firstOperation;
-                    while (operation != null) {
-                        runExecution(operation);
-                        operation = getReadyExecution();
-                    }
-                }
-            });
+            ConditionalExecution<?> operation = firstOperation;
+            while (operation != null) {
+                runExecution(operation);
+                operation = getReadyExecution();
+            }
         }
 
         /**
-         * Gets the next ConditionalExecution object that is ready to be executed.
+         * Gets the next ConditionalExecution object that is ready to be executed.  It does this by
+         * attempting to acquire the associated resource lock of each execution.  If successful, the
+         * execution is removed from the queue and returned.  If unsuccessful, it continues to iterate
+         * the queue looking for an execution that is ready to execute.
          */
-        @Nullable
         private ConditionalExecution<?> getReadyExecution() {
-            lock.lock();
-            try {
-                return queue.pollFirst();
-            } finally {
-                lock.unlock();
-            }
+            final MutableReference<ConditionalExecution<?>> execution = MutableReference.empty();
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    lock.lock();
+                    try {
+                        if (queue.isEmpty()) {
+                            return ResourceLockState.Disposition.FINISHED;
+                        }
+                        Iterator<ConditionalExecution<T>> itr = queue.iterator();
+                        while (itr.hasNext()) {
+                            ConditionalExecution<T> next = itr.next();
+                            if (next.getResourceLock().tryLock()) {
+                                execution.set(next);
+                                itr.remove();
+                                break;
+                            }
+                        }
+
+                        if (execution.get() == null && !queue.isEmpty()) {
+                            return ResourceLockState.Disposition.RETRY;
+                        } else {
+                            return ResourceLockState.Disposition.FINISHED;
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                }
+            });
+
+            return execution.get();
         }
 
         /**
          * Executes a conditional execution and then releases it's resource lock
          */
-        private void runExecution(final ConditionalExecution<?> execution) {
+        private void runExecution(ConditionalExecution<?> execution) {
             try {
                 execution.getExecution().run();
             } finally {
+                coordinationService.withStateLock(unlock(execution.getResourceLock()));
                 execution.complete();
             }
         }

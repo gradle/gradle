@@ -64,8 +64,7 @@ class ConfigurationCacheKey(
 
         buildActionRequirements.appendKeyTo(this)
 
-        // TODO:bamboo review with Adam
-//        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
+        require(buildActionRequirements.isRunsTasks || startParameter.requestedTaskNames.isEmpty())
         if (buildActionRequirements.isRunsTasks) {
             appendRequestedTasks()
         }

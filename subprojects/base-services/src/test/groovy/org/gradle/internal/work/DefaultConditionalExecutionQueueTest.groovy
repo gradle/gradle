@@ -17,10 +17,11 @@
 package org.gradle.internal.work
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLock
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Unroll
@@ -30,65 +31,70 @@ import java.util.concurrent.Callable
 class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
     private static final DISPLAY_NAME = "Test Execution Queue"
     private static final int MAX_WORKERS = 4
-    def coordinationService = new DefaultResourceLockCoordinationService()
-    def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new DefaultParallelismConfiguration(true, 4))
-    def queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, MAX_WORKERS, new DefaultExecutorFactory(), workerLeaseService)
+    ResourceLockCoordinationService coordinationService = new DefaultResourceLockCoordinationService()
+    DefaultConditionalExecutionQueue queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, MAX_WORKERS, new DefaultExecutorFactory(), coordinationService)
 
-    def "can run an action and wait for the result"() {
+    def "can conditionally execute a runnable"() {
         def execution = testExecution({
             instant.executionStarted
             println("I'm running!")
-            thread.block()
-            instant.executionFinished
         })
 
         when:
         async {
-            queue.submit(execution)
-            execution.await()
-            instant.awaitFinished
+            start {
+                queue.submit(execution)
+                execution.await()
+            }
+            start {
+                instant.canExecute
+                release(execution)
+            }
         }
 
         then:
-        instant.awaitFinished > instant.executionFinished
+        instant.executionStarted > instant.canExecute
+
+        and:
+        execution.resourceLock.released
     }
 
     def "can release executions in any order"() {
         def execution1 = testExecution({
             instant.execution1Started
             println("Execution 1 running!")
-            thread.blockUntil.execution1Released
         })
         def execution2 = testExecution({
             instant.execution2Started
             println("Execution 2 running!")
-            thread.blockUntil.execution2Released
         })
         def execution3 = testExecution({
             instant.execution3Started
             println("Execution 3 running!")
-            thread.blockUntil.execution3Released
         })
 
-        expect:
+        when:
         async {
-            queue.submit(execution1)
-            queue.submit(execution2)
-            queue.submit(execution3)
+            start {
+                queue.submit(execution1)
+                queue.submit(execution2)
+                queue.submit(execution3)
+            }
+            start {
+                release(execution2)
+                execution2.await()
 
-            thread.blockUntil.execution1Started
-            thread.blockUntil.execution2Started
-            thread.blockUntil.execution3Started
+                release(execution1)
+                execution1.await()
 
-            instant.execution2Released
-            execution2.await()
-
-            instant.execution1Released
-            execution1.await()
-
-            instant.execution3Released
-            execution3.await()
+                release(execution3)
+                execution3.await()
+            }
         }
+
+        then:
+        instant.execution2Started < instant.execution1Started
+        instant.execution1Started < instant.execution3Started
     }
 
     def "can submit executions from many threads"() {
@@ -122,16 +128,53 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
                 instant.execution3Submitted
                 execution3.await()
             }
-            thread.blockUntil.execution1Started
-            thread.blockUntil.execution2Started
-            thread.blockUntil.execution3Started
+            start {
+                thread.blockUntil.execution1Submitted
+                thread.blockUntil.execution2Submitted
+                thread.blockUntil.execution3Submitted
+                release(execution1)
+                release(execution2)
+                release(execution3)
+            }
+        }
+    }
+
+    def "can submit executions immediately ready to run"() {
+        def execution1 = testExecution({
+            instant.execution1Started
+            println("Execution 1 running!")
+        })
+        def execution2 = testExecution({
+            instant.execution2Started
+            println("Execution 2 running!")
+        })
+        def execution3 = testExecution({
+            instant.execution3Started
+            println("Execution 3 running!")
+        })
+
+        expect:
+        async {
+            start {
+                release(execution1)
+                release(execution2)
+                release(execution3)
+                queue.submit(execution1)
+                queue.submit(execution2)
+                queue.submit(execution3)
+            }
+            start {
+                execution1.await()
+                execution2.await()
+                execution3.await()
+            }
         }
     }
 
     @Unroll
     def "can process more executions than max workers (maxWorkers = #maxWorkers)"() {
         def executions = []
-        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, maxWorkers, new DefaultExecutorFactory(), workerLeaseService)
+        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, maxWorkers, new DefaultExecutorFactory(), coordinationService)
 
         expect:
         async {
@@ -144,6 +187,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
                     executions.add execution
                     queue.submit(execution)
                 }
+                executions.each { release(it) }
                 executions.each { it.await() }
             }
         }
@@ -174,6 +218,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         }
         thread.blockUntil.allSubmitted
         assert queue.workerCount <= MAX_WORKERS
+        executions.each { release(it) }
         executions.each { it.await() }
 
         and:
@@ -184,6 +229,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
 
     def "can get a result from an execution"() {
         def execution = testExecution({
+            instant.executionStarted
             println("I'm running!")
             return "foo"
         })
@@ -191,11 +237,20 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
 
         when:
         async {
-            queue.submit(execution)
-            result = execution.await()
+            start {
+                queue.submit(execution)
+                result = execution.await()
+            }
+            start {
+                instant.canExecute
+                release(execution)
+            }
         }
 
         then:
+        instant.executionStarted > instant.canExecute
+
+        and:
         result == "foo"
     }
 
@@ -204,7 +259,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         ManagedExecutor executor = Mock(ManagedExecutor)
 
         when:
-        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, 4, factory, workerLeaseService)
+        queue = new DefaultConditionalExecutionQueue(DISPLAY_NAME, 4, factory, coordinationService)
 
         then:
         1 * factory.create(_) >> executor
@@ -216,13 +271,63 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
         1 * executor.stop()
     }
 
+    void release(TestExecution execution) {
+        execution.setCanExecute(true)
+        coordinationService.notifyStateChange()
+    }
+
     TestExecution testExecution(Callable<String> callable) {
-        return new TestExecution(callable)
+        return new TestExecution(callable, new SimpleResourceLock())
     }
 
     class TestExecution extends AbstractConditionalExecution {
-        TestExecution(Callable callable) {
-            super(callable)
+        final SimpleResourceLock resourceLock
+
+        TestExecution(Callable callable, SimpleResourceLock resourceLock) {
+            super(callable, resourceLock)
+            this.resourceLock = resourceLock
+        }
+
+        void setCanExecute(boolean canExecute) {
+            this.resourceLock.canExecute = canExecute
+        }
+    }
+
+    class SimpleResourceLock implements ResourceLock {
+        boolean canExecute
+        boolean released
+        boolean locked
+
+        @Override
+        boolean isLocked() {
+            return false
+        }
+
+        @Override
+        boolean isLockedByCurrentThread() {
+            return true
+        }
+
+        @Override
+        boolean tryLock() {
+            if (canExecute) {
+                locked = true
+                return true
+            } else {
+                return false
+            }
+        }
+
+        @Override
+        void unlock() {
+            locked = false
+            released = true
+            canExecute = false
+        }
+
+        @Override
+        String getDisplayName() {
+            return "simple lock"
         }
     }
 }

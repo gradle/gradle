@@ -17,7 +17,6 @@
 
 package org.gradle.plugins.ide
 
-import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.fixtures.IdeaFixtures

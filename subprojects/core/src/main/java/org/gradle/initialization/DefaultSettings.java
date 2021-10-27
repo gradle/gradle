@@ -153,7 +153,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void include(Iterable<String> projectPaths) {
+    public void include(String... projectPaths) {
         for (String projectPath : projectPaths) {
             String subPath = "";
             String[] pathElements = removeTrailingColon(projectPath).split(":");

@@ -28,18 +28,23 @@ import java.util.List;
  *
  * @since 4.7
  */
-@UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
-public interface StyledTextBuildOperationProgressDetails extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails {
-    LogLevel getLogLevel();
+@UsedByScanPlugin
+public interface StyledTextBuildOperationProgressDetails {
 
-    @Override
     List<? extends Span> getSpans();
 
-    @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    interface Span extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails.Span {
+    String getCategory();
+
+    LogLevel getLogLevel();
+
+    interface Span {
+
+        /**
+         * Always a value name of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
+         */
+        String getStyleName();
+
+        String getText();
+
     }
 }

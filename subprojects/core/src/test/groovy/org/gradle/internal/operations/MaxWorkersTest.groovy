@@ -42,7 +42,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def cl = workerLeaseService.startWorker()
+                def cl = workerLeaseService.getWorkerLease().start()
                 instant.worker1
                 thread.blockUntil.worker2Ready
                 thread.block()
@@ -53,7 +53,7 @@ class MaxWorkersTest extends ConcurrentSpec {
                 thread.blockUntil.worker1
                 instant.worker2Ready
                 ConcurrentSpec spec = this;
-                def child2 = workerLeaseService.startWorker()
+                def child2 = workerLeaseService.getWorkerLease().start()
                 processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -85,7 +85,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def cl = workerLeaseService.startWorker()
+                def cl = workerLeaseService.getWorkerLease().start()
                 processor.runAll(processorWorker, { queue ->
                     queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                         @Override
@@ -102,7 +102,7 @@ class MaxWorkersTest extends ConcurrentSpec {
             start {
                 spec.thread.blockUntil.worker1
                 spec.instant.worker2Ready
-                def cl = workerLeaseService.startWorker()
+                def cl = workerLeaseService.getWorkerLease().start()
                 spec.instant.worker2
                 cl.leaseFinish()
             }
@@ -126,7 +126,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         def spec = this
         when:
         async {
-            def outer = workerLeaseService.startWorker()
+            def outer = workerLeaseService.getWorkerLease().start()
             processor.runAll(processorWorker, { queue ->
                 queue.add(new DefaultBuildOperationQueueTest.TestBuildOperation() {
                     @Override
@@ -172,7 +172,7 @@ class MaxWorkersTest extends ConcurrentSpec {
         async {
             maxWorkers.times {
                 start {
-                    def lease = workerLeaseService.startWorker()
+                    def lease = workerLeaseService.getWorkerLease().start()
                     synchronized (release) {
                         leaseAcquiredLatch.countDown()
                         release.wait()

@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.nativeintegration;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import java.io.File;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ import java.util.Map;
  *
  * <p>Implementations are not thread-safe.</p>
  */
+@UsedByScanPlugin("test-distribution")
 public interface ProcessEnvironment {
     /**
      * Sets the environment of this process, if possible.
@@ -99,6 +102,7 @@ public interface ProcessEnvironment {
     /**
      * Returns the OS level PID for the current process, or null if not available.
      */
+    @UsedByScanPlugin("test-distribution")
     Long maybeGetPid();
 
     /**

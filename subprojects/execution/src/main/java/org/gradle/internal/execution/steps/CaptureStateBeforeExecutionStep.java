@@ -47,20 +47,20 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+public class CaptureStateBeforeExecutionStep extends BuildOperationStep<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final Step<? super BeforeExecutionContext, ? extends R> delegate;
+    private final Step<? super BeforeExecutionContext, ? extends CachingResult> delegate;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Step<? super BeforeExecutionContext, ? extends R> delegate
+        Step<? super BeforeExecutionContext, ? extends CachingResult> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -70,7 +70,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .flatMap(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {

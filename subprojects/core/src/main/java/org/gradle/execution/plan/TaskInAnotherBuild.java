@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.resources.ResourceLock;
@@ -34,7 +34,7 @@ import java.util.List;
 public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
-        BuildTreeWorkGraphController taskGraph
+        IncludedBuildTaskGraph taskGraph
     ) {
         BuildIdentifier targetBuild = buildIdentifierOf(task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, task);
@@ -44,14 +44,14 @@ public class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         String taskPath,
         BuildIdentifier targetBuild,
-        BuildTreeWorkGraphController taskGraph
+        IncludedBuildTaskGraph taskGraph
     ) {
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(targetBuild, taskPath);
         Path taskIdentityPath = Path.path(targetBuild.getName()).append(Path.path(taskPath));
         return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild, taskResource);
     }
 
-    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.Waiting;
+    protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -136,22 +136,22 @@ public class TaskInAnotherBuild extends TaskNode {
 
     @Override
     public boolean isSuccessful() {
-        return state == IncludedBuildTaskResource.State.Success;
+        return state == IncludedBuildTaskResource.State.SUCCESS;
     }
 
     @Override
     public boolean isFailed() {
-        return state == IncludedBuildTaskResource.State.Failed;
+        return state == IncludedBuildTaskResource.State.FAILED;
     }
 
     @Override
     public boolean isComplete() {
-        if (super.isComplete() || state.isComplete()) {
+        if (state != IncludedBuildTaskResource.State.WAITING) {
             return true;
         }
 
         state = target.getTaskState();
-        return state.isComplete();
+        return state != IncludedBuildTaskResource.State.WAITING;
     }
 
     @Override

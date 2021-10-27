@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.util.GradleVersion
 
 class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +36,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "Error message due to unwritable build scope cache directory is not scary"() {
+    def "Error message due to unwritable project's Gradle cache directory is not scary"() {
         given:
         def localGradleCache = file('.gradle')
         localGradleCache.touch()
@@ -45,7 +46,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         localGradleCache.isFile()
-        assertHasStartupFailure(failure, "Cache directory '${localGradleCache}' exists and is not a directory.")
+        assertHasStartupFailure(failure, "Cannot create parent directory '${localGradleCache.file(GradleVersion.current().version)}'")
     }
 
     def "Error message due to unwritable gradle user home directory is not scary"() {
@@ -89,8 +90,8 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Caused by: net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
-    private static void assertHasStartupFailure(ExecutionFailure failure, String cause, int failures = 1) {
-        failure.assertHasFailures(failures)
+    private static void assertHasStartupFailure(ExecutionFailure failure, String cause) {
+        failure.assertHasFailures(1)
         failure.assertHasDescription("Gradle could not start your build.")
         failure.assertHasCause(cause)
     }

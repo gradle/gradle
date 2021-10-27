@@ -48,6 +48,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
+import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ProjectConfigurer;
@@ -56,10 +57,18 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.DefaultNodeValidator;
+import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.execution.plan.TaskNodeDependencyResolver;
+import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -74,21 +83,27 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * Contains the services for a given {@link GradleInternal} instance.
@@ -103,6 +118,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerGradleServices(registration);
             }
+            registration.add(TaskNodeFactory.class);
         });
     }
 
@@ -116,8 +132,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationExecutor buildOperationExecutor) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new DryRunBuildExecutionAction(textOutputFactory,
-                new SelectedTaskExecutionAction()),
+            new DefaultBuildWorkExecutor(
+                asList(new DryRunBuildExecutionAction(textOutputFactory),
+                    new SelectedTaskExecutionAction())),
             buildOperationExecutor);
     }
 
@@ -134,6 +151,18 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
         return new DefaultProjectFinder(gradle::getRootProject);
+    }
+
+    TaskNodeDependencyResolver createTaskNodeResolver(TaskNodeFactory taskNodeFactory) {
+        return new TaskNodeDependencyResolver(taskNodeFactory);
+    }
+
+    WorkNodeDependencyResolver createWorkNodeResolver() {
+        return new WorkNodeDependencyResolver();
+    }
+
+    TaskDependencyResolver createTaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
+        return new TaskDependencyResolver(dependencyResolvers);
     }
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
@@ -162,12 +191,34 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
     }
 
+    ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
+        return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
+    }
+
+    ExecutionPlan createExecutionPlan(
+        GradleInternal gradleInternal,
+        TaskNodeFactory taskNodeFactory,
+        TaskDependencyResolver dependencyResolver,
+        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies
+    ) {
+        return new DefaultExecutionPlan(
+            gradleInternal.getIdentityPath().toString(),
+            taskNodeFactory,
+            dependencyResolver,
+            new DefaultNodeValidator(),
+            executionNodeAccessHierarchies.getOutputHierarchy(),
+            executionNodeAccessHierarchies.getDestroyableHierarchy()
+        );
+    }
+
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         List<NodeExecutor> nodeExecutors,
         BuildOperationExecutor buildOperationExecutor,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
+        ResourceLockCoordinationService coordinationService,
         GradleInternal gradleInternal,
+        ExecutionPlan executionPlan,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerManager listenerManager,
@@ -179,7 +230,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             nodeExecutors,
             buildOperationExecutor,
             listenerBuildOperationDecorator,
+            coordinationService,
             gradleInternal,
+            executionPlan,
             graphListeners,
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),

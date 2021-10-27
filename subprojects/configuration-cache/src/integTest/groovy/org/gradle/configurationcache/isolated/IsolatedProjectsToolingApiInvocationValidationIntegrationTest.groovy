@@ -36,24 +36,22 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
+        outputContains("Configuration cache entry discarded with 2 problems.")
 
         when:
         executer.withArguments(ENABLE_CLI)
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': Cannot access project ':a' from project ':'",
+                "Build file 'build.gradle': Cannot access project ':b' from project ':'")
         }
+        outputContains("Configuration cache entry discarded with 2 problems.")
     }
 
     def "reports cross project access from model builder while fetching custom tooling model"() {
@@ -74,30 +72,27 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
+        outputContains("Configuration cache entry discarded with 2 problems.")
 
         when:
         executer.withArguments(ENABLE_CLI)
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'")
-            problem("Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': Cannot access project ':a' from project ':'",
+                "Plugin class 'my.MyPlugin': Cannot access project ':b' from project ':'")
         }
+        outputContains("Configuration cache entry discarded with 2 problems.")
     }
 
     def "reports configuration cache problems in build script when fetching custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << ""
         buildFile << """
             plugins.apply(my.MyPlugin)
             gradle.buildFinished {
@@ -110,22 +105,20 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
+        outputContains("Configuration cache entry discarded with 1 problem.")
 
         when:
         executer.withArguments(ENABLE_CLI)
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
+        outputContains("Configuration cache entry discarded with 1 problem.")
     }
 
     def "reports configuration cache problems in model builder while fetching tooling model"() {
@@ -135,7 +128,6 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
                 println("build finished")
             }
         """)
-        settingsFile << ""
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -145,21 +137,19 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
+        outputContains("Configuration cache entry discarded with 1 problem.")
 
         when:
         executer.withArguments(ENABLE_CLI)
         fetchModelFails()
 
         then:
-        fixture.assertStateStoreFailed {
-            projectConfigured(":buildSrc")
-            modelsCreated(":")
-            problem("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("Plugin class 'my.MyPlugin': registration of listener on 'Gradle.buildFinished' is unsupported")
         }
+        outputContains("Configuration cache entry discarded with 1 problem.")
     }
 }

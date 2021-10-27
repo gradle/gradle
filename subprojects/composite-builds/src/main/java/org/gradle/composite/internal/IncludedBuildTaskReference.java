@@ -48,7 +48,6 @@ public class IncludedBuildTaskReference implements TaskReference, TaskDependency
     }
 
     private Task resolveTask() {
-        includedBuild.ensureProjectsConfigured();
-        return includedBuild.getMutableModel().getRootProject().getTasks().getByPath(taskPath);
+        return includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskPath);
     }
 }

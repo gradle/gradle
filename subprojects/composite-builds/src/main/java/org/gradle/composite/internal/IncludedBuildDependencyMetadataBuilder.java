@@ -27,7 +27,7 @@ import java.io.File;
 
 public class IncludedBuildDependencyMetadataBuilder {
     public LocalComponentMetadata build(CompositeBuildParticipantBuildState build, ProjectComponentIdentifier projectIdentifier) {
-        GradleInternal gradle = build.getMutableModel();
+        GradleInternal gradle = build.getBuild();
         LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
 

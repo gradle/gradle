@@ -70,7 +70,6 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -968,7 +967,7 @@ class ProblemReportingCrossProjectModelAccess(
                 text(" from project ")
                 reference(referrer.identityPath.toString())
             }
-            val exception = InvalidUserCodeException(message.toString().capitalized())
+            val exception = InvalidUserCodeException(message.toString().capitalize())
             problems.onProblem(
                 PropertyProblem(location, message, exception, null)
             )

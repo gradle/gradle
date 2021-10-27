@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache

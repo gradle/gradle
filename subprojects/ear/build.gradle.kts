@@ -2,8 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Adds support for assembling web application EAR files"
-
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))

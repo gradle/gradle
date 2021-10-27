@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.repository
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles

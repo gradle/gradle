@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.extensions.get
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -27,67 +27,41 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.buildtree.DefaultBuildTreeModelCreator
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
-import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.resources.ProjectLeaseRegistry
 
 
 class DefaultBuildTreeLifecycleControllerFactory(
     private val buildModelParameters: BuildModelParameters,
-    private val taskGraph: BuildTreeWorkGraphController,
+    private val cache: BuildTreeConfigurationCache,
+    private val taskGraph: IncludedBuildTaskGraph,
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val projectLeaseRegistry: ProjectLeaseRegistry,
-    private val stateTransitionControllerFactory: StateTransitionControllerFactory
+    private val projectLeaseRegistry: ProjectLeaseRegistry
 ) : BuildTreeLifecycleControllerFactory {
-    override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
+    override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Currently, apply the decoration only to the root build, as the cache implementation is still scoped to the root build
         // (that is, it assumes it is only applied to the root build)
-        return if (buildModelParameters.isConfigurationCache) {
-            createController(true, targetBuild, workExecutor, finishExecutor)
-        } else {
-            createController(false, targetBuild, workExecutor, finishExecutor)
-        }
-    }
+        val rootBuild = targetBuild.gradle.isRootBuild
 
-    override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
-        return createController(false, targetBuild, workExecutor, finishExecutor)
-    }
-
-    private
-    fun createController(applyCaching: Boolean, targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
-        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
-        val workPreparer = if (applyCaching) {
-            // Only look this up if configuration caching is enabled, to avoid creating services
-            val cache: BuildTreeConfigurationCache = targetBuild.gradle.services.get()
+        val defaultWorkPreparer = DefaultBuildTreeWorkPreparer(targetBuild, taskGraph)
+        val workPreparer = if (buildModelParameters.isConfigurationCache && rootBuild) {
             ConfigurationCacheAwareBuildTreeWorkPreparer(defaultWorkPreparer, cache)
         } else {
             defaultWorkPreparer
         }
 
-        val defaultModelCreator = DefaultBuildTreeModelCreator(buildModelParameters, targetBuild.gradle.owner, buildOperationExecutor, projectLeaseRegistry)
-        val modelCreator = if (applyCaching) {
-            // Only look this up if configuration caching is enabled, to avoid creating services
-            val cache: BuildTreeConfigurationCache = targetBuild.gradle.services.get()
+        val defaultModelCreator = DefaultBuildTreeModelCreator(buildModelParameters, targetBuild, buildOperationExecutor, projectLeaseRegistry)
+        val modelCreator = if (buildModelParameters.isConfigurationCache && rootBuild) {
             ConfigurationCacheAwareBuildTreeModelCreator(defaultModelCreator, cache)
         } else {
             defaultModelCreator
         }
 
-        val finisher = if (applyCaching) {
-            // Only look this up if configuration caching is enabled, to avoid creating services
-            val cache: BuildTreeConfigurationCache = targetBuild.gradle.services.get()
-            ConfigurationCacheAwareFinishExecutor(finishExecutor, cache)
-        } else {
-            finishExecutor
-        }
-
         // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
-        if (applyCaching) {
-            // Only look this up if configuration caching is enabled, to avoid creating services
-            val cache: BuildTreeConfigurationCache = targetBuild.gradle.services.get()
+        if (buildModelParameters.isConfigurationCache && rootBuild) {
             cache.attachRootBuild(targetBuild.gradle.services.get())
         }
 
-        return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finisher, stateTransitionControllerFactory)
+        return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor)
     }
 }

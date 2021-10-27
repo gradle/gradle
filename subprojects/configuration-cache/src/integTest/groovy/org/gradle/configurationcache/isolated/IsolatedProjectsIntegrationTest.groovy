@@ -29,19 +29,27 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
             task thing { }
         """
 
-        when:
-        configurationCacheRun("thing")
-
-        then:
-        fixture.assertStateStored {
-            projectConfigured(":")
-        }
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         configurationCacheRun("thing")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateStored()
+        outputContains(ISOLATED_PROJECTS_MESSAGE)
+        outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
+        outputDoesNotContain("Configuration on demand is an incubating feature.")
+        configured("settings", "root project")
+
+        when:
+        configurationCacheRun("thing")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains(ISOLATED_PROJECTS_MESSAGE)
+        outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
+        outputDoesNotContain("Configuration on demand is an incubating feature.")
+        configured()
     }
 
     def "cannot disable configuration cache when option is enabled"() {
@@ -82,32 +90,35 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer")
-        fixture.assertStateStored {
-            projectsConfigured(":", ":b", ":a")
-        }
+        configured("settings", "root project", "project :b", "project :a")
 
         when:
         configurationCacheRun(":b:producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer")
-        fixture.assertStateLoaded()
+        configured()
 
         when:
         configurationCacheRun("producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
-        fixture.assertStateStored {
-            projectsConfigured(":", ":b", ":a", ":c")
-        }
+        configured("settings", "root project", "project :a", "project :b", "project :c")
 
         when:
         configurationCacheRun("producer")
 
         then:
         result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
-        fixture.assertStateLoaded()
+        configured()
+    }
+
+    void configured(String... items) {
+        def actual = output.readLines()
+            .findAll { it.contains("configuring") }
+            .collect { it.replace("configuring ", "") }
+        assert actual == items.toList()
     }
 
     TestFile customType(TestFile dir) {

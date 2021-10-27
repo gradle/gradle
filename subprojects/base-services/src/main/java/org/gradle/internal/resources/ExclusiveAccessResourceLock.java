@@ -16,42 +16,34 @@
 
 package org.gradle.internal.resources;
 
-public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
-    private Thread owner;
+import org.gradle.api.Action;
 
-    public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
-        super(displayName, coordinationService, owner);
+import java.util.concurrent.locks.ReentrantLock;
+
+public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+        super(displayName, coordinationService, lockAction, unlockAction);
     }
 
     @Override
     protected boolean acquireLock() {
-        Thread currentThread = Thread.currentThread();
-        if (owner == currentThread) {
-            return true;
-        }
-        if (owner == null && canAcquire()) {
-            owner = currentThread;
-            return true;
-        }
-        return false;
-    }
-
-    protected boolean canAcquire() {
-        return true;
+        return lock.tryLock();
     }
 
     @Override
     protected void releaseLock() {
-        owner = null;
+        lock.unlock();
     }
 
     @Override
     protected boolean doIsLockedByCurrentThread() {
-        return owner == Thread.currentThread();
+        return lock.isHeldByCurrentThread();
     }
 
     @Override
     protected boolean doIsLocked() {
-        return owner != null;
+        return lock.isLocked();
     }
 }

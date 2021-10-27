@@ -17,9 +17,11 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
@@ -33,6 +35,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private final boolean allowAccessToProjectState;
     private final WorkerLeaseService workerLeases;
+    private final WorkerLeaseRegistry.WorkerLease parentWorkerLease;
     private final Executor executor;
     private final QueueWorker<T> queueWorker;
     private String logLocation;
@@ -50,6 +53,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     DefaultBuildOperationQueue(boolean allowAccessToProjectState, WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
+        this.parentWorkerLease = workerLeases.getWorkerLease();
         this.executor = executor;
         this.queueWorker = queueWorker;
     }
@@ -95,18 +99,6 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     @Override
     public void waitForCompletion() throws MultipleBuildOperationFailures {
-        signalNoMoreWork();
-
-        // Use this thread to process any work - this allows work to be executed using the
-        // worker lease acquired by this thread even if the executor thread pool is full of
-        // workers from other queues.  In other words, it ensures that all worker leases
-        // are being utilized, regardless of the bounds of the thread pool.
-        new WorkerRunnable().run();
-
-        waitForWorkToComplete();
-    }
-
-    private void signalNoMoreWork() {
         lock.lock();
         try {
             if (queueState == QueueState.Done) {
@@ -117,30 +109,35 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         } finally {
             lock.unlock();
         }
-    }
 
-    private void waitForWorkToComplete() {
-        // Release worker lease while waiting
-        workerLeases.blocking(() -> {
-            lock.lock();
-            try {
-                // Wait for any work still running in other threads
-                while (pendingOperations > 0) {
-                    try {
-                        operationsComplete.await();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
+        // Use this thread to process any work - this allows work to be executed using the
+        // worker lease acquired by this thread even if the executor thread pool is full of
+        // workers from other queues.  In other words, it ensures that all worker leases
+        // are being utilized, regardless of the bounds of the thread pool.
+        try {
+            new WorkerRunnable().run();
+        } catch (Throwable t) {
+            addFailure(t);
+        }
 
-                queueState = QueueState.Done;
-                if (!failures.isEmpty()) {
-                    throw new MultipleBuildOperationFailures(failures, logLocation);
+        lock.lock();
+        try {
+            // Wait for any work still running in other threads
+            while (pendingOperations > 0) {
+                try {
+                    operationsComplete.await();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
-            } finally {
-                lock.unlock();
             }
-        });
+
+            queueState = QueueState.Done;
+            if (!failures.isEmpty()) {
+                throw new MultipleBuildOperationFailures(failures, logLocation);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void addFailure(Throwable failure) {
@@ -170,16 +167,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private class WorkerRunnable implements Runnable {
         @Override
         public void run() {
-            try {
-                T operation;
-                while ((operation = waitForNextOperation()) != null) {
-                    runBatch(operation);
-                }
-            } catch (Throwable t) {
-                addFailure(t);
-            } finally {
-                shutDown();
+            T operation;
+            while ((operation = waitForNextOperation()) != null) {
+                runBatch(operation);
             }
+            shutDown();
         }
 
         @Nullable
@@ -205,7 +197,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // the parent lease is released.
             completeOperations(
                 // Run while holding worker lease.
-                workerLeases.runAsWorkerThread(() -> {
+                workerLeases.withLocks(Collections.singleton(parentWorkerLease.createChild()), () -> {
                     if (allowAccessToProjectState) {
                         return doRunBatch(firstOperation);
                     } else {

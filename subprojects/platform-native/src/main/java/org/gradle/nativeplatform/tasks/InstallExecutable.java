@@ -204,7 +204,7 @@ public class InstallExecutable extends DefaultTask {
         Collection<File> libs = getLibs().getFiles();
 
         // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
-        workerLeaseService.runAsIsolatedTask(() -> {
+        workerLeaseService.withoutProjectLock(() -> {
             installToDir(libDirectory, executable, libs);
             if (nativePlatform.getOperatingSystem().isWindows()) {
                 installWindows(executable, runScript);

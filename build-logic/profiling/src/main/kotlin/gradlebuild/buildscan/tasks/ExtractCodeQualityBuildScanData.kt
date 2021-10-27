@@ -93,11 +93,9 @@ abstract class ExtractCodeNarcBuildScanData : AbstractExtractCodeQualityBuildSca
     override fun extractIssuesFrom(xmlFile: File, basePath: File): List<String> {
         val codenarc = Jsoup.parse(xmlFile.readText(), "", Parser.xmlParser())
         return codenarc.getElementsByTag("Package").flatMap { codenarcPackage ->
-            val packagePath = codenarcPackage.attr("path")
             codenarcPackage.getElementsByTag("File").flatMap { file ->
-                val fileName = file.attr("name")
                 file.getElementsByTag("Violation").map { violation ->
-                    val filePath = "$packagePath/$fileName"
+                    val filePath = File(file.attr("name")).relativeTo(basePath).path
                     val message = violation.run {
                         getElementsByTag("Message").first()
                             ?: getElementsByTag("SourceLine").first()

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -42,9 +43,9 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
     }
 
     @Override
-    public void store(String key, boolean successful, AfterExecutionState executionState) {
+    public void store(String key, OriginMetadata originMetadata, boolean successful, AfterExecutionState executionState) {
         executionHistory.put(key, new DefaultPreviousExecutionState(
-            executionState.getOriginMetadata(),
+            originMetadata,
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
             executionState.getInputProperties(),

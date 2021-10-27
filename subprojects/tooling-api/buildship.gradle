@@ -18,22 +18,11 @@ import java.util.zip.ZipInputStream
 
 tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
-    toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
-    projectVersion = project.version
+    dependsOn tasks.named('toolingApiShadedJar')
     projectDirectory = file("$buildDir/buildshipProject")
 }
 
-@DisableCachingByDefault(because = "Not worth caching")
-abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
-
-    @InputFile
-    abstract RegularFileProperty getToolingApiShadedJar()
-
-    @Input
-    abstract Property<String> getProjectVersion()
-
-    @Inject
-    protected abstract FileSystemOperations getFs()
+class CreateBuildshipEclipseProjectTask extends DefaultTask {
 
     @OutputDirectory
     File projectDirectory
@@ -41,7 +30,7 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
     @TaskAction
     void generateBuildshipProject() {
 
-        File jarFile = toolingApiShadedJar.get().asFile
+        File jarFile = project.tasks.named('toolingApiShadedJar').get().jarFile.get().asFile
 
         // create manifest and place it in the META-INF folder
         def manifestFile = new File(projectDirectory, "META-INF/MANIFEST.MF")
@@ -51,10 +40,10 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
                 throw new GradleException("Unable to create directory ${manifestFile.parentFile.absolutePath}")
             }
         }
-        manifestFile.text = calculateManifest(projectVersion.get(), jarFile)
+        manifestFile.text = calculateManifest(project.version, jarFile)
 
         // copy the jar to the project location
-        fs.copy {
+        project.copy {
             from jarFile
             into projectDirectory
         }

@@ -107,7 +107,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalRe
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -177,7 +176,6 @@ import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
-import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -250,7 +248,6 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectDependencyResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
-        registration.add(TransformationNodeDependencyResolver.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -750,10 +747,9 @@ class DependencyManagementBuildScopeServices {
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new RemoveUntrackedExecutionStateStep<>(
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
-            new NoOpCachingStateStep<>(
+            new NoOpCachingStateStep(
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new BroadcastChangingOutputsStep<>(outputChangeListener,
@@ -764,11 +760,12 @@ class DependencyManagementBuildScopeServices {
             new ResolveInputChangesStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))));
+        ))))))))))))))))));
         // @formatter:on
     }
 
-    private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
+
+    private static class NoOpCachingStateStep implements Step<ValidationFinishedContext, CachingResult> {
         private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
 
         public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {

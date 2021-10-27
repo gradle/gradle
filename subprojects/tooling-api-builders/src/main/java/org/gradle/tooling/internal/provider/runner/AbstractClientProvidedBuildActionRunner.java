@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.build.BuildToolingModelAction;
+import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.buildtree.BuildTreeModelAction;
-import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -81,7 +81,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         }
     }
 
-    private class ActionAdapter implements BuildTreeModelAction<ActionResults> {
+    private class ActionAdapter implements BuildToolingModelAction<ActionResults> {
         private final ClientAction clientAction;
         private final PayloadSerializer payloadSerializer;
         SerializedPayload projectsEvaluatedResult;
@@ -95,12 +95,12 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         }
 
         @Override
-        public void beforeTasks(BuildTreeModelController controller) {
+        public void beforeTasks(BuildToolingModelController controller) {
             projectsEvaluatedResult = runAction(controller, clientAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
         }
 
         @Override
-        public ActionResults fromBuildModel(BuildTreeModelController controller) {
+        public ActionResults fromBuildModel(BuildToolingModelController controller) {
             buildFinishedResult = runAction(controller, clientAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
             executed = true;
             return new ActionResults(projectsEvaluatedResult, buildFinishedResult);
@@ -120,7 +120,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
         }
 
         @SuppressWarnings("deprecation")
-        private SerializedPayload runAction(BuildTreeModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
+        private SerializedPayload runAction(BuildToolingModelController controller, @Nullable Object action, PhasedActionResult.Phase phase) {
             if (action == null || actionFailure != null) {
                 return null;
             }

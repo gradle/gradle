@@ -43,18 +43,16 @@ external interface JsModel {
     val cacheAction: String
     val documentationLink: String
     val totalProblemCount: Int
-    val diagnostics: Array<JsDiagnostic>
+    val problems: Array<JsProblem>
 }
 
 
-/** A diagnostic is either an [input] or a [problem] description (not both). */
 private
-external interface JsDiagnostic {
-    val input: Array<JsMessageFragment>?
-    val problem: Array<JsMessageFragment>?
+external interface JsProblem {
     val trace: Array<JsTrace>
-    val documentationLink: String?
+    val message: Array<JsMessageFragment>
     val error: String?
+    val documentationLink: String?
 }
 
 
@@ -112,7 +110,7 @@ external interface JsMessageFragment {
 
 private
 data class ImportedProblem(
-    val problem: JsDiagnostic,
+    val problem: JsProblem,
     val message: PrettyText,
     val trace: List<ProblemNode>
 )
@@ -120,65 +118,45 @@ data class ImportedProblem(
 
 private
 fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.Model {
-    val diagnostics = importDiagnostics(jsModel.diagnostics)
+    val problems = jsModel.problems.map { jsProblem ->
+        ImportedProblem(
+            jsProblem,
+            jsProblem.message.let(::toPrettyText),
+            jsProblem.trace.map(::toProblemNode)
+        )
+    }
     return ConfigurationCacheReportPage.Model(
         cacheAction = jsModel.cacheAction,
         documentationLink = jsModel.documentationLink,
         totalProblems = jsModel.totalProblemCount,
-        reportedProblems = diagnostics.problems.size,
+        reportedProblems = jsModel.problems.size,
         messageTree = treeModelFor(
             ProblemNode.Label("Problems grouped by message"),
-            problemNodesByMessage(diagnostics.problems)
+            problemNodesByMessage(problems)
         ),
         locationTree = treeModelFor(
             ProblemNode.Label("Problems grouped by location"),
-            problemNodesByLocation(diagnostics.problems)
+            problemNodesByLocation(problems)
         ),
-        inputTree = treeModelFor(
-            ProblemNode.Label("Inputs"),
-            problemNodesByMessage(diagnostics.inputs)
-        )
     )
 }
-
-
-private
-class ImportedDiagnostics(
-    val problems: List<ImportedProblem>,
-    val inputs: List<ImportedProblem>
-)
-
-
-private
-fun importDiagnostics(jsDiagnostics: Array<JsDiagnostic>): ImportedDiagnostics {
-    val importedProblems = mutableListOf<ImportedProblem>()
-    val importedInputs = mutableListOf<ImportedProblem>()
-    for (diagnostic in jsDiagnostics) {
-        diagnostic.input?.let {
-            importedInputs.add(toImportedProblem(it, diagnostic))
-        } ?: diagnostic.problem!!.let {
-            importedProblems.add(toImportedProblem(it, diagnostic))
-        }
-    }
-    return ImportedDiagnostics(importedProblems, importedInputs)
-}
-
-
-private
-fun toImportedProblem(label: Array<JsMessageFragment>, jsProblem: JsDiagnostic) = ImportedProblem(
-    jsProblem,
-    label.let(::toPrettyText),
-    jsProblem.trace.map(::toProblemNode)
-)
 
 
 private
 fun problemNodesByMessage(problems: List<ImportedProblem>): Sequence<MutableList<ProblemNode>> =
     problems.asSequence().map { problem ->
         mutableListOf<ProblemNode>().apply {
-            add(problemNodeFor(problem))
+            add(
+                errorOrWarningNodeFor(
+                    problem.problem,
+                    messageNodeFor(problem),
+                    docLinkFor(problem.problem)
+                )
+            )
             addAll(problem.trace)
-            addExceptionNode(problem)
+            exceptionNodeFor(problem.problem)?.let {
+                add(it)
+            }
         }
     }
 
@@ -188,26 +166,18 @@ fun problemNodesByLocation(problems: List<ImportedProblem>): Sequence<List<Probl
     problems.asSequence().map { problem ->
         mutableListOf<ProblemNode>().apply {
             addAll(problem.trace.asReversed())
-            add(problemNodeFor(problem))
-            addExceptionNode(problem)
+            add(
+                errorOrWarningNodeFor(
+                    problem.problem,
+                    messageNodeFor(problem),
+                    docLinkFor(problem.problem)
+                )
+            )
+            exceptionNodeFor(problem.problem)?.let {
+                add(it)
+            }
         }
     }
-
-
-private
-fun MutableList<ProblemNode>.addExceptionNode(problem: ImportedProblem) {
-    exceptionNodeFor(problem.problem)?.let {
-        add(it)
-    }
-}
-
-
-private
-fun problemNodeFor(problem: ImportedProblem) = errorOrWarningNodeFor(
-    problem.problem,
-    messageNodeFor(problem),
-    docLinkFor(problem.problem)
-)
 
 
 private
@@ -248,7 +218,7 @@ fun toProblemNode(trace: JsTrace): ProblemNode = when (trace.kind) {
 
 
 private
-fun errorOrWarningNodeFor(problem: JsDiagnostic, label: ProblemNode, docLink: ProblemNode?): ProblemNode =
+fun errorOrWarningNodeFor(problem: JsProblem, label: ProblemNode, docLink: ProblemNode?): ProblemNode =
     problem.error?.let {
         ProblemNode.Error(label, docLink)
     } ?: ProblemNode.Warning(label, docLink)
@@ -260,12 +230,12 @@ fun messageNodeFor(importedProblem: ImportedProblem) =
 
 
 private
-fun exceptionNodeFor(it: JsDiagnostic): ProblemNode? =
+fun exceptionNodeFor(it: JsProblem): ProblemNode? =
     it.error?.let(ProblemNode::Exception)
 
 
 private
-fun docLinkFor(it: JsDiagnostic): ProblemNode? =
+fun docLinkFor(it: JsProblem): ProblemNode? =
     it.documentationLink?.let { ProblemNode.Link(it, " ?") }
 
 
