@@ -26,7 +26,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -90,7 +89,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.AbstractProviderWithValue;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
@@ -242,27 +241,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String consistentResolutionReason;
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
 
-    public DefaultConfiguration(DomainObjectContext domainObjectContext,
-                                String name,
-                                ConfigurationsProvider configurationsProvider,
-                                ConfigurationResolver resolver,
-                                ListenerManager listenerManager,
-                                DependencyMetaDataProvider metaDataProvider,
-                                Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-                                FileCollectionFactory fileCollectionFactory,
-                                BuildOperationExecutor buildOperationExecutor,
-                                Instantiator instantiator,
-                                NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-                                NotationParser<Object, Capability> capabilityNotationParser,
-                                ImmutableAttributesFactory attributesFactory,
-                                RootComponentMetadataBuilder rootComponentMetadataBuilder,
-                                DocumentationRegistry documentationRegistry,
-                                UserCodeApplicationContext userCodeApplicationContext,
-                                DomainObjectContext owner,
-                                ProjectStateRegistry projectStateRegistry,
-                                WorkerThreadRegistry workerThreadRegistry,
-                                DomainObjectCollectionFactory domainObjectCollectionFactory,
-                                CalculatedValueContainerFactory calculatedValueContainerFactory
+    public DefaultConfiguration(
+        DomainObjectContext domainObjectContext,
+        String name,
+        ConfigurationsProvider configurationsProvider,
+        ConfigurationResolver resolver,
+        ListenerManager listenerManager,
+        DependencyMetaDataProvider metaDataProvider,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        Instantiator instantiator,
+        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        NotationParser<Object, Capability> capabilityNotationParser,
+        ImmutableAttributesFactory attributesFactory,
+        RootComponentMetadataBuilder rootComponentMetadataBuilder,
+        DocumentationRegistry documentationRegistry,
+        UserCodeApplicationContext userCodeApplicationContext,
+        DomainObjectContext owner,
+        ProjectStateRegistry projectStateRegistry,
+        WorkerThreadRegistry workerThreadRegistry,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
@@ -1362,13 +1362,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final ResolutionHost resolutionHost;
         private SelectedArtifactSet selectedArtifacts;
 
-        private ConfigurationFileCollection(ResolutionResultProvider<VisitedArtifactSet> resultProvider,
-                                            Spec<? super Dependency> dependencySpec,
-                                            AttributeContainerInternal viewAttributes,
-                                            Spec<? super ComponentIdentifier> componentSpec,
-                                            boolean lenient,
-                                            boolean allowNoMatchingVariants,
-                                            ResolutionHost resolutionHost) {
+        private ConfigurationFileCollection(
+            ResolutionResultProvider<VisitedArtifactSet> resultProvider,
+            Spec<? super Dependency> dependencySpec,
+            AttributeContainerInternal viewAttributes,
+            Spec<? super ComponentIdentifier> componentSpec,
+            boolean lenient,
+            boolean allowNoMatchingVariants,
+            ResolutionHost resolutionHost
+        ) {
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes;
@@ -2001,7 +2003,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-            return new ResolvedArtifactsProvider(this);
+            return new BuildableBackedSetProvider<>(getArtifactFiles(), this::getArtifacts);
         }
 
         @Override
@@ -2024,55 +2026,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private void ensureResolved() {
             result.finalizeIfNotAlready();
-        }
-    }
-
-    private static class ResolvedArtifactsProvider extends AbstractProviderWithValue<Set<ResolvedArtifactResult>> {
-
-        private final ArtifactCollection artifactCollection;
-
-        public ResolvedArtifactsProvider(ArtifactCollection artifactCollection) {
-            this.artifactCollection = artifactCollection;
-        }
-
-        @Nullable
-        @Override
-        public Class<Set<ResolvedArtifactResult>> getType() {
-            return Cast.uncheckedCast(Set.class);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return new ValueProducer() {
-                @Override
-                public boolean isProducesDifferentValueOverTime() {
-                    return false;
-                }
-
-                @Override
-                public void visitProducerTasks(Action<? super Task> visitor) {
-                    for (Task dependency : artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null)) {
-                        visitor.execute(dependency);
-                    }
-                }
-            };
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Set<ResolvedArtifactResult>> calculateExecutionTimeValue() {
-            if (contentsAreBuiltByTask()) {
-                return ExecutionTimeValue.changingValue(this);
-            }
-            return ExecutionTimeValue.fixedValue(get());
-        }
-
-        private boolean contentsAreBuiltByTask() {
-            return !artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null).isEmpty();
-        }
-
-        @Override
-        protected Value<? extends Set<ResolvedArtifactResult>> calculateOwnValue(ValueConsumer consumer) {
-            return Value.of(artifactCollection.getArtifacts());
         }
     }
 
