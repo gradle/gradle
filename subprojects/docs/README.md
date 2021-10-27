@@ -51,9 +51,17 @@ This will generate:
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
 
-If you just need to see a change to one of the userguide sections, try:
+### User Manual Development
 
-    ./gradlew :docs:userguide -x :docs:userguideSinglePageHtml -x :docs:userguideSinglePagePdf
+For development and fast feedback you should use:
+
+    ./gradlew stageDocs -PquickDocs
+
+Alternatively, if you want to serve the docs in a built-in webserver, you can use:
+
+    ./gradlew serveDocs -PquickDocs
+
+The flag -PquickDocs disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
 
 ### Authoring with AsciiDoc
 
