@@ -137,6 +137,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             }
         }
 
+        @SuppressWarnings("deprecation")
         private DirectorySensitivity determineDirectorySensitivity(String propertyName, InputPropertyType type, FileValueSupplier value, FileCollectionSnapshotter.Result result) {
             if (value.getDirectorySensitivity() != DirectorySensitivity.UNSPECIFIED) {
                 return value.getDirectorySensitivity();

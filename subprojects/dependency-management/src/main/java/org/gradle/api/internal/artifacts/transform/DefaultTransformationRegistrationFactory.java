@@ -218,6 +218,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
+        @SuppressWarnings("deprecation")
         @Override
         public void visitInputFileProperty(
             String propertyName,

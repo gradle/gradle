@@ -84,6 +84,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         );
     }
 
+    @SuppressWarnings("deprecation")
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class) ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.UNSPECIFIED;
     }
