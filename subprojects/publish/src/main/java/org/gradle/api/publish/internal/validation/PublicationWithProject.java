@@ -20,6 +20,9 @@ import org.gradle.api.publish.internal.PublicationInternal;
 
 import java.util.Objects;
 
+/**
+ * A publication associated with a project's display text, for better error feedback.
+ */
 final class PublicationWithProject {
     private final String projectDisplayText;
     private final PublicationInternal<?> publication;
