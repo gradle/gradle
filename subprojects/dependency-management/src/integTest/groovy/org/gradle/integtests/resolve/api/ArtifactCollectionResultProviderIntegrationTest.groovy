@@ -143,11 +143,11 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
     }
 
 
-    def "task is not up-to-date when #useCase changes"() {
+    def "task is not up-to-date when artifacts input changes"() {
         given:
         buildFile << """
             task verify(type: TaskWithArtifactCollectionResultProviderInput) {
-                $taskConfiguration
+                resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)
                 outputFile.set(layout.buildDirectory.file('output.txt'))
             }
 """
@@ -179,10 +179,5 @@ class Main {
 
         then:
         executedAndNotSkipped ":project-lib:jar", ":verify"
-
-        where:
-        useCase           | taskConfiguration
-        'files input'     | 'artifactFiles.from(configurations.compile.incoming.artifacts.artifactFiles)\nresolvedArtifacts.empty()'
-        'artifacts input' | 'resolvedArtifacts.set(configurations.compile.incoming.artifacts.resolvedArtifacts)'
     }
 }
