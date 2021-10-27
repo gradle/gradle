@@ -16,6 +16,7 @@
 
 package org.gradle.api.attributes;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -53,4 +54,19 @@ public interface DocsType extends Named {
      */
     String DOXYGEN = "doxygen";
 
+    /**
+     * Binary results of running tests containing pass/fail information
+     *
+     * @since 7.4
+     */
+    @Incubating
+    String TEST_RESULTS = "test-results-bin";
+
+    /**
+     * Binary test coverage data gathered by JaCoCo
+     *
+     * @since 7.4
+     */
+    @Incubating
+    String JACOCO_COVERAGE = "jacoco-coverage-bin";
 }
