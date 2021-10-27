@@ -67,6 +67,47 @@ Following the migration of [AdoptOpenJDK](https://adoptopenjdk.net/) to [Eclipse
 
 See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
+### Kotlin DSL improvements
+
+#### Type-safe accessors for extensions of `repositories {}`
+
+The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
+
+For example, it means that configuring the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) previously required to use [`withGroovyBuilder`]():
+
+```kotlin
+repositories {
+    withGroovyBuilder {
+        "ruby" {
+            "gems"()
+        }
+    }
+}
+```
+
+or, required more tinkering in order to discover what names and types to use, relying on the API:
+```kotlin
+repositories {
+    this as ExtensionAware
+    configure<com.github.jrubygradle.api.core.RepositoryHandlerExtension> {
+        gems()
+    }
+}
+```
+
+Starting with this version of Gradle it can be configured directly via the generated type-safe accessors:
+
+```kotlin
+repositories {
+    ruby {
+        gems()
+    }
+}
+```
+
+See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
