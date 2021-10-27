@@ -150,7 +150,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             InputFilePropertySpec propertySpec = propertySpec(propertyName);
             return ImmutableSortedSet.of(
                 FilePropertyAttribute.fromNormalizerClass(propertySpec.getNormalizer()).name(),
-                FilePropertyAttribute.from(Optional.ofNullable(propertySpec.getDirectorySensitivity()).orElse(DirectorySensitivity.DEFAULT)).name(),
+                FilePropertyAttribute.from(propertySpec.getDirectorySensitivity()).name(),
                 FilePropertyAttribute.from(propertySpec.getLineEndingNormalization()).name()
             );
         }
@@ -574,6 +574,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
         private static final Map<DirectorySensitivity, FilePropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, FilePropertyAttribute>builder()
             .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
+            .put(DirectorySensitivity.UNSPECIFIED, DIRECTORY_SENSITIVITY_DEFAULT)
             .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
             .build());
 

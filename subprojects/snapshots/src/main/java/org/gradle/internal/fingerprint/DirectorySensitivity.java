@@ -33,7 +33,10 @@ public enum DirectorySensitivity {
     /**
      * Ignore directories
      */
-    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory);
+    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory),
+    UNSPECIFIED(snapshot -> {
+        throw new AssertionError("Unspecified must not be used as directory sensitivity");
+    });
 
     private final Predicate<FileSystemLocationSnapshot> fingerprintCheck;
 

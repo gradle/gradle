@@ -87,7 +87,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 String propertyName,
                 boolean optional,
                 boolean skipWhenEmpty,
-                @Nullable DirectorySensitivity directorySensitivity,
+                DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,

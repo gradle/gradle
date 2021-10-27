@@ -56,7 +56,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         final String propertyName,
         boolean optional,
         boolean skipWhenEmpty,
-        @Nullable DirectorySensitivity directorySensitivity,
+        DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,

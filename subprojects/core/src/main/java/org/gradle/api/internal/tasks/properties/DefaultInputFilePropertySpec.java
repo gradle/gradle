@@ -37,7 +37,7 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
         PropertyValue value,
         boolean skipWhenEmpty,
         boolean incremental,
-        @Nullable DirectorySensitivity directorySensitivity,
+        DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity
     ) {
         super(propertyName, normalizer, files);
@@ -59,7 +59,6 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     }
 
     @Override
-    @Nullable
     public DirectorySensitivity getDirectorySensitivity() {
         return directorySensitivity;
     }

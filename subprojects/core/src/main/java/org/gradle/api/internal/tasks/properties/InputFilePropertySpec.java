@@ -26,7 +26,6 @@ public interface InputFilePropertySpec extends FilePropertySpec {
 
     boolean isIncremental();
 
-    @Nullable
     DirectorySensitivity getDirectorySensitivity();
 
     LineEndingSensitivity getLineEndingNormalization();

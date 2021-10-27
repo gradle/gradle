@@ -22,7 +22,6 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
@@ -47,7 +46,6 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
         return InputFilePropertyType.DIRECTORY;
     }
 
-    @Nullable
     @Override
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
         return DirectorySensitivity.IGNORE_DIRECTORIES;

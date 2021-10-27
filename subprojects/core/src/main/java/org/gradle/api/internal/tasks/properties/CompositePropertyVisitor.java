@@ -34,7 +34,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
         String propertyName,
         boolean optional,
         boolean skipWhenEmpty,
-        @Nullable DirectorySensitivity directorySensitivity,
+        DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
         boolean incremental,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,

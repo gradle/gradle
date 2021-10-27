@@ -127,20 +127,29 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
-                DirectorySensitivity directorySensitivity = value.getDirectorySensitivity().orElse(result.isTree() && type.isSkipWhenEmpty() ? DirectorySensitivity.IGNORE_DIRECTORIES : DirectorySensitivity.DEFAULT);
-                if (result.isTree() && type.isSkipWhenEmpty() && !value.getDirectorySensitivity().isPresent()) {
-                    DeprecationLogger.deprecateBehaviour("Relying on FileTrees for ignoring empty directories")
-                        .withAdvice("Annotate the property " + propertyName + " with @IgnoreEmptyDirectories")
-                        .willBeRemovedInGradle8()
-                        .undocumented()
-                        .nagUser();
-                }
+                DirectorySensitivity directorySensitivity = determineDirectorySensitivity(propertyName, type, value, result);
                 FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), directorySensitivity, value.getLineEndingNormalization());
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);
+            }
+        }
+
+        private DirectorySensitivity determineDirectorySensitivity(String propertyName, InputPropertyType type, FileValueSupplier value, FileCollectionSnapshotter.Result result) {
+            if (value.getDirectorySensitivity() != DirectorySensitivity.UNSPECIFIED) {
+                return value.getDirectorySensitivity();
+            }
+            if (result.isTree() && type.isSkipWhenEmpty()) {
+                DeprecationLogger.deprecateBehaviour("Relying on FileTrees for ignoring empty directories")
+                    .withAdvice("Annotate the property " + propertyName + " with @IgnoreEmptyDirectories")
+                    .willBeRemovedInGradle8()
+                    .undocumented()
+                    .nagUser();
+                return DirectorySensitivity.IGNORE_DIRECTORIES;
+            } else {
+                return DirectorySensitivity.DEFAULT;
             }
         }
 
