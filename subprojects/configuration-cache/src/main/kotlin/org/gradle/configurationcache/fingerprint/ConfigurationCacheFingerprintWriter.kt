@@ -156,47 +156,15 @@ class ConfigurationCacheFingerprintWriter(
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (undeclaredSystemProperties.add(key)) {
             write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
-            reportSystemPropertyInput(key, host.location(consumer))
+            reportSystemPropertyInput(key, consumer)
         }
-    }
-
-    private
-    fun reportSystemPropertyInput(key: String, location: PropertyTrace) {
-        val message = StructuredMessage.build {
-            text("system property ")
-            reference(key)
-        }
-        host.reportInput(
-            PropertyProblem(
-                location,
-                message,
-                null,
-                documentationSection = DocumentationSection.RequirementsUndeclaredSysPropRead
-            )
-        )
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
         if (undeclaredEnvironmentVariables.add(key)) {
             write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
-            reportEnvironmentVariableInput(key, host.location(consumer))
+            reportEnvironmentVariableInput(key, consumer)
         }
-    }
-
-    private
-    fun reportEnvironmentVariableInput(key: String, location: PropertyTrace) {
-        val message = StructuredMessage.build {
-            text("environment variable ")
-            reference(key)
-        }
-        host.reportInput(
-            PropertyProblem(
-                location,
-                message,
-                null,
-                documentationSection = DocumentationSection.RequirementsUndeclaredEnvVarRead
-            )
-        )
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
@@ -221,6 +189,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun <P : ValueSourceParameters, T : Any> captureValueSource(obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>) {
         write(ValueSource(obtainedValue.uncheckedCast()))
+        reportValueSourceInput(obtainedValue.valueSourceType)
     }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
@@ -312,6 +281,50 @@ class ConfigurationCacheFingerprintWriter(
         })
         return fileCollectionFactory.resolving(elements)
     }
+
+    private
+    fun reportValueSourceInput(valueSourceType: Class<out Any>) {
+        reportInput(consumer = null, documentationSection = null) {
+            text("build logic input of type ")
+            reference(valueSourceType.simpleName)
+        }
+    }
+
+    private
+    fun reportSystemPropertyInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredSysPropRead) {
+            text("system property ")
+            reference(key)
+        }
+    }
+
+    private
+    fun reportEnvironmentVariableInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredEnvVarRead) {
+            text("environment variable ")
+            reference(key)
+        }
+    }
+
+    private
+    fun reportInput(consumer: String?, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
+        reportInput(locationFor(consumer), documentationSection, messageBuilder)
+    }
+
+    private
+    fun reportInput(location: PropertyTrace, documentationSection: DocumentationSection?, messageBuilder: StructuredMessage.Builder.() -> Unit) {
+        host.reportInput(
+            PropertyProblem(
+                location,
+                StructuredMessage.build(messageBuilder),
+                null,
+                documentationSection = documentationSection
+            )
+        )
+    }
+
+    private
+    fun locationFor(consumer: String?) = host.location(consumer)
 }
 
 
