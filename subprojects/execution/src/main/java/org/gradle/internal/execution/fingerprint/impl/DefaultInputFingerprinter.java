@@ -142,7 +142,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             if (value.getDirectorySensitivity() != DirectorySensitivity.UNSPECIFIED) {
                 return value.getDirectorySensitivity();
             }
-            if (result.isTree() && type.isSkipWhenEmpty()) {
+            if (result.isFileTreeOnly() && type.isSkipWhenEmpty()) {
                 DeprecationLogger.deprecateBehaviour("Relying on FileTrees for ignoring empty directories")
                     .withAdvice("Annotate the property " + propertyName + " with @IgnoreEmptyDirectories")
                     .willBeRemovedInGradle8()

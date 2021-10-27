@@ -25,7 +25,13 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 public interface FileCollectionSnapshotter {
     interface Result {
         FileSystemSnapshot getSnapshot();
-        boolean isTree();
+
+        /**
+         * Whether or not the snapshotted file collection consists only of file trees.
+         *
+         * If the file collection does not contain any file trees, then this will return {@code false}.
+         */
+        boolean isFileTreeOnly();
     }
 
     /**

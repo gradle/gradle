@@ -54,16 +54,16 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     public Result snapshotResult(FileCollection fileCollection) {
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
-        return new DefaultResult(CompositeFileSystemSnapshot.of(visitor.getRoots()), visitor.isOnlyFileTrees());
+        return new DefaultResult(CompositeFileSystemSnapshot.of(visitor.getRoots()), visitor.isFileTreeOnly());
     }
 
     private static class DefaultResult implements Result {
         private final FileSystemSnapshot fileSystemSnapshot;
-        private final boolean isFileTree;
+        private final boolean isFileTreeOnly;
 
-        public DefaultResult(FileSystemSnapshot fileSystemSnapshot, boolean isFileTree) {
+        public DefaultResult(FileSystemSnapshot fileSystemSnapshot, boolean isFileTreeOnly) {
             this.fileSystemSnapshot = fileSystemSnapshot;
-            this.isFileTree = isFileTree;
+            this.isFileTreeOnly = isFileTreeOnly;
         }
 
         @Override
@@ -72,27 +72,27 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public boolean isTree() {
-            return isFileTree;
+        public boolean isFileTreeOnly() {
+            return isFileTreeOnly;
         }
     }
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
-        private Boolean isOnlyFileTrees;
+        private Boolean isFileTreeOnly;
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
                 fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
-            isOnlyFileTrees = false;
+            isFileTreeOnly = false;
         }
 
         @Override
         public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             roots.add(genericFileTreeSnapshotter.snapshotFileTree(fileTree));
-            isOnlyFileTrees = false;
+            isFileTreeOnly = false;
         }
 
         @Override
@@ -106,23 +106,23 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     }
                 }
             );
-            if (isOnlyFileTrees == null) {
-                isOnlyFileTrees = true;
+            if (isFileTreeOnly == null) {
+                isFileTreeOnly = true;
             }
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             fileSystemAccess.read(file.getAbsolutePath(), roots::add);
-            isOnlyFileTrees = false;
+            isFileTreeOnly = false;
         }
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
         }
 
-        public boolean isOnlyFileTrees() {
-            return isOnlyFileTrees != null && isOnlyFileTrees;
+        public boolean isFileTreeOnly() {
+            return isFileTreeOnly != null && isFileTreeOnly;
         }
     }
 }
