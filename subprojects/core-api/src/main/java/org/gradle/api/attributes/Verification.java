@@ -27,8 +27,8 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface Verification {
-    Attribute<DocsType> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuitename", DocsType.class);
-    Attribute<DocsType> TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.targetname", DocsType.class);
+    Attribute<Verification> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuitename", Verification.class);
+    Attribute<Verification> TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.targetname", Verification.class);
 
     /**
      * The typical documentation for Java APIs

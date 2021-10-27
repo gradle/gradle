@@ -27,7 +27,7 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface Sources {
-    Attribute<DocsType> SOURCES_ATTRIBUTE = Attribute.of("org.gradle.sources", DocsType.class);
+    Attribute<Sources> SOURCES_ATTRIBUTE = Attribute.of("org.gradle.sources", Sources.class);
 
     /**
      * A list of directories containing source code, includes code in transitive dependencies
