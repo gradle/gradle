@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 /**
  * Attributes to qualify the type of testing a Test Suite will perform
@@ -26,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 7.4
  */
 @Incubating
-public interface TestType {
+public interface TestType extends Named {
     Attribute<TestType> TEST_TYPE_ATTRIBUTE = Attribute.of("org.gradle.testsuitetype", TestType.class);
 
     /**

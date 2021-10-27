@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 /**
  * Attributes to specific the type of source code contained in this variant.
@@ -26,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 7.4
  */
 @Incubating
-public interface Sources {
+public interface Sources extends Named {
     Attribute<Sources> SOURCES_ATTRIBUTE = Attribute.of("org.gradle.sources", Sources.class);
 
     /**

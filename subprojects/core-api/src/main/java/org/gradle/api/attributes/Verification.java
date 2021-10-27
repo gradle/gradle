@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 
 /**
  * Attributes to qualify the relation of this variant to the Test Suites which produced it.
@@ -26,7 +27,7 @@ import org.gradle.api.Incubating;
  * @since 7.4
  */
 @Incubating
-public interface Verification {
+public interface Verification extends Named {
     Attribute<Verification> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuitename", Verification.class);
     Attribute<Verification> TARGET_NAME_ATTRIBUTE = Attribute.of("org.gradle.targetname", Verification.class);
 
