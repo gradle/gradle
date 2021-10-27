@@ -9,6 +9,7 @@ import org.gradle.api.tasks.*;
 public abstract class Instrument extends DefaultTask {
 
     @SkipWhenEmpty
+    @IgnoreEmptyDirectories
     @InputFiles
     public abstract ConfigurableFileCollection getClassFiles();
 
