@@ -48,14 +48,24 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """.stripIndent()
 
         when:
-        def buildResult = runner('assembleBootDist', 'check').build()
+        def buildResult = runner('assembleBootDist', 'check')
+            .expectDeprecationWarning(
+                "Internal API constructor LazyPublishArtifact(Provider<?>) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use constructor LazyPublishArtifact(Provider<?>, FileResolver) instead.",
+                ""
+            )
+            .build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == UP_TO_DATE // no tests
 
         when:
-        def runResult = runner('bootRun').build()
+        def runResult = runner('bootRun')
+            .expectDeprecationWarning(
+                "Internal API constructor LazyPublishArtifact(Provider<?>) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use constructor LazyPublishArtifact(Provider<?>, FileResolver) instead.",
+                ""
+            )
+            .build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

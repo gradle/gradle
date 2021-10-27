@@ -73,7 +73,12 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """
 
         then:
-        runner('groovydoc').build()
+        runner('groovydoc')
+            .expectDeprecationWarning(
+                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use configureDocumentationVariantWithArtifact (with FileResolver) instead.",
+                ""
+            )
+            .build()
     }
 
     @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")

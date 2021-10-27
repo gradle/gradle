@@ -51,7 +51,12 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('build').build()
+        def result = runner('build')
+            .expectDeprecationWarning(
+                "Internal API constructor LazyPublishArtifact(Provider<?>) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use constructor LazyPublishArtifact(Provider<?>, FileResolver) instead.",
+                ""
+            )
+            .build()
 
         then:
         result.task(':build').outcome == SUCCESS
