@@ -74,7 +74,19 @@ See [the documentation](userguide/toolchains.html#sec:provisioning) for details.
 
 The Kotlin DSL now generates type-safe model accessors for extensions registered on the `repositories {}` block.
 
-For example, it means that configuring the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) previously required to use [`withGroovyBuilder`]():
+
+For example, starting with this version of Gradle, the [`asciidoctorj-gems-plugin`](https://asciidoctor.github.io/asciidoctor-gradle-plugin/master/user-guide/#asciidoctorj-gems-plugin) can be configured directly via the generated type-safe accessors:
+
+
+```kotlin
+repositories {
+    ruby {
+        gems()
+    }
+}
+```
+
+Whereas before it required to use [`withGroovyBuilder`]():
 
 ```kotlin
 repositories {
@@ -95,17 +107,6 @@ repositories {
     }
 }
 ```
-
-Starting with this version of Gradle it can be configured directly via the generated type-safe accessors:
-
-```kotlin
-repositories {
-    ruby {
-        gems()
-    }
-}
-```
-
 See [the documentation](userguide/kotlin_dsl.html#type-safe-accessors) for details.
 
 
