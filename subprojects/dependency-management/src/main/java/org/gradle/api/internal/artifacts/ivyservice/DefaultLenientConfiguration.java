@@ -71,10 +71,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration, VisitedArtifactSet {
-
-    private final static ResolveArtifactsBuildOperationType.Result RESULT = new ResolveArtifactsBuildOperationType.Result() {
-    };
-
     private final ConfigurationInternal configuration;
     private final Set<UnresolvedDependency> unresolvedDependencies;
     private final VisitedArtifactsResults artifactResults;
@@ -102,7 +98,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false, configuration.getDependenciesResolver()));
+            artifactsForThisConfiguration = artifactResults.select(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false,  configuration.getDependenciesResolver()));
         }
         return artifactsForThisConfiguration;
     }
@@ -241,7 +237,7 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
             public void run(BuildOperationContext context) {
                 visitArtifacts(dependencySpec, artifactResults, fileDependencyResults, visitor);
                 dependencyVerificationOverride.artifactsAccessed(configuration.getDisplayName());
-                context.setResult(RESULT);
+                context.setResult(ResolveArtifactsBuildOperationType.RESULT);
             }
 
             @Override
@@ -250,24 +246,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsDetails(configuration.getPath()));
+                    .details(new ResolveArtifactsBuildOperationType.DetailsImpl(configuration.getPath()));
             }
         });
-    }
-
-    private static class ResolveArtifactsDetails implements ResolveArtifactsBuildOperationType.Details {
-
-        private final String configuration;
-
-        public ResolveArtifactsDetails(String configuration) {
-            this.configuration = configuration;
-        }
-
-        @Override
-        public String getConfigurationPath() {
-            return configuration;
-        }
-
     }
 
     /**

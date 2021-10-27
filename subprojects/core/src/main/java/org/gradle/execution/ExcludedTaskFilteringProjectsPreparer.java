@@ -19,7 +19,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.initialization.TaskSchedulingPreparer;
 
 import java.util.HashSet;
@@ -36,14 +35,14 @@ public class ExcludedTaskFilteringProjectsPreparer implements TaskSchedulingPrep
     }
 
     @Override
-    public void prepareForTaskScheduling(GradleInternal gradle, ExecutionPlan executionPlan) {
+    public void prepareForTaskScheduling(GradleInternal gradle) {
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
             final Set<Spec<Task>> filters = new HashSet<Spec<Task>>();
             for (String taskName : excludedTaskNames) {
                 filters.add(taskSelector.getFilter(taskName));
             }
-            executionPlan.useFilter(Specs.intersect(filters));
+            gradle.getTaskGraph().useFilter(Specs.intersect(filters));
         }
     }
 }

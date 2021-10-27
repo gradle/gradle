@@ -168,8 +168,6 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
         if (nested == null) {
             nested = new KryoBackedDecoder(new InputStream() {
-                private int leftover = 0;
-
                 @Override
                 public int read() throws IOException {
                     throw new UnsupportedOperationException();
@@ -177,21 +175,14 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
 
                 @Override
                 public int read(byte[] buffer, int offset, int length) throws IOException {
-                    if (leftover > 0) {
-                        int count = Math.min(leftover, length);
-                        leftover -= count;
-                        readBytes(buffer, offset, count);
-                        return count;
-                    }
-
                     int count = readSmallInt();
                     if (count == 0) {
                         // End of stream has been reached
                         return -1;
                     }
                     if (count > length) {
-                        leftover = count - length;
-                        count = length;
+                        // For now, assume same size buffers used to read and write
+                        throw new UnsupportedOperationException();
                     }
                     readBytes(buffer, offset, count);
                     return count;

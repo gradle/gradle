@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.verification.serializer
 
-
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
@@ -32,7 +31,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         parse("invalid")
 
         then:
-        DependencyVerificationException e = thrown()
+        InvalidUserDataException e = thrown()
         e.message == "Unable to read dependency verification metadata"
     }
 
@@ -56,7 +55,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>"""
 
         then:
-        DependencyVerificationException e = thrown()
+        InvalidUserDataException e = thrown()
         e.message == "Unable to read dependency verification metadata"
         e.cause.message == "Invalid dependency verification metadata file: <component> must be found under the <components> tag"
     }
@@ -168,7 +167,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>
 """
         then:
-        DependencyVerificationException ex = thrown()
+        InvalidUserDataException ex = thrown()
         ex.message == "Unable to read dependency verification metadata"
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }

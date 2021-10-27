@@ -15,11 +15,8 @@
  */
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import java.io.Serializable;
 
-@UsedByScanPlugin
 public interface PlaceholderExceptionSupport extends Serializable {
 
     StackTraceElement[] getStackTrace();

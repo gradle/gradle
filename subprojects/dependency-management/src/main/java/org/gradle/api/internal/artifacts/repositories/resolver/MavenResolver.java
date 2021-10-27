@@ -110,16 +110,23 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-        MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = isNonUniqueSnapshot(moduleComponentIdentifier)
-            ? findUniqueSnapshotVersion(moduleComponentIdentifier, result)
-            : composeUniqueSnapshotVersion(moduleComponentIdentifier);
-
-        if (uniqueSnapshotVersion != null) {
-            MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
-            resolveUniqueSnapshotDependency(snapshotIdentifier, prescribedMetaData, result, uniqueSnapshotVersion);
+        if (isNonUniqueSnapshot(moduleComponentIdentifier)) {
+            MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = findUniqueSnapshotVersion(moduleComponentIdentifier, result);
+            if (uniqueSnapshotVersion != null) {
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(snapshotIdentifier, prescribedMetaData, result, uniqueSnapshotVersion);
+                return;
+            }
         } else {
-            resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
+            MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = composeUniqueSnapshotVersion(moduleComponentIdentifier);
+            if (uniqueSnapshotVersion != null) {
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = composeSnapshotIdentifier(moduleComponentIdentifier, uniqueSnapshotVersion);
+                resolveUniqueSnapshotDependency(snapshotIdentifier, prescribedMetaData, result, uniqueSnapshotVersion);
+                return;
+            }
         }
+
+        resolveStaticDependency(moduleComponentIdentifier, prescribedMetaData, result, super.createArtifactResolver());
     }
 
     @Override

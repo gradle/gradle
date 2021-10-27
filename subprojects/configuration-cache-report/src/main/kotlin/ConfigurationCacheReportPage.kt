@@ -22,7 +22,6 @@ import elmish.code
 import elmish.div
 import elmish.empty
 import elmish.h1
-import elmish.hr
 import elmish.ol
 import elmish.pre
 import elmish.small
@@ -30,6 +29,7 @@ import elmish.span
 import elmish.tree.Tree
 import elmish.tree.TreeView
 import elmish.tree.viewSubTrees
+
 import kotlinx.browser.window
 
 
@@ -95,7 +95,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         val reportedProblems: Int,
         val messageTree: ProblemTreeModel,
         val locationTree: ProblemTreeModel,
-        val inputTree: ProblemTreeModel,
         val displayFilter: DisplayFilter = DisplayFilter.All,
         val tab: Tab = Tab.ByMessage
     )
@@ -115,8 +114,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
 
         data class MessageTreeIntent(val delegate: ProblemTreeIntent) : Intent()
 
-        data class InputTreeIntent(val delegate: ProblemTreeIntent) : Intent()
-
         data class Copy(val text: String) : Intent()
 
         data class SetFilter(val displayFilter: DisplayFilter) : Intent()
@@ -130,9 +127,6 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
         )
         is Intent.MessageTreeIntent -> model.copy(
             messageTree = TreeView.step(intent.delegate, model.messageTree)
-        )
-        is Intent.InputTreeIntent -> model.copy(
-            inputTree = TreeView.step(intent.delegate, model.inputTree)
         )
         is Intent.Copy -> {
             window.navigator.clipboard.writeText(intent.text)
@@ -148,63 +142,40 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
 
     override fun view(model: Model): View<Intent> = div(
         attributes { className("report-wrapper") },
-        viewHeader(model),
-        viewProblems(model),
-        hr(),
-        viewInputs(model.inputTree)
-    )
-
-    private
-    fun viewHeader(model: Model): View<Intent> = div(
-        attributes { className("header") },
-        div(attributes { className("gradle-logo") }),
-        learnMore(model.documentationLink),
         div(
-            attributes { className("title") },
-            h1(model.summary()),
+            attributes { className("header") },
+            div(attributes { className("gradle-logo") }),
+            learnMore(model.documentationLink),
             div(
-                attributes { className("filters") },
+                attributes { className("title") },
+                h1(model.summary()),
                 div(
-                    span("View"),
+                    attributes { className("filters") },
                     div(
-                        attributes { className("filters-group") },
-                        displayFilterButton(DisplayFilter.All, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Errors, model.displayFilter),
-                        displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                        span("View"),
+                        div(
+                            attributes { className("filters-group") },
+                            displayFilterButton(DisplayFilter.All, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Errors, model.displayFilter),
+                            displayFilterButton(DisplayFilter.Warnings, model.displayFilter)
+                        )
                     )
                 )
+            ),
+            div(
+                attributes { className("groups") },
+                displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
+                displayTabButton(Tab.ByLocation, model.tab, model.locationTree.problemCount)
             )
         ),
         div(
-            attributes { className("groups") },
-            displayTabButton(Tab.ByMessage, model.tab, model.messageTree.problemCount),
-            displayTabButton(Tab.ByLocation, model.tab, model.locationTree.problemCount)
+            attributes { className("content") },
+            when (model.tab) {
+                Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
+                Tab.ByLocation -> viewTree(model.locationTree, Intent::TaskTreeIntent, model.displayFilter)
+            }
         )
     )
-
-    private
-    fun viewProblems(model: Model) = div(
-        attributes { className("content") },
-        when (model.tab) {
-            Tab.ByMessage -> viewTree(model.messageTree, Intent::MessageTreeIntent, model.displayFilter)
-            Tab.ByLocation -> viewTree(model.locationTree, Intent::TaskTreeIntent, model.displayFilter)
-        }
-    )
-
-    private
-    fun viewInputs(inputTree: ProblemTreeModel): View<Intent> = when (inputTree.problemCount) {
-        0 -> h1("No build logic inputs were detected.")
-        else -> div(
-            div(
-                attributes { className("title") },
-                h1("The following build logic inputs were automatically detected and will cause the cache to be discarded when their value change:"),
-            ),
-            div(
-                attributes { className("inputs") },
-                viewTree(inputTree.tree.focus().children, Intent::InputTreeIntent)
-            )
-        )
-    }
 
     private
     fun Model.summary() =
@@ -260,16 +231,9 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
     )
 
     private
-    fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> =
-        viewTree(applyFilter(displayFilter, model), treeIntent)
-
-    private
-    fun viewTree(
-        subTrees: Sequence<Tree.Focus<ProblemNode>>,
-        treeIntent: (ProblemTreeIntent) -> Intent
-    ): View<Intent> = div(
+    fun viewTree(model: ProblemTreeModel, treeIntent: (ProblemTreeIntent) -> Intent, displayFilter: DisplayFilter): View<Intent> = div(
         ol(
-            viewSubTrees(subTrees) { child ->
+            viewSubTrees(applyFilter(displayFilter, model)) { child ->
                 when (val node = child.tree.label) {
                     is ProblemNode.Error -> {
                         viewLabel(treeIntent, child, node.label, node.docLink, errorIcon)

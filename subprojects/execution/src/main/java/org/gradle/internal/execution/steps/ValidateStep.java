@@ -54,7 +54,7 @@ import static java.util.stream.Collectors.toList;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
+public class ValidateStep<R extends Result> implements Step<BeforeExecutionContext, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
     private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
@@ -73,7 +73,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public R execute(UnitOfWork work, BeforeExecutionContext context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
         context.getBeforeExecutionState()

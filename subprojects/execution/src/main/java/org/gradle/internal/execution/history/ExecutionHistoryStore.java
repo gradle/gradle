@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.history;
 
+import org.gradle.caching.internal.origin.OriginMetadata;
+
 import java.util.Optional;
 
 public interface ExecutionHistoryStore {
@@ -23,6 +25,7 @@ public interface ExecutionHistoryStore {
 
     void store(
         String key,
+        OriginMetadata originMetadata,
         boolean successful,
         AfterExecutionState executionState
     );

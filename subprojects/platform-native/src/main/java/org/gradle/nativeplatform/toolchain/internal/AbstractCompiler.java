@@ -51,7 +51,7 @@ public abstract class AbstractCompiler<T extends BinaryToolSpec> implements Comp
         List<String> commonArguments = getArguments(spec);
         final Action<BuildOperationQueue<CommandLineToolInvocation>> invocationAction = newInvocationAction(spec, commonArguments);
 
-        workerLeaseService.runAsIsolatedTask(new Runnable() {
+        workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
                 buildOperationExecutor.runAll(commandLineToolInvocationWorker, invocationAction);

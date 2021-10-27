@@ -16,20 +16,21 @@
 
 package org.gradle.composite.internal
 
+
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
@@ -61,10 +62,9 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def listenerManager = Stub(ListenerManager) {
         getBroadcaster(BuildAddedListener) >> buildAddedListener
     }
-    def services = new DefaultServiceRegistry()
-    def modelServices = Mock(BuildModelControllerServices)
+    def gradleLauncherFactory = Mock(BuildLifecycleControllerFactory)
     def buildTree = Mock(BuildTreeState)
-    def factory = new BuildStateFactory(buildTree, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
+    def factory = new BuildStateFactory(buildTree, gradleLauncherFactory, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken), Stub(ProjectStateRegistry))
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),
@@ -73,16 +73,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     )
 
     def setup() {
+        def services = new DefaultServiceRegistry()
+
         services.add(Stub(WorkerLeaseService))
-        services.add(Stub(BuildTreeWorkGraphController))
+        services.add(Stub(IncludedBuildTaskGraph))
         services.add(Stub(ExceptionAnalyser))
         services.add(Stub(BuildOperationExecutor))
         services.add(Stub(BuildStateRegistry))
         services.add(Stub(BuildTreeLifecycleControllerFactory))
         services.add(Stub(BuildModelParameters))
-        services.add(Stub(GradleInternal))
-        services.add(Stub(DocumentationRegistry))
-        services.add(modelServices)
 
         _ * buildTree.services >> services
     }
@@ -96,13 +95,12 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def notifiedBuild
         def buildDefinition = Stub(BuildDefinition)
         def buildController = buildController()
-        services.add(buildController)
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        1 * modelServices.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
+        1 * gradleLauncherFactory.newInstance(buildDefinition, _, null, _) >> buildController
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -319,8 +317,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildController = buildController(settings, gradle)
         def build = Stub(RootBuildState)
 
-        services.add(buildController)
-        modelServices.servicesForBuild(_, _, _) >> Mock(BuildModelControllerServices.Supplier)
+        gradleLauncherFactory.newInstance(_, _, _, _) >> buildController
         settings.rootProject >> Stub(ProjectDescriptor) {
             getName() >> "root"
         }

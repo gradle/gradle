@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.support
 
-trait RepositoryDslSupport {
+class RepositoryDslSupport {
 
     def url = "http://somerepo"
     def s3Url = "s3://somerepo"

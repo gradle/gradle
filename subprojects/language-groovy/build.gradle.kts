@@ -2,8 +2,6 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Adds support for building Groovy projects"
-
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))

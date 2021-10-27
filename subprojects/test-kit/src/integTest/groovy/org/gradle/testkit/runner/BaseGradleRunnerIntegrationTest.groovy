@@ -372,7 +372,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
         private static class GradleRunnerExecution extends AbstractMultiTestInterceptor.Execution {
 
-            private final boolean debug
+            protected final boolean debug
             private final TestedGradleDistribution testedGradleDistribution
 
             GradleRunnerExecution(TestedGradleDistribution testedGradleDistribution, boolean debug) {

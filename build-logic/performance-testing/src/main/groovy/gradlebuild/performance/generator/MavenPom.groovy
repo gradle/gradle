@@ -16,8 +16,6 @@
 
 package gradlebuild.performance.generator
 
-import groovy.xml.XmlParser
-
 class MavenPom {
     final Map<String, MavenScope> scopes = [:]
 

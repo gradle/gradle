@@ -66,7 +66,6 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
             return
         }
 
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
         when:
         run("test")
 

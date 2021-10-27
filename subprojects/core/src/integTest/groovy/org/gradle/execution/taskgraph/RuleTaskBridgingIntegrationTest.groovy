@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.TextUtil
 

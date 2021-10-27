@@ -57,7 +57,10 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         def result = step.execute(work, context)
         then:
         !result.afterExecutionState.present
+        !result.reused
         result.duration == delegateDuration
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.originMetadata.executionTime >= result.duration
 
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.duration >> delegateDuration
@@ -74,7 +77,10 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         def result = step.execute(work, context)
         then:
         !result.afterExecutionState.present
+        !result.reused
         result.duration == delegateDuration
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.originMetadata.executionTime >= result.duration
 
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.duration >> delegateDuration
@@ -94,10 +100,10 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         def result = step.execute(work, context)
         then:
         result.afterExecutionState.get().outputFilesProducedByWork == outputSnapshots
+        !result.reused
         result.duration == delegateDuration
-        result.afterExecutionState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
-        result.afterExecutionState.get().originMetadata.executionTime >= result.duration
-        !result.afterExecutionState.get().reused
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.originMetadata.executionTime >= result.duration
 
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.duration >> delegateDuration
@@ -138,10 +144,10 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<BeforeExecutionContext
         def result = step.execute(work, context)
         then:
         result.afterExecutionState.get().outputFilesProducedByWork == filteredOutputs
+        !result.reused
         result.duration == delegateDuration
-        result.afterExecutionState.get().originMetadata.buildInvocationId == buildInvocationScopeId.asString()
-        result.afterExecutionState.get().originMetadata.executionTime >= result.duration
-        !result.afterExecutionState.get().reused
+        result.originMetadata.buildInvocationId == buildInvocationScopeId.asString()
+        result.originMetadata.executionTime >= result.duration
 
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.duration >> delegateDuration

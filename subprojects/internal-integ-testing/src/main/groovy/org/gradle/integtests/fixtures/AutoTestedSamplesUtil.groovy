@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-import groovy.ant.AntBuilder
 import org.gradle.internal.SystemProperties
 
 import java.util.regex.Pattern

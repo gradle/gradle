@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import groovy.test.GroovyTestCase
-
 @TestCase
 class TestCaseTransformTest {
     void testAddsGroovyTestCaseAsSuperclass() {

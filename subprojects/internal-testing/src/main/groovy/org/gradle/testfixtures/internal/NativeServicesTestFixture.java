@@ -17,13 +17,10 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 
 public class NativeServicesTestFixture {
-    // Collect this early, as the process' current directory can change during embedded test execution
-    private static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
     static NativeServices nativeServices;
     static boolean initialized;
 
@@ -45,6 +42,6 @@ public class NativeServicesTestFixture {
     }
 
     public static File getNativeServicesDir() {
-        return TEST_DIR.file("build/native-libs");
+        return new File("build/native-libs");
     }
 }

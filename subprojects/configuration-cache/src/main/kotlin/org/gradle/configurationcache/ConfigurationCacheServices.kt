@@ -44,7 +44,6 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -75,11 +74,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(DefaultConfigurationCacheProblemsListener::class.java)
             add(DefaultBuildTreeLifecycleControllerFactory::class.java)
-            add(DefaultBuildModelControllerServices::class.java)
-            add(DefaultBuildToolingModelControllerFactory::class.java)
             add(ConfigurationCacheRepository::class.java)
-            add(SystemPropertyAccessListener::class.java)
-            add(ConfigurationCacheFingerprintController::class.java)
             add(DefaultConfigurationCache::class.java)
         }
     }
@@ -88,7 +83,9 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheBuildEnablement::class.java)
             add(ConfigurationCacheProblemsListenerManagerAction::class.java)
+            add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
+            add(ConfigurationCacheFingerprintController::class.java)
             addProvider(BuildScopeServicesProvider())
         }
     }
@@ -105,19 +102,17 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             build: BuildState,
             gradle: GradleInternal,
             startParameter: ConfigurationCacheStartParameter,
-            stateTransitionControllerFactory: StateTransitionControllerFactory
+            configurationCache: BuildTreeConfigurationCache
         ): BuildModelController {
             if (build is ConfigurationCacheIncludedBuildState) {
                 return NoOpBuildModelController(gradle)
             }
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
+            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(gradle.services.get(), ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+            val vintageController = VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer)
             return if (startParameter.isEnabled) {
-                // Only look this up if configuration caching is enabled, to avoid creating services
-                val configurationCache: BuildTreeConfigurationCache = gradle.services.get()
                 ConfigurationCacheAwareBuildModelController(gradle, vintageController, configurationCache)
             } else {
                 vintageController

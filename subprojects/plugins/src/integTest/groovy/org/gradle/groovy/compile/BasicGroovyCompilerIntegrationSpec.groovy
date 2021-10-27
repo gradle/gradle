@@ -46,15 +46,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         version.split(":", 2)[0]
     }
 
-    def getGroovyJarVariants() {
-        ["groovy-all", "groovy"]
-    }
-
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = "org.codehaus.groovy:groovy:$version"
+        groovyDependency = "org.codehaus.groovy:groovy-all:$version"
     }
 
     def "compileGoodCode"() {
@@ -66,7 +62,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile("Address.class").exists()
 
         where:
-        module << groovyJarVariants
+        module << ["groovy-all", "groovy"]
     }
 
     def "compileWithAnnotationProcessor"() {
@@ -359,9 +355,11 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "groovyToolClassesAreNotVisible"() {
         Assume.assumeFalse(versionLowerThan("2.0"))
 
+        groovyDependency = "org.codehaus.groovy:groovy:$version"
+
         expect:
         fails("compileGroovy")
-        failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
+        failure.assertHasErrorOutput('unable to resolve class AntBuilder')
 
         when:
         buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
@@ -387,9 +385,6 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
-        Assume.assumeFalse(versionLowerThan("1.6"))
-
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
         expect:
         succeeds("test")
     }

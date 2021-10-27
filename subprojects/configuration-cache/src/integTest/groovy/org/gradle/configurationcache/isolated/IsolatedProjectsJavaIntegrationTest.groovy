@@ -34,14 +34,12 @@ class IsolatedProjectsJavaIntegrationTest extends AbstractIsolatedProjectsIntegr
         configurationCacheRun("b:assemble")
 
         then:
-        fixture.assertStateStored {
-            projectsConfigured(":", ":a", ":b")
-        }
+        noExceptionThrown()
 
         when:
         configurationCacheRun("b:assemble")
 
         then:
-        fixture.assertStateLoaded()
+        noExceptionThrown()
     }
 }

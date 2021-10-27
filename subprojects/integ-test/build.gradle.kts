@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":process-services"))

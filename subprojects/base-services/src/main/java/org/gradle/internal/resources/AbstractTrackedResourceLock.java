@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resources;
 
+import org.gradle.api.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +26,14 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     private final String displayName;
 
     private final ResourceLockCoordinationService coordinationService;
-    private final ResourceLockContainer owner;
+    private final Action<ResourceLock> lockAction;
+    private final Action<ResourceLock> unlockAction;
 
-    public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
+    public AbstractTrackedResourceLock(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
         this.displayName = displayName;
         this.coordinationService = coordinationService;
-        this.owner = owner;
+        this.lockAction = lockAction;
+        this.unlockAction = unlockAction;
     }
 
     @Override
@@ -39,7 +42,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
             if (acquireLock()) {
                 LOGGER.debug("{}: acquired lock on {}", Thread.currentThread().getName(), displayName);
                 try {
-                    owner.lockAcquired(this);
+                    lockAction.execute(this);
                 } catch (RuntimeException e) {
                     releaseLock();
                     throw e;
@@ -60,7 +63,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
             releaseLock();
             LOGGER.debug("{}: released lock on {}", Thread.currentThread().getName(), displayName);
             try {
-                owner.lockReleased(this);
+                unlockAction.execute(this);
             } finally {
                 coordinationService.getCurrent().registerUnlocked(this);
             }

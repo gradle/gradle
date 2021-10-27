@@ -16,11 +16,8 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.cache.internal.streams.BlockAddress
-import org.gradle.cache.internal.streams.BlockAddressSerializer
-import org.gradle.configurationcache.cacheentry.EntryDetails
-import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -28,23 +25,21 @@ import org.gradle.configurationcache.serialization.LoggingTracer
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
-import org.gradle.configurationcache.serialization.readFile
-import org.gradle.configurationcache.serialization.readList
+import org.gradle.configurationcache.serialization.readCollectionInto
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.configurationcache.serialization.writeFile
-import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.RootBuildState
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.serialize.FlushableEncoder
+import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.Path
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -58,59 +53,11 @@ class ConfigurationCacheIO internal constructor(
     private val beanConstructors: BeanConstructors
 ) {
 
-    internal
-    fun writeCacheEntryDetailsTo(buildStateRegistry: BuildStateRegistry, intermediateModels: Map<ModelKey, BlockAddress>, stateFile: ConfigurationCacheStateFile) {
-        val rootDirs = collectRootDirs(buildStateRegistry)
-        writeConfigurationCacheState(stateFile) {
-            writeCollection(rootDirs) { writeFile(it) }
-            val addressSerializer = BlockAddressSerializer()
-            writeSmallInt(intermediateModels.size)
-            for (entry in intermediateModels) {
-                writeNullableString(entry.key.identityPath?.path)
-                writeString(entry.key.modelName)
-                addressSerializer.write(this, entry.value)
-            }
-        }
-    }
-
-    internal
-    fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails {
-        // Currently, the fingerprint file is used to mark whether the entry is usable or not
-        // Should use the entry details file instead
-        if (!stateFile.exists) {
-            return EntryDetails(emptyList(), emptyMap())
-        }
-        return readConfigurationCacheState(stateFile) {
-            val rootDirs = readList { readFile() }
-            val addressSerializer = BlockAddressSerializer()
-            val count = readSmallInt()
-            val entries = mutableMapOf<ModelKey, BlockAddress>()
-            for (i in 0 until count) {
-                val path = readNullableString()?.let { Path.path(it) }
-                val modelName = readString()
-                val address = addressSerializer.read(this)
-                entries[ModelKey(path, modelName)] = address
-            }
-            EntryDetails(rootDirs, entries)
-        }
-    }
-
-    private
-    fun collectRootDirs(buildStateRegistry: BuildStateRegistry): MutableSet<File> {
-        val rootDirs = mutableSetOf<File>()
-        buildStateRegistry.visitBuilds { build ->
-            if (build !is RootBuildState) {
-                rootDirs.add(build.buildRootDir)
-            }
-        }
-        return rootDirs
-    }
-
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
     internal
-    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile): Set<File> =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
@@ -118,10 +65,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph) {
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, host::createBuild)
+                readRootBuildState(host::createBuild)
             }
         }
     }
@@ -205,9 +152,9 @@ class ConfigurationCacheIO internal constructor(
         inputStream: InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(inputStream).let { (context, codecs) ->
-            context.use {
-                context.run {
+        codecs().let { codecs ->
+            KryoBackedDecoder(inputStream).use { decoder ->
+                readContextFor(decoder, codecs).run {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
@@ -216,21 +163,9 @@ class ConfigurationCacheIO internal constructor(
             }
         }
 
-    internal
-    fun readerContextFor(
-        inputStream: InputStream,
-    ) =
-        codecs().let { codecs ->
-            KryoBackedDecoder(inputStream).let { decoder ->
-                readContextFor(decoder, codecs).apply {
-                    initClassLoader(javaClass.classLoader)
-                }
-            } to codecs
-        }
-
     private
     fun writeContextFor(
-        encoder: FlushableEncoder,
+        encoder: Encoder,
         tracer: Tracer?,
         codecs: Codecs
     ) = DefaultWriteContext(
@@ -294,3 +229,61 @@ class ConfigurationCacheIO internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 }
+
+
+internal
+fun writeConfigurationCacheFingerprintHeaderTo(outputStream: OutputStream, header: ConfigurationCacheFingerprint.Header) {
+    val buildRootDirs = header.includedBuildRootDirs
+    if (buildRootDirs.isEmpty()) {
+        outputStream.writeInt(0)
+        return
+    }
+    ByteArrayOutputStream().let { bos ->
+        writeFileSetTo(bos, buildRootDirs)
+        outputStream.writeInt(bos.size())
+        bos.writeTo(outputStream)
+    }
+}
+
+
+internal
+fun readConfigurationCacheFingerprintHeaderFrom(inputStream: InputStream): ConfigurationCacheFingerprint.Header? {
+    val headerSize = inputStream.readInt()
+    if (headerSize == 0) {
+        return null
+    }
+
+    val headerBytes = ByteArray(headerSize)
+    require(inputStream.read(headerBytes) == headerSize)
+
+    return ConfigurationCacheFingerprint.Header(
+        readFileSetFrom(ByteArrayInputStream(headerBytes))
+    )
+}
+
+
+private
+fun writeFileSetTo(outputStream: OutputStream, files: Set<File>) {
+    KryoBackedEncoder(outputStream).useToRun {
+        writeCollection(files) { file ->
+            writeString(file.path)
+        }
+    }
+}
+
+
+private
+fun readFileSetFrom(inputStream: InputStream) =
+    KryoBackedDecoder(inputStream).run {
+        readCollectionInto(::LinkedHashSet) {
+            File(readString())
+        }
+    }
+
+
+private
+fun OutputStream.writeInt(i: Int) = DataOutputStream(this).writeInt(i)
+
+
+private
+fun InputStream.readInt() = DataInputStream(this).readInt()

@@ -22,7 +22,9 @@ import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class IvyPublishResolvedVersionsJavaLibraryIntegTest extends AbstractIvyPublishResolvedVersionsJavaIntegTest {
+class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTest  {
+    IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
+
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
     @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies (runtime last)"() {
@@ -182,9 +184,7 @@ class IvyPublishResolvedVersionsJavaLibraryIntegTest extends AbstractIvyPublishR
             [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
-}
 
-class IvyPublishResolvedVersionsIntegTest extends AbstractIvyPublishResolvedVersionsJavaIntegTest {
     /**
      * This use case corresponds to the cases where the published versions should be different
      * from the versions published using the default configurations (compileClasspath, runtimeClasspath).
@@ -387,9 +387,48 @@ class IvyPublishResolvedVersionsIntegTest extends AbstractIvyPublishResolvedVers
             [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')")]
         ].combinations() + [[allVariants(), noop()]])
     }
-}
 
-class IvyPublishResolvedVersionsSubstitutionIntegTest extends AbstractIvyPublishResolvedVersionsJavaIntegTest {
+    private static String allVariants() {
+        " allVariants { fromResolutionResult() } "
+    }
+
+    private static String noop() { "" }
+
+    private static String apiUsingUsage(String config = "fromResolutionResult()") {
+        """ usage("java-api") { $config } """
+    }
+
+    private static String runtimeUsingUsage(String config = "fromResolutionResult()") {
+        """ usage("java-runtime") { $config } """
+    }
+
+    private void createBuildScripts(def append) {
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java-library'
+
+            repositories {
+                // use for resolving
+                ivy { url "${ivyRepo.uri}" }
+            }
+
+            publishing {
+                repositories {
+                    // used for publishing
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+$append
+"""
+
+    }
+
     // This is a weird test case, because why would you have a substitution rule
     // for a first level dependency? However it may be that you implicitly get a
     // substitution rule (via a plugin for example) that you are not aware of.
@@ -614,49 +653,5 @@ class IvyPublishResolvedVersionsSubstitutionIntegTest extends AbstractIvyPublish
             noMoreDependencies()
         }
     }
-}
 
-class AbstractIvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTest  {
-    IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
-
-    static String allVariants() {
-        " allVariants { fromResolutionResult() } "
-    }
-
-    static String noop() { "" }
-
-    static String apiUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-api") { $config } """
-    }
-
-    static String runtimeUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-runtime") { $config } """
-    }
-
-    void createBuildScripts(def append) {
-        settingsFile << "rootProject.name = 'publishTest' "
-
-        buildFile << """
-            apply plugin: 'ivy-publish'
-            apply plugin: 'java-library'
-
-            repositories {
-                // use for resolving
-                ivy { url "${ivyRepo.uri}" }
-            }
-
-            publishing {
-                repositories {
-                    // used for publishing
-                    ivy { url "${ivyRepo.uri}" }
-                }
-            }
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-$append
-"""
-
-    }
 }

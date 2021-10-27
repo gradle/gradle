@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-@UsedByScanPlugin("test-retry")
+@UsedByScanPlugin("test-distribution, test-retry")
 public class DefaultTestFilter implements TestFilter {
 
     private final Set<String> includeTestNames = new HashSet<String>();
@@ -114,6 +114,7 @@ public class DefaultTestFilter implements TestFilter {
     }
 
     @Input
+    @UsedByScanPlugin("test-distribution")
     public Set<String> getCommandLineIncludePatterns() {
         return commandLineIncludeTestNames;
     }

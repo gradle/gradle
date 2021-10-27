@@ -27,8 +27,7 @@ public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFac
     }
 
     @Override
-    public <T extends BuildOperation> BuildOperationQueue<T>
-    create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker) {
+    public <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker) {
         return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, executor, worker);
     }
 }

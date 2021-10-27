@@ -18,10 +18,10 @@ package org.gradle.test.fixtures.work
 
 import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.work.Synchronizer
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
+
 
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
@@ -30,27 +30,12 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
+    Collection<? extends ResourceLock> getCurrentProjectLocks() {
         return null
     }
 
     @Override
-    WorkerLeaseCompletion startWorker() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    ResourceLock getAllProjectsLock() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    Collection<? extends ResourceLock> getCurrentProjectLocks() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    void runAsIsolatedTask() {
+    void releaseCurrentProjectLocks() {
     }
 
     @Override
@@ -69,48 +54,18 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    def <T> T runAsWorkerThread(Factory<T> action) {
-        return action.create()
+    void withSharedLease(WorkerLeaseRegistry.WorkerLease sharedLease, Runnable action) {
+        throw new UnsupportedOperationException("not implemented yet")
     }
 
     @Override
-    void runAsWorkerThread(Runnable action) {
-        action.run()
-    }
-
-    @Override
-    Synchronizer newResource() {
-        return new Synchronizer() {
-            @Override
-            void withLock(Runnable action) {
-                action.run()
-            }
-
-            @Override
-            def <T> T withLock(Factory<T> action) {
-                return action.create()
-            }
-        }
-    }
-
-    @Override
-    boolean isWorkerThread() {
-        return true
-    }
-
-    @Override
-    void runAsIsolatedTask(Runnable runnable) {
+    void withoutProjectLock(Runnable runnable) {
         runnable.run()
     }
 
     @Override
-    void withoutProjectLock(Runnable action) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    def <T> T runAsIsolatedTask(Factory<T> action) {
-        return action.create()
+    def <T> T withoutProjectLock(Factory<T> action) {
+        return action.call()
     }
 
     @Override
@@ -161,6 +116,16 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
     private WorkerLeaseRegistry.WorkerLease workerLease() {
         return new WorkerLeaseRegistry.WorkerLease() {
+            @Override
+            WorkerLeaseRegistry.WorkerLease createChild() {
+                return null
+            }
+
+            @Override
+            WorkerLeaseRegistry.WorkerLeaseCompletion startChild() {
+                return null
+            }
+
             @Override
             boolean isLocked() {
                 return false

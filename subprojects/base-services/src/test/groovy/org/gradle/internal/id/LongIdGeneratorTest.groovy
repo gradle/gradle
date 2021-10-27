@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
+
 package org.gradle.internal.id
 
-import org.gradle.util.internal.MultithreadedTestRule
 import org.junit.Rule
-import org.junit.Test
 
 import java.util.concurrent.CopyOnWriteArraySet
+import org.junit.Test
+import static org.hamcrest.CoreMatchers.*
+import static org.junit.Assert.*
 
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertTrue
+import org.gradle.util.internal.MultithreadedTestRule
 
 class LongIdGeneratorTest {
     private final LongIdGenerator generator = new LongIdGenerator()
@@ -33,14 +33,14 @@ class LongIdGeneratorTest {
     public MultithreadedTestRule parallel = new MultithreadedTestRule();
 
     @Test
-    void generatesMonotonicallyIncreasingLongIdsStartingAtOne() {
+    public void generatesMonotonicallyIncreasingLongIdsStartingAtOne() {
         assertThat(generator.generateId(), equalTo(1L))
         assertThat(generator.generateId(), equalTo(2L))
         assertThat(generator.generateId(), equalTo(3L))
     }
 
     @Test
-    void generatesUniqueIdsWhenInvokedConcurrently() {
+    public void generatesUniqueIdsWhenInvokedConcurrently() {
         Set<Long> ids = new CopyOnWriteArraySet<Long>()
 
         5.times {
@@ -53,3 +53,4 @@ class LongIdGeneratorTest {
         parallel.waitForAll()
     }
 }
+

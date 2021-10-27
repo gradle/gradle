@@ -40,8 +40,7 @@ class ToolchainReportRendererTest extends Specification {
             "1.8.0-b01",
             "25.292-b01",
             "vendorName",
-            "",
-            "myArch")
+            "")
         installation.source >> "SourceSupplier"
 
         expect:
@@ -49,7 +48,6 @@ class ToolchainReportRendererTest extends Specification {
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}vendorName{normal}
-     | Architecture:       {description}myArch{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}SourceSupplier{normal}
 
@@ -65,8 +63,7 @@ class ToolchainReportRendererTest extends Specification {
             "1.8.0-b01",
             "25.292-b01",
             "adoptopenjdk",
-            "",
-            "myArch")
+            "")
         installation.source >> "SourceSupplier"
 
         def binDir = new File(javaHome, "bin")
@@ -80,7 +77,6 @@ class ToolchainReportRendererTest extends Specification {
      | Location:           {description}$javaHome{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
-     | Architecture:       {description}myArch{normal}
      | Is JDK:             {description}true{normal}
      | Detected by:        {description}SourceSupplier{normal}
 

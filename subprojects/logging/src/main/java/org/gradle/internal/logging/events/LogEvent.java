@@ -17,14 +17,13 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.operations.logging.LogEventLevel;
+import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 
-@SuppressWarnings("deprecation")
-public class LogEvent extends RenderableOutputEvent implements org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails {
+public class LogEvent extends RenderableOutputEvent implements LogEventBuildOperationProgressDetails {
     private final String message;
     private final Throwable throwable;
 
@@ -61,11 +60,6 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
     @Override
     public String toString() {
         return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
-    }
-
-    @Override
-    public LogEventLevel getLevel() {
-        return LogLevelConverter.convert(getLogLevel());
     }
 
     @Override

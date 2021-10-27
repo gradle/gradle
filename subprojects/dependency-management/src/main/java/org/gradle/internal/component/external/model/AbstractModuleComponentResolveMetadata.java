@@ -49,7 +49,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final AttributesSchemaInternal schema;
     private final VariantDerivationStrategy variantDerivationStrategy;
     private final boolean externalVariant;
-    private final boolean isComponentMetadataRuleCachingEnabled;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -65,7 +64,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
         variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         externalVariant = metadata.isExternalVariant();
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -82,7 +80,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         this.platformOwners = metadata.getPlatformOwners();
         this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         this.externalVariant = metadata.isExternalVariant();
-        this.isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
@@ -99,7 +96,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         platformOwners = metadata.platformOwners;
         variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         externalVariant = metadata.isExternalVariant();
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -116,7 +112,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSources = ImmutableModuleSources.of(sources);
         variantDerivationStrategy = derivationStrategy;
         externalVariant = metadata.externalVariant;
-        isComponentMetadataRuleCachingEnabled = metadata.isComponentMetadataRuleCachingEnabled();
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -214,11 +209,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public boolean isComponentMetadataRuleCachingEnabled() {
-        return isComponentMetadataRuleCachingEnabled;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -231,7 +221,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return changing == that.changing
             && missing == that.missing
             && externalVariant == that.externalVariant
-            && isComponentMetadataRuleCachingEnabled == that.isComponentMetadataRuleCachingEnabled
             && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
             && Objects.equal(componentIdentifier, that.componentIdentifier)
             && Objects.equal(statusScheme, that.statusScheme)
@@ -248,7 +237,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             changing,
             missing,
             externalVariant,
-            isComponentMetadataRuleCachingEnabled,
             statusScheme,
             moduleSources,
             attributes,

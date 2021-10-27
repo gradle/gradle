@@ -117,8 +117,8 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
             int webserverPort = 8000;
             task.workingDir(extension.getDocumentationRenderedRoot());
-            task.executable("python3");
-            task.args("-m", "http.server", webserverPort);
+            task.executable("python");
+            task.args("-m", "SimpleHTTPServer", webserverPort);
 
             task.dependsOn(extension.getRenderedDocumentation());
 

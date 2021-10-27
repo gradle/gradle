@@ -16,12 +16,9 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import java.util.regex.Pattern;
-
 public interface JvmVendor {
 
     enum KnownJvmVendor {
-        ADOPTIUM("adoptium", "temurin|adoptium|eclipse foundation", "Eclipse Temurin"),
         ADOPTOPENJDK("adoptopenjdk", "AdoptOpenJDK"),
         AMAZON("amazon", "Amazon Corretto"),
         APPLE("apple", "Apple"),
@@ -30,25 +27,16 @@ public interface JvmVendor {
         GRAAL_VM("graalvm community", "GraalVM Community"),
         HEWLETT_PACKARD("hewlett-packard", "HP-UX"),
         IBM("ibm", "IBM"),
-        IBM_SEMERU("international business machines corporation", "IBM Semeru Runtimes"),
         MICROSOFT("microsoft", "Microsoft"),
         ORACLE("oracle", "Oracle"),
         SAP("sap se", "SAP SapMachine"),
         UNKNOWN("gradle", "Unknown Vendor");
 
         private final String indicatorString;
-        private final Pattern indicatorPattern;
         private final String displayName;
 
         KnownJvmVendor(String indicatorString, String displayName) {
             this.indicatorString = indicatorString;
-            this.indicatorPattern = Pattern.compile(indicatorString, Pattern.CASE_INSENSITIVE);
-            this.displayName = displayName;
-        }
-
-        KnownJvmVendor(String indicatorString, String pattern, String displayName) {
-            this.indicatorString = indicatorString;
-            this.indicatorPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
             this.displayName = displayName;
         }
 
@@ -60,19 +48,13 @@ public interface JvmVendor {
             if (rawVendor == null) {
                 return UNKNOWN;
             }
+            rawVendor = rawVendor.toLowerCase();
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
-                if (jvmVendor.indicatorString.equals(rawVendor)) {
-                    return jvmVendor;
-                }
-                if (jvmVendor.indicatorPattern.matcher(rawVendor).find()) {
+                if (rawVendor.contains(jvmVendor.indicatorString)) {
                     return jvmVendor;
                 }
             }
             return UNKNOWN;
-        }
-
-        public JvmVendor asJvmVendor() {
-            return JvmVendor.fromString(indicatorString);
         }
     }
 

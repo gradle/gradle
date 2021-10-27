@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.test.NotYetImplemented
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {

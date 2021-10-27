@@ -18,24 +18,21 @@ package org.gradle.internal.work;
 
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 public class DefaultConditionalExecutionQueueFactory implements ConditionalExecutionQueueFactory {
     private final ParallelismConfiguration parallelismConfiguration;
     private final ExecutorFactory executorFactory;
-    private final WorkerLeaseService workerLeaseService;
+    private final ResourceLockCoordinationService coordinationService;
 
-    public DefaultConditionalExecutionQueueFactory(
-        ParallelismConfiguration parallelismConfiguration,
-        ExecutorFactory executorFactory,
-        WorkerLeaseService workerLeaseService
-    ) {
+    public DefaultConditionalExecutionQueueFactory(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, ResourceLockCoordinationService coordinationService) {
         this.parallelismConfiguration = parallelismConfiguration;
         this.executorFactory = executorFactory;
-        this.workerLeaseService = workerLeaseService;
+        this.coordinationService = coordinationService;
     }
 
     @Override
     public <T> ConditionalExecutionQueue<T> create(String displayName, Class<T> resultClass) {
-        return new DefaultConditionalExecutionQueue<T>(displayName, parallelismConfiguration.getMaxWorkerCount(), executorFactory, workerLeaseService);
+        return new DefaultConditionalExecutionQueue<T>(displayName, parallelismConfiguration.getMaxWorkerCount(), executorFactory, coordinationService);
     }
 }

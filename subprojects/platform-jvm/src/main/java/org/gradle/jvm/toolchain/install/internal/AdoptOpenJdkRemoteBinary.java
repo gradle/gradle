@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.install.internal;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -58,28 +57,10 @@ public class AdoptOpenJdkRemoteBinary {
 
     public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
-        boolean j9Requested = spec.getImplementation().get() == JvmImplementation.J9;
-        boolean matchesVendor = matchesVendor(spec, j9Requested);
-        return matchesLanguageVersion && matchesVendor;
-    }
-
-    private boolean matchesVendor(JavaToolchainSpec spec, boolean j9Requested) {
         final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (vendorSpec == DefaultJvmVendorSpec.any()) {
-            return true;
-        }
-
-        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTOPENJDK.asJvmVendor())) {
-            DeprecationLogger.deprecateBehaviour("Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.")
-                .willBeRemovedInGradle8().withUpgradeGuideSection(7, "adoptopenjdk_download").nagUser();
-            return true;
-        }
-
-        if (vendorSpec.test(JvmVendor.KnownJvmVendor.ADOPTIUM.asJvmVendor()) && !j9Requested) {
-            return true;
-        }
-
-        return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
+        JvmVendor vendor = JvmVendor.fromString("adoptopenjdk");
+        boolean matchesVendor = vendorSpec == DefaultJvmVendorSpec.any() || vendorSpec.test(vendor);
+        return matchesLanguageVersion && matchesVendor;
     }
 
     URI toDownloadUri(JavaToolchainSpec spec) {
@@ -102,15 +83,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private String determineImplementation(JavaToolchainSpec spec) {
         final JvmImplementation implementation = spec.getImplementation().getOrNull();
-        String openj9 = "openj9";
-        if (implementation == JvmImplementation.J9) {
-            return openj9;
-        }
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor())) {
-            return openj9;
-        }
-        return "hotspot";
+        return implementation == JvmImplementation.J9 ? "openj9" : "hotspot";
     }
 
     public String toFilename(JavaToolchainSpec spec) {

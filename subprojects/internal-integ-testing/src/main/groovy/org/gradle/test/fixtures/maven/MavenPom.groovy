@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.maven
 
 import com.google.common.collect.ArrayListMultimap
-import groovy.xml.XmlParser
 
 class MavenPom {
     private final Node pom;

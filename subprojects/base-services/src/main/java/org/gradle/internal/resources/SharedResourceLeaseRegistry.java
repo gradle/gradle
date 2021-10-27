@@ -17,6 +17,7 @@
 package org.gradle.internal.resources;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.Action;
 import org.gradle.internal.Pair;
 
 import java.util.Map;
@@ -40,8 +41,8 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
         // For that reason we don't want to reuse lock instances, as it's very possible they can be concurrently held by multiple threads.
         return createResourceLock(displayName, new ResourceLockProducer<String, SharedResourceLease>() {
             @Override
-            public SharedResourceLease create(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
-                return new SharedResourceLease(displayName, coordinationService, owner, sharedResource, leases);
+            public SharedResourceLease create(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction) {
+                return new SharedResourceLease(displayName, coordinationService, lockAction, unlockAction, sharedResource, leases);
             }
         });
     }
@@ -52,8 +53,8 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
         private Thread ownerThread;
         private boolean active = false;
 
-        SharedResourceLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, String sharedResource, int leases) {
-            super(displayName, coordinationService, owner);
+        SharedResourceLease(String displayName, ResourceLockCoordinationService coordinationService, Action<ResourceLock> lockAction, Action<ResourceLock> unlockAction, String sharedResource, int leases) {
+            super(displayName, coordinationService, lockAction, unlockAction);
             this.leases = leases;
             this.semaphore = sharedResources.get(sharedResource);
         }

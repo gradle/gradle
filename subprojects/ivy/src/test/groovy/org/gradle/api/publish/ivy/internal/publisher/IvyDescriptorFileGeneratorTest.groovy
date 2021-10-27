@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy.internal.publisher
 
-import groovy.xml.XmlSlurper
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact

@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode.fixtures
 
-import groovy.xml.XmlParser
 import org.gradle.test.fixtures.file.TestFile
 
 class SchemeFile {

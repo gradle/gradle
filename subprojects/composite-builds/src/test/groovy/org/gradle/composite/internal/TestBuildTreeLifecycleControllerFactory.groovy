@@ -21,38 +21,26 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildToolingModelAction
+import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
-import org.gradle.internal.buildtree.BuildTreeModelAction
-import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelScope
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
 import java.util.function.Consumer
 import java.util.function.Function
 
 class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleControllerFactory {
-    private final BuildTreeWorkGraph workGraph
-
-    TestBuildTreeLifecycleControllerFactory(BuildTreeWorkGraph workGraph) {
-        this.workGraph = workGraph
-    }
-
-    @Override
-    BuildTreeLifecycleController createRootBuildController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
-        return createController(targetBuild, workExecutor, finishExecutor)
-    }
-
     @Override
     BuildTreeLifecycleController createController(BuildLifecycleController targetBuild, BuildTreeWorkExecutor workExecutor, BuildTreeFinishExecutor finishExecutor) {
         return new TestBuildTreeLifecycleController(targetBuild, workExecutor, finishExecutor)
     }
 
-    class TestBuildModelController implements BuildTreeModelController {
+    class TestBuildModelController implements BuildToolingModelController {
         private final BuildLifecycleController targetBuild
 
         TestBuildModelController(BuildLifecycleController targetBuild) {
@@ -65,23 +53,23 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
         }
 
         @Override
-        ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
+        ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelScope locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelBuilderLookup.Builder locateBuilderForTarget(BuildState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+        ToolingModelBuilderLookup.Builder locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
             throw new UnsupportedOperationException()
         }
 
         @Override
         boolean queryModelActionsRunInParallel() {
-            throw new UnsupportedOperationException()
+            return false
         }
 
         @Override
@@ -113,17 +101,15 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
 
         @Override
         void scheduleAndRunTasks() {
-            def plan = targetBuild.prepareToScheduleTasks()
-            targetBuild.populateWorkGraph(plan) {
-                it.addRequestedTasks()
-            }
-            def result = workExecutor.execute(workGraph)
+            targetBuild.prepareToScheduleTasks()
+            targetBuild.scheduleRequestedTasks()
+            def result = workExecutor.execute()
             buildTreeFinishExecutor.finishBuildTree(result.failures)
             result.rethrow()
         }
 
         @Override
-        def <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
+        def <T> T fromBuildModel(boolean runTasks, BuildToolingModelAction<? extends T> action) {
             def failures = []
             T result = null
             try {

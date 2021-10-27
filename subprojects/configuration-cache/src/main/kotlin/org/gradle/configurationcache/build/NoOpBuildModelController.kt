@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.build
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.build.BuildModelController
 
 
@@ -33,11 +32,7 @@ class NoOpBuildModelController(val gradle: GradleInternal) : BuildModelControlle
         // Already done
     }
 
-    override fun initializeWorkGraph(plan: ExecutionPlan?) {
-        // Not necessary
-    }
-
-    override fun scheduleRequestedTasks(plan: ExecutionPlan) {
+    override fun scheduleRequestedTasks() {
         // Already done
     }
 }

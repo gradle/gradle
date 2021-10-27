@@ -105,7 +105,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
-    @UsedByScanPlugin("test-retry")
+    @UsedByScanPlugin("test-distribution, test-retry")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();

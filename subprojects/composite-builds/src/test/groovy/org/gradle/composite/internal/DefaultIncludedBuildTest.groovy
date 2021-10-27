@@ -19,13 +19,13 @@ package org.gradle.composite.internal
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.reflect.Instantiator
@@ -35,28 +35,21 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
-    def buildFactory = Mock(BuildModelControllerServices)
+    def buildFactory = Mock(BuildLifecycleControllerFactory)
     def buildDefinition = Stub(BuildDefinition)
-    def controller = Mock(BuildLifecycleController)
+    def gradleLauncher = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def buildTree = Mock(BuildTreeState)
     DefaultIncludedBuild build
 
     def setup() {
-        _ * buildFactory.servicesForBuild(buildDefinition, _, owningBuild) >> Mock(BuildModelControllerServices.Supplier)
         _ * owningBuild.nestedBuildFactory >> buildFactory
-        _ * buildFactory.newInstance(_, _, _, _) >> controller
-        _ * controller.gradle >> gradle
+        _ * buildFactory.newInstance(_, _, _, _) >> gradleLauncher
+        _ * gradleLauncher.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
-        def services = new DefaultServiceRegistry()
-        services.add(gradle)
-        services.add(buildFactory)
-        services.add(controller)
-        services.add(Stub(DocumentationRegistry))
-        services.add(Stub(BuildTreeWorkGraphController))
-        _ * buildTree.services >> services
+        _ * buildTree.services >> new DefaultServiceRegistry()
 
-        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Mock(Instantiator))
+        build = new DefaultIncludedBuild(Stub(BuildIdentifier), Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, buildFactory, Stub(ProjectStateRegistry), Mock(Instantiator))
     }
 
     def "creates a foreign id for projects"() {

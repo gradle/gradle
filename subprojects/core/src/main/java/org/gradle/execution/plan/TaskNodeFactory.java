@@ -26,7 +26,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
@@ -45,18 +45,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.Gradle.class)
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
-    private final BuildTreeWorkGraphController workGraphController;
+    private final IncludedBuildTaskGraph taskGraph;
     private final GradleInternal thisBuild;
     private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
 
-    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, BuildTreeWorkGraphController workGraphController) {
+    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, IncludedBuildTaskGraph taskGraph) {
         this.thisBuild = thisBuild;
         this.documentationRegistry = documentationRegistry;
-        this.workGraphController = workGraphController;
+        this.taskGraph = taskGraph;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
     }
 
@@ -70,7 +70,7 @@ public class TaskNodeFactory {
             if (task.getProject().getGradle() == thisBuild) {
                 node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
             } else {
-                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
+                node = TaskInAnotherBuild.of((TaskInternal) task, taskGraph);
             }
             nodes.put(task, node);
         }

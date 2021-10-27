@@ -16,17 +16,13 @@
 
 package org.gradle.internal.resources
 
-
+import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED
-import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY
+import static org.gradle.internal.resources.ResourceLockState.Disposition.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
 
 class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
@@ -147,11 +143,11 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         }
 
         when:
-        beforeState.eachWithIndex { boolean locked, int i -> lock[i].lockedState = locked }
+        beforeState.eachWithIndex{ boolean locked, int i -> lock[i].lockedState = locked }
         coordinationService.withStateLock(outerAction)
 
         then:
-        afterState.eachWithIndex { boolean locked, int i -> assert lock[i].lockedState == locked }
+        afterState.eachWithIndex{ boolean locked, int i -> assert lock[i].lockedState == locked }
 
         where:
         beforeState                  | afterState
@@ -321,8 +317,8 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         false       | false       | FINISHED
     }
 
-    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {
-        return new TestTrackedResourceLock(displayName, coordinationService, Mock(ResourceLockContainer), locked, hasLock)
+    TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock=false) {
+        return new TestTrackedResourceLock(displayName, coordinationService, Mock(Action), Mock(Action), locked, hasLock)
     }
 
     TestTrackedResourceLock resourceLock(String displayName) {

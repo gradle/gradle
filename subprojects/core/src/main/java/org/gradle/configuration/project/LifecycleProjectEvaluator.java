@@ -27,8 +27,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.Path;
 
-import java.io.File;
-
 /**
  * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,
  * wrapping the work in build operations.
@@ -45,7 +43,7 @@ import java.io.File;
  * The before/after evaluate operations are fired regardless whether anyone is actually listening.
  * This may change in future versions.
  *
- * The use of term “evaluate” is a legacy constraint.
+ * The use of term “evaluate” is a legacy constraint.
  * Project evaluation is synonymous with “project configuration” (the latter being the preferred term).
  *
  * @see ProjectEvaluationListener
@@ -137,36 +135,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         return BuildOperationDescriptor.displayName(displayName)
             .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
             .progressDisplayName(progressDisplayName)
-            .details(new ConfigureProjectDetails(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
-    }
-
-    private static class ConfigureProjectDetails implements ConfigureProjectBuildOperationType.Details {
-
-        private final Path buildPath;
-        private final File rootDir;
-        private final Path projectPath;
-
-        public ConfigureProjectDetails(Path projectPath, Path buildPath, File rootDir) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
-            this.rootDir = rootDir;
-        }
-
-        @Override
-        public String getProjectPath() {
-            return projectPath.getPath();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
-
-        @Override
-        public File getRootDir() {
-            return rootDir;
-        }
-
+            .details(new ConfigureProjectBuildOperationType.DetailsImpl(projectInternal.getProjectPath(), projectInternal.getGradle().getIdentityPath(), projectInternal.getRootDir()));
     }
 
     private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
@@ -192,33 +161,11 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Notify beforeEvaluate listeners of " + project.getIdentityPath())
-                .details(new NotifyProjectBeforeEvaluatedDetails(
+                .details(new NotifyProjectBeforeEvaluatedBuildOperationType.DetailsImpl(
                     project.getProjectPath(),
                     project.getGradle().getIdentityPath()
                 ));
         }
-    }
-
-    private static class NotifyProjectBeforeEvaluatedDetails implements NotifyProjectBeforeEvaluatedBuildOperationType.Details {
-
-        private final Path buildPath;
-        private final Path projectPath;
-
-        NotifyProjectBeforeEvaluatedDetails(Path projectPath, Path buildPath) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public String getProjectPath() {
-            return projectPath.getPath();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
-
     }
 
     private static class NotifyAfterEvaluate implements RunnableBuildOperation {
@@ -256,32 +203,10 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName("Notify afterEvaluate listeners of " + project.getIdentityPath())
-                .details(new NotifyProjectAfterEvaluatedDetails(
+                .details(new NotifyProjectAfterEvaluatedBuildOperationType.DetailsImpl(
                     project.getProjectPath(),
                     project.getGradle().getIdentityPath()
                 ));
         }
-    }
-
-    private static class NotifyProjectAfterEvaluatedDetails implements NotifyProjectAfterEvaluatedBuildOperationType.Details {
-
-        private final Path buildPath;
-        private final Path projectPath;
-
-        NotifyProjectAfterEvaluatedDetails(Path projectPath, Path buildPath) {
-            this.projectPath = projectPath;
-            this.buildPath = buildPath;
-        }
-
-        @Override
-        public String getProjectPath() {
-            return projectPath.getPath();
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath.getPath();
-        }
-
     }
 }

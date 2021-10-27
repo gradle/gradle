@@ -21,7 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import spock.lang.Specification
 
 class TaskNodeFactoryTest extends Specification {
@@ -38,7 +38,7 @@ class TaskNodeFactoryTest extends Specification {
         project.gradle >> gradle
         project.pluginManager >> Stub(PluginManagerInternal)
 
-        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
+        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(IncludedBuildTaskGraph))
     }
 
     private TaskInternal task(String name) {

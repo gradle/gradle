@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import groovy.xml.XmlParser
 import org.gradle.test.fixtures.file.TestFile
 
 class EclipseWtpFacetsFixture {

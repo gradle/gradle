@@ -26,6 +26,10 @@ import java.io.File
 internal
 sealed class ConfigurationCacheFingerprint {
 
+    data class Header(
+        val includedBuildRootDirs: Set<File>
+    )
+
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String
@@ -51,8 +55,7 @@ sealed class ConfigurationCacheFingerprint {
     ) : ConfigurationCacheFingerprint()
 
     data class UndeclaredSystemProperty(
-        val key: String,
-        val value: Any?
+        val key: String
     ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(
@@ -76,11 +79,6 @@ sealed class ConfigurationCacheFingerprint {
         override val reason: String
             get() = "cached artifact information for $displayName has expired"
     }
-
-    data class ProjectSpecificInput(
-        val projectPath: String,
-        val value: ConfigurationCacheFingerprint
-    ) : ConfigurationCacheFingerprint()
 }
 
 

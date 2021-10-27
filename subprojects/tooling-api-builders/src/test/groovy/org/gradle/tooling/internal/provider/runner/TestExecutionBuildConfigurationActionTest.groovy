@@ -28,7 +28,7 @@ import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
 import org.gradle.execution.TaskSelector
-import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.ServiceRegistry
@@ -53,7 +53,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     TaskOutputsInternal outputsInternal
     GradleInternal gradleInternal
     BuildExecutionContext buildContext
-    ExecutionPlan executionPlan
+    TaskExecutionGraphInternal taskGraph
     TestExecutionRequestAction testExecutionRequest
     InternalDebugOptions debugOptions
 
@@ -63,7 +63,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         gradleInternal = Mock()
         buildContext = Mock()
         tasksContainerInternal = Mock()
-        executionPlan = Mock()
+        taskGraph = Mock()
         testExecutionRequest = Mock()
         testTask = Mock()
         testFilter = Mock()
@@ -77,7 +77,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private void setupProject() {
-        1 * buildContext.getExecutionPlan() >> executionPlan
+        1 * gradleInternal.getTaskGraph() >> taskGraph
         1 * buildContext.getGradle() >> gradleInternal
         _ * gradleInternal.getRootProject() >> projectInternal
         _ * gradleInternal.getServices() >> serviceRegistry
@@ -95,7 +95,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         buildConfigurationAction.configure(buildContext)
         then:
         0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
+        _ * taskGraph.addEntryTasks({ args -> assert args.size() == 0 })
     }
 
     @Unroll

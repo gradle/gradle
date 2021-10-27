@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
@@ -25,9 +26,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
-abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
-    abstract BuildInitDsl getBuildDsl()
-
+class MultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() {
         return null
@@ -101,20 +100,14 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         where:
         [jvmLanguage, scriptDsl, incubating] << [
                 [JAVA, GROOVY, KOTLIN, SCALA],
-                [getBuildDsl()],
+                ScriptDslFixture.SCRIPT_DSLS,
                 [true, false]
         ].combinations()
     }
 
-    def "can explicitly configure application not to split projects with #scriptDsl build scripts"() {
-        given:
-        def dsl = scriptDsl as BuildInitDsl
-
+    def "can explicitly configure application not to split projects"() {
         expect:
-        succeeds('init', '--type', "java-application", '--dsl', dsl.id)
-
-        where:
-        scriptDsl << getBuildDsl()
+        succeeds('init', '--type', "java-application", '--dsl', 'groovy')
     }
 
     void assertTestPassed(String subprojectName, String className, String name) {
@@ -122,18 +115,5 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
-}
 
-class GroovyDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.GROOVY
-    }
-}
-
-class KotlinDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
-    @Override
-    BuildInitDsl getBuildDsl() {
-        return BuildInitDsl.KOTLIN
-    }
 }

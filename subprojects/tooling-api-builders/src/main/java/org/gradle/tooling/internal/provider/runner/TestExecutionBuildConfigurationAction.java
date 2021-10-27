@@ -48,11 +48,13 @@ import java.util.Map;
 import java.util.Set;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
+    private final GradleInternal gradle;
     private final TestExecutionRequestAction testExecutionRequest;
     private final TaskSelector taskSelector;
 
     public TestExecutionBuildConfigurationAction(TestExecutionRequestAction testExecutionRequest, GradleInternal gradle) {
         this.testExecutionRequest = testExecutionRequest;
+        this.gradle = gradle;
         this.taskSelector = gradle.getServices().get(TaskSelector.class);
     }
 
@@ -64,7 +66,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestTasks(testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
-        context.getExecutionPlan().addEntryTasks(allTestTasksToRun);
+        gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
 
     private void configureTestTasks(Set<Test> allTestTasksToRun) {
@@ -117,7 +119,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
         List<Test> testTasksToRun = new ArrayList<>();
         for (final String testTaskPath : testTaskPaths) {
-            for (Test testTask : queryTestTasks(testTaskPath)) {
+            for (Test testTask: queryTestTasks(testTaskPath)) {
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
                     if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
@@ -159,7 +161,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
-        if (internalJvmTestRequests.isEmpty()) {
+        if(internalJvmTestRequests.isEmpty()){
             return Collections.emptyList();
         }
 

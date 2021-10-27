@@ -23,12 +23,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configurationcache.BuildTreeListenerManager
-import org.gradle.configurationcache.CheckedFingerprint
-import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
-import org.gradle.configurationcache.problems.ConfigurationCacheReport
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.concurrent.Stoppable
@@ -42,35 +38,30 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
-import org.gradle.util.Path
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.internal.GFileUtils
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
-import java.nio.file.Files
 
 
 /**
  * Coordinates the writing and reading of the configuration cache fingerprint.
  */
-@ServiceScope(Scopes.BuildTree::class)
+@ServiceScope(Scopes.Build::class)
 internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val taskInputsListeners: TaskInputsListeners,
+    private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val fileSystemAccess: FileSystemAccess,
-    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    private val fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val report: ConfigurationCacheReport
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
-    interface Host {
-        val valueSourceProviderFactory: ValueSourceProviderFactory
-    }
 
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
@@ -78,17 +69,14 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     abstract class WritingState {
 
-        open fun maybeStart(spoolFile: File, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
+        open fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
 
-        open fun pause(): WritingState =
-            illegalStateFor("pause")
+        open fun stop(): WritingState =
+            illegalStateFor("stop")
 
-        open fun commit(stateFile: ConfigurationCacheStateFile): WritingState =
+        open fun commit(outputStream: OutputStream): WritingState =
             illegalStateFor("commit")
-
-        open fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T =
-            illegalStateFor("collectFingerprintForProject")
 
         abstract fun dispose(): WritingState
 
@@ -100,16 +88,16 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun maybeStart(spoolFile: File, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
-            val outputStream = FileOutputStream(spoolFile)
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+            val outputStream = ByteArrayOutputStream()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
-                CacheFingerprintWriterHost(),
+                CacheFingerprintComponentHost(),
                 writeContextForOutputStream(outputStream),
                 fileCollectionFactory,
                 directoryFileTreeFactory
             )
             addListener(fingerprintWriter)
-            return Writing(fingerprintWriter, spoolFile, outputStream)
+            return Writing(fingerprintWriter, outputStream)
         }
 
         override fun dispose(): WritingState =
@@ -119,67 +107,41 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     inner class Writing(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
-        private val spoolFile: File,
-        private val outputStream: OutputStream
+        private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
-        override fun maybeStart(spoolFile: File, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
             return this
         }
 
-        override fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-            return fingerprintWriter.collectFingerprintForProject(identityPath, action)
-        }
-
-        override fun pause(): WritingState {
-            removeListener(fingerprintWriter)
-            return Paused(fingerprintWriter, spoolFile, outputStream)
+        override fun stop(): WritingState {
+            // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
+            fingerprintWriter.stopCollectingValueSources()
+            return Written(fingerprintWriter, outputStream)
         }
 
         override fun dispose() =
-            pause().dispose()
+            stop().dispose()
     }
 
     private
-    inner class Paused(
+    inner class Written(
         private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
-        private val spoolFile: File,
-        private val outputStream: OutputStream
+        private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
-        override fun maybeStart(spoolFile: File, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
-            addListener(fingerprintWriter)
-            // Continue with the current spool file, rather than starting a new one
-            return Writing(fingerprintWriter, this.spoolFile, outputStream)
-        }
-
-        override fun pause(): WritingState {
+        override fun maybeStart(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
             return this
         }
 
-        override fun commit(stateFile: ConfigurationCacheStateFile): WritingState {
-            closeStreams()
-            stateFile.moveFrom(spoolFile)
-            return Committed()
-        }
-
-        override fun dispose(): WritingState {
-            closeStreams()
-            if (spoolFile.exists()) {
-                Files.delete(spoolFile.toPath())
-            }
+        override fun commit(outputStream: OutputStream): WritingState {
+            dispose()
+            this.outputStream.writeTo(outputStream)
             return Idle()
         }
 
-        private
-        fun closeStreams() {
-            fingerprintWriter.close()
-            outputStream.close()
-        }
-    }
-
-    private
-    class Committed : WritingState() {
         override fun dispose(): WritingState {
-            return this
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
+            return Idle()
         }
     }
 
@@ -189,32 +151,24 @@ class ConfigurationCacheFingerprintController internal constructor(
     // Start fingerprinting if not already started and not already committed
     // This should be strict but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
-    fun maybeStartCollectingFingerprint(spoolFile: File, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
-        writingState = writingState.maybeStart(spoolFile, writeContextForOutputStream)
+    fun maybeStartCollectingFingerprint(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
+        writingState = writingState.maybeStart(writeContextForOutputStream)
     }
 
     fun stopCollectingFingerprint() {
-        writingState = writingState.pause()
+        writingState = writingState.stop()
     }
 
-    fun commitFingerprintTo(stateFile: ConfigurationCacheStateFile) {
-        writingState = writingState.commit(stateFile)
-    }
-
-    /**
-     * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
-     * with the project.
-     */
-    fun <T> collectFingerprintForProject(identityPath: Path, action: () -> T): T {
-        return writingState.collectFingerprintForProject(identityPath, action)
+    fun commitFingerprintTo(outputStream: OutputStream) {
+        writingState = writingState.commit(outputStream)
     }
 
     override fun stop() {
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkFingerprint(host: Host): CheckedFingerprint =
-        ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
+    suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
+        ConfigurationCacheFingerprintChecker(CacheFingerprintComponentHost()).run {
             checkFingerprint()
         }
 
@@ -233,32 +187,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     private
-    inner class CacheFingerprintWriterHost :
-        ConfigurationCacheFingerprintWriter.Host {
-
-        override val gradleUserHomeDir: File
-            get() = startParameter.gradleUserHomeDir
-
-        override val allInitScripts: List<File>
-            get() = startParameter.allInitScripts
-
-        override val buildStartTime: Long
-            get() = buildCommencedTimeProvider.currentTime
-
-        override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
-
-        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
-            fileCollectionFingerprinter.fingerprint(fileCollection).hash
-
-        override fun reportInput(input: PropertyProblem) =
-            report.onInput(input)
-    }
-
-    private
-    inner class CacheFingerprintCheckerHost(
-        private val host: Host
-    ) : ConfigurationCacheFingerprintChecker.Host {
+    inner class CacheFingerprintComponentHost :
+        ConfigurationCacheFingerprintWriter.Host, ConfigurationCacheFingerprintChecker.Host {
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
@@ -279,7 +209,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             GFileUtils.relativePathOf(fileOrDirectory, rootDirectory)
 
         override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
-            (host.valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
                 obtainedValue.valueSourceType,
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
