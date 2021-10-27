@@ -116,14 +116,14 @@ class PathNormalizationStrategyTest extends Specification {
         expect:
         fingerprints[jarFile1]                      == jarFile1.name
         fingerprints[jarFile2]                      == jarFile2.name
-        fingerprints[resources]                     == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[resources]                     == null
         fingerprints[resources.file(fileInRoot)]    == fileInRoot
         fingerprints[resources.file(subDirA)]       == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
-        fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[missingFile]                   == missingFile.name
+        fingerprints[emptyRootDir]                  == null
+        fingerprints[missingFile]                   == null
 
         where:
         strategy << [
@@ -163,9 +163,10 @@ class PathNormalizationStrategyTest extends Specification {
 
     List<File> getAllFilesToFingerprint(DirectorySensitivity directorySensitivity) {
         def dirs = [emptyRootDir, resources.file(subDirA), resources.file(subDirB), resources]
-        def files = [jarFile1, jarFile2, missingFile, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
+        def files = [jarFile1, jarFile2, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
+        def missingFiles = [missingFile]
 
-        return directorySensitivity == DirectorySensitivity.DEFAULT ? (dirs + files) : files
+        return directorySensitivity == DirectorySensitivity.DEFAULT ? (dirs + files + missingFiles) : files
     }
 
     protected TestFile file(String... path) {
