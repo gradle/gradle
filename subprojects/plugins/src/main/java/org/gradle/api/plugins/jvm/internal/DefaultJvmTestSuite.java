@@ -22,6 +22,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.TestType;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -100,6 +101,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final JvmComponentDependencies dependencies;
     private boolean attachedDependencies;
     private final Action<Void> attachDependencyAction;
+    private final Property<String> testType = getObjectFactory().property(String.class).convention(TestType.UNIT_TESTS);
 
     protected abstract Property<TestingFramework> getTestingFramework();
 
@@ -154,6 +156,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }));
             });
         });
+    }
+
+    @Override
+    public Property<String> getTestType() {
+        return testType;
+    }
+
+    @Override
+    public void setTestType(String testType) {
+        this.testType.set(testType);
     }
 
     private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {

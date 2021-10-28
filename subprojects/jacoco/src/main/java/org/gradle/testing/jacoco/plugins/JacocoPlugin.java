@@ -16,18 +16,26 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
+import org.gradle.api.attributes.TestType;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Verification;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
+import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
@@ -38,6 +46,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
@@ -64,6 +73,8 @@ public class JacocoPlugin implements Plugin<Project> {
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
+    private static final String COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX = "coverageDataElementsFor";
+
     private final Instantiator instantiator;
     private Project project;
 
@@ -90,6 +101,40 @@ public class JacocoPlugin implements Plugin<Project> {
         configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
+        configureCoverageDataElementsVariants(project);
+    }
+
+    private void configureCoverageDataElementsVariants(Project project) {
+        project.getPlugins().withType(JvmTestSuitePlugin.class, p -> {
+            final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
+            final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+
+            testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
+                suite.getTargets().configureEach(target -> {
+                    createCoverageDataVariant(project, suite, target);
+                });
+            });
+        });
+    }
+
+    private Configuration createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().create(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.class, DocsType.JACOCO_COVERAGE));
+            attributes.attribute(Verification.TEST_SUITE_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attribute(Verification.TARGET_NAME_ATTRIBUTE, objects.named(Verification.class, suite.getName()));
+            attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType.class, suite.getTestType().get()));
+        });
+
+        variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()));
+        return variant;
     }
 
     /**

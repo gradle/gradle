@@ -144,5 +144,64 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
-}
 
+    def "jacoco plugin adds outgoing variants for default test suite"() {
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+--------------------------------------------------
+Variant coverageDataElementsForTest
+--------------------------------------------------
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = jacoco-coverage-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
+    - build/jacoco/test.exec (artifactType = exec)
+""")
+    }
+
+    def "jacoco plugin adds outgoing variants for custom test suite"() {
+        buildFile << """
+testing {
+    suites {
+        integrationTest(JvmTestSuite) {
+            testType = TestType.INTEGRATION_TESTS
+
+            dependencies {
+                implementation project
+            }
+        }
+    }
+}
+        """
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+--------------------------------------------------
+Variant coverageDataElementsForIntegrationTest
+--------------------------------------------------
+Capabilities
+    - :${getTestDirectory().getName()}:unspecified (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = jacoco-coverage-bin
+    - org.gradle.targetname    = integrationTest
+    - org.gradle.testsuitename = integrationTest
+    - org.gradle.testsuitetype = integration-tests
+    - org.gradle.usage         = verification
+
+Artifacts
+    - build/jacoco/integrationTest.exec (artifactType = exec)
+""")
+    }
+}
