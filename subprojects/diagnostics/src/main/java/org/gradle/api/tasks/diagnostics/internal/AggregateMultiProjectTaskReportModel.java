@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal;
 import com.google.common.base.Strings;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
-import org.gradle.api.Project;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
@@ -27,15 +26,13 @@ import java.util.List;
 import java.util.Set;
 
 public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
-    private final Project project;
     private final List<TaskReportModel> projects = new ArrayList<>();
     private SetMultimap<String, TaskDetails> groups;
     private final boolean mergeTasksWithSameName;
     private final boolean detail;
     private final String group;
 
-    public AggregateMultiProjectTaskReportModel(Project project, boolean mergeTasksWithSameName, boolean detail, String group) {
-        this.project = project;
+    public AggregateMultiProjectTaskReportModel(boolean mergeTasksWithSameName, boolean detail, String group) {
         this.mergeTasksWithSameName = mergeTasksWithSameName;
         this.detail = detail;
         this.group = Strings.isNullOrEmpty(group) ? null : group.toLowerCase();

@@ -19,7 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 
 class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
-    final AggregateMultiProjectTaskReportModel model = new AggregateMultiProjectTaskReportModel(Mock(Project), false, true, null)
+    final AggregateMultiProjectTaskReportModel model = new AggregateMultiProjectTaskReportModel(false, true, null)
 
     def mergesTheGroupsFromEachProject() {
         TaskReportModel project1 = Mock()
@@ -71,7 +71,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group') >> ([task3] as Set)
 
-        def model = new AggregateMultiProjectTaskReportModel(Mock(Project), true, true, null)
+        def model = new AggregateMultiProjectTaskReportModel(true, true, null)
 
         when:
         model.add(project1)
@@ -97,7 +97,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         _ * project2.groups >> (['group2'] as LinkedHashSet)
         _ * project2.getTasksForGroup('group2') >> ([task3] as Set)
 
-        def model = new AggregateMultiProjectTaskReportModel(Mock(Project), true, true, 'group2')
+        def model = new AggregateMultiProjectTaskReportModel(true, true, 'group2')
 
         when:
         model.add(project1)
