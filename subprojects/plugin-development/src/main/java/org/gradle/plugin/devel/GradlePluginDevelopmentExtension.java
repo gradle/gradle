@@ -21,7 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
@@ -92,29 +91,12 @@ public class GradlePluginDevelopmentExtension {
      * Calling this method multiple times with different source sets is <strong>additive</strong> - this method
      * will add to the existing collection of source sets.
      *
-     * @param testSourceSets the test source sets
+     * @param testSourceSet the test source set to add
      * @since 7.4
      */
     @Incubating
-    public void addTestSourceSets(SourceSet... testSourceSets) {
-        this.testSourceSets.addAll(Arrays.asList(testSourceSets));
-    }
-
-    /**
-     * Lazily adds source sets to the collection which will be using TestKit.
-     * <p>
-     * Calling this method multiple times with different source set providers is <strong>additive</strong> - this method
-     * will add to the existing collection of source sets.
-     *
-     * @param testSourceSets the test source set {@link Provider}s to include
-     * @since 7.4
-     */
-    @Incubating
-    @SafeVarargs
-    public final void addTestSourceSets(Provider<SourceSet>... testSourceSets) {
-        for (Provider<SourceSet> testSourceSet : testSourceSets) {
-            this.testSourceSets.addLater(testSourceSet);
-        }
+    public void testSourceSet(SourceSet testSourceSet) {
+        this.testSourceSets.add(testSourceSet);
     }
 
     /**
@@ -130,23 +112,6 @@ public class GradlePluginDevelopmentExtension {
         this.testSourceSets.addAll(Arrays.asList(testSourceSets));
     }
 
-    /**
-     * Lazily adds source sets to the collection which will be using TestKit.
-     * <p>
-     * Calling this method multiple times with different source set providers is <strong>NOT</strong> additive.  Calling this
-     * method will overwrite any existing test source sets with the provided arguments.
-     *
-     * @param testSourceSets the test source set {@link Provider}s to include
-     * @since 7.4
-     */
-    @Incubating
-    @SafeVarargs
-    public final void testSourceSets(Provider<SourceSet>... testSourceSets) {
-        this.testSourceSets.clear();
-        for (Provider<SourceSet> testSourceSet : testSourceSets) {
-            this.testSourceSets.addLater(testSourceSet);
-        }
-    }
 
     /**
      * Returns the source set that compiles the code under test. Defaults to {@code project.sourceSets.main}.

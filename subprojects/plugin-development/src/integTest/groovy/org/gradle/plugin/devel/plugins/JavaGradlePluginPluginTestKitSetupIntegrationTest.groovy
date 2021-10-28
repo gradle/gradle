@@ -116,7 +116,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
-    def "configuration of test source sets by extension using the addTestSourceSets method is additive"() {
+    def "configuration of test source sets by extension using the testSourceSet method is additive"() {
         given:
         buildFile << """
             sourceSets {
@@ -134,11 +134,11 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             }
 
             gradlePlugin {
-                addTestSourceSets sourceSets.functionalTest
+                testSourceSet sourceSets.functionalTest
             }
 
             gradlePlugin {
-                addTestSourceSets sourceSets.integrationTest
+                testSourceSet sourceSets.integrationTest
             }
 
             task assertFunctionalTestHasTestKit() {
@@ -208,34 +208,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         succeeds 'assertFunctionalTestHasTestKit', 'assertIntegrationTestHasTestKit'
     }
 
-    def "configuration of test source can be done lazily"() {
-        given:
-        buildFile << """
-            def functionalTest = sourceSets.register('functionalTest') {
-                java {
-                    srcDir 'src/functional/java'
-                }
-            }
-
-            gradlePlugin {
-                testSourceSets functionalTest
-            }
-
-            task assertFunctionalTestHasTestKit() {
-                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
-                def testKit = dependencies.gradleTestKit().files
-                doLast {
-                    assert testRuntimeClasspath.files.containsAll(testKit.files)
-                }
-            }
-
-        """
-
-        expect:
-        succeeds 'assertFunctionalTestHasTestKit'
-    }
-
-    def "can mix lazy and non-lazy configuration of test source sets"() {
+    def "usage of NON additive testSourceSets method overwrites earlier additive usage of testSourceSet"() {
         given:
         buildFile << """
             def integrationTest = sourceSets.create('integrationTest') {
@@ -244,56 +217,14 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                 }
             }
 
-            def functionalTest = sourceSets.register('functionalTest') {
+            def functionalTest = sourceSets.create('functionalTest') {
                 java {
                     srcDir 'src/functional/java'
                 }
             }
 
             gradlePlugin {
-                addTestSourceSets integrationTest
-                addTestSourceSets functionalTest
-            }
-
-            task assertIntegrationTestHasTestKit() {
-                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
-                def testKit = dependencies.gradleTestKit().files
-                doLast {
-                    assert testRuntimeClasspath.files.containsAll(testKit.files)
-                }
-            }
-
-            task assertFunctionalTestHasTestKit() {
-                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
-                def testKit = dependencies.gradleTestKit().files
-                doLast {
-                    assert testRuntimeClasspath.files.containsAll(testKit.files)
-                }
-            }
-
-        """
-
-        expect:
-        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
-    }
-
-    def "lazy configuration of test source sets with testSourceSets method is NOT additive"() {
-        given:
-        buildFile << """
-            def integrationTest = sourceSets.register('integrationTest') {
-                java {
-                    srcDir 'src/integration/java'
-                }
-            }
-
-            def functionalTest = sourceSets.register('functionalTest') {
-                java {
-                    srcDir 'src/functional/java'
-                }
-            }
-
-            gradlePlugin {
-                testSourceSets integrationTest
+                testSourceSet integrationTest
                 testSourceSets functionalTest
             }
 
@@ -312,49 +243,6 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                     assert testRuntimeClasspath.files.containsAll(testKit.files)
                 }
             }
-
-        """
-
-        expect:
-        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
-    }
-
-    def "usage of NON additive testSourceSets method overwrites earlier additive usage of addTestSourceSets"() {
-        given:
-        buildFile << """
-            def integrationTest = sourceSets.register('integrationTest') {
-                java {
-                    srcDir 'src/integration/java'
-                }
-            }
-
-            def functionalTest = sourceSets.register('functionalTest') {
-                java {
-                    srcDir 'src/functional/java'
-                }
-            }
-
-            gradlePlugin {
-                addTestSourceSets integrationTest
-                testSourceSets functionalTest
-            }
-
-            task assertIntegrationTestHasTestKit() {
-                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
-                def testKit = dependencies.gradleTestKit().files
-                doLast {
-                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
-                }
-            }
-
-            task assertFunctionalTestHasTestKit() {
-                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
-                def testKit = dependencies.gradleTestKit().files
-                doLast {
-                    assert testRuntimeClasspath.files.containsAll(testKit.files)
-                }
-            }
-
         """
 
         expect:
