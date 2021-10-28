@@ -38,20 +38,11 @@ Run the `:docs:releaseNotes` task to generate the release notes.
 
 The source for the user manual lives @ `src/docs/userguide`, and is authored in [Asciidoctor](https://asciidoctor.org).
 
-To generate the user manual and see your changes, run:
+To generate the user manual for the final preview and see all changes, you normally want to run:
 
-    ./gradlew :docs:userguide
-    
-This will generate:
+    ./gradlew stageDocs
 
- - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
- - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
- - A PDF at `build/working/usermanual/render-single-pdf/userguide_single.pdf`
-
-Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
-with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
-
-### User Manual Development
+That will generate all the docs in the `build/docs` directory.
 
 For development and fast feedback you should use:
 
@@ -62,6 +53,20 @@ Alternatively, if you want to serve the docs in a built-in webserver, you can us
     ./gradlew serveDocs -PquickDocs
 
 The flag -PquickDocs disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+
+
+If you really want to generate just the user manual, you can run:
+
+    ./gradlew :docs:userguide
+
+But note that the generated documentation might not be fully functional (e.g. links will not work). This will generate:
+
+ - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
+ - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
+ - A PDF at `build/working/usermanual/render-single-pdf/userguide_single.pdf`
+
+Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
+with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
 
 ### Authoring with AsciiDoc
 
