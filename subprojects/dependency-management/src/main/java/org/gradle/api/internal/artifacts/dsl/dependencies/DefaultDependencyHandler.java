@@ -135,6 +135,16 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         addProvider(configurationName, dependencyNotation, Actions.doNothing());
     }
 
+    @Override
+    public <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration) {
+        addProvider(configurationName, dependencyNotation.asProvider(), configuration);
+    }
+
+    @Override
+    public <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation) {
+        addProviderConvertible(configurationName, dependencyNotation, Actions.doNothing());
+    }
+
     @SuppressWarnings("ConstantConditions")
     private <U extends ExternalModuleDependency> Closure<Object> closureOf(Action<? super U> configuration) {
         return new Closure<Object>(this, this) {

@@ -315,6 +315,29 @@ public interface DependencyHandler extends ExtensionAware {
     <T> void addProvider(String configurationName, Provider<T> dependencyNotation);
 
     /**
+     * Adds a dependency provider to the given configuration, eventually configures the dependency using the given action.
+     *
+     * @param configurationName The name of the configuration.
+     * @param dependencyNotation The dependency provider notation, in one of the notations described above.
+     * @param configuration The action to use to configure the dependency.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    <T, U extends ExternalModuleDependency> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation, Action<? super U> configuration);
+
+    /**
+     * Adds a dependency provider to the given configuration.
+     *
+     * @param configurationName The name of the configuration.
+     * @param dependencyNotation The dependency provider notation, in one of the notations described above.
+     *
+     * @since 7.4
+     */
+    @Incubating
+    <T> void addProviderConvertible(String configurationName, ProviderConvertible<T> dependencyNotation);
+
+    /**
      * Creates a dependency without adding it to a configuration.
      *
      * @param dependencyNotation The dependency notation, in one of the notations described above.
