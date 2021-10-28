@@ -3,10 +3,9 @@ plugins {
     id("gradlebuild.update-init-template-versions")
 }
 
-description = """The Build Init plugin, which is automatically applied to the root project of every build, and provides 2 tasks: the init
-task which allows for creating a new Gradle build, and the the wrapper task which allows for creating the Gradle wrapper files.
+description = """This project contains the Build Init plugin, which is automatically applied to the root project of every build, and provides the init and wrapper tasks.
 
-This project should NOT be used as an implementation dependency anywhere."""
+This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
 dependencies {
     implementation(project(":base-services"))
