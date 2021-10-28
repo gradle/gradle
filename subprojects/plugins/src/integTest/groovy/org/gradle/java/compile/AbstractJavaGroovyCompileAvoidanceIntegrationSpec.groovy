@@ -710,7 +710,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             ${mavenCentralRepository()}
 
             dependencies {
-               if (providers.gradleProperty('useCommons').forUseAtConfigurationTime().present) {
+               if (providers.gradleProperty('useCommons').present) {
                   implementation 'org.apache.commons:commons-lang3:3.5'
                }
 
@@ -762,7 +762,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         buildFile << """
             ${mavenCentralRepository()}
 
-            def order = providers.gradleProperty('order').forUseAtConfigurationTime().get() as int
+            def order = providers.gradleProperty('order').get() as int
 
             dependencies {
                switch (order) {

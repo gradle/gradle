@@ -1,1 +1,1 @@
-val enabled = providers.gradleProperty("some-property").forUseAtConfigurationTime().isPresent
+val enabled = providers.gradleProperty("some-property").isPresent

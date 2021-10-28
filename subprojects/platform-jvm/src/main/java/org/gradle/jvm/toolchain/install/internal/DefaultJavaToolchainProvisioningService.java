@@ -56,7 +56,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
         this.openJdkBinary = openJdkBinary;
         this.cacheDirProvider = cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationExecutor = executor;
     }
 

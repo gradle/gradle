@@ -412,10 +412,10 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 }
             }
 
-            def firstString = providers.gradleProperty('firstInput').forUseAtConfigurationTime().orNull
+            def firstString = providers.gradleProperty('firstInput').orNull
             def firstBean = new NestedBean(firstInput: firstString, firstOutputFile: file("${firstOutputFile}"), firstInputFile: file("${firstInputFile}"))
 
-            def secondString = providers.gradleProperty('secondInput').forUseAtConfigurationTime().orNull
+            def secondString = providers.gradleProperty('secondInput').orNull
             def secondBean = new OtherNestedBean(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
 
             task taskWithNestedProperty(type: TaskWithNestedProperty) {
@@ -542,7 +542,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 input
             }
 
-            boolean useOther = providers.gradleProperty('useOther').forUseAtConfigurationTime().present
+            boolean useOther = providers.gradleProperty('useOther').present
 
             task myTask(type: TaskWithNestedInput) {
                 outputFile = file('build/output.txt')
@@ -607,7 +607,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 }
             }
 
-            def inputString = providers.gradleProperty('input').forUseAtConfigurationTime().getOrElse('input')
+            def inputString = providers.gradleProperty('input').getOrElse('input')
 
             task myTask(type: TaskWithNestedIterable) {
                 outputFile = file('build/output.txt')
@@ -683,7 +683,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
         buildFile << """
-            myTask.nested = provider { new NestedBean(providers.gradleProperty('input').forUseAtConfigurationTime().get()) }
+            myTask.nested = provider { new NestedBean(providers.gradleProperty('input').get()) }
         """
 
         def myTask = ':myTask'
@@ -708,7 +708,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
         buildFile << """
-            myTask.nested = [new NamedBean(providers.gradleProperty('namedName').forUseAtConfigurationTime().get(), 'value1'), new NamedBean('name', 'value2')]
+            myTask.nested = [new NamedBean(providers.gradleProperty('namedName').get(), 'value1'), new NamedBean('name', 'value2')]
         """
         def taskPath = ':myTask'
 
@@ -734,7 +734,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
         buildFile << """
-            myTask.nested = [(providers.gradleProperty('key').forUseAtConfigurationTime().get()): new NestedBean('value1'), key2: new NestedBean('value2')]
+            myTask.nested = [(providers.gradleProperty('key').get()): new NestedBean('value1'), key2: new NestedBean('value2')]
         """
         def taskPath = ':myTask'
 
@@ -818,7 +818,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             def domainObjectCollection = objects.domainObjectContainer(Bean)
             myTask.nested = domainObjectCollection
 
-            domainObjectCollection.create('first') { prop = providers.gradleProperty('value').forUseAtConfigurationTime().get() }
+            domainObjectCollection.create('first') { prop = providers.gradleProperty('value').get() }
             domainObjectCollection.create('second') { prop = '2' }
         """
 

@@ -34,7 +34,7 @@ repositories {
     maven { url '${mavenRepo.uri}' }
 }
 
-if (providers.systemProperty('explicitDeps').forUseAtConfigurationTime().present) {
+if (providers.systemProperty('explicitDeps').present) {
     dependencies {
         conf "org:explicit-dependency:1.0"
     }

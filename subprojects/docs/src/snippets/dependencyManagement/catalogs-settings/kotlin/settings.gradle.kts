@@ -24,7 +24,7 @@ dependencyResolutionManagement {
     }
 }
 
-if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create1").getOrNull() != null) {
     // tag::simple_catalog[]
     dependencyResolutionManagement {
         versionCatalogs {
@@ -42,7 +42,7 @@ if (providers.systemProperty("create1").forUseAtConfigurationTime().getOrNull() 
     // end::simple_catalog[]
 }
 
-if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create2").getOrNull() != null) {
     // tag::catalog_with_versions[]
     dependencyResolutionManagement {
         versionCatalogs {
@@ -62,7 +62,7 @@ if (providers.systemProperty("create2").forUseAtConfigurationTime().getOrNull() 
     // end::catalog_with_versions[]
 }
 
-if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create3").getOrNull() != null) {
     // tag::catalog_with_bundle[]
     dependencyResolutionManagement {
         versionCatalogs {
@@ -83,7 +83,7 @@ if (providers.systemProperty("create3").forUseAtConfigurationTime().getOrNull() 
     // end::catalog_with_bundle[]
 }
 
-if (providers.systemProperty("create4").forUseAtConfigurationTime().getOrNull() != null) {
+if (providers.systemProperty("create4").getOrNull() != null) {
     // tag::catalog_with_plugin[]
     dependencyResolutionManagement {
         versionCatalogs {

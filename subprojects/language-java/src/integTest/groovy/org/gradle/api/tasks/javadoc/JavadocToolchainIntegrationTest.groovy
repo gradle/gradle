@@ -115,7 +115,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             javadoc {
                 javadocTool = javaToolchains.javadocToolFor {
                     def version = ${currentJdk.javaVersion.majorVersion}
-                    version = providers.gradleProperty('test.javadoc.version').forUseAtConfigurationTime().getOrElse(version)
+                    version = providers.gradleProperty('test.javadoc.version').getOrElse(version)
                     languageVersion = JavaLanguageVersion.of(version)
                 }
             }

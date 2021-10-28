@@ -1234,7 +1234,7 @@ dependencies {
         buildFile << """
 configurations { compile }
 dependencies {
-    def moduleName = providers.gradleProperty('moduleName').forUseAtConfigurationTime().get()
+    def moduleName = providers.gradleProperty('moduleName').get()
     compile "group:\$moduleName:1.+"
 }
 configurations.all {

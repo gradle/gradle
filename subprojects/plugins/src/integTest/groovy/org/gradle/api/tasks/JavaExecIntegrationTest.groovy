@@ -191,14 +191,14 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
             def projectDir = layout.projectDirectory
 
-            def input = providers.gradleProperty('inputFile').forUseAtConfigurationTime().map {
+            def input = providers.gradleProperty('inputFile').map {
                 projectDir.file(it)
             }
             run.jvmArgumentProviders << objects.newInstance(MyApplicationJvmArguments).tap {
                 it.inputFile.set(input)
             }
 
-            def output = providers.gradleProperty('outputFile').forUseAtConfigurationTime().map {
+            def output = providers.gradleProperty('outputFile').map {
                 projectDir.file(it)
             }
             run.argumentProviders << objects.newInstance(MyApplicationCommandLineArguments).tap {

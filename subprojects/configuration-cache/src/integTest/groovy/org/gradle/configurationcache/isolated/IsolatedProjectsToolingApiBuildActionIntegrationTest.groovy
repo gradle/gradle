@@ -187,7 +187,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
     def "invalidates cached model when model builder input changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc("""
-            project.providers.gradleProperty("some-input").forUseAtConfigurationTime().get()
+            project.providers.gradleProperty("some-input").get()
         """)
         settingsFile << """
             include("a")

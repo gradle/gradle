@@ -8,7 +8,6 @@ val groovyVersion = "3.0.9"
 val asmVersion = "9.2"
 
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .forUseAtConfigurationTime()
     .getOrElse(embeddedKotlinVersion)
 
 dependencies {

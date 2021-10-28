@@ -300,7 +300,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
 private
 fun Project.propertiesForPerformanceDb(): Map<String, String> {
-    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv).forUseAtConfigurationTime()
+    val password = providers.environmentVariable(PropertyNames.dbPasswordEnv)
     return if (password.isPresent) {
         selectStringProperties(
             PropertyNames.dbUrl,
@@ -345,7 +345,6 @@ class PerformanceTestExtension(
 
     private
     val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
-        .forUseAtConfigurationTime()
         .getOrElse("false") == "true"
 
     abstract

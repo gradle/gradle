@@ -47,7 +47,7 @@ class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
 $junitSetup
 test {
-    def logLessStuff = providers.systemProperty('LogLessStuff').forUseAtConfigurationTime()
+    def logLessStuff = providers.systemProperty('LogLessStuff')
     systemProperty 'LogLessStuff', logLessStuff.orNull
 }
 """
