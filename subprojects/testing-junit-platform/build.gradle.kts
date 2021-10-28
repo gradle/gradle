@@ -3,7 +3,7 @@ plugins {
 }
 
 
-description = """Support class used to integrate running tests with the JUnit Jupiter testing framework into a Gradle build.
+description = """Support classes used to run tests with the JUnit Platform testing framework.
 
 This project should NOT be used as an implementation dependency anywhere."""
 
