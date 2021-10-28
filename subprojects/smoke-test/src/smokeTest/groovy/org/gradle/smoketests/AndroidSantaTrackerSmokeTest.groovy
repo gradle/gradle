@@ -117,6 +117,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     private SmokeTestGradleRunner runnerForLocationExpectingLintDeprecations(File location, boolean isCleanBuild, String agpVersion, String task) {
         SmokeTestGradleRunner runner = isCleanBuild ? runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, task) : runnerForLocation(location, agpVersion, task)
+        expectFileTreeResourcesDeprecation(runner)
         def outputsUsedWithoutDependency = [
             'common': ['common'],
             'playgames': ['common', 'playgames'],
