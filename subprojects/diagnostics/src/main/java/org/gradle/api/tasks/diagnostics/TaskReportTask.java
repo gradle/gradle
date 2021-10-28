@@ -121,9 +121,23 @@ public class TaskReportTask extends ConventionReportTask {
      * @since 7.4
      */
     @Incubating
+    @Console
+    public boolean isShowTypes() {
+        return showTypes.get();
+    }
+
+    /**
+     * Set whether to show the task types next to their names in the output.
+     *
+     * This property can be set via command-line option '--types'.
+     *
+     * @param showTypes whether to show the task types next to their names in the output
+     * @since 7.4
+     */
+    @Incubating
     @Option(option = "types", description = "Show task class types")
-    public Property<Boolean> isShowTypes() {
-        return showTypes;
+    public void setShowTypes(boolean showTypes) {
+        this.showTypes.set(showTypes);
     }
 
     @TaskAction
@@ -188,7 +202,7 @@ public class TaskReportTask extends ConventionReportTask {
 
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
-        renderer.showTypes(isShowTypes().get());
+        renderer.showTypes(isShowTypes());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;
