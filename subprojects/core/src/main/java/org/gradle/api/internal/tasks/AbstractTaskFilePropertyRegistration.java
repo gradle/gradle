@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.ContentTracking;
-
 public abstract class AbstractTaskFilePropertyRegistration implements TaskPropertyRegistration {
     private String propertyName;
     private boolean optional;
-    private ContentTracking contentTracking = ContentTracking.TRACKED;
     private final StaticValue value;
 
     public AbstractTaskFilePropertyRegistration(StaticValue value) {
@@ -49,13 +46,5 @@ public abstract class AbstractTaskFilePropertyRegistration implements TaskProper
 
     public void setOptional(boolean optional) {
         this.optional = optional;
-    }
-
-    public ContentTracking getContentTracking() {
-        return contentTracking;
-    }
-
-    public void setContentTracking(ContentTracking contentTracking) {
-        this.contentTracking = contentTracking;
     }
 }

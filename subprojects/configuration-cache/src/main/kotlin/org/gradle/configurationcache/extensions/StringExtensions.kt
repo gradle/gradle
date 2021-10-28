@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.configurationcache.extensions
 
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
+import java.util.Locale
 
-class DefaultTaskOutputFilePropertyRegistrationTest extends AbstractTaskFilePropertyRegistrationTest<DefaultTaskOutputFilePropertyRegistration> {
-    @Override
-    DefaultTaskOutputFilePropertyRegistration createRegistration() {
-        return new DefaultTaskOutputFilePropertyRegistration(new StaticValue("file"), OutputFilePropertyType.DIRECTORY)
-    }
-}
+
+internal
+fun String.toDefaultLowerCase() = lowercase(Locale.getDefault())

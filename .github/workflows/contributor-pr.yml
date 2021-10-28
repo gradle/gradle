@@ -1,7 +1,18 @@
 name: Contributor CI Build
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
+
+env:
+  # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+  # Enable debub for the `gradle-build-action` cache operations
+  CACHE_DEBUG_ENABLED: true
 
 jobs:
   build:
@@ -17,28 +28,28 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
+      - id: determine-sys-prop-args
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+            } else {
+                core.setOutput('sys-prop-args', '-DcacheNode=us')
+            }
       - name: assemble
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean compileAll --no-configuration-cache
-      - name: "Comment build scan url"
-        uses: actions/github-script@v3
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              compileAll
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+      sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
 
   sanity-check:
     name: "Sanity Check on Linux"
@@ -56,22 +67,12 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean sanityCheck --no-configuration-cache
-      - name: "Comment build scan url"
-        uses: actions/github-script@v3
-        if: github.event_name == 'pull_request' && failure()
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ ${{ github.workflow }} failed: ${{ steps.gradle.outputs.build-scan-url }}'
-            })
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              sanityCheck
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              ${{ needs.build.outputs.sys-prop-args }}
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -93,7 +94,9 @@ jobs:
         id: gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: clean ${{ matrix.bucket.tasks }} --no-configuration-cache
-    env:
-      # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
-      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              ${{ matrix.bucket.tasks }}
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              ${{ needs.build.outputs.sys-prop-args }}

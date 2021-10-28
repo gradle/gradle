@@ -33,18 +33,6 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     TaskInputFilePropertyBuilder withPropertyName(String propertyName);
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    TaskInputFilePropertyBuilder untracked();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    TaskInputFilePropertyBuilder tracked(boolean tracked);
-
-    /**
      * Skip executing the task if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
      */

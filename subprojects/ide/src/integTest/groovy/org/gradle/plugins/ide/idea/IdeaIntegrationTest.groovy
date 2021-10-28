@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
+import groovy.xml.XmlSlurper
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
@@ -123,11 +124,11 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         hasProjectLibrary('root.ipr', 'scala-sdk-2.11.2', [], [], [], ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'])
         def scalaLibs = [
             'scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.',
-            'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.', 
+            'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.',
             'jline-terminal-jna-3.19.0', 'jline-terminal-3.19.0.', 'scala-library-2.13.6', 'protobuf-java-3.7.0.', 'util-interface', 'jna-5.3.1'
         ]
         def scaladocLibsAndDeps = [
-            'scaladoc_3-3.0.1.', 'scala3-tasty-inspector_3-3.0.1', 'flexmark-0', 'flexmark-html-parser', 'flexmark-ext-anchorlink', 
+            'scaladoc_3-3.0.1.', 'scala3-tasty-inspector_3-3.0.1', 'flexmark-0', 'flexmark-html-parser', 'flexmark-ext-anchorlink',
             'flexmark-ext-autolink', 'flexmark-ext-emoji', 'flexmark-ext-gfm-strikethrough', 'flexmark-ext-gfm-tables',
             'flexmark-ext-gfm-tasklist', 'flexmark-ext-wikilink', 'flexmark-ext-yaml-front-matter', 'liqp', 'jsoup', 'jackson-dataformat-yaml',
             'flexmark-util', 'flexmark-formatter', 'autolink-0.6', 'flexmark-jira-converter', 'antlr-3', 'jackson-annotations', 'jackson-core',
@@ -149,11 +150,11 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         hasProjectLibrary('root.ipr', 'scala-compiler-2.11.2', ['compiler-bridge_2.11', 'scala-library-2.11.2', 'scala-compiler-2.11.2', 'scala-reflect-2.11.2', 'scala-xml_2.11-1.0.2', 'scala-parser-combinators_2.11-1.0.2', 'compiler-interface', 'util-interface', 'protobuf-java'], [], [], [])
         def scalaLibs = [
             'scala3-compiler_3-3.0.1.', 'scala3-sbt-bridge-3.0.1.', 'scala3-interfaces-3.0.1.', 'tasty-core_3-3.0.1.',
-            'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.', 
+            'scala3-library_3-3.0.1.', 'scala-asm-9.1.0-scala-1', 'compiler-interface-1.3.5', 'jline-reader-3.19.0.',
             'jline-terminal-jna-3.19.0', 'jline-terminal-3.19.0.', 'scala-library-2.13.6', 'protobuf-java-3.7.0.', 'util-interface', 'jna-5.3.1'
         ]
         def scaladocLibsAndDeps = [
-            'scaladoc_3-3.0.1.', 'scala3-tasty-inspector_3-3.0.1', 'flexmark-0', 'flexmark-html-parser', 'flexmark-ext-anchorlink', 
+            'scaladoc_3-3.0.1.', 'scala3-tasty-inspector_3-3.0.1', 'flexmark-0', 'flexmark-html-parser', 'flexmark-ext-anchorlink',
             'flexmark-ext-autolink', 'flexmark-ext-emoji', 'flexmark-ext-gfm-strikethrough', 'flexmark-ext-gfm-tables',
             'flexmark-ext-gfm-tasklist', 'flexmark-ext-wikilink', 'flexmark-ext-yaml-front-matter', 'liqp', 'jsoup', 'jackson-dataformat-yaml',
             'flexmark-util', 'flexmark-formatter', 'autolink-0.6', 'flexmark-jira-converter', 'antlr-3', 'jackson-annotations', 'jackson-core',

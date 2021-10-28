@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.FileNormalizer;
@@ -71,17 +70,6 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     @Override
     public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
         setOptional(optional);
-        return this;
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal untracked() {
-        return tracked(false);
-    }
-
-    @Override
-    public TaskInputFilePropertyBuilderInternal tracked(boolean tracked) {
-        setContentTracking(tracked ? ContentTracking.TRACKED : ContentTracking.UNTRACKED);
         return this;
     }
 

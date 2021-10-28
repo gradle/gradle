@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 public interface JvmVendor {
 
     enum KnownJvmVendor {
-        ADOPTIUM("temurin|adoptium|eclipse foundation", "Eclipse Temurin"),
+        ADOPTIUM("adoptium", "temurin|adoptium|eclipse foundation", "Eclipse Temurin"),
         ADOPTOPENJDK("adoptopenjdk", "AdoptOpenJDK"),
         AMAZON("amazon", "Amazon Corretto"),
         APPLE("apple", "Apple"),
@@ -36,11 +36,19 @@ public interface JvmVendor {
         SAP("sap se", "SAP SapMachine"),
         UNKNOWN("gradle", "Unknown Vendor");
 
+        private final String indicatorString;
         private final Pattern indicatorPattern;
         private final String displayName;
 
         KnownJvmVendor(String indicatorString, String displayName) {
+            this.indicatorString = indicatorString;
             this.indicatorPattern = Pattern.compile(indicatorString, Pattern.CASE_INSENSITIVE);
+            this.displayName = displayName;
+        }
+
+        KnownJvmVendor(String indicatorString, String pattern, String displayName) {
+            this.indicatorString = indicatorString;
+            this.indicatorPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
             this.displayName = displayName;
         }
 
@@ -53,11 +61,18 @@ public interface JvmVendor {
                 return UNKNOWN;
             }
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
+                if (jvmVendor.indicatorString.equals(rawVendor)) {
+                    return jvmVendor;
+                }
                 if (jvmVendor.indicatorPattern.matcher(rawVendor).find()) {
                     return jvmVendor;
                 }
             }
             return UNKNOWN;
+        }
+
+        public JvmVendor asJvmVendor() {
+            return JvmVendor.fromString(indicatorString);
         }
     }
 

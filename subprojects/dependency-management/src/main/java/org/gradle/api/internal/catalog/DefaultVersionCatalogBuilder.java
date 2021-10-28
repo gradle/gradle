@@ -232,7 +232,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         }
         RegularFileProperty srcProp = objects.fileProperty();
         srcProp.set(modelFile);
-        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes().forUseAtConfigurationTime();
+        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes();
         try {
             TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this);
         } catch (IOException e) {

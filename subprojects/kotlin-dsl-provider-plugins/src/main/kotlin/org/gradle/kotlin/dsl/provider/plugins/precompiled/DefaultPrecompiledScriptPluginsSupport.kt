@@ -239,7 +239,6 @@ fun Project.enableScriptCompilationOf(
                 strict.set(
                     providers
                         .systemProperty("org.gradle.kotlin.dsl.precompiled.accessors.strict")
-                        .forUseAtConfigurationTime()
                         .map(java.lang.Boolean::parseBoolean)
                         .orElse(false)
                 )

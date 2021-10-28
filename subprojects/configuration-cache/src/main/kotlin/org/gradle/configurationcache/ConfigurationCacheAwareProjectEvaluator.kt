@@ -19,12 +19,17 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.configuration.project.ProjectEvaluator
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 
 
+internal
 class ConfigurationCacheAwareProjectEvaluator(
-    private val delegate: ProjectEvaluator
+    private val delegate: ProjectEvaluator,
+    private val controller: ConfigurationCacheFingerprintController
 ) : ProjectEvaluator {
     override fun evaluate(project: ProjectInternal, state: ProjectStateInternal) {
-        delegate.evaluate(project, state)
+        controller.collectFingerprintForProject(project.identityPath) {
+            delegate.evaluate(project, state)
+        }
     }
 }

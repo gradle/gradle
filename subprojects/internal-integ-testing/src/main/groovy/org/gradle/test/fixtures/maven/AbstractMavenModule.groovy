@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
+import groovy.xml.XmlParser
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage

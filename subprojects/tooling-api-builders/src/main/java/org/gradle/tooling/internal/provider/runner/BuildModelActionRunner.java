@@ -16,17 +16,17 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.internal.build.BuildToolingModelAction;
-import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeModelAction;
+import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
@@ -62,7 +62,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private static class ModelCreateAction implements BuildToolingModelAction<Object> {
+    private static class ModelCreateAction implements BuildTreeModelAction<Object> {
         private final BuildModelAction buildModelAction;
         private UnknownModelException modelLookupFailure;
 
@@ -71,21 +71,20 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         @Override
-        public void beforeTasks(BuildToolingModelController controller) {
+        public void beforeTasks(BuildTreeModelController controller) {
             // Ignore
         }
 
         @Override
-        public Object fromBuildModel(BuildToolingModelController controller) {
+        public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
-            ToolingModelBuilderLookup.Builder builder;
+            ToolingModelScope scope = controller.locateBuilderForDefaultTarget(modelName, false);
             try {
-                builder = controller.locateBuilderForDefaultTarget(modelName, false);
+                return scope.getModel(modelName, null);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;
             }
-            return builder.build(null);
         }
     }
 }

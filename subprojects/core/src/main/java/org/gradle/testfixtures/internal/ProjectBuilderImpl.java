@@ -242,6 +242,10 @@ public class ProjectBuilderImpl {
         }
 
         @Override
+        public void ensureProjectsConfigured() {
+        }
+
+        @Override
         public BuildIdentifier getBuildIdentifier() {
             return DefaultBuildIdentifier.ROOT;
         }
@@ -298,11 +302,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public GradleInternal getMutableModel() {
-            return gradle;
-        }
-
-        @Override
-        public GradleInternal getBuild() {
             return gradle;
         }
     }

@@ -25,7 +25,6 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.internal.tasks.properties.ContentTracking
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -94,6 +93,7 @@ class TaskNodeCodec(
                     writeUpToDateSpec(task)
                     writeCollection(task.outputs.cacheIfSpecs)
                     writeCollection(task.outputs.doNotCacheIfSpecs)
+                    writeReasonNotToTrackState(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
                         writeRegisteredPropertiesOf(
@@ -121,6 +121,7 @@ class TaskNodeCodec(
             readUpToDateSpec(task)
             readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
             readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
+            readReasonNotToTrackState(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
             }
@@ -148,6 +149,19 @@ class TaskNodeCodec(
     suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
             task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
+        writeNullableString(task.reasonNotToTrackState.orElse(null))
+    }
+
+    private
+    fun ReadContext.readReasonNotToTrackState(task: TaskInternal) {
+        val reasonNotToTrackState = readNullableString()
+        if (reasonNotToTrackState != null) {
+            task.doNotTrackState(reasonNotToTrackState)
         }
     }
 
@@ -234,16 +248,14 @@ sealed class RegisteredProperty {
         val incremental: Boolean,
         val fileNormalizer: Class<out FileNormalizer>?,
         val directorySensitivity: DirectorySensitivity,
-        val lineEndingSensitivity: LineEndingSensitivity,
-        val contentTracking: ContentTracking
+        val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
 
     data class OutputFile(
         val propertyName: String,
         val propertyValue: PropertyValue,
         val optional: Boolean,
-        val filePropertyType: OutputFilePropertyType,
-        val contentTracking: ContentTracking
+        val filePropertyType: OutputFilePropertyType
     ) : RegisteredProperty()
 }
 
@@ -279,7 +291,6 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeClass(fileNormalizer!!)
                     writeEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
-                    writeEnum(contentTracking)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
@@ -287,6 +298,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
+                else -> throw IllegalStateException()
             }
         }
     }
@@ -298,7 +310,6 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)
-            writeEnum(contentTracking)
         }
     }
 }
@@ -314,7 +325,6 @@ fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> 
         override fun visitOutputFileProperty(
             propertyName: String,
             optional: Boolean,
-            contentTracking: ContentTracking,
             value: PropertyValue,
             filePropertyType: OutputFilePropertyType
         ) {
@@ -323,8 +333,7 @@ fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> 
                     propertyName,
                     value,
                     optional,
-                    filePropertyType,
-                    contentTracking
+                    filePropertyType
                 )
             )
         }
@@ -349,8 +358,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
             propertyValue: PropertyValue,
-            filePropertyType: InputFilePropertyType,
-            contentTracking: ContentTracking
+            filePropertyType: InputFilePropertyType
         ) {
             properties.add(
                 RegisteredProperty.InputFile(
@@ -362,8 +370,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     incremental,
                     fileNormalizer,
                     directorySensitivity,
-                    lineEndingSensitivity,
-                    contentTracking
+                    lineEndingSensitivity
                 )
             )
         }
@@ -407,7 +414,6 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val normalizer = readClass()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
-                    val contentTracking = readEnum<ContentTracking>()
                     task.inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
@@ -421,7 +427,6 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         withNormalizer(normalizer.uncheckedCast())
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
                         normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
-                        tracked(contentTracking == ContentTracking.TRACKED)
                     }
                 }
                 else -> {
@@ -445,7 +450,6 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
         readPropertyValue(PropertyKind.OutputProperty, propertyName) { propertyValue ->
             val optional = readBoolean()
             val filePropertyType = readEnum<OutputFilePropertyType>()
-            val contentTracking = readEnum<ContentTracking>()
             task.outputs.run {
                 when (filePropertyType) {
                     OutputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
@@ -456,7 +460,6 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
             }.run {
                 withPropertyName(propertyName)
                 optional(optional)
-                tracked(contentTracking == ContentTracking.TRACKED)
             }
         }
     }

@@ -135,4 +135,17 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         where:
         watchMode << WatchMode.values()
     }
+
+    def "cannot define a custom build scope cache dir when watching is explicitly enabled"() {
+        buildFile << """
+        """
+        file("buildSrc/build.gradle") << """
+        """
+
+        when:
+        fails("help", "--watch-fs", "--project-cache-dir=broken")
+
+        then:
+        failure.assertHasDescription("Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem")
+    }
 }

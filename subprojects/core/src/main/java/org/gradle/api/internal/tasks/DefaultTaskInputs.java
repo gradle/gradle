@@ -25,7 +25,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.tasks.properties.ContentTracking;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
@@ -91,8 +90,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 false,
                 registration.getNormalizer(),
                 registration.getValue(),
-                registration.getFilePropertyType(),
-                registration.getContentTracking());
+                registration.getFilePropertyType()
+            );
         }
         for (TaskInputPropertyRegistration registration : registeredProperties) {
             visitor.visitInputProperty(registration.getPropertyName(), registration.getValue(), registration.isOptional());
@@ -204,8 +203,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
-                InputFilePropertyType filePropertyType,
-                ContentTracking contentTracking
+                InputFilePropertyType filePropertyType
             ) {
                 FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 context.add(actualValue);
@@ -247,8 +245,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                     LineEndingSensitivity lineEndingSensitivity,
                     boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                    PropertyValue value, InputFilePropertyType filePropertyType,
-                    ContentTracking contentTracking
+                    PropertyValue value, InputFilePropertyType filePropertyType
                 ) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
                         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
@@ -276,8 +273,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             boolean incremental,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
             PropertyValue value,
-            InputFilePropertyType filePropertyType,
-            ContentTracking contentTracking
+            InputFilePropertyType filePropertyType
         ) {
             hasInputs = true;
         }

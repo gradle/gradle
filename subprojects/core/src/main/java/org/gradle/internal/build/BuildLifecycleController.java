@@ -25,26 +25,52 @@ import org.gradle.internal.concurrent.Stoppable;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Controls the lifecycle of an individual build in the build tree.
  */
 public interface BuildLifecycleController extends Stoppable {
     /**
-     * Returns the current state of the mutable model for this build. You should avoid using this method, as no thread safety or lifecycling is applied
-     * to the return value.
+     * Returns the current state of the mutable model for this build.
+     *
+     * Note: You should avoid using this method, as no thread safety or lifecycling is applied to the return value.
      */
     GradleInternal getGradle();
 
     /**
      * Configures the settings for this build, if not already available.
+     * Can be called multiple times.
+     */
+    void loadSettings();
+
+    /**
+     * Runs the given action against the loaded settings for this build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
      *
      * @return The loaded settings instance.
      */
-    SettingsInternal getLoadedSettings();
+    <T> T withSettings(Function<? super SettingsInternal, T> action);
 
     /**
-     * Configures the build, if not already available.
+     * Configures the projects of the build, if not already done.
+     * Can be called multiple times.
+     */
+    void configureProjects();
+
+    /**
+     * Runs the given action against the mutable state of this build after configuring the projects of the build.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * @return The configured Gradle build instance.
+     */
+    <T> T withProjectsConfigured(Function<? super GradleInternal, T> action);
+
+    /**
+     * Configures the build, if not already done.
+     * This may fail with an error, if this build is loaded from cache rather than configured.
+     *
+     * Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */
@@ -76,6 +102,11 @@ public interface BuildLifecycleController extends Stoppable {
      * Must call {@link #finalizeWorkGraph(BuildWorkPlan)} prior to calling this method.
      */
     ExecutionResult<Void> executeTasks(BuildWorkPlan plan);
+
+    /**
+     * Runs an action against the tooling model creators of this build. May configure the build as required.
+     */
+    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.

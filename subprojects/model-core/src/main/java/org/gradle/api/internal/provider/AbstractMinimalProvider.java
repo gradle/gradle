@@ -113,9 +113,10 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return new OrElseProvider<>(this, Providers.internal(provider));
     }
 
+    @Deprecated
     @Override
-    public Provider<T> forUseAtConfigurationTime() {
-        // By default, any provider can be used at configuration time
+    public final Provider<T> forUseAtConfigurationTime() {
+        // TODO:configuration-cache nag user
         return this;
     }
 

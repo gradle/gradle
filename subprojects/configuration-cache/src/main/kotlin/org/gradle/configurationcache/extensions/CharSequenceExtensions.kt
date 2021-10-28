@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.configurationcache.extensions
 
-public enum ContentTracking {
-    TRACKED,
-    UNTRACKED
-}
+import java.util.Locale
+
+
+fun CharSequence.capitalized(): String =
+    when {
+        isEmpty() -> ""
+        else -> get(0).let { initial ->
+            when {
+                initial.isLowerCase() -> initial.titlecase(Locale.getDefault()) + substring(1)
+                else -> toString()
+            }
+        }
+    }

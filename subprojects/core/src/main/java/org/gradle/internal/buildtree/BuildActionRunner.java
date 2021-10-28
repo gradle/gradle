@@ -23,6 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -129,6 +130,13 @@ public interface BuildActionRunner {
             } else {
                 return failed(new MultipleBuildFailures(newFailures));
             }
+        }
+
+        /**
+         * Returns a copy of this result adding the given failure.
+         */
+        public Result addFailure(Throwable t) {
+            return addFailures(Collections.singletonList(t));
         }
     }
 }

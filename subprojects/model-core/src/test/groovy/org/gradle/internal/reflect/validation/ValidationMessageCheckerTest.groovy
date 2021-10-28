@@ -679,7 +679,7 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     def "tests output of invalidUseOfCacheableAnnotation"() {
         when:

@@ -71,7 +71,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
         BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
-        this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, workExecutor, finishExecutor);
+        this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
     }
 
     @Override
@@ -150,12 +150,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public GradleInternal getBuild() {
-        return getBuildController().getGradle();
-    }
-
-    @Override
-    public GradleInternal getMutableModel() {
-        return getBuildController().getGradle();
+    protected void ensureChildBuildConfigured() {
+        // nothing to do for the root build
     }
 }

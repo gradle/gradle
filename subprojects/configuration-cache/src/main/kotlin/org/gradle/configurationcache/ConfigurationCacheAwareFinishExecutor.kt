@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.configurationcache
 
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType
+import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 
-class DefaultTaskInputFilePropertyRegistrationTest extends AbstractTaskFilePropertyRegistrationTest<DefaultTaskInputFilePropertyRegistration> {
-    @Override
-    DefaultTaskInputFilePropertyRegistration createRegistration() {
-        return new DefaultTaskInputFilePropertyRegistration(new StaticValue("file"), InputFilePropertyType.DIRECTORY)
+
+class ConfigurationCacheAwareFinishExecutor(
+    private val delegate: BuildTreeFinishExecutor,
+    private val cache: BuildTreeConfigurationCache
+) : BuildTreeFinishExecutor {
+    override fun finishBuildTree(failures: List<Throwable>): RuntimeException? {
+        cache.finalizeCacheEntry()
+        return delegate.finishBuildTree(failures)
     }
 }

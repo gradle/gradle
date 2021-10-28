@@ -28,7 +28,6 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.provider.ProviderFactory
@@ -60,7 +59,6 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     private GeneratedSource sources
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            Stub(ConfigurationTimeBarrier),
             new DefaultListenerManager(Scopes.Build),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),

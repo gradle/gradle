@@ -289,7 +289,7 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.INVALID_USE_OF_CACHEABLE_ANNOTATION
+        ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION
     )
     String invalidUseOfCacheableAnnotation(@DelegatesTo(value = InvalidUseOfCacheable, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(InvalidUseOfCacheable, 'invalid_use_of_cacheable_annotation', spec)

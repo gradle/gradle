@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.BuildToolingModelController
+import org.gradle.internal.buildtree.BuildTreeModelController
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity
@@ -30,11 +30,12 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.provider.model.UnknownModelException
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
+import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Consumer
+import java.util.function.Function
 import java.util.function.Supplier
 
 class DefaultBuildControllerTest extends Specification {
@@ -42,11 +43,11 @@ class DefaultBuildControllerTest extends Specification {
     def modelId = Stub(ModelIdentifier) {
         getName() >> 'some.model'
     }
-    def modelBuilder = Stub(ToolingModelBuilderLookup.Builder)
-    def buildStateRegistry = Stub(BuildStateRegistry)
-    def toolingModelController = Mock(BuildToolingModelController)
+    def modelScope = Mock(ToolingModelScope)
+    def buildStateRegistry = Mock(BuildStateRegistry)
+    def modelController = Mock(BuildTreeModelController)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def controller = new DefaultBuildController(toolingModelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
+    def controller = new DefaultBuildController(modelController, workerThreadRegistry, cancellationToken, buildStateRegistry)
 
     def "cannot get build model from unmanaged thread"() {
         given:
@@ -65,7 +66,8 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget('some.model', false) >> { throw failure }
+        1 * modelController.locateBuilderForDefaultTarget('some.model', false) >> modelScope
+        1 * modelScope.getModel("some.model", null) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -113,8 +115,8 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState3.buildRootDir >> rootDir
         _ * buildState3.projects >> projects3
         _ * projects3.getProject(Path.path(":some:path")) >> projectState
-        _ * toolingModelController.locateBuilderForTarget(projectState, "some.model", false) >> modelBuilder
-        _ * modelBuilder.build(null) >> model
+        _ * modelController.locateBuilderForTarget(projectState, "some.model", false) >> modelScope
+        _ * modelScope.getModel("some.model", null) >> model
 
         when:
         def result = controller.getModel(target, modelId)
@@ -140,8 +142,8 @@ class DefaultBuildControllerTest extends Specification {
         _ * buildState1.importableBuild >> false
         _ * buildState2.importableBuild >> true
         _ * buildState2.buildRootDir >> rootDir
-        _ * toolingModelController.locateBuilderForTarget(buildState2, "some.model", false) >> modelBuilder
-        _ * modelBuilder.build(null) >> model
+        _ * modelController.locateBuilderForTarget(buildState2, "some.model", false) >> modelScope
+        _ * modelScope.getModel("some.model", null) >> model
 
         when:
         def result = controller.getModel(target, modelId)
@@ -155,8 +157,8 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", false) >> modelBuilder
-        _ * modelBuilder.build(null) >> model
+        _ * modelController.locateBuilderForDefaultTarget("some.model", false) >> modelScope
+        _ * modelScope.getModel("some.model", null) >> model
 
         when:
         def result = controller.getModel(null, modelId)
@@ -193,11 +195,11 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        _ * toolingModelController.locateBuilderForDefaultTarget("some.model", true) >> modelBuilder
-        _ * modelBuilder.getParameterType() >> parameterType
-        _ * modelBuilder.build(_) >> { CustomParameter param ->
+        _ * modelController.locateBuilderForDefaultTarget("some.model", true) >> modelScope
+        _ * modelScope.getParameterType() >> parameterType
+        _ * modelScope.getModel("some.model", _) >> { String name, Function param ->
             assert param != null
-            assert param.getValue() == "myValue"
+            assert param.apply(CustomParameter.class) == parameter
             return model
         }
 
@@ -220,7 +222,7 @@ class DefaultBuildControllerTest extends Specification {
         result == ["one", "two", "three"]
 
         _ * workerThreadRegistry.workerThread >> true
-        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+        1 * modelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
         }
@@ -245,7 +247,7 @@ class DefaultBuildControllerTest extends Specification {
         e.causes == [failure1, failure2]
 
         _ * workerThreadRegistry.workerThread >> true
-        1 * toolingModelController.runQueryModelActions(_) >> { def params ->
+        1 * modelController.runQueryModelActions(_) >> { def params ->
             def actions = params[0]
             actions.forEach { it.run(null) }
         }

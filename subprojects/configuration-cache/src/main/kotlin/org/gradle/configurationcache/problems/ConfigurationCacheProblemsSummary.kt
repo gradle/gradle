@@ -19,6 +19,7 @@ package org.gradle.configurationcache.problems
 import com.google.common.collect.Ordering
 import io.usethesource.capsule.Set
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
 import java.util.Comparator.comparing
@@ -106,7 +107,7 @@ class Summary private constructor(
             appendLine()
             Ordering.from(consoleComparator()).leastOf(uniqueProblems, maxConsoleProblems).forEach { problem ->
                 append("- ")
-                append(problem.userCodeLocation.capitalize())
+                append(problem.userCodeLocation.capitalized())
                 append(": ")
                 appendLine(problem.message)
                 problem.documentationSection?.let<String, Unit> {

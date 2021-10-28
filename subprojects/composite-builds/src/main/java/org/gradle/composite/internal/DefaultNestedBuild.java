@@ -18,7 +18,6 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -121,16 +120,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public File getBuildRootDir() {
         return buildDefinition.getBuildRootDir();
-    }
-
-    @Override
-    public GradleInternal getBuild() {
-        return getBuildController().getGradle();
-    }
-
-    @Override
-    public GradleInternal getMutableModel() {
-        return getBuildController().getGradle();
     }
 
     private static class DoNothingBuildFinishExecutor implements BuildTreeFinishExecutor {

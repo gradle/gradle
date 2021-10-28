@@ -19,7 +19,6 @@ package org.gradle.internal.buildtree
 import org.gradle.api.internal.GradleInternal
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildToolingModelAction
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -119,7 +118,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "runs action after running tasks when task execution is requested"() {
-        def action = Mock(BuildToolingModelAction)
+        def action = Mock(BuildTreeModelAction)
 
         when:
         def result = controller.fromBuildModel(true, action)
@@ -140,7 +139,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "does not run action if task execution fails"() {
-        def action = Mock(BuildToolingModelAction)
+        def action = Mock(BuildTreeModelAction)
         def failure = new RuntimeException()
 
         when:
@@ -161,7 +160,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     }
 
     def "runs action when tasks are not requested"() {
-        def action = Mock(BuildToolingModelAction)
+        def action = Mock(BuildTreeModelAction)
 
         when:
         def result = controller.fromBuildModel(false, action)
@@ -180,7 +179,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        controller.fromBuildModel(false, Stub(BuildToolingModelAction))
+        controller.fromBuildModel(false, Stub(BuildTreeModelAction))
 
         then:
         def e = thrown(RuntimeException)
@@ -206,7 +205,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
     def "cannot run action against model once build has started"() {
         def action = Mock(Consumer)
-        def modelAction = Mock(BuildToolingModelAction)
+        def modelAction = Mock(BuildTreeModelAction)
 
         given:
         _ * modelCreator.fromBuildModel(modelAction) >> {

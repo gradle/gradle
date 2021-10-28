@@ -95,6 +95,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -135,6 +136,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final Property<Duration> timeout;
 
     private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+
+    private String reasonNotToTrackState;
 
     private final ServiceRegistry services;
 
@@ -354,6 +357,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
+    }
+
+    @Override
+    public void doNotTrackState(String reasonNotToTrackState) {
+        if (reasonNotToTrackState == null) {
+            throw new InvalidUserDataException("notTrackingReason must not be null!");
+        }
+        taskMutator.mutate("Task.doNotTrackState(String)",
+            () -> this.reasonNotToTrackState = reasonNotToTrackState
+        );
+    }
+
+    @Override
+    public Optional<String> getReasonNotToTrackState() {
+        return Optional.ofNullable(reasonNotToTrackState);
     }
 
     @Internal

@@ -84,7 +84,8 @@ public class IncludedRootBuild implements IncludedBuildInternal {
         }
 
         private Task resolveTask() {
-            return rootBuildState.getBuild().getRootProject().getTasks().getByPath(taskPath);
+            rootBuildState.ensureProjectsConfigured();
+            return rootBuildState.getMutableModel().getRootProject().getTasks().getByPath(taskPath);
         }
     }
 }

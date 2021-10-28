@@ -89,7 +89,6 @@ The Kotlin DSL is fully supported by IntelliJ IDEA and Android Studio. Other IDE
 
 As mentioned in the limitations, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] to get content-assist and refactoring tools for Kotlin DSL scripts in IntelliJ IDEA.
 
-In addition, IntelliJ IDEA and Android Studio might spawn up to 3 Gradle daemons when editing Gradle scripts — one for each type of script: build scripts, settings files and initialization scripts.
 Builds with slow configuration time might affect the IDE responsiveness, so please check out the <<performance.adoc#performance_gradle,performance section>> to help resolve such issues.
 
 === Automatic build import vs. automatic reloading of script dependencies
@@ -735,7 +734,7 @@ Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
 
 === Kotlin versions
 
-Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For example, Gradle 4.3 ships with the Kotlin DSL v0.12.1 that includes Kotlin 1.1.51 versions of these modules. The `kotlin` package from those modules is visible through the Gradle classpath.
+Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For details see the Kotlin section of Gradle's <<compatibility#kotlin,compatibility matrix>>. The `kotlin` package from those modules is visible through the Gradle classpath.
 
 The link:https://kotlinlang.org/docs/reference/compatibility.html[compatibility guarantees] provided by Kotlin apply for both backward and forward compatibility.
 
