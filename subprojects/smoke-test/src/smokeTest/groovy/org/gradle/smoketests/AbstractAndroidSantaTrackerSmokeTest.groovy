@@ -74,16 +74,14 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     private SmokeTestGradleRunner expectFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
         return expectFileTreeResourcesDeprecation(runner)
-            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."), "Relying on FileTrees for ignoring empty directories. " +
-                "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                "Annotate the property projectNativeLibs with @IgnoreEmptyDirectories."
+            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."),
+                deprecationOfFileTreeForEmptySources("projectNativeLibs")
             )
     }
 
     protected SmokeTestGradleRunner expectFileTreeResourcesDeprecation(SmokeTestGradleRunner runner) {
-        runner.expectDeprecationWarning("Relying on FileTrees for ignoring empty directories. " +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-            "Annotate the property resources with @IgnoreEmptyDirectories.",
+        runner.expectDeprecationWarning(
+            deprecationOfFileTreeForEmptySources("resources"),
             "https://issuetracker.google.com/issues/204425803"
         )
 

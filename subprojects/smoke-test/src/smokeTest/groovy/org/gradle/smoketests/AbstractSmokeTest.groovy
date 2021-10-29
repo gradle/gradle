@@ -323,6 +323,12 @@ abstract class AbstractSmokeTest extends Specification {
         return runner.withArguments([runner.arguments, extraArgs].flatten())
     }
 
+    protected static String deprecationOfFileTreeForEmptySources(String propertyName) {
+        return "Relying on FileTrees for ignoring empty directories. " +
+            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "Annotate the property ${propertyName} with @IgnoreEmptyDirectories."
+    }
+
     protected void replaceVariablesInBuildFile(Map binding) {
         replaceVariablesInFile(binding, buildFile)
     }

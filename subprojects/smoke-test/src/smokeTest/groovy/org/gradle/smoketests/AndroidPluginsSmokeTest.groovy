@@ -152,9 +152,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
         return runner
             .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4."),
-                "Relying on FileTrees for ignoring empty directories. " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                    "Annotate the property projectNativeLibs with @IgnoreEmptyDirectories.")
+                deprecationOfFileTreeForEmptySources("projectNativeLibs"))
             .build()
     }
 
