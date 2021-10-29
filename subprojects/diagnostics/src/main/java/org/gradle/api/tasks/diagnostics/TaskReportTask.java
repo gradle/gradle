@@ -122,7 +122,7 @@ public class TaskReportTask extends ConventionReportTask {
      */
     @Incubating
     @Console
-    public Property<Boolean> isShowTypes() {
+    public Property<Boolean> getShowTypes() {
         return showTypes;
     }
 
@@ -202,7 +202,7 @@ public class TaskReportTask extends ConventionReportTask {
 
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
-        renderer.showTypes(isShowTypes().get());
+        renderer.showTypes(getShowTypes().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;

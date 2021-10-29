@@ -74,7 +74,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setImpliesSubProjects(true);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
-            task.isShowTypes().convention(false);
+            task.getShowTypes().convention(false);
         });
     }
 
