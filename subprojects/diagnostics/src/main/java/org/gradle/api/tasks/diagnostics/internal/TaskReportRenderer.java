@@ -100,8 +100,7 @@ public class TaskReportRenderer extends TextReportRenderer {
         getTextOutput().withStyle(Identifier).text(task.getPath());
         if (showTypes) {
             final StyledTextOutput typeOutput = getTextOutput().withStyle(Info);
-            typeOutput.format(" (%s", task.getTypeName());
-            typeOutput.text(")");
+            typeOutput.format(" (%s)", task.getTypeName());
         }
     }
 
