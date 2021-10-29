@@ -16,15 +16,18 @@
 
 package gradlebuild.docs;
 
+import com.google.common.io.Files;
 import gradlebuild.docs.dsl.source.GenerateApiMapping;
 import gradlebuild.docs.dsl.source.GenerateDefaultImports;
 import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
@@ -35,6 +38,10 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -219,9 +226,30 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.into(flattenedAsciidocDirectory);
         });
 
+        TaskProvider<Task> userguideSinglePageMergeCss = tasks.register("userguideSinglePageMergeCss", task -> {
+            task.setDescription("Merges manual.css and single-page-overrides.css in one css file that is later used by single-page documentation.");
+            task.dependsOn(userguideFlattenSources);
+            Provider<RegularFile> manualCssFileProvider = extension.getUserManual().getStagingRoot().file("raw/css/manual.css");
+            Provider<RegularFile> singlePageOverrideFileProvider = extension.getUserManual().getStagingRoot().file("raw/css/single-page-overrides.css");
+            Provider<RegularFile> mergedFileProvider = extension.getUserManual().getStagingRoot().file("raw/css/single-page-merged.css");
+            task.getInputs()
+                .files(manualCssFileProvider, singlePageOverrideFileProvider)
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+            task.getOutputs().file(mergedFileProvider);
+            task.doLast(it -> {
+                File mergedFile = mergedFileProvider.get().getAsFile();
+                try(OutputStream out = new FileOutputStream(mergedFile, true)) {
+                    Files.copy(manualCssFileProvider.get().getAsFile(), out);
+                    Files.copy(singlePageOverrideFileProvider.get().getAsFile(), out);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+
         TaskProvider<AsciidoctorTask> userguideSinglePageHtml = tasks.register("userguideSinglePageHtml", AsciidoctorTask.class, task -> {
             task.setDescription("Generates HTML single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
+            configureForUserGuideSinglePage(task, userguideSinglePageMergeCss, extension, project);
             task.outputOptions(options -> options.setBackends(singletonList("html5")));
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
@@ -229,7 +257,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         TaskProvider<AsciidoctorTask> userguideSinglePagePdf = tasks.register("userguideSinglePagePdf", AsciidoctorTask.class, task -> {
             task.setDescription("Generates PDF single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
+            configureForUserGuideSinglePage(task, userguideSinglePageMergeCss, extension, project);
             task.outputOptions(options -> options.setBackends(singletonList("pdf")));
             // TODO: This breaks the provider
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
@@ -296,7 +324,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
+    private void configureForUserGuideSinglePage(AsciidoctorTask task, TaskProvider<Task> userguideSinglePageMergeCssTask, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
         task.onlyIf(t -> !extension.getQuickFeedback().get());
@@ -305,11 +333,16 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         // TODO: This breaks the provider
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
+        // Add also single-page-merged css produced by the userguideSinglePageMergeCss task
+        task.getInputs().files(userguideSinglePageMergeCssTask)
+            .withPropertyName("single-page-merged")
+            .withPathSensitivity(PathSensitivity.RELATIVE);
 
         Map<String, Object> attributes = new HashMap<>();
         attributes.put("source-highlighter", "coderay");
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
+        attributes.put("stylesheet", "single-page-merged.css");
 
         // TODO: This breaks if version is changed later
         attributes.put("groovyDslPath", "https://docs.gradle.org/" + project.getVersion() + "/dsl");
