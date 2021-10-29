@@ -224,7 +224,7 @@ public class TaskReportTask extends ConventionReportTask {
     }
 
     private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
-        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(project, !detail, detail, getDisplayGroup());
+        final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup());
         final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
         final SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
