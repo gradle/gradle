@@ -31,7 +31,9 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
+import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
@@ -81,6 +83,9 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val capturedFiles = newConcurrentHashSet<File>()
+
+    private
+    val undeclaredGradleProperties = newConcurrentHashSet<String>()
 
     private
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -153,6 +158,14 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
+    private
+    fun gradlePropertyRead(key: String, value: String?, consumer: String?) {
+        if (undeclaredGradleProperties.add(key)) {
+            write(ConfigurationCacheFingerprint.UndeclaredGradleProperty(key, value))
+            reportGradlePropertyInput(key, consumer)
+        }
+    }
+
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (undeclaredSystemProperties.add(key)) {
             write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key, value))
@@ -177,8 +190,14 @@ class ConfigurationCacheFingerprintWriter(
                     captureFile(file)
                 }
             }
+            is GradlePropertyValueSource.Parameters -> {
+                gradlePropertyRead(parameters.propertyName.get(), obtainedValue.value.get() as? String, null)
+            }
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
+            }
+            is EnvironmentVariableValueSource.Parameters -> {
+                envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
             }
             else -> {
                 captureValueSource(obtainedValue)
@@ -287,6 +306,14 @@ class ConfigurationCacheFingerprintWriter(
         reportInput(consumer = null, documentationSection = null) {
             text("build logic input of type ")
             reference(valueSourceType.simpleName)
+        }
+    }
+
+    private
+    fun reportGradlePropertyInput(key: String, consumer: String?) {
+        reportInput(consumer, DocumentationSection.RequirementsUndeclaredGradlePropRead) {
+            text("Gradle property ")
+            reference(key)
         }
     }
 

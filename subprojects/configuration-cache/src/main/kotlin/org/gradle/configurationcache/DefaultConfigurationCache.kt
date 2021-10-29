@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -402,6 +403,8 @@ class DefaultConfigurationCache internal constructor(
                     checkFingerprint(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory
                             get() = host.service()
+                        override val gradleProperties: GradleProperties
+                            get() = gradlePropertiesController.gradleProperties
                     })
                 }
             }

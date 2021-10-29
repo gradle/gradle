@@ -414,7 +414,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         where:
         kind     | option | description | reportedInput
         'system' | 'D'    | 'system'    | "system property 'greeting'"
-        'gradle' | 'P'    | 'Gradle'    | "build logic input of type 'GradlePropertyValueSource'"
+        'gradle' | 'P'    | 'Gradle'    | "Gradle property 'greeting'"
     }
 
     def "mapped system property used as task input"() {
