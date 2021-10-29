@@ -50,6 +50,11 @@ sealed class ConfigurationCacheFingerprint {
         val obtainedValue: ObtainedValue
     ) : ConfigurationCacheFingerprint()
 
+    data class UndeclaredGradleProperty(
+        val key: String,
+        val value: String?
+    ) : ConfigurationCacheFingerprint()
+
     data class UndeclaredSystemProperty(
         val key: String,
         val value: Any?
