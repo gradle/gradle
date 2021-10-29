@@ -20,14 +20,9 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 public interface TaskDetails {
     Path getPath();
-
-    default String getName() {
-        return Objects.requireNonNull(getPath().getName());
-    }
 
     @Nullable
     String getDescription();
