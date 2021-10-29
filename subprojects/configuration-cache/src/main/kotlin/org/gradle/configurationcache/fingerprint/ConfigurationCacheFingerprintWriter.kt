@@ -196,6 +196,9 @@ class ConfigurationCacheFingerprintWriter(
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
             }
+            is EnvironmentVariableValueSource.Parameters -> {
+                envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
+            }
             else -> {
                 captureValueSource(obtainedValue)
             }
