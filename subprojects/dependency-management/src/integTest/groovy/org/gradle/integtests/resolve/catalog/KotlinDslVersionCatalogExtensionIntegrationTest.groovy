@@ -237,6 +237,96 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         succeeds ':checkDeps'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/18617")
+    def "provides Configuration.invoke method supporting ProviderConvertible"() {
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        // Forces `my.lib` to be a ProviderConvertible, otherwise unused
+                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                    }
+                }
+            }
+        """
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            val custom by configurations.creating {
+                configurations.implementation.get().extendsFrom(this)
+            }
+            dependencies {
+                custom(libs.my.lib)
+                custom(libs.my.lib) {
+                    because("Some comment why we need this dependency")
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar"))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18617")
+    def "provides String.invoke method supporting ProviderConvertible"() {
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        // Forces `my.lib` to be a ProviderConvertible, otherwise unused
+                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                    }
+                }
+            }
+        """
+
+        withCheckDeps()
+
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            val custom by configurations.creating {
+                configurations.implementation.get().extendsFrom(this)
+            }
+            dependencies {
+                "custom"(libs.my.lib)
+                "custom"(libs.my.lib) {
+                    because("Some comment why we need this dependency")
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-1.1.jar"))
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/17874")
     def "supports version catalogs in force method of resolutionStrategy"() {
         def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
