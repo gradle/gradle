@@ -102,6 +102,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         instant.waitFinished >= instant.completeWorker1
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3461")
     def "work can be submitted to one operation while another operation is being waited on"() {
         def operation1 = Mock(BuildOperationRef)
         def operation2 = Mock(BuildOperationRef)

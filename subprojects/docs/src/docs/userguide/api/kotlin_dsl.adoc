@@ -200,6 +200,7 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 
 * Dependency and artifact configurations (such as `implementation` and `runtimeOnly` contributed by the Java Plugin)
 * Project extensions and conventions (such as `sourceSets`)
+* Extensions on the `dependencies` and `repositories` containers
 * Elements in the `tasks` and `configurations` containers
 * Elements in <<kotdsl:containers,project-extension containers>> (for example the source sets contributed by the Java Plugin that are added to the `sourceSets` container)
 * Extensions on each of the above

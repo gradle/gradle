@@ -374,4 +374,69 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         outputContains("value = value")
     }
+
+    @Unroll
+    def "reports build logic reading an environment value using #envVarRead.groovyExpression"() {
+        buildFile << """
+            println("CI = " + ${envVarRead.groovyExpression})
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        EnvVariableInjection.unsetEnvironmentVariable("CI").setup(this)
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI'")
+        }
+        outputContains("CI = $notDefined")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI", value).setup(this)
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI'")
+        }
+        outputContains("CI = $expectedValue")
+
+        where:
+        envVarRead                                          | notDefined | value     | expectedValue
+        EnvVariableRead.getEnv("CI")                        | "null"     | "defined" | "defined"
+        EnvVariableRead.getEnvGet("CI")                     | "null"     | "defined" | "defined"
+        EnvVariableRead.getEnvGetOrDefault("CI", "default") | "default"  | "defined" | "defined"
+    }
+
+    def "reports build logic reading environment variables with getenv(String) using GString parameters"() {
+        // Note that the map returned from System.getenv() doesn't support GStrings as keys, so there is no point in testing it.
+        buildFile << '''
+            def ci = "ci"
+            def value = "value"
+            println "CI1 = " + System.getenv("${ci.toUpperCase()}1")
+        '''
+
+        when:
+        EnvVariableInjection.unsetEnvironmentVariable("CI1").setup(this)
+        configurationCacheRun()
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI1'")
+        }
+        outputContains("CI1 = null")
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "defined").setup(this)
+        configurationCacheRun()
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variable 'CI1'")
+        }
+        outputContains("CI1 = defined")
+    }
 }
