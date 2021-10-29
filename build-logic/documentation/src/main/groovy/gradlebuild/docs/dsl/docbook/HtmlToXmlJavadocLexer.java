@@ -162,7 +162,7 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
         }
 
         @Override
-        void onEnd() {
+        public void onEnd() {
             while (!elementStack.isEmpty()) {
                 visitor.onEndHtmlElement(elementStack.removeFirst());
             }

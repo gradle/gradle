@@ -11,12 +11,12 @@ ${classMetadata.deprecated ? "Deprecated" : ""}
 
 |===
 |Property |Description
-<% classMetadata.declaredProperties.each { property ->
+<% declaredProperties.each { property ->
  out << "|"
     out << property.name
 out << '\n'
 out << '|'
-out << property.rawCommentText
+out << parseJavadocDescription(property.rawCommentText)
 out << '\n'
 }
 %>
@@ -26,12 +26,12 @@ out << '\n'
 
 |===
 |Method |Description
-<% classMetadata.declaredMethods.each { method ->
+<% declaredMethods.each { method ->
 out << "|"
 out << method.name
 out << '\n'
 out << '|'
-out << method.rawCommentText
+out << parseJavadocDescription(method.rawCommentText)
 out << '\n'
 }
 %>
@@ -39,20 +39,24 @@ out << '\n'
 
 == Property details
 
-<% classMetadata.declaredProperties.each { property ->
+<% declaredProperties.each { property ->
 out << "=== link:{groovyDslPath}/classMetadata.className[${property.type.name}] ${property.name}"
 out << '\n'
-out << property.rawCommentText
+out << '\n'
+out << parseJavadoc(property.rawCommentText)
+out << '\n'
 out << '\n'
 }
 %>
 
 == Method details
 
-<% classMetadata.declaredMethods.each { method ->
-out << "=== link:{groovyDslPath}/classMetadata.className[${method.returnType.name}] ${method.name}(${method.parameters.collect { it.signature }.join(", ") })"
+<% declaredMethods.each { method ->
+out << "=== link:{groovyDslPath}/${method.returnType.name}.adoc[${method.returnType.name}] ${method.name}(${method.parameters.collect { it.signature }.join(", ") })"
 out << '\n'
-out << method.rawCommentText
+out << '\n'
+out << parseJavadoc(method.rawCommentText)
+out << '\n'
 out << '\n'
 }
 %>

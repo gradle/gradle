@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 /**
  * Converts the main description of a javadoc comment into a stream of tokens.
  */
-class BasicJavadocLexer implements JavadocLexer {
+public class BasicJavadocLexer implements JavadocLexer {
     private static final Pattern HTML_ELEMENT = Pattern.compile("(?s)<\\\\?[^<]+?>");
     private static final Pattern ELEMENT_ATTRIBUTE = Pattern.compile("(?s)\\w+(\\s*=\\s*('.*?')|(\".*?\"))?");
     private static final Pattern END_ATTRIBUTE_NAME = Pattern.compile("=|(\\s)|(/>)|>");
@@ -48,7 +48,7 @@ class BasicJavadocLexer implements JavadocLexer {
 
     private final JavadocScanner scanner;
 
-    BasicJavadocLexer(JavadocScanner scanner) {
+    public BasicJavadocLexer(JavadocScanner scanner) {
         this.scanner = scanner;
     }
 

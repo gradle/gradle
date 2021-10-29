@@ -176,17 +176,17 @@ public class JavadocConverter {
         }
 
         @Override
-        void onStartHtmlElement(String name) {
+        public void onStartHtmlElement(String name) {
             attributes.clear();
         }
 
         @Override
-        void onHtmlElementAttribute(String name, String value) {
+        public void onHtmlElementAttribute(String name, String value) {
             attributes.put(name, value);
         }
 
         @Override
-        void onStartHtmlElementComplete(String name) {
+        public void onStartHtmlElementComplete(String name) {
             for (HtmlElementHandler handler : elementHandlers) {
                 if (handler.onStartElement(name, attributes)) {
                     handlerStack.addFirst(handler);
@@ -198,7 +198,7 @@ public class JavadocConverter {
         }
 
         @Override
-        void onEndHtmlElement(String name) {
+        public void onEndHtmlElement(String name) {
             if (!tagStack.isEmpty() && tagStack.getFirst().equals(name)) {
                 tagStack.removeFirst();
                 handlerStack.removeFirst().onEndElement(name);
@@ -206,7 +206,7 @@ public class JavadocConverter {
         }
 
         @Override
-        void onStartJavadocTag(String name) {
+        public void onStartJavadocTag(String name) {
             tagValue = new StringBuilder();
         }
 
@@ -226,7 +226,7 @@ public class JavadocConverter {
         }
 
         @Override
-        void onEndJavadocTag(String name) {
+        public void onEndJavadocTag(String name) {
             for (JavadocTagHandler handler : tagHandlers) {
                 if (handler.onJavadocTag(name, tagValue.toString())) {
                     tagValue = null;

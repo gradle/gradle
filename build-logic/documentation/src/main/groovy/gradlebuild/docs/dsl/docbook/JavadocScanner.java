@@ -33,12 +33,12 @@ import java.util.regex.Pattern;
  * <li>Removes leading and trailing empty lines.</li>
  * </ul>
  */
-class JavadocScanner {
+public class JavadocScanner {
     private final StringBuilder input = new StringBuilder();
     private int pos;
     private int markPos;
 
-    JavadocScanner(String rawCommentText) {
+    public JavadocScanner(String rawCommentText) {
         pushText(rawCommentText);
     }
 
