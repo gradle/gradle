@@ -31,6 +31,7 @@ We would like to thank the following community members for their contributions t
 [Tyler Burke](https://github.com/T-A-B),
 [Matthew Haughton](https://github.com/3flex),
 [Filip Daca](https://github.com/filip-daca)
+[Edgars Jasmans](https://github.com/yasmans)
 
 <!--
 Include only their name, impactful features should be called out separately below.
