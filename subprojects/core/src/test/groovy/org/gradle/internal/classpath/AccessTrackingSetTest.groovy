@@ -80,4 +80,37 @@ class AccessTrackingSetTest extends Specification {
         1 * consumer.accept(123)
         0 * consumer._
     }
+
+    def "containsAll of existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('existing', 'other'))
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "containsAll of missing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'alsoMissing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+    }
+
+    def "containsAll of missing and existing elements is tracked"() {
+        when:
+        def result = set.containsAll(Arrays.asList('missing', 'existing'))
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
 }
