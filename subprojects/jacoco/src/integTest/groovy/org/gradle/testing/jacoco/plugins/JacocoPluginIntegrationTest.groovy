@@ -150,94 +150,92 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "outgoingVariants"
 
         outputContains("""
---------------------------------------------------
-Variant coverageDataElementsForTest
---------------------------------------------------
-Capabilities
-    - :${getTestDirectory().getName()}:unspecified (default capability)
-Attributes
-    - org.gradle.category      = documentation
-    - org.gradle.docstype      = jacoco-coverage-bin
-    - org.gradle.targetname    = test
-    - org.gradle.testsuitename = test
-    - org.gradle.testsuitetype = unit-tests
-    - org.gradle.usage         = verification
+            --------------------------------------------------
+            Variant coverageDataElementsForTest
+            --------------------------------------------------
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category      = documentation
+                - org.gradle.docstype      = jacoco-coverage-bin
+                - org.gradle.targetname    = test
+                - org.gradle.testsuitename = test
+                - org.gradle.testsuitetype = unit-tests
+                - org.gradle.usage         = verification
 
-Artifacts
-    - build/jacoco/test.exec (artifactType = exec)
-""")
+            Artifacts
+                - build/jacoco/test.exec (artifactType = binary)""".stripIndent())
     }
 
     def "jacoco plugin adds outgoing variants for custom test suite"() {
         buildFile << """
-testing {
-    suites {
-        integrationTest(JvmTestSuite) {
-            testType = TestType.INTEGRATION_TESTS
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        testType = TestType.INTEGRATION_TESTS
 
-            dependencies {
-                implementation project
+                        dependencies {
+                            implementation project
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-        """
+        """.stripIndent()
 
         expect:
         succeeds "outgoingVariants"
 
         outputContains("""
---------------------------------------------------
-Variant coverageDataElementsForIntegrationTest
---------------------------------------------------
-Capabilities
-    - :${getTestDirectory().getName()}:unspecified (default capability)
-Attributes
-    - org.gradle.category      = documentation
-    - org.gradle.docstype      = jacoco-coverage-bin
-    - org.gradle.targetname    = integrationTest
-    - org.gradle.testsuitename = integrationTest
-    - org.gradle.testsuitetype = integration-tests
-    - org.gradle.usage         = verification
+            --------------------------------------------------
+            Variant coverageDataElementsForIntegrationTest
+            --------------------------------------------------
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category      = documentation
+                - org.gradle.docstype      = jacoco-coverage-bin
+                - org.gradle.targetname    = integrationTest
+                - org.gradle.testsuitename = integrationTest
+                - org.gradle.testsuitetype = integration-tests
+                - org.gradle.usage         = verification
 
-Artifacts
-    - build/jacoco/integrationTest.exec (artifactType = exec)
-""")
+            Artifacts
+                - build/jacoco/integrationTest.exec (artifactType = binary)""".stripIndent())
     }
 
     def "Jacoco coverage data can be consumed by another task via Dependency Management"() {
         buildFile << """
-test {
-    jacoco {
-        destinationFile = layout.buildDirectory.file("jacoco/jacocoData.exec").get().asFile
-    }
-}
-"""
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/jacocoData.exec").get().asFile
+                }
+            }
+            """.stripIndent()
 
         buildFile << """
-// A resolvable configuration to collect JaCoCo coverage data
-def coverageDataConfig = configurations.create("coverageData") {
-    visible = true
-    canBeResolved = true
-    canBeConsumed = false
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
-    }
-}
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
 
-dependencies {
-    coverageData project
-}
+            dependencies {
+                coverageData project
+            }
 
-def testResolve = tasks.register('testResolve') {
-    doLast {
-        assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["jacocoData.exec"]
-    }
-}
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["jacocoData.exec"]
+                }
+            }
+            """.stripIndent()
 
-"""
         expect:
         succeeds('test', 'testResolve')
     }
@@ -247,55 +245,55 @@ def testResolve = tasks.register('testResolve') {
         final JavaProjectUnderTest subA = new JavaProjectUnderTest(subADir)
         subA.writeBuildScript()
         def buildFileA = subADir.file("build.gradle") << """
-test {
-    jacoco {
-        destinationFile = layout.buildDirectory.file("jacoco/subA.exec").get().asFile
-    }
-}
-"""
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subA.exec").get().asFile
+                }
+            }
+            """.stripIndent()
 
         def subBDir = createDir("subB")
         final JavaProjectUnderTest subB = new JavaProjectUnderTest(subBDir)
         subB.writeBuildScript()
         def buildFileB = subBDir.file("build.gradle") << """
-test {
-    jacoco {
-        destinationFile = layout.buildDirectory.file("jacoco/subB.exec").get().asFile
-    }
-}
-"""
+            test {
+                jacoco {
+                    destinationFile = layout.buildDirectory.file("jacoco/subB.exec").get().asFile
+                }
+            }
+            """.stripIndent()
 
         settingsFile << """
-include ':subA'
-include ':subB'
-"""
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
 
         buildFile << """
-dependencies {
-    implementation project(':subA')
-    implementation project(':subB')
-}
+            dependencies {
+                implementation project(':subA')
+                implementation project(':subB')
+            }
 
-// A resolvable configuration to collect JaCoCo coverage data
-def coverageDataConfig = configurations.create("coverageData") {
-    visible = false
-    canBeResolved = true
-    canBeConsumed = false
-    extendsFrom(configurations.implementation)
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
-    }
-}
+            // A resolvable configuration to collect JaCoCo coverage data
+            def coverageDataConfig = configurations.create("coverageData") {
+                visible = false
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JACOCO_COVERAGE))
+                }
+            }
 
-def testResolve = tasks.register('testResolve') {
-    doLast {
-        assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
-    }
-}
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert coverageDataConfig.getResolvedConfiguration().getFiles()*.getName() == ["subA.exec", "subB.exec"]
+                }
+            }
+            """.stripIndent()
 
-"""
         expect:
         succeeds('testResolve')
     }
