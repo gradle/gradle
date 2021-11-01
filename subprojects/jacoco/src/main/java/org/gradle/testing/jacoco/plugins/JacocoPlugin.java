@@ -142,7 +142,6 @@ public class JacocoPlugin implements Plugin<Project> {
             });
         });
 
-
         variant.getOutgoing().artifact(target.getTestTask().map(task -> task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()), artifact -> {
             artifact.setType(ArtifactTypeDefinition.BINARY_DATA_TYPE);
         });
