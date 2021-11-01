@@ -149,6 +149,46 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         'missing'  | 'missingValue'     | null            | 'alsoMissing' | 'nonexistingValue' | null           | false
     }
 
+    def "keySet() contains(#key) and containsAll(#key) is tracked"() {
+        when:
+        def containsResult = getMapUnderTestToRead().keySet().contains(key)
+
+        then:
+        containsResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        when:
+        def containsAllResult = getMapUnderTestToRead().keySet().containsAll(Collections.singleton(key))
+
+        then:
+        containsAllResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        where:
+        key        | expectedResult | reportedValue
+        'existing' | true           | 'existingValue'
+        'missing'  | false          | null
+    }
+
+    def "keySet() containsAll(#key1, #key2) is tracked"() {
+        when:
+        def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(key1, key2))
+
+        then:
+        result == expectedResult
+        1 * consumer.accept(key1, reportedValue1)
+        1 * consumer.accept(key2, reportedValue2)
+        0 * consumer._
+
+        where:
+        key1       | reportedValue1  | key2           | reportedValue2 | expectedResult
+        'existing' | 'existingValue' | 'other'        | 'otherValue'   | true
+        'existing' | 'existingValue' | 'missing'      | null           | false
+        'missing'  | null            | 'otherMissing' | null           | false
+    }
+
     private static Map.Entry<String, String> entry(String key, String value) {
         return Maps.immutableEntry(key, value)
     }

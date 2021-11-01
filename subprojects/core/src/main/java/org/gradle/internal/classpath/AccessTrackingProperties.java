@@ -54,7 +54,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<String> stringPropertyNames() {
-        return delegate.stringPropertyNames();
+        return new AccessTrackingSet<>(delegate.stringPropertyNames(), this::getAndReport);
     }
 
     @Override
@@ -79,7 +79,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Object> keySet() {
-        return delegate.keySet();
+        return new AccessTrackingSet<>(delegate.keySet(), this::getAndReport);
     }
 
     @Override
@@ -166,7 +166,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean containsKey(Object key) {
-        return getAndReport((String) key) != null;
+        return getAndReport(key) != null;
     }
 
     @Override
@@ -212,7 +212,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object get(Object key) {
-        return getProperty((String) key);
+        return getAndReport(key);
     }
 
     @Override
@@ -283,9 +283,10 @@ class AccessTrackingProperties extends Properties {
         return delegate.hashCode();
     }
 
-    private String getAndReport(String key) {
-        String result = delegate.getProperty(key);
-        onAccess.accept(key, result);
+    private String getAndReport(Object key) {
+        String sKey = (String) key;
+        String result = delegate.getProperty(sKey);
+        onAccess.accept(sKey, result);
         return result;
     }
 }

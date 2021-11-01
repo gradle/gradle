@@ -60,6 +60,11 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         return getAndReport(key) != null;
     }
 
+    @Override
+    public Set<String> keySet() {
+        return new AccessTrackingSet<>(super.keySet(), this::getAndReport);
+    }
+
     private String getAndReport(@Nullable Object key) {
         String result = delegate.get(key);
         // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
