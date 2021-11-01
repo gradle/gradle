@@ -26,30 +26,11 @@ dependencies {
     compileOnly(kotlin("stdlib-js"))
 }
 
-val unpackKotlinJsStdlib by tasks.registering(Copy::class) {
-    description = "Unpacks the Kotlin JavaScript standard library"
-
-    val kotlinStdLibJsJar = configurations.named("compileClasspath").map { compileClasspath ->
-        val kotlinStdlibJsJarRegex = Regex("kotlin-stdlib-js-.+\\.jar")
-        compileClasspath.single { file -> file.name.matches(kotlinStdlibJsJarRegex) }
-    }
-
-    from(kotlinStdLibJsJar.map(::zipTree)) {
-        include("**/*.js")
-        exclude("META-INF/**")
-    }
-
-    into(layout.buildDirectory.dir(name))
-
-    includeEmptyDirs = false
-}
-
 val assembleReport by tasks.registering(MergeReportAssets::class) {
     htmlFile.set(webpackFile("configuration-cache-report.html"))
     logoFile.set(webpackFile("configuration-cache-report-logo.png"))
     cssFile.set(webpackFile("configuration-cache-report.css"))
     jsFile.set(webpackFile("configuration-cache-report.js"))
-    kotlinJs.set(unpackKotlinJsStdlib.map { projectFile(it.destinationDir.resolve("kotlin.js")) })
     outputFile.set(layout.buildDirectory.file("$name/configuration-cache-report.html"))
 }
 
