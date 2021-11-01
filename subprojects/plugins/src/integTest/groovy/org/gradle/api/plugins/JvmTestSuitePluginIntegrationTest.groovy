@@ -132,7 +132,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
 
         buildFile << """
-            // A resolvable configuration to collect JaCoCo coverage data
+            // A resolvable configuration to collect test results data
             def testDataConfig = configurations.create("testData") {
                 visible = false
                 canBeResolved = true
@@ -236,7 +236,7 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec {
                 implementation project(':subB')
             }
 
-            // A resolvable configuration to collect JaCoCo coverage data
+            // A resolvable configuration to collect test results data
             def testDataConfig = configurations.create("testData") {
                 visible = false
                 canBeResolved = true
