@@ -69,6 +69,20 @@ Secondary variants (*)
           - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
+
+--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
 Description = Elements of runtime for main.
@@ -170,6 +184,20 @@ Attributes
 
 Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0-javadoc.jar (artifactType = jar)
+
+--------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -297,7 +325,7 @@ Secondary variants (*)
         then:
         outputContains("""> Task :outgoingVariants
 There is no variant named 'nope' defined on this project.
-Here are the available outgoing variants: apiElements, archives, default, runtimeElements
+Here are the available outgoing variants: apiElements, archives, default, mainSourceElements, runtimeElements, testDataElementsForTest
 """)
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -362,6 +390,20 @@ Description = Configuration for default artifacts.
 
 Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0.jar (artifactType = jar)
+
+--------------------------------------------------
+Variant mainSourceElements
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category = sources
+    - org.gradle.sources  = all-source-directories
+    - org.gradle.usage    = verification
+
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
 
 --------------------------------------------------
 Variant runtimeElements
