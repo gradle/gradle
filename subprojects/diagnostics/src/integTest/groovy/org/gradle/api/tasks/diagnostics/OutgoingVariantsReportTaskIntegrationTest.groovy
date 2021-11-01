@@ -118,6 +118,21 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testDataElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -251,6 +266,21 @@ Attributes
 
 Artifacts
     - build${File.separator}libs${File.separator}myLib-1.0-sources.jar (artifactType = jar)
+
+--------------------------------------------------
+Variant testDataElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -441,6 +471,21 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+
+--------------------------------------------------
+Variant testDataElementsForTest
+--------------------------------------------------
+Capabilities
+    - org:myLib:1.0 (default capability)
+Attributes
+    - org.gradle.category      = documentation
+    - org.gradle.docstype      = test-results-bin
+    - org.gradle.targetname    = test
+    - org.gradle.testsuitename = test
+    - org.gradle.testsuitetype = unit-tests
+    - org.gradle.usage         = verification
+
+Artifacts
 """
 
         and:
