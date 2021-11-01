@@ -140,6 +140,11 @@ public class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
+    public boolean isVerificationFailure() {
+        return false;
+    }
+
+    @Override
     public boolean isFailed() {
         return state == IncludedBuildTaskResource.State.Failed;
     }
