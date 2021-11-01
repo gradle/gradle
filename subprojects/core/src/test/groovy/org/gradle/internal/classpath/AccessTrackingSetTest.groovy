@@ -22,19 +22,22 @@ import spock.lang.Specification
 import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
-    def "reading set contents is tracked"() {
-        given:
-        Set<String> someStrings = ImmutableSet.of('hello', 'world')
-        Consumer<String> consumer = Mock()
-        AccessTrackingSet<String> set = new AccessTrackingSet<>(someStrings, consumer)
+    private final Consumer<Object> consumer = Mock()
+    private final Set<String> inner = ImmutableSet.of('hello', 'world')
+    private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer)
 
+    @SuppressWarnings('GrEqualsBetweenInconvertibleTypes')
+    def "reading set contents is tracked"() {
         when:
+        Set<String> iterated = new HashSet<>()
         for (String v : set) {
-            // do nothing, just iterate
+            iterated.add(v)
         }
 
         then:
+        iterated == inner
         1 * consumer.accept('hello')
         1 * consumer.accept('world')
+        0 * consumer._
     }
 }

@@ -29,14 +29,14 @@ import java.util.function.BiConsumer;
  */
 class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     private final Map<String, String> delegate;
-    private final BiConsumer<String, String> onAccess;
+    private final BiConsumer<? super String, ? super String> onAccess;
 
     public AccessTrackingEnvMap(BiConsumer<String, String> onAccess) {
         this(System.getenv(), onAccess);
     }
 
     @VisibleForTesting
-    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<String, String> onAccess) {
+    AccessTrackingEnvMap(Map<String, String> delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -84,6 +84,5 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     protected Map<String, String> delegate() {
         return delegate;
     }
-
 }
 

@@ -40,9 +40,9 @@ import java.util.function.Function;
 class AccessTrackingProperties extends Properties {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<String, Object> onAccess;
+    private final BiConsumer<? super String, Object> onAccess;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<String, Object> onAccess) {
+    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, Object> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
