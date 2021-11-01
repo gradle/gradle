@@ -237,7 +237,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
 
         expect:
-        succeeds('test', 'testResolve')
+        succeeds('testResolve')
     }
 
     def "Jacoco coverage data can be consumed by another task in a different project via Dependency Management"() {
