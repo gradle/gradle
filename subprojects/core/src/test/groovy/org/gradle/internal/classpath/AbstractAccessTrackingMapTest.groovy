@@ -57,6 +57,32 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         'missing'  | 'defaultValue'  | null
     }
 
+
+    def "containsKey(#key) is tracked"() {
+        when:
+        def result = getMapUnderTestToRead().containsKey(key)
+
+        then:
+        result == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        where:
+        key        | expectedResult | reportedValue
+        'existing' | true           | 'existingValue'
+        'missing'  | false          | null
+    }
+
+    def "access to missing element with containsKey is tracked"() {
+        when:
+        def result = getMapUnderTestToRead().containsKey('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing', null)
+        0 * consumer._
+    }
+
     def "access to existing element with forEach() is tracked"() {
         when:
         def iterated = new HashMap<Object, Object>()

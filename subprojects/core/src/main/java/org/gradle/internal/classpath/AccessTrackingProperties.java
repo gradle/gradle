@@ -166,7 +166,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public boolean containsKey(Object key) {
-        return delegate.containsKey(key);
+        return getAndReport((String) key) != null;
     }
 
     @Override
@@ -201,8 +201,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        String value = delegate.getProperty(key);
-        onAccess.accept(key, value);
+        String value = getAndReport(key);
         return value != null ? value : defaultValue;
     }
 
@@ -282,5 +281,11 @@ class AccessTrackingProperties extends Properties {
     @Override
     public int hashCode() {
         return delegate.hashCode();
+    }
+
+    private String getAndReport(String key) {
+        String result = delegate.getProperty(key);
+        onAccess.accept(key, result);
+        return result;
     }
 }
