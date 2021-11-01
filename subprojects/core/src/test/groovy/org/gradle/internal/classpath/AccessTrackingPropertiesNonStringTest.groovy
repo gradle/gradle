@@ -27,10 +27,12 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
     private static final Integer existingValue = Integer.valueOf(2)
     private static final Integer otherValue = Integer.valueOf(3)
     private static final Integer missingKey = Integer.valueOf(4)
+    private static final Integer nonStringValue = Integer.valueOf(5)
 
     private final Properties innerProperties = propertiesWithContent(ImmutableMap.of(
         existingKey, existingValue,
-        'existing', 'existingStringValue'
+        'existing', 'existingStringValue',
+        'keyWithNonStringValue', nonStringValue
     ))
     private final BiConsumer<Object, Object> consumer = Mock()
 
@@ -47,9 +49,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key         | expectedResult
-        existingKey | existingValue
-        missingKey  | null
+        key                     | expectedResult
+        existingKey             | existingValue
+        missingKey              | null
+        'keyWithNonStringValue' | nonStringValue
     }
 
     def "getOrDefault(#key) is not tracked for non-strings"() {
@@ -61,9 +64,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key         | expectedResult
-        existingKey | existingValue
-        missingKey  | 'defaultValue'
+        key                     | expectedResult
+        existingKey             | existingValue
+        missingKey              | 'defaultValue'
+        'keyWithNonStringValue' | nonStringValue
     }
 
     def "containsKey(#key) is not tracked for non-strings"() {
@@ -75,9 +79,39 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key         | expectedResult
-        existingKey | true
-        missingKey  | false
+        key                     | expectedResult
+        existingKey             | true
+        missingKey              | false
+        'keyWithNonStringValue' | true
+    }
+
+    def "getProperty(String) is not tracked for non-string values"() {
+        when:
+        def result = getMapUnderTestToRead().getProperty('keyWithNonStringValue')
+
+        then:
+        result == null
+        0 * consumer._
+    }
+
+    def "getProperty(String, String) is not tracked for non-string values"() {
+        when:
+        def result = getMapUnderTestToRead().getProperty('keyWithNonStringValue', 'defaultValue')
+
+        then:
+        result == 'defaultValue'
+        0 * consumer._
+    }
+
+    def "forEach is tracked for strings only"() {
+        when:
+        HashMap<Object, Object> iterated = new HashMap<>()
+        getMapUnderTestToRead().forEach(iterated::put)
+
+        then:
+        iterated.keySet() == innerProperties.keySet()
+        1 * consumer.accept('existing', 'existingStringValue')
+        0 * consumer._
     }
 
     def "entrySet() enumeration is tracked for strings only"() {
@@ -106,17 +140,22 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key         | requestedValue | expectedResult
-        existingKey | existingValue  | true
-        existingKey | otherValue     | false
-        existingKey | null           | false
-        missingKey  | existingValue  | false
+        key                     | requestedValue | expectedResult
+        'existing'              | null           | false
+        existingKey             | existingValue  | true
+        existingKey             | otherValue     | false
+        existingKey             | null           | false
+        missingKey              | existingValue  | false
+        'keyWithNonStringValue' | nonStringValue | true
+        'keyWithNonStringValue' | otherValue     | false
+        'keyWithNonStringValue' | null           | false
     }
 
     def "entrySet() containsAll() is tracked for strings only"() {
         when:
         def result = getMapUnderTestToRead().entrySet().containsAll(Arrays.asList(
             entry(existingKey, existingValue),
+            entry('keyWithNonStringValue', nonStringValue),
             entry('existing', 'existingStringValue')))
         then:
         result
@@ -143,23 +182,55 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         when:
-        def containsAllResult = getMapUnderTestToRead().keySet().containsAll(Collections.singleton(key))
+        def containsAllResult = getMapUnderTestToRead().keySet().containsAll(Collections.<Object> singleton(key))
 
         then:
         containsAllResult == expectedResult
         0 * consumer._
 
         where:
-        key         | expectedResult
-        existingKey | true
-        missingKey  | false
+        key                     | expectedResult
+        existingKey             | true
+        missingKey              | false
+        'keyWithNonStringValue' | true
     }
 
     def "keySet() containsAll() is tracked for strings only"() {
         when:
-        def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(existingKey, 'existing'))
+        def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
         then:
         result
+        1 * consumer.accept('existing', 'existingStringValue')
+        0 * consumer._
+    }
+
+    def "stringPropertyNames() contains(#key) and containsAll(#key) are not tracked for non-strings"() {
+        when:
+        def containsResult = getMapUnderTestToRead().stringPropertyNames().contains(key)
+
+        then:
+        containsResult == expectedResult
+        0 * consumer._
+
+        when:
+        def containsAllResult = getMapUnderTestToRead().stringPropertyNames().containsAll(Collections.<Object> singleton(key))
+
+        then:
+        containsAllResult == expectedResult
+        0 * consumer._
+
+        where:
+        key                     | expectedResult
+        existingKey             | false
+        missingKey              | false
+        'keyWithNonStringValue' | false
+    }
+
+    def "stringPropertyNames() containsAll() is tracked for strings only"() {
+        when:
+        def result = getMapUnderTestToRead().stringPropertyNames().containsAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
+        then:
+        !result
         1 * consumer.accept('existing', 'existingStringValue')
         0 * consumer._
     }

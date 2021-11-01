@@ -40,9 +40,9 @@ import java.util.function.Function;
 class AccessTrackingProperties extends Properties {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of method is tracked currently.
     private final Properties delegate;
-    private final BiConsumer<? super String, Object> onAccess;
+    private final BiConsumer<? super String, ? super String> onAccess;
 
-    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, Object> onAccess) {
+    public AccessTrackingProperties(Properties delegate, BiConsumer<? super String, ? super String> onAccess) {
         this.delegate = delegate;
         this.onAccess = onAccess;
     }
@@ -97,14 +97,14 @@ class AccessTrackingProperties extends Properties {
     private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
         Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
         if (entry != null) {
-            onAccess.accept(entry.getKey(), delegate.get(entry.getKey()));
+            getAndReport(entry.getKey());
         }
     }
 
     @Override
     public void forEach(BiConsumer<? super Object, ? super Object> action) {
         delegate.forEach((k, v) -> {
-            onAccess.accept((String) k, v);
+            reportKeyAndValue(k, v);
             action.accept(k, v);
         });
     }
@@ -201,7 +201,8 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        String value = getPropertyAndReport(key);
+        Object oValue = getAndReport(key);
+        String value = oValue instanceof String ? (String) oValue : null;
         return value != null ? value : defaultValue;
     }
 
@@ -213,7 +214,7 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object get(Object key) {
-        return getOrDefault(key, null);
+        return getAndReport(key);
     }
 
     @Override
@@ -284,17 +285,15 @@ class AccessTrackingProperties extends Properties {
         return delegate.hashCode();
     }
 
-    private String getPropertyAndReport(String key) {
-        String value = delegate.getProperty(key);
-        onAccess.accept(key, value);
+    private Object getAndReport(Object key) {
+        Object value = delegate.get(key);
+        reportKeyAndValue(key, value);
         return value;
     }
 
-    private Object getAndReport(Object key) {
-        Object value = delegate.get(key);
-        if (key instanceof String) {
-            onAccess.accept((String) key, value);
+    private void reportKeyAndValue(Object key, Object value) {
+        if (key instanceof String && (value == null || value instanceof String)) {
+            onAccess.accept((String) key, (String) value);
         }
-        return value;
     }
 }
