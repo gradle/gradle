@@ -201,18 +201,19 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public String getProperty(String key, String defaultValue) {
-        String value = getAndReport(key);
+        String value = getPropertyAndReport(key);
         return value != null ? value : defaultValue;
     }
 
     @Override
     public Object getOrDefault(Object key, Object defaultValue) {
-        return getProperty((String) key, (String) defaultValue);
+        Object value = getAndReport(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
     public Object get(Object key) {
-        return getAndReport(key);
+        return getOrDefault(key, null);
     }
 
     @Override
@@ -283,10 +284,17 @@ class AccessTrackingProperties extends Properties {
         return delegate.hashCode();
     }
 
-    private String getAndReport(Object key) {
-        String sKey = (String) key;
-        String result = delegate.getProperty(sKey);
-        onAccess.accept(sKey, result);
-        return result;
+    private String getPropertyAndReport(String key) {
+        String value = delegate.getProperty(key);
+        onAccess.accept(key, value);
+        return value;
+    }
+
+    private Object getAndReport(Object key) {
+        Object value = delegate.get(key);
+        if (key instanceof String) {
+            onAccess.accept((String) key, value);
+        }
+        return value;
     }
 }
