@@ -44,4 +44,182 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "expect"
     }
 
+    def "Java plugin adds outgoing variant for main source set"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            """
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+            --------------------------------------------------
+            Variant mainSourceElements
+            --------------------------------------------------
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category = sources
+                - org.gradle.sources  = all-source-directories
+                - org.gradle.usage    = verification
+
+            Artifacts
+                - src/main/java (artifactType = directory)
+                - src/main/resources (artifactType = directory)
+            """.stripIndent())
+    }
+
+    def "Java plugin adds outgoing variant for main source set containing additional directories"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            sourceSets.main.java.srcDir 'src/more/java'
+            """
+        file("src/more/java").createDir()
+
+        expect:
+        succeeds "outgoingVariants"
+
+        outputContains("""
+            --------------------------------------------------
+            Variant mainSourceElements
+            --------------------------------------------------
+            Capabilities
+                - :${getTestDirectory().getName()}:unspecified (default capability)
+            Attributes
+                - org.gradle.category = sources
+                - org.gradle.sources  = all-source-directories
+                - org.gradle.usage    = verification
+
+            Artifacts
+                - src/main/java (artifactType = directory)
+                - src/more/java (artifactType = directory)
+                - src/main/resources (artifactType = directory)
+            """.stripIndent())
+    }
+
+    def "mainSourceElements can be consumed by another task via Dependency Management"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            // A resolvable configuration to collect source data
+            def sourceElementsConfig = configurations.create("sourceElements") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
+                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                }
+            }
+
+            dependencies {
+                sourceElements project
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${getTestDirectory().getPath()}/src/main/resources',
+                                                                                                     '${getTestDirectory().getPath()}/src/main/java']
+                }
+            }
+            """.stripIndent()
+
+        file("src/main/java/com/example/MyClass.java") << """
+            package com.example;
+
+            public class MyClass {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
+
+    def "mainSourceElements can be consumed by another task in a different project via Dependency Management"() {
+        def subADir = createDir("subA")
+        def buildFileA = subADir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            """.stripIndent()
+
+        subADir.file("src/test/java/com/exampleA/MyClassA.java") << """
+            package com.exampleA;
+
+            public class MyClassA {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        def subBDir = createDir("subB")
+        def buildFileB = subBDir.file("build.gradle") << """
+            plugins {
+                id 'java'
+            }
+            """.stripIndent()
+
+        subBDir.file("src/test/java/com/exampleB/MyClassB.java") << """
+            package com.exampleB;
+
+            public class MyClassB {
+                public void hello() {
+                    System.out.println("Hello");
+                }
+            }
+            """.stripIndent()
+
+        settingsFile << """
+            include ':subA'
+            include ':subB'
+            """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation project(':subA')
+                implementation project(':subB')
+            }
+
+            // A resolvable configuration to collect JaCoCo coverage data
+            def sourceElementsConfig = configurations.create("sourceElements") {
+                visible = true
+                canBeResolved = true
+                canBeConsumed = false
+                extendsFrom(configurations.implementation)
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.VERIFICATION))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.SOURCES))
+                    attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources, Sources.ALL_SOURCE_DIRS))
+                }
+            }
+
+            def testResolve = tasks.register('testResolve') {
+                doLast {
+                    assert sourceElementsConfig.getResolvedConfiguration().getFiles()*.getPath() == ['${subADir.getPath()}/src/main/resources',
+                                                                                                     '${subADir.getPath()}/src/main/java',
+                                                                                                     '${subBDir.getPath()}/src/main/resources',
+                                                                                                     '${subBDir.getPath()}/src/main/java']
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds('testResolve')
+    }
 }

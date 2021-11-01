@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -29,8 +30,13 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Sources;
+import org.gradle.api.attributes.TestType;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.Verification;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -44,6 +50,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -251,6 +258,8 @@ public class JavaPlugin implements Plugin<Project> {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
+
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
@@ -397,7 +406,6 @@ public class JavaPlugin implements Plugin<Project> {
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
-
     private void configureConfigurations(Project project, JavaPluginExtension extension) {
         ConfigurationContainer configurations = project.getConfigurations();
 
@@ -426,6 +434,35 @@ public class JavaPlugin implements Plugin<Project> {
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
+
+        createSourcesVariant(project, extension);
+    }
+
+    private Configuration createSourcesVariant(Project project, JavaPluginExtension java) {
+        SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        final Configuration variant = project.getConfigurations().create(SOURCE_ELEMENTS_VARIANT_NAME);
+        variant.setVisible(false);
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+
+        final ObjectFactory objects = project.getObjects();
+        variant.attributes(attributes -> {
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERIFICATION));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.SOURCES));
+            attributes.attribute(Sources.SOURCES_ATTRIBUTE, objects.named(Sources.class, Sources.ALL_SOURCE_DIRS));
+        });
+
+        // TODO: 18791 Might need to add some laziness here, too.
+        project.afterEvaluate(p -> {
+            main.getAllSource().getSourceDirectories().getFiles().forEach(sourceDir -> {
+                variant.getOutgoing().artifact(sourceDir, artifact -> {
+                    artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);
+                });
+            });
+        });
+
+        return variant;
     }
 
     /**
