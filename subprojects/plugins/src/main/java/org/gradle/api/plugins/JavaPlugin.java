@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -31,12 +30,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Sources;
-import org.gradle.api.attributes.TestType;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.Verification;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -50,7 +46,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
