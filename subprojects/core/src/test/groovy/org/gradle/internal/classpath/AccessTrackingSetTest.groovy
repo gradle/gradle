@@ -23,7 +23,7 @@ import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
     private final Consumer<Object> consumer = Mock()
-    private final Set<String> inner = ImmutableSet.of('hello', 'world')
+    private final Set<String> inner = ImmutableSet.of('existing', 'other')
     private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer)
 
     @SuppressWarnings('GrEqualsBetweenInconvertibleTypes')
@@ -36,8 +36,48 @@ class AccessTrackingSetTest extends Specification {
 
         then:
         iterated == inner
-        1 * consumer.accept('hello')
-        1 * consumer.accept('world')
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "contains of existing element is tracked"() {
+        when:
+        def result = set.contains('existing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "contains of null is tracked"() {
+        when:
+        def result = set.contains(null)
+
+        then:
+        !result
+        1 * consumer.accept(null)
+        0 * consumer._
+    }
+
+    def "contains of missing element is tracked"() {
+        when:
+        def result = set.contains('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+    }
+
+    def "contains of inconvertible element is tracked"() {
+        when:
+        def result = set.contains(123)
+
+        then:
+        !result
+        1 * consumer.accept(123)
         0 * consumer._
     }
 }

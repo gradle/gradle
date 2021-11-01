@@ -89,7 +89,16 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Set<Map.Entry<Object, Object>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), e -> onAccess.accept((String) e.getKey(), e.getValue()));
+        return new AccessTrackingSet<>(
+            delegate.entrySet(),
+            this::onAccessEntrySetElement);
+    }
+
+    private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
+        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        if (entry != null) {
+            onAccess.accept(entry.getKey(), delegate.get(entry.getKey()));
+        }
     }
 
     @Override

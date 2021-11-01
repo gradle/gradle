@@ -69,7 +69,14 @@ class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<Entry<String, String>> entrySet() {
-        return new AccessTrackingSet<>(delegate.entrySet(), e -> onAccess.accept(e.getKey(), e.getValue()));
+        return new AccessTrackingSet<>(delegate.entrySet(), this::onAccessEntrySetElement);
+    }
+
+    private void onAccessEntrySetElement(@Nullable Object potentialEntry) {
+        Map.Entry<String, String> entry = AccessTrackingUtils.tryConvertingToTrackableEntry(potentialEntry);
+        if (entry != null) {
+            getAndReport(entry.getKey());
+        }
     }
 
     @Override

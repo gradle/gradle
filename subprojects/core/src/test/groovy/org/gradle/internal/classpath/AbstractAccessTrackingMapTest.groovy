@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import com.google.common.collect.Maps
 import spock.lang.Specification
 
 import java.util.function.BiConsumer
@@ -68,7 +69,7 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         0 * consumer._
     }
 
-    def "access to existing element with entrySet() is tracked"() {
+    def "entrySet() enumeration is tracked"() {
         when:
         def result = new HashSet<>(getMapUnderTestToRead().entrySet())
 
@@ -77,5 +78,52 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         1 * consumer.accept('existing', 'existingValue')
         1 * consumer.accept('other', 'otherValue')
         0 * consumer._
+    }
+
+    def "entrySet() contains(entry(#key, #requestedValue)) and containsAll(entry(#key, #requestedValue)) are tracked"() {
+        when:
+        def containsResult = getMapUnderTestToRead().entrySet().contains(entry(key, requestedValue))
+
+        then:
+        containsResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        when:
+        def containsAllResult = getMapUnderTestToRead().entrySet().containsAll(Collections.singleton(entry(key, requestedValue)))
+
+        then:
+        containsAllResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        where:
+        key        | requestedValue  | reportedValue   | expectedResult
+        'existing' | 'existingValue' | 'existingValue' | true
+        'existing' | 'otherValue'    | 'existingValue' | false
+        'missing'  | 'someValue'     | null            | false
+    }
+
+    def "entrySet() containsAll(entry(#key1, #requestedValue1), entry(#key2, #requestedValue2)) are tracked"() {
+        when:
+        def result = getMapUnderTestToRead().entrySet().containsAll(
+            Arrays.asList(entry(key1, requestedValue1), entry(key2, requestedValue2)))
+
+        then:
+        result == expectedResult
+        1 * consumer.accept(key1, reportedValue1)
+        1 * consumer.accept(key2, reportedValue2)
+        0 * consumer._
+
+        where:
+        key1       | requestedValue1    | reportedValue1  | key2          | requestedValue2    | reportedValue2 | expectedResult
+        'existing' | 'existingValue'    | 'existingValue' | 'other'       | 'otherValue'       | 'otherValue'   | true
+        'existing' | 'nonexistingValue' | 'existingValue' | 'other'       | 'otherValue'       | 'otherValue'   | false
+        'existing' | 'nonexistingValue' | 'existingValue' | 'missing'     | 'missingValue'     | null           | false
+        'missing'  | 'missingValue'     | null            | 'alsoMissing' | 'nonexistingValue' | null           | false
+    }
+
+    private static Map.Entry<String, String> entry(String key, String value) {
+        return Maps.immutableEntry(key, value)
     }
 }

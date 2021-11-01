@@ -18,28 +18,48 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.AbstractIterator;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * The special-cased implementation of {@link Set} that tracks all accesses to its elements.
+ * @param <E> the type of elements
+ */
 class AccessTrackingSet<E> extends AbstractSet<E> {
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
-    private final Set<E> delegate;
-    private final Consumer<E> onAccess;
+    private final Set<? extends E> delegate;
+    private final Consumer<Object> onAccess;
 
-    @SuppressWarnings("unchecked")
-    public AccessTrackingSet(Set<? extends E> delegate, Consumer<? super E> onAccess) {
-        // The delegate set is not modified in this class, so it is safe to "downcast" its items to E.
-        this.delegate = (Set<E>) delegate;
-        // Consumer consumes, so upcast is safe there.
-        this.onAccess = (Consumer<E>) onAccess;
+    public AccessTrackingSet(Set<? extends E> delegate, Consumer<Object> onAccess) {
+        this.delegate = delegate;
+        this.onAccess = onAccess;
+    }
+
+    @Override
+    public boolean contains(@Nullable Object o) {
+        boolean result = delegate.contains(o);
+        onAccess.accept(o);
+        return result;
+    }
+
+    @Override
+    public boolean containsAll(@Nonnull Collection<?> collection) {
+        boolean result = delegate.containsAll(collection);
+        for (Object o : collection) {
+            onAccess.accept(o);
+        }
+        return result;
     }
 
     @Override
     public Iterator<E> iterator() {
         return new AbstractIterator<E>() {
-            private final Iterator<E> inner = delegate.iterator();
+            private final Iterator<? extends E> inner = delegate.iterator();
 
             @Override
             protected E computeNext() {
