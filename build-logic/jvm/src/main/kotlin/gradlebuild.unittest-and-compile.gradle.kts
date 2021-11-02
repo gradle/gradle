@@ -214,6 +214,12 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
+fun Test.configureRerun() {
+    outputs.upToDateWhen {
+        !providers.gradleProperty("rerunAllTests").forUseAtConfigurationTime().isPresent
+    }
+}
+
 fun configureTests() {
     normalization {
         runtimeClasspath {
@@ -234,6 +240,7 @@ fun configureTests() {
         val testName = name
 
         if (BuildEnvironment.isCiServer) {
+            configureRerun()
             retry {
                 maxRetries.convention(1)
                 maxFailures.set(10)
