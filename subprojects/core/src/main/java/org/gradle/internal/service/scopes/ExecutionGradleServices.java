@@ -91,12 +91,14 @@ public class ExecutionGradleServices {
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            classLoaderHierarchyHasher
         );
     }
 
@@ -116,7 +118,8 @@ public class ExecutionGradleServices {
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
-        ResourceLockCoordinationService coordinationService) {
+        ResourceLockCoordinationService coordinationService
+    ) {
         int parallelThreads = parallelismConfiguration.getMaxWorkerCount();
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));

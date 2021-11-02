@@ -17,6 +17,8 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -25,6 +27,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
+// TODO rename to ValueSnapshotSerializer
 public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int NULL_SNAPSHOT = 0;
     private static final int TRUE_SNAPSHOT = 1;
@@ -46,9 +49,15 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int IMPLEMENTATION_SNAPSHOT = 17;
     private static final int HASH_SNAPSHOT = 18;
     private static final int DEFAULT_SNAPSHOT = 19;
+    private static final int ATTRIBUTE_SNAPSHOT = 20;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+
+    public SnapshotSerializer(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+    }
 
     @Override
     public ValueSnapshot read(Decoder decoder) throws Exception {
@@ -114,6 +123,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return implementationSnapshotSerializer.read(decoder);
             case DEFAULT_SNAPSHOT:
                 return new SerializedValueSnapshot(decoder.readBoolean() ? serializer.read(decoder) : null, decoder.readBinary());
+            case ATTRIBUTE_SNAPSHOT:
+                return new AttributeDefinitionSnapshot(
+                    Attribute.of(decoder.readString(), Class.forName(decoder.readString())),
+                    classLoaderHierarchyHasher
+                );
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize a snapshot with type tag " + type);
         }
@@ -225,6 +239,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             ManagedValueSnapshot managedTypeSnapshot = (ManagedValueSnapshot) snapshot;
             encoder.writeString(managedTypeSnapshot.getClassName());
             write(encoder, managedTypeSnapshot.getState());
+        } else if (snapshot instanceof AttributeDefinitionSnapshot) {
+            encoder.writeSmallInt(ATTRIBUTE_SNAPSHOT);
+            AttributeDefinitionSnapshot attributeSnapshot = (AttributeDefinitionSnapshot) snapshot;
+            encoder.writeString(attributeSnapshot.getValue().getName());
+            encoder.writeString(attributeSnapshot.getValue().getType().getName());
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }
