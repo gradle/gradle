@@ -21,13 +21,21 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -44,6 +52,10 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     public static final String DEFAULT_CHECKSTYLE_VERSION = "8.37";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
+    private BuildLayout buildLayout;
+    private FileFactory fileFactory;
+    private JavaToolchainService javaToolchainService;
+    private ObjectFactory objects;
 
     @Override
     protected String getToolName() {
@@ -55,11 +67,19 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         return Checkstyle.class;
     }
 
+    @Inject
+    public CheckstylePlugin(BuildLayout buildLayout, FileFactory fileFactory, JavaToolchainService javaToolchainService, ObjectFactory objects) {
+        this.buildLayout = buildLayout;
+        this.fileFactory = fileFactory;
+        this.javaToolchainService = javaToolchainService;
+        this.objects = objects;
+    }
+
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        Directory directory = project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
+        Directory directory = fileFactory.dir(buildLayout.getRootDirectory()).dir(CONFIG_DIR_NAME);
         extension.getConfigDirectory().convention(directory);
         extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")
             // If for whatever reason the provider above cannot be resolved, go back to default location, which we know how to ignore if missing
@@ -95,7 +115,6 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
-
         task.getConfigDirectory().convention(extension.getConfigDirectory());
     }
 
@@ -115,9 +134,15 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureToolchains(Checkstyle task) {
-        if (hasJavaExtension()) {
-            task.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
-        }
+        Provider<JavaLauncher> javaLauncherProvider = javaToolchainService.launcherFor(new CurrentJvmToolchainSpec(objects));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            if (((ToolchainSpecInternal) toolchain).isConfigured()) {
+                Provider<JavaLauncher> toolchainTool = getToolchainTool(project, JavaToolchainService::launcherFor);
+                task.getJavaLauncher().set(toolchainTool);
+            }
+        });
     }
 
     @Override

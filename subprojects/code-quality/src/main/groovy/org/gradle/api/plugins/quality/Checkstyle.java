@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
-import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
@@ -159,7 +158,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @since 7.4
      */
     @Incubating
-    @Internal
+    @Nested
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
@@ -184,9 +183,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
-            if(javaLauncher.isPresent()) {
-                spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            }
+            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getClasspath().setFrom(getCheckstyleClasspath());
         });
 
@@ -194,8 +191,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     private void runWithIsolatedAntBuilder() {
-        CheckstyleActionParameters parameters = setupParameters(getObjectFactory().newInstance(CheckstyleActionParameters.class));
-        getAntBuilder().withClasspath(getCheckstyleClasspath()).execute(new CheckstyleInvoker(this, this, parameters));
+        WorkQueue workQueue = getWorkerExecutor().classLoaderIsolation(spec -> {
+            spec.getClasspath().setFrom(getCheckstyleClasspath());
+        });
+        workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
     private CheckstyleActionParameters setupParameters(CheckstyleActionParameters parameters) {
