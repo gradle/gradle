@@ -24,6 +24,8 @@ class CheckProject(
         // Avoid rebuilding same revision if it's already built on another branch (pre-tested commit)
         param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%ge-td-dogfooding.grdev.net.access.key%")
+        param("additional.gradle.parameters", "")
+        param("reverse.dep.*.additional.gradle.parameters", "")
     }
 
     var prevStage: Stage? = null

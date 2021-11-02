@@ -48,7 +48,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             }
         """
         def reportDir = {
-            resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')
+            resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)
         }
 
         when:
@@ -93,7 +93,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)?.isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {

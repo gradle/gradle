@@ -23,7 +23,7 @@ import org.gradle.api.Task
 import org.gradle.test.fixtures.file.TestFile
 
 trait JavaPluginImplementation {
-    void javaPlugin(TestFile sourceFile, SystemPropertyRead read) {
+    void javaPlugin(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             import ${Action.name};
             import ${Project.name};
@@ -48,7 +48,7 @@ trait JavaPluginImplementation {
         """
     }
 
-    void javaLambdaPlugin(TestFile sourceFile, SystemPropertyRead read) {
+    void javaLambdaPlugin(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
             import ${Action.name};
             import ${Project.name};

@@ -27,12 +27,14 @@ class GroovyCoverage {
     static final List<String> SUPPORTS_GROOVYDOC
     static final List<String> SUPPORTS_TIMESTAMP
     static final List<String> SUPPORTS_PARAMETERS
+    static final List<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
 
     static {
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
         SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
         SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
+        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {

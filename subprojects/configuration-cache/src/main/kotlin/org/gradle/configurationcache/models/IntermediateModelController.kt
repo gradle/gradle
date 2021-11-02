@@ -97,7 +97,7 @@ class IntermediateModelController(
 
     fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T {
         val key = ModelKey(identityPath, modelName)
-        val addressOfCached = intermediateModels[key]
+        val addressOfCached = locateCachedModel(key)
         if (addressOfCached != null) {
             return projectValueStore.read(addressOfCached).uncheckedCast()
         }
@@ -109,6 +109,19 @@ class IntermediateModelController(
         val address = projectValueStore.write(model)
         intermediateModels[key] = address
         return model
+    }
+
+    private
+    fun locateCachedModel(key: ModelKey): BlockAddress? {
+        val cachedInCurrent = intermediateModels[key]
+        if (cachedInCurrent != null) {
+            return cachedInCurrent
+        }
+        val cachedInPrevious = previousIntermediateModels[key]
+        if (cachedInPrevious != null) {
+            intermediateModels[key] = cachedInPrevious
+        }
+        return cachedInPrevious
     }
 
     override fun close() {

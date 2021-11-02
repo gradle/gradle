@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MinimalGroovyCompileOptions implements Serializable {
     private boolean failOnError;
@@ -40,6 +41,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
     private File configurationScript;
     private boolean javaAnnotationProcessing;
     private boolean parameters;
+    private Set<String> disabledGlobalASTTransformations;
 
     public MinimalGroovyCompileOptions(GroovyCompileOptions compileOptions) {
         this.failOnError = compileOptions.isFailOnError();
@@ -55,6 +57,7 @@ public class MinimalGroovyCompileOptions implements Serializable {
         this.configurationScript = compileOptions.getConfigurationScript();
         this.javaAnnotationProcessing = compileOptions.isJavaAnnotationProcessing();
         this.parameters = compileOptions.isParameters();
+        this.disabledGlobalASTTransformations = compileOptions.getDisabledGlobalASTTransformations().get();
     }
 
     public boolean isFailOnError() {
@@ -161,5 +164,13 @@ public class MinimalGroovyCompileOptions implements Serializable {
 
     public void setParameters(boolean parameters) {
         this.parameters = parameters;
+    }
+
+    public Set<String> getDisabledGlobalASTTransformations() {
+        return disabledGlobalASTTransformations;
+    }
+
+    public void setDisabledGlobalASTTransformations(Set<String> disabledGlobalASTTransformations) {
+        this.disabledGlobalASTTransformations = disabledGlobalASTTransformations;
     }
 }

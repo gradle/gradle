@@ -26,7 +26,9 @@ import org.gradle.internal.resources.ResourceLock;
  */
 public interface WorkerLeaseRegistry {
     /**
-     * Returns the worker lease associated with the current thread. Allows child leases to be created for this lease. Fails when there is no lease associated with this thread.
+     * Returns the worker lease associated with the current thread. Allows child leases to be created for this lease.
+     *
+     * Fails when there is no lease associated with this thread.
      */
     WorkerLease getCurrentWorkerLease();
 

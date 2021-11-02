@@ -89,6 +89,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("The string is absent") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         when:
         printString "alice"
@@ -240,6 +243,11 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
 
+        and: "the input is reported"
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': system property 'greeting'")
+        }
+
         when:
         runGreetWith 'hi'
 
@@ -384,6 +392,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         output.count("Hi!") == 1
         configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle.kts': $reportedInput")
+        }
 
         when:
         configurationCacheRun("greet", "-${option}greeting=hi")
@@ -401,9 +412,9 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         outputContains "$description property 'greeting' has changed"
 
         where:
-        kind     | option | description
-        'system' | 'D'    | 'system'
-        'gradle' | 'P'    | 'Gradle'
+        kind     | option | description | reportedInput
+        'system' | 'D'    | 'system'    | "system property 'greeting'"
+        'gradle' | 'P'    | 'Gradle'    | "Gradle property 'greeting'"
     }
 
     def "mapped system property used as task input"() {

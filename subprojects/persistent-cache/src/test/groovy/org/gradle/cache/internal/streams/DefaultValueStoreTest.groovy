@@ -102,18 +102,34 @@ class DefaultValueStoreTest extends ConcurrentSpec {
 
     def "can persist block address and read block later"() {
         expect:
-        def dest = store()
         def block1 = write("test 1")
         def block2 = write("test 2")
 
-        def copy1 = storeAndLoad(block1, store, dest)
-        def copy2 = storeAndLoad(block2, store, dest)
+        def copy1 = storeAndLoad(block1)
+        def copy2 = storeAndLoad(block2)
 
+        def dest = store()
         dest.read(copy2) == "test 2"
         dest.read(copy1) == "test 1"
 
         cleanup:
         dest?.close()
+    }
+
+    def "does not overwrite blocks written by previous instances"() {
+        expect:
+        def block1 = write("test 1")
+        def block2 = write("test 2")
+        store.close()
+
+        def second = store()
+        def block3 = second.write("test 3")
+        second.read(block2) == "test 2"
+        second.read(block1) == "test 1"
+        second.read(block3) == "test 3"
+
+        cleanup:
+        second?.close()
     }
 
     def "can write empty block"() {
@@ -145,8 +161,7 @@ class DefaultValueStoreTest extends ConcurrentSpec {
         return store.read(block)
     }
 
-
-    BlockAddress storeAndLoad(BlockAddress block, ValueStore<?> source = store, ValueStore<?> dest = source) {
+    BlockAddress storeAndLoad(BlockAddress block) {
         def outstr = new ByteArrayOutputStream()
         def encoder = new KryoBackedEncoder(outstr)
         def serializer = new BlockAddressSerializer()
