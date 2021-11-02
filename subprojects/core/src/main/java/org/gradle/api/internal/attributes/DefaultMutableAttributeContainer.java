@@ -20,15 +20,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory cache;
     private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
+    private boolean attributesFinalized = false;
+    private final Map<Attribute<?>, Provider<?>> lazyAttributes = Maps.newHashMap();
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory cache) {
         this(cache, null);
@@ -46,23 +50,43 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public Set<Attribute<?>> keySet() {
+        final Set<Attribute<?>> selfKeys = Sets.union(state.keySet(), lazyAttributes.keySet());
         if (parent == null) {
-            return state.keySet();
+            return selfKeys;
         } else {
-            return Sets.union(parent.keySet(), state.keySet());
+            return Sets.union(parent.keySet(), selfKeys);
         }
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
+        if (isAttributesFinalized()) {
+            throw new IllegalStateException("Cannot set attribute '" + key.getName() + "' after attributes have been finalized");
+        }
+
         assertAttributeConstraints(value, key);
         checkInsertionAllowed(key);
         state = cache.concat(state, key, value);
         return this;
     }
 
+    @Override
+    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
+        if (isAttributesFinalized()) {
+            throw new IllegalStateException("Cannot set attribute '" + key.getName() + "' after attributes have been finalized");
+        }
+
+        assertAttributeConstraints(provider, key);
+        checkInsertionAllowed(key);
+        lazyAttributes.put(key, provider);
+        return this;
+    }
+
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        for (Attribute<?> attribute : state.keySet()) {
+        // TODO: AttributeContainer Should this just use keySet() method instead?  Initially
+        // the parent keys weren't used here
+        final Set<Attribute<?>> keys = Sets.union(state.keySet(), lazyAttributes.keySet());
+        for (Attribute<?> attribute : keys) {
             String name = key.getName();
             if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
                 throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
@@ -72,7 +96,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         }
     }
 
-    private static void assertAttributeConstraints(Object value, Attribute<?> attribute) {
+    private void assertAttributeConstraints(Object value, Attribute<?> attribute) {
         if (value == null) {
             throw new IllegalArgumentException("Setting null as an attribute value is not allowed");
         }
@@ -83,6 +107,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
+        finalizeAttributes();
         T attribute = state.getAttribute(key);
         if (attribute == null && parent != null) {
             return parent.getAttribute(key);
@@ -92,12 +117,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public boolean isEmpty() {
-        return state.isEmpty() && (parent == null || parent.isEmpty());
+        return state.isEmpty() && lazyAttributes.isEmpty() && (parent == null || parent.isEmpty());
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return state.contains(key) || (parent != null && parent.contains(key));
+        return state.contains(key) || lazyAttributes.containsKey(key) || (parent != null && parent.contains(key));
     }
 
     @Override
@@ -107,7 +132,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         } else {
             ImmutableAttributes attributes = parent.asImmutable();
             if (!state.isEmpty()) {
-                attributes = cache.concat(attributes, state);
+                attributes = cache.concat(cache.concat(attributes, state), evaluateLazyValues());
             }
             return attributes;
         }
@@ -115,6 +140,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public Map<Attribute<?>, ?> asMap() {
+        finalizeAttributes();
         Map<Attribute<?>, ?> map = Maps.newLinkedHashMap();
         for (Attribute<?> attribute : keySet()) {
             map.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
@@ -124,6 +150,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     @Override
     public AttributeContainer getAttributes() {
+        finalizeAttributes();
         return this;
     }
 
@@ -138,9 +165,13 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
         DefaultMutableAttributeContainer that = (DefaultMutableAttributeContainer) o;
 
-        if (parent != null ? !parent.equals(that.parent) : that.parent != null) {
+        if (!Objects.equals(parent, that.parent)) {
             return false;
         }
+        if (!Objects.equals(lazyAttributes, that.lazyAttributes)) {
+            return false;
+        }
+
         return state.equals(that.state);
     }
 
@@ -148,6 +179,31 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     public int hashCode() {
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + state.hashCode();
+        result = 31 * result + lazyAttributes.hashCode();
         return result;
+    }
+
+    @Override
+    public void finalizeAttributes() {
+        evaluateLazyValues().asMap().forEach((key, value) -> {
+            @SuppressWarnings("unchecked") final Attribute<Object> typedKey = (Attribute<Object>) key;
+            attribute(typedKey, value);
+        });
+        attributesFinalized = true;
+    }
+
+    @Override
+    public boolean isAttributesFinalized() {
+        return attributesFinalized;
+    }
+
+    private ImmutableAttributes evaluateLazyValues() {
+        ImmutableAttributes results = cache.mutable().asImmutable();
+        for (Map.Entry<Attribute<?>, Provider<?>> entry : lazyAttributes.entrySet()) {
+            @SuppressWarnings("unchecked") Attribute<Object> key = (Attribute<Object>) entry.getKey();
+            Object value = entry.getValue().get();
+            results = cache.concat(results, key, value);
+        }
+        return results;
     }
 }

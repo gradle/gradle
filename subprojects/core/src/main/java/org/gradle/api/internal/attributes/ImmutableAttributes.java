@@ -34,4 +34,14 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
+    @Override
+    default void finalizeAttributes() {
+        // No-Op
+    }
+
+    @Override
+    default boolean isAttributesFinalized() {
+        return true;
+    }
 }

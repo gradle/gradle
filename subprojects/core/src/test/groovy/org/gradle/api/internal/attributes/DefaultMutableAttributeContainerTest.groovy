@@ -36,8 +36,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         child.attribute(attr1, "child")
 
         expect:
-        child.getAttribute(attr1) == "child"
-        child.getAttribute(attr2) == "parent"
+        child.asImmutable().getAttribute(attr1) == "child"
+        child.asImmutable().getAttribute(attr2) == "parent"
 
         def immutable1 = child.asImmutable()
         immutable1.getAttribute(attr1) == "child"
@@ -45,8 +45,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         parent.attribute(attr2, "new parent")
 
-        child.getAttribute(attr1) == "child"
-        child.getAttribute(attr2) == "new parent"
+        child.asImmutable().getAttribute(attr1) == "child"
+        child.asImmutable().getAttribute(attr2) == "new parent"
 
         immutable1.getAttribute(attr1) == "child"
         immutable1.getAttribute(attr2) == "parent"

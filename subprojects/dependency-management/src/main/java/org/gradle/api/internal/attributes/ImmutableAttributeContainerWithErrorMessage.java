@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -57,6 +58,11 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
         throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
     }
 
+    @Override
+    public <T> AttributeContainer attribute(Attribute<T> key, Provider<? extends T> provider) {
+        throw new IllegalArgumentException(String.format("Cannot change attributes of dependency %s after it has been resolved", owner.getDisplayName()));
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
@@ -76,5 +82,15 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
     @Override
     public AttributeContainer getAttributes() {
         return delegate.getAttributes();
+    }
+
+    @Override
+    public void finalizeAttributes() {
+        // No Op
+    }
+
+    @Override
+    public boolean isAttributesFinalized() {
+        return true;
     }
 }
