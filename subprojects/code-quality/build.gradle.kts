@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":reporting"))
     implementation(project(":platform-jvm"))
+    implementation(project(":file-collections"))
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)

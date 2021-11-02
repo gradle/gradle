@@ -24,19 +24,33 @@ import org.gradle.api.provider.Property;
 import org.gradle.workers.WorkParameters;
 
 public interface CheckstyleActionParameters extends WorkParameters {
-        RegularFileProperty getConfig();
-        ConfigurableFileCollection getSource();
-        ConfigurableFileCollection getClasspath();
-        Property<Integer> getMaxErrors();
-        Property<Integer> getMaxWarnings();
-        Property<Boolean> getIgnoreFailures();
-        DirectoryProperty getConfigDirectory();
-        Property<Boolean> getShowViolations();
-        Property<Boolean> getIsXmlRequired();
-        Property<Boolean> getIsHtmlRequired();
-        RegularFileProperty getXmlOuputLocation();
-        RegularFileProperty getHtmlOuputLocation();
-        DirectoryProperty getTemporaryDir();
-        MapProperty<String, Object> getConfigProperties();
-        Property<String> getStylesheetString();
-    }
+    RegularFileProperty getConfig();
+
+    ConfigurableFileCollection getSource();
+
+    ConfigurableFileCollection getClasspath();
+
+    Property<Integer> getMaxErrors();
+
+    Property<Integer> getMaxWarnings();
+
+    Property<Boolean> getIgnoreFailures();
+
+    DirectoryProperty getConfigDirectory();
+
+    Property<Boolean> getShowViolations();
+
+    Property<Boolean> getIsXmlRequired();
+
+    Property<Boolean> getIsHtmlRequired();
+
+    RegularFileProperty getXmlOuputLocation();
+
+    RegularFileProperty getHtmlOuputLocation();
+
+    DirectoryProperty getTemporaryDir();
+
+    MapProperty<String, Object> getConfigProperties();
+
+    Property<String> getStylesheetString();
+}

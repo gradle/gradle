@@ -31,7 +31,7 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
 
     def "uses jdk from toolchains"() {
         given:
-        writDummyConfig()
+        writeDummyConfig()
         file('src/main/java/Dummy.java') << "class Dummy {}"
         def jdk = setupExecutorForToolchains {
             it.languageVersion > Jvm.current().javaVersion
@@ -45,14 +45,10 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
     }
 
-    def "should not use toolchains if toolchain JDK matches current running JDK"() {
+    def "uses toolchains based on current jdk if not specified otherwise"() {
         given:
-        writDummyConfig()
-        file('src/main/java/Dummy.java') << "class Dummy {}"
-        def jdk = setupExecutorForToolchains {
-            it.javaHome.toAbsolutePath().toString() == Jvm.current().javaHome.absolutePath
-        }
-        writeBuildFile(jdk)
+        writeDummyConfig()
+        writeBuildFile()
 
         when:
         succeeds("checkstyleMain")
@@ -109,7 +105,7 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
         return jdk
     }
 
-    private void writeBuildFile(Jvm jvm) {
+    private void writeBuildFile() {
         buildFile << """
     plugins {
         id 'groovy'
@@ -124,7 +120,12 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
     dependencies {
         implementation localGroovy()
     }
+"""
+    }
 
+    private void writeBuildFile(Jvm jvm) {
+        writeBuildFile()
+        buildFile << """
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
@@ -133,7 +134,7 @@ class CheckstylePluginToolchainsIntegrationTest extends AbstractIntegrationSpec 
 """
     }
 
-    private void writDummyConfig() {
+    private void writeDummyConfig() {
         file('config/checkstyle/checkstyle.xml') << """
 <!DOCTYPE module PUBLIC
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"

@@ -415,9 +415,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
     private badCode() {
         file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
         file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
-        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
     }
 
     private badResources() {
