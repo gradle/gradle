@@ -21,11 +21,15 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    // https://github.com/gradle/gradle-private/issues/3475
+    @Requires(TestPrecondition.NOT_MAC_OS_X)
     def "can publish build scan with composite build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
