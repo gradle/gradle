@@ -189,7 +189,7 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         'missing'  | null            | 'otherMissing' | null           | false
     }
 
-    private static Map.Entry<String, String> entry(String key, String value) {
+    static Map.Entry<String, String> entry(String key, String value) {
         return Maps.immutableEntry(key, value)
     }
 }

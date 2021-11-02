@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath
 
 import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Maps
 import spock.lang.Specification
 
@@ -29,15 +30,19 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
     private static final Integer missingKey = Integer.valueOf(4)
     private static final Integer nonStringValue = Integer.valueOf(5)
 
-    private final Properties innerProperties = propertiesWithContent(ImmutableMap.of(
+    private final Map<Object, Object> innerMap = ImmutableMap.of(
         existingKey, existingValue,
         'existing', 'existingStringValue',
         'keyWithNonStringValue', nonStringValue
-    ))
+    )
     private final BiConsumer<Object, Object> consumer = Mock()
 
     protected Properties getMapUnderTestToRead() {
-        return new AccessTrackingProperties(innerProperties, consumer)
+        return getMapUnderTestToWrite()
+    }
+
+    protected Properties getMapUnderTestToWrite() {
+        return new AccessTrackingProperties(propertiesWithContent(innerMap), consumer)
     }
 
     def "get(#key) is not tracked for non-strings"() {
@@ -109,17 +114,17 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         getMapUnderTestToRead().forEach(iterated::put)
 
         then:
-        iterated.keySet() == innerProperties.keySet()
+        iterated.keySet() == innerMap.keySet()
         1 * consumer.accept('existing', 'existingStringValue')
         0 * consumer._
     }
 
     def "entrySet() enumeration is tracked for strings only"() {
         when:
-        def result = new HashSet<>(getMapUnderTestToRead().entrySet())
+        def result = ImmutableSet.copyOf(getMapUnderTestToRead().entrySet())
 
         then:
-        result == innerProperties.entrySet()
+        result == innerMap.entrySet()
         1 * consumer.accept('existing', 'existingStringValue')
         0 * consumer._
     }
@@ -165,10 +170,10 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
     def "keySet() enumeration is tracked for strings only"() {
         when:
-        def result = new HashSet<>(getMapUnderTestToRead().keySet())
+        def result = ImmutableSet.copyOf(getMapUnderTestToRead().keySet())
 
         then:
-        result == innerProperties.keySet()
+        result == innerMap.keySet()
         1 * consumer.accept('existing', 'existingStringValue')
         0 * consumer._
     }
@@ -233,6 +238,78 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         !result
         1 * consumer.accept('existing', 'existingStringValue')
         0 * consumer._
+    }
+
+    def "remove(#key) is not tracked for non-strings"() {
+        when:
+        def result = getMapUnderTestToWrite().remove(key)
+
+        then:
+        result == expectedResult
+        0 * consumer._
+        where:
+        key                     | expectedResult
+        existingKey             | existingValue
+        missingKey              | null
+        'keyWithNonStringValue' | nonStringValue
+    }
+
+    def "keySet() remove(#key) and removeAll(#key) are not tracked for non-strings"() {
+        when:
+        def removeResult = getMapUnderTestToWrite().keySet().remove(key)
+
+        then:
+        removeResult == expectedResult
+        0 * consumer._
+
+        when:
+        def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.<Object> singleton(key))
+
+        then:
+        removeAllResult == expectedResult
+        0 * consumer._
+
+        where:
+        key                     | expectedResult
+        existingKey             | true
+        missingKey              | false
+        'keyWithNonStringValue' | true
+    }
+
+    def "keySet() removeAll() is tracked for strings only"() {
+        when:
+        def result = getMapUnderTestToRead().keySet().removeAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
+        then:
+        result
+        1 * consumer.accept('existing', 'existingStringValue')
+        0 * consumer._
+    }
+
+    def "entrySet() remove(#key) and removeAll(#key) are not tracked for non-strings"() {
+        when:
+        def removeResult = getMapUnderTestToWrite().entrySet().remove(entry(key, requestedValue))
+
+        then:
+        removeResult == expectedResult
+        0 * consumer._
+
+        when:
+        def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
+
+        then:
+        removeAllResult == expectedResult
+        0 * consumer._
+
+        where:
+        key                     | requestedValue | expectedResult
+        'existing'              | null           | false
+        existingKey             | existingValue  | true
+        existingKey             | otherValue     | false
+        existingKey             | null           | false
+        missingKey              | existingValue  | false
+        'keyWithNonStringValue' | nonStringValue | true
+        'keyWithNonStringValue' | otherValue     | false
+        'keyWithNonStringValue' | null           | false
     }
 
     private static Properties propertiesWithContent(Map<Object, Object> contents) {

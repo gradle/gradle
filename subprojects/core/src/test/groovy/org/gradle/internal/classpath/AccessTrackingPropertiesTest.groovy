@@ -19,6 +19,10 @@ package org.gradle.internal.classpath
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     @Override
     protected Properties getMapUnderTestToRead() {
+        return getMapUnderTestToWrite()
+    }
+
+    protected Properties getMapUnderTestToWrite() {
         return new AccessTrackingProperties(propertiesWithContent(innerMap), consumer)
     }
 
@@ -90,6 +94,67 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         'existing' | 'existingValue' | 'other'        | 'otherValue'   | true
         'existing' | 'existingValue' | 'missing'      | null           | false
         'missing'  | null            | 'otherMissing' | null           | false
+    }
+
+    def "remove(#key) is tracked"() {
+        when:
+        def result = getMapUnderTestToWrite().remove(key)
+
+        then:
+        result == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+        where:
+        key        | reportedValue   | expectedResult
+        'existing' | 'existingValue' | 'existingValue'
+        'missing'  | null            | null
+    }
+
+    def "keySet() remove(#key) and removeAll(#key) are tracked"() {
+        when:
+        def removeResult = getMapUnderTestToWrite().keySet().remove(key)
+
+        then:
+        removeResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        when:
+        def removeAllResult = getMapUnderTestToWrite().keySet().removeAll(Collections.singleton(key))
+
+        then:
+        removeAllResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        where:
+        key        | reportedValue   | expectedResult
+        'existing' | 'existingValue' | true
+        'missing'  | null            | false
+    }
+
+    def "entrySet() remove(#key) and removeAll(#key) are tracked"() {
+        when:
+        def removeResult = getMapUnderTestToWrite().entrySet().remove(entry(key, requestedValue))
+
+        then:
+        removeResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        when:
+        def removeAllResult = getMapUnderTestToWrite().entrySet().removeAll(Collections.singleton(entry(key, requestedValue)))
+
+        then:
+        removeAllResult == expectedResult
+        1 * consumer.accept(key, reportedValue)
+        0 * consumer._
+
+        where:
+        key        | requestedValue  | reportedValue   | expectedResult
+        'existing' | 'existingValue' | 'existingValue' | true
+        'existing' | 'someValue'     | 'existingValue' | false
+        'missing'  | 'someValue'     | null            | false
     }
 
     private static Properties propertiesWithContent(Map<String, String> contents) {

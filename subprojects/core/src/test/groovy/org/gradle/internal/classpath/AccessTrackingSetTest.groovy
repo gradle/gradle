@@ -16,14 +16,13 @@
 
 package org.gradle.internal.classpath
 
-import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 import java.util.function.Consumer
 
 class AccessTrackingSetTest extends Specification {
     private final Consumer<Object> consumer = Mock()
-    private final Set<String> inner = ImmutableSet.of('existing', 'other')
+    private final Set<String> inner = new HashSet<>(Arrays.asList('existing', 'other'))
     private final AccessTrackingSet<String> set = new AccessTrackingSet<>(inner, consumer)
 
     @SuppressWarnings('GrEqualsBetweenInconvertibleTypes')
@@ -111,6 +110,59 @@ class AccessTrackingSetTest extends Specification {
         !result
         1 * consumer.accept('missing')
         1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "remove of existing element is tracked"() {
+        when:
+        def result = set.remove('existing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        0 * consumer._
+    }
+
+    def "remove of missing element is tracked"() {
+        when:
+        def result = set.remove('missing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        0 * consumer._
+    }
+
+    def "removeAll of existing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'other')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('other')
+        0 * consumer._
+    }
+
+    def "removeAll of missing elements is tracked"() {
+        when:
+        def result = set.removeAll('missing', 'alsoMissing')
+
+        then:
+        !result
+        1 * consumer.accept('missing')
+        1 * consumer.accept('alsoMissing')
+        0 * consumer._
+    }
+
+    def "removeAll of existing and missing elements is tracked"() {
+        when:
+        def result = set.removeAll('existing', 'missing')
+
+        then:
+        result
+        1 * consumer.accept('existing')
+        1 * consumer.accept('missing')
         0 * consumer._
     }
 }

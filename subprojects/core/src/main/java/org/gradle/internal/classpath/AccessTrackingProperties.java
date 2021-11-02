@@ -181,7 +181,9 @@ class AccessTrackingProperties extends Properties {
 
     @Override
     public Object remove(Object key) {
-        return delegate.remove(key);
+        Object result = delegate.remove(key);
+        reportKeyAndValue(key, result);
+        return result;
     }
 
     @Override

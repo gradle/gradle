@@ -57,6 +57,22 @@ class AccessTrackingSet<E> extends AbstractSet<E> {
     }
 
     @Override
+    public boolean remove(Object o) {
+        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        onAccess.accept(o);
+        return delegate.remove(o);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> collection) {
+        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        for (Object o : collection) {
+            onAccess.accept(o);
+        }
+        return delegate.removeAll(collection);
+    }
+
+    @Override
     public Iterator<E> iterator() {
         return new AbstractIterator<E>() {
             private final Iterator<? extends E> inner = delegate.iterator();
