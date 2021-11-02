@@ -23,17 +23,21 @@ import spock.lang.Specification
 
 import java.util.function.BiConsumer
 
+import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_KEY
+import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.EXISTING_VALUE
+import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.MISSING_KEY
+import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.NON_STRING_VALUE
+import static org.gradle.internal.classpath.AccessTrackingPropertiesNonStringTest.TestData.OTHER_VALUE
+
 class AccessTrackingPropertiesNonStringTest extends Specification {
-    private static final Integer existingKey = Integer.valueOf(1)
-    private static final Integer existingValue = Integer.valueOf(2)
-    private static final Integer otherValue = Integer.valueOf(3)
-    private static final Integer missingKey = Integer.valueOf(4)
-    private static final Integer nonStringValue = Integer.valueOf(5)
+    private enum TestData {
+        EXISTING_KEY, EXISTING_VALUE, OTHER_VALUE, MISSING_KEY, NON_STRING_VALUE
+    }
 
     private final Map<Object, Object> innerMap = ImmutableMap.of(
-        existingKey, existingValue,
+        EXISTING_KEY, EXISTING_VALUE,
         'existing', 'existingStringValue',
-        'keyWithNonStringValue', nonStringValue
+        'keyWithNonStringValue', NON_STRING_VALUE
     )
     private final BiConsumer<Object, Object> consumer = Mock()
 
@@ -55,9 +59,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | existingValue
-        missingKey              | null
-        'keyWithNonStringValue' | nonStringValue
+        EXISTING_KEY            | EXISTING_VALUE
+        MISSING_KEY             | null
+        'keyWithNonStringValue' | NON_STRING_VALUE
     }
 
     def "getOrDefault(#key) is not tracked for non-strings"() {
@@ -70,9 +74,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | existingValue
-        missingKey              | 'defaultValue'
-        'keyWithNonStringValue' | nonStringValue
+        EXISTING_KEY            | EXISTING_VALUE
+        MISSING_KEY             | 'defaultValue'
+        'keyWithNonStringValue' | NON_STRING_VALUE
     }
 
     def "containsKey(#key) is not tracked for non-strings"() {
@@ -85,8 +89,8 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | true
-        missingKey              | false
+        EXISTING_KEY            | true
+        MISSING_KEY             | false
         'keyWithNonStringValue' | true
     }
 
@@ -145,22 +149,22 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key                     | requestedValue | expectedResult
-        'existing'              | null           | false
-        existingKey             | existingValue  | true
-        existingKey             | otherValue     | false
-        existingKey             | null           | false
-        missingKey              | existingValue  | false
-        'keyWithNonStringValue' | nonStringValue | true
-        'keyWithNonStringValue' | otherValue     | false
-        'keyWithNonStringValue' | null           | false
+        key                     | requestedValue   | expectedResult
+        'existing'              | null             | false
+        EXISTING_KEY            | EXISTING_VALUE   | true
+        EXISTING_KEY            | OTHER_VALUE      | false
+        EXISTING_KEY            | null             | false
+        MISSING_KEY             | EXISTING_VALUE   | false
+        'keyWithNonStringValue' | NON_STRING_VALUE | true
+        'keyWithNonStringValue' | OTHER_VALUE      | false
+        'keyWithNonStringValue' | null             | false
     }
 
     def "entrySet() containsAll() is tracked for strings only"() {
         when:
         def result = getMapUnderTestToRead().entrySet().containsAll(Arrays.asList(
-            entry(existingKey, existingValue),
-            entry('keyWithNonStringValue', nonStringValue),
+            entry(EXISTING_KEY, EXISTING_VALUE),
+            entry('keyWithNonStringValue', NON_STRING_VALUE),
             entry('existing', 'existingStringValue')))
         then:
         result
@@ -195,14 +199,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | true
-        missingKey              | false
+        EXISTING_KEY            | true
+        MISSING_KEY             | false
         'keyWithNonStringValue' | true
     }
 
     def "keySet() containsAll() is tracked for strings only"() {
         when:
-        def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
+        def result = getMapUnderTestToRead().keySet().containsAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         result
         1 * consumer.accept('existing', 'existingStringValue')
@@ -226,14 +230,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | false
-        missingKey              | false
+        EXISTING_KEY            | false
+        MISSING_KEY             | false
         'keyWithNonStringValue' | false
     }
 
     def "stringPropertyNames() containsAll() is tracked for strings only"() {
         when:
-        def result = getMapUnderTestToRead().stringPropertyNames().containsAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
+        def result = getMapUnderTestToRead().stringPropertyNames().containsAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         !result
         1 * consumer.accept('existing', 'existingStringValue')
@@ -249,9 +253,9 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
         where:
         key                     | expectedResult
-        existingKey             | existingValue
-        missingKey              | null
-        'keyWithNonStringValue' | nonStringValue
+        EXISTING_KEY            | EXISTING_VALUE
+        MISSING_KEY             | null
+        'keyWithNonStringValue' | NON_STRING_VALUE
     }
 
     def "keySet() remove(#key) and removeAll(#key) are not tracked for non-strings"() {
@@ -271,14 +275,14 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
 
         where:
         key                     | expectedResult
-        existingKey             | true
-        missingKey              | false
+        EXISTING_KEY            | true
+        MISSING_KEY             | false
         'keyWithNonStringValue' | true
     }
 
     def "keySet() removeAll() is tracked for strings only"() {
         when:
-        def result = getMapUnderTestToRead().keySet().removeAll(Arrays.asList(existingKey, 'keyWithNonStringValue', 'existing'))
+        def result = getMapUnderTestToRead().keySet().removeAll(Arrays.asList(EXISTING_KEY, 'keyWithNonStringValue', 'existing'))
         then:
         result
         1 * consumer.accept('existing', 'existingStringValue')
@@ -301,15 +305,15 @@ class AccessTrackingPropertiesNonStringTest extends Specification {
         0 * consumer._
 
         where:
-        key                     | requestedValue | expectedResult
-        'existing'              | null           | false
-        existingKey             | existingValue  | true
-        existingKey             | otherValue     | false
-        existingKey             | null           | false
-        missingKey              | existingValue  | false
-        'keyWithNonStringValue' | nonStringValue | true
-        'keyWithNonStringValue' | otherValue     | false
-        'keyWithNonStringValue' | null           | false
+        key                     | requestedValue   | expectedResult
+        'existing'              | null             | false
+        EXISTING_KEY            | EXISTING_VALUE   | true
+        EXISTING_KEY            | OTHER_VALUE      | false
+        EXISTING_KEY            | null             | false
+        MISSING_KEY             | EXISTING_VALUE   | false
+        'keyWithNonStringValue' | NON_STRING_VALUE | true
+        'keyWithNonStringValue' | OTHER_VALUE      | false
+        'keyWithNonStringValue' | null             | false
     }
 
     private static Properties propertiesWithContent(Map<Object, Object> contents) {
