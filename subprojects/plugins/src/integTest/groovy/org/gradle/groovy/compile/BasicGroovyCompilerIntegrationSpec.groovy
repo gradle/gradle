@@ -357,7 +357,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "groovyToolClassesAreNotVisible"() {
-        Assume.assumeFalse(versionLowerThan("2.0"))
+        Assume.assumeFalse(versionLowerThan("3.0"))
 
         expect:
         fails("compileGroovy")
@@ -387,7 +387,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
-        Assume.assumeFalse(versionLowerThan("1.6"))
+        Assume.assumeFalse(versionLowerThan("3.0"))
 
         buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
         expect:
