@@ -17,20 +17,27 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
-@FluidDependenciesResolveTest
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
+            include 'project-lib'
         """
+        mavenRepo.module("org.external", "external-lib").publish()
+        file('lib/file-lib.jar') << 'content'
+    }
+
+    def "can use #type as work input"() {
+        given:
         buildFile << """
-            abstract class TaskWithAttributeInput extends DefaultTask {
+            import org.gradle.internal.component.external.model.ImmutableCapability
+
+            abstract class TaskWithInput extends DefaultTask {
 
                 @Input
-                abstract Property<Attribute> getAttribute()
+                abstract Property<$type> getInput()
 
                 @OutputFile
                 abstract RegularFileProperty getOutputFile()
@@ -40,36 +47,28 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
                 @TaskAction
                 def action() {
-                    workerExecutor.processIsolation().submit(TaskWithAttributeInputWorkAction, parameters -> {
-                        parameters.workAttribute.set(attribute)
+                    workerExecutor.classLoaderIsolation().submit(TaskWithInputWorkAction, parameters -> {
+                        parameters.workInput.set(input)
                         parameters.workOutputFile.set(outputFile)
                     })
                 }
             }
 
-            interface TaskWithAttributeInputWorkParameters extends WorkParameters {
-                Property<Attribute> getWorkAttribute()
+            interface TaskWithInputWorkParameters extends WorkParameters {
+                Property<$type> getWorkInput()
                 RegularFileProperty getWorkOutputFile()
             }
 
-            abstract class TaskWithAttributeInputWorkAction implements WorkAction<TaskWithAttributeInputWorkParameters> {
+            abstract class TaskWithInputWorkAction implements WorkAction<TaskWithInputWorkParameters> {
                 @Override
                 void execute() {
-                    println(parameters.workAttribute.get())
+                    println(parameters.workInput.get())
                 }
             }
-        """
-    }
 
-    def "attributes can be used as work inputs"() {
-        given:
-        buildFile << """
-            tasks.register("verify", TaskWithAttributeInput) {
+            tasks.register("verify", TaskWithInput) {
                 outputFile.set(layout.buildDirectory.file('output.txt'))
-                attribute.set(Attribute.of(System.getProperty("n"), String))
-                doLast {
-                    println(attribute.get())
-                }
+                input.set($factory)
             }
         """
 
@@ -90,5 +89,170 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         executedAndNotSkipped(":verify")
+
+        where:
+        type                           | factory
+        // For ResolvedArtifactResult
+        "Attribute"                    | "Attribute.of(System.getProperty('n'), String)"
+        "Capability"                   | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
+        "ComponentArtifactIdentifier"  | "null"
+        "ComponentIdentifier"          | "null"
+        "ResolvedVariantResult"        | "null"
+        "AttributeContainer"           | "null"
+        // For ResolvedComponentResult
+        "ResolvedComponentResult"      | "null"
+        "DependencyResult"             | "null"
+        "ComponentSelector"            | "null"
+        "ComponentSelectionReason"     | "null"
+        "ComponentSelectionDescriptor" | "null"
+        "ModuleVersionIdentifier"      | "null"
+    }
+
+    def "can use files from ResolvedArtifactResult as work input"() {
+        given:
+        buildFile << """
+            project(':project-lib') {
+                apply plugin: 'java'
+            }
+            configurations {
+                compile
+            }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'org.external:external-lib:1.0'
+                compile project('project-lib')
+                compile files('lib/file-lib.jar')
+            }
+
+            abstract class TaskWithFilesInput extends DefaultTask {
+
+                @InputFiles
+                abstract ConfigurableFileCollection getInputFiles()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithFilesInput) {
+                inputFiles.from(configurations.compile.incoming.artifacts.resolvedArtifacts.map { it.collect { it.file } })
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    println(inputFiles.files)
+                }
+            }
+        """
+
+        def sourceFile = file("project-lib/src/main/java/Main.java")
+        sourceFile << """
+            class Main {}
+        """.stripIndent()
+        sourceFile.makeOlder()
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        sourceFile.text = """
+            class Main {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+    }
+
+    def "can combine files and metadata from ResolvedArtifactResult as work input"() {
+        given:
+        buildFile << """
+            project(':project-lib') {
+                apply plugin: 'java'
+            }
+            configurations {
+                compile
+            }
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            dependencies {
+                compile 'org.external:external-lib:1.0'
+                compile project('project-lib')
+                compile files('lib/file-lib.jar')
+            }
+
+            interface FilesAndMetadata {
+
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
+
+                @Input
+                SetProperty<Class<?>> getMetadata()
+            }
+
+            abstract class TaskWithFilesAndMetadataInput extends DefaultTask {
+
+                private final FilesAndMetadata filesAndMetadata = project.objects.newInstance(FilesAndMetadata)
+
+                @Nested
+                FilesAndMetadata getFilesAndMetadata() {
+                    return filesAndMetadata
+                }
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+            }
+
+            tasks.register('verify', TaskWithFilesAndMetadataInput) {
+                def resolvedArtifacts = configurations.compile.incoming.artifacts.resolvedArtifacts
+                filesAndMetadata.inputFiles.from(resolvedArtifacts.map { it.collect { it.file } })
+                filesAndMetadata.metadata.addAll(resolvedArtifacts.map { it.collect { it.type } })
+                outputFile.set(layout.buildDirectory.file('output.txt'))
+                doLast {
+                    println(filesAndMetadata.inputFiles.files)
+                    println(filesAndMetadata.metadata.get())
+                }
+            }
+        """
+
+        def sourceFile = file("project-lib/src/main/java/Main.java")
+        sourceFile << """
+            class Main {}
+        """.stripIndent()
+        sourceFile.makeOlder()
+
+        when:
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
+
+        when:
+        succeeds "verify"
+
+        then:
+        skipped ":project-lib:jar", ":verify"
+
+        when:
+        sourceFile.text = """
+            class Main {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 }
