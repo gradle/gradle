@@ -15,7 +15,10 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
+import org.gradle.api.Transformer
 import org.gradle.api.file.ContentFilterable
+import org.gradle.api.internal.NullableTransformer
 
 import java.io.FilterReader
 import kotlin.reflect.KClass
@@ -111,3 +114,19 @@ fun <T : FilterReader> ContentFilterable.filter(filterType: KClass<T>, vararg pr
 fun <T : FilterReader> ContentFilterable.filter(filterType: KClass<T>, properties: Map<String, Any?>) =
     if (properties.isEmpty()) filter(filterType.java)
     else filter(properties, filterType.java)
+
+
+/**
+ * Creates a new transformer that can return null and can be used in the context of [ContentFilterable.filter].
+ *
+ * @param transformer the spec of the transformer to be returned.
+ * @since 7.4
+ */
+@Incubating
+fun ContentFilterable.nullableTransformer(transformer: (String) -> String?): Transformer<String, String> {
+    return object : NullableTransformer<String, String>() {
+        override fun transform(input: String): String? {
+            return transformer.invoke(input)
+        }
+    }.asTransformer()
+}
