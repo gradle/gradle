@@ -72,6 +72,12 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         public ToolingModelBuilderLookup.Builder locateBuilderForDefaultTarget(String modelName, boolean param) {
             synchronized (treeMutableStateLock) {
                 // Look for a build scoped builder
+
+                // Force configuration of the build and locate builder for default project
+                if (modelName.equals("org.gradle.tooling.model.gradle.GradleBuild")) {
+                    buildController.getGradle().getOwner().ensureProjectsConfigured();
+                }
+
                 ToolingModelBuilderLookup lookup = buildController.getGradle().getServices().get(ToolingModelBuilderLookup.class);
                 ToolingModelBuilderLookup.Builder builder = lookup.maybeLocateForBuildScope(modelName, param, buildController.getGradle().getOwner());
                 if (builder != null) {
