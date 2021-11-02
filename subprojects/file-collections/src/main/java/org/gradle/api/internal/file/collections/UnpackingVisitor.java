@@ -92,6 +92,7 @@ public class UnpackingVisitor {
         } else if (element instanceof Path) {
             // Path is-a Iterable, so check before checking for Iterable
             visitSingleFile(element);
+        // TODO Remove from UnpackingVisitor
         } else if (element instanceof ResolvedArtifactResult) {
             visitSingleFile(((ResolvedArtifactResult) element).getFile());
         } else if (element instanceof Iterable) {

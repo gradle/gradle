@@ -147,6 +147,10 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
         }
+        // TODO add support for
+        // ArtifactResult
+        // ResolvedVariantResult
+        // ComponentIdentifier etc..
         if (value instanceof Managed) {
             Managed managed = (Managed) value;
             if (managed.isImmutable()) {
