@@ -114,7 +114,7 @@ public class TaskReportTask extends ConventionReportTask {
     }
 
     /**
-     * Returns whether to show the task types next to their names in the output.
+     * Whether to show the task types next to their names in the output.
      *
      * This property can be set via command-line option '--types'.
      *
@@ -122,22 +122,9 @@ public class TaskReportTask extends ConventionReportTask {
      */
     @Incubating
     @Console
+    @Option(option = "types", description = "Show task class types")
     public Property<Boolean> getShowTypes() {
         return showTypes;
-    }
-
-    /**
-     * Set whether to show the task types next to their names in the output.
-     *
-     * This property can be set via command-line option '--types'.
-     *
-     * @param showTypes whether to show the task types next to their names in the output
-     * @since 7.4
-     */
-    @Incubating
-    @Option(option = "types", description = "Show task class types")
-    public void setShowTypes(boolean showTypes) {
-        this.showTypes.set(showTypes);
     }
 
     @TaskAction
