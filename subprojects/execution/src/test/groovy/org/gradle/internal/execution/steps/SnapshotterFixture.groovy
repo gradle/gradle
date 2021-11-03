@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 @CompileStatic
-trait SnasphotterFixture {
+trait SnapshotterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     final FileCollectionSnapshotter snapshotter = TestFiles.fileCollectionSnapshotter()
