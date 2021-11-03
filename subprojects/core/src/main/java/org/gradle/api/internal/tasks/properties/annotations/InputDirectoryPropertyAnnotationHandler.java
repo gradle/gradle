@@ -48,6 +48,7 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
 
     @Override
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+        // Being an input directory implies ignoring of empty directories.
         return DirectorySensitivity.IGNORE_DIRECTORIES;
     }
 }
