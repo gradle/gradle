@@ -119,6 +119,7 @@ public class DistributionPlugin implements Plugin<Project> {
             task.setDescription("Bundles the project as a distribution.");
             task.setGroup(DISTRIBUTION_GROUP);
             task.getArchiveBaseName().convention(distribution.getDistributionBaseName());
+            task.getArchiveClassifier().convention(distribution.getArchiveClassifier());
 
             final CopySpec childSpec = project.copySpec();
             childSpec.with(distribution.getContents());
