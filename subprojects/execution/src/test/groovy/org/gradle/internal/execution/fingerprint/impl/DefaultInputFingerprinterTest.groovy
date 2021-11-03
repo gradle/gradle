@@ -53,7 +53,6 @@ class DefaultInputFingerprinterTest extends Specification {
     def inputSnapshot = Mock(ValueSnapshot)
     def fileInput = Mock(FileCollection)
     def fileInputSnapshot = Mock(FileSystemSnapshot)
-    def fileInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
 
     def "visits properties"() {
@@ -68,9 +67,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
-        _ * fileInputSnapshotResult.fileTreeOnly >> false
-        1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
+        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
         0 * _
 

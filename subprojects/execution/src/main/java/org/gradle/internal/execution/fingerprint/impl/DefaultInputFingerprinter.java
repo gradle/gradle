@@ -25,6 +25,7 @@ import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
@@ -124,13 +125,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             try {
-                FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
                 FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(
                     value.getNormalizer(),
                     value.getDirectorySensitivity(),
                     value.getLineEndingNormalization());
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
-                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles());
+                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(snapshot, previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);

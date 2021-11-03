@@ -23,19 +23,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
  * Service for snapshotting {@link FileCollection}s.
  */
 public interface FileCollectionSnapshotter {
-    interface Result {
-        FileSystemSnapshot getSnapshot();
-
-        /**
-         * Whether or not the snapshotted file collection consists only of file trees.
-         *
-         * If the file collection does not contain any file trees, then this will return {@code false}.
-         */
-        boolean isFileTreeOnly();
-    }
-
     /**
      * Snapshot the roots of a file collection.
      */
-    Result snapshot(FileCollection fileCollection);
+    FileSystemSnapshot snapshot(FileCollection fileCollection);
 }
