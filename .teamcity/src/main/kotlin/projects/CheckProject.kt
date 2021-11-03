@@ -29,16 +29,16 @@ class CheckProject(
         text(
             "additional.gradle.parameters",
             "",
-            display = ParameterDisplay.PROMPT,
+            display = ParameterDisplay.NORMAL,
             allowEmpty = true,
-            description = "The extra gradle parameters you want to pass to this build, e.g. `--no-build-cache`"
+            description = "The extra gradle parameters you want to pass to this build, e.g. `-PrerunAllTests` or `--no-build-cache`"
         )
         text(
             "reverse.dep.*.additional.gradle.parameters",
             "",
-            display = ParameterDisplay.PROMPT,
+            display = ParameterDisplay.NORMAL,
             allowEmpty = true,
-            description = "The extra gradle parameters you want to pass to all dependencies of this build, e.g. `--no-build-cache`"
+            description = "The extra gradle parameters you want to pass to all dependencies of this build, e.g. `-PrerunAllTests` or `--no-build-cache`"
         )
     }
 
