@@ -97,6 +97,67 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         ]
     }
 
+    def "dependencies declared in settings will fail if left uninitialized"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        alias("my-great-lib").to("org.gradle.test", "lib")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails()
+
+        then:
+        verifyContains(failure.error, aliasNotFinished {
+            inCatalog("libs")
+            alias("my.great.lib")
+        })
+    }
+
+    def "logs contain a message indicating if an unfinished builder is overwritten with one that finishes"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        // Even though this is unfinished, it will not trigger an error
+                        // It should log a message though.
+                        alias("my-great-lib").to("org.gradle.test", "lib")
+
+                        alias("my-great-lib").to("org.gradle.test", "lib").version("1.0")
+                    }
+                }
+            }
+        """
+
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.my.great.lib
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+            }
+        }
+        outputContains("Duplicate alias builder registered for my.great.lib")
+    }
+
     def "can use the generated extension to declare a dependency"() {
         settingsFile << """
             dependencyResolutionManagement {
