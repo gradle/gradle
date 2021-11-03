@@ -1892,6 +1892,7 @@ div.screenshot {
     padding: 30px 12px;
     max-width: 62.5rem;
     margin: 0 auto;
+    padding-left: 5rem
 }
 
 .site-footer__links {
@@ -2124,7 +2125,8 @@ div.screenshot {
     padding: 20px 20px 20px 26px;
     background: #f8f8f7;
     border-right: 1px solid #e7e7e9;
-    overflow: scroll;
+    overflow-y: scroll;
+    overflow-x: auto;
 }
 
 .layout {
@@ -2135,13 +2137,14 @@ div.screenshot {
 }
 
 .main-content {
-    overflow: scroll;
+    overflow-y: auto;
+    overflow-x: auto;
     display: flex;
 }
 
 .content {
     flex: 1 1 auto;
-    overflow: scroll;
+    overflow: auto;
     padding-left: 0;
     padding-right: 0;
 }
@@ -2199,8 +2202,13 @@ div.screenshot {
         flex-wrap: wrap;
     }
 
+    .site-footer__link-group {
+        flex: 1 1 auto;
+    }
+
     .site-footer__links {
         margin-bottom: 1rem;
+
     }
 }
 
@@ -2213,29 +2221,42 @@ div.screenshot {
         padding-right: 260px;
         margin: 0;
     }
-
-    #toc {
+    /* #toc here must be referenced as #header #toc
+            since we don't want to change single page #toc */
+    #header #toc {
         position: fixed;
         margin: 0 auto;
+        padding-bottom: 0;
         right: 0;
         top: 65px;
         width: 260px;
         z-index: 1;
-        padding-right: 10px;
-
+        overflow: auto;
+        border-radius: 0 0 5px 0;
+        max-height: calc(100% - 118px);
+        margin-right: 15px;
     }
 
-    #toctitle {
+    #header #toctitle {
         margin-top: 1.3em;
     }
 
-    #toc > ul > li, #toc > ul > li:last-of-type {
-        padding: 0.5rem 0;
-        margin: 0;
-        border-left:1px solid #666;
+    #header #toc > ul {
+        /* margin-left have to increase if you change border thickness of active toc item */
+        margin-left: 1px;
+        border-left: 1px solid #666;
+        margin-bottom: 0;
+        padding-right: 10px;
+        padding-bottom: 0.5rem;
+        background-color: #fff;
     }
 
-    #toc a {
+    #header #toc > ul > li, #toc > ul > li:last-of-type {
+        padding: 0.5rem 0;
+        margin: 0;
+    }
+
+    #header #toc a {
         padding-left: 10px;
         font-weight: 400;
         color: #02303A;
@@ -2243,16 +2264,38 @@ div.screenshot {
         display: inline-block;
     }
 
-    #toc a.active {
+    #header #toc a.active {
         font-weight: 500;
-        border-left: 4px solid #01303a;
-        padding-left: 6px;
+        border-left: 3px solid #01303a;
+        margin-left: -2px;
+        padding-left: 9px;
+    }
+
+    .site-footer__navigation {
+        flex-wrap: wrap;
+        margin-left: auto;
+        padding-left: 3rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.15 1 auto;
+    }
+
+    .site-footer__subscribe-newsletter {
+        /* A fix so subscribe disclaimer does not go under long ToC */
+        max-width: calc(100% - 17rem);
+    }
+}
+
+@media screen and (min-width: 80rem) {
+    .site-footer__subscribe-newsletter {
+        max-height: none;
     }
 }
 
 @media screen and (min-width: 100rem) {
     .content .chapter {
-        max-width: 62.5rem;
+        max-width: 60.5rem;
     }
 
     #header {
@@ -2264,17 +2307,36 @@ div.screenshot {
         margin: 0 auto;
     }
 
-    #toc {
+    #header #toc {
         right: initial;
-        margin-left: 64.5rem;
+        margin-left: 62.5rem;
+    }
+
+    .site-footer__navigation {
+        padding-left: 0;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
     }
 }
 
 @media screen and (min-width: 112rem) {
     .content .chapter {
+        max-width: 62.5rem;
         margin: 0 auto;
+        padding-right: 3.5rem;
         position: relative;
         left: -130px;
+    }
+
+    #header #toc {
+        right: initial;
+        margin-left: 64.5rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
     }
 }
 

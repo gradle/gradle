@@ -62,7 +62,7 @@
 <div class="site-footer-secondary">
     <div class="site-footer-secondary__contents">
         <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc.</a>
-            <time>2020</time>
+            <time>2021</time>
             All rights reserved.
         </div>
         <div class="site-footer__logo"><a href="/">
@@ -88,27 +88,6 @@
 
 </div>
 <!-- end div class="layout" -->
-
-<script type="text/javascript">
-    let previousActiveAnchorLink = undefined;
-
-    function markCurrentActiveAnchor() {
-        const currentActiveAnchorLink = document.querySelector(`[href="${window.location.hash}"]`)
-
-        if(previousActiveAnchorLink) {
-            previousActiveAnchorLink.classList.remove('active');
-        }
-
-        currentActiveAnchorLink.classList.add('active');
-
-        previousActiveAnchorLink = currentActiveAnchorLink
-    }
-
-    <!-- Marks current anchored link as .active   -->
-    window.addEventListener('DOMContentLoaded',markCurrentActiveAnchor);
-    window.addEventListener('hashchange', markCurrentActiveAnchor);
-
-</script>
 
 <script type="text/javascript">
     // Polyfill Element.matches()
@@ -146,13 +125,60 @@
             }
             parentListEl = parentListEl.parentNode.closest("li");
         }
+
+        // Scroll to center of the page if deep link, otherwise loadNavigationPosition() will handle it
+        link.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
     });
+
+    // Load side navigation position as it was previously
+    var expandedItems = [];
+    function loadNavigationPosition() {
+        // Expand previously expanded items
+        var previousExpandedItems = sessionStorage.getItem("expanded-items") ? sessionStorage.getItem("expanded-items") : [];
+        [].forEach.call(document.querySelectorAll(".docs-navigation a.nav-dropdown"), function(el) {
+            if (previousExpandedItems.indexOf(el.getAttribute("href")) > -1) {
+                el.classList.add("expanded");
+            }
+        });
+
+        [].forEach.call(document.querySelectorAll(".docs-navigation a.expanded"), function(el) {
+            if (el.getAttribute("href")) {
+                expandedItems.push(el.getAttribute("href"));
+            }
+        });
+        sessionStorage.setItem("expanded-items", expandedItems);
+
+        // Load sidebar position
+        var sidebar = document.querySelector(".docs-navigation");
+        var sidebarTop = sessionStorage.getItem("sidebar-scroll");
+        if (sidebarTop !== null) {
+            sidebar.scrollTop = parseInt(sidebarTop, 10);
+        }
+        [].forEach.call(document.querySelectorAll(".docs-navigation a"), function(el) {
+            el.addEventListener("click", function() {
+                sessionStorage.setItem("sidebar-scroll", sidebar.scrollTop);
+            }, false);
+        });
+    }
+    loadNavigationPosition();
 
     // Expand/contract multi-level side navigation
     [].forEach.call(document.querySelectorAll(".docs-navigation .nav-dropdown"), function registerSideNavActions(collapsibleElement) {
         collapsibleElement.addEventListener("click", function toggleExpandedSideNav(evt) {
+            function removeFromList(list, value) {
+                var index = list.indexOf(value);
+                if (index > -1) {
+                    list.splice(index, 1);
+                }
+            }
+
             evt.preventDefault();
-            evt.target.classList.toggle("expanded");
+            var targetHref = evt.target.getAttribute("href");
+            removeFromList(expandedItems, targetHref);
+            if (evt.target.classList.toggle("expanded")) {
+                expandedItems.push(targetHref)
+            }
+            sessionStorage.setItem("expanded-items", expandedItems)
             evt.target.setAttribute("aria-expanded", evt.target.classList.contains("expanded").toString());
             return false;
         }, false);
