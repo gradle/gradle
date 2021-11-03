@@ -70,6 +70,8 @@ The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#d
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
 
+=== Potential breaking changes
+
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.5.31[Kotlin 1.5.31].
