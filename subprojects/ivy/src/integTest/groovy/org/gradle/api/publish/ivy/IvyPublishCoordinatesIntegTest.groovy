@@ -18,8 +18,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -152,7 +150,6 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @ToBeFixedForConfigurationCache
-    @IgnoreIf({ GradleContextualExecuter.parallel }) // https://github.com/gradle/gradle-private/issues/3474
     def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
