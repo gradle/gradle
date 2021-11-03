@@ -83,14 +83,4 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
     public AttributeContainer getAttributes() {
         return delegate.getAttributes();
     }
-
-    @Override
-    public void finalizeAttributes() {
-        // No Op
-    }
-
-    @Override
-    public boolean isAttributesFinalized() {
-        return true;
-    }
 }

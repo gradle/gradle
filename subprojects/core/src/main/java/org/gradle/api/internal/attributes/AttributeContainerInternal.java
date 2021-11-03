@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.provider.Provider;
 
 import java.util.Map;
 
@@ -39,21 +37,4 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return a copy of this container, as a map.
      */
     Map<Attribute<?>, ?> asMap();
-
-    /**
-     * Finalizes this container by evaluating all the attributes that have been created
-     * using {@link Provider}s.  This method will be called automatically when attribute
-     * values are requested, but can be called earlier if needed.
-     * @since 7.4
-     */
-    @Incubating
-    void finalizeAttributes();
-
-    /**
-     * Returns whether or not this container is finalized.
-     * @return {@code true} if finalized; otherwise {@code false}
-     * @since 7.4
-     */
-    @Incubating
-    boolean isAttributesFinalized();
 }

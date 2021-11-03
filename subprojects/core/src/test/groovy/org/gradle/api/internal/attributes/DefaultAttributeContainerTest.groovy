@@ -38,14 +38,14 @@ class DefaultAttributeContainerTest extends Specification {
         container.empty
         container.keySet().empty
         !container.contains(thing)
-        container.asImmutable().getAttribute(thing) == null
+        container.getAttribute(thing) == null
 
         container.attribute(thing, "thing")
 
         !container.empty
         container.keySet() == [thing] as Set
         container.contains(thing)
-        container.asImmutable().getAttribute(thing) == "thing"
+        container.getAttribute(thing) == "thing"
     }
 
     def "A copy of an attribute container contains the same attributes and the same values as the original"() {
@@ -105,14 +105,14 @@ class DefaultAttributeContainerTest extends Specification {
         child.keySet().empty
         child.asImmutable() == ImmutableAttributes.EMPTY
         !child.contains(thing)
-        child.asImmutable().getAttribute(thing) == null
+        child.getAttribute(thing) == null
 
         parent.attribute(thing, "parent")
 
         !child.empty
         child.keySet() == [thing] as Set
         child.contains(thing)
-        child.asImmutable().getAttribute(thing) == "parent"
+        child.getAttribute(thing) == "parent"
         child.asImmutable().keySet() == [thing] as Set
 
         child.attribute(thing, "child")
@@ -120,12 +120,12 @@ class DefaultAttributeContainerTest extends Specification {
         !child.empty
         child.keySet() == [thing] as Set
         child.contains(thing)
-        child.asImmutable().getAttribute(thing) == "child"
+        child.getAttribute(thing) == "child"
         child.asImmutable().keySet() == [thing] as Set
 
         child.attribute(other, "other")
         child.keySet() == [thing, other] as Set
-        child.asImmutable().getAttribute(other) == "other"
+        child.getAttribute(other) == "other"
         child.asImmutable().keySet() == [thing, other] as Set
 
         def child2 = new DefaultMutableAttributeContainer(cache, newContainer())
@@ -134,7 +134,7 @@ class DefaultAttributeContainerTest extends Specification {
         !child2.empty
         child2.keySet() == [thing] as Set
         child2.contains(thing)
-        child2.asImmutable().getAttribute(thing) == "child"
+        child2.getAttribute(thing) == "child"
         child2.asImmutable().keySet() == [thing] as Set
     }
 
