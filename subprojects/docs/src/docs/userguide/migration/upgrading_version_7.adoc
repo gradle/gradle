@@ -56,15 +56,16 @@ If you must use AdoptOpenJDK, you should turn off auto-download. If an Eclipse T
 [[empty_directories_file_tree]]
 ==== File trees and empty directory handling
 
-When using `@SkipWhenEmpty` on an input file collection, Gradle skips the task when it determines that the input is empty.
+When using `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]` on an input file collection, Gradle skips the task when it determines that the input is empty.
 If the input file collection consists only of file trees, Gradle ignores directories for the emptiness check.
-Though when checking for changes to the input file collection, Gradle only ignores directories when the `@IgnoreEmptyDirectories` annotation is present.
+Though when checking for changes to the input file collection, Gradle only ignores directories when the `@link:{javadocPath}/org/gradle/api/tasks/IgnoreEmptyDirectories.html[IgnoreEmptyDirectories]` annotation is present.
 
 To ignore directories consistently, Gradle will now ignore directories for both the `@SkipWhenEmpty` check and for determining changes only if the `@IgnoreEmptyDirectories` annotation is present.
 Until Gradle 8.0, Gradle will detect if an input file collection annotated with `@SkipWhenEmpty` consists only of file trees and then ignore directories automatically.
 Moreover, Gradle will issue a deprecation warning to advise the user that the behavior will change in Gradle 8.0, and that the input property should be annotated with `@IgnoreEmptyDirectories`.
 
-Finally, `@InputDirectory` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
+Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
+The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
 
 [[changes_7.3]]
 == Upgrading from 7.2 and earlier
