@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
@@ -81,7 +82,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             knownInputProperties,
             ImmutableSortedMap.of(),
             knownInputFileProperties,
-            ImmutableSortedMap.of())
+            ImmutableSortedMap.of(),
+            ImmutableSet.of())
 
         then:
         1 * delegate.execute(work, {
@@ -113,7 +115,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             knownInputProperties,
             ImmutableSortedMap.of(),
             knownInputFileProperties,
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
 
         then:
         1 * sourceFileFingerprint.empty >> false
@@ -149,7 +152,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             knownInputProperties,
             ImmutableSortedMap.of(),
             knownInputFileProperties,
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
 
         then:
         1 * sourceFileFingerprint.empty >> true
@@ -237,7 +241,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("source-file", sourceFileFingerprint))
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
 
         1 * sourceFileFingerprint.empty >> true
     }
