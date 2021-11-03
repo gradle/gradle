@@ -215,8 +215,8 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
 fun Test.configureRerun() {
-    outputs.upToDateWhen {
-        !providers.gradleProperty("rerunAllTests").forUseAtConfigurationTime().isPresent
+    if (providers.gradleProperty("rerunAllTests").isPresent) {
+        doNotTrackState("All tests should re-run")
     }
 }
 
