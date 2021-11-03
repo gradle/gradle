@@ -10,6 +10,7 @@ plugins {
 distributions {
     main {
         distributionBaseName = 'someName'
+        archiveClassifier = 'classifier'
         contents {
             from 'src/readme'
         }
