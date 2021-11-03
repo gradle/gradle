@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
@@ -31,7 +30,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import spock.lang.Specification
@@ -42,17 +40,15 @@ import static org.gradle.internal.execution.fingerprint.InputFingerprinter.Input
 
 class DefaultInputFingerprinterTest extends Specification {
     def fingerprinter = Mock(FileCollectionFingerprinter)
-    def snapshotter = Mock(FileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_ as FileNormalizationSpec) >> fingerprinter
     }
     def valueSnapshotter = Mock(ValueSnapshotter)
-    def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
 
     def input = Mock(Object)
     def inputSnapshot = Mock(ValueSnapshot)
     def fileInput = Mock(FileCollection)
-    def fileInputSnapshot = Mock(FileSystemSnapshot)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
 
     def "visits properties"() {
@@ -67,8 +63,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshot
-        1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
+        1 * fingerprinter.fingerprint(fileInput, null) >> fileInputFingerprint
         0 * _
 
         then:
@@ -147,7 +142,7 @@ class DefaultInputFingerprinterTest extends Specification {
         }
 
         then:
-        1 * snapshotter.snapshot(fileInput) >> { throw failure }
+        1 * fingerprinter.fingerprint(fileInput, null) >> { throw failure }
         0 * _
 
         then:

@@ -408,11 +408,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         InputFingerprinter createInputFingerprinter(
-            FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter
         ) {
-            return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
+            return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(

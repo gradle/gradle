@@ -20,7 +20,6 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +37,7 @@ public interface FileCollectionFingerprinter {
     /**
      * Creates a fingerprint from the snapshot of a file collection.
      */
-    CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint);
+    CurrentFileCollectionFingerprint fingerprint(FileCollection files, @Nullable FileCollectionFingerprint previousFingerprint);
 
     /**
      * Returns an empty fingerprint.
