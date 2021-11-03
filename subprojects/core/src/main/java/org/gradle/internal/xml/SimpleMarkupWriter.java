@@ -16,6 +16,7 @@
 
 package org.gradle.internal.xml;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.SystemProperties;
 
 import java.io.IOException;
@@ -234,7 +235,20 @@ public class SimpleMarkupWriter extends Writer {
         return this;
     }
 
+    /**
+     * Writes an XML comment.
+     * Characters are not XML encoded inside the comment.
+     * The start comment delimiter will contain a space if the comment does not start with a blank character.
+     * The end comment delimiter will contain a space if the comment does not end with a blank character.
+     *
+     * @param comment the comment to write
+     * @return this writer
+     * @throws IOException if an I/O error occurs
+     */
     public SimpleMarkupWriter comment(String comment) throws IOException {
+        if (comment.contains("--")) {
+            throw new IllegalArgumentException("'--' is invalid inside an XML comment: " + comment);
+        }
         maybeFinishStartTag();
         if (indent != null) {
             writeRaw(LINE_SEPARATOR);
@@ -242,9 +256,16 @@ public class SimpleMarkupWriter extends Writer {
                 writeRaw(indent);
             }
         }
-        writeRaw("<!-- ");
-        writeXmlEncoded(comment);
-        writeRaw(" -->");
+
+        writeRaw("<!--");
+        if (!StringUtils.isBlank(comment.substring(0, 1))) {
+            writeRaw(" ");
+        }
+        writeSafeCharacters(comment);
+        if (!StringUtils.isBlank(comment.substring(comment.length() - 1))) {
+            writeRaw(" ");
+        }
+        writeRaw("-->");
         return this;
     }
 
@@ -313,6 +334,16 @@ public class SimpleMarkupWriter extends Writer {
         }
     }
 
+    private void writeSafeCharacters(CharSequence message) throws IOException {
+        assert message != null;
+        int len = message.length();
+        for (int i = 0; i < len;) {
+            int codePoint = Character.codePointAt(message, i);
+            i += Character.charCount(codePoint);
+            writeSafeCharacter(codePoint);
+        }
+    }
+
     private void writeXmlEncoded(int ch) throws IOException {
         if (ch == '<') {
             writeRaw("&lt;");
@@ -322,7 +353,13 @@ public class SimpleMarkupWriter extends Writer {
             writeRaw("&amp;");
         } else if (ch == '"') {
             writeRaw("&quot;");
-        } else if (!XmlValidation.isLegalCharacter(ch)) {
+        } else {
+            writeSafeCharacter(ch);
+        }
+    }
+
+    private void writeSafeCharacter(int ch) throws IOException {
+        if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
         } else if (ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch) || Character.charCount(ch) == 2) {
             writeCharacterReference(ch);
