@@ -232,7 +232,9 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED ? DirectorySensitivity.DEFAULT : directorySensitivity;
+            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED
+                ? DirectorySensitivity.DEFAULT
+                : directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }
