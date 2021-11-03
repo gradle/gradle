@@ -35,9 +35,7 @@ public interface FileCollectionSnapshotter {
     }
 
     /**
-     * Returns snapshots of the roots of a file collection.
+     * Snapshot the roots of a file collection.
      */
-    FileSystemSnapshot snapshot(FileCollection fileCollection);
-
-    Result snapshotResult(FileCollection fileCollection);
+    Result snapshot(FileCollection fileCollection);
 }

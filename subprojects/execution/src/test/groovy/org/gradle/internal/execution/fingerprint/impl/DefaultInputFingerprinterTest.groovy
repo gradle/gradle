@@ -68,7 +68,7 @@ class DefaultInputFingerprinterTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
-        1 * snapshotter.snapshotResult(fileInput) >> fileInputSnapshotResult
+        1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
         _ * fileInputSnapshotResult.fileTreeOnly >> false
         1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint
@@ -150,7 +150,7 @@ class DefaultInputFingerprinterTest extends Specification {
         }
 
         then:
-        1 * snapshotter.snapshotResult(fileInput) >> { throw failure }
+        1 * snapshotter.snapshot(fileInput) >> { throw failure }
         0 * _
 
         then:

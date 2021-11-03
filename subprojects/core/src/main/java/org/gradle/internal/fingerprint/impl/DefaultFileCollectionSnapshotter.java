@@ -46,12 +46,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileSystemSnapshot snapshot(FileCollection fileCollection) {
-        return snapshotResult(fileCollection).getSnapshot();
-    }
-
-    @Override
-    public Result snapshotResult(FileCollection fileCollection) {
+    public Result snapshot(FileCollection fileCollection) {
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());

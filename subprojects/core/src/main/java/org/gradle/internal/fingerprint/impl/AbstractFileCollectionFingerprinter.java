@@ -44,7 +44,7 @@ public abstract class AbstractFileCollectionFingerprinter implements FileCollect
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        FileCollectionSnapshotter.Result snapshotResult = fileCollectionSnapshotter.snapshotResult(files);
+        FileCollectionSnapshotter.Result snapshotResult = fileCollectionSnapshotter.snapshot(files);
         return fingerprint(snapshotResult.getSnapshot(), null);
     }
 

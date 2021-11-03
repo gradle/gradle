@@ -126,7 +126,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             try {
-                FileCollectionSnapshotter.Result result = snapshotter.snapshotResult(value.getFiles());
+                FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
                 DirectorySensitivity directorySensitivity = determineDirectorySensitivity(propertyName, type, value, result);
                 FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), directorySensitivity, value.getLineEndingNormalization());
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
