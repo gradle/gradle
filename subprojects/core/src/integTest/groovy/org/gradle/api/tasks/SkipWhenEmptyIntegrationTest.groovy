@@ -44,8 +44,8 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         description                           | inputDeclaration
         "empty file collection"               | "files()"
         "empty directory as file tree"        | "fileTree(file('emptyDir'))"
-//        "empty zip tree"                      | "zipTree(file('emptyZip.zip'))"
-//        "empty tar tree"                      | "tarTree(file('emptyTar.tar'))"
+        "empty zip tree"                      | "zipTree(file('emptyZip.zip'))"
+        "empty tar tree"                      | "tarTree(file('emptyTar.tar'))"
         "empty tar tree without backing file" | "tarTree(inputTarResource)"
         "empty directory"                     | "files('emptyDir')"
     }

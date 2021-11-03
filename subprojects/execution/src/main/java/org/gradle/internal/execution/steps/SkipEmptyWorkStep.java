@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
@@ -74,8 +75,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
         if (!sourceFileProperties.isEmpty()) {
-            if (sourceFileProperties.values().stream()
-                .allMatch(CurrentFileCollectionFingerprint::isEmpty)
+            if (isEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
             ) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
@@ -84,6 +84,25 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         } else {
             return executeWithNoEmptySources(work, context);
         }
+    }
+
+    private boolean isEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
+        if (propertiesRequiringIsEmptyCheck.isEmpty()) {
+            return sourceFileProperties.values().stream()
+                .allMatch(CurrentFileCollectionFingerprint::isEmpty);
+        } else {
+            return sourceFileProperties.entrySet().stream()
+                .filter(entry -> !propertiesRequiringIsEmptyCheck.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .allMatch(CurrentFileCollectionFingerprint::isEmpty)
+                && hasEmptySources(work, propertiesRequiringIsEmptyCheck);
+        }
+    }
+
+    private boolean hasEmptySources(UnitOfWork work, ImmutableSet<String> propertiesRequiringIsEmptyCheck) {
+        EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertiesRequiringIsEmptyCheck);
+        work.visitRegularInputs(visitor);
+        return visitor.isAllEmpty();
     }
 
     private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
@@ -233,5 +252,25 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             }
         }
         return outputsCleaner.getDidWork();
+    }
+
+    private static class EmptyCheckingVisitor implements InputFingerprinter.InputVisitor {
+        private final ImmutableSet<String> propertiesRequiringIsEmptyCheck;
+        private boolean allEmpty = true;
+
+        public EmptyCheckingVisitor(ImmutableSet<String> propertiesRequiringIsEmptyCheck) {
+            this.propertiesRequiringIsEmptyCheck = propertiesRequiringIsEmptyCheck;
+        }
+
+        @Override
+        public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
+            if (propertiesRequiringIsEmptyCheck.contains(propertyName)) {
+                allEmpty = allEmpty && value.getFiles().isEmpty();
+            }
+        }
+
+        public boolean isAllEmpty() {
+            return allEmpty;
+        }
     }
 }

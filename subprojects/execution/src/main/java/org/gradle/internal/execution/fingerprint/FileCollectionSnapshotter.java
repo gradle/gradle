@@ -32,6 +32,8 @@ public interface FileCollectionSnapshotter {
          * If the file collection does not contain any file trees, then this will return {@code false}.
          */
         boolean isFileTreeOnly();
+
+        boolean containsArchiveTrees();
     }
 
     /**
