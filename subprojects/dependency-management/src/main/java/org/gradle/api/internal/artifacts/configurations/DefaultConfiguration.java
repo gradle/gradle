@@ -26,6 +26,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -89,8 +90,10 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -1997,6 +2000,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
+            return new ResolvedArtifactsProvider(this);
+        }
+
+        @Override
         public Iterator<ResolvedArtifactResult> iterator() {
             ensureResolved();
             return result.get().artifactResults.iterator();
@@ -2016,6 +2024,55 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private void ensureResolved() {
             result.finalizeIfNotAlready();
+        }
+    }
+
+    private static class ResolvedArtifactsProvider extends AbstractProviderWithValue<Set<ResolvedArtifactResult>> {
+
+        private final ArtifactCollection artifactCollection;
+
+        public ResolvedArtifactsProvider(ArtifactCollection artifactCollection) {
+            this.artifactCollection = artifactCollection;
+        }
+
+        @Nullable
+        @Override
+        public Class<Set<ResolvedArtifactResult>> getType() {
+            return Cast.uncheckedCast(Set.class);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return new ValueProducer() {
+                @Override
+                public boolean isProducesDifferentValueOverTime() {
+                    return false;
+                }
+
+                @Override
+                public void visitProducerTasks(Action<? super Task> visitor) {
+                    for (Task dependency : artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null)) {
+                        visitor.execute(dependency);
+                    }
+                }
+            };
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends Set<ResolvedArtifactResult>> calculateExecutionTimeValue() {
+            if (contentsAreBuiltByTask()) {
+                return ExecutionTimeValue.changingValue(this);
+            }
+            return ExecutionTimeValue.fixedValue(get());
+        }
+
+        private boolean contentsAreBuiltByTask() {
+            return !artifactCollection.getArtifactFiles().getBuildDependencies().getDependencies(null).isEmpty();
+        }
+
+        @Override
+        protected Value<? extends Set<ResolvedArtifactResult>> calculateOwnValue(ValueConsumer consumer) {
+            return Value.of(artifactCollection.getArtifacts());
         }
     }
 

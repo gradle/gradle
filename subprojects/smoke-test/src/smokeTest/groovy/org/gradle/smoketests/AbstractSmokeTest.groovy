@@ -34,6 +34,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -321,6 +322,13 @@ abstract class AbstractSmokeTest extends Specification {
             extraArgs += ["-I", init.canonicalPath]
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
+    }
+
+    protected static String deprecationOfFileTreeForEmptySources(String propertyName) {
+        return "Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty has been deprecated. " +
+            "This is scheduled to be removed in Gradle 8.0. " +
+            "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

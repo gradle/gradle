@@ -17,11 +17,15 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.lang.Timeout
 
@@ -520,5 +524,123 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             blockingServer.expect(":cInvalidPing")
             run ":aPing", ":bPing", ":cInvalidPing"
         }
+    }
+
+    // Stopping the hanging Gradle process fails on Windows
+    @org.gradle.util.Requires(TestPrecondition.LINUX)
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/17013")
+    def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
+        buildFile("""
+            import org.gradle.util.internal.GFileUtils
+
+            abstract class OutputDeadlockTask extends DefaultTask {
+                @Inject
+                abstract ProjectLayout getProjectLayout()
+
+                @InputFiles
+                abstract ConfigurableFileCollection getInputFiles()
+
+                @OutputFiles
+                List<RegularFile> getOutputFiles() {
+                    def buildDirectory = projectLayout.buildDirectory
+                    return inputFiles.collect { buildDirectory.file(it.name + ".out").get() }
+                }
+
+                @TaskAction
+                void execute() {
+                    def buildDirectory = projectLayout.buildDirectory
+                    inputFiles.files.each { File inputFile ->
+                        def outputFile = buildDirectory.file(inputFile.name + ".out").get().asFile
+                        GFileUtils.copyFile(inputFile, outputFile)
+                    }
+                }
+            }
+            allprojects {
+                apply plugin: 'java-library'
+
+                tasks.register("outputDeadlock", OutputDeadlockTask) {
+                    inputFiles.from(configurations.compileClasspath)
+                }
+
+                ${RepoScriptBlockUtil.mavenCentralRepository()}
+
+                dependencies {
+                    api 'org.apache.commons:commons-math3:3.6.1'
+                    api 'org.apache.commons:commons-io:1.3.2'
+                }
+            }
+        """)
+        withParallelThreads(3)
+        executer.beforeExecute {
+            withArgument("--parallel")
+        }
+
+        when:
+        def daemon = executer.withArgument("outputDeadlock").start()
+        if (!GradleContextualExecuter.configCache) {
+            Thread.sleep(10_000)
+        }
+        then:
+        if (GradleContextualExecuter.configCache) {
+            // There is no deadlock with configuration caching, since the resolution already happened.
+            daemon.waitForFinish()
+        } else {
+            // TODO: The build should finish normally
+            assert daemon.isRunning()
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17905")
+    def "does not fail when outputs requires resolving configurations"() {
+        buildFile("""
+            abstract class OutputsAsMappedInputs extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getInput()
+
+                @OutputFiles
+                List<File> getOutputFiles() {
+                    return input.files.collect { project.file("build/outputs/\${it.name}") }
+                }
+
+                @TaskAction
+                void exec() {}
+            }
+
+            abstract class BasicTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void exec() {}
+            }
+            subprojects {
+                configurations.create("myconfig1") {
+                    canBeResolved = true
+                    canBeConsumed = false
+                }
+                configurations.create("myconfig2") {
+                    canBeResolved = true
+                    canBeConsumed = false
+                }
+
+                def problematic = tasks.register("problematicTask", OutputsAsMappedInputs) {
+                    input.from(configurations.myconfig1)
+                }
+                def basic = tasks.register("basicTask", BasicTask) {
+                    input.from(configurations.myconfig2)
+                    outputFile.set(project.layout.buildDirectory.file("output.txt"))
+                }
+                tasks.register("runAll") {
+                    dependsOn(problematic, basic)
+                }
+            }
+        """)
+        withParallelThreads(3)
+
+        expect:
+        succeeds "runAll", "--parallel"
     }
 }

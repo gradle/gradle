@@ -18,6 +18,8 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -150,6 +152,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @ToBeFixedForConfigurationCache
+    @IgnoreIf({ GradleContextualExecuter.parallel }) // https://github.com/gradle/gradle-private/issues/3474
     def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
@@ -191,7 +194,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
     }
 
     @ToBeFixedForConfigurationCache
@@ -227,7 +230,7 @@ include 'projectB'
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications 'main' in project ':projectA' and 'main' in project ':projectB' will overwrite each other!")
     }
 
     @ToBeFixedForConfigurationCache

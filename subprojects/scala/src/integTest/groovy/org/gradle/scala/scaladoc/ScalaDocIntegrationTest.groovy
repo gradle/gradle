@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.scala.ScalaCompilationFixture
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
-
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
@@ -88,23 +86,90 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
 
     def "scaladoc uses scala3"() {
         classes.baseline()
+        classes.scalaVersion = '3.0.1'
         given:
-        buildFile << """
-plugins {
-    id 'scala'
-}
+        buildScript(classes.buildScript())
 
-${mavenCentralRepository()}
-
-dependencies {
-    implementation 'org.scala-lang:scala3-library_3:3.0.1'
-}
-
-"""
         when:
         succeeds scaladoc
 
         then:
         executedAndNotSkipped scaladoc, ":compileScala"
+        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
+    }
+
+    def 'scaladoc multi project scala 3'() {
+        classes.baseline()
+        classes.scalaVersion = '3.0.1'
+        given:
+        settingsFile << """
+include(':utils')
+"""
+        buildScript(classes.buildScript())
+
+        def utilsDir = file('utils')
+        def utilsClasses = new ScalaCompilationFixture(utilsDir)
+        utilsClasses.scalaVersion = '3.0.1'
+
+        utilsDir.file('build.gradle').text = utilsClasses.buildScript()
+        utilsClasses.extra()
+
+        when:
+        succeeds scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc, ":compileScala"
+        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
+    }
+
+    def "can exclude classes from Scaladoc generation with scala2"() {
+        classes.baseline()
+        buildScript(classes.buildScript())
+
+        when:
+        succeeds scaladoc
+
+        then:
+        file("build/docs/scaladoc/Person.html").assertExists()
+        file("build/docs/scaladoc/House.html").assertExists()
+        file("build/docs/scaladoc/Other.html").assertExists()
+
+        when:
+        buildFile << """
+scaladoc {
+    exclude '**/Other.*'
+}
+        """
+        and:
+        succeeds scaladoc
+
+        then:
+        file("build/docs/scaladoc/Person.html").assertExists()
+        file("build/docs/scaladoc/House.html").assertExists()
+        file("build/docs/scaladoc/Other.html").assertDoesNotExist()
+    }
+
+    def "can exclude classes from Scaladoc generation with scala3"() {
+        classes.scalaVersion = '3.0.1'
+        classes.baseline()
+        buildScript(classes.buildScript())
+
+        when:
+        succeeds scaladoc
+
+        then:
+        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
+
+        when:
+        buildFile << """
+scaladoc {
+    exclude '**/Other.*'
+}
+        """
+        and:
+        succeeds scaladoc
+
+        then:
+        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Person.html")
     }
 }

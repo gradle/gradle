@@ -49,6 +49,11 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
         throw new UnsupportedOperationException();
     }
 
+    @Internal
+    protected PatternFilterable getPatternSet() {
+        return patternSet;
+    }
+
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
      *

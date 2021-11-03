@@ -23,7 +23,7 @@ class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends Abstra
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         kotlinPlugin(buildKotlinFile, read)
         buildKotlinFile << """
             plugins.apply(SneakyPlugin::class.java)

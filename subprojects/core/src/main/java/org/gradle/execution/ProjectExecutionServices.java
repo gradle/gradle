@@ -175,10 +175,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     }
 
     InputFingerprinter createInputFingerprinter(
+        FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         ValueSnapshotter valueSnapshotter
     ) {
-        return new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter);
+        return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(

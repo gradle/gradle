@@ -89,7 +89,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         """
 
         server.expect("configure-root")
-        server.expectConcurrent("model-root", "configure-a", "configure-b")
+        server.expectConcurrent("configure-a", "configure-b")
         server.expectConcurrent("model-a", "model-b")
 
         // TODO - get rid of usage of --parallel
@@ -107,8 +107,8 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
             fileChanged("a/build.gradle")
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
-            buildModelCreated()
-            modelsCreated(":", ":a", ":b")
+            projectConfigured(":")
+            modelsCreated(":a", ":b")
         }
 
         when:

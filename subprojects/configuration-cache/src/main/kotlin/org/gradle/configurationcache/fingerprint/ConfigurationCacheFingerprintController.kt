@@ -20,8 +20,10 @@ import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.BuildTreeListenerManager
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
@@ -29,6 +31,7 @@ import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.concurrent.Stoppable
@@ -66,10 +69,13 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val buildTreeListenerManager: BuildTreeListenerManager,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val report: ConfigurationCacheReport
+    private val report: ConfigurationCacheReport,
+    private val userCodeApplicationContext: UserCodeApplicationContext
 ) : Stoppable {
+
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
+        val gradleProperties: GradleProperties
     }
 
     private
@@ -253,12 +259,18 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun reportInput(input: PropertyProblem) =
             report.onInput(input)
+
+        override fun location(consumer: String?) =
+            userCodeApplicationContext.location(consumer)
     }
 
     private
     inner class CacheFingerprintCheckerHost(
         private val host: Host
     ) : ConfigurationCacheFingerprintChecker.Host {
+
+        private
+        val gradleProperties by lazy(host::gradleProperties)
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
@@ -268,6 +280,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
+
+        override fun gradleProperty(propertyName: String): String? =
+            gradleProperties.find(propertyName)
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)

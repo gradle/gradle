@@ -87,11 +87,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -237,7 +235,6 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             gradlePropertyChanged("some-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":", ":b")
-            buildModelCreated()
             modelsCreated(":a")
         }
 
@@ -317,11 +314,9 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
-            buildModelCreated()
-            modelsCreated(":", ":a")
+            modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
-        outputContains("creating model for project ':a'")
 
         when:
         executer.withArguments(ENABLE_CLI)

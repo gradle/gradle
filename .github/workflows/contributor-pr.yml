@@ -11,8 +11,8 @@ on:
 env:
   # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
-  # Enable debub for the `gradle-build-action` cache operations
-  CACHE_DEBUG_ENABLED: true
+  # Enable debug for the `gradle-build-action` cache operations
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
 
 jobs:
   build:
