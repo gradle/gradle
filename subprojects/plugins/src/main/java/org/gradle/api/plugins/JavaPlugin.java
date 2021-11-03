@@ -449,13 +449,13 @@ public class JavaPlugin implements Plugin<Project> {
         });
 
         // TODO: 18791 Might need to add some laziness here, too.
-        project.afterEvaluate(p -> {
+        /*project.afterEvaluate(p -> {
             main.getAllSource().getSourceDirectories().getFiles().forEach(sourceDir -> {
                 variant.getOutgoing().artifact(sourceDir, artifact -> {
                     artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE);
                 });
             });
-        });
+        });*/
 
         return variant;
     }

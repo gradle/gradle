@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.TestType;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Verification;
 import org.gradle.api.model.ObjectFactory;
@@ -119,11 +118,11 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         // TODO: 18791 Probably need to make attributes lazily configurable, since at this configuration time, the .get() returns
         // the convention value of "unit-test" and doesn't wait until the Test Suite is configured to contain "integration-test".
         // As a workaround for now, only add this attribute after project is fully evaluated.
-        project.afterEvaluate(p -> {
+        /*project.afterEvaluate(p -> {
             variant.attributes(attributes -> {
                 attributes.attribute(TestType.TEST_TYPE_ATTRIBUTE, objects.named(TestType.class, suite.getTestType().get()));
             });
-        });
+        });*/
 
         variant.getOutgoing().artifact(
             target.getTestTask()
