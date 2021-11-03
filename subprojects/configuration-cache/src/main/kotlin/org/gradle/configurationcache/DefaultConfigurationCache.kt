@@ -147,7 +147,7 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T {
+    override fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T? {
         return intermediateModels.loadOrCreateIntermediateModel(identityPath, modelName, creator)
     }
 
