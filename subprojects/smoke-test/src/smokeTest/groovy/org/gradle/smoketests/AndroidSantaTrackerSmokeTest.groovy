@@ -39,10 +39,6 @@ abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerS
                         "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details."
                 )
             }
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
-            if (agpVersion.startsWith("7.")) {
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
-            }
             expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
         }
     }
