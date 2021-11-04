@@ -32,7 +32,6 @@ import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
@@ -60,7 +59,6 @@ credentials {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
@@ -169,7 +167,6 @@ credentials {
         outputContains("remote repository doesn't support sha-512. This will not fail the build.")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
@@ -229,7 +226,6 @@ credentials {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
@@ -511,7 +507,6 @@ credentials {
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def "doesn't publish Gradle metadata if custom pattern is used for artifact"() {
         given:
         buildFile << """

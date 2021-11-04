@@ -22,7 +22,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -468,7 +467,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     }
 
     @Issue("gradle/gradle#11091")
-    @Unroll
     def "can enforce a platform that is already on the dependency graph on the #classpath classpath"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
             .withVariant('apiElements') {
@@ -566,7 +564,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         succeeds ":compileJava"
     }
 
-    @Unroll
     def 'constraint from platform does not erase excludes (platform: #platform)'() {
         given:
         platformModule("""

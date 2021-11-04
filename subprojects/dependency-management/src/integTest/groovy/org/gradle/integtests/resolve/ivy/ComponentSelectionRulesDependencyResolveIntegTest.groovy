@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Assume
 import spock.lang.Issue
-import spock.lang.Unroll
 
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
@@ -28,7 +27,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "uses '#rule' rule to choose component for #selector"() {
         given:
@@ -116,7 +114,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         chosenModule
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
@@ -257,7 +254,6 @@ Required by:
 """)
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
@@ -312,7 +308,6 @@ Required by:
         "1.1"    | "reject all"    | '["1.1"]'  | ['1.1']            | true            | true
     }
 
-    @Unroll
     def "can use component selection rule to choose component from different repository for #selector"() {
         def ivyRepo2 = ivyRepo("repo2")
         def module2 = ivyRepo2.module("org.utils", "api", "1.1").withBranch("other").publishWithChangedContent()
@@ -376,7 +371,6 @@ Required by:
         selector << ["1.1", "1.+"]
     }
 
-    @Unroll
     def "can control selection of components by module rule #rule for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)

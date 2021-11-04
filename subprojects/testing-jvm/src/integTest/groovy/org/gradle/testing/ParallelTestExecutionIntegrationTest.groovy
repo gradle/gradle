@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
@@ -46,7 +45,6 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
         blockingServer.start()
     }
 
-    @Unroll
     def "execute #maxConcurrency tests concurrently when maxWorkers=#maxWorkers and maxParallelForks=#maxParallelForks and forkEvery=#forkEvery"() {
         given:
         int testCount = maxConcurrency * 2

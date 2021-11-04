@@ -19,13 +19,11 @@ package org.gradle.configurationcache
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheIncludedBuildInputsChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "invalidates cache upon change to #inputName used by included build"() {
 
         assumeFalse(

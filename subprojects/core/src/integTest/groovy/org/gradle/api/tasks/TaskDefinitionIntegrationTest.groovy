@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
@@ -343,7 +342,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("hello 42")
     }
 
-    @Unroll
     def "can construct a custom task with constructor arguments as #description via Map"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -384,7 +382,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("toString() = task ':one'")
     }
 
-    @Unroll
     def "fails to create custom task using #description if constructor arguments are missing"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -404,7 +401,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'direct call' | "tasks.create('myTask', CustomTask, 'hello')"
     }
 
-    @Unroll
     def "fails to create custom task using #description if all constructor arguments missing"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -425,7 +421,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'direct call' | "tasks.create('myTask', CustomTask)"
     }
 
-    @Unroll
     def "fails when constructorArgs not list or Object[], but #description"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -446,7 +441,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'primitive' | '123'
     }
 
-    @Unroll
     def "fails when #description constructor argument is wrong type"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -465,7 +459,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'last'      | '"abc", "123"'  | 2              | 'int'
     }
 
-    @Unroll
     def "fails to create via #description when null passed as a constructor argument value at #position"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS

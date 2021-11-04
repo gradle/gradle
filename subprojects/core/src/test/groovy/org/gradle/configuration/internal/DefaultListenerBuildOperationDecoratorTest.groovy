@@ -37,7 +37,6 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.scopes.Scopes
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
@@ -284,7 +283,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id, failure)
     }
 
-    @Unroll
     def 'decorates BuildListener listeners'() {
         given:
         def settingsEvaluatedArg = Mock(Settings)
@@ -426,7 +424,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyNoOp()
     }
 
-    @Unroll
     def 'decorates ProjectEvaluationListener listeners'() {
         given:
         def beforeEvaluateArg = Mock(Project)
@@ -468,7 +465,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorateAsObject << [true, false]
     }
 
-    @Unroll
     def 'decorates TaskExecutionGraphListener listeners'() {
         given:
         def arg = Mock(TaskExecutionGraph)

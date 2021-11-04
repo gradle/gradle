@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.codenarc
 import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import spock.lang.Unroll
 
 class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -173,7 +172,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'help'
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected

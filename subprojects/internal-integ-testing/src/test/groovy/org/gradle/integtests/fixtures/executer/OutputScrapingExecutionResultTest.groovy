@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT
 
@@ -301,7 +300,6 @@ more post build
             '''))
     }
 
-    @Unroll
     def "can assert output is not present = #text"() {
         def output = """
 message

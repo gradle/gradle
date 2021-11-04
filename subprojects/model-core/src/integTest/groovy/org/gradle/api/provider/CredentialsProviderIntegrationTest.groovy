@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -204,7 +203,6 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13770")
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {

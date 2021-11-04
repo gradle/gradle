@@ -31,13 +31,11 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.util.PropertiesUtils
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.util.function.Supplier
 
-@Unroll
 class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     @TempDir File tmpdir
     Map<String, ResourceEntryFilter> filters = Maps.newHashMap()

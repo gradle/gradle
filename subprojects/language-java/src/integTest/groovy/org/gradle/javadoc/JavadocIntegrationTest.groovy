@@ -23,7 +23,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -66,7 +65,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
 
-    @Unroll
     @Issue("gradle/gradle#1090")
     def "can use single quote character in #option"() {
         buildFile << """

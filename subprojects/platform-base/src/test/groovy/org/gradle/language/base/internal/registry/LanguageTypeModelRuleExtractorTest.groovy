@@ -32,7 +32,6 @@ import org.gradle.platform.base.TypeBuilder
 import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
-import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
 
@@ -49,7 +48,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         return ComponentType
     }
 
-    @Unroll
     def "decent error message for rule declaration problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod.method)

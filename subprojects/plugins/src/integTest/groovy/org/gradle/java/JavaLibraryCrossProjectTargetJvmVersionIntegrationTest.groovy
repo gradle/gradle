@@ -18,7 +18,6 @@ package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
 
 class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractIntegrationSpec {
     ResolveTestFixture resolve
@@ -67,7 +66,6 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)''')
     }
 
-    @Unroll
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         file('producer/build.gradle') << """
             // avoid test noise so that typically version 8 is not selected when running on JDK 8

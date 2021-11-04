@@ -28,14 +28,12 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
     @TempDir
     public File temporaryFolder
 
-    @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
@@ -64,7 +62,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
     }
 
-    @Unroll
     def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
@@ -93,7 +90,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "adoptopenjdk-13-x32-solaris.tar.gz"
     }
 
-    @Unroll
     def "uses configured base uri #customBaseUrl if available"() {
         given:
         def spec = newSpec()
@@ -130,7 +126,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
     }
 
-    @Unroll
     def "skips downloading unsupported java version #javaVersion"() {
         given:
         def spec = newSpec(javaVersion)
@@ -149,7 +144,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         javaVersion << [5, 6, 7]
     }
 
-    @Unroll
     def "skips downloading unsupported vendor #vendor"() {
         given:
         def spec = newSpec(8)
@@ -169,7 +163,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
     }
 
-    @Unroll
     def "downloads with matching vendor spec using #vendor"() {
         given:
         def spec = newSpec(12)

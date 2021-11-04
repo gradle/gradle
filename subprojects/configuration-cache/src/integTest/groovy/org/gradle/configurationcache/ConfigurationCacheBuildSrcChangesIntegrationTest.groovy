@@ -19,13 +19,11 @@ package org.gradle.configurationcache
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
-import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -71,7 +69,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         isKotlinBuildSrc = changeFixtureSpec.language == BuildLogicChangeFixture.Language.KOTLIN
     }
 
-    @Unroll
     def "invalidates cache upon change to #inputName used by buildSrc"() {
 
         assumeFalse(
