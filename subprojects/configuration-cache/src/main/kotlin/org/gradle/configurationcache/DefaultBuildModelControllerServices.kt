@@ -18,6 +18,10 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
@@ -31,6 +35,7 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
@@ -85,6 +90,20 @@ class DefaultBuildModelControllerServices : BuildModelControllerServices {
             } else {
                 evaluator
             }
+        }
+
+        fun createLocalComponentRegistry(
+            buildModelParameters: BuildModelParameters,
+            projectStateRegistry: ProjectStateRegistry,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory,
+            providers: List<LocalComponentProvider>
+        ): LocalComponentRegistry {
+            val effectiveProviders = if (buildModelParameters.isProjectScopeModelCache) {
+                listOf(ConfigurationCacheAwareLocalComponentProvider(providers))
+            } else {
+                providers
+            }
+            return DefaultLocalComponentRegistry(projectStateRegistry, calculatedValueContainerFactory, effectiveProviders)
         }
     }
 }
