@@ -18,9 +18,14 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.file.DefaultFileSystemLocation
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultSetProperty
+import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.SetProperty
 import org.gradle.internal.Describables
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.AttributeTestUtil
@@ -200,5 +205,23 @@ class DefaultConfigurationPublicationsTest extends Specification {
         explicit.attributes == variantDef.attributes
         explicit.artifacts == variantDef.artifacts
         explicit.children.empty
+    }
+
+    def "can declare outgoing artifacts using lazy provider for configuration"() {
+        publications.setObjectFactory(TestUtil.objectFactory())
+        SetProperty<FileSystemLocation> prop = new DefaultSetProperty<>(Mock(PropertyHost), FileSystemLocation)
+
+        when:
+        publications.artifacts(prop)
+
+        then:
+        publications.getArtifacts().size() == 0
+
+        when:
+        def file1 = new DefaultFileSystemLocation(new File("file1"))
+        prop.add(file1)
+
+        then:
+        publications.getArtifacts().size() == 1
     }
 }
