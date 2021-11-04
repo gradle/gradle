@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
@@ -108,5 +109,16 @@ class PgpEntry extends VerificationEntry {
 
     public boolean hasSignatureFile() {
         return hasSignatureFile.get();
+    }
+
+    boolean checkAndMarkSatisfiedBy(DependencyVerificationConfiguration.TrustedKey trustedKey) {
+        if (!trustedKeys.contains(trustedKey.getKeyId())) {
+            return false;
+        }
+        boolean matches = trustedKey.matches(id);
+        if (matches) {
+            keyDeclaredGlobally(trustedKey.getKeyId());
+        }
+        return matches;
     }
 }

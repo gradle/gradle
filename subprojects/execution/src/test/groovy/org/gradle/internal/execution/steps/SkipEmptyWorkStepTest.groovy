@@ -247,6 +247,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     }
 
     private def snapshot(File file) {
-        fileCollectionSnapshotter.snapshot(TestFiles.fixed(file))
+        fileCollectionSnapshotter.snapshot(TestFiles.fixed(file)).snapshot
     }
 }

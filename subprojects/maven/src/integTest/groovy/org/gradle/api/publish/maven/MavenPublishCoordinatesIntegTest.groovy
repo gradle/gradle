@@ -181,19 +181,19 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         module.assertPublishedAsJavaModule()
-        result.assertNotOutput("Multiple publications with coordinates 'org.example:duplicate-duplicate:1.0' are published to repository 'maven'. The publications will overwrite each other!")
+        result.assertNotOutput("Multiple publications with coordinates")
 
         when:
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'maven'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'maven'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
 
         when:
         succeeds 'publishToMavenLocal'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'mavenLocal'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'mavenLocal'. The publications 'main' in root project 'duplicate-publications' and 'other' in root project 'duplicate-publications' will overwrite each other!")
     }
 
     def "warns when publications in different projects share the same coordinates"() {
@@ -228,7 +228,7 @@ include 'projectB'
         succeeds 'publish'
 
         then:
-        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'maven'. The publications will overwrite each other!")
+        outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'maven'. The publications 'main' in project ':projectA' and 'main' in project ':projectB' will overwrite each other!")
     }
 
     def "does not fail for publication with duplicate repositories"() {

@@ -4,6 +4,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Bootstraps a Gradle build initiated by the gradlew script"
+
 gradlebuildJava.usedInWorkers()
 
 dependencies {

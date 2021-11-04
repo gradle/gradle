@@ -36,7 +36,7 @@ import org.gradle.internal.file.Deleter
 
 import java.time.Duration
 
-class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnasphotterFixture {
+class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 

@@ -36,6 +36,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +50,8 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     private final Function<InputStream, Reader<T>> readerFactory;
     private final AtomicInteger counter = new AtomicInteger();
     private final List<Sink<T>> sinks = new CopyOnWriteArrayList<>();
-    private final BlockingQueue<Sink<T>> available = new LinkedBlockingDeque<>();
+    private final BlockingQueue<Sink<T>> availableSinks = new LinkedBlockingDeque<>();
+    private final ConcurrentMap<Integer, Source<T>> availableSources = new ConcurrentHashMap<>();
 
     public DefaultValueStore(
         File dir,
@@ -102,10 +105,18 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     @Override
     public T read(BlockAddress blockAddress) {
         try {
-            try (RandomAccessFile file = new RandomAccessFile(file(blockAddress.fileId), "r")) {
-                file.seek(blockAddress.pos);
-                InputStream stream = new BlockInputStream(file, blockAddress.length);
+            Source<T> source = availableSources.remove(blockAddress.fileId);
+            if (source == null) {
+                source = new Source<>(blockAddress.fileId, file(blockAddress.fileId));
+            }
+            try {
+                InputStream stream = source.stream(blockAddress);
                 return readerFactory.apply(stream).read();
+            } finally {
+                if (availableSources.putIfAbsent(blockAddress.fileId, source) != null) {
+                    // Could not retain
+                    source.close();
+                }
             }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -115,23 +126,25 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     @Override
     public void close() throws IOException {
         try {
-            CompositeStoppable.stoppable(sinks).stop();
+            CompositeStoppable.stoppable().add(sinks).add(availableSources.values()).stop();
         } finally {
             sinks.clear();
-            available.clear();
+            availableSinks.clear();
+            availableSources.clear();
         }
     }
 
     private Sink<T> allocateSink() {
-        Sink<T> sink = available.poll();
+        Sink<T> sink = availableSinks.poll();
         if (sink != null) {
             return sink;
         }
         int id = counter.incrementAndGet();
         File file = file(id);
+        long currentPos = file.length();
         ByteCountingOutputStream outputStream;
         try {
-            outputStream = new ByteCountingOutputStream(new FileOutputStream(file));
+            outputStream = new ByteCountingOutputStream(new FileOutputStream(file, true), currentPos);
         } catch (FileNotFoundException e) {
             throw new UncheckedIOException(e);
         }
@@ -141,12 +154,8 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         return sink;
     }
 
-    private File file(int id) {
-        return new File(dir, baseName + "-" + id + ".bin");
-    }
-
     void releaseSink(Sink<T> sink) {
-        if (!available.offer(sink)) {
+        if (!availableSinks.offer(sink)) {
             try {
                 sink.close();
             } catch (IOException e) {
@@ -155,12 +164,17 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         }
     }
 
+    private File file(int id) {
+        return new File(dir, baseName + "-" + id + ".bin");
+    }
+
     private static class ByteCountingOutputStream extends OutputStream {
         private final OutputStream delegate;
         private long count;
 
-        public ByteCountingOutputStream(OutputStream delegate) {
+        public ByteCountingOutputStream(OutputStream delegate, long currentOffset) {
             this.delegate = delegate;
+            this.count = currentOffset;
         }
 
         @Override
@@ -195,6 +209,12 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         }
 
         @Override
+        public long skip(long count) throws IOException {
+            file.seek(file.getFilePointer() + count);
+            return count;
+        }
+
+        @Override
         public int read() throws IOException {
             throw new UnsupportedOperationException("Should be using buffering.");
         }
@@ -208,6 +228,26 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
             int nread = file.read(buffer, offset, count);
             remaining -= nread;
             return nread;
+        }
+    }
+
+    private static class Source<T> implements Closeable {
+        private final int id;
+        private final RandomAccessFile file;
+
+        public Source(int id, File file) throws FileNotFoundException {
+            this.id = id;
+            this.file = new RandomAccessFile(file, "r");
+        }
+
+        public InputStream stream(BlockAddress blockAddress) throws IOException {
+            file.seek(blockAddress.pos);
+            return new BlockInputStream(file, blockAddress.length);
+        }
+
+        @Override
+        public void close() throws IOException {
+            file.close();
         }
     }
 

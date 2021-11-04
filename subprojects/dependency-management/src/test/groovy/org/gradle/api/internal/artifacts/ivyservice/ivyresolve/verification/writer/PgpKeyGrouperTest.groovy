@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.wri
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -150,6 +151,24 @@ class PgpKeyGrouperTest extends Specification {
         keys[0].version == null
         keys[0].fileName == null
         keys[0].regex
+    }
+
+    def "does not attempt grouping when it exists already"() {
+        def trustedKey = new DependencyVerificationConfiguration.TrustedKey("key1", "org.*", null, null, null, true)
+        builder.addTrustedKey("key1", "org.*", null, null, null, true)
+
+        grouper {
+            entry("org.group.a", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
+            entry("org.group.a", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
+            entry("org.group.b", "bar", "1.1", "bar-1.1.jar").addVerifiedKey("key1")
+            entry("org.group.b", "bar", "1.1", "bar-1.1.pom").addVerifiedKey("key1")
+        }
+
+        when:
+        executeGrouping()
+
+        then:
+        verifier.configuration.trustedKeys == [trustedKey]
     }
 
     private void executeGrouping() {

@@ -155,13 +155,13 @@ fun extractCheckstyleAndCodenarcData() {
         tasks.withType<Checkstyle>().configureEach {
             finalizedBy(extractCheckstyleBuildScanData)
             extractCheckstyleBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
         tasks.withType<CodeNarc>().configureEach {
             finalizedBy(extractCodeNarcBuildScanData)
             extractCodeNarcBuildScanData {
-                reports.xml.outputLocation.orNull?.let { xmlOutputs.from(it.asFile) }
+                xmlOutputs.from(reports.xml.outputLocation)
             }
         }
     }

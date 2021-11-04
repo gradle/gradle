@@ -23,7 +23,7 @@ class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUnde
     }
 
     @Override
-    void buildLogicApplication(SystemPropertyRead read) {
+    void buildLogicApplication(BuildInputRead read) {
         kotlinDsl(buildKotlinFile, read)
     }
 }

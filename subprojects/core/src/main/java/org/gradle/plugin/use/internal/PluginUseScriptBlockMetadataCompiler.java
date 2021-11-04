@@ -42,7 +42,7 @@ public class PluginUseScriptBlockMetadataCompiler {
     public static final String NEED_SINGLE_BOOLEAN = "argument list must be exactly 1 literal boolean";
     public static final String NEED_LITERAL_STRING = "argument list must be exactly 1 literal String or String with property replacement";
     public static final String NEED_INTERPOLATED_STRING = "argument list must be exactly 1 literal String or String with property replacement";
-    public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
+    public static final String BASE_MESSAGE = "only id(String), alias(Provider), or alias(ProviderConvertible) method calls allowed in plugins {} script block";
     public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
     public static final String DISALLOWED_ALIAS_NOTATION = "only alias(libs.plugins.someAlias) plugin identifiers where `libs` is a valid version catalog";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";

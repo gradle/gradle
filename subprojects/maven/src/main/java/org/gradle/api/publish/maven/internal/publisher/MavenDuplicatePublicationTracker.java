@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
@@ -32,11 +33,11 @@ public class MavenDuplicatePublicationTracker {
         this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
-    public void checkCanPublish(PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
-        duplicatePublicationTracker.checkCanPublish(publication, repositoryLocation, repositoryName);
+    public void checkCanPublish(Project project, PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
+        duplicatePublicationTracker.checkCanPublish(project, publication, repositoryLocation, repositoryName);
     }
 
-    public void checkCanPublishToMavenLocal(PublicationInternal publication) {
-        checkCanPublish(publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
+    public void checkCanPublishToMavenLocal(Project project, PublicationInternal publication) {
+        checkCanPublish(project, publication, mavenRepositoryLocator.getLocalMavenRepository().toURI(), "mavenLocal");
     }
 }
