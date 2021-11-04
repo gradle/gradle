@@ -28,7 +28,6 @@ import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -53,7 +52,7 @@ class IntermediateModelController(
     private
     val projectValueStore by lazy {
         val writerFactory = { outputStream: OutputStream ->
-            ValueStore.Writer<Any> { value ->
+            ValueStore.Writer<Any?> { value ->
                 val (context, codecs) = cacheIO.writerContextFor(outputStream, "values")
                 context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
                 context.runWriteOperation {
@@ -63,11 +62,11 @@ class IntermediateModelController(
             }
         }
         val readerFactory = { inputStream: InputStream ->
-            ValueStore.Reader<Any> {
+            ValueStore.Reader<Any?> {
                 val (context, codecs) = cacheIO.readerContextFor(inputStream)
                 context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
                 context.runReadOperation {
-                    readNonNull()
+                    read()
                 }
             }
         }
@@ -95,11 +94,11 @@ class IntermediateModelController(
         }
     }
 
-    fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T {
+    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T? {
         val key = ModelKey(identityPath, modelName)
         val addressOfCached = locateCachedModel(key)
         if (addressOfCached != null) {
-            return projectValueStore.read(addressOfCached).uncheckedCast()
+            return projectValueStore.read(addressOfCached)?.uncheckedCast()
         }
         val model = if (identityPath != null) {
             cacheFingerprintController.collectFingerprintForProject(identityPath, creator)

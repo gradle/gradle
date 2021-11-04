@@ -44,7 +44,7 @@ interface BuildTreeConfigurationCache {
     /**
      * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to cache.
      */
-    fun <T : Any> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T): T
+    fun <T> loadOrCreateIntermediateModel(identityPath: Path?, modelName: String, creator: () -> T?): T?
 
     /**
      * Flushes any remaining state to the cache and closes any resources
