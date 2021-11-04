@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.FileSystemLocation
@@ -208,6 +209,12 @@ class DefaultConfigurationPublicationsTest extends Specification {
     }
 
     def "can declare outgoing artifacts using lazy provider for configuration"() {
+        given:
+        artifactNotationParser.parseNotation(_ as DefaultFileSystemLocation) >> { args ->
+            def mockArtifact = Mock(ConfigurablePublishArtifact)
+            mockArtifact.getName() >> ((DefaultFileSystemLocation) args[0]).getAsFile().getName()
+            return mockArtifact
+        }
         publications.setObjectFactory(TestUtil.objectFactory())
         SetProperty<FileSystemLocation> prop = new DefaultSetProperty<>(Mock(PropertyHost), FileSystemLocation)
 
@@ -215,13 +222,22 @@ class DefaultConfigurationPublicationsTest extends Specification {
         publications.artifacts(prop)
 
         then:
-        publications.getArtifacts().size() == 0
+        prop.get().isEmpty()
 
         when:
         def file1 = new DefaultFileSystemLocation(new File("file1"))
         prop.add(file1)
 
         then:
-        publications.getArtifacts().size() == 1
+        prop.get().size() == 1
+        publications.getArtifacts().toSet()*.getName() == ["file1"]
+
+        when:
+        def file2 = new DefaultFileSystemLocation(new File("file2"))
+        prop.add(file2)
+
+        then:
+        prop.get().size() == 2
+        publications.getArtifacts().toSet()*.getName() == ["file1"] // Added new file to prop, but artifacts already resolved
     }
 }
